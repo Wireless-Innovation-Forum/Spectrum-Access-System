@@ -1,0 +1,50 @@
+Thank you for your interest in contributing to the project!
+First, read this page to learn the prerequisites for participation.
+
+1.  In order to contribute to the repository, you will need to
+    become a member of the spectrum-access-system-contributors
+    team in the Wireless-Innovation-Forum GitHub organization.
+    Before we can approve your membership, you will need to
+    sign a contributor license agreement.
+
+    If you are an individual, please use the agreement in the
+    file CLA-INDIVIDUAL. If you are representing a corporation,
+    please use the agreement in CLA-CORPORATION. Contact a member
+    of the spectrum-access-system-admin team in the organization
+    for assistance.
+
+    The CLA is necessary mainly because you own the copyright to
+    your changes, even after your contribution becomes part of our
+    codebase, so we need your permission to use and distribute your
+    code. We also need to be sure of various other things—-for
+    instance that you'll tell us if you know that your code infringes
+    on other people's patents.
+
+2.  Before you start working on a larger contribution, you should
+    get in touch with us first through the issue tracker with your
+    idea so that we can help out and possibly guide you. Coordinating
+    up front makes it much easier to avoid frustration later on.
+
+3.  All submissions, including submissions by project members, require
+    review. We use Github pull requests for this purpose.
+
+    Within code submissions, this header should be included in all
+    original files:
+
+    =============
+    Copyright $YEAR $AUTHOR. All Rights Reserved.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+    =============
+
+
