@@ -71,4 +71,30 @@ on data files is by their creators.
     these points. The labels of the points are the city names near where
     the centers are located.
 
+* uscabdry.zip
+
+    This is the raw zip file containing the FCC definition of the US-Canada
+    border. It is linked from this page:
+    https://www.fcc.gov/encyclopedia/white-space-database-administration-q-page
+    and can be retrieved here:
+    https://transition.fcc.gov/oet/info/maps/uscabdry/uscabdry.zip
+
+* uscabdry.kmz
+
+    This is a KMZ file with a representation of the boundary lines contained
+    in the uscabdry.zip file. There are 17 line segments composing this
+    boundary, each taken from a separate .MAP file in the uscabdry.zip file.
+
+* us_mex_boundary.zip
+
+    This is the raw zip file containing the FCC definition of the US-Mexico
+    border. It is linked from this page:
+    https://www.fcc.gov/encyclopedia/white-space-database-administration-q-page
+    and can be retrieved here:
+    http://www.ibwc.gov/GIS_Maps/downloads/us_mex_boundary.zip
+
+* us_mex_boundary.kmz
+
+    This is a KMZ file with a representation of the boundary line
+    contained in the us_mex_boundary.zip Shapefile.
 
