@@ -20,12 +20,19 @@ First, read this page to learn the prerequisites for participation.
     instance that you'll tell us if you know that your code infringes
     on other people's patents.
 
-2.  Before you start working on a larger contribution, you should
+2.  Before contributing, you will need to become a member or observer
+    to the Wireless Innovation Forum. See http://wirelessinnovation.org
+    This will require, among other things, agreeing to the Intellectual
+    Property Rights Policy governing source code produced by the Forum,
+    which applies to this repository. That policy can be found at:
+    http://www.wirelessinnovation.org/assets/documents/policy_on_intellectual_property_rights.pdf
+
+3.  Before you start working on a larger contribution, you should
     get in touch with us first through the issue tracker with your
     idea so that we can help out and possibly guide you. Coordinating
     up front makes it much easier to avoid frustration later on.
 
-3.  All submissions, including submissions by project members, require
+4.  All submissions, including submissions by project members, require
     review. We use Github pull requests for this purpose.
 
     Within code submissions, this header should be included in all
