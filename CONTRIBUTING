@@ -4,6 +4,7 @@ First, read this page to learn the prerequisites for participation.
 1.  In order to contribute to the repository, you will need to
     become a member of the spectrum-access-system-contributors
     team in the Wireless-Innovation-Forum GitHub organization.
+    To become a member, you will need to create a GitHub account.
     Before we can approve your membership, you will need to
     sign a contributor license agreement.
 
@@ -11,7 +12,9 @@ First, read this page to learn the prerequisites for participation.
     file CLA-INDIVIDUAL. If you are representing a corporation,
     please use the agreement in CLA-CORPORATION. Contact a member
     of the spectrum-access-system-admin team in the organization
-    for assistance.
+    for assistance. The agreement can be signed by copy-pasting
+    the form into an email to lee.pucker@wirelessinnovation.org
+    and filling in the relevant values.
 
     The CLA is necessary mainly because you own the copyright to
     your changes, even after your contribution becomes part of our
@@ -39,7 +42,7 @@ First, read this page to learn the prerequisites for participation.
     original files:
 
     =============
-    Copyright $YEAR $AUTHOR. All Rights Reserved.
+    Copyright $YEAR SAS Project Authors. All Rights Reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
