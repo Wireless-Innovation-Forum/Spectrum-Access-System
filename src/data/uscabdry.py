@@ -80,6 +80,14 @@ def ConvertSegmentToLineString(seg):
     if seg.Folder.name == 'LBDRY' and sequence == 14590:
       continue
 
+    # Data problem: there is a bad point in CBDRY which is misplaced.
+    # Eliminating this point leaves a small discontinuity which the
+    # algorithm fills in. The error is near Saint Stephen, and consists
+    # of .4 sq mi., all of which is within the river, and conservative
+    # for the protection of Canadian transmitters.
+    if seg.Folder.name == 'CBDRY' and sequence == 10710:
+      continue
+
     # There is a large cluster of data errors near Clove Lake in LBDRY.
     # These errors are re-used sequence numbers, mis-ordered points, and
     # out-of-order problems. The problem area is between sequence
