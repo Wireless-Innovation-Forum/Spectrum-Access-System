@@ -56,14 +56,14 @@
 # assignment authority area.
 #
 # Incongruity note: the polygon around Semisopochnoi island spans the
-# anti-meridian. Google Earth does not render such polygons correctly, so
-# it is reformatted to violate the KML spec (that is, it uses longitudes
-# outside the range [-180, 180]). To renormalize, add 360 or subtract 360
-# to such values.
+# anti-meridian. Google Earth does not render such polygons correctly. Also,
+# Google Earth does not render large polygons with many vertices, so
+# they will not show up in the viewer.
 
 from lxml import etree
 from pykml import parser
 from pykml.factory import KML_ElementMaker as KML
+from shapely.geometry import LinearRing
 import copy
 import math
 import os
@@ -416,6 +416,21 @@ longSplicedStrings = SpliceLists(shortSplicedStrings, .3)
 # have a couple largish gaps, so use a big threshold.
 lineStrings = CloseRings(longSplicedStrings, 1)
 
+# Reverse rings if necessary.
+for ls in lineStrings:
+  if ls[0] != ls[-1]:
+    print 'NOT A RING!'
+  coords = []
+  for c in ls:
+    xy = c.split(',')
+    coords.append([float(xy[0]), float(xy[1])])
+  lr = LinearRing(coords)
+  if not lr.is_ccw:
+    print 'Reversing non-CCW ring'
+    r = list(reversed(ls))
+    del(ls[:])
+    ls.extend(r)
+
 doc = KML.kml(
   KML.Document(
     KML.name('US Area'),
@@ -465,7 +480,7 @@ for ls in lineStrings:
       KML.altitudeMode('clampToGround'),
       KML.outerBoundaryIs(
         KML.LinearRing(
-          KML.coordinates(' '.join(reversed(ls)))
+          KML.coordinates(' '.join(ls))
         )
       )
     )
