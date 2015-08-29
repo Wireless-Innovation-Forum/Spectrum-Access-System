@@ -1,0 +1,3086 @@
+                                                20 November, 1998
+
+NOTE:
+
+All records are now terminated with a |^|CRLF (carraige return/Linefeed).  This
+should make it easier to load the data into tables, as there are CR/LFs within
+some of the larger varchar fields.  This configuration is not shown in the
+table layouts below.
+
+
+
+/* ============================================================ */
+/*   Database name:  Model_7                                    */
+/*   DBMS name:      Sybase SQL Server 11                       */
+/*   Created on:     8/28/98  4:20 PM                           */
+/* ============================================================ */
+
+/* ============================================================ */
+/*   Table: CONSTRAINTS                                         */
+/* ============================================================ */
+create table CONSTRAINTS
+(
+    frequency_lower               char(17)               not null,
+    frequency_upper               char(17)               not null,
+    routine_processing            char(1)                null    ,
+    min_diameter                  float                  null    ,
+    max_bandwidth                 float                  null    ,
+    max_eirp_den                  float                  null    ,
+    max_power                     float                  null    ,
+    emission_type                 char(9)                null    ,
+    tr_flag                       char(1)                null    ,
+    internat_domestic             char(1)                null    ,
+    analog_digital                char(1)                null    ,
+    nature_of_service             char(3)                null    ,
+    antenna_meets_std             char(1)                null    ,
+    citation                      varchar(20)            null    ,
+    provision                     smallint               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: CONSTRAINTS_PK                                      */
+/* ============================================================ */
+create unique index CONSTRAINTS_PK on CONSTRAINTS (frequency_lower, frequency_upper)
+go
+
+/* ============================================================ */
+/*   Table: COORD_ANTENNA                                       */
+/* ============================================================ */
+create table COORD_ANTENNA
+(
+    coord_stn_key                 int                    not null,
+    coord_antenna_key             int                    not null,
+    antenna_diameter              float                  null    ,
+    antenna_gain                  float                  null    
+)
+go
+
+/* ============================================================ */
+/*   Table: COORD_ARC                                           */
+/* ============================================================ */
+create table COORD_ARC
+(
+    coord_stn_key                 int                    not null,
+    coord_arc_key                 int                    not null,
+    sat_arc_east                  float                  null    ,
+    sat_arc_west                  float                  null    ,
+    sat_hemi_east                 char(1)                null    ,
+    sat_hemi_west                 char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Table: COORD_FREQUENCY                                     */
+/* ============================================================ */
+create table COORD_FREQUENCY
+(
+    coord_stn_key                 int                    not null,
+    frequency_key                 int                    not null,
+    frequency_no                  smallint               null    ,
+    frequency_1                   char(17)               null    ,
+    frequency_2                   char(17)               null    ,
+    emission                      char(9)                null    ,
+    eirp                          float                  null    ,
+    eirp_density                  float                  null    ,
+    date_sent                     datetime               null    ,
+    date_replied                  datetime               null    ,
+    reply_code                    char(5)                null    ,
+    reply_comments                varchar(60)            null    
+)
+go
+
+/* ============================================================ */
+/*   Table: COORD_MEXICO                                        */
+/* ============================================================ */
+create table COORD_MEXICO
+(
+    coord_date                    datetime               not null,
+    coord_type                    char(1)                not null,
+    num_stn_total                 smallint               null    ,
+    num_stn_new                   smallint               null    ,
+    num_stn_resend                smallint               null    
+)
+go
+
+/* ============================================================ */
+/*   Table: COORD_STN                                           */
+/* ============================================================ */
+create table COORD_STN
+(
+    coord_stn_key                 int                    not null,
+    filing_key                    int                    not null,
+    file_number                   varchar(30)            not null,
+    coser_no                      varchar(20)            not null,
+    admin_sent_to                 char(3)                not null,
+    callsign                      char(10)               not null,
+    site_id                       char(10)               null    ,
+    lat_deg                       smallint               null    ,
+    lat_min                       smallint               null    ,
+    lat_sec                       float                  null    ,
+    lat_hemi                      char(1)                null    ,
+    long_deg                      smallint               null    ,
+    long_min                      smallint               null    ,
+    long_sec                      float                  null    ,
+    long_hemi                     char(1)                null    ,
+    site_city                     varchar(20)            null    ,
+    site_state                    char(2)                null    ,
+    site_elevation                float                  null    ,
+    count_arc                     smallint               null    ,
+    count_antenna                 smallint               null    ,
+    count_pts                     smallint               null    ,
+    count_freq                    smallint               null    ,
+    fno_class_of_stn              char(3)                null    ,
+    date_sent                     datetime               null    ,
+    date_replied                  datetime               null    ,
+    reply_code                    char(5)                null    ,
+    reply_comments                varchar(60)            null    ,
+    old_callsign                  char(10)               null    ,
+    rsntemperature                int                    null    
+)
+go
+
+/* ============================================================ */
+/*   Table: SYSTEM_KEY                                          */
+/* ============================================================ */
+create table SYSTEM_KEY
+(
+    system_key                    int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Table: MISC_SEQUENCE                                       */
+/* ============================================================ */
+create table MISC_SEQUENCE
+(
+    sequence_type                 varchar(30)            not null,
+    sequence_number               int                    not null,
+    sequence_year                 int                    null    
+)
+go
+
+/* ============================================================ */
+/*   Index: MISC_SEQUENCE_PK                                    */
+/* ============================================================ */
+create unique index MISC_SEQUENCE_PK on MISC_SEQUENCE (sequence_type)
+go
+
+/* ============================================================ */
+/*   Table: CARS_TRACKING                                       */
+/* ============================================================ */
+create table CARS_TRACKING
+(
+    cars_num                      char(12)               not null,
+    subsystem_code                char(3)                null    ,
+    app_type_code                 char(3)                null    ,
+    version_number                char(5)                null    ,
+    reported_by                   char(8)                not null,
+    phone_num                     varchar(15)            null    ,
+    description                   text                   not null,
+    date_of_report                datetime               not null,
+    date_received                 datetime               null    ,
+    date_assigned                 datetime               null    ,
+    date_complete                 datetime               null    ,
+    priority_assigned             numeric(1)             null    ,
+    priority_final                numeric(1)             null    ,
+    assigned_to                   char(8)                null    ,
+    assigned_phone                varchar(10)            null    ,
+    analysis                      varchar(255)           null    ,
+    action_taken                  text                   null    ,
+    resolved_by                   char(8)                null    ,
+    flag_web_app                  char(1)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: CARS_TRACKING_PK                                    */
+/* ============================================================ */
+create unique index CARS_TRACKING_PK on CARS_TRACKING (cars_num)
+go
+
+/* ============================================================ */
+/*   Table: RANGE                                               */
+/* ============================================================ */
+create table RANGE
+(
+    ttable                        varchar(30)            not null,
+    col                           varchar(30)            not null,
+    minval                        real                   null    ,
+    maxval                        real                   null    ,
+    row_id                        numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_APP_LOOKUP                                      */
+/* ============================================================ */
+create table SOD_APP_LOOKUP
+(
+    app_type_code                 char(3)                not null,
+    app_type_desc                 varchar(255)           null    ,
+    app_type_num                  numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_CATEGORY                                        */
+/* ============================================================ */
+create table SOD_CATEGORY
+(
+    subsystem_num                 numeric(5)             null    ,
+    app_type_num                  numeric(5)             null    ,
+    category_id                   numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_CATEGORY_GROUP                                  */
+/* ============================================================ */
+create table SOD_CATEGORY_GROUP
+(
+    category_profile_id           numeric(5)             not null,
+    category_id                   numeric(5)             not null
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_CATEGORY_PROFILE                                */
+/* ============================================================ */
+create table SOD_CATEGORY_PROFILE
+(
+    name                          varchar(255)           not null,
+    cr_date                       datetime               not null,
+    category_profile_id           numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_DAY_RANGE                                       */
+/* ============================================================ */
+create table SOD_DAY_RANGE
+(
+    begin_day                     int                    not null,
+    end_day                       int                    null    ,
+    day_range_id                  numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_DAY_RANGE_GROUP                                 */
+/* ============================================================ */
+create table SOD_DAY_RANGE_GROUP
+(
+    day_range_profile_id          numeric(5)             not null,
+    day_range_id                  numeric(5)             not null
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_DAY_RANGE_PROFILE                               */
+/* ============================================================ */
+create table SOD_DAY_RANGE_PROFILE
+(
+    name                          varchar(255)           not null,
+    cr_date                       datetime               not null,
+    day_range_profile_id          numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_DIAG                                            */
+/* ============================================================ */
+create table SOD_DIAG
+(
+    name                          varchar(30)            not null,
+    parm1                         int                    null    ,
+    parm2                         int                    null    ,
+    when                          datetime               default getdate() not null
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_GOAL                                            */
+/* ============================================================ */
+create table SOD_GOAL
+(
+    bureau_goal                   int                    not null,
+    customer_goal                 int                    not null,
+    name                          varchar(255)           default 'Unnamed' not null,
+    cr_date                       datetime               default getdate() not null,
+    actual_SOD_percent            float                  default 0.9 not null,
+    backlog_multiplier            float                  default 1.5 not null,
+    goal_id                       numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_PERIOD                                          */
+/* ============================================================ */
+create table SOD_PERIOD
+(
+    begin_date                    datetime               not null,
+    end_date                      datetime               not null,
+    period_desc                   varchar(255)           not null,
+    date_id                       numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_PERIOD_GROUP                                    */
+/* ============================================================ */
+create table SOD_PERIOD_GROUP
+(
+    period_profile_id             numeric(5)             not null,
+    date_id                       numeric(5)             not null
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_PERIOD_PROFILE                                  */
+/* ============================================================ */
+create table SOD_PERIOD_PROFILE
+(
+    name                          varchar(255)           not null,
+    cr_date                       datetime               not null,
+    period_profile_id             numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_REPORT                                          */
+/* ============================================================ */
+create table SOD_REPORT
+(
+    report_title                  varchar(255)           not null,
+    report_desc                   text                   null    ,
+    report_id                     numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_REPORTS                                         */
+/* ============================================================ */
+create table SOD_REPORTS
+(
+    category_profile_id           int                    not null,
+    period_profile_id             int                    null    ,
+    day_range_profile_id          int                    not null,
+    goal_id                       int                    not null,
+    is_official                   tinyint                not null,
+    username                      sysname                default user not null,
+    report_id                     numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: SOD_SUBSYSTEM_LOOKUP                                */
+/* ============================================================ */
+create table SOD_SUBSYSTEM_LOOKUP
+(
+    subsystem_code                char(3)                not null,
+    subsystem_desc                varchar(255)           null    ,
+    subsystem_num                 numeric(5)             identity
+)
+go
+
+/* ============================================================ */
+/*   Table: AUTOGRANT_HISTORY                                   */
+/* ============================================================ */
+create table AUTOGRANT_HISTORY
+(
+    date_autogrant                datetime               not null
+)
+go
+
+/* ============================================================ */
+/*   Table: CLASS_OF_STATION_CODE                               */
+/* ============================================================ */
+create table CLASS_OF_STATION_CODE
+(
+    class_of_station_code         char(3)                not null,
+    description                   varchar(40)            null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: CLASS_OF_STATION_CODE_PK                            */
+/* ============================================================ */
+create unique index CLASS_OF_STATION_CODE_PK on CLASS_OF_STATION_CODE (class_of_station_code)
+go
+
+/* ============================================================ */
+/*   Table: COUNTRY_CODE                                        */
+/* ============================================================ */
+create table COUNTRY_CODE
+(
+    country_code                  char(3)                not null,
+    country_name                  varchar(62)            not null,
+    blocked_sw                    char(1)                null    ,
+    block_start_date              datetime               null    ,
+    block_expired_date            datetime               null    ,
+    block_authorized_by           varchar(20)            null    ,
+    block_date                    datetime               null    ,
+    wto_member_sw                 char(1)                null    ,
+    inactive_date                 datetime               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: COUNTRY_CODE_PK                                     */
+/* ============================================================ */
+create unique index COUNTRY_CODE_PK on COUNTRY_CODE (country_code)
+go
+
+/* ============================================================ */
+/*   Table: NATURE_OF_SERVICE_CODE                              */
+/* ============================================================ */
+create table NATURE_OF_SERVICE_CODE
+(
+    nature_of_service_code        char(4)                not null,
+    description                   varchar(50)            null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: NATURE_OF_SERVICE_CODE_PK                           */
+/* ============================================================ */
+create unique index NATURE_OF_SERVICE_CODE_PK on NATURE_OF_SERVICE_CODE (nature_of_service_code)
+go
+
+/* ============================================================ */
+/*   Table: POLARIZATION_CODE                                   */
+/* ============================================================ */
+create table POLARIZATION_CODE
+(
+    polarization_code             char(3)                not null,
+    polarization_type             varchar(28)            not null,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: POLARIZATION_CODE_PK                                */
+/* ============================================================ */
+create unique index POLARIZATION_CODE_PK on POLARIZATION_CODE (polarization_code)
+go
+
+/* ============================================================ */
+/*   Table: SPACE_STATION                                       */
+/* ============================================================ */
+create table SPACE_STATION
+(
+    space_station_key             int                    not null,
+    us_name                       varchar(20)            not null,
+    itu_name                      varchar(20)            null    ,
+    orbit_location                char(10)               null    ,
+    verbose                       varchar(255)           null    ,
+    inactive_date                 datetime               default '12/31/9999' null    
+)
+go
+
+/* ============================================================ */
+/*   Index: SPACE_STATION_PK                                    */
+/* ============================================================ */
+create unique index SPACE_STATION_PK on SPACE_STATION (space_station_key)
+go
+
+/* ============================================================ */
+/*   Table: STATE                                               */
+/* ============================================================ */
+create table STATE
+(
+    state_code                    char(2)                not null,
+    state_name                    char(14)               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: STATE_PK                                            */
+/* ============================================================ */
+create unique index STATE_PK on STATE (state_code)
+go
+
+/* ============================================================ */
+/*   Table: STATUS_CODE                                         */
+/* ============================================================ */
+create table STATUS_CODE
+(
+    status_code                   char(5)                not null,
+    status_text                   varchar(40)            not null,
+    internal_sw                   char(1)                default 'N' not null,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: STATUS_CODE_PK                                      */
+/* ============================================================ */
+create unique index STATUS_CODE_PK on STATUS_CODE (status_code)
+go
+
+/* ============================================================ */
+/*   Table: SUBSYSTEM_CODE                                      */
+/* ============================================================ */
+create table SUBSYSTEM_CODE
+(
+    subsystem_code                char(3)                not null,
+    description                   varchar(40)            null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: SUBSYSTEM_CODE_PK                                   */
+/* ============================================================ */
+create unique index SUBSYSTEM_CODE_PK on SUBSYSTEM_CODE (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: TYPE_APPLICANT_CODE                                 */
+/* ============================================================ */
+create table TYPE_APPLICANT_CODE
+(
+    type_applicant_code           char(3)                not null,
+    description                   varchar(40)            null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: TYPE_APPLICANT_CODE_PK                              */
+/* ============================================================ */
+create unique index TYPE_APPLICANT_CODE_PK on TYPE_APPLICANT_CODE (type_applicant_code)
+go
+
+/* ============================================================ */
+/*   Table: IB_GROUP                                            */
+/* ============================================================ */
+create table IB_GROUP
+(
+    group_code                    char(4)                not null,
+    group_name                    varchar(20)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: IB_GROUP_PK                                         */
+/* ============================================================ */
+create unique index IB_GROUP_PK on IB_GROUP (group_code)
+go
+
+/* ============================================================ */
+/*   Table: PURPOSE_CODE                                        */
+/* ============================================================ */
+create table PURPOSE_CODE
+(
+    purpose_code                  varchar(40)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PURPOSE_CODE_PK                                     */
+/* ============================================================ */
+create unique index PURPOSE_CODE_PK on PURPOSE_CODE (purpose_code)
+go
+
+/* ============================================================ */
+/*   Table: SECTION_214_SERVICE_CODE                            */
+/* ============================================================ */
+create table SECTION_214_SERVICE_CODE
+(
+    section_214_service_code      char(4)                not null,
+    description                   varchar(60)            default '12/31/9999' null    ,
+    inactive_date                 datetime               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_SERVICE_CODE_PK                         */
+/* ============================================================ */
+create unique index SECTION_214_SERVICE_CODE_PK on SECTION_214_SERVICE_CODE (section_214_service_code)
+go
+
+/* ============================================================ */
+/*   Table: ACTION_CODE                                         */
+/* ============================================================ */
+create table ACTION_CODE
+(
+    action_code                   char(3)                not null,
+    description                   varchar(50)            null    ,
+    verbose                       varchar(255)           null    ,
+    inactive_date                 datetime               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ACTION_CODE_PK                                      */
+/* ============================================================ */
+create unique index ACTION_CODE_PK on ACTION_CODE (action_code)
+go
+
+/* ============================================================ */
+/*   Table: ANTENNA_TYPE_CODE                                   */
+/* ============================================================ */
+create table ANTENNA_TYPE_CODE
+(
+    antenna_type_code             char(2)                not null,
+    description                   varchar(50)            not null,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_TYPE_CODE_PK                                */
+/* ============================================================ */
+create unique index ANTENNA_TYPE_CODE_PK on ANTENNA_TYPE_CODE (antenna_type_code)
+go
+
+/* ============================================================ */
+/*   Table: REPORT                                              */
+/* ============================================================ */
+create table REPORT
+(
+    report_id                     char(12)               not null,
+    report_name                   varchar(60)            not null,
+    report_description            varchar(255)           null    ,
+    report_dataobject             varchar(60)            null    ,
+    report_args_dataobject        varchar(60)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: REPORT_PK                                           */
+/* ============================================================ */
+create unique index REPORT_PK on REPORT (report_id)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_GROUP                                    */
+/* ============================================================ */
+create table PUB_NOTICE_GROUP
+(
+    pub_notice_group_code         char(3)                not null,
+    pub_notice_group_description  varchar(255)           null    ,
+    pub_notice_group_prefix       char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_GROUP_PK                                 */
+/* ============================================================ */
+create unique index PUB_NOTICE_GROUP_PK on PUB_NOTICE_GROUP (pub_notice_group_code)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_TYPE                                     */
+/* ============================================================ */
+create table PUB_NOTICE_TYPE
+(
+    pub_notice_type_code          char(4)                not null,
+    pub_notice_type_description   varchar(255)           null    ,
+    pub_notice_type_suffix        char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_TYPE_PK                                  */
+/* ============================================================ */
+create unique index PUB_NOTICE_TYPE_PK on PUB_NOTICE_TYPE (pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Table: BLOCKED_REASON_CODE                                 */
+/* ============================================================ */
+create table BLOCKED_REASON_CODE
+(
+    blocked_reason_code           char(4)                not null,
+    blocked_reason_description    varchar(255)           null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: BLOCKED_REASON_CODE_PK                              */
+/* ============================================================ */
+create unique index BLOCKED_REASON_CODE_PK on BLOCKED_REASON_CODE (blocked_reason_code)
+go
+
+/* ============================================================ */
+/*   Table: NOTE_TYPE_CODE                                      */
+/* ============================================================ */
+create table NOTE_TYPE_CODE
+(
+    note_type_code                char(3)                not null,
+    description                   varchar(40)            null    ,
+    verbose                       varchar(255)           null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: NOTE_TYPE_CODE_PK                                   */
+/* ============================================================ */
+create unique index NOTE_TYPE_CODE_PK on NOTE_TYPE_CODE (note_type_code)
+go
+
+/* ============================================================ */
+/*   Table: FILE_TYPE_LK                                        */
+/* ============================================================ */
+create table FILE_TYPE_LK
+(
+    id_file_type                  tinyint                not null,
+    file_extension                char(3)                not null,
+    file_type_description         varchar(18)            null    ,
+    mime_type                     varchar(80)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FILE_TYPE_LK_PK                                     */
+/* ============================================================ */
+create unique index FILE_TYPE_LK_PK on FILE_TYPE_LK (id_file_type)
+go
+
+/* ============================================================ */
+/*   Table: ADDRESS                                             */
+/* ============================================================ */
+create table ADDRESS
+(
+    address_key                   int                    not null,
+    address_id                    char(12)               null    ,
+    address_name                  varchar(80)            null    ,
+    dba_name                      varchar(80)            null    ,
+    street1                       varchar(80)            null    ,
+    street2                       varchar(80)            null    ,
+    city                          varchar(40)            null    ,
+    state_code                    char(2)                null    ,
+    zipcode                       char(10)               null    ,
+    country_code                  char(3)                default 'USA' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ADDRESS_PK                                          */
+/* ============================================================ */
+create unique index ADDRESS_PK on ADDRESS (address_key)
+go
+
+/* ============================================================ */
+/*   Index: ADDRESS_FK1                                         */
+/* ============================================================ */
+create index ADDRESS_FK1 on ADDRESS (country_code)
+go
+
+/* ============================================================ */
+/*   Index: ADDRESS_FK2                                         */
+/* ============================================================ */
+create index ADDRESS_FK2 on ADDRESS (state_code)
+go
+
+/* ============================================================ */
+/*   Table: CONTACT                                             */
+/* ============================================================ */
+create table CONTACT
+(
+    contact_key                   int                    not null,
+    contact_id                    char(12)               null    ,
+    contact_name                  varchar(80)            null    ,
+    title                         varchar(40)            null    ,
+    company_name                  varchar(80)            null    ,
+    street1                       varchar(80)            null    ,
+    street2                       varchar(80)            null    ,
+    city                          varchar(40)            null    ,
+    state_code                    char(2)                null    ,
+    zipcode                       char(10)               null    ,
+    country_code                  char(3)                default 'USA' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: CONTACT_PK                                          */
+/* ============================================================ */
+create unique index CONTACT_PK on CONTACT (contact_key)
+go
+
+/* ============================================================ */
+/*   Index: CONTACT_FK1                                         */
+/* ============================================================ */
+create index CONTACT_FK1 on CONTACT (state_code)
+go
+
+/* ============================================================ */
+/*   Index: CONTACT_FK2                                         */
+/* ============================================================ */
+create index CONTACT_FK2 on CONTACT (country_code)
+go
+
+/* ============================================================ */
+/*   Table: MAIN                                                */
+/* ============================================================ */
+create table MAIN
+(
+    filing_key                    int                    not null,
+    filing_state                  tinyint                default 0 null    ,
+    callsign                      char(10)               null    ,
+    file_number                   char(19)               not null,
+    subsystem_code                char(3)                not null,
+    status_code                   char(5)                null    ,
+    status_date                   datetime               null    ,
+    last_action                   char(3)                null    ,
+    last_action_date              datetime               null    ,
+    mts_number                    int                    null    ,
+    date_filed                    datetime               null    ,
+    mellon_date                   datetime               null    ,
+    date_grant                    datetime               null    ,
+    date_deny                     datetime               null    ,
+    date_dismiss                  datetime               null    ,
+    date_surrender                datetime               null    ,
+    date_begin                    datetime               null    ,
+    date_expire                   datetime               null    ,
+    date_last_update              datetime               null    ,
+    aff_pub_notice_sw             char(1)                null    ,
+    aff_pub_notice_date           datetime               null    ,
+    act_pub_notice_sw             char(1)                null    ,
+    act_pub_notice_date           datetime               null    ,
+    submission_id                 char(12)               null    ,
+    fee_control_number            varchar(20)            null    ,
+    app_type_code                 char(3)                not null,
+    filing_other_text             varchar(40)            null    ,
+    keyword1                      char(6)                null    ,
+    keyword2                      char(6)                null    ,
+    tower_cleared_sw              char(1)                null    ,
+    date_blocked                  datetime               null    ,
+    blocked_reason_code           char(4)                null    ,
+    blocked_reason                text                   null    ,
+    type_applicant_code           char(3)                null    ,
+    applicant_other_text          varchar(40)            null    ,
+    class_of_station_code         char(3)                null    ,
+    class_other_text              varchar(40)            null    ,
+    signer_name                   varchar(50)            null    ,
+    signer_title                  varchar(50)            null    ,
+    date_signed                   datetime               null    ,
+    description                   text                   null    ,
+    address_key                   int                    null    ,
+    address_attention             varchar(80)            null    ,
+    address_phone_num             char(25)               null    ,
+    address_fax_num               char(25)               null    ,
+    address_e_mail                varchar(40)            null    ,
+    contact_key                   int                    null    ,
+    contact_attention             varchar(80)            null    ,
+    contact_relationship          varchar(20)            null    ,
+    contact_phone_num             char(25)               null    ,
+    contact_fax_num               char(25)               null    ,
+    contact_e_mail                varchar(40)            null    ,
+    other_purpose_text            varchar(40)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_PK                                             */
+/* ============================================================ */
+create unique index MAIN_PK on MAIN (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK1                                            */
+/* ============================================================ */
+create index MAIN_FK1 on MAIN (app_type_code, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK2                                            */
+/* ============================================================ */
+create index MAIN_FK2 on MAIN (class_of_station_code)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK3                                            */
+/* ============================================================ */
+create index MAIN_FK3 on MAIN (address_key)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK4                                            */
+/* ============================================================ */
+create index MAIN_FK4 on MAIN (contact_key)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK5                                            */
+/* ============================================================ */
+create index MAIN_FK5 on MAIN (type_applicant_code)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK6                                            */
+/* ============================================================ */
+create index MAIN_FK6 on MAIN (status_code)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK7                                            */
+/* ============================================================ */
+create index MAIN_FK7 on MAIN (last_action)
+go
+
+/* ============================================================ */
+/*   Index: MAIN_FK8                                            */
+/* ============================================================ */
+create index MAIN_FK8 on MAIN (blocked_reason_code)
+go
+
+/* ============================================================ */
+/*   Table: ACCOUNTING_CHANGE                                   */
+/* ============================================================ */
+create table ACCOUNTING_CHANGE
+(
+    filing_key                    int                    not null,
+    carrier                       varchar(80)            not null,
+    administration                varchar(80)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ACCOUNTING_CHANGE_PK                                */
+/* ============================================================ */
+create unique index ACCOUNTING_CHANGE_PK on ACCOUNTING_CHANGE (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: ASSIGNMENT                                          */
+/* ============================================================ */
+create table ASSIGNMENT
+(
+    filing_key                    int                    not null,
+    licensee_key                  int                    not null,
+    licensee_attention            varchar(80)            null    ,
+    licensee_phone_num            char(25)               null    ,
+    licensee_fax_num              char(25)               null    ,
+    licensee_e_mail               varchar(40)            null    ,
+    transferor_key                int                    null    ,
+    transferor_attention          varchar(80)            null    ,
+    transferor_relationship       varchar(20)            null    ,
+    transferor_phone_num          char(25)               null    ,
+    transferor_fax_num            char(25)               null    ,
+    transferor_e_mail             varchar(40)            null    ,
+    transferee_key                int                    not null,
+    transferee_attention          varchar(80)            null    ,
+    transferee_phone_num          char(25)               null    ,
+    transferee_fax_num            char(25)               null    ,
+    transferee_e_mail             varchar(40)            null    ,
+    num_stns                      int                    null    ,
+    control_sw                    char(1)                null    ,
+    licsigner_name                varchar(50)            null    ,
+    licsigner_title               varchar(50)            null    ,
+    licsigner_date                datetime               null    ,
+    fromsigner_name               varchar(50)            null    ,
+    fromsigner_title              varchar(50)            null    ,
+    fromsigner_date               datetime               null    ,
+    tosigner_name                 varchar(50)            null    ,
+    tosigner_title                varchar(50)            null    ,
+    tosigner_date                 datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGNMENT_PK                                       */
+/* ============================================================ */
+create unique index ASSIGNMENT_PK on ASSIGNMENT (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGNMENT_FK1                                      */
+/* ============================================================ */
+create index ASSIGNMENT_FK1 on ASSIGNMENT (licensee_key)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGNMENT_FK2                                      */
+/* ============================================================ */
+create index ASSIGNMENT_FK2 on ASSIGNMENT (transferee_key)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGNMENT_FK3                                      */
+/* ============================================================ */
+create index ASSIGNMENT_FK3 on ASSIGNMENT (transferor_key)
+go
+
+/* ============================================================ */
+/*   Table: ATTACHMENT                                          */
+/* ============================================================ */
+create table ATTACHMENT
+(
+    attachment_key                int                    not null,
+    filing_key                    int                    not null,
+    attachment_name               varchar(20)            not null,
+    description                   varchar(255)           not null,
+    transmission_start_date       datetime               null    ,
+    transmission_end_date         datetime               null    ,
+    processed_date                datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ATTACHMENT_PK                                       */
+/* ============================================================ */
+create unique index ATTACHMENT_PK on ATTACHMENT (attachment_key)
+go
+
+/* ============================================================ */
+/*   Index: ATTACHMENT_FK1                                      */
+/* ============================================================ */
+create index ATTACHMENT_FK1 on ATTACHMENT (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FORM_312                                            */
+/* ============================================================ */
+create table FORM_312
+(
+    filing_key                    int                    not null,
+    filenum_refer                 char(19)               null    ,
+    filenum_date                  datetime               null    ,
+    required_construction_date    datetime               null    ,
+    completed_construction_date   datetime               null    ,
+    blanket_callsign_sw           char(1)                null    ,
+    common_carrier_sw             char(1)                null    ,
+    us_sat_sw                     char(1)                null    ,
+    non_us_sat_sw                 char(1)                null    ,
+    type_of_facility              char(2)                null    ,
+    environ_effect_sw             char(1)                null    ,
+    foreign_govt_rep_sw           char(1)                null    ,
+    alien_applicant_sw            char(1)                null    ,
+    foreign_corp_sw               char(1)                null    ,
+    alien_officer_sw              char(1)                null    ,
+    foreign_control_sw            char(1)                null    ,
+    waivers_req_sw                char(1)                null    ,
+    revoked_sw                    char(1)                null    ,
+    felony_sw                     char(1)                null    ,
+    monopoly_sw                   char(1)                null    ,
+    public_switched_sw            char(1)                null    ,
+    pend_action_sw                char(1)                null    ,
+    drug_abuse_sw                 char(1)                null    ,
+    nature_of_service_other_text  varchar(40)            null    ,
+    sat_common_name               varchar(20)            null    ,
+    orbit_location                char(10)               null    ,
+    non_us_lic_sat_sw             char(1)                null    ,
+    administration                varchar(80)            null    ,
+    operation_start_date          datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FORM_312_PK                                         */
+/* ============================================================ */
+create unique index FORM_312_PK on FORM_312 (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: SITE                                                */
+/* ============================================================ */
+create table SITE
+(
+    site_key                      int                    not null,
+    filing_key                    int                    not null,
+    site_id                       varchar(20)            not null,
+    site_description              varchar(255)           null    ,
+    contact_person                varchar(40)            null    ,
+    site_street1                  varchar(40)            null    ,
+    site_street2                  varchar(40)            null    ,
+    site_city                     varchar(20)            null    ,
+    site_county                   char(22)               null    ,
+    site_state                    char(2)                null    ,
+    site_zipcode                  char(10)               null    ,
+    site_telephone                char(25)               null    ,
+    site_elevation                float                  null    ,
+    lat_deg                       tinyint                null    ,
+    lat_min                       tinyint                null    ,
+    lat_sec                       float                  null    ,
+    lat_hemi                      char(1)                null    ,
+    long_deg                      tinyint                null    ,
+    long_min                      tinyint                null    ,
+    long_sec                      float                  null    ,
+    long_hemi                     char(1)                null    ,
+    nad_ind                       char(2)                null    ,
+    num_vsats_built               int                    null    ,
+    vsat_report_date              datetime               null    ,
+    faa_coord_sw                  char(1)                null    ,
+    comply_25209a_sw              char(1)                null    ,
+    comply_25209a2_sw             char(1)                null    ,
+    remote_control_sw             char(1)                null    ,
+    foreign_freq_coord_req_sw     char(1)                null    ,
+    freq_coord_req_sw             char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: SITE_PK                                             */
+/* ============================================================ */
+create unique index SITE_PK on SITE (site_key)
+go
+
+/* ============================================================ */
+/*   Index: SITE_FK1                                            */
+/* ============================================================ */
+create index SITE_FK1 on SITE (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FORM_325C                                           */
+/* ============================================================ */
+create table FORM_325C
+(
+    filing_key                    int                    not null,
+    studio_description            varchar(255)           null    ,
+    studio_city                   varchar(20)            null    ,
+    studio_state                  char(2)                null    ,
+    studio_zipcode                char(10)               null    ,
+    delivery_means                varchar(80)            null    ,
+    citizen_sw                    char(1)                null    ,
+    partners_citizens_sw          char(1)                null    ,
+    corp_state_code               char(2)                null    ,
+    alien_ownership_sw            char(1)                null    ,
+    alien_control_sw              char(1)                null    ,
+    alien_officer_5c_sw           char(1)                null    ,
+    alien_officer_5f_sw           char(1)                null    ,
+    corporate_control_sw          char(1)                null    ,
+    subsidiary_sw                 char(1)                null    ,
+    association_no_members        integer                null    ,
+    association_no_alien_members  integer                null    ,
+    principal_bussiness           varchar(50)            null    ,
+    am_fm_tv_interest_sw          char(1)                null    ,
+    foreign_rep_sw                char(1)                null    ,
+    revoked_sw                    char(1)                null    ,
+    denied_sw                     char(1)                null    ,
+    felony_sw                     char(1)                null    ,
+    monopoly_sw                   char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FORM_325C_PK                                        */
+/* ============================================================ */
+create unique index FORM_325C_PK on FORM_325C (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FORM_325C_FK1                                       */
+/* ============================================================ */
+create index FORM_325C_FK1 on FORM_325C (corp_state_code)
+go
+
+/* ============================================================ */
+/*   Index: FORM_325C_FK2                                       */
+/* ============================================================ */
+create index FORM_325C_FK2 on FORM_325C (studio_state)
+go
+
+/* ============================================================ */
+/*   Table: NATIVE_APP                                          */
+/* ============================================================ */
+create table NATIVE_APP
+(
+    attachment_key                int                    not null,
+    id_file_type                  tinyint                null    ,
+    document_store                image                  null    
+)
+go
+
+/* ============================================================ */
+/*   Index: NATIVE_APP_PK                                       */
+/* ============================================================ */
+create unique index NATIVE_APP_PK on NATIVE_APP (attachment_key)
+go
+
+/* ============================================================ */
+/*   Index: NATIVE_APP_FK1                                      */
+/* ============================================================ */
+create index NATIVE_APP_FK1 on NATIVE_APP (id_file_type)
+go
+
+/* ============================================================ */
+/*   Table: ANTENNA                                             */
+/* ============================================================ */
+create table ANTENNA
+(
+    antenna_key                   int                    not null,
+    antenna_id                    char(10)               not null,
+    site_key                      int                    not null,
+    diameter                      float                  null    ,
+    diameter_minor                float                  null    ,
+    diameter_major                float                  null    ,
+    height_bldg_agl               float                  null    ,
+    height_max_agl                float                  null    ,
+    height_max_amsl               float                  null    ,
+    height_max_aroof              float                  null    ,
+    manufacturer                  varchar(40)            null    ,
+    max_input_power               float                  null    ,
+    max_output_eirp               float                  null    ,
+    model                         varchar(20)            null    ,
+    quantity                      int                    null    ,
+    tower_id                      char(10)               null    ,
+    tower_cleared_sw              char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_PK                                          */
+/* ============================================================ */
+create unique index ANTENNA_PK on ANTENNA (antenna_key)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_FK1                                         */
+/* ============================================================ */
+create index ANTENNA_FK1 on ANTENNA (site_key)
+go
+
+/* ============================================================ */
+/*   Table: PTCOMM                                              */
+/* ============================================================ */
+create table PTCOMM
+(
+    ptcomm_key                    int                    not null,
+    site_key                      int                    not null,
+    space_station_key             int                    null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PTCOMM_PK                                           */
+/* ============================================================ */
+create unique index PTCOMM_PK on PTCOMM (ptcomm_key)
+go
+
+/* ============================================================ */
+/*   Index: PTCOMM_FK1                                          */
+/* ============================================================ */
+create index PTCOMM_FK1 on PTCOMM (site_key)
+go
+
+/* ============================================================ */
+/*   Index: PTCOMM_FK2                                          */
+/* ============================================================ */
+create index PTCOMM_FK2 on PTCOMM (space_station_key)
+go
+
+/* ============================================================ */
+/*   Table: ANTENNA_FX                                          */
+/* ============================================================ */
+create table ANTENNA_FX
+(
+    antenna_key                   int                    not null,
+    site_key                      int                    not null,
+    antenna_id                    char(10)               not null,
+    gain_1                        float                  null    ,
+    gain_2                        float                  null    ,
+    frequency_1                   char(17)               null    ,
+    frequency_2                   char(17)               null    ,
+    polarization_code             char(3)                null    ,
+    frequency_lower               char(17)               null    ,
+    frequency_upper               char(17)               null    ,
+    height_max_amsl               float                  null    ,
+    height_max_agl                float                  null    ,
+    elevation                     float                  null    ,
+    manufacturer                  varchar(40)            null    ,
+    model                         varchar(20)            null    ,
+    quantity                      int                    null    ,
+    tower_id                      char(10)               null    ,
+    beamwidth                     float                  null    ,
+    rotatable_sw                  char(1)                null    ,
+    take_off_angle                float                  null    ,
+    slewable_sw                   char(1)                null    ,
+    slew_amt                      float                  null    ,
+    target_zone                   varchar(80)            null    ,
+    antenna_type_code             char(2)                null    ,
+    antenna_pattern               char(2)                null    ,
+    schematic_sw                  char(1)                null    ,
+    operation_desc                varchar(255)           null    ,
+    tower_cleared_sw              char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_FX_PK                                       */
+/* ============================================================ */
+create unique index ANTENNA_FX_PK on ANTENNA_FX (antenna_key)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_FX_FK1                                      */
+/* ============================================================ */
+create index ANTENNA_FX_FK1 on ANTENNA_FX (site_key)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_FX_FK2                                      */
+/* ============================================================ */
+create index ANTENNA_FX_FK2 on ANTENNA_FX (polarization_code)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_FX_FK3                                      */
+/* ============================================================ */
+create index ANTENNA_FX_FK3 on ANTENNA_FX (antenna_type_code)
+go
+
+/* ============================================================ */
+/*   Table: FREQUENCY                                           */
+/* ============================================================ */
+create table FREQUENCY
+(
+    frequency_key                 int                    not null,
+    antenna_key                   int                    not null,
+    polarization_code             char(3)                null    ,
+    eirp                          float                  null    ,
+    eirp_density                  float                  null    ,
+    emission                      char(9)                null    ,
+    frequency_lower               char(17)               null    ,
+    frequency_upper               char(17)               null    ,
+    trans_mode                    char(1)                null    ,
+    modulation                    varchar(60)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_PK                                        */
+/* ============================================================ */
+create unique index FREQUENCY_PK on FREQUENCY (frequency_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_FK1                                       */
+/* ============================================================ */
+create index FREQUENCY_FK1 on FREQUENCY (antenna_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_FK2                                       */
+/* ============================================================ */
+create index FREQUENCY_FK2 on FREQUENCY (polarization_code)
+go
+
+/* ============================================================ */
+/*   Table: APP_TYPE_CODE                                       */
+/* ============================================================ */
+create table APP_TYPE_CODE
+(
+    app_type_code                 char(3)                not null,
+    subsystem_code                char(3)                not null,
+    application_type              varchar(50)            null    ,
+    verbose                       varchar(255)           null    ,
+    pb_class_name                 varchar(50)            null    ,
+    pb_license_class_name         varchar(50)            null    ,
+    inactive_date                 datetime               default '12/31/9999' not null
+)
+go
+
+/* ============================================================ */
+/*   Index: APP_TYPE_CODE_PK                                    */
+/* ============================================================ */
+create unique index APP_TYPE_CODE_PK on APP_TYPE_CODE (app_type_code, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: APP_TYPE_CODE_FK1                                   */
+/* ============================================================ */
+create index APP_TYPE_CODE_FK1 on APP_TYPE_CODE (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: CONDITION                                           */
+/* ============================================================ */
+create table CONDITION
+(
+    condition_code                int                    not null,
+    subsystem_code                char(3)                not null,
+    condition_text                text                   null    ,
+    condition_note                varchar(255)           null    
+)
+go
+
+/* ============================================================ */
+/*   Index: CONDITION_PK                                        */
+/* ============================================================ */
+create unique index CONDITION_PK on CONDITION (condition_code)
+go
+
+/* ============================================================ */
+/*   Index: CONDITION_FK1                                       */
+/* ============================================================ */
+create index CONDITION_FK1 on CONDITION (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: IB_USER                                             */
+/* ============================================================ */
+create table IB_USER
+(
+    user_id                       char(8)                not null,
+    print_name                    varchar(30)            not null,
+    active_sw                     char(1)                default 'Y' null    ,
+    access_level                  tinyint                default 1 null    ,
+    support_sw                    char(1)                null    ,
+    external_sw                   char(1)                null    ,
+    group_code                    char(4)                null    ,
+    autogrant_sw                  char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: IB_USER_PK                                          */
+/* ============================================================ */
+create unique index IB_USER_PK on IB_USER (user_id)
+go
+
+/* ============================================================ */
+/*   Index: IB_USER_FK1                                         */
+/* ============================================================ */
+create index IB_USER_FK1 on IB_USER (group_code)
+go
+
+/* ============================================================ */
+/*   Table: AUTH_SUBSYSTEM                                      */
+/* ============================================================ */
+create table AUTH_SUBSYSTEM
+(
+    user_id                       char(8)                not null,
+    subsystem_code                char(3)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: AUTH_SUBSYSTEM_PK                                   */
+/* ============================================================ */
+create unique index AUTH_SUBSYSTEM_PK on AUTH_SUBSYSTEM (user_id, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: AUTH_SUBSYSTEM_FK1                                  */
+/* ============================================================ */
+create index AUTH_SUBSYSTEM_FK1 on AUTH_SUBSYSTEM (user_id)
+go
+
+/* ============================================================ */
+/*   Index: AUTH_SUBSYSTEM_FK2                                  */
+/* ============================================================ */
+create index AUTH_SUBSYSTEM_FK2 on AUTH_SUBSYSTEM (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_GROUP_TYPE                               */
+/* ============================================================ */
+create table PUB_NOTICE_GROUP_TYPE
+(
+    pub_notice_group_code         char(3)                not null,
+    pub_notice_type_code          char(4)                not null,
+    pb_class_name                 varchar(50)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_GROUP_TYPE_PK                            */
+/* ============================================================ */
+create unique index PUB_NOTICE_GROUP_TYPE_PK on PUB_NOTICE_GROUP_TYPE (pub_notice_group_code, pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_GROUP_TYPE_FK1                           */
+/* ============================================================ */
+create index PUB_NOTICE_GROUP_TYPE_FK1 on PUB_NOTICE_GROUP_TYPE (pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_GROUP_TYPE_FK2                           */
+/* ============================================================ */
+create index PUB_NOTICE_GROUP_TYPE_FK2 on PUB_NOTICE_GROUP_TYPE (pub_notice_group_code)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_REPORT                                   */
+/* ============================================================ */
+create table PUB_NOTICE_REPORT
+(
+    report_key                    integer                not null,
+    pub_notice_group_code         char(3)                not null,
+    pub_notice_type_code          char(4)                not null,
+    report_number                 char(12)               not null,
+    da_number                     char(12)               null    ,
+    date_published                datetime               not null,
+    date_processed                datetime               null    ,
+    send_to_opa                   char(1)                null    ,
+    opa_file_name                 char(8)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_REPORT_PK                                */
+/* ============================================================ */
+create unique index PUB_NOTICE_REPORT_PK on PUB_NOTICE_REPORT (report_key)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_REPORT_FK1                               */
+/* ============================================================ */
+create index PUB_NOTICE_REPORT_FK1 on PUB_NOTICE_REPORT (pub_notice_group_code, pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Table: ASSIGN_LIST                                         */
+/* ============================================================ */
+create table ASSIGN_LIST
+(
+    filing_key                    int                    not null,
+    callsign                      char(10)               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGN_LIST_PK                                      */
+/* ============================================================ */
+create unique index ASSIGN_LIST_PK on ASSIGN_LIST (filing_key, callsign)
+go
+
+/* ============================================================ */
+/*   Index: ASSIGN_LIST_FK1                                     */
+/* ============================================================ */
+create index ASSIGN_LIST_FK1 on ASSIGN_LIST (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FILING_TRACKING                                     */
+/* ============================================================ */
+create table FILING_TRACKING
+(
+    filing_key                    int                    not null,
+    to_date                       datetime               not null,
+    to_user                       char(8)                not null,
+    from_user                     char(8)                null    ,
+    by_user                       char(8)                null    ,
+    acknowledged_sw               char(1)                null    ,
+    date_acknowledged             datetime               null    ,
+    date_completed                datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FILING_TRACKING_PK                                  */
+/* ============================================================ */
+create unique index FILING_TRACKING_PK on FILING_TRACKING (filing_key, to_date, to_user)
+go
+
+/* ============================================================ */
+/*   Index: FILING_TRACKING_FK1                                 */
+/* ============================================================ */
+create index FILING_TRACKING_FK1 on FILING_TRACKING (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FILING_TRACKING_FK2                                 */
+/* ============================================================ */
+create index FILING_TRACKING_FK2 on FILING_TRACKING (to_user)
+go
+
+/* ============================================================ */
+/*   Index: FILING_TRACKING_FK3                                 */
+/* ============================================================ */
+create index FILING_TRACKING_FK3 on FILING_TRACKING (from_user)
+go
+
+/* ============================================================ */
+/*   Index: FILING_TRACKING_FK4                                 */
+/* ============================================================ */
+create index FILING_TRACKING_FK4 on FILING_TRACKING (by_user)
+go
+
+/* ============================================================ */
+/*   Table: AZIMUTH                                             */
+/* ============================================================ */
+create table AZIMUTH
+(
+    azimuth_key                   int                    not null,
+    antenna_key                   int                    not null,
+    azimuth                       float                  not null
+)
+go
+
+/* ============================================================ */
+/*   Index: AZIMUTH_PK                                          */
+/* ============================================================ */
+create unique index AZIMUTH_PK on AZIMUTH (azimuth_key)
+go
+
+/* ============================================================ */
+/*   Index: AZIMUTH_FK1                                         */
+/* ============================================================ */
+create index AZIMUTH_FK1 on AZIMUTH (antenna_key)
+go
+
+/* ============================================================ */
+/*   Table: COMMENT                                             */
+/* ============================================================ */
+create table COMMENT
+(
+    filing_key                    int                    not null,
+    date_entered                  datetime               not null,
+    date_filed                    datetime               not null,
+    commenter_name                varchar(80)            null    ,
+    file_name                     varchar(255)           not null
+)
+go
+
+/* ============================================================ */
+/*   Index: COMMENT_PK                                          */
+/* ============================================================ */
+create unique index COMMENT_PK on COMMENT (filing_key, date_entered)
+go
+
+/* ============================================================ */
+/*   Index: COMMENT_FK1                                         */
+/* ============================================================ */
+create index COMMENT_FK1 on COMMENT (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: COORD_PT                                            */
+/* ============================================================ */
+create table COORD_PT
+(
+    coord_key                     int                    not null,
+    coord_pt                      int                    not null,
+    space_station_key             int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: COORD_PT_PK                                         */
+/* ============================================================ */
+create unique index COORD_PT_PK on COORD_PT (coord_key)
+go
+
+/* ============================================================ */
+/*   Index: COORD_PT_FK1                                        */
+/* ============================================================ */
+create index COORD_PT_FK1 on COORD_PT (space_station_key)
+go
+
+/* ============================================================ */
+/*   Table: COUNTY                                              */
+/* ============================================================ */
+create table COUNTY
+(
+    state_code                    char(2)                not null,
+    county                        varchar(22)            not null,
+    fips_code                     char(3)                null    ,
+    canada_ind                    char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: COUNTY_PK                                           */
+/* ============================================================ */
+create unique index COUNTY_PK on COUNTY (state_code, county)
+go
+
+/* ============================================================ */
+/*   Index: COUNTY_FK1                                          */
+/* ============================================================ */
+create index COUNTY_FK1 on COUNTY (state_code)
+go
+
+/* ============================================================ */
+/*   Table: DESTINATION                                         */
+/* ============================================================ */
+create table DESTINATION
+(
+    destination_key               int                    not null,
+    ptcomm_key                    int                    null    ,
+    country_code                  char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: DESTINATION_PK                                      */
+/* ============================================================ */
+create unique index DESTINATION_PK on DESTINATION (destination_key)
+go
+
+/* ============================================================ */
+/*   Index: DESTINATION_FK1                                     */
+/* ============================================================ */
+create index DESTINATION_FK1 on DESTINATION (country_code)
+go
+
+/* ============================================================ */
+/*   Index: DESTINATION_FK2                                     */
+/* ============================================================ */
+create index DESTINATION_FK2 on DESTINATION (ptcomm_key)
+go
+
+/* ============================================================ */
+/*   Table: DNIC                                                */
+/* ============================================================ */
+create table DNIC
+(
+    filing_key                    int                    not null,
+    dnic_code                     char(4)                null    ,
+    from_name                     varchar(80)            null    ,
+    to_name                       varchar(80)            null    ,
+    from_code                     char(4)                null    ,
+    to_code                       char(4)                null    ,
+    reason                        varchar(50)            null    ,
+    network_name                  varchar(60)            null    ,
+    deadline_date                 datetime               null    ,
+    type_request_sw               char(1)                null    ,
+    reassignment_sw               char(1)                null    ,
+    provisional_assignment_sw     char(1)                null    ,
+    authorization_sw              char(1)                null    ,
+    international_service         varchar(255)           null    
+)
+go
+
+/* ============================================================ */
+/*   Index: DNIC_PK                                             */
+/* ============================================================ */
+create unique index DNIC_PK on DNIC (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FILENUM_XREF                                        */
+/* ============================================================ */
+create table FILENUM_XREF
+(
+    old_file_number               varchar(30)            not null,
+    filing_key                    integer                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FILENUM_XREF_PK                                     */
+/* ============================================================ */
+create unique index FILENUM_XREF_PK on FILENUM_XREF (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FREQ_COORD                                          */
+/* ============================================================ */
+create table FREQ_COORD
+(
+    coord_key                     int                    not null,
+    antenna_key                   int                    not null,
+    azimuth_east                  float                  null    ,
+    azimuth_west                  float                  null    ,
+    elevation_east                float                  null    ,
+    elevation_west                float                  null    ,
+    freq_limit_low                char(17)               null    ,
+    freq_limit_high               char(17)               null    ,
+    horiz_max_density             float                  null    ,
+    sat_arc_east                  float                  null    ,
+    sat_arc_west                  float                  null    ,
+    sat_hemi_east                 char(1)                null    ,
+    sat_hemi_west                 char(1)                null    ,
+    sat_orbit_type                char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FREQ_COORD_PK                                       */
+/* ============================================================ */
+create unique index FREQ_COORD_PK on FREQ_COORD (coord_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQ_COORD_FK1                                      */
+/* ============================================================ */
+create index FREQ_COORD_FK1 on FREQ_COORD (antenna_key)
+go
+
+/* ============================================================ */
+/*   Table: FREQUENCY_FX                                        */
+/* ============================================================ */
+create table FREQUENCY_FX
+(
+    frequency_key                 int                    not null,
+    site_key                      int                    not null,
+    polarization_code             char(3)                null    ,
+    eirp                          float                  null    ,
+    emission                      char(9)                null    ,
+    frequency_lower               char(17)               null    ,
+    frequency_upper               char(17)               null    ,
+    trans_mode                    char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_FX_PK                                     */
+/* ============================================================ */
+create unique index FREQUENCY_FX_PK on FREQUENCY_FX (frequency_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_FX_FK1                                    */
+/* ============================================================ */
+create index FREQUENCY_FX_FK1 on FREQUENCY_FX (polarization_code)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_FX_FK2                                    */
+/* ============================================================ */
+create index FREQUENCY_FX_FK2 on FREQUENCY_FX (site_key)
+go
+
+/* ============================================================ */
+/*   Table: ISPC                                                */
+/* ============================================================ */
+create table ISPC
+(
+    filing_key                    int                    not null,
+    ispc_code                     char(7)                null    ,
+    network_city                  varchar(20)            null    ,
+    network_state                 char(2)                null    ,
+    deadline_date                 datetime               null    ,
+    implementation_date           datetime               null    ,
+    assign_date                   datetime               null    ,
+    reassignment_sw               char(1)                null    ,
+    provisional_assignment_sw     char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ISPC_PK                                             */
+/* ============================================================ */
+create unique index ISPC_PK on ISPC (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: KEYWORD                                             */
+/* ============================================================ */
+create table KEYWORD
+(
+    subsystem_code                char(3)                not null,
+    keyword                       char(8)                not null,
+    description                   varchar(60)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: KEYWORD_PK                                          */
+/* ============================================================ */
+create unique index KEYWORD_PK on KEYWORD (subsystem_code, keyword)
+go
+
+/* ============================================================ */
+/*   Index: KEYWORD_FK1                                         */
+/* ============================================================ */
+create index KEYWORD_FK1 on KEYWORD (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: LICENSE_CONDITION                                   */
+/* ============================================================ */
+create table LICENSE_CONDITION
+(
+    condition_key                 int                    not null,
+    filing_key                    int                    not null,
+    condition_code                int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: LICENSE_CONDITION_PK                                */
+/* ============================================================ */
+create unique index LICENSE_CONDITION_PK on LICENSE_CONDITION (condition_key)
+go
+
+/* ============================================================ */
+/*   Index: LICENSE_CONDITION_FK1                               */
+/* ============================================================ */
+create index LICENSE_CONDITION_FK1 on LICENSE_CONDITION (condition_code)
+go
+
+/* ============================================================ */
+/*   Index: LICENSE_CONDITION_FK2                               */
+/* ============================================================ */
+create index LICENSE_CONDITION_FK2 on LICENSE_CONDITION (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: NATURE_OF_SERVICE                                   */
+/* ============================================================ */
+create table NATURE_OF_SERVICE
+(
+    filing_key                    int                    not null,
+    nature_of_service_code        char(4)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: NATURE_OF_SERVICE_PK                                */
+/* ============================================================ */
+create unique index NATURE_OF_SERVICE_PK on NATURE_OF_SERVICE (filing_key, nature_of_service_code)
+go
+
+/* ============================================================ */
+/*   Index: NATURE_OF_SERVICE_FK1                               */
+/* ============================================================ */
+create index NATURE_OF_SERVICE_FK1 on NATURE_OF_SERVICE (nature_of_service_code)
+go
+
+/* ============================================================ */
+/*   Index: NATURE_OF_SERVICE_FK2                               */
+/* ============================================================ */
+create index NATURE_OF_SERVICE_FK2 on NATURE_OF_SERVICE (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: NOTE                                                */
+/* ============================================================ */
+create table NOTE
+(
+    note_key                      int                    not null,
+    filing_key                    int                    not null,
+    note_type_code                char(3)                null    ,
+    aff_pub_notice_sw             char(1)                null    ,
+    act_pub_notice_sw             char(1)                null    ,
+    date_created                  datetime               not null,
+    user_id                       char(8)                not null,
+    note_text                     text                   not null
+)
+go
+
+/* ============================================================ */
+/*   Index: NOTE_PK                                             */
+/* ============================================================ */
+create unique index NOTE_PK on NOTE (note_key)
+go
+
+/* ============================================================ */
+/*   Index: NOTE_FK1                                            */
+/* ============================================================ */
+create index NOTE_FK1 on NOTE (user_id)
+go
+
+/* ============================================================ */
+/*   Index: NOTE_FK2                                            */
+/* ============================================================ */
+create index NOTE_FK2 on NOTE (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: NOTE_FK3                                            */
+/* ============================================================ */
+create index NOTE_FK3 on NOTE (note_type_code)
+go
+
+/* ============================================================ */
+/*   Table: OTHER_COMPANY                                       */
+/* ============================================================ */
+create table OTHER_COMPANY
+(
+    filing_key                    int                    not null,
+    other_company_name            varchar(80)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: OTHER_COMPANY_PK                                    */
+/* ============================================================ */
+create unique index OTHER_COMPANY_PK on OTHER_COMPANY (filing_key, other_company_name)
+go
+
+/* ============================================================ */
+/*   Index: OTHER_COMPANY_FK1                                   */
+/* ============================================================ */
+create index OTHER_COMPANY_FK1 on OTHER_COMPANY (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: PAINT_LIGHT                                         */
+/* ============================================================ */
+create table PAINT_LIGHT
+(
+    paint_light_key               int                    not null,
+    antenna_key                   int                    not null,
+    paint_light                   char(4)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PAINT_LIGHT_PK                                      */
+/* ============================================================ */
+create unique index PAINT_LIGHT_PK on PAINT_LIGHT (paint_light_key)
+go
+
+/* ============================================================ */
+/*   Index: PAINT_LIGHT_FK1                                     */
+/* ============================================================ */
+create index PAINT_LIGHT_FK1 on PAINT_LIGHT (antenna_key)
+go
+
+/* ============================================================ */
+/*   Table: PETITION_TO_DENY                                    */
+/* ============================================================ */
+create table PETITION_TO_DENY
+(
+    petition_key                  int                    not null,
+    filing_key                    int                    not null,
+    date_filed                    datetime               not null,
+    filed_by                      varchar(80)            not null,
+    description                   varchar(255)           null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PETITION_TO_DENY_PK                                 */
+/* ============================================================ */
+create unique index PETITION_TO_DENY_PK on PETITION_TO_DENY (petition_key)
+go
+
+/* ============================================================ */
+/*   Index: PETITION_TO_DENY_FK1                                */
+/* ============================================================ */
+create index PETITION_TO_DENY_FK1 on PETITION_TO_DENY (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_HISTORY                                  */
+/* ============================================================ */
+create table PUB_NOTICE_HISTORY
+(
+    report_key                    integer                not null,
+    filing_key                    int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_HISTORY_PK                               */
+/* ============================================================ */
+create unique index PUB_NOTICE_HISTORY_PK on PUB_NOTICE_HISTORY (report_key, filing_key)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_HISTORY_FK1                              */
+/* ============================================================ */
+create index PUB_NOTICE_HISTORY_FK1 on PUB_NOTICE_HISTORY (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_HISTORY_FK2                              */
+/* ============================================================ */
+create index PUB_NOTICE_HISTORY_FK2 on PUB_NOTICE_HISTORY (report_key)
+go
+
+/* ============================================================ */
+/*   Table: PURPOSE                                             */
+/* ============================================================ */
+create table PURPOSE
+(
+    filing_key                    int                    not null,
+    purpose_code                  varchar(40)            not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PURPOSE_PK                                          */
+/* ============================================================ */
+create unique index PURPOSE_PK on PURPOSE (filing_key, purpose_code)
+go
+
+/* ============================================================ */
+/*   Index: PURPOSE_FK1                                         */
+/* ============================================================ */
+create index PURPOSE_FK1 on PURPOSE (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: PURPOSE_FK2                                         */
+/* ============================================================ */
+create index PURPOSE_FK2 on PURPOSE (purpose_code)
+go
+
+/* ============================================================ */
+/*   Table: REMOTE_CONTROL                                      */
+/* ============================================================ */
+create table REMOTE_CONTROL
+(
+    remote_key                    int                    not null,
+    site_key                      int                    not null,
+    callsign                      char(10)               null    ,
+    city                          varchar(20)            null    ,
+    county                        char(15)               null    ,
+    country_code                  char(3)                null    ,
+    state_code                    char(2)                null    ,
+    street1                       varchar(80)            null    ,
+    street2                       varchar(80)            null    ,
+    telephone                     char(25)               null    ,
+    zip_code                      char(10)               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: REMOTE_CONTROL_PK                                   */
+/* ============================================================ */
+create unique index REMOTE_CONTROL_PK on REMOTE_CONTROL (remote_key)
+go
+
+/* ============================================================ */
+/*   Index: REMOTE_CONTROL_FK1                                  */
+/* ============================================================ */
+create index REMOTE_CONTROL_FK1 on REMOTE_CONTROL (site_key)
+go
+
+/* ============================================================ */
+/*   Table: SECTION_214                                         */
+/* ============================================================ */
+create table SECTION_214
+(
+    filing_key                    int                    not null,
+    da_number                     char(10)               null    ,
+    section_214_service_code      char(4)                null    ,
+    space_station_key             int                    null    ,
+    place_of_incorp               char(2)                null    ,
+    country_code                  char(3)                null    ,
+    streamlined_sw                char(1)                null    ,
+    alien_applicant_sw            char(1)                null    ,
+    mult_alien_applicant_sw       char(1)                null    ,
+    drug_abuse_sw                 char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_PK                                      */
+/* ============================================================ */
+create unique index SECTION_214_PK on SECTION_214 (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_FK1                                     */
+/* ============================================================ */
+create index SECTION_214_FK1 on SECTION_214 (country_code)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_FK2                                     */
+/* ============================================================ */
+create index SECTION_214_FK2 on SECTION_214 (space_station_key)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_FK3                                     */
+/* ============================================================ */
+create index SECTION_214_FK3 on SECTION_214 (section_214_service_code)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_FK4                                     */
+/* ============================================================ */
+create index SECTION_214_FK4 on SECTION_214 (place_of_incorp)
+go
+
+/* ============================================================ */
+/*   Table: FILENUM_SEQUENCE                                    */
+/* ============================================================ */
+create table FILENUM_SEQUENCE
+(
+    subsystem_code                char(3)                not null,
+    sequence_year                 int                    not null,
+    sequence_number               int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FILENUM_SEQUENCE_PK                                 */
+/* ============================================================ */
+create unique index FILENUM_SEQUENCE_PK on FILENUM_SEQUENCE (subsystem_code, sequence_year)
+go
+
+/* ============================================================ */
+/*   Index: FILENUM_SEQUENCE_FK1                                */
+/* ============================================================ */
+create index FILENUM_SEQUENCE_FK1 on FILENUM_SEQUENCE (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: STATUS_TRACKING                                     */
+/* ============================================================ */
+create table STATUS_TRACKING
+(
+    filing_key                    int                    not null,
+    status_code                   char(5)                not null,
+    status_date                   datetime               not null,
+    action_code                   char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: STATUS_TRACKING_PK                                  */
+/* ============================================================ */
+create unique index STATUS_TRACKING_PK on STATUS_TRACKING (filing_key, status_code, status_date)
+go
+
+/* ============================================================ */
+/*   Index: STATUS_TRACKING_FK1                                 */
+/* ============================================================ */
+create index STATUS_TRACKING_FK1 on STATUS_TRACKING (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: STATUS_TRACKING_FK2                                 */
+/* ============================================================ */
+create index STATUS_TRACKING_FK2 on STATUS_TRACKING (status_code)
+go
+
+/* ============================================================ */
+/*   Index: STATUS_TRACKING_FK3                                 */
+/* ============================================================ */
+create index STATUS_TRACKING_FK3 on STATUS_TRACKING (action_code)
+go
+
+/* ============================================================ */
+/*   Table: TRANSMITTER                                         */
+/* ============================================================ */
+create table TRANSMITTER
+(
+    transmitter_key               int                    not null,
+    site_key                      int                    not null,
+    transmitter_description       varchar(255)           null    ,
+    quantity                      int                    null    ,
+    manufacturer                  varchar(40)            null    ,
+    model                         varchar(10)            null    ,
+    serial_num                    char(15)               null    ,
+    emission_type                 varchar(20)            null    ,
+    power                         float                  null    ,
+    tolerance                     float                  null    
+)
+go
+
+/* ============================================================ */
+/*   Index: TRANSMITTER_PK                                      */
+/* ============================================================ */
+create unique index TRANSMITTER_PK on TRANSMITTER (transmitter_key)
+go
+
+/* ============================================================ */
+/*   Index: TRANSMITTER_FK1                                     */
+/* ============================================================ */
+create index TRANSMITTER_FK1 on TRANSMITTER (site_key)
+go
+
+/* ============================================================ */
+/*   Table: ROA                                                 */
+/* ============================================================ */
+create table ROA
+(
+    filing_key                    int                    not null,
+    incorporation_location        varchar(60)            null    ,
+    country_code                  char(3)                null    ,
+    streamlined_sw                char(1)                null    ,
+    alien_applicant_sw            char(1)                null    ,
+    mult_alien_applicant_sw       char(1)                null    ,
+    drug_abuse_sw                 char(1)                null    ,
+    common_carrier_sw             char(1)                null    ,
+    harmful_interference_sw       char(1)                null    ,
+    enhanced_service_sw           char(1)                null    ,
+    article_6_sw                  char(1)                null    ,
+    required_attachments_sw       char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ROA_PK                                              */
+/* ============================================================ */
+create unique index ROA_PK on ROA (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: ROA_FK1                                             */
+/* ============================================================ */
+create index ROA_FK1 on ROA (country_code)
+go
+
+/* ============================================================ */
+/*   Table: SPACE_STATION_STA                                   */
+/* ============================================================ */
+create table SPACE_STATION_STA
+(
+    filing_key                    int                    not null,
+    type_sta_code                 char(5)                null    ,
+    requested_date                datetime               null    ,
+    requested_location            varchar(40)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: SPACE_STATION_STA_PK                                */
+/* ============================================================ */
+create unique index SPACE_STATION_STA_PK on SPACE_STATION_STA (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: EARTH_STATION_STA                                   */
+/* ============================================================ */
+create table EARTH_STATION_STA
+(
+    filing_key                    int                    not null,
+    type_sta_code                 char(5)                null    ,
+    requested_date                datetime               null    ,
+    city                          varchar(40)            null    ,
+    state_code                    char(2)                null    ,
+    lat_deg                       tinyint                null    ,
+    lat_min                       tinyint                null    ,
+    lat_sec                       float                  null    ,
+    lat_hemi                      char(1)                null    ,
+    long_deg                      tinyint                null    ,
+    long_min                      tinyint                null    ,
+    long_sec                      float                  null    ,
+    long_hemi                     char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: EARTH_STATION_STA_PK                                */
+/* ============================================================ */
+create unique index EARTH_STATION_STA_PK on EARTH_STATION_STA (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: EARTH_STATION_STA_FK1                               */
+/* ============================================================ */
+create index EARTH_STATION_STA_FK1 on EARTH_STATION_STA (state_code)
+go
+
+/* ============================================================ */
+/*   Table: SECTION_214_STA                                     */
+/* ============================================================ */
+create table SECTION_214_STA
+(
+    filing_key                    int                    not null,
+    type_sta_code                 char(5)                null    ,
+    requested_date                datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: SECTION_214_STA_PK                                  */
+/* ============================================================ */
+create unique index SECTION_214_STA_PK on SECTION_214_STA (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FX                                                  */
+/* ============================================================ */
+create table FX
+(
+    filing_key                    int                    not null,
+    filenum_refer                 char(19)               null    ,
+    filenum_refer_date            datetime               null    ,
+    irac_status                   char(10)               null    ,
+    tower_status                  char(10)               null    ,
+    cp_expires_date               datetime               null    ,
+    proximity_sw                  char(1)                null    ,
+    nepa_major_action_sw          char(1)                null    ,
+    radiation_hazard_report_sw    char(1)                null    ,
+    citizen_sw                    char(1)                null    ,
+    partners_citizens_sw          char(1)                null    ,
+    corp_state_code               char(2)                null    ,
+    alien_ownership_sw            char(1)                null    ,
+    alien_control_sw              char(1)                null    ,
+    alien_officer_4c_sw           char(1)                null    ,
+    alien_officer_4f_sw           char(1)                null    ,
+    corporate_control_sw          char(1)                null    ,
+    subsidiary_sw                 char(1)                null    ,
+    association_no_members        integer                null    ,
+    association_no_alien_members  integer                null    ,
+    principal_bussiness           varchar(50)            null    ,
+    am_fm_tv_interest_sw          char(1)                null    ,
+    foreign_rep_sw                char(1)                null    ,
+    revoked_sw                    char(1)                null    ,
+    denied_sw                     char(1)                null    ,
+    felony_sw                     char(1)                null    ,
+    monopoly_sw                   char(1)                null    ,
+    assets_sw                     char(1)                null    ,
+    capital_assurance_sw          char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FX_PK                                               */
+/* ============================================================ */
+create unique index FX_PK on FX (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FX_FK1                                              */
+/* ============================================================ */
+create index FX_FK1 on FX (corp_state_code)
+go
+
+/* ============================================================ */
+/*   Table: DEFAULT_USER                                        */
+/* ============================================================ */
+create table DEFAULT_USER
+(
+    user_id                       char(8)                not null,
+    subsystem_code                char(3)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: DEFAULT_USER_PK                                     */
+/* ============================================================ */
+create unique index DEFAULT_USER_PK on DEFAULT_USER (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: DEFAULT_USER_FK1                                    */
+/* ============================================================ */
+create unique index DEFAULT_USER_FK1 on DEFAULT_USER (user_id, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: FILING_HISTORY                                      */
+/* ============================================================ */
+create table FILING_HISTORY
+(
+    filing_key                    int                    not null,
+    refer_filing_key              int                    not null,
+    original_filing_key           int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FILING_HISTORY_PK                                   */
+/* ============================================================ */
+create unique index FILING_HISTORY_PK on FILING_HISTORY (filing_key, refer_filing_key, original_filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FILING_HISTORY_FK1                                  */
+/* ============================================================ */
+create index FILING_HISTORY_FK1 on FILING_HISTORY (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FILING_HISTORY_FK2                                  */
+/* ============================================================ */
+create index FILING_HISTORY_FK2 on FILING_HISTORY (refer_filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FILING_HISTORY_FK3                                  */
+/* ============================================================ */
+create index FILING_HISTORY_FK3 on FILING_HISTORY (original_filing_key)
+go
+
+/* ============================================================ */
+/*   Table: ACCOUNTING_CHANGE_RATE                              */
+/* ============================================================ */
+create table ACCOUNTING_CHANGE_RATE
+(
+    accounting_rate_change_key    integer                not null,
+    filing_key                    int                    not null,
+    service                       varchar(40)            not null,
+    current_rate                  varchar(30)            null    ,
+    new_rate                      varchar(30)            null    ,
+    surcharge                     varchar(30)            null    ,
+    date_effective                datetime               null    ,
+    date_expire                   datetime               null    ,
+    type_arrangement_sw           char(1)                not null,
+    prop_return_sw                char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ACCOUNTING_CHANGE_RATE_PK                           */
+/* ============================================================ */
+create unique index ACCOUNTING_CHANGE_RATE_PK on ACCOUNTING_CHANGE_RATE (accounting_rate_change_key)
+go
+
+/* ============================================================ */
+/*   Index: ACCOUNTING_CHANGE_RATE_FK1                          */
+/* ============================================================ */
+create index ACCOUNTING_CHANGE_RATE_FK1 on ACCOUNTING_CHANGE_RATE (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: ANTENNA_GAIN                                        */
+/* ============================================================ */
+create table ANTENNA_GAIN
+(
+    gain_key                      integer                not null,
+    antenna_key                   int                    not null,
+    gain                          float                  not null,
+    frequency                     char(17)               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_GAIN_PK                                     */
+/* ============================================================ */
+create unique index ANTENNA_GAIN_PK on ANTENNA_GAIN (gain_key)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_GAIN_FK1                                    */
+/* ============================================================ */
+create index ANTENNA_GAIN_FK1 on ANTENNA_GAIN (antenna_key)
+go
+
+/* ============================================================ */
+/*   Table: ADDRESS_HISTORY                                     */
+/* ============================================================ */
+create table ADDRESS_HISTORY
+(
+    address_key                   int                    not null,
+    date_archived                 datetime               not null,
+    address_id                    char(12)               null    ,
+    address_name                  varchar(80)            null    ,
+    dba_name                      varchar(80)            null    ,
+    street1                       varchar(80)            null    ,
+    street2                       varchar(80)            null    ,
+    city                          varchar(40)            null    ,
+    state_code                    char(2)                null    ,
+    zipcode                       char(10)               null    ,
+    country_code                  char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: ADDRESS_HISTORY_PK                                  */
+/* ============================================================ */
+create unique index ADDRESS_HISTORY_PK on ADDRESS_HISTORY (address_key, date_archived)
+go
+
+/* ============================================================ */
+/*   Index: ADDRESS_HISTORY_FK1                                 */
+/* ============================================================ */
+create index ADDRESS_HISTORY_FK1 on ADDRESS_HISTORY (address_key)
+go
+
+/* ============================================================ */
+/*   Table: LICENSEE_HISTORY                                    */
+/* ============================================================ */
+create table LICENSEE_HISTORY
+(
+    filing_key                    int                    not null,
+    assign_filing_key             int                    not null,
+    licensee_key                  int                    not null,
+    licensee_attention            varchar(80)            null    ,
+    licensee_phone_num            char(25)               null    ,
+    licensee_fax_num              char(25)               null    ,
+    licensee_e_mail               varchar(40)            null    
+)
+go
+
+/* ============================================================ */
+/*   Index: LICENSEE_HISTORY_PK                                 */
+/* ============================================================ */
+create unique index LICENSEE_HISTORY_PK on LICENSEE_HISTORY (filing_key, assign_filing_key)
+go
+
+/* ============================================================ */
+/*   Index: LICENSEE_HISTORY_FK1                                */
+/* ============================================================ */
+create index LICENSEE_HISTORY_FK1 on LICENSEE_HISTORY (licensee_key)
+go
+
+/* ============================================================ */
+/*   Index: LICENSEE_HISTORY_FK2                                */
+/* ============================================================ */
+create index LICENSEE_HISTORY_FK2 on LICENSEE_HISTORY (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: LICENSEE_HISTORY_FK3                                */
+/* ============================================================ */
+create index LICENSEE_HISTORY_FK3 on LICENSEE_HISTORY (assign_filing_key)
+go
+
+/* ============================================================ */
+/*   Table: STATION                                             */
+/* ============================================================ */
+create table STATION
+(
+    station_key                   int                    not null,
+    filing_key                    int                    not null,
+    station_callsign              char(10)               null    ,
+    station_broadcast_type        char(2)                null    ,
+    station_frequency             char(17)               null    ,
+    station_channel               varchar(20)            null    ,
+    station_city                  varchar(20)            null    ,
+    country_code                  char(3)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: STATION_PK                                          */
+/* ============================================================ */
+create unique index STATION_PK on STATION (station_key)
+go
+
+/* ============================================================ */
+/*   Index: STATION_FK1                                         */
+/* ============================================================ */
+create index STATION_FK1 on STATION (filing_key)
+go
+
+/* ============================================================ */
+/*   Index: STATION_FK2                                         */
+/* ============================================================ */
+create index STATION_FK2 on STATION (country_code)
+go
+
+/* ============================================================ */
+/*   Table: FORM_405                                            */
+/* ============================================================ */
+create table FORM_405
+(
+    filing_key                    int                    not null,
+    rulepart_code                 char(2)                null    ,
+    filenum_refer                 char(19)               null    ,
+    callsign_refer                char(10)               null    ,
+    removal_of_equipment_sw       char(1)                null    ,
+    removal_of_equipment_date     datetime               null    ,
+    ownership_interest_sw         char(1)                null    ,
+    environmental_impact_sw       char(1)                null    ,
+    drug_abuse_sw                 char(1)                null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FORM_405_PK                                         */
+/* ============================================================ */
+create unique index FORM_405_PK on FORM_405 (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: SUBSYSTEM_REPORT                                    */
+/* ============================================================ */
+create table SUBSYSTEM_REPORT
+(
+    report_id                     char(12)               not null,
+    subsystem_code                char(3)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: SUBSYSTEM_REPORT_PK                                 */
+/* ============================================================ */
+create unique index SUBSYSTEM_REPORT_PK on SUBSYSTEM_REPORT (report_id, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: SUBSYSTEM_REPORT_FK1                                */
+/* ============================================================ */
+create index SUBSYSTEM_REPORT_FK1 on SUBSYSTEM_REPORT (report_id)
+go
+
+/* ============================================================ */
+/*   Index: SUBSYSTEM_REPORT_FK2                                */
+/* ============================================================ */
+create index SUBSYSTEM_REPORT_FK2 on SUBSYSTEM_REPORT (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_SEQUENCE                                 */
+/* ============================================================ */
+create table PUB_NOTICE_SEQUENCE
+(
+    report_sequence_number        int                    not null,
+    pub_notice_group_code         char(3)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_SEQUENCE_PK                              */
+/* ============================================================ */
+create unique index PUB_NOTICE_SEQUENCE_PK on PUB_NOTICE_SEQUENCE (report_sequence_number, pub_notice_group_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_SEQUENCE_FK1                             */
+/* ============================================================ */
+create index PUB_NOTICE_SEQUENCE_FK1 on PUB_NOTICE_SEQUENCE (pub_notice_group_code)
+go
+
+/* ============================================================ */
+/*   Table: FORM_325C_STA                                       */
+/* ============================================================ */
+create table FORM_325C_STA
+(
+    filing_key                    int                    not null,
+    type_sta_code                 char(5)                null    ,
+    requested_date                datetime               null    
+)
+go
+
+/* ============================================================ */
+/*   Index: FORM_325C_STA_PK                                    */
+/* ============================================================ */
+create unique index FORM_325C_STA_PK on FORM_325C_STA (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_SUBSYSTEM                                */
+/* ============================================================ */
+create table PUB_NOTICE_SUBSYSTEM
+(
+    pub_notice_group_code         char(3)                not null,
+    subsystem_code                char(3)                not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_SUBSYSTEM_PK                             */
+/* ============================================================ */
+create unique index PUB_NOTICE_SUBSYSTEM_PK on PUB_NOTICE_SUBSYSTEM (pub_notice_group_code, subsystem_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_SUBSYSTEM_FK1                            */
+/* ============================================================ */
+create index PUB_NOTICE_SUBSYSTEM_FK1 on PUB_NOTICE_SUBSYSTEM (pub_notice_group_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_SUBSYSTEM_FK2                            */
+/* ============================================================ */
+create index PUB_NOTICE_SUBSYSTEM_FK2 on PUB_NOTICE_SUBSYSTEM (subsystem_code)
+go
+
+/* ============================================================ */
+/*   Table: FEE_TYPE                                            */
+/* ============================================================ */
+create table FEE_TYPE
+(
+    fee_type_code                 char(3)                not null,
+    filing_key                    int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FEE_TYPE_PK                                         */
+/* ============================================================ */
+create unique index FEE_TYPE_PK on FEE_TYPE (fee_type_code, filing_key)
+go
+
+/* ============================================================ */
+/*   Index: FEE_TYPE_FK1                                        */
+/* ============================================================ */
+create index FEE_TYPE_FK1 on FEE_TYPE (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_PROCESSING                               */
+/* ============================================================ */
+create table PUB_NOTICE_PROCESSING
+(
+    report_key                    integer                not null,
+    filing_key                    int                    not null,
+    report_number                 char(12)               not null,
+    da_number                     char(12)               null    ,
+    pub_notice_group_code         char(3)                not null,
+    pub_notice_type_code          char(4)                not null,
+    date_published                datetime               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_PROCESSING_PK                            */
+/* ============================================================ */
+create unique index PUB_NOTICE_PROCESSING_PK on PUB_NOTICE_PROCESSING (report_key, filing_key)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_PROCESSING_FK1                           */
+/* ============================================================ */
+create index PUB_NOTICE_PROCESSING_FK1 on PUB_NOTICE_PROCESSING (report_key)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_PROCESSING_FK2                           */
+/* ============================================================ */
+create index PUB_NOTICE_PROCESSING_FK2 on PUB_NOTICE_PROCESSING (pub_notice_group_code, pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_PROCESSING_FK3                           */
+/* ============================================================ */
+create index PUB_NOTICE_PROCESSING_FK3 on PUB_NOTICE_PROCESSING (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: FILENUM_ASSIGN_LIST                                 */
+/* ============================================================ */
+create table FILENUM_ASSIGN_LIST
+(
+    filing_key                    int                    not null,
+    file_number                   char(19)               not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FILENUM_ASSIGN_LIST_PK                              */
+/* ============================================================ */
+create unique index FILENUM_ASSIGN_LIST_PK on FILENUM_ASSIGN_LIST (filing_key, file_number)
+go
+
+/* ============================================================ */
+/*   Index: FILENUM_ASSIGN_LIST_FK1                             */
+/* ============================================================ */
+create index FILENUM_ASSIGN_LIST_FK1 on FILENUM_ASSIGN_LIST (filing_key)
+go
+
+/* ============================================================ */
+/*   Table: PUB_NOTICE_TEXT                                     */
+/* ============================================================ */
+create table PUB_NOTICE_TEXT
+(
+    pub_notice_group_code         char(3)                not null,
+    pub_notice_type_code          char(4)                not null,
+    pub_notice_header             varchar(255)           null    ,
+    pub_notice_subheader          varchar(255)           null    ,
+    pub_notice_header_text        text                   null    ,
+    pub_notice_footer_text        text                   null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PUB_NOTICE_TEXT_PK                                  */
+/* ============================================================ */
+create unique index PUB_NOTICE_TEXT_PK on PUB_NOTICE_TEXT (pub_notice_group_code, pub_notice_type_code)
+go
+
+/* ============================================================ */
+/*   Table: SITE_CONDITION                                      */
+/* ============================================================ */
+create table SITE_CONDITION
+(
+    condition_key                 int                    not null,
+    condition_code                int                    not null,
+    site_key                      int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: SITE_CONDITION_PK                                   */
+/* ============================================================ */
+create unique index SITE_CONDITION_PK on SITE_CONDITION (condition_key)
+go
+
+/* ============================================================ */
+/*   Index: SITE_CONDITION_FK1                                  */
+/* ============================================================ */
+create index SITE_CONDITION_FK1 on SITE_CONDITION (condition_code)
+go
+
+/* ============================================================ */
+/*   Index: SITE_CONDITION_FK2                                  */
+/* ============================================================ */
+create index SITE_CONDITION_FK2 on SITE_CONDITION (site_key)
+go
+
+/* ============================================================ */
+/*   Table: ANTENNA_CONDITION                                   */
+/* ============================================================ */
+create table ANTENNA_CONDITION
+(
+    condition_key                 int                    not null,
+    antenna_key                   int                    not null,
+    condition_code                int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_CONDITION_PK                                */
+/* ============================================================ */
+create unique index ANTENNA_CONDITION_PK on ANTENNA_CONDITION (condition_key)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_CONDITION_FK1                               */
+/* ============================================================ */
+create index ANTENNA_CONDITION_FK1 on ANTENNA_CONDITION (condition_code)
+go
+
+/* ============================================================ */
+/*   Index: ANTENNA_CONDITION_FK2                               */
+/* ============================================================ */
+create index ANTENNA_CONDITION_FK2 on ANTENNA_CONDITION (antenna_key)
+go
+
+/* ============================================================ */
+/*   Table: FREQUENCY_CONDITION                                 */
+/* ============================================================ */
+create table FREQUENCY_CONDITION
+(
+    condition_key                 int                    not null,
+    frequency_key                 int                    not null,
+    condition_code                int                    not null
+)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_CONDITION_PK                              */
+/* ============================================================ */
+create unique index FREQUENCY_CONDITION_PK on FREQUENCY_CONDITION (condition_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_CONDITION_FK1                             */
+/* ============================================================ */
+create index FREQUENCY_CONDITION_FK1 on FREQUENCY_CONDITION (frequency_key)
+go
+
+/* ============================================================ */
+/*   Index: FREQUENCY_CONDITION_FK2                             */
+/* ============================================================ */
+create index FREQUENCY_CONDITION_FK2 on FREQUENCY_CONDITION (condition_code)
+go
+
+/* ============================================================ */
+/*   Table: PDF                                                 */
+/* ============================================================ */
+create table PDF
+(
+    attachment_key                int                    not null,
+    id_file_type                  tinyint                not null,
+    document_store                image                  null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PDF_PK                                              */
+/* ============================================================ */
+create unique index PDF_PK on PDF (attachment_key)
+go
+
+/* ============================================================ */
+/*   Index: PDF_FK1                                             */
+/* ============================================================ */
+create index PDF_FK1 on PDF (id_file_type)
+go
+
+/* ============================================================ */
+/*   Table: PTCOMM_FX                                           */
+/* ============================================================ */
+create table PTCOMM_FX
+(
+    ptcomm_key                    int                    not null,
+    site_key                      int                    not null,
+    location                      varchar(255)           null    ,
+    distance                      float                  null    
+)
+go
+
+/* ============================================================ */
+/*   Index: PTCOMM_FX_PK                                        */
+/* ============================================================ */
+create unique index PTCOMM_FX_PK on PTCOMM_FX (ptcomm_key)
+go
+
+/* ============================================================ */
+/*   Index: PTCOMM_FX_FK1                                       */
+/* ============================================================ */
+create index PTCOMM_FX_FK1 on PTCOMM_FX (site_key)
+go
+
+/* ============================================================ */
+/*   Table: BLOCKED_HISTORY                                     */
+/* ============================================================ */
+create table BLOCKED_HISTORY
+(
+    blocked_history_key           int                    not null,
+    filing_key                    int                    not null,
+    date_blocked                  datetime               not null,
+    blocked_reason_code           char(4)                not null,
+    blocked_reason                text                   not null,
+    blocked_by                    char(8)                not null,
+    date_unblocked                datetime               null    ,
+    unblocked_by                  char(8)                null    
+)
+go
+
+/* ============================================================ */
+/*   View: SOD_CATEGORIES                                       */
+/* ============================================================ */
+create view SOD_CATEGORIES as
+create view SOD_CATEGORIES as
+select 	convert( int, a.category_id ) as "Category_ID",
+	isNull( c.subsystem_code, "---" ) as "Subsystem",
+	isNULL( b.app_type_code, "---" ) as "Application_Type"
+	
+from SOD_CATEGORY a, SOD_APP_LOOKUP b, SOD_SUBSYSTEM_LOOKUP c
+where a.app_type_num *= b.app_type_num
+and a.subsystem_num *= c.subsystem_num
+go
+
+/* ============================================================ */
+/*   View: SOD_DATA                                             */
+/* ============================================================ */
+create view SOD_DATA as
+create view SOD_DATA as
+select 
+	( select count(*) from MAIN b where b.date_filed < a.begin_date ) as "Begin_Pending", 
+
+	( select count(*) from MAIN b where b.date_filed >= a.begin_date
+					and b.date_filed <= a.end_date ) as "Receipts", 
+
+
+	( select count(*) from MAIN b where 
+		isNull( b.date_grant, isNull( b.date_deny, b.date_dismiss ) ) <= a.end_date )
+		as "Disposals", 
+
+	( select count(*) from MAIN b 
+		where IsNull( b.date_grant, dateadd(dd, 1, a.end_date ) ) > a.end_date  
+		and b.date_filed <= a.end_date ) as "End_Pending",
+	a.begin_date, a.end_date, a.period_desc, a.date_id
+from SOD_PERIOD a /*where date_id = 1*/
+go
+
+/* ============================================================ */
+/*   View: SOD_PERIOD_V                                         */
+/* ============================================================ */
+create view SOD_PERIOD_V as
+create view SOD_PERIOD_V as
+select convert( varchar, a.begin_date, 107 ) as begin_date,
+	convert( varchar, dateadd( dd, -1, a.end_date ), 107 ) as end_date, 
+	a.period_desc, a.date_id
+from SOD_PERIOD a
+go
+
+/* ============================================================ */
+/*   View: V_ADDRESS_LISTING                                    */
+/* ============================================================ */
+create view V_ADDRESS_LISTING as
+select COUNTRY_CODE.country_name country, ADDRESS.address_id address_id, 
+ADDRESS.address_name name, ADDRESS.dba_name dba_name, 
+Substring( Upper( ADDRESS.address_name ), 1, 1 ) first_letter, 
+ADDRESS.street1 address, ADDRESS.city city, ADDRESS.state_code state, 
+ADDRESS.zipcode zip, ADDRESS.address_key search_key
+from COUNTRY_CODE, ADDRESS
+where ADDRESS.address_id not like 'TMP%'
+and COUNTRY_CODE.country_code = ADDRESS.country_code
+with check option
+go
+
+/* ============================================================ */
+/*   View: V_CONTACT_LISTING                                    */
+/* ============================================================ */
+create view V_CONTACT_LISTING as
+select COUNTRY_CODE.country_name country, CONTACT.contact_id contact_id, 
+CONTACT.contact_name name, 
+Substring( Upper( CONTACT.company_name), 1, 1 ) first_letter, 
+CONTACT.title title, CONTACT.company_name company, CONTACT.street1 address, 
+CONTACT.city city, CONTACT.state_code state, CONTACT.zipcode zip, 
+CONTACT.contact_key search_key
+from COUNTRY_CODE, CONTACT
+where CONTACT.contact_id not like 'TMP%'
+and COUNTRY_CODE.country_code = CONTACT.country_code
+with check option
+go
+
