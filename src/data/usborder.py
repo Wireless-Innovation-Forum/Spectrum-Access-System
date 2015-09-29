@@ -535,7 +535,7 @@ for ls in lineStrings:
 #  ns += 1
 #  doc.Document.append(pm)
 
-outputFile = open(os.path.join(dataDir, 'usborder.kml'), 'w+')
+outputFile = open(os.path.join(fccDir, 'usborder.kml'), 'w+')
 outputFile.write(etree.tostring(doc, pretty_print=True))
 outputFile.close()
 

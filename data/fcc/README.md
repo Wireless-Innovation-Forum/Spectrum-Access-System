@@ -85,6 +85,12 @@ on data files is by their creators.
     in the uscabdry.zip file. There are 17 line segments composing this
     boundary, each taken from a separate .MAP file in the uscabdry.zip file.
 
+* uscabdry.kml
+
+    This is a KML file produced by the script in src/data/uscabdry.py. It contains
+    the US-CA border as processed from the source file by that script, which does
+    data reduction, normalization, and some noise removal.
+
 * us_mex_boundary.zip
 
     This is the raw zip file containing the FCC definition of the US-Mexico
@@ -97,4 +103,12 @@ on data files is by their creators.
 
     This is a KMZ file with a representation of the boundary line
     contained in the us_mex_boundary.zip Shapefile.
+
+* usborder.kml
+
+    This is a KML file produced by the script in src/data/usborder.py. It contains
+    polygons representing the assignment authority of the SAS as described by the
+    borders in FCC and NTIA source files. The borders represent the territorial sea
+    boundary of US jurisdiction as modified by international sea borders reflected
+    in the NOAA files, but modified by FCC border definitions for US-CA and US-MEX.
 
