@@ -161,9 +161,10 @@ def FindClosestPoint(ring, point):
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dataDir = os.path.join(rootDir, 'data')
+fccDir = os.path.join(dataDir, 'fcc')
 ntiaDir = os.path.join(dataDir, 'ntia')
 
-borderDoc = ReadKML(os.path.join(dataDir, 'usborder.kml'))
+borderDoc = ReadKML(os.path.join(fccDir, 'usborder.kml'))
 inlandZoneDoc = ReadKML(os.path.join(ntiaDir, 'ground_based_exclusion_zones.kml'))
 coastalZoneDoc = ReadKML(os.path.join(ntiaDir, 'shipborne_radar_envelope_exclusion_zones.kml'))
 
@@ -335,7 +336,7 @@ for name in zones:
   doc.Document.append(pm)
 
 
-outputFile = open(os.path.join(dataDir, 'protection_zones.kml'), 'w+')
+outputFile = open(os.path.join(ntiaDir, 'protection_zones.kml'), 'w+')
 outputFile.write(etree.tostring(doc, pretty_print=True))
 outputFile.close()
 

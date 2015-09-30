@@ -24,3 +24,10 @@ Copyright on data files is by their creators.
     It can be retrieved from
     http://www.ntia.doc.gov/files/ntia/publications/shipborne_radar_envelope_exclusion_zones.kml
 
+* protection_zones.kml
+
+    This is a KML file produced by the script at src/data/protection_zones.py. It contains a
+    normalized set of polygons defining ground-based and coastal exclusion zones. The coastal
+    exclusion zones make use of the US border definition in data/fcc/usborder.kml to bound
+    the exclusion zone borders provided by the NTIA.
+
