@@ -428,23 +428,51 @@ for ls in lineStrings:
   if ls[0] != ls[-1]:
     print 'NOT A RING!'
   coords = []
+  found_anti_meridian = False
   for c in ls:
     xy = c.split(',')
     coords.append([float(xy[0]), float(xy[1])])
+    if float(xy[0]) == 180:
+      found_anti_meridian = True
   lr = LinearRing(coords)
   if not lr.is_ccw:
     print 'Reversing non-CCW ring'
     r = list(reversed(ls))
     del(ls[:])
     ls.extend(r)
+
   polygon = Polygon(lr)
-  # There are two invalid polygons. One is the CONUS polygon
-  # which can be retouched with buffer(0). The other is the
-  # case of Semisopochnoi Island, which zone crosses the
-  # antimeridian.
+  # The invalid polygon is the case of Semisopochnoi Island, which
+  # zone crosses the antimeridian.
   if not polygon.is_valid:
     print 'POLYGON IS NOT VALID! : %d' % len(ls)
-    print explain_validity(polygon)
+    explain_validity(polygon)
+    if found_anti_meridian:
+      print 'Polygon spans anti-meridian'
+      # To deal with this case, we'll split the zone into two pieces,
+      # one of which is in the eastern hemisphere and one in the
+      # western hemisphere. This is purely a tooling issue to make
+      # the zone easier to manage with other software.
+      xy = ls[0].split(',')
+      new_piece = []
+      begin_anti_meridian = -1
+      end_anti_meridian = -1
+      for i in range(0, len(ls)):
+        xy = ls[i].split(',')
+        if float(xy[0]) == 180:
+          # Note: the '-' is to reverse the sign so shapely sees
+          # the coordinates correctly.
+          new_piece.append('-' + ls[i])
+          if begin_anti_meridian == -1:
+            begin_anti_meridian = i
+          else:
+            end_anti_meridian = i
+            new_piece.append(new_piece[0])
+        elif begin_anti_meridian >= 0 and end_anti_meridian == -1:
+          new_piece.append(ls[i])
+      del ls[begin_anti_meridian+1 : end_anti_meridian-1]
+      lineStrings.append(new_piece)
+ 
 
 doc = KML.kml(
   KML.Document(
