@@ -25,7 +25,6 @@
 #   B0103
 #   B0018
 #   B0081
-#   B0051
 #   B0082
 # There are several territorial sea border segments which are not relevant
 # due to the FCC US-CA and US-Mex border:
@@ -64,6 +63,8 @@ from lxml import etree
 from pykml import parser
 from pykml.factory import KML_ElementMaker as KML
 from shapely.geometry import LinearRing
+from shapely.geometry import Polygon
+from shapely.validation import explain_validity
 import copy
 import math
 import os
@@ -297,7 +298,7 @@ def FindBorderSegments(doc):
               # Normalize -180 to 180 to get equivalence and correct segment merging later on.
               if c[0] == '-180' or c[0] == '180':
                 c[0] = '180'
-              coords.append('%s,%s,0' % (c[0], c[1]))
+              coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
           coordinates.append(coords)
 
       if f.name.text.find('Maritime') != -1:
@@ -319,7 +320,7 @@ def FindBorderSegments(doc):
             for pt in points:
               if pt is not '':
                 c = pt.split(',')
-                coords.append('%s,%s,0' % (c[0], c[1]))
+                coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
             print '  have segment [%d] %s...%s' % (len(coords), coords[0], coords[-1])
             coordinates.append(coords)
 
@@ -340,7 +341,13 @@ def AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists):
       for pt in points:
         if pt.strip() is not '':
           c = pt.split(',')
-          coords.append('%s,%s,0' % (c[0], c[1]))
+          # Note: The furthest west point doesn't match well with the NOAA
+          # boundaries. Eliminating it from the polygon creates the right
+          # shape.
+          if float(c[0]) < -117.4:
+            print 'Trimmed westernmost point of US-MEX border %s' % c
+            continue
+          coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
       coordinateLists.append(coords)
 
   canadaBorderPlacemarks = list(canadaDoc.Document.Placemark)
@@ -359,7 +366,7 @@ def AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists):
       for pt in points:
         if pt is not '':
           c = pt.split(',')
-          coords.append('%s,%s,0' % (c[0], c[1]))
+          coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
       coordinateLists.append(coords)
 
 
@@ -398,11 +405,11 @@ closedRings = CloseRings(consolidatedStrings, .001)
 spliceStringsA = SpliceLists(closedRings, .002)
 spliceStringsB = SpliceLists(spliceStringsA, .002)
 
-# Note: Google Earth can't display large polygons. Use
-# KML Viewer to view output from further steps.
+# Note: Google Earth can't display polygons with a large number
+# of points. Use KML Viewer to view output from further steps:
+# http://ivanrublev.me/kml/
 # Google Earth can show the LineString boundaries for
 # comparison to the various source data files.
-# http://ivanrublev.me/kml/
 coordy = copy.deepcopy(spliceStringsB)
 print '===================='
 shortSplicedStrings = SpliceLists(spliceStringsB, .002)
@@ -430,6 +437,14 @@ for ls in lineStrings:
     r = list(reversed(ls))
     del(ls[:])
     ls.extend(r)
+  polygon = Polygon(lr)
+  # There are two invalid polygons. One is the CONUS polygon
+  # which can be retouched with buffer(0). The other is the
+  # case of Semisopochnoi Island, which zone crosses the
+  # antimeridian.
+  if not polygon.is_valid:
+    print 'POLYGON IS NOT VALID! : %d' % len(ls)
+    print explain_validity(polygon)
 
 doc = KML.kml(
   KML.Document(

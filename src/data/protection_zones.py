@@ -122,6 +122,7 @@ def GetConusBorder(doc):
     coordinates = pm.Polygon.outerBoundaryIs.LinearRing.coordinates.text
     coords = coordinates.split(' ')
     if len(coords) > 60000:
+      print 'Found CONUS border at %s with length %d' % (pm.name, len(coords))
       latLng = []
       for c in coords:
         if c.strip():
@@ -180,7 +181,6 @@ conusBorder = GetConusBorder(borderDoc)
 
 # Collect the coastal zones
 print '\n'
-coastalLines = {}
 for pm in list(coastalZoneDoc.Document.Folder.Placemark):
   name = pm.name.text
   line = pm.LineString.coordinates.text
@@ -189,44 +189,55 @@ for pm in list(coastalZoneDoc.Document.Folder.Placemark):
   for c in coords:
     if c.strip():
       xy = c.strip().split(',')
+      # Clip the line segments which follow the US-Mexico border
+      if float(xy[1]) < 26.1 and float(xy[0]) > -98.26:
+        continue
       latLng.append([float(xy[0]), float(xy[1])])
-  print 'Found exclusion zone border %s (%d)' % (name, len(latLng))
-  linestring = SLineString(latLng)
-  coastalLines[name] = linestring
-
-  ix = linestring.intersection(conusBorder)
-  intersections = ix.geoms
-  first = intersections[0]
-  if type(first) == SLineString:
-    first = first.points[0]
-  if type(first) == SPoint:
-    first = first.coords[0]
-  last = intersections[-1]
-  if type(last) == SLineString:
-    last = last.coords[-1]
-  if type(last) == SPoint:
-    last = last.coords[0]
-
-  print 'intersections at %s %s' % (first, last)
-  f = FindClosestPoint(conusBorder, first)
-  l = FindClosestPoint(conusBorder, last)
-  print 'Need ring from %d to %d' % (f, l)
-  print '  (%f,%f) to (%f,%f)' % (conusBorder.coords[f][0], conusBorder.coords[f][1], conusBorder.coords[l][0], conusBorder.coords[l][1])
-
-  if name == 'East-Gulf Combined Contour':
-    borderSegment = conusBorder.coords[l:]
-    borderSegment.extend(conusBorder.coords[0:f-1])
-    borderSegment.extend(linestring.coords)
-    borderSegment.append(borderSegment[-1])
-    zones[name] = [SPolygon(borderSegment)]
-
   if name == 'West Combined Contour':
-    borderSegment = conusBorder.coords[f:l+1]
-    borderSegment.extend(list(reversed(linestring.coords)))
-    borderSegment.append(borderSegment[-1])
-    zones[name] = [SPolygon(borderSegment)]
+    # Extend the west contour linearly a little bit on either end so
+    # that it overlaps the border contour.
+    p1 = latLng[0]
+    p2 = latLng[1]
+    pnew = [p1[0] + (p1[0]-p2[0]), p1[1] + (p1[1]-p2[1])]
+    latLng.insert(0, pnew)
+    print 'Prepending %s...%s -> %s' % (p2, p1, pnew)
+    p1 = latLng[-1]
+    p2 = latLng[-2]
+    pnew = [p1[0] + (p1[0]-p2[0]), p1[1] + (p1[1]-p2[1])]
+    latLng.append(pnew)
+    print 'Appending %s...%s -> %s' % (p2, p1, pnew)
+  print 'Found exclusion zone border %s (%d)' % (name, len(latLng))
+  print '   From %s to %s' % (latLng[0], latLng[-1])
+  linestring = SLineString(latLng)
 
-print '\n'
+  # Create polygon masks along the coasts using the protection
+  # boundary contours.
+  if name == 'East-Gulf Combined Contour':
+    phigh = [-58, latLng[0][1]]
+    print 'Prepend %s' % phigh
+    latLng.insert(0, phigh)
+    latLng.append([-98.4, 25.6])
+    latLng.append([-80, 23])
+    plow = [-58, latLng[-1][1]]
+    latLng.append(plow)
+    latLng.append(phigh)
+    print 'Append %s' % plow
+    print 'Append %s' % phigh
+  if name == 'West Combined Contour':
+    phigh = [-126, latLng[0][1]]
+    print 'Prepend %s' % phigh
+    latLng.insert(0, phigh)
+    plow = [-126, latLng[-1][1]]
+    latLng.append(plow)
+    latLng.append(phigh)
+    print 'Append %s' % plow
+    print 'Append %s' % phigh
+
+
+  conusArea = SPolygon(conusBorder)
+  area = SPolygon(latLng)
+  zix = area.intersection(conusArea)
+  zones[name] = [zix]
 
 # Create the KML document skeleton
 doc = KML.kml(
