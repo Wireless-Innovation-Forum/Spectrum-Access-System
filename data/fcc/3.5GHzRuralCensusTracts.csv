@@ -1,4 +1,11 @@
-Rural FIPS
+Paragraph 212 of the 3.5 GHz Report and Order states:
+"""...for purposes of the Citizens Broadband Radio Service, rural area will be defined as any census tract which is not located within, or overlapping: "
+"(i) a city, town, or incorporated area that has a population of greater than 20,000 inhabitants; "
+"or (ii) an urbanized area contiguous and adjacent to a city or town that has a population of greater than 50,000 inhabitants."""
+""
+The list below contains census tracts that meet this definition.
+""
+FIPS
 01005950300
 01005950900
 01005950800
