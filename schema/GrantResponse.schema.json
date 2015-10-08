@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Spectrum Grant response message to the CBSD.",
+  "type": "object",
+  "required": [ "cbsdId", "error" ],
+  "properties": {
+    "cbsdId": { "type": "string",
+                "description": "CBSD identifier as passed in the spectrum grant request." },
+    "grantId": { "type": "string",
+                 "description": "A unique ID marking a spectrum grant originated from the SAS. If error.errorCode is non-zero, this must not be present." },
+    "grantExpireTime": { "type": "string",
+                         "description": "RFC3339 date-time stamp indicating when the grant expires." },
+    "heartbeatDuration": { "type": "number",
+                           "minimum": 1,
+                           "description": "Indicates an interval in seconds the CBSD should use between heartbeat requests." },
+    "measReportConfig": { "$ref": "file:MeasReportConfig.schema.json" },
+    "operationParam": { "$ref": "file:OperationParam.schema.json" },
+    "error": { "$ref": "file:Error.schema.json" }
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "cbsdId": "sas1/cbsd1",
+  "error": { "errorCode": 0 },
+  "availableChannel": [
+    {
+      "frequencyRange": { "lowFrequency": 3570000000, "highFrequency": 3580000000 },
+      "channelType": "PAL",
+      "ruleApplied": "FCC Part 96"
+    },
+    {
+      "frequencyRange": { "lowFrequency": 3650000000, "highFrequency": 3670000000 },
+      "channelType": "GAA",
+      "ruleApplied": "FCC Part 96"
+    }
+  ]
+}

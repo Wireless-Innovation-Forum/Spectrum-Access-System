@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Deregistration parameters provided by a CBSD",
+  "type": "object",
+  "required": [ "cbsdId" ],
+  "properties": {
+    "cbsdId": { "type": "string",
+                "description": "Unique designator for the CBSD as returned from the registration procedure." }
+  }
+}
+

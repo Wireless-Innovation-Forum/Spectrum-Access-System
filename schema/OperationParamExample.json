@@ -1,0 +1,5 @@
+{
+  "palCredential": [ "license" ],
+  "peakPower": 30,
+  "operationFrequencyRange": { "lowFrequency": 3600000000, "highFrequency": 3610000000 }
+}

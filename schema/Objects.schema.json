@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "AirInterface": {
+    "description": "Air interface parameter for a CBSD",
+    "type": "object",
+    "required": [ "radioTechnology" ],
+    "properties": {
+      "radioTechnology": { "enum": [ 
+                                     "E-UTRA",
+                                     "802.11" ],
+                           "description": "Which PHY radio technology is used by the device in the 3.5GHz band" },
+      "supportedSpec": { "type": "string",
+                         "description": "Description of the spec of the radio technology supported." }
+
+    }
+  },
+
+  "Error": {
+    "description": "Error data for SAS communications",
+    "type": "object",
+    "required": ["errorCode"],
+    "properties": {
+      "errorCode" : { "enum": [
+                                0,
+                                100, 101, 102, 103, 104,
+                                200, 201,
+                                300,
+                                400, 401, 402,
+                                500, 501, 502 ],
+                      "description": "An integer indicating the type of error. 0 means success (no error)" },
+      "errorMessage" : { "type": "string",
+                         "description": "A detailed human-readable string describing the error." },
+      "errorData" : { "type": "object",
+                      "description": "Additional error-dependent structured data containing more information about an error",
+                      "additionalProperties": true }
+    }
+  },
+
+  "FreqencyRange": {
+    "description": "Describes a frequency range. The range is provided as a pair of numbers which describe the bounding values of the range.",
+    "type": "object",
+    "required": [ "lowFrequency", "highFrequency" ],
+    "properties": {
+      "lowFrequency": { "type": "number",
+                        "minimum": 0,
+                        "description": "The lower frequency of the range in Hz." },
+      "highFrequency": { "type": "number",
+                         "minimum": 0,
+                         "description": "The higher frequency of the range in Hz. Must be greater than lowFrequency." }
+    }
+  },
+
+  "InstallationParam": {
+    "description": "Installation parameters provided for a CBSD",
+    "type": "object",
+    "required": ["latitude", "longitude", "height", "indoorDeployment"],
+    "properties": {
+      "latitude": { "type": "number",
+                    "description": "Latitude in WGS84 coordinates, provided in decimal degrees",
+                    "minimum": -90,
+                    "maximum": 90 },
+      "longitude": { "type": "number",
+                     "description": "Longitude in WGS84 coordinates, provided in decimal degrees",
+                     "minimum": -180,
+                     "maximum": 180 },
+      "height": { "type": "number",
+                  "description": "Height above ground level, provided in meters" },
+      "heightType": { "enum": [ "AMSL", "AGL" ],
+                      "description": "The reference for the height parameter. AMSL indicates the height is measured relative to mean sea level. AGL indicates the height is measured relative to local ground level at latitude, longitude." },
+      "horizontalAccuracy": { "type": "number",
+                              "description": "A measurement in meters of the horizontal accuracy of the indicated location.",
+                              "minimum": 0 },
+      "verticalAccuracy": { "type": "number",
+                            "description": "A measurement in meters of the vertical accuracy of the indicated location.",
+                            "minimum": 0 },
+      "indoorDeployment": { "type": "boolean",
+                            "description": "True if the equipment is installed indoors, false if outdoors" },
+      "antennaAzimuth": { "type": "number",
+                          "description": "Heading of antenna azimuth relative to true north, provided in decimal degrees. Positive indicates easterly.",
+                          "minimum": -360,
+                          "maximum": 360 },
+      "antennaDowntiltMech": { "type": "number",
+                               "description": "Mechanical tilt of the antenna (vertically down is positive) in decimal degrees.",
+                               "minimum": -90,
+                               "maximum": 90 },
+      "antennaDowntiltElec": { "type": "number",
+                               "description": "Electrical tilt of the antenna (vertically down is positive) in decimal degrees.",
+                               "minimum": -90,
+                               "maximum": 90 },
+      "antennaGain": { "type": "number",
+                       "description": "Maximum gain in dB of the antenna along the boresight" },
+      "antennaBeamwidth": { "type": "number",
+                            "description": "Beamwidth to 3dB points of the antenna coverage pattern, provided in decimal degrees and measured at the horizon." },
+      "antennaModel": { "type": "string",
+                        "description": "If an external antenna is used, the model of the antenna is optionally provided in this field." }
+    }
+  },
+
+  "MeasReport": {
+    "description": "Measurement report provided by a CBSD.",
+    "type": "object",
+    "additionalproperties": true
+  },
+
+  "MeasReportConfig": {
+    "description": "Measurement report configuration parameters. Indicates to a CBSD which spectrum measurement the SAS wishes it to perform.",
+    "type": "object",
+    "additionalproperties": true
+  },
+
+  "OperationParam": {
+    "description": "Operational parameters provided for a CBSD",
+    "type": "object",
+    "required": [ "peakPower", "operationFrequencyRange" ],
+    "properties": {
+      "palCredential": { "type": "array",
+                         "description": "List of any PAL credentials which apply to this operating parameter set",
+                         "additionalItems": false,
+                         "items": { "type": "string" } },
+      "peakPower": { "type": "number",
+                     "minimum": 0,
+                     "description": "The peak operating power in dBm/MHz to be used by the CBSD within this operating parameter set" },
+      "operationFrequencyRange": { "$ref": "#/FrequencyRange" }
+    }
+  }
+}

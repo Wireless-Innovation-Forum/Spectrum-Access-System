@@ -1,0 +1,16 @@
+{
+  "cbsdId": "sas1/cbsd1",
+  "grantId": "sas1/grant1",
+  "grantRenew": true,
+  "operationStatusReq": true,
+  "transmitExpireTime": "2016-02-02T01:01:01Z",
+  "grantExpireTime": "2016-02-02T01:01:01Z",
+  "heartbeatDuration": 300,
+  "measReportConfig": {
+  },
+  "operationParam": {
+    "peakPower": 30,
+    "operationFrequencyRange": { "lowFrequency": 3550000000, "highFrequency": 3560000000 }
+  },
+  "error": { "errorCode": 0 }
+}
