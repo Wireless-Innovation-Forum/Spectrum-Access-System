@@ -97,6 +97,15 @@ def ConvertSegmentToLineString(seg):
     if seg.Folder.name == 'LBDRY' and sequence > 10450:
       sequence += 10000
 
+    # The JBDRY segment has two duplicated segments which cause a polygon
+    # self-intersection error.
+    if seg.Folder.name == 'JBDRY' and sequence == 2910:
+      continue
+    if seg.Folder.name == 'JBDRY' and sequence == 2920:
+      continue
+    if seg.Folder.name == 'JBDRY' and sequence == 3890:
+      continue
+
     # Note: there is a missing border segment in the middle of HBDRY
     # (in placemark sequence 20550 and 20580). This segment is very
     # straight and follows the existing border, and it is just
