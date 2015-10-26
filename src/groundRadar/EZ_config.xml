@@ -1,0 +1,512 @@
+<Folder>
+    <EZTest>
+        <Name>Yuma Proving Ground</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>500</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>-114.417851, 33.246524</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Yakima Firing Center</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>White Sands Missile Range</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>400</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>Inner</Pgon>
+            <numPoints>40</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>-106.424012,33.332926</Center>
+            <numPoints>50</numPoints>
+            <Stddev>20</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>-106.358094,32.34990</Center>
+            <numPoints>50</numPoints>
+            <Stddev>20</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Schofield Barracks Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Pohakuloa Training Area</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Pinon Canyon Maneuver Site</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Letterkenny Army Depot</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Stewart</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Sill Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Riley Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Polk Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Polk Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>1</Pgon>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>2</Pgon>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>        
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>1</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>2</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Pickett Military Reservation (Closed)</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>25</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Lewis Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>150</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>-122.522552, 47.080643</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Irwin</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>100</numPoints>
+            <Stddev>15</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Indiantown Gap Military Reservation (Closed)</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>100</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Hood</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Ethan Allen Military Reservation</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Drum</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Dix Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Carson Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>1</Pgon>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>2</Pgon>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>1</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>2</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Campbell</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Bragg Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Fort Benning Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>200</numPoints>
+            <Stddev>1</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Cp Smith</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2.5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Camp Sherman 3 km PD</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2.5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Camp Shelby 3km PD</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>10</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Aberdeen Proving Ground Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>1.0</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>U.S. Army Aberdeen Proving Ground</Name>
+        <Test>
+            <Type>Edge</Type>
+            <numPoints>100</numPoints>
+            <Stddev>0.5</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>5</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Aberdeen Proving Ground Military Reservation</Name>
+        <Test>
+            <Type>Edge</Type>
+            <Pgon>1</Pgon>
+            <numPoints>100</numPoints>
+            <Stddev>1.0</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>1</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2</Stddev>
+        </Test>
+        <Test>
+            <Type>Gaussian</Type>
+            <Pgon>2</Pgon>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Knoxville, TN</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Tupelo, MS</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2</Stddev>
+        </Test>
+    </EZTest>
+
+    <EZTest>
+        <Name>Morristown, NJ</Name>
+        <Test>
+            <Type>Gaussian</Type>
+            <Center>Centroid</Center>
+            <numPoints>50</numPoints>
+            <Stddev>2</Stddev>
+        </Test>
+    </EZTest>
+    
+</Folder>
