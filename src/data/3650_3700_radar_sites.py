@@ -69,15 +69,15 @@ def AddPlacemarkAndZone(doc, site):
 
   d = float(zone_radius) / float(earth_radius)
   coords = []
-  for az in range(0, 359):
+  # Note: generate perimeter points every 5 degrees around the circle.
+  step_degrees = 5
+  for az in xrange(0, 360, step_degrees):
     a = float(az)
-    print 'At az %f d=%f from (%f, %f)' % (float(az), d, lat, lng)
     lat2 = math.asin(math.sin(math.radians(lat))*math.cos(d) +
                      math.cos(math.radians(lat))*math.sin(d)*math.cos(math.radians(a)))
     lng2 = math.radians(lng) + math.atan2(
                math.sin(math.radians(a))*math.sin(d)*math.cos(math.radians(lat)),
                math.cos(d) - math.sin(math.radians(lat))*math.sin(lat2))
-    print 'Got %f %f' % (math.degrees(lat2), math.degrees(lng2))
     coords.append([math.degrees(lng2), math.degrees(lat2)])
   coords.append(coords[0])
   latlngCoords = []
