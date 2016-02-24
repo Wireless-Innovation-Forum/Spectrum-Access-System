@@ -262,7 +262,6 @@
   "InstallationParam": {
     "description": "Installation parameters provided for a CBSD",
     "type": "object",
-    "required": ["latitude", "longitude", "height", "indoorDeployment"],
     "properties": {
       "latitude": { "type": "number",
                     "description": "Latitude in WGS84 coordinates, provided in decimal degrees",

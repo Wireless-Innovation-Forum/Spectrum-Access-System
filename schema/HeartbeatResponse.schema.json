@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Heartbeat response provided to a CBSD",
   "type": "object",
-  "required": [ "cbsdId", "grantId" ],
+  "required": [ "cbsdId", "grantId", "transmitExpireTime", "error" ],
   "properties": {
     "cbsdId": { "type": "string",
                 "description": "Unique designator for the CBSD as passed in the heartbeat request." },
