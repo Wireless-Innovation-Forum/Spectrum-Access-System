@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Grant Relinquish parameters provided by a CBSD",
+  "type": "object",
+  "required": [ "cbsdId", "grantId" ],
+  "properties": {
+    "cbsdId": { "type": "string",
+                "description": "Unique designator for the CBSD as returned from the registration procedure." },
+    "grantId": { "type": "string",
+                 "description": "Unique designator for the grant to be relinquished. Gotten from the SAS upon grant request procedure." }
+  }
+}
+

@@ -1,0 +1,23 @@
+{
+  "fccId": "abc123",
+  "cbsdCategory": "B",
+  "callSign": "KQQQ",
+  "userId": "John Doe",
+  "airInterface": {
+    "radioTechnology": "E-UTRA",
+    "supportedSpec": "LTE-Rel10"
+  },
+  "cbsdManufacturer": "Equipment Maker B",
+  "cbsdSerialNumber": "abcd1234",
+  "maximumGrants": 2,
+  "sensingCapability": [
+    "receivedInterferencePower"
+  ],
+  "installationParam": {
+    "latitude": 37.419735,
+    "longitude": -122.072205,
+    "height": 6,
+    "indoorDeployment": true
+  }
+}
+

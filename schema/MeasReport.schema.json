@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Measurement report provided by a CBSD.",
+  "type": "object",
+  "additionalproperties": true
+}
+

@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Air interface parameter for a CBSD",
+  "type": "object",
+  "required": [ "radioTechnology" ],
+  "properties": {
+    "radioTechnology": { "enum": [ 
+                                   "E-UTRA",
+                                   "802.11" ],
+                         "description": "Which PHY radio technology is used by the device in the 3.5GHz band" },
+    "supportedSpec": { "type": "string",
+                       "description": "Description of the spec of the radio technology supported." }
+
+  }
+}

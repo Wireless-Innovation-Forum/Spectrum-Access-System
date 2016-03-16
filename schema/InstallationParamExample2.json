@@ -1,0 +1,11 @@
+{
+  "latitude": 37.425056,
+  "longitude": -122.084113,
+  "height": 9.3,
+  "indoorDeployment": false,
+  "antennaAzimuth": 270.5,
+  "antennaDowntiltMech": 3,
+  "antennaGain": 16,
+  "antennaBeamwidth": 30
+}
+

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Spectrum Inquiry response returned to a CBSD",
+  "type": "object",
+  "required": [ "cbsdId", "availableChannel", "error" ],
+  "properties": {
+    "cbsdId": { "type": "string",
+                "description": "Unique designator for the CBSD as passed to the spectrum inquiry procedure." },
+    "availableChannel": { "type": "array",
+                          "description": "An array of available channels returned by the SAS covered by the inquiredSpectrum array in the request.",
+                          "additionalItems": false,
+                          "items": { "$ref": "#/availableChannelObject" } },
+    "error": { "$ref": "file:Error.schema.json" }
+  },
+
+  "availableChannelObject": {
+    "type": "object",
+    "description": "Response from the SAS to an inquiry for available channels within a particular frequency range. Note that the frequency ranges in the response need not correspond to the frequency ranges in the request. Instead, the provided response frequency ranges describe possible channels for the CBSD.",
+    "required": [ "frequencyRange", "channelType", "ruleApplied" ],
+    "properties": {
+      "frequencyRange": { "$ref": "file:FrequencyRange.schema.json" },
+      "channelType": { "enum": [ "PAL", "GAA" ],
+                       "description": "The channel type corresponding to the associated frequency range, either PAL or GAA" },
+      "ruleApplied": { "enum": [ "FCC Part 96" ],
+                       "description": "The rule applied in generating the channel availability list in this frequency range." }
+    }
+  }
+}
+

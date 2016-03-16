@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Relinquishment response provided to a CBSD",
+  "type": "object",
+  "required": [ "cbsdId", "grantId", "error" ],
+  "properties": {
+    "cbsdId": { "type": "string",
+                "description": "Unique designator for the CBSD as provided in the relinquishment request." },
+    "grantId": { "type": "string",
+                 "description": "Unique designator for the grant as provided in the relinquishment request." },
+    "error": { "$ref": "file:Error.schema.json" }
+  }
+}
+

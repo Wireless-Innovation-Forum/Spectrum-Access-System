@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Measurement report configuration parameters. Indicates to a CBSD which spectrum measurement the SAS wishes it to perform.",
+  "type": "object",
+  "additionalproperties": true
+}
+

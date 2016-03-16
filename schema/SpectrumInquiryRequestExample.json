@@ -1,0 +1,7 @@
+{
+  "cbsdId": "sas1/cbsd1",
+  "palCredential": [ "license1", "license2" ],
+  "inquiredSpectrum": [
+    { "lowFrequency": 3550000000, "highFrequency": 3700000000 }
+  ]
+}
