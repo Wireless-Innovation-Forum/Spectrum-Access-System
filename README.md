@@ -66,6 +66,17 @@ for handling SHP geospatial files in Python.
 This Python library can be installed with <code>pip</code>. It provides a
 high-level interface for retrieving FTP files with Python.
 
+* jsonschema (https://github.com/Julian/jsonschema)
+
+This Python library can be installed with <code>pip</code>. It provides
+JSON schema validation support.
+
+* pyopenssl (https://github.com/pyca/pyopenssl)
+
+This Python library can be installed with <code>pip</code>. It provides
+support for the OpenSSL library for Python.
+
+
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,
 where <code>xyz</code> is the name of the package. Error-free import means
