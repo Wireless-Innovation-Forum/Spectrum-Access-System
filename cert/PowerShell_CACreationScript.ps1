@@ -91,15 +91,15 @@ Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $p
 Invoke-Expression "openssl ca -create_serial -cert $pal.crt -keyfile $pal.pkey -outdir `"./root/ca/newcerts`" -batch -out $pal_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $pal_ee_sign -config `"$openssl\$cnf`" -in $pal_ee.csr"
 
 #Device Manufacturer Intermediate
-$dm = "wif_dm_ca"
-$dm_sign = $dm + $sig
+$cbsd = "wif_cbsd_ca"
+$cbsd_sign = $cbsd + $sig
 
-Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $dm -out $dm.csr -keyout $dm.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Device Manufacturer CA-1`" -config `"$openssl\$cnf`""
-Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $dm.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $dm_sign -config `"$openssl\$cnf`" -in $dm.csr"
+Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $cbsd -out $cbsd.csr -keyout $cbsd.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Device Manufacturer CA-1`" -config `"$openssl\$cnf`""
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $cbsd.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $cbsd_sign -config `"$openssl\$cnf`" -in $cbsd.csr"
 
 #Device Manufacturer EE
-$dm_ee = "wif_dm_req"
-$dm_ee_sign = $dm_ee + $sig
+$cbsd_ee = "wif_cbsd_req"
+$cbsd_ee_sign = $cbsd_ee + $sig
 
-Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $dm_ee -out $dm_ee.csr -keyout $dm_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Device Manufacturer End-Entity Example`" -config `"$openssl\$cnf`""
-Invoke-Expression "openssl ca -create_serial -cert $dm.crt -keyfile $dm.pkey -outdir `"./root/ca/newcerts`" -batch -out $dm_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $dm_ee_sign -config `"$openssl\$cnf`" -in $dm_ee.csr"
+Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $cbsd_ee -out $cbsd_ee.csr -keyout $cbsd_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Device Manufacturer End-Entity Example`" -config `"$openssl\$cnf`""
+Invoke-Expression "openssl ca -create_serial -cert $cbsd.crt -keyfile $cbsd.pkey -outdir `"./root/ca/newcerts`" -batch -out $cbsd_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $cbsd_ee_sign -config `"$openssl\$cnf`" -in $cbsd_ee.csr"

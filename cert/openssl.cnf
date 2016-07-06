@@ -10,10 +10,6 @@
 oid_section		= new_oids
 
 [ new_oids ]
-#sas_phase_oid = 1.3.6.1.4.1.46609.1.5
-#sas_zone_oid = 1.3.6.1.4.1.46609.1.6
-#sas_freq_oid = 1.3.6.1.4.1.46609.1.7
-
 ROLE=1.3.6.1.4.1.46609.1.1
 ZONE=1.3.6.1.4.1.46609.1.2
 FREQUENCY=1.3.6.1.4.1.46609.1.3
@@ -239,7 +235,7 @@ field1 = UTF8:PAL
 field2 = UTF8:CA
 
 ####################################################################
-[ wif_dm_ca ]
+[ wif_cbsd_ca ]
 
 subjectKeyIdentifier = hash
 basicConstraints = critical, CA:true, pathlen:0
@@ -251,7 +247,7 @@ ROLE=ASN1:SEQUENCE:dm_seq
 field1 = UTF8:DEVICE
 field2 = UTF8:CA
 
-[ wif_dm_ca_sign ]
+[ wif_cbsd_ca_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
@@ -260,7 +256,7 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
 ROLE=ASN1:SEQUENCE:dm_seq
 
-[ dm_seq ]
+[ cbsd_seq ]
 field1 = UTF8:DEVICE
 field2 = UTF8:CA
 
@@ -351,7 +347,7 @@ ROLE = ASN1:UTF8String:PAL
 #STARTDATETIME = 
 
 ####################################################################
-[ wif_dm_req ]
+[ wif_cbsd_req ]
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
@@ -364,7 +360,7 @@ ROLE = ASN1:UTF8String:DEVICE
 #SERIAL
 #CATEGORY
 
-[ wif_dm_req_sign ]
+[ wif_cbsd_req_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
