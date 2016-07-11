@@ -17,6 +17,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include "itm.h"
+
 #define THIRD  (1.0/3.0)
 
 using namespace std;
