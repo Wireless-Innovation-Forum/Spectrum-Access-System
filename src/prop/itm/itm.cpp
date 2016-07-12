@@ -743,14 +743,22 @@ void z1sq1 (double z[], const double &x1, const double &x2,
 }
 
 double qtile (const int &nn, double a[], const int &ir)
-{ double q, r; 
-  int m, n, i, j, j1, i0, k;
+{
+  int m = 0;
+  int n = nn;
+  int i;
+  int j;
+  int j1 = n;
+  int i0 = m;
+  int k;
   bool done=false;
   bool goto10=true;
 
   m=0;
   n=nn;
   k=mymin(mymax(0,ir),n);
+  double q = a[k];
+  double r; 
   while(!done)
       {
       if(goto10)
@@ -825,7 +833,8 @@ double d1thx(double pfl[], const double &x1, const double &x2)
   n=10*ka-5;
   kb=n-ka+1;
   sn=n-1;
-  assert( (s = new double[n+2]) != 0 );
+  s = new double[n+2];
+  assert(s != 0);
   s[0]=sn;
   s[1]=1.0;
   xb=(xb-xa)/sn;
@@ -941,7 +950,8 @@ void point_to_point(double elev[], double tht_m, double rht_m,
   double zc, zr;
   double eno, enso, q;
   long ja, jb, i, np;
-  double dkm, xkm;
+  //double dkm;
+  //double xkm;
   double fs;
 
   prop.hg[0] = tht_m;   prop.hg[1] = rht_m;
@@ -952,8 +962,8 @@ void point_to_point(double elev[], double tht_m, double rht_m,
   zc = qerfi(conf);
   zr = qerfi(rel);
   np = (long)elev[0];
-  dkm = (elev[1] * elev[0]) / 1000.0;
-  xkm = elev[1] / 1000.0;
+  //dkm = (elev[1] * elev[0]) / 1000.0;
+  //xkm = elev[1] / 1000.0;
   eno = eno_ns_surfref;
   enso = 0.0;
   q = enso;
@@ -1022,7 +1032,8 @@ void point_to_pointMDH (double elev[], double tht_m, double rht_m,
   double ztime, zloc, zconf;
   double eno, enso, q;
   long ja, jb, i, np;
-  double dkm, xkm;
+  //double dkm;
+  //double xkm;
   double fs;
 
   propmode = -1;  // mode is undefined
@@ -1036,8 +1047,8 @@ void point_to_pointMDH (double elev[], double tht_m, double rht_m,
   zconf = qerfi(confpct);
 
   np = (long)elev[0];
-  dkm = (elev[1] * elev[0]) / 1000.0;
-  xkm = elev[1] / 1000.0;
+  //dkm = (elev[1] * elev[0]) / 1000.0;
+  //xkm = elev[1] / 1000.0;
   eno = eno_ns_surfref;
   enso = 0.0;
   q = enso;
@@ -1100,7 +1111,8 @@ void point_to_pointDH (double elev[], double tht_m, double rht_m,
   double zc, zr;
   double eno, enso, q;
   long ja, jb, i, np;
-  double dkm, xkm;
+  //double dkm;
+  //double xkm;
   double fs;
 
   prop.hg[0] = tht_m;   prop.hg[1] = rht_m;
@@ -1111,8 +1123,8 @@ void point_to_pointDH (double elev[], double tht_m, double rht_m,
   zc = qerfi(conf);
   zr = qerfi(rel);
   np = (long)elev[0];
-  dkm = (elev[1] * elev[0]) / 1000.0;
-  xkm = elev[1] / 1000.0;
+  //dkm = (elev[1] * elev[0]) / 1000.0;
+  //xkm = elev[1] / 1000.0;
   eno = eno_ns_surfref;
   enso = 0.0;
   q = enso;
