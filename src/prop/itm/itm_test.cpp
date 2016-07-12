@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file has a test vector for the ITM implementation as slightly
+// modified in itm.cpp. The code has been modified to solve some
+// compiler warnings and make it more platform independent.
+// Build with 'g++ -Wall itm.cpp itm_test.cpp -o itm_test'
+// Then the test can be run with './itm_test'
+
 #include <assert.h>
 #include <iostream>
 #include <math.h>

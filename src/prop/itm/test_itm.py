@@ -12,6 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This file contains a sample test run for the ITM point-to-point code
+# as implemented in itm.cpp and exported for python in itm_py.cpp. See
+# those files for more build/install instructions.
+#
+# The test vector is taken directly from the C++ version of the Fortran
+# test.
+#
+# Usage documentation:
+#   itm.point_to_point(
+#       elevations,
+#            The first item in the list is the number of elevation points
+#            minus one. The second is the distance in meters between elevation
+#            points in the profile. Thus the total distance is (first)*(second)
+#            and there should be (first+1) profile elevations supplied in the
+#            vector following those initial values.
+#       transmitter_height_meters,  (above ground level)
+#       receiver_height_meters,     (above ground level)
+#       dielectric_constant,
+#            Typical value is 15 for ground, 81 for water.
+#       soil_conductivity,
+#            Typical value is 0.005 for ground, 0.01 for fresh water, 5.0 for
+#            sea water.
+#       refractivity,
+#            From 250 to 400. Typical value is 314. There are maps of usual
+#            values based on geography available from ITU.
+#       frequency_mhz,              (frequency of the emission)
+#       radio_climate,
+#            Values are Equatorial=1, Continental Subtropical=2, Maritime
+#            Tropical=3, Desert=4, Continental Temperate (typical)=5,
+#            Maritime Temperate (over land)=6, Maritime Temperate (over sea)=7
+#       polarization,
+#            0=horizontal, 1=vertical
+#       confidence,                  (value between 0.001 and 0.999)
+#            This value indicates a fraction of situations in which the actual
+#            loss will not exceed the modeled loss in similar situations.
+#       reliability)
+#            This value indicates a fraction of the time in which the actual
+#            loss will not exceed the modeled loss for a particular radio
+#            station.
+
 import itm
 
 path = [ 156, 499,
