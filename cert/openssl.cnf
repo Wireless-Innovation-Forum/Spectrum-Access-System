@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ####################################################################
 #OpenSSL Configuration file for WInnForum CA					   #
 #v0.1															   #
@@ -14,6 +15,35 @@ oid_section		= new_oids
 #sas_zone_oid = 1.3.6.1.4.1.46609.1.6
 #sas_freq_oid = 1.3.6.1.4.1.46609.1.7
 
+=======
+################################################################################
+#OpenSSL Configuration file for WInnForum CA
+#v0.1
+#============
+#   Copyright 2016 SAS Project Authors. All Rights Reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#   =============
+################################################################################
+
+
+####################################################################
+#Defining OIDS registered by The Wireless Innovation Forum
+
+oid_section		= new_oids
+
+[ new_oids ]
+>>>>>>> refs/remotes/origin/master
 ROLE=1.3.6.1.4.1.46609.1.1
 ZONE=1.3.6.1.4.1.46609.1.2
 FREQUENCY=1.3.6.1.4.1.46609.1.3
@@ -78,6 +108,7 @@ distinguished_name		= req_distinguished_name
 x509_extensions			= v3_ca	
 string_mask 			= utf8only
 default_md				= sha384
+<<<<<<< HEAD
 
 #req_extensions = v3_ca # The extensions to add to a certificate request
 
@@ -143,6 +174,76 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
 ROLE.0 = ASN1:UTF8String:SAS
 ROLE.1 = ASN1:UTF8String:CA
+=======
+
+#req_extensions = v3_ca # The extensions to add to a certificate request
+
+[ req_distinguished_name ]
+
+#values
+countryName					= Country Name (2 letter code)
+stateOrProvinceName			= State or Province Name (full name)
+localityName				= Locality Name (eg, city)
+0.organizationName			= Organization Name (eg, company)
+organizationalUnitName		= Organizational Unit Name (eg, section)
+commonName					= Common Name
+
+#min and max
+countryName_min				= 2
+countryName_max				= 2
+commonName_max				= 64
+
+#defaults
+countryName_default				= US
+stateOrProvinceName_default		= Washington, D.C.
+localityName_default 			= Washington, D.C.
+0.organizationName_default		= Wireless Innovation Forum
+organizationalUnitName_default	= www.wirelessinnovation.org
+
+[ v3_ca ]
+
+subjectKeyIdentifier			= hash
+basicConstraints 				= critical, CA:true
+keyUsage 						= critical, digitalSignature, cRLSign, keyCertSign
+
+####################################################################
+#Not used yet
+[ crl_section ]
+
+URI.0 = http://crl3.digicert.com/WInnForumCA.crl
+URI.1 = http://crl4.digicert.com/WInnForumCA.crl
+
+####################################################################
+#Not used yet
+[ ocsp_section ] 
+
+caIssuers;URI.0 = http://cacerts.digicert.com/WinnForumCA.crt
+OCSP;URI.0 = http://ocsp.digicert.com
+
+####################################################################
+[ wif_root_ca ]
+
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always,issuer
+basicConstraints 		= critical, CA:true
+keyUsage 				= critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_sas_ca ]
+
+subjectKeyIdentifier = hash
+#authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:sas_seq
+
+[ sas_seq ]
+field1 = UTF8:SAS
+field2 = UTF8:CA
+>>>>>>> refs/remotes/origin/master
 
 [ wif_sas_ca_sign ]
 
@@ -151,6 +252,7 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
+<<<<<<< HEAD
 ROLE.0 = ASN1:UTF8String:SAS
 ROLE.1 = ASN1:UTF8String:CA
 
@@ -225,18 +327,130 @@ ROLE.0 = ASN1:UTF8String:DEVICE
 ROLE.1 = ASN1:UTF8String:CA
 
 [ wif_dm_ca_sign ]
+=======
+ROLE=ASN1:SEQUENCE:sas_seq
+
+[ sas_seq ]
+field1 = UTF8:SAS
+field2 = UTF8:CA
+
+####################################################################
+[ wif_oper_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:oper_seq
+
+[ oper_seq ]
+field1 = UTF8:OPERATOR
+field2 = UTF8:CA
+
+[ wif_oper_ca_sign ]
+>>>>>>> refs/remotes/origin/master
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
+<<<<<<< HEAD
 ROLE.0 = ASN1:UTF8String:DEVICE
 ROLE.1 = ASN1:UTF8String:CA
 
 ####################################################################
 [ wif_sas_req ]
 
+=======
+ROLE=ASN1:SEQUENCE:oper_seq
+
+[ oper_seq ]
+field1 = UTF8:OPERATOR
+field2 = UTF8:CA
+
+####################################################################
+[ wif_pi_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:pi_seq
+
+[ pi_seq ]
+field1 = UTF8:INSTALLER
+field2 = UTF8:CA
+
+[ wif_pi_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:pi_seq
+
+[ pi_seq ]
+field1 = UTF8:INSTALLER
+field2 = UTF8:CA
+
+####################################################################
+[ wif_pal_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:pal_seq
+
+[ pal_seq ]
+field1 = UTF8:PAL
+field2 = UTF8:CA
+
+[ wif_pal_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:pal_seq
+
+[ pal_seq ]
+field1 = UTF8:PAL
+field2 = UTF8:CA
+
+####################################################################
+[ wif_cbsd_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:dm_seq
+
+[ dm_seq ]
+field1 = UTF8:DEVICE
+field2 = UTF8:CA
+
+[ wif_cbsd_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE=ASN1:SEQUENCE:dm_seq
+
+[ cbsd_seq ]
+field1 = UTF8:DEVICE
+field2 = UTF8:CA
+
+####################################################################
+[ wif_sas_req ]
+
+>>>>>>> refs/remotes/origin/master
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
@@ -246,6 +460,8 @@ ROLE = ASN1:UTF8String:SAS
 
 [ wif_sas_req_sign ]
 
+<<<<<<< HEAD
+=======
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
@@ -266,25 +482,39 @@ ROLE = ASN1:UTF8String:OPERATOR
 
 [ wif_oper_req_sign ]
 
+>>>>>>> refs/remotes/origin/master
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:SAS
+
+####################################################################
+[ wif_oper_req ]
+=======
 ROLE = ASN1:UTF8String:OPERATOR
 
 ####################################################################
 [ wif_pi_req ]
+>>>>>>> refs/remotes/origin/master
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:OPERATOR
+
+[ wif_oper_req_sign ]
+=======
 ROLE = ASN1:UTF8String:INSTALLER
 
 [ wif_pi_req_sign ]
+>>>>>>> refs/remotes/origin/master
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
@@ -292,22 +522,35 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:OPERATOR
+
+####################################################################
+[ wif_pi_req ]
+=======
 ROLE = ASN1:UTF8String:INSTALLER
 
 ####################################################################
 [ wif_pal_req ]
+>>>>>>> refs/remotes/origin/master
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:INSTALLER
+
+[ wif_pi_req_sign ]
+=======
 ROLE = ASN1:UTF8String:PAL
 #ZONE = ASN1:UTF8String:
 #FREQUENCY = 
 #HEIGHT = 
 
 [ wif_pal_req_sign ]
+>>>>>>> refs/remotes/origin/master
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
@@ -315,6 +558,50 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:INSTALLER
+
+####################################################################
+[ wif_pal_req ]
+=======
+ROLE = ASN1:UTF8String:PAL
+#ZONE = ASN1:UTF8String:
+#FREQUENCY = 
+#STARTDATETIME = 
+
+####################################################################
+[ wif_cbsd_req ]
+>>>>>>> refs/remotes/origin/master
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+<<<<<<< HEAD
+ROLE = ASN1:UTF8String:PAL
+#ZONE = ASN1:UTF8String:
+#FREQUENCY = 
+#HEIGHT = 
+
+[ wif_pal_req_sign ]
+=======
+ROLE = ASN1:UTF8String:DEVICE
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+[ wif_cbsd_req_sign ]
+>>>>>>> refs/remotes/origin/master
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+<<<<<<< HEAD
 ROLE = ASN1:UTF8String:PAL
 #ZONE = ASN1:UTF8String:
 #FREQUENCY = 
@@ -362,6 +649,28 @@ authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
 
+=======
+ROLE = ASN1:UTF8String:DEVICE
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+####################################################################
+[ crl_ext ]
+
+authorityKeyIdentifier=keyid:always
+
+####################################################################
+[ ocsp ]
+
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, OCSPSigning
+
+>>>>>>> refs/remotes/origin/master
 ####################################################################
 # Probably won't be used
 [ tsa ]
