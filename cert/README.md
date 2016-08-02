@@ -1,6 +1,15 @@
 This directory contains a sample openssl configuration for working
 with SAS certificates.
 
+To run the examples, use the CACreationScript scripts (PowerShell or BASH)
+provided. These will generate a root/ directory containing the CA management
+and tracking data, as well as several role-specific certificates.
+
+-------------------------------------------------
+
+You can also use the openssl.cnf file directly to experiment with the
+certificates:
+
 To set up, create a CA structure in a sub-directory:
 
 ```
