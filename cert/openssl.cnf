@@ -1,234 +1,394 @@
-# SAS OpenSSL configuration file.
+####################################################################
+#OpenSSL Configuration file for WInnForum CA					   #
+#v0.1															   #
+####################################################################
 
-# This definition stops the following lines choking if HOME isn't
-# defined.
-HOME			= .
-RANDFILE		= $ENV::HOME/.rnd
 
-# Extra OBJECT IDENTIFIER info:
+####################################################################
+#Defining OIDS registered by The Wireless Innovation Forum
+
 oid_section		= new_oids
 
 [ new_oids ]
-sas_role_oid = 1.3.6.1.4.1.46609.1.1
-sas_fccid_oid = 1.3.6.1.4.1.46609.1.2
-sas_serialnum_oid = 1.3.6.1.4.1.46609.1.3
-sas_maxgrants_oid = 1.3.6.1.4.1.46609.1.4
-sas_phase_oid = 1.3.6.1.4.1.46609.1.5
-sas_zone_oid = 1.3.6.1.4.1.46609.1.6
-sas_freq_oid = 1.3.6.1.4.1.46609.1.7
-sas_test_oid = 1.3.6.1.4.1.46609.1.999
+#sas_phase_oid = 1.3.6.1.4.1.46609.1.5
+#sas_zone_oid = 1.3.6.1.4.1.46609.1.6
+#sas_freq_oid = 1.3.6.1.4.1.46609.1.7
+
+ROLE=1.3.6.1.4.1.46609.1.1
+ZONE=1.3.6.1.4.1.46609.1.2
+FREQUENCY=1.3.6.1.4.1.46609.1.3
+HEIGHT=1.3.6.1.4.1.46609.1.4
+TEST=1.3.6.1.4.1.46609.1.999
 
 ####################################################################
 [ ca ]
 default_ca	= CA_default		# The default ca section
-
 ####################################################################
 [ CA_default ]
+dir               	= /root
+certs             	= $dir/certs
+crl_dir           	= $dir/crl
+new_certs_dir     	= /
+database          	= index.txt
+serial            	= /serial
+RANDFILE          	= $dir/private/.rand
 
-dir		= ./sasCA		# Where everything is kept
-certs		= $dir/certs		# Where the issued certs are kept
-crl_dir		= $dir/crl		# Where the issued crl are kept
-database	= $dir/index.txt	# database index file.
-#unique_subject	= no			# Set to 'no' to allow creation of
-					# several ctificates with same subject.
-new_certs_dir	= $dir/newcerts		# default place for new certs.
+# For certificate revocation lists.
+#crlnumber         	= $dir/crlnumber
+#crl               	= $dir/crl/ca.crl.pem
+#crl_extensions    	= crl_ext
+#default_crl_days  	= 30
 
-certificate	= $dir/cacert.pem 	# The CA certificate
-serial		= $dir/serial 		# The current serial number
-crlnumber	= $dir/crlnumber	# the current crl number
-					# must be commented out to leave a V1 CRL
-crl		= $dir/crl.pem 		# The current CRL
-private_key	= $dir/private/cakey.pem# The private key
-RANDFILE	= $dir/private/.rand	# private random number file
+default_md        	= sha384
 
-x509_extensions	= usr_cert		# The extentions to add to the cert
-
-name_opt 	= ca_default		# Subject Name options
-cert_opt 	= ca_default		# Certificate field options
+name_opt          	= ca_default
+cert_opt          	= ca_default
+default_days      	= 1095
+preserve          	= no
+policy            	= policy_match
 
 # Extension copying option: use with caution.
-# Note: we want to copy request extensions into the signed cert.
-copy_extensions = copy
-
-default_days	= 365			# how long to certify for
-default_crl_days= 30			# how long before next CRL
-default_md	= default		# use public key default MD
-preserve	= no			# keep passed DN ordering
-
-# A few difference way of specifying how similar the request should look
-# For type CA, the listed attributes must be the same, and the optional
-# and supplied fields are just that :-)
-policy		= policy_match
+# This can be commented in for testing, but don't use this with a production system.
+# It shouldn't be necessary if using the scripts on WInnForum's GitHub repo
+# copy_extensions = copy
 
 # For the CA policy
 [ policy_match ]
-countryName		= match
-stateOrProvinceName	= match
-organizationName	= match
+countryName				= match
+stateOrProvinceName		= match
+localityName			= optional
+organizationName		= match
 organizationalUnitName	= optional
-commonName		= supplied
-emailAddress		= optional
+commonName				= supplied
 
 # For the 'anything' policy
-# At this point in time, you must list all acceptable 'object'
-# types.
+# At this point in time, you must list all acceptable 'object' types.
 [ policy_anything ]
-countryName		= optional
-stateOrProvinceName	= optional
-localityName		= optional
-organizationName	= optional
+countryName				= optional
+stateOrProvinceName		= optional
+localityName			= optional
+organizationName		= optional
 organizationalUnitName	= optional
-commonName		= supplied
-emailAddress		= optional
+commonName				= supplied
 
 ####################################################################
 [ req ]
-default_bits		= 2048
-default_keyfile 	= privkey.pem
-distinguished_name	= req_distinguished_name
-attributes		= req_attributes
-x509_extensions	= v3_ca	# The extentions to add to the self signed cert
+default_bits			= 2048
+distinguished_name		= req_distinguished_name
+x509_extensions			= v3_ca	
+string_mask 			= utf8only
+default_md				= sha384
 
-# Passwords for private keys if not present they will be prompted for
-# input_password = secret
-# output_password = secret
-
-# This sets a mask for permitted string types. There are several options. 
-# utf8only: only UTF8Strings (PKIX recommendation after 2004).
-string_mask = utf8only
-
-req_extensions = sas_req # The extensions to add to a certificate request
+#req_extensions = v3_ca # The extensions to add to a certificate request
 
 [ req_distinguished_name ]
-countryName			= Country Name (2 letter code)
-countryName_default		= US
-countryName_min			= 2
-countryName_max			= 2
 
-stateOrProvinceName		= State or Province Name (full name)
-
-localityName			= Locality Name (eg, city)
-
-organizationName		= Organization Name (eg, company)
-
+#values
+countryName					= Country Name (2 letter code)
+stateOrProvinceName			= State or Province Name (full name)
+localityName				= Locality Name (eg, city)
+0.organizationName			= Organization Name (eg, company)
 organizationalUnitName		= Organizational Unit Name (eg, section)
+commonName					= Common Name
 
-commonName			= Common Name (domain name for SAS/domain proxy or applicant name)
-commonName_max			= 64
+#min and max
+countryName_min				= 2
+countryName_max				= 2
+commonName_max				= 64
 
-emailAddress			= Email Address
-emailAddress_max		= 64
-
-[ req_attributes ]
-
-[ usr_cert ]
-
-# These extensions are added when 'ca' signs a request.
-
-# This goes against PKIX guidelines but some CAs do it and some software
-# requires this to avoid interpreting an end user certificate as a CA.
-
-basicConstraints=CA:FALSE
-
-# PKIX recommendations harmless if included in all certificates.
-subjectKeyIdentifier=hash
-authorityKeyIdentifier=keyid,issuer
-
-# Note: a TEST:TRUE CA should include TEST:TRUE extensions on all certs.
-sas_test_oid = ASN1:UTF8String:TEST:TRUE
-
-[ sas_req ]
-
-basicConstraints = CA:FALSE
-# Note: should be 'digitalSignature' for EC, 'keyEncipherment' for RSA
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:SAS
-sas_phase_oid = ASN1:UTF8String:PHASE:1
-
-[ pal_req ]
-
-basicConstraints = CA:FALSE
-# Note: should be 'digitalSignature' for EC, 'keyEncipherment' for RSA
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:PAL
-sas_zone_oid = ASN1:UTF8String:ZONE:zone/census/2010/51760030500
-sas_freq_oid = ASN1:UTF8String:FREQUENCY:3660-3670
-
-[ device_req ]
-
-basicConstraints = critical,CA:TRUE,pathlen:1
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:DEVICE
-sas_fccid_oid = ASN1:UTF8String:FCCID:JXBLMDSXP4-8T
-sas_maxgrants_oid = ASN1:UTF8String:MAXGRANTS:1
-
-[ unit_req ]
-# Used to specify a particular unit of a device type (CBSD)
-basicConstraints = CA:FALSE
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:DEVICE
-sas_fccid_oid = ASN1:UTF8String:FCCID:JXBLMDSXP4-8T
-sas_maxgrants_oid = ASN1:UTF8String:MAXGRANTS:1
-sas_serialnum_oid = ASN1:UTF8String:SERIALNUM:6369A-RRU32563500
-
-[ oper_req ]
-
-basicConstraints = CA:FALSE
-# Note: should be 'digitalSignature' for EC, 'keyEncipherment' for RSA
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:OPERATOR
-
-[ installer_req ]
-
-basicConstraints = CA:FALSE
-# Note: should be 'digitalSignature' for EC, 'keyEncipherment' for RSA
-keyUsage = keyEncipherment
-subjectKeyIdentifier = hash
-
-sas_role_oid = ASN1:UTF8String:ROLE:INSTALLER
+#defaults
+countryName_default				= US
+stateOrProvinceName_default		= Washington, D.C.
+localityName_default 			= Washington, D.C.
+0.organizationName_default		= Wireless Innovation Forum
+organizationalUnitName_default	= www.wirelessinnovation.org
 
 [ v3_ca ]
-# This section is used when self-signing a (test) CA cert
-# PKIX recommendation.
-subjectKeyIdentifier=hash
-authorityKeyIdentifier=keyid:always,issuer:always
 
-subjectAltName=email:move
+subjectKeyIdentifier			= hash
+basicConstraints 				= critical, CA:true
+keyUsage 						= critical, digitalSignature, cRLSign, keyCertSign
 
-basicConstraints = critical,CA:true
+####################################################################
+#Not used yet
+[ crl_section ]
 
-# Key usage: this is typical for a CA certificate. However since it will
-# prevent it being used as an test self-signed certificate it is best
-# left out by default.
-# keyUsage = cRLSign, keyCertSign
+URI.0 = http://crl3.digicert.com/WInnForumCA.crl
+URI.1 = http://crl4.digicert.com/WInnForumCA.crl
 
-sas_role_oid = ASN1:UTF8String:ROLE:CA
-sas_test_oid = ASN1:UTF8String:TEST:TRUE
+####################################################################
+#Not used yet
+[ ocsp_section ] 
 
-[ v3_req_sas_ca ]
-# This section used to initiate a SAS Test CA.
-# PKIX recommendation.
-subjectKeyIdentifier=hash
-#authorityKeyIdentifier=keyid:always,issuer:always
+caIssuers;URI.0 = http://cacerts.digicert.com/WinnForumCA.crt
+OCSP;URI.0 = http://ocsp.digicert.com
 
-subjectAltName=email:move
+####################################################################
+[ wif_root_ca ]
 
-basicConstraints = critical,CA:true
+subjectKeyIdentifier	= hash
+authorityKeyIdentifier	= keyid:always,issuer
+basicConstraints 		= critical, CA:true
+keyUsage 				= critical, digitalSignature, cRLSign, keyCertSign
 
-# Key usage: this is typical for a CA certificate. However since it will
-# prevent it being used as an test self-signed certificate it is best
-# left out by default.
-# keyUsage = cRLSign, keyCertSign
+ROLE = ASN1:UTF8String:CA
 
-sas_role_oid = ASN1:UTF8String:ROLE:CA
-sas_test_oid = ASN1:UTF8String:TEST:TRUE
+####################################################################
+[ wif_sas_ca ]
+
+subjectKeyIdentifier = hash
+#authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:SAS
+ROLE.1 = ASN1:UTF8String:CA
+
+[ wif_sas_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:SAS
+ROLE.1 = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_oper_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:OPERATOR
+ROLE.1 = ASN1:UTF8String:CA
+
+[ wif_oper_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:OPERATOR
+ROLE.1 = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_pi_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:INSTALLER
+ROLE.1 = ASN1:UTF8String:CA
+
+[ wif_pi_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:INSTALLER
+ROLE.1 = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_pal_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:PAL
+ROLE.1 = ASN1:UTF8String:CA
+
+[ wif_pal_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:PAL
+ROLE.1 = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_dm_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:DEVICE
+ROLE.1 = ASN1:UTF8String:CA
+
+[ wif_dm_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+ROLE.0 = ASN1:UTF8String:DEVICE
+ROLE.1 = ASN1:UTF8String:CA
+
+####################################################################
+[ wif_sas_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:SAS
+
+[ wif_sas_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:SAS
+
+####################################################################
+[ wif_oper_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:OPERATOR
+
+[ wif_oper_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:OPERATOR
+
+####################################################################
+[ wif_pi_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:INSTALLER
+
+[ wif_pi_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:INSTALLER
+
+####################################################################
+[ wif_pal_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:PAL
+#ZONE = ASN1:UTF8String:
+#FREQUENCY = 
+#HEIGHT = 
+
+[ wif_pal_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:PAL
+#ZONE = ASN1:UTF8String:
+#FREQUENCY = 
+#STARTDATETIME = 
+
+####################################################################
+[ wif_dm_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:DEVICE
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+[ wif_dm_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+ROLE = ASN1:UTF8String:DEVICE
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+####################################################################
+[ crl_ext ]
+
+authorityKeyIdentifier=keyid:always
+
+####################################################################
+[ ocsp ]
+
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, OCSPSigning
+
+####################################################################
+# Probably won't be used
+[ tsa ]
+
+default_tsa = tsa_config1	# the default TSA section
+
+[ tsa_config ]
+
+# These are used by the TSA reply generation only.
+dir		= ./demoCA		# TSA root directory
+serial		= $dir/tsaserial	# The current serial number (mandatory)
+crypto_device	= builtin		# OpenSSL engine to use for signing
+signer_cert	= $dir/tsacert.pem 	# The TSA signing certificate
+					# (optional)
+certs		= $dir/cacert.pem	# Certificate chain to include in reply
+					# (optional)
+signer_key	= $dir/private/tsakey.pem # The TSA private key (optional)
+
+default_policy	= tsa_policy1		# Policy if request did not specify it
+					# (optional)
+other_policies	= tsa_policy2, tsa_policy3	# acceptable policies (optional)
+digests		= md5, sha1		# Acceptable message digests (mandatory)
+accuracy	= secs:1, millisecs:500, microsecs:100	# (optional)
+clock_precision_digits  = 0	# number of digits after dot. (optional)
+ordering		= yes	# Is ordering defined for timestamps?
+				# (optional, default: no)
+tsa_name		= yes	# Must the TSA name be included in the reply?
+				# (optional, default: no)
+ess_cert_id_chain	= no	# Must the ESS cert id chain be included?
+				# (optional, default: no)
