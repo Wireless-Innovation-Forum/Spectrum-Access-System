@@ -62,11 +62,11 @@ Invoke-Expression "openssl req -new -x509 -newkey rsa:$rootRSAKeysize -sha384 -n
 >>>>>>> refs/remotes/origin/master
 #EC
 #Invoke-Expression "openssl ecparam -out wifECRoot.pkey -name secp384r1 -genkey" 
-#Invoke-Expression "openssl req -new -x509 -key wifECRoot.pkey -sha384 -nodes -days 7300 -extensions wif_root_ca -out wifECRoot.crt -config `"$openssl\$cnf`""
+#Invoke-Expression "openssl req -new -x509 -key wifECRoot.pkey -sha384 -nodes -days $rootValidity -extensions $root -out wifECRoot.crt -config `"$openssl\$cnf`""
 #EC 2
 #Invoke-Expression "openssl ecparam -out wifECRoot.pkey -name secp384r1 -genkey" 
-#Invoke-Expression "openssl req -new -key wifECRoot.pkey -sha384 -nodes -days 7300 -extensions wif_root_ca -out wifECRoot.csr -config `"$openssl\$cnf`""
-#Invoke-Expression "openssl ca -create_serial -out wifECRoot.crt -days 7300 -policy policy_anything -md sha384 -keyfile wifECRoot.pkey -selfsign -extensions wif_root_ca -config `"$openssl\$cnf`" -infiles wifECRoot.csr"
+#Invoke-Expression "openssl req -new -key wifECRoot.pkey -sha384 -nodes -days $rootValidity -extensions $root -out wifECRoot.csr -config `"$openssl\$cnf`""
+#Invoke-Expression "openssl ca -create_serial -out wifECRoot.crt -days $rootValidity -policy policy_anything -md sha384 -keyfile wifECRoot.pkey -selfsign -extensions $root -config `"$openssl\$cnf`" -infiles wifECRoot.csr"
 
 #SAS Intermediate
 $sas = "wif_sas_ca"
@@ -77,7 +77,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $sas -out $
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $sas.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $sas_sign -config `"$openssl\$cnf`" -in $sas.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $sas -out $sas.csr -keyout $sas.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA SAS CA-1`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $sas.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $sas_sign -config `"$openssl\$cnf`" -in $sas.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir $csr -batch -out $sas.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $sas_sign -config `"$openssl\$cnf`" -in $sas.csr"
 >>>>>>> refs/remotes/origin/master
 
 #SAS EE
@@ -89,7 +93,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $sas_ee -ou
 Invoke-Expression "openssl ca -create_serial -cert $sas.crt -keyfile $sas.pkey -outdir `"./root/ca/newcerts`" -batch -out $sas_ee.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $sas_ee_sign -config `"$openssl\$cnf`" -in $sas_ee.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $sas_ee -out $sas_ee.csr -keyout $sas_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS End-Entity Example`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $sas.crt -keyfile $sas.pkey -outdir `"./root/ca/newcerts`" -batch -out $sas_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $sas_ee_sign -config `"$openssl\$cnf`" -in $sas_ee.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $sas.crt -keyfile $sas.pkey -outdir $csr -batch -out $sas_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $sas_ee_sign -config `"$openssl\$cnf`" -in $sas_ee.csr"
 >>>>>>> refs/remotes/origin/master
 
 #Operator Intermediate
@@ -101,7 +109,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $oper -out 
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $oper.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $oper_sign -config `"$openssl\$cnf`" -in $oper.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $oper -out $oper.csr -keyout $oper.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Operator CA-1`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $oper.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $oper_sign -config `"$openssl\$cnf`" -in $oper.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir $csr -batch -out $oper.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $oper_sign -config `"$openssl\$cnf`" -in $oper.csr"
 >>>>>>> refs/remotes/origin/master
 
 #Operator EE
@@ -113,7 +125,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $oper_ee -o
 Invoke-Expression "openssl ca -create_serial -cert $oper.crt -keyfile $oper.pkey -outdir `"./root/ca/newcerts`" -batch -out $oper_ee.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $oper_ee_sign -config `"$openssl\$cnf`" -in $oper_ee.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $oper_ee -out $oper_ee.csr -keyout $oper_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Operator End-Entity Example`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $oper.crt -keyfile $oper.pkey -outdir `"./root/ca/newcerts`" -batch -out $oper_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $oper_ee_sign -config `"$openssl\$cnf`" -in $oper_ee.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $oper.crt -keyfile $oper.pkey -outdir $csr -batch -out $oper_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $oper_ee_sign -config `"$openssl\$cnf`" -in $oper_ee.csr"
 >>>>>>> refs/remotes/origin/master
 
 #Professional Installer Intermediate
@@ -125,7 +141,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $pi -out $p
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $pi.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $pi_sign -config `"$openssl\$cnf`" -in $pi.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $pi -out $pi.csr -keyout $pi.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Installer CA-1`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $pi.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $pi_sign -config `"$openssl\$cnf`" -in $pi.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir $csr -batch -out $pi.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $pi_sign -config `"$openssl\$cnf`" -in $pi.csr"
 >>>>>>> refs/remotes/origin/master
 
 #Professional Installer EE
@@ -137,7 +157,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $pi_ee -out
 Invoke-Expression "openssl ca -create_serial -cert $pi.crt -keyfile $pi.pkey -outdir `"./root/ca/newcerts`" -batch -out $pi_ee.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $pi_ee_sign -config `"$openssl\$cnf`" -in $pi_ee.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $pi_ee -out $pi_ee.csr -keyout $pi_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Installer End-Entity Example`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $pi.crt -keyfile $pi.pkey -outdir `"./root/ca/newcerts`" -batch -out $pi_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $pi_ee_sign -config `"$openssl\$cnf`" -in $pi_ee.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $pi.crt -keyfile $pi.pkey -outdir $csr -batch -out $pi_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $pi_ee_sign -config `"$openssl\$cnf`" -in $pi_ee.csr"
 >>>>>>> refs/remotes/origin/master
 
 #PAL Intermediate
@@ -149,7 +173,11 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $pal -out $
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $pal.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $pal_sign -config `"$openssl\$cnf`" -in $pal.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $pal -out $pal.csr -keyout $pal.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA PAL CA-1`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $pal.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $pal_sign -config `"$openssl\$cnf`" -in $pal.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir $csr -batch -out $pal.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $pal_sign -config `"$openssl\$cnf`" -in $pal.csr"
 >>>>>>> refs/remotes/origin/master
 
 #PAL EE
@@ -175,19 +203,23 @@ Invoke-Expression "openssl req -new -newkey rsa:4096 -nodes -reqexts $dm_ee -out
 Invoke-Expression "openssl ca -create_serial -cert $dm.crt -keyfile $dm.pkey -outdir `"./root/ca/newcerts`" -batch -out $dm_ee.crt -utf8 -days 7300 -policy policy_anything -md sha384 -extensions $dm_ee_sign -config `"$openssl\$cnf`" -in $dm_ee.csr"
 =======
 Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $pal_ee -out $pal_ee.csr -keyout $pal_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=PAL End-Entity Example`" -config `"$openssl\$cnf`""
-Invoke-Expression "openssl ca -create_serial -cert $pal.crt -keyfile $pal.pkey -outdir `"./root/ca/newcerts`" -batch -out $pal_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $pal_ee_sign -config `"$openssl\$cnf`" -in $pal_ee.csr"
+Invoke-Expression "openssl ca -create_serial -cert $pal.crt -keyfile $pal.pkey -outdir $csr -batch -out $pal_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $pal_ee_sign -config `"$openssl\$cnf`" -in $pal_ee.csr"
 
-#Device Manufacturer Intermediate
+#Device Intermediate
 $cbsd = "wif_cbsd_ca"
 $cbsd_sign = $cbsd + $sig
 
 Invoke-Expression "openssl req -new -newkey rsa:$intRSAKeysize -nodes -reqexts $cbsd -out $cbsd.csr -keyout $cbsd.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Device Manufacturer CA-1`" -config `"$openssl\$cnf`""
-Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir `"./root/ca/newcerts`" -batch -out $cbsd.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $cbsd_sign -config `"$openssl\$cnf`" -in $cbsd.csr"
+Invoke-Expression "openssl ca -create_serial -cert $root.crt -keyfile $root.pkey -outdir $csr -batch -out $cbsd.crt -utf8 -days $intValidity -policy policy_anything -md sha384 -extensions $cbsd_sign -config `"$openssl\$cnf`" -in $cbsd.csr"
 
-#Device Manufacturer EE
+#Device EE
 $cbsd_ee = "wif_cbsd_req"
 $cbsd_ee_sign = $cbsd_ee + $sig
 
 Invoke-Expression "openssl req -new -newkey rsa:$eeRSAKeysize -nodes -reqexts $cbsd_ee -out $cbsd_ee.csr -keyout $cbsd_ee.pkey -subj `"/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Device Manufacturer End-Entity Example`" -config `"$openssl\$cnf`""
+<<<<<<< HEAD
 Invoke-Expression "openssl ca -create_serial -cert $cbsd.crt -keyfile $cbsd.pkey -outdir `"./root/ca/newcerts`" -batch -out $cbsd_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $cbsd_ee_sign -config `"$openssl\$cnf`" -in $cbsd_ee.csr"
+>>>>>>> refs/remotes/origin/master
+=======
+Invoke-Expression "openssl ca -create_serial -cert $cbsd.crt -keyfile $cbsd.pkey -outdir $csr -batch -out $cbsd_ee.crt -utf8 -days $eeValidity -policy policy_anything -md sha384 -extensions $cbsd_ee_sign -config `"$openssl\$cnf`" -in $cbsd_ee.csr"
 >>>>>>> refs/remotes/origin/master
