@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Heartbeat response provided to a CBSD",
   "type": "object",
-  "required": [ "cbsdId", "grantId", "transmitExpireTime", "error" ],
+  "required": [ "cbsdId", "grantId", "transmitExpireTime", "response" ],
   "properties": {
     "cbsdId": { "type": "string",
                 "description": "Unique designator for the CBSD as passed in the heartbeat request." },
@@ -19,7 +19,7 @@
                            "description": "If present, the CBSD is required to use the indicated heartbeat duration in subsequent heartbeat requests." },
     "operationParam": { "$ref": "file:OperationParam.schema.json" },
     "measReportConfig": { "$ref": "file:MeasReportConfig.schema.json" },
-    "error": { "$ref": "file:Error.schema.json" }
+    "response": { "$ref": "file:Response.schema.json" }
   }
 }
 

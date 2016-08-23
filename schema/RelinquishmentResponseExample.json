@@ -1,6 +1,6 @@
 {
   "cbsdId": "sas1/cbsd1",
   "grantId": "sas1/grant1",
-  "error": { "errorCode": 0 }
+  "response": { "responseCode": 0 }
 }
 

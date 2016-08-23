@@ -20,15 +20,22 @@ def testJsonSchema(schema_file, test_file):
   schema = loadSchema(schema_file)
   data = loadJson(test_file)
 
-  print 'Loaded test validation JSON value:'
-  pprint(data)
+  print 'Loaded test validation JSON value from %s:' % test_file
 
   dir = os.path.dirname(os.path.realpath(__file__))
 
   resolver = jsonschema.RefResolver(referrer=schema, base_uri='file://' + dir + '/')
 
-  jsonschema.validate(data, schema, resolver=resolver)
+  try:
+    jsonschema.validate(data, schema, resolver=resolver)
+  except jsonschema.exceptions.ValidationError as e:
+    print e
+    print 'FAILED VALIDATION for %s' % test_file
+    pprint(data)
+    return 1
+
   print 'Validated.'
+  return 0
 
 def testJsonSchemaObject(schema_file, test_file, schemaObject):
   schema = loadSchema(schema_file)
@@ -41,43 +48,49 @@ def testJsonSchemaObject(schema_file, test_file, schemaObject):
   print 'Validated.'
 
 
-testJsonSchema('AirInterface.schema.json', 'AirInterfaceExample.json')
+errors = 0
 
-testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample.json')
-testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample2.json')
+errors += testJsonSchema('AirInterface.schema.json', 'AirInterfaceExample.json')
 
-testJsonSchema('Error.schema.json', 'ErrorExample.json')
-testJsonSchema('Error.schema.json', 'ErrorExample2.json')
-testJsonSchema('Error.schema.json', 'ErrorExample3.json')
+errors += testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample.json')
+errors += testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample2.json')
 
-testJsonSchema('RegistrationRequest.schema.json', 'RegistrationRequestExample.json')
-testJsonSchema('RegistrationRequest.schema.json', 'RegistrationRequestExample2.json')
+errors += testJsonSchema('Response.schema.json', 'ResponseExample.json')
+errors += testJsonSchema('Response.schema.json', 'ResponseExample2.json')
+errors += testJsonSchema('Response.schema.json', 'ResponseExample3.json')
 
-testJsonSchema('RegistrationResponse.schema.json', 'RegistrationResponseExample.json')
+errors += testJsonSchema('RegistrationRequest.schema.json', 'RegistrationRequestExample.json')
+errors += testJsonSchema('RegistrationRequest.schema.json', 'RegistrationRequestExample2.json')
 
-testJsonSchema('FrequencyRange.schema.json', 'FrequencyRangeExample.json')
+errors += testJsonSchema('RegistrationResponse.schema.json', 'RegistrationResponseExample.json')
 
-testJsonSchema('SpectrumInquiryRequest.schema.json', 'SpectrumInquiryRequestExample.json')
+errors += testJsonSchema('FrequencyRange.schema.json', 'FrequencyRangeExample.json')
 
-testJsonSchema('SpectrumInquiryResponse.schema.json', 'SpectrumInquiryResponseExample.json')
+errors += testJsonSchema('SpectrumInquiryRequest.schema.json', 'SpectrumInquiryRequestExample.json')
 
-testJsonSchema('OperationParam.schema.json', 'OperationParamExample.json')
+errors += testJsonSchema('SpectrumInquiryResponse.schema.json', 'SpectrumInquiryResponseExample.json')
 
-testJsonSchema('RelinquishmentRequest.schema.json', 'RelinquishmentRequestExample.json')
+errors += testJsonSchema('OperationParam.schema.json', 'OperationParamExample.json')
 
-testJsonSchema('RelinquishmentResponse.schema.json', 'RelinquishmentResponseExample.json')
+errors += testJsonSchema('RelinquishmentRequest.schema.json', 'RelinquishmentRequestExample.json')
 
-testJsonSchema('DeregistrationRequest.schema.json', 'DeregistrationRequestExample.json')
+errors += testJsonSchema('RelinquishmentResponse.schema.json', 'RelinquishmentResponseExample.json')
 
-testJsonSchema('DeregistrationResponse.schema.json', 'DeregistrationResponseExample.json')
+errors += testJsonSchema('DeregistrationRequest.schema.json', 'DeregistrationRequestExample.json')
 
-testJsonSchema('GrantRequest.schema.json', 'GrantRequestExample.json')
+errors += testJsonSchema('DeregistrationResponse.schema.json', 'DeregistrationResponseExample.json')
 
-testJsonSchema('GrantResponse.schema.json', 'GrantResponseExample.json')
+errors += testJsonSchema('GrantRequest.schema.json', 'GrantRequestExample.json')
 
-testJsonSchema('HeartbeatRequest.schema.json', 'HeartbeatRequestExample.json')
+errors += testJsonSchema('GrantResponse.schema.json', 'GrantResponseExample.json')
 
-testJsonSchema('HeartbeatResponse.schema.json', 'HeartbeatResponseExample.json')
+errors += testJsonSchema('HeartbeatRequest.schema.json', 'HeartbeatRequestExample.json')
 
+errors += testJsonSchema('HeartbeatResponse.schema.json', 'HeartbeatResponseExample.json')
+
+if errors == 0:
+  print 'PASS'
+else:
+  print 'FAIL: %d validation errors' % errors
 
 

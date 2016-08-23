@@ -1,7 +1,0 @@
-{
-  "errorCode": 201,
-  "errorMessage": "Registration is duplicated",
-  "errorData": {
-    "duplicationRegistrationDate": "2016-04-19"
-  }
-}
