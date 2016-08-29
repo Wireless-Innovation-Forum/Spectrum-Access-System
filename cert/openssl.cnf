@@ -1,6 +1,6 @@
-################################################################################
-#OpenSSL Configuration file for WInnForum CA
-#v0.1
+####################################################################
+#OpenSSL Configuration file for WInnForum CA					   #
+#v0.2
 #============
 #   Copyright 2016 SAS Project Authors. All Rights Reserved.
 #
@@ -15,8 +15,8 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-#   =============
-################################################################################
+#=============															   #
+####################################################################
 
 
 ####################################################################
@@ -25,10 +25,15 @@
 oid_section		= new_oids
 
 [ new_oids ]
-ROLE=1.3.6.1.4.1.46609.1.1
+ROLE_CA=1.3.6.1.4.1.46609.1.1.1
+ROLE_SAS=1.3.6.1.4.1.46609.1.1.2
+ROLE_OPERATOR=1.3.6.1.4.1.46609.1.1.3
+ROLE_CBSD=1.3.6.1.4.1.46609.1.1.4
+ROLE_PAL=1.3.6.1.4.1.46609.1.1.5
+ROLE_INSTALLER=1.3.6.1.4.1.46609.1.1.6
+
 ZONE=1.3.6.1.4.1.46609.1.2
 FREQUENCY=1.3.6.1.4.1.46609.1.3
-HEIGHT=1.3.6.1.4.1.46609.1.4
 TEST=1.3.6.1.4.1.46609.1.999
 
 ####################################################################
@@ -135,260 +140,366 @@ caIssuers;URI.0 = http://cacerts.digicert.com/WinnForumCA.crt
 OCSP;URI.0 = http://ocsp.digicert.com
 
 ####################################################################
-[ wif_root_ca ]
+[ root_ca ]
 
 subjectKeyIdentifier	= hash
 authorityKeyIdentifier	= keyid:always,issuer
 basicConstraints 		= critical, CA:true
 keyUsage 				= critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA
 
-ROLE = ASN1:UTF8String:CA
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ wif_sas_ca ]
+[ sas_ca ]
 
 subjectKeyIdentifier = hash
 #authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_SAS
 
-ROLE=ASN1:SEQUENCE:sas_seq
+[ cps ]
 
-[ sas_seq ]
-field1 = UTF8:SAS
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-[ wif_sas_ca_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-
-ROLE=ASN1:SEQUENCE:sas_seq
-
-[ sas_seq ]
-field1 = UTF8:SAS
-field2 = UTF8:CA
-
-####################################################################
-[ wif_oper_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-
-ROLE=ASN1:SEQUENCE:oper_seq
-
-[ oper_seq ]
-field1 = UTF8:OPERATOR
-field2 = UTF8:CA
-
-[ wif_oper_ca_sign ]
+[ sas_ca_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_SAS
 
-ROLE=ASN1:SEQUENCE:oper_seq
+[ cps ]
 
-[ oper_seq ]
-field1 = UTF8:OPERATOR
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ wif_pi_ca ]
+[ oper_ca ]
 
 subjectKeyIdentifier = hash
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_OPERATOR
 
-ROLE=ASN1:SEQUENCE:pi_seq
+[ cps ]
 
-[ pi_seq ]
-field1 = UTF8:INSTALLER
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-[ wif_pi_ca_sign ]
+[ oper_ca_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_OPERATOR
 
-ROLE=ASN1:SEQUENCE:pi_seq
+[ cps ]
 
-[ pi_seq ]
-field1 = UTF8:INSTALLER
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ wif_pal_ca ]
+[ pi_ca ]
 
 subjectKeyIdentifier = hash
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_INSTALLER
 
-ROLE=ASN1:SEQUENCE:pal_seq
+[ cps ]
 
-[ pal_seq ]
-field1 = UTF8:PAL
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-[ wif_pal_ca_sign ]
+[ pi_ca_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_INSTALLER
 
-ROLE=ASN1:SEQUENCE:pal_seq
+[ cps ]
 
-[ pal_seq ]
-field1 = UTF8:PAL
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ wif_cbsd_ca ]
+[ pal_ca ]
 
 subjectKeyIdentifier = hash
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_PAL
 
-ROLE=ASN1:SEQUENCE:dm_seq
+[ cps ]
 
-[ dm_seq ]
-field1 = UTF8:CBSD
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-[ wif_cbsd_ca_sign ]
+[ pal_ca_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_PAL
 
-ROLE=ASN1:SEQUENCE:dm_seq
+[ cps ]
 
-[ cbsd_seq ]
-field1 = UTF8:CBSD
-field2 = UTF8:CA
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ wif_sas_req ]
+[ cbsd_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:1
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+[ cbsd_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:1
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+####################################################################
+[ cbsd_oem_ca ]
+
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+[ cbsd_oem_ca_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+ 
+####################################################################
+[ sas_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_SAS
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+ 
+[ sas_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_SAS
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+####################################################################
+[ oper_req ]
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_OPERATOR
 
-ROLE = ASN1:UTF8String:SAS
+[ cps ]
 
-[ wif_sas_req_sign ]
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:SAS
-
-####################################################################
-[ wif_oper_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:OPERATOR
-
-[ wif_oper_req_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:OPERATOR
-
-####################################################################
-[ wif_pi_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:INSTALLER
-
-[ wif_pi_req_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:INSTALLER
-
-####################################################################
-[ wif_pal_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
-ROLE = ASN1:UTF8String:PAL
-#ZONE = ASN1:UTF8String:
-#FREQUENCY = 
-#HEIGHT = 
-
-[ wif_pal_req_sign ]
+[ oper_req_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_OPERATOR
 
-ROLE = ASN1:UTF8String:PAL
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+####################################################################
+[ pi_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_INSTALLER
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+[ pi_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_INSTALLER
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+####################################################################
+[ pal_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_PAL
 #ZONE = ASN1:UTF8String:
 #FREQUENCY = 
 #STARTDATETIME = 
 
-####################################################################
-[ wif_cbsd_req ]
+[ cps ]
 
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
 
-ROLE = ASN1:UTF8String:CBSD
-#FCCID
-#CBSDID
-#SERIAL
-#CATEGORY
-
-[ wif_cbsd_req_sign ]
+[ pal_req_sign ]
 
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_PAL
+#ZONE = ASN1:UTF8String:
+#FREQUENCY = 
+#STARTDATETIME = 
 
-ROLE = ASN1:UTF8String:CBSD
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+ 
+####################################################################
+[ cbsd_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+certificatePolicies=@cps,ROLE_CBSD
 #FCCID
 #CBSDID
 #SERIAL
 #CATEGORY
 
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+[ cbsd_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_CBSD
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+####################################################################
+ 
+[ cbsd_oem_req ]
+
+subjectKeyIdentifier = hash
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+certificatePolicies=@cps,ROLE_CBSD
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+
+[ cbsd_oem_req_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+certificatePolicies=@cps,ROLE_CBSD
+#FCCID
+#CBSDID
+#SERIAL
+#CATEGORY
+
+[ cps ]
+
+policyIdentifier = 2.16.840.1.114412.2.1
+ CPS.1="https://www.digicert.com/CPS"
+ 
 ####################################################################
 [ crl_ext ]
 
