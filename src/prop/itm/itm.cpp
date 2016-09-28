@@ -976,7 +976,12 @@ void point_to_point(double elev[], double tht_m, double rht_m,
     zsys/=(jb-ja+1);
 	q=eno;
   }
-  propv.mdvar=12;
+
+  // Discussions with NIST: the value used for the mdvar parameter
+  // in NTIA model was 3 instead of 12.
+  //propv.mdvar=12;
+  propv.mdvar=3;
+
   qlrps(frq_mhz,zsys,q,pol,eps_dielect,sgm_conductivity,prop);
   qlrpfl(elev,propv.klim,propv.mdvar,prop,propa,propv);
   fs = 32.45 + 20.0 * log10(frq_mhz) + 20.0 * log10(prop.dist / 1000.0);
