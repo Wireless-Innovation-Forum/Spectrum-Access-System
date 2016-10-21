@@ -20,6 +20,7 @@
 import ftputil
 import os
 import re
+import urllib2
 
 # Retrieve the desired NED zip files from the USGS FTP site.
 def FindArcFloatFilenames(usgs):
@@ -46,6 +47,37 @@ def RetrieveElevationTiles():
     ned.download_if_newer('vdelivery/Datasets/Staged/Elevation/1/GridFloat/' + f, f)
   ned.close()
 
+def RetrieveNLCD_CONUS():
+  print 'Retrieving NLCD for CONUS...'
+  nlcd = urllib2.urlopen(
+    'http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip')
+  if not nlcd.getcode() == 200:
+    raise Exception('Could not find NLCD CONUS file')
+  with open('nlcd_2011_landcover_2011_edition_2014_10_10.zip', 'wb') as out:
+    while True:
+      c = nlcd.read(64*1024)
+      if not c:
+        break
+      out.write(c)
+  nlcd.close()
+  print 'Retrieved NLCD for CONUS'
+
+def RetrieveNLCD_AK():
+  print 'Retrieving NLCD for CONUS...'
+  nlcd = urllib2.urlopen(
+    'http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=ak_nlcd_2011_landcover_1_15_15.zip')
+  if not nlcd.getcode() == 200:
+    raise Exception('Could not find NLCD CONUS file')
+  with open('ak_nlcd_2011_landcover_1_15_15.zip', 'wb') as out:
+    while True:
+      c = nlcd.read(64*1024)
+      if not c:
+        break
+      out.write(c)
+  nlcd.close()
+  print 'Retrieved NLCD for CONUS'
+
+
 # Find the directory of this script.
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
@@ -55,4 +87,13 @@ if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)
 RetrieveElevationTiles()
+
+os.chdir(rootDir)
+dest = os.path.join(os.path.join(rootDir, 'data'), 'nlcd')
+print 'Retrieving NLCD files to dir=%s' % dest
+if not os.path.exists(dest):
+  os.makedirs(dest)
+os.chdir(dest)
+RetrieveNLCD_CONUS()
+RetrieveNLCD_AK()
 
