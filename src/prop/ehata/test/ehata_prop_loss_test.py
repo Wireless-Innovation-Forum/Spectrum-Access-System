@@ -1,4 +1,6 @@
-from ehata import ExtendedHata_PropagationLoss
+import os,sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import ehata
 
 import csv
 import math
@@ -8,12 +10,12 @@ region = ['Urban', 'Suburban', 'DenseUrban']
 for reg in region:
 
   loss = []
-  with open('testdata/prop_loss_%s.csv' % reg) as loss_file:
+  with open('prop_loss_%s.csv' % reg) as loss_file:
     rows = csv.reader(loss_file)
     for row in rows:
       loss.append(row)
 
-  with open('testdata/elevations.csv') as profiles_file:
+  with open('elevations.csv') as profiles_file:
     rows = csv.reader(profiles_file)
     target = 0
     for row in rows:
@@ -24,7 +26,7 @@ for reg in region:
       profile[0] = int(profile[0])
       profile = profile[0:int(profile[0])+3]
 
-      loss_db = ExtendedHata_PropagationLoss(3500, 50, 3, reg, profile)
+      loss_db = ehata.ExtendedHata_PropagationLoss(3500, 50, 3, reg, profile)
 
       delta = 0.15
       if target in [39, 44, 60, 65, 67, 70]:

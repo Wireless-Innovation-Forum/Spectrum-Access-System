@@ -1,15 +1,17 @@
-from ehata import EffectiveHeights
+import os,sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import ehata
 
 import csv
 import math
 
 heights = []
-with open('testdata/effective_height_test.csv') as heights_file:
+with open('effective_height_test.csv') as heights_file:
   rows = csv.reader(heights_file)
   for row in rows:
     heights.append(row)
 
-with open('testdata/elevations.csv') as profiles_file:
+with open('elevations.csv') as profiles_file:
   rows = csv.reader(profiles_file)
   target = 0
   for row in rows:
@@ -18,7 +20,7 @@ with open('testdata/elevations.csv') as profiles_file:
        profile.append(float(r))
     profile[0] = int(profile[0])
     profile = profile[0:int(profile[0])+3]
-    eff_tx_m, eff_rx_m = EffectiveHeights(50, 3, profile)
+    eff_tx_m, eff_rx_m = ehata.EffectiveHeights(50, 3, profile)
     if math.fabs(float(heights[0][target]) - eff_tx_m) > .05:
       print('fail Tx effective height on profile %d: %f vs %f' % (target, float(heights[0][target]), eff_tx_m))
       exit()
@@ -28,7 +30,7 @@ with open('testdata/elevations.csv') as profiles_file:
     target = target + 1
 
 interp_profile = [10, 1000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-eff_tx_m, eff_rx_m = EffectiveHeights(50, 3, interp_profile)
+eff_tx_m, eff_rx_m = ehata.EffectiveHeights(50, 3, interp_profile)
 if math.fabs(47 - eff_tx_m) > .05:
   print('fail interp Tx effective height: %f vs %f' % (47, eff_tx_m))
   exit()

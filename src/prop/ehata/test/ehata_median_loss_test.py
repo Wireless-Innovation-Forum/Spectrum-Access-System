@@ -1,4 +1,6 @@
-from ehata import ExtendedHata_MedianBasicPropLoss
+import os,sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import ehata
 
 import csv
 import math
@@ -14,11 +16,11 @@ for reg in region:
 
   loss = []
   abmloss = []
-  with open('testdata/median_loss_%s.csv' % reg) as loss_file:
+  with open('median_loss_%s.csv' % reg) as loss_file:
     rows = csv.reader(loss_file)
     for row in rows:
       loss.append(row)
-  with open('testdata/median_abm_%s.csv' % reg) as loss_file:
+  with open('median_abm_%s.csv' % reg) as loss_file:
     rows = csv.reader(loss_file)
     for row in rows:
       abmloss.append(row)
@@ -29,7 +31,7 @@ for reg in region:
     for disti in range(len(distance)):
       dist = distance[disti]
 
-      median_loss, above_median_loss = ExtendedHata_MedianBasicPropLoss(3500, dist, hb, hm, reg)
+      median_loss, above_median_loss = ehata.ExtendedHata_MedianBasicPropLoss(3500, dist, hb, hm, reg)
 
 
       if math.fabs(float(loss[hmi][disti]) - median_loss) > .05:

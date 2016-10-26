@@ -1,15 +1,17 @@
-from ehata import GeneralSlopeCorrection
+import os,sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import ehata
 
 import csv
 import math
 
 slopes = []
-with open('testdata/general_slope_test.csv') as slopes_file:
+with open('general_slope_test.csv') as slopes_file:
   rows = csv.reader(slopes_file)
   for row in rows:
     slopes.append(row)
 
-with open('testdata/elevations.csv') as profiles_file:
+with open('elevations.csv') as profiles_file:
   rows = csv.reader(profiles_file)
   target = 0
   for row in rows:
@@ -19,7 +21,7 @@ with open('testdata/elevations.csv') as profiles_file:
        profile.append(float(r))
     profile[0] = int(profile[0])
     profile = profile[0:int(profile[0])+3]
-    Kgs = GeneralSlopeCorrection(profile)
+    Kgs = ehata.GeneralSlopeCorrection(profile)
 
     delta = .15
 

@@ -1,15 +1,17 @@
-from ehata import RollingHillyCorrection
+import os,sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import ehata
 
 import csv
 import math
 
 kvals = []
-with open('testdata/rolling_hill_test.csv') as hills_file:
+with open('rolling_hill_test.csv') as hills_file:
   rows = csv.reader(hills_file)
   for row in rows:
     kvals.append(row)
 
-with open('testdata/elevations.csv') as profiles_file:
+with open('elevations.csv') as profiles_file:
   rows = csv.reader(profiles_file)
   target = 0
   for row in rows:
@@ -19,7 +21,7 @@ with open('testdata/elevations.csv') as profiles_file:
        profile.append(float(r))
     profile[0] = int(profile[0])
     profile = profile[0:int(profile[0])+3]
-    Krh, Kh, Khf = RollingHillyCorrection(profile)
+    Krh, Kh, Khf = ehata.RollingHillyCorrection(profile)
 
     delta = .15
 
