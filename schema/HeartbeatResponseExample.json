@@ -12,5 +12,5 @@
     "peakPower": 30,
     "operationFrequencyRange": { "lowFrequency": 3550000000, "highFrequency": 3560000000 }
   },
-  "error": { "errorCode": 0 }
+  "response": { "responseCode": 0 }
 }

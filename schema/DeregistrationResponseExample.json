@@ -1,4 +1,4 @@
 {
   "cbsdId": "sas1/cbsd1",
-  "error": { "errorCode": 0 }
+  "response": { "responseCode": 0 }
 }

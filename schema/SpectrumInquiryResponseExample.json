@@ -1,6 +1,6 @@
 {
   "cbsdId": "sas1/cbsd1",
-  "error": { "errorCode": 0 },
+  "response": { "responseCode": 0 },
   "availableChannel": [
     {
       "frequencyRange": { "lowFrequency": 3570000000, "highFrequency": 3580000000 },
