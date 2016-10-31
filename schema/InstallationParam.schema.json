@@ -12,7 +12,7 @@
                    "minimum": -180,
                    "maximum": 180 },
     "height": { "type": "number",
-                "description": "Height of CBSD antenna, provided in meters. See heightType for interpregation." },
+                "description": "Height of CBSD antenna, provided in meters. See heightType for interpretation." },
     "heightType": { "enum": [ "AMSL", "AGL" ],
                     "description": "The reference for the height parameter. AMSL indicates the height is measured relative to mean sea level. AGL indicates the height is measured relative to local ground level at latitude, longitude." },
     "horizontalAccuracy": { "type": "number",
