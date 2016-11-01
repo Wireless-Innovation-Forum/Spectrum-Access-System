@@ -50,8 +50,6 @@ def testJsonSchemaObject(schema_file, test_file, schemaObject):
 
 errors = 0
 
-errors += testJsonSchema('AirInterface.schema.json', 'AirInterfaceExample.json')
-
 errors += testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample.json')
 errors += testJsonSchema('InstallationParam.schema.json', 'InstallationParamExample2.json')
 

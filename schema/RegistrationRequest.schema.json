@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Registration parameters provided for a CBSD",
   "type": "object",
-  "required": [ "cbsdCategory", "callSign", "userId", "airInterface",
-                "fccId", "cbsdManufacturer", "cbsdSerialNumber", "maximumGrants",
-                "sensingCapability", "installationParam" ],
+  "required": [ "userId", "fccId", "cbsdSerialNumber" ],
   "properties": {
     "userId": { "type": "string",
                 "description": "Unique user designator for the operator. Generation mechanism TBD" },
@@ -12,22 +10,64 @@
                "description": "The certification FCC ID for the hardware" },
     "cbsdSerialNumber": { "type": "string",
                           "description": "Unique identifier for the CBSD chosen by the manufacturer" },
-    "cbsdManufacturer": { "type": "string",
-                          "description": "Name of the device manufacturer" },
     "cbsdCategory": { "enum" : [ "A", "B" ],
                       "description": "A if the device is Category A; B if it is Category B" },
     "callSign": { "type": "string",
                   "description": "The call sign for the operator. Meaning and origin TBD" },
-    "maximumGrants": { "type": "number",
-                       "description": "Maximum number of grants which is supported by the device",
-                       "minimum": 1 },
-    "sensingCapability": { "type": "array",
-                           "description": "List of supported sensing capabilities of the device",
-                           "items": { "enum": [ "esc", "receivedInterferencePower" ],
-                                      "description": "Measurement capabilities of the CBSD." }
-                         },
-    "airInterface": { "$ref": "file:AirInterface.schema.json" },
+    "measCapability": { "type": "array",
+                        "description": "List of supported sensing capabilities of the device",
+                        "items": { "enum": [ "EutraCarrierRssi" ],
+                                   "description": "Measurement capabilities of the CBSD." }
+                      },
+    "groupingParam": {
+      "type": "array",
+      "description": "List of group memberships of this CBSD.",
+      "items": { "$ref": "#/groupParamObject" }
+    },
+    "cbsdInfo": { "$ref": "#/cbsdInfoObject" },
+    "airInterface": { "$ref": "#/airInterfaceObject" },
     "installationParam": { "$ref": "file:InstallationParam.schema.json" }
+  },
+
+  "cbsdInfoObject": {
+    "type": "object",
+    "description": "Container for optional information related to the CBSD hardware and software configuration.",
+    "properties": {
+      "vendor": { "type": "string",
+                  "description": "Name of the CBSD manufacturer" },
+      "model": { "type": "string",
+                 "description": "Name of the CBSD model." },
+      "softwareVersion": { "type": "string",
+                           "description": "Name of the CBSD software version." },
+      "hardwareVersion": { "type": "string",
+                           "description": "Name of the CBSD hardware version." },
+      "firmwareVersion": { "type": "string",
+                           "description": "Name of the CBSD firmware version." },
+      "additionalProperties": true
+    }
+  },
+
+  "groupParamObject": {
+    "type": "object",
+    "description": "Container for information about a CBSD membership group.",
+    "properties": {
+      "groupType": { "enum": [ "interference-coordination" ],
+	             "description": "Type of the group" },
+      "groupId": { "type": "string",
+	           "description": "ID of the group" }
+    }
+  },
+
+  "airInterfaceObject": {
+    "type": "object",
+    "description": "Air interface parameter for a CBSD",
+    "required": [ "radioTechnology" ],
+    "properties": {
+      "radioTechnology": { "enum": [ "E-UTRA" ],
+                           "description": "Which PHY radio technology is used by the device in the 3.5GHz band" },
+      "supportedSpec": { "type": "string",
+                         "description": "Description of the spec of the radio technology supported." }
+    }
   }
 }
 
