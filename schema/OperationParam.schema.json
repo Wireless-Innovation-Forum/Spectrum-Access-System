@@ -2,15 +2,10 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Operational parameters provided for a CBSD",
   "type": "object",
-  "required": [ "peakPower", "operationFrequencyRange" ],
+  "required": [ "maxEirp", "operationFrequencyRange" ],
   "properties": {
-    "palCredential": { "type": "array",
-                       "description": "List of any PAL credentials which apply to this operating parameter set",
-                       "additionalItems": false,
-                       "items": { "type": "string" } },
-    "peakPower": { "type": "number",
-                   "minimum": 0,
-                   "description": "The peak operating power in dBm/MHz to be used by the CBSD within this operating parameter set" },
+    "maxEirp": { "type": "number",
+                 "description": "The peak operating power in dBm/MHz to be used by the CBSD within this operating parameter set" },
     "operationFrequencyRange": { "$ref": "file:FrequencyRange.schema.json" }
   }
 }

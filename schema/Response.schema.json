@@ -9,7 +9,7 @@
                                  100, 101, 102, 103, 104, 105,
                                  200, 201, 202,
                                  300,
-                                 400, 401, 402,
+                                 400, 401,
                                  500, 501, 502 ],
                        "description": "An integer indicating the type of the response. 0 means success (no error)" },
     "responseMessage" : { "type": "string",

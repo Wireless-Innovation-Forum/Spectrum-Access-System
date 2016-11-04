@@ -16,7 +16,7 @@
                   "description": "The call sign for the operator. Meaning and origin TBD" },
     "measCapability": { "type": "array",
                         "description": "List of supported sensing capabilities of the device",
-                        "items": { "enum": [ "EutraCarrierRssi" ],
+                        "items": { "enum": [ "EutraCarrierRssiNonTx", "EutraCarrierRssiAlways" ],
                                    "description": "Measurement capabilities of the CBSD." }
                       },
     "groupingParam": {

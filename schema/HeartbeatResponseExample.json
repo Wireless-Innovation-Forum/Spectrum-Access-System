@@ -9,7 +9,7 @@
   "measReportConfig": {
   },
   "operationParam": {
-    "peakPower": 30,
+    "maxEirp": 30,
     "operationFrequencyRange": { "lowFrequency": 3550000000, "highFrequency": 3560000000 }
   },
   "response": { "responseCode": 0 }

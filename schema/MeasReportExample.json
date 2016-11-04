@@ -1,0 +1,16 @@
+{
+  "eutraCarrierRssiRpt": [
+    { "measFrequency": 3500000000,
+      "measBandwidth": 10000000,
+      "measCarrierRssi": -100 },
+    { "measFrequency": 3600000000,
+      "measBandwidth": 10000000,
+      "measCarrierRssi": -99 },
+    { "measFrequency": 3700000000,
+      "measBandwidth": 10000000,
+      "measCarrierRssi": -100 },
+    { "measFrequency": 3800000000,
+      "measBandwidth": 10000000,
+      "measCarrierRssi": -50 }
+  ]
+}
