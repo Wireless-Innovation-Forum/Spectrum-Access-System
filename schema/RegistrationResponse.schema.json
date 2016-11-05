@@ -9,7 +9,7 @@
     "response": { "$ref": "file:Response.schema.json" },
     "measReportConfig": { "type": "array",
 	                  "description": "Contains any measurement indication the SAS requests the CBSD to perform and report in a subsequent request.",
-			  "items": { "enum": [ "EutraCarrierRssi" ] }
+			  "items": { "enum": [ "EutraCarrierRssiNonTx", "EutraCarrierRssiAlways" ] }
     }
   }
 }

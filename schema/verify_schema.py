@@ -86,6 +86,8 @@ errors += testJsonSchema('HeartbeatRequest.schema.json', 'HeartbeatRequestExampl
 
 errors += testJsonSchema('HeartbeatResponse.schema.json', 'HeartbeatResponseExample.json')
 
+errors += testJsonSchema('MeasReport.schema.json', 'MeasReportExample.json')
+
 if errors == 0:
   print 'PASS'
 else:

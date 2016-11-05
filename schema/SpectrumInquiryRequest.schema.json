@@ -6,14 +6,11 @@
   "properties": {
     "cbsdId": { "type": "string",
                 "description": "Unique designator for the CBSD as returned from the registration procedure." },
-    "palCredential": { "type": "array",
-                       "description": "If the CBSD has PAL rights, they may be communicated to the SAS here.",
-                       "additionalItems": false,
-                       "items": { "type": "string" } },
     "inquiredSpectrum": { "type": "array",
                           "additionalItems": false,
                           "description": "Description of the frequency range(s) the CBSD is inquiring about.",
-                          "items": { "$ref": "file:FrequencyRange.schema.json" } }
+                          "items": { "$ref": "file:FrequencyRange.schema.json" } },
+    "measReport": { "$ref": "file:MeasReport.schema.json" }
   }
 }
 
