@@ -22,6 +22,30 @@ import os
 import re
 import urllib2
 
+# Retrieves a resource via HTTP using urllib2. Writes it to the filename
+# in the current working directory. If the filename already exists in the
+# current working directory, the method does not retrieve the remote file
+# unless the 'force' parameter is set to True.
+def RetrieveHTTPFile(resource, force=False, write_file=''):
+  if not write_file:
+    write_file = resource.split('/')[-1]
+
+  if os.path.exists(write_file) and not force:
+    print 'Resource %s already retrieved' % resource
+    return
+
+  f = urllib2.urlopen(resource)
+  if not f.getcode() == 200:
+    raise Exception('Could not find resource %s' % resource)
+  with open(write_file, 'wb') as out:
+    while True:
+      c = f.read(64*1024)
+      if not c:
+        break
+      out.write(c)
+  f.close()
+
+
 # Retrieve the desired NED zip files from the USGS FTP site.
 def FindArcFloatFilenames(usgs):
   files = usgs.listdir('vdelivery/Datasets/Staged/Elevation/1/GridFloat/')
@@ -49,33 +73,26 @@ def RetrieveElevationTiles():
 
 def RetrieveNLCD_CONUS():
   print 'Retrieving NLCD for CONUS...'
-  nlcd = urllib2.urlopen(
-    'http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip')
-  if not nlcd.getcode() == 200:
-    raise Exception('Could not find NLCD CONUS file')
-  with open('nlcd_2011_landcover_2011_edition_2014_10_10.zip', 'wb') as out:
-    while True:
-      c = nlcd.read(64*1024)
-      if not c:
-        break
-      out.write(c)
-  nlcd.close()
+  RetrieveHTTPFile('http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=nlcd_2011_landcover_2011_edition_2014_10_10.zip',
+                   write_file='nlcd_2011_landcover_2011_edition_2014_10_10.zip')
   print 'Retrieved NLCD for CONUS'
 
 def RetrieveNLCD_AK():
-  print 'Retrieving NLCD for CONUS...'
-  nlcd = urllib2.urlopen(
-    'http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=ak_nlcd_2011_landcover_1_15_15.zip')
-  if not nlcd.getcode() == 200:
-    raise Exception('Could not find NLCD CONUS file')
-  with open('ak_nlcd_2011_landcover_1_15_15.zip', 'wb') as out:
-    while True:
-      c = nlcd.read(64*1024)
-      if not c:
-        break
-      out.write(c)
-  nlcd.close()
-  print 'Retrieved NLCD for CONUS'
+  print 'Retrieving NLCD for AK...'
+  RetrieveHTTPFile('http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=ak_nlcd_2011_landcover_1_15_15.zip',
+                   write_file='ak_nlcd_2011_landcover_1_15_15.zip')
+  print 'Retrieved NLCD for AK'
+
+def RetrieveNLCD_HI_PR():
+  print 'Retrieving NLCD for HI and PR...'
+  RetrieveHTTPFile('https://coast.noaa.gov/htdata/CCAP/ccap_regional_dates/hi_hi_2005_land_cover.zip')
+  RetrieveHTTPFile('https://coast.noaa.gov/htdata/CCAP/ccap_regional_dates/hi_ka_2005_ccap_land_cover.zip')
+  RetrieveHTTPFile('https://coast.noaa.gov/htdata/CCAP/ccap_regional_dates/hi_maui_county_2005_ccap_land_cover.zip')
+  RetrieveHTTPFile('https://coast.noaa.gov/htdata/CCAP/ccap_regional_dates/hi_ni_2005_ccap_land_cover.zip')
+  RetrieveHTTPFile('https://coast.noaa.gov/htdata/CCAP/ccap_regional_dates/hi_oa_2005_ccap_land_cover.zip')
+  RetrieveHTTPFile('http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcdpr&FNAME=PR_landcover_wimperv_10-28-08_se5.zip',
+                   write_file='PR_landcover_wimperv_10-28-08_se5.zip')
+  print 'Retrieved NLCD for HI and PR'
 
 
 # Find the directory of this script.
@@ -96,4 +113,5 @@ if not os.path.exists(dest):
 os.chdir(dest)
 RetrieveNLCD_CONUS()
 RetrieveNLCD_AK()
+RetrieveNLCD_HI_PR()
 
