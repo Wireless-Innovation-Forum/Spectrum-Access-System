@@ -12,9 +12,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-# This script retrieves the IBFS database files from the FCC FTP site, writing
-# them into the data/ibfs directory. If the .zip files already exist, the
-# scirpt will download files if they are newer than the local versions.
+# This script extracts data from the IBFS database files retrieved from the
+# FCC FTP site, writing results into the data/ibfs directory.
 
 import csv
 import os
