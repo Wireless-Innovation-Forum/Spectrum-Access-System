@@ -50,12 +50,52 @@ def RetrieveHTTPFile(resource, force=False, write_file=''):
 def FindArcFloatFilenames(usgs):
   files = usgs.listdir('vdelivery/Datasets/Staged/Elevation/1/GridFloat/')
   print 'Found %d files in USGS ftp dir' % len(files)
+  files.sort()
+  files.reverse()
   matches = []
   for f in files:
+    filematch = False
     if re.match('USGS_NED_1_[ns]\d{1,3}[ew]\d{1,3}_GridFloat.zip$', f):
-      matches.append(f)
+      filematch = True
     if re.match('[ns]\d{1,3}[ew]\d{1,3}.zip$', f):
+      filematch = True
+
+    if not filematch:
+      continue
+
+    m = re.search('.*?([ns])(\d{1,3})([ew])(\d{1,3}).*?', f)
+    lat = 0
+    lng = 0
+    if m:
+      lat = int(m.group(2))
+      lng = int(m.group(4))
+      if m.group(1) == 's':
+        lat = lat * -1
+      if m.group(3) == 'w':
+        lng = lng * -1
+    else:
+      raise Exception('Could not find lat,lng for %s' % f)
+      
+
+    # Prune tiles to ones within or near US borders.
+    geomatch = True
+    if lat < 25 and (lng < -85 and lng > -120):
+      geomatch = False
+    if lat > 50 and (lng < -50 and lng > -127):
+      geomatch = False
+    if lat > 61 and (lng < -100 and lng > -139):
+      geomatch = False
+    if lat < 29 and (lng < -107 and lng > -119):
+      geomatch = False
+    if geomatch:
       matches.append(f)
+
+    # Prune tiles obsoleted by newer NED data.
+    if f.startswith('USGS_NED_1_'):
+      obsolete_filename = m.group(1) + m.group(2) + m.group(3) + m.group(4) + '.zip'
+      if obsolete_filename in matches:
+        matches.remove(obsolete_filename)
+
   print 'Found %d matching elevation tiles in USGS ftp dir' % len(matches)
   return matches
 
