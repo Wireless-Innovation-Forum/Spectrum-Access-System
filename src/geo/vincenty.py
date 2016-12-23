@@ -19,18 +19,18 @@
 
 from math import *
 
-def dist_bear_vincenty(lat1, lon1, lat2, lon2, dunits='km', accuracy=1.0E-12):
+def dist_bear_vincenty(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
     """
     Calculates distance and bearings between two points using Vincenty
     formula. The accuracy parameter is used to set the convergence of
     lambda. 1E-12 corresponds to approximately 0.06 mm.
 
-    The formulas and nomenclature are from Wikipedia:
-    https://en.wikipedia.org/wiki/Vincenty's_formulae
+    The formulas and nomenclature are from Vincenty, 1975:
+    https://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
 
-    Returns distance, initial bearing, and final bearing.
-
-    **Note: dunits not implemented yet. Always returns km.
+    Input lat/lons are in deg.
+    
+    Returns distance (km), initial bearing (deg), and back azimuth (deg).
     
     Andrew Clegg
     December 2016
@@ -89,23 +89,30 @@ def dist_bear_vincenty(lat1, lon1, lat2, lon2, dunits='km', accuracy=1.0E-12):
     alpha2 = atan2(cos(U1)*sin(lmbda),
                        (-sin(U1)*cos(U2) + cos(U1)*sin(U2)*cos(lmbda)))
 
+    if alpha2 < pi:
+        alpha2 = alpha2 + pi
+    else:
+        alpha2 = alpha2 - pi
+        
     alpha1 = (alpha1 + 2.*pi) % (2.*pi)
     alpha2 = (alpha2 + 2.*pi) % (2.*pi)
-        
+    
     alpha1 = degrees(alpha1)
     alpha2 = degrees(alpha2)
         
     return s, alpha1, alpha2
 
-def to_dist_bear_vincenty(lat, lon, dist, bear, dunits='km', accuracy=1.0E-12):
+def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
     """
     Computes the latitude and longitude that is a specified distance
     and bearing from a given lat/lon. This version uses Vincenty's formula.
 
-    The formulas and nomenclature are from Wikipedia:
-    https://en.wikipedia.org/wiki/Vincenty's_formulae
+    The formulas and nomenclature are from Vincenty, 1975:
+    https://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
 
-    **Note: dunits not currently implemented. Always assume km.
+    Input lat/lon in deg, dist in km, bear in deg.
+    
+    Returns final lat/lon in deg, and final bearing in deg.
 
     Andrew Clegg
     December 2016
@@ -171,17 +178,3 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, dunits='km', accuracy=1.0E-12):
     alpha2 = (alpha2 + 2.*pi) % (2.*pi)
 
     return degrees(phi2), degrees(L2), degrees(alpha2)
-
-if __name__ == '__main__':
-
-  lat1 = -37.9510334167
-  lon1 = 144.424867889
-  lat2 = -37.6528211389
-  lon2 = 143.926495528
-
-  s, alpha1, alpha2 = dist_bear_vincenty(lat1, lon1, lat2, lon2)
-  lat2p, lon2p, alpha2 = to_dist_bear_vincenty(lat1, lon1, 54.972271, 306.868158333)
-
-  print lat2 - lat2p, lon2 - lon2p
-
-
