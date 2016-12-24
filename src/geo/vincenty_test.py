@@ -24,15 +24,13 @@ for i in range(1000):
   lng2 = random.uniform(-80, 80)
 
   d, a_initial, a_final = vincenty.dist_bear_vincenty(lat1, lng1, lat2, lng2)
-  a_final = a_final - 180
-  if a_final < 0:
-      a_final = a_final + 360
-  print d, a_initial, a_final
+  assert a_final >= 0.0
+  # print d, a_initial, a_final
 
   p = pygc.great_distance(start_latitude=lat1, start_longitude=lng1, end_latitude=lat2, end_longitude=lng2)
-  print p
+  # print p
 
-  assert math.fabs(d - p['distance']) < .1
+  assert math.fabs(d*1000.0 - p['distance']) < .1
   assert math.fabs(a_initial - p['azimuth']) < 1e-6
   assert math.fabs(a_final - p['reverse_azimuth']) < 1e-6
 
@@ -45,16 +43,15 @@ for i in range(1000):
   bearing = random.uniform(-180, 180)
 
   latd, lngd, az = vincenty.to_dist_bear_vincenty(lat, lng, dist/1000.0, bearing)
-  az = az - 180
-  if az < 0:
-      az = az + 360
-  print latd, lngd, az
+  assert az >= 0, "az=%f" % az
+  #print latd, lngd, az
 
   p = pygc.great_circle(latitude=lat, longitude=lng, distance=dist, azimuth=bearing)
-  print p
+  #print p
 
+  az = (az + 180.0) % 360.0
   assert math.fabs(latd - p['latitude']) < 1e-7
   assert math.fabs(lngd - p['longitude']) < 1e-7
-  assert math.fabs(az - p['reverse_azimuth']) < 1e-7
+  assert math.fabs(az - p['reverse_azimuth']) < 1e-7, "%f and %f" % (az, p['reverse_azimuth'])
 
-  
+print 'PASS'
