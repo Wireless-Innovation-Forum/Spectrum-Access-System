@@ -29,9 +29,9 @@ def dist_bear_vincenty(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
     https://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
 
     Input lat/lons are in deg.
-    
+
     Returns distance (km), initial bearing (deg), and back azimuth (deg).
-    
+
     Andrew Clegg
     December 2016
     """
@@ -60,7 +60,7 @@ def dist_bear_vincenty(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
                      (cos(U1)*sin(U2) - sin(U1)*cos(U2)*cos(lmbda))**2.0)**0.5
         cos_sigma = sin(U1)*sin(U2) + cos(U1)*cos(U2)*cos(lmbda)
         sigma = atan2(sin_sigma, cos_sigma)
-        
+
         sin_alpha = (cos(U1)*cos(U2)*sin(lmbda))/sin(sigma)
         cossq_alpha = 1 - sin_alpha**2.0
 
@@ -72,7 +72,7 @@ def dist_bear_vincenty(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
                 *(sigma + C*sin_sigma \
                   * (cos2sigma_m + C*cos_sigma \
                      * (-1. + 2.*cos2sigma_m**2.0)))
-    
+
     usq = cossq_alpha*(a**2.0 - b**2.0)/b**2.0
     A = 1 + (usq/16384.)*(4096. + usq*(-768. + usq*(320. - 175.*usq)))
     B = (usq/1024.)*(256. + usq*(-128. + usq*(74. - 47.*usq)))
@@ -93,13 +93,13 @@ def dist_bear_vincenty(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
         alpha2 = alpha2 + pi
     else:
         alpha2 = alpha2 - pi
-        
+
     alpha1 = (alpha1 + 2.*pi) % (2.*pi)
     alpha2 = (alpha2 + 2.*pi) % (2.*pi)
-    
+
     alpha1 = degrees(alpha1)
     alpha2 = degrees(alpha2)
-        
+
     return s, alpha1, alpha2
 
 def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
@@ -111,7 +111,7 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
     https://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
 
     Input lat/lon in deg, dist in km, bear in deg.
-    
+
     Returns final lat/lon in deg, and final bearing in deg.
 
     Andrew Clegg
@@ -128,7 +128,7 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
     s = dist
 
     U1 = atan((1-f)*tan(phi1))
-    
+
     sigma1 = atan2(tan(U1), cos(alpha1))
 
     sinalpha = cos(U1)*sin(alpha1)
@@ -144,7 +144,7 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
     while abs(sigma - lastsigma) > accuracy:
 
         lastsigma = sigma
-        
+
         twosigmam = 2.*sigma1 + sigma
         dsigma = B*sin(sigma) \
                  *(cos(twosigmam) + 0.25*B \
@@ -157,7 +157,7 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
 
     num = sin(U1)*cos(sigma) + cos(U1)*sin(sigma)*cos(alpha1)
     den = (1.-f)*(sinalpha**2.0 + (sin(U1)*sin(sigma) - cos(U1)*cos(sigma)*cos(alpha1))**2.0)**0.5
-    
+
     phi2 = atan2(num, den)
 
     num = sin(sigma)*sin(alpha1)
@@ -178,3 +178,4 @@ def to_dist_bear_vincenty(lat, lon, dist, bear, accuracy=1.0E-12):
     alpha2 = (alpha2 + 2.*pi) % (2.*pi)
 
     return degrees(phi2), degrees(L2), degrees(alpha2)
+
