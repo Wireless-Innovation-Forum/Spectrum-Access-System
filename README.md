@@ -46,6 +46,21 @@ It will likely need to be installed separately, and you may need to configure
 platform-specific C++ building capabilities to complete the installation. It
 can typically be installed with <code>pip</code>.
 
+* libgdal (https://pypi.python.org/pypi/GDAL/ and http://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries)
+
+This binary library provides geospatial data library methods used to manipulate
+geographic datasets. It will likely need to be installed separately for your
+platform, and you may need to configure platform-specific C++ build capabilities
+to complete the installation. Source-based installation is an option. Once the
+libgdal package is installed, you will need to download and install the Python
+bindings for the library.
+
+* numpy (http://www.scipy.org/scipylib/download.html)
+
+This library provides a variety of numerics methods and Python bindings to use
+them. It will likely need to be installed separately for your platform, and
+may be installed as part of the SciPy packages.
+
 * shapely (https://pypi.python.org/pypi/Shapely)
 
 This Python library can be installed with <code>pip</code>. It provides libraries
