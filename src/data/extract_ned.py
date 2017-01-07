@@ -34,12 +34,14 @@ def UnzipNeededNEDFiles(zip_filename, tmpDir):
   zf = zipfile.ZipFile(zip_filename, 'r')
   for datfile in zf.infolist():
     if datfile.filename.endswith('.flt') or datfile.filename.endswith('.hdr') or datfile.filename.endswith('.prj'):
-      if '/' not in datfile.filename and 'meta' not in datfile.filename:
+      if '/' not in datfile.filename and 'meta' not in datfile.filename and 'arcsec' not in datfile.filename:
         try:
           print '   extracting %s' % datfile.filename
           zf.extract(datfile, tmpDir)
         except Exception, err:
           raise Exception('Cannot extract ' + datfile.filename + ' from ' + zip_filename)
+      if 'USGS_NED_' in datfile.filename:
+        os.rename(tmpDir + '/' + datfile.filename, tmpDir + '/' + datfile.filename.lower())
 
 def ExtractNLCDData(directory):
   for f in os.listdir(directory):
