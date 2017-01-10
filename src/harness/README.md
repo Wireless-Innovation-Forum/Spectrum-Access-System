@@ -5,7 +5,7 @@ This folder contains code and testcases for SAS certification test as defined in
 
 ## Code prerequisites
 
-*   Python 2.7.12 (https://www.python.org/download/releases/python-2712/)
+*   Python 2.7.12 (https://www.python.org/downloads/release/python-2712/)
 *   PycURL 7.43.0 (http://pycurl.io)
 
 ## Code location
