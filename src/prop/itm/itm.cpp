@@ -980,7 +980,11 @@ void point_to_point(double elev[], double tht_m, double rht_m,
   // Discussions with NIST: the value used for the mdvar parameter
   // in NTIA model was 3 instead of 12.
   //propv.mdvar=12;
-  propv.mdvar=3;
+  //propv.mdvar=3;
+
+  // Further discussions in Winnforum Propagation TG: mdvar=13
+  // corresponds to the statistics we intend to use.
+  propv.mdvar=13;
 
   qlrps(frq_mhz,zsys,q,pol,eps_dielect,sgm_conductivity,prop);
   qlrpfl(elev,propv.klim,propv.mdvar,prop,propa,propv);
