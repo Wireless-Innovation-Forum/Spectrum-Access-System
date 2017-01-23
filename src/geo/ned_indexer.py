@@ -26,6 +26,9 @@ import re
 import sys
 import time
 
+import waypoints
+import vincenty
+
 class NedIndexer:
   def __init__(self, directory, lru_size=10):
     self.directory = directory
@@ -140,8 +143,30 @@ class NedIndexer:
     elev = a1*ecc + a2*efc + a3*ecf + a4*eff
 
     return elev
+
+  # Returns the elevation profile between the two points passed as arguments.
+  # The format is an array used by the ITM and eHata functions. The first
+  # element of the array is the number of elevation points minus one. The second
+  # is the distance in meters between the elevation points in the profile. This
+  # is followed by the profile elevations, first the elevations at (lat1, lng1),
+  # followed by waypoint elevations from point 1 to point 2, ending with the
+  # elevation at point 2. The elevations given are ground level relative to the
+  # NED dataset datum.
+  def Profile(self, lat1, lng1, lat2, lng2):
+    sample_pts = waypoints.waypoints(lat1, lng1, lat2, lng2)
+    distance, a1, a2 = vincenty.dist_bear_vincenty(sample_pts[0][0], sample_pts[0][1],
+                                                   sample_pts[1][0], sample_pts[1][1])
+    print "Using sample points ", len(sample_pts)
+    print "distance=", distance
+
+    profile = [len(sample_pts)-1, distance]
+    for pt in sample_pts:
+      profile.append(self.Elevation(pt[0], pt[1]))
+
+    return profile
     
 # If run directly, takes command line arguments for lat and lng and prints elevation.
+# If given four arguments, prints the profile between the given points.
 if __name__ == '__main__':
   dir = os.path.dirname(os.path.realpath(__file__))
   rootDir = os.path.dirname(os.path.dirname(dir))
@@ -149,6 +174,11 @@ if __name__ == '__main__':
 
   indx = NedIndexer(nedDir)
 
-  # e.g. python ned_indexer.py 61.549 -136.571
-  print indx.Elevation(float(sys.argv[1]), float(sys.argv[2]))
+  if len(sys.argv) == 3:
+    # e.g. python ned_indexer.py 33.829 -82.721
+    print indx.Elevation(float(sys.argv[1]), float(sys.argv[2]))
+  else:
+    # e.g. python ned_indexer.py 33.829 -82.721 33.812 -82.509
+    print indx.Profile(float(sys.argv[1]), float(sys.argv[2]),
+                       float(sys.argv[3]), float(sys.argv[4]))
 

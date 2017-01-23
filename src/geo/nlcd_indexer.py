@@ -20,6 +20,8 @@ import os
 import sys
 import time
 
+import land_use
+
 # This class contains metadata about a particular tile and can be used to quickly
 # determine whether a lat/lng coordinate is within the tile.
 class NlcdTileInfo:
@@ -38,16 +40,15 @@ class NlcdTileInfo:
     self.transform = osr.CoordinateTransformation(wgs84_ref, sref)
     self.inv_transform = osr.CoordinateTransformation(sref, wgs84_ref)
 
-    print 'x', ds.RasterXSize
-    print 'y', ds.RasterYSize
-    print self.txf
+    #print 'x', ds.RasterXSize
+    #print 'y', ds.RasterYSize
+    #print self.txf
     self.coord_bounds = [
       self.txf[0],     # upper left x
       self.txf[3],     # upper left y
       self.txf[1] * ds.RasterXSize + self.txf[0],  # lower right x
       self.txf[5] * ds.RasterYSize + self.txf[3]   # lower right y
     ]
-    print self.coord_bounds
 
     ul = self.inv_transform.TransformPoint(self.coord_bounds[0],
                                            self.coord_bounds[1])
@@ -58,31 +59,27 @@ class NlcdTileInfo:
     self.min_lng = min(ul[0], lr[0])
     self.min_lat = min(ul[1], lr[1])
 
-    print 'loaded tile %s' % filename
-    print 'bounds', self.min_lng, self.max_lng, self.min_lat, self.max_lat
-    print 'txf', self.txf
-
     # Close file
     ds = None
 
   def WithinTile(self, lat, lng):
-    print 'Compare %f %f to %f %f' % (lat, lng, self.min_lng, self.min_lat)
+    #print 'Compare %f %f to %f %f' % (lat, lng, self.min_lat, self.min_lng)
     # Fast latlng bounds check
-    if (lng >= self.max_lng or
-        lng <= self.min_lng or
-        lat >= self.max_lat or
-        lat <= self.min_lat):
-      print 'quick out'
+    if (lng > self.max_lng or
+        lng < self.min_lng or
+        lat > self.max_lat or
+        lat < self.min_lat):
+      #print 'quick out'
       return False
 
     # Check with transform
     coord = self.TileCoords(lat, lng)
-    print 'compare ', coord, ' with ', self.coord_bounds
+    #print ' ---compare ', coord, ' with ', self.coord_bounds
     if (coord[0] >= self.coord_bounds[0] and
         coord[0] <= self.coord_bounds[2] and
         coord[1] >= self.coord_bounds[3] and
         coord[1] <= self.coord_bounds[1]):
-      print 'IN!'
+      #print 'IN!'
       return True
 
     return False
@@ -92,8 +89,14 @@ class NlcdTileInfo:
 
   def IndexCoords(self, lat, lng):
     coord = self.TileCoords(lat, lng)
+    #print 'IndexCoords for %s %s' % (lat, lng)
+    #print '  Index coords ', coord
+    #print '  bounds', self.min_lat, self.max_lat, self.min_lng, self.max_lng
+    #print '  coord_bounds=', self.coord_bounds
+    #print '  inv_txf=', self.inv_txf
+    #print '  txf=', self.txf
     x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
-    y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[2] * coord[1]
+    y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
     return [x, y]
 
 class NlcdIndexer:
@@ -110,7 +113,7 @@ class NlcdIndexer:
         if f.startswith('ak_nlcd_2011'):
           continue
         self.nlcd_file[filename] = NlcdTileInfo(filename)
-      if f.endswith('_tiles_xxx') and os.path.isdir(filename):
+      if f.endswith('_tiles') and os.path.isdir(filename):
         tilepath = os.path.join(directory, f)
         tile_files = os.listdir(tilepath)
         for ft in tile_files:
@@ -128,11 +131,11 @@ class NlcdIndexer:
       if t.WithinTile(lat, lng):
         return
 
-    print 'Searching tiles...'
+    #print 'Searching tiles...'
     for fn in self.nlcd_file:
       t = self.nlcd_file[fn]
       if t.WithinTile(lat, lng):
-        print 'Found within tile %s' % fn
+        #print 'Found within tile %s' % fn
         dataset = gdal.Open(fn)
         self.tile_cache[t] = dataset.ReadAsArray().astype(numpy.byte)
         self.tile_lru[t] = time.clock()
@@ -155,7 +158,7 @@ class NlcdIndexer:
     raise Exception('No tile found for lat lng %f %f' % (lat, lng))
 
   def NlcdCode(self, lat, lng):
-    print 'Code for %f, %f' % (lat, lng)
+    #print 'Code for %f, %f' % (lat, lng)
     self.LoadTileForLatLng(lat, lng)
     for t in self.tile_cache:
       if t.WithinTile(lat, lng):
@@ -165,8 +168,8 @@ class NlcdIndexer:
 
         iln = round(index[1])
         ipx = round(index[0])
-        print 'iln=', iln
-        print 'ipx=', ipx
+        #print 'iln=', iln
+        #print 'ipx=', ipx
 
         return a[iln][ipx]
 
@@ -179,5 +182,10 @@ if __name__ == '__main__':
   nlcdDir = os.path.join(os.path.join(rootDir, 'data'), 'nlcd')
   indx = NlcdIndexer(nlcdDir)
 
-  print 'NLCD=%d' % indx.NlcdCode(float(sys.argv[1]), float(sys.argv[2]))
+  code = indx.NlcdCode(float(sys.argv[1]), float(sys.argv[2]))
+  print 'NLCD=%d' % code
+  print 'Land use = %s' % land_use.NlcdLandCategory(code)
+
+  if code == 11:
+    print '  (open water)'
 
