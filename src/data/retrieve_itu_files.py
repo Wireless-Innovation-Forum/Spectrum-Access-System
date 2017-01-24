@@ -19,7 +19,7 @@ import os
 import urllib2
 import zipfile
 
-# Retrieve all the NOAA data files into the current directory.
+# Retrieve all the ITU data files into the current directory.
 def RetrieveITU():
   print 'Retrieving ITU climate zone file...'
   border = urllib2.urlopen(
