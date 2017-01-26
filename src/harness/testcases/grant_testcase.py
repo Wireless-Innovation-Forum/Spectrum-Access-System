@@ -28,6 +28,12 @@ class GrantTestcase(unittest.TestCase):
     pass
 
   def test_10_7_4_1_1_1_1(self):
+    """Successful CBSD grant request.
+
+    CBSD sends a single grant request when no incumbent is present in the GAA
+    frequency range requested by the CBSD. Response should be SUCCESS.
+    """
+
     # Register the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -49,3 +55,47 @@ class GrantTestcase(unittest.TestCase):
     self.assertTrue(response['grantId'])
     self.assertEqual(response['channelType'], 'GAA')
     self.assertEqual(response['response']['responseCode'], 0)
+
+  def test_10_7_4_1_3_1_1_2(self):
+    """CBSD grant request with missing operationParams.
+
+    The operationParams object is missing in the grant request. The response
+    should be FAIL.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # operationParams object is NOT present in the grant request.
+    grant_0 = {'cbsdId': cbsd_id}
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 102)
+
+  def test_10_7_4_1_3_1_2_1(self):
+    """CBSD grant request when CBSD ID does not exist in SAS.
+
+    CBSD sends grant request when its CBSD Id is not in SAS. The response
+    should be FAIL.
+    """
+
+    # Request grant before registration, thus the CBSD ID does not exist in SAS
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = 'A non-exist cbsd id'
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
