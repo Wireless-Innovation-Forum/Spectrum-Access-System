@@ -28,6 +28,12 @@ class DeregistrationTestcase(unittest.TestCase):
     pass
 
   def test_10_15_4_1_1(self):
+    """Successful CBSD deregistration request.
+
+    CBSD sends deregistration request to SAS with its correct and valid CBSD
+    ID, the response should be SUCCESS.
+    """
+
     # Register the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
