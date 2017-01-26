@@ -28,6 +28,12 @@ class RelinquishmentTestcase(unittest.TestCase):
     pass
 
   def test_10_13_4_1_1(self):
+    """Successful CBSD relinquishment request.
+
+    CBSD Harness sends Relinquishment Request to SAS including CBSD ID and
+    Grant ID in correct format. The response should be SUCCESS.
+    """
+
     # Register the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
