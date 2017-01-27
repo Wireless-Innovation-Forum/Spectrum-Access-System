@@ -10,7 +10,7 @@
                  "description": "Unique designator for the grant as returned from the spectrum grant procedure." },
     "grantRenew": { "type": "boolean",
                     "description": "If set to true, the CBSD is asking for a renewal of the grant." },
-    "operationState": { "enum": [ "Authorized", "Granted" ],
+    "operationState": { "enum": [ "AUTHORIZED", "GRANTED" ],
                         "description": "Represents the current state of operation of the CBSD." },
     "measReport": { "$ref": "file:MeasReport.schema.json" }
   }
