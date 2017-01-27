@@ -4,21 +4,21 @@
   "callSign": "KPPP",
   "userId": "John Doe",
   "airInterface": {
-    "radioTechnology": "E-UTRA",
+    "radioTechnology": "E_UTRA",
     "supportedSpec": "LTE-Rel10"
   },
   "cbsdInfo": {
     "vendor": "Equipment Maker C"
   },
   "cbsdSerialNumber": "4321dcba",
-  "measCapability": [ "EutraCarrierRssiAlways" ],
+  "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
   "installationParam": {
     "latitude": 37.425056,
     "longitude": -122.084113,
     "height": 9.3,
     "indoorDeployment": false,
     "antennaAzimuth": 270,
-    "antennaDowntiltMech": 3,
+    "antennaDowntilt": 3,
     "antennaGain": 16,
     "antennaBeamwidth": 30
   }
