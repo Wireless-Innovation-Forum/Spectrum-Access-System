@@ -34,7 +34,6 @@ class ClimateIndexer:
     self.LATSTART = 89.75 # Latitude corresponding to first row of file (deg)
     self.LONSTART = -179.75 # Longitude corresponding to first column of file (deg)
     self.DLAT = self.DLON = 0.5 # Spacing between lat/lon rows/columns (deg)
-    self.CLIMATEDATA = numpy.zeros((self.NLATROWS, self.NLONCOLS))
     self.CLIMATEDATA = numpy.loadtxt(datafile, dtype=numpy.int)
     print 'Loaded climate data from %s' % datafile
 
