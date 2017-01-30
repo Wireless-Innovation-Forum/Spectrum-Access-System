@@ -36,7 +36,6 @@ class RefractivityIndexer:
     self.LATSTART = 90.0 # Latitude corresponding to first row of file (deg)
     self.LONSTART = 0.0 # Longitude corresponding to first column of file (deg)
     self.DLAT = self.DLON = 1.5 # Spacing between lat/lon rows/columns (deg)
-    self.DATA = numpy.zeros((self.NLATROWS, self.NLONCOLS))
     self.DATA = numpy.loadtxt(datafile)
     print 'Loaded refractivity data from %s' % datafile
 
