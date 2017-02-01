@@ -31,6 +31,7 @@ import vincenty
 
 class NedIndexer:
   def __init__(self, directory, lru_size=10):
+    print 'Initializing NED index from %s' % directory
     self.directory = directory
     files = os.listdir(self.directory)
     files.sort()
@@ -159,7 +160,7 @@ class NedIndexer:
     print "Using sample points ", len(sample_pts)
     print "distance=", distance
 
-    profile = [len(sample_pts)-1, distance]
+    profile = [len(sample_pts)-1, distance*1000.0]
     for pt in sample_pts:
       profile.append(self.Elevation(pt[0], pt[1]))
 
