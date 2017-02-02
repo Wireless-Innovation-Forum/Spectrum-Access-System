@@ -55,12 +55,7 @@ static PyObject* itm_point_to_point(PyObject* self, PyObject* args) {
                  dbloss, strmode, errnum);
   delete[] elev;
 
-  // TODO: return a tuple with loss, err, strmode.
-  if (errnum == 0) {
-    return PyFloat_FromDouble(dbloss);
-  } else {
-    return PyFloat_FromDouble(-errnum);
-  }
+  return Py_BuildValue("dis", dbloss, errnum, strmode);
 }
 
 static PyMethodDef ITMMethods[] = {

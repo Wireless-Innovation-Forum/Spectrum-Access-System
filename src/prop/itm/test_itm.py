@@ -67,7 +67,11 @@ path = [ 156, 499,
          94,   91,  105,  122,  122,  122,  122,  122,  137,  137,  137,  137,  137,  137,  137,
          137, 140,  144,  147,  150,  152,  159 ]
 
-loss = itm.point_to_point(path, 143.9, 8.5, 15, .005, 314, 41.5, 5, 0, .5, .5)
+loss, err, mode = itm.point_to_point(path, 143.9, 8.5, 15, .005, 314, 41.5, 5, 0, .5, .5)
+
+if err != 0:
+  print "FAIL: expected err=0"
+
 if abs(loss-135.8) > 0.2:
   print "FAIL: expected 135.8, got ", loss
 else:

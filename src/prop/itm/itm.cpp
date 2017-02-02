@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+//#include <iostream>
 
 #include "itm.h"
 
@@ -388,25 +389,33 @@ void lrprop (double d,
 	  wscat=false;
 	  if(prop.wn<0.838 || prop.wn>210.0)
         	{ prop.kwx=mymax(prop.kwx,1);
+		  //std::cout << "freq out of range\n";
 		}
 	  for(j=0;j<2;j++)
 	    if(prop.hg[j]<1.0 || prop.hg[j]>1000.0)
           	{ prop.kwx=mymax(prop.kwx,1);
+	          //std::cout << "heights out of range [1, 1000]\n";
 		}
 	  for(j=0;j<2;j++)
 	    if( abs(prop.the[j]) >200e-3 || prop.dl[j]<0.1*propa.dls[j] ||
 		   prop.dl[j]>3.0*propa.dls[j] )
 		{ prop.kwx=mymax(prop.kwx,3);
+		  //std::cout << "the, dl-dls out of range\n";
+		  //if (abs(prop.the[j]) > 200e-3) { std::cout << "  the[j] oor " << prop.the[j] << "\n"; }
+		  //if (prop.dl[j]<0.1*propa.dls[j]) { std::cout << "  dl dls " << prop.dl[j] << " " << propa.dls[j] << "\n"; }
+	          //if (prop.dl[j]>3.0*propa.dls[j]) { std::cout << "     more than 3x\n"; }
 		}
 	  if( prop.ens < 250.0   || prop.ens > 400.0  || 
 	      prop.gme < 75e-9 || prop.gme > 250e-9 || 
 		  prop_zgnd.real() <= abs(prop_zgnd.imag()) || 
 		  prop.wn  < 0.419   || prop.wn  > 420.0 )
 	     	{ prop.kwx=4;
+		  //std::cout << "combination of freq, ens, gme, zgnd out of range\n";
 		}
           for(j=0;j<2;j++)
 	    if(prop.hg[j]<0.5 || prop.hg[j]>3000.0)
 		{ prop.kwx=4;
+		  //std::cout << "heights out of range [.5, 3000]\n";
 		}
 	  dmin=abs(prop.he[0]-prop.he[1])/200e-3;
 	  q=adiff(0.0,prop,propa);
@@ -426,12 +435,15 @@ void lrprop (double d,
     {
 	  if(prop.dist>1000e3)
 	    { prop.kwx=mymax(prop.kwx,1);
+	      //std::cout << "distance out of range 1000000";
 	    }
 	  if(prop.dist<dmin)
 	    { prop.kwx=mymax(prop.kwx,3);
+	      //std::cout << "distance less than dmin";
 	    }
 	  if(prop.dist<1e3 || prop.dist>2000e3)
 	    { prop.kwx=4;
+	      //std::cout << "distance less than 1km or more than 2000km";
 	    }
     }
   if(prop.dist<propa.dlsa)
@@ -557,6 +569,7 @@ double avar(double zzt, double zzl, double zzc,
 			   { propv.klim = 5;
 			     temp_klim = 4;
 			     { prop.kwx=mymax(prop.kwx,2);
+			       //std::cout << "klim out of range";
 				 }
 			   }
 			 cv1 = bv1[temp_klim];
@@ -593,6 +606,7 @@ double avar(double zzt, double zzl, double zzc,
 			 if(kdv<0 || kdv>3)
 			   { kdv=0;
 			     prop.kwx=mymax(prop.kwx,2);
+			     //std::cout << "kdv out of range";
 			   }
 		   case 3:
 		     q=log(0.133*prop.wn);
@@ -640,6 +654,7 @@ double avar(double zzt, double zzl, double zzc,
 	}
   if(fabs(zt)>3.1 || fabs(zl)>3.1 || fabs(zc)>3.1)
       { prop.kwx=mymax(prop.kwx,1);
+	//std::cout << "zt/zl/zc out of range";
 	  }
   if(zt<0.0)
     sgt=sgtm;
