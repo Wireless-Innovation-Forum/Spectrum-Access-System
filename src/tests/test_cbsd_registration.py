@@ -48,7 +48,6 @@ class TestRegistration(unittest.TestCase):
         # sas.CCBSD_to_SAS(True)  then HTTPS (TLSv1.2)
         # sas.CCBSD_to_SAS(False) then HTTP
         self.req = sas.CBSD_to_SAS(True)
-        #self.req2 = sas.CBSD_to_SAS(True)
         self.local_time = self.req.GetLocalTime()
         self.logger = self.req.logger
         self.handler = self.req.handler

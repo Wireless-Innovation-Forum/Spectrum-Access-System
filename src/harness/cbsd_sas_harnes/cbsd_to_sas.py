@@ -34,15 +34,6 @@ LOG_FILE = 'log/cbsd-to-sas-harness.log'
 LOG_FORMAT = logging.Formatter(
     '%(asctime)-15s - CBSD to SAS Harness - '
     '%(funcName)s - %(levelname)s - %(message)s')
-# CBSD to SAS configuration file sections and options
-#INI_FILE_SECTION = 'CBSD-SAS'
-#INI_FILE_OPTIONS = {
-#    'CAT_A': None,
-#    'CAT_B': None,
-#    'SPECTRUM_GAA': None,
-#    'SPECTRUM_PAL': None,
-#    'GRANT': None,
-#    'HEARTBEAT': None}
 # CBSD to SAS Resources
 RESOURCES = {
     'reg': {
@@ -81,105 +72,6 @@ RESOURCES = {
         'req': 'relinquishmentRequest',
         'res': 'relinquishmentResponse',
         'ini': 'RELINQUISHMENT'}}
-# Response Code values
-SUCCESS = 0
-VERSION = 100
-BLACKLISTED = 101
-MISSING_PARAM = 102
-INVALID_VALUE = 103
-CERT_ERROR = 104
-DEREGISTER = 105
-REG_PENDING = 200
-GROUP_ERROR = 201
-CATEGORY_ERROR = 202
-UNSUPPORTED_SPECTRUM = 300
-INTERFERENCE = 400
-GRANT_CONFLICT = 401
-TOO_MANY_GRANTS = 402
-TERMINATED_GRANT = 500
-SUSPENDED_GRANT = 501
-UNSYNC_OP_PARAM = 502
-# Response Code resources
-RESPONSE_CODE = {
-    # Dictionay where the key is the responseCode value and the next key
-    #   represents:
-    #   - responseData: None=Not Present | []=String Array | ''=String
-    #   - tag:          String short description
-    #   - description:  String long  description
-    SUCCESS: {
-        'responseData': None,
-        'tag': 'SUCCESS',
-        'description': 'CBSD request is approved by SAS'},
-    # 100 – 199: general errors regarding CBSD and protocol
-    VERSION: {
-        'responseData': [],
-        'tag': 'VERSION',
-        'description': 'CBSD protocol version not supported by SAS'},
-    BLACKLISTED: {
-        'responseData': None,
-        'tag': 'BLACKLISTED',
-        'description': 'CBSD is blacklisted'},
-    MISSING_PARAM: {
-        'responseData': [],
-        'tag': 'MISSING_PARAM',
-        'description': 'CBSD list of missing required parameters'},
-    INVALID_VALUE: {
-        'responseData': [],
-        'tag': 'INVALID_VALUE',
-        'description': 'CBSD list of parameters with invalid values'},
-    CERT_ERROR: {
-        'responseData': None,
-        'tag': 'CERT_ERROR',
-        'description': 'CBSD certicate has error'},
-    DEREGISTER: {
-        'responseData': None,
-        'tag': 'DEREGISTER',
-        'description': 'CBSD has been de-registered by SAS'},
-    # 200 – 299: error events related to CBSD registration
-    REG_PENDING: {
-        'responseData': [],
-        'tag': 'REG_PENDING',
-        'description': 'CBSD list of missing registration parameters'},
-    GROUP_ERROR: {
-        'responseData': None,
-        'tag': 'GROUP_ERROR',
-        'description': 'CBSD grouping parameters description of error(s)'},
-    CATEGORY_ERROR: {
-        'responseData': None,
-        'tag': 'CATEGORY_ERROR',
-        'description': 'CBSD wrong category registration'},
-    # 300 – 399: error events related to spectrum inquiry
-    UNSUPPORTED_SPECTRUM: {
-        'responseData': '',
-        'tag': 'UNSUPPORTED_SPECTRUM',
-        'description': 'CBSD spectrum value not supported by SAS'},
-    # 400 – 499: error events related to grant
-    INTERFERENCE: {
-        'responseData': None,
-        'tag': 'INTERFERENCE',
-        'description': 'CBSD operation causes PAL interference'},
-    GRANT_CONFLICT: {
-        'responseData': '',
-        'tag': 'GRANT_CONFLICT',
-        'description': 'CBSD Grant ID that causes conflict'},
-    TOO_MANY_GRANTS: {
-        'responseData': [],
-        'tag': 'TOO_MANY_GRANTS',
-        'description':
-        'CBSD list of approved Grant IDs, number of maximum allowed grants'},
-    # 500 – 599: error events related to heartbeat
-    TERMINATED_GRANT: {
-        'responseData': None,
-        'tag': 'TERMINATED_GRANT',
-        'description': 'Grant ID is terminated'},
-    SUSPENDED_GRANT: {
-        'responseData': None,
-        'tag': 'SUSPENDED_GRANT',
-        'description': 'Grant ID is suspended'},
-    UNSYNC_OP_PARAM: {
-        'responseData': None,
-        'tag': 'UNSYNC_OP_PARAM',
-        'description': 'Grant parameters out of sync with SAS'}}
 
 
 # Classes
@@ -206,7 +98,6 @@ class CBSD_to_SAS(SAS_Interface):
         self.handler = handler
 
         # Prep SAS to SAS Configuration file set-up section/options
-        #self.ini[INI_FILE_SECTION] = INI_FILE_OPTIONS
         self.LoadSettings()
 
         self.handler.setFormatter(LOG_FORMAT)

@@ -83,6 +83,24 @@ MESSAGE_PARAMETERS_RELINQUISHMENT = (
     'relinquishmentResponse',
     'cbsdId',
     'grantId') + PARAMETER_RESPONSE
+# Response Code values
+SUCCESS = 0
+VERSION = 100
+BLACKLISTED = 101
+MISSING_PARAM = 102
+INVALID_VALUE = 103
+CERT_ERROR = 104
+DEREGISTER = 105
+REG_PENDING = 200
+GROUP_ERROR = 201
+CATEGORY_ERROR = 202
+UNSUPPORTED_SPECTRUM = 300
+INTERFERENCE = 400
+GRANT_CONFLICT = 401
+TOO_MANY_GRANTS = 402
+TERMINATED_GRANT = 500
+SUSPENDED_GRANT = 501
+UNSYNC_OP_PARAM = 502
 
 # Classes
 
@@ -97,7 +115,6 @@ class CBSD(object):
         self.handler = handler
         self.logger = logger
 
-        self.sas = sas
         self.utc = pytz.timezone('UTC')
         self.fmt = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -255,10 +272,10 @@ class CBSD(object):
                     self.assertResponseMessage(obj['responseMessage'])
             if('responseData' in obj):
                 if(obj['responseCode'] in
-                    (self.sas.VERSION,
-                     self.sas.MISSING_PARAM,
-                     self.sas.INVALID_VALUE,
-                     self.sas.REG_PENDING)):
+                    (VERSION,
+                     MISSING_PARAM,
+                     INVALID_VALUE,
+                     REG_PENDING)):
                     if('responseData' in expected_obj):
                         self.assertResponseDataArrayOfString(
                             obj['responseData'], expected_obj['responseData'])
@@ -266,8 +283,8 @@ class CBSD(object):
                         self.assertResponseDataArrayOfString(
                             obj['responseData'])
 
-                elif(obj['responseCode'] in (self.sas.UNSUPPORTED_SPECTRUM,
-                                             self.sas.GRANT_CONFLICT)):
+                elif(obj['responseCode'] in (UNSUPPORTED_SPECTRUM,
+                                             GRANT_CONFLICT)):
                     self.utest.assertIn('responseData', obj)
                     if('responseData' in expected_obj):
                         self.assertResponseDataString(
@@ -452,7 +469,7 @@ class CBSD(object):
             self.assertResponse(g['response'], x['response'])
 
             # Conditional parameters
-            if(g['response']['responseCode'] == self.sas.SUCCESS):
+            if(g['response']['responseCode'] == SUCCESS):
 
                 self.utest.assertIn('cbsdId', g)
                 self.utest.assertIn('grantId', g)
@@ -480,12 +497,12 @@ class CBSD(object):
                 else:
                     self.assertHeartbeatInterval(g['heartbeatInterval'])
 
-            elif(g['response']['responseCode'] in (self.sas.VERSION,
-                                                   self.sas.MISSING_PARAM,
-                                                   self.sas.INVALID_VALUE,
-                                                   self.sas.GRANT_CONFLICT)):
+            elif(g['response']['responseCode'] in (VERSION,
+                                                   MISSING_PARAM,
+                                                   INVALID_VALUE,
+                                                   GRANT_CONFLICT)):
                 self.utest.assertIn('responseData', g['response'])
-                if(g['response']['responseCode'] != self.sas.VERSION):
+                if(g['response']['responseCode'] != VERSION):
                     if('cbsdId' in g['response']['responseData']):
                         self.utest.assertNotIn('cbsdId', g)
                     else:
@@ -537,22 +554,22 @@ class CBSD(object):
                 self.assertResponse(r['response'], x['response'])
 
                 # Conditional parameters
-                if(r['response']['responseCode'] == self.sas.SUCCESS):
+                if(r['response']['responseCode'] == SUCCESS):
                     self.utest.assertIn('cbsdId', r)
                     if('cbsdId' in x):
                         self.assertCbsdId(r['cbsdId'], x['cbsdId'])
                     else:
                         self.assertCbsdId(r['cbsdId'])
                 elif(r['response']['responseCode'] in
-                     (self.sas.VERSION,
-                      self.sas.BLACKLISTED,
-                      self.sas.MISSING_PARAM,
-                      self.sas.INVALID_VALUE,
-                      self.sas.REG_PENDING)):
+                     (VERSION,
+                      BLACKLISTED,
+                      MISSING_PARAM,
+                      INVALID_VALUE,
+                      REG_PENDING)):
                     self.utest.assertNotIn('cbsdId', r)
                     if(r['response']['responseCode'] not in
-                        (self.sas.VERSION,
-                         self.sas.BLACKLISTED)):
+                        (VERSION,
+                         BLACKLISTED)):
                         self.utest.assertIn('responseData', r['response'])
 
                 # Optional parameters
@@ -602,7 +619,7 @@ class CBSD(object):
                 self.assertResponse(d['response'], x['response'])
 
                 # Conditional parameters
-                if(d['response']['responseCode'] == self.sas.SUCCESS):
+                if(d['response']['responseCode'] == SUCCESS):
                     self.utest.assertIn('cbsdId', d)
                     if('cbsdId' in x):
                         self.asserCbsdId(d['cbsdId'], x['cbsdId'])
@@ -612,11 +629,11 @@ class CBSD(object):
                 else:
                     self.utest.assertNotIn('cbsdId', d)
                     if(d['response']['responseCode'] in
-                        (self.sas.VERSION,
-                         self.sas.MISSING_PARAM,
-                         self.sas.INVALID_VALUE)):
+                        (VERSION,
+                         MISSING_PARAM,
+                         INVALID_VALUE)):
                         self.utest.assertIn('responseData', d['response'])
-                        if(d['response']['responseCode'] != self.sas.VERSION):
+                        if(d['response']['responseCode'] != VERSION):
                             self.utest.assertIn(
                                 'cbsdId', d['response']['responseData'])
 
@@ -659,7 +676,7 @@ class CBSD(object):
                 self.assertResponse(s['response'], x['response'])
 
                 # Conditional parameters
-                if(s['response']['responseCode'] == self.sas.SUCCESS):
+                if(s['response']['responseCode'] == SUCCESS):
 
                     self.utest.assertIn('cbsdId', s)
                     if('cbsdId' in x):
@@ -675,13 +692,13 @@ class CBSD(object):
                         self.assertAvailableChannel(s['availableChannel'])
 
                 elif(s['response']['responseCode'] in
-                     (self.sas.VERSION,
-                      self.sas.MISSING_PARAM,
-                      self.sas.INVALID_VALUE,
-                      self.sas.UNSUPPORTED_SPECTRUM)):
+                     (VERSION,
+                      MISSING_PARAM,
+                      INVALID_VALUE,
+                      UNSUPPORTED_SPECTRUM)):
                     if(s['response']['responseCode'] not in
-                        (self.sas.VERSION,
-                         self.sas.UNSUPPORTED_SPECTRUM)):
+                        (VERSION,
+                         UNSUPPORTED_SPECTRUM)):
                         if('cbsdId' in s['response']['responseData']):
                             self.utest.assertNotIn('cbsdId', s)
                         else:
@@ -805,7 +822,7 @@ class CBSD(object):
                     self.assertTransmitExpireTime(h['transmitExpireTime'])
 
                 # Conditional parameters
-                if(h['response']['responseCode'] == self.sas.MISSING_PARAM):
+                if(h['response']['responseCode'] == MISSING_PARAM):
                     if('cbsdId' in h['response']['responseData']):
                         self.utest.assertNotIn('cbsdId', h)
                     else:
@@ -819,8 +836,8 @@ class CBSD(object):
                     self.utest.assertIn('grantId', h)
                     self.assertCbsdId(h['cbsdId'], p['cbsdId'])
                     self.assertGrantId(h['grantId'], p['grantId'])
-                    if((h['response']['responseCode'] == self.sas.SUCCESS) or
-                       (h['response']['responseCode'] == self.sas.SUSPENDED_GRANT)):
+                    if((h['response']['responseCode'] == SUCCESS) or
+                       (h['response']['responseCode'] == SUSPENDED_GRANT)):
                         if('grantRenew' in p):
                             if(p['grantRenew']):
                                 self.utest.assertIn('grantExpireTime', h)
@@ -898,7 +915,7 @@ class CBSD(object):
                 self.assertResponse(r['response'], x['response'])
 
                 # Conditional parameters
-                if(r['response']['responseCode'] == self.sas.MISSING_PARAM):
+                if(r['response']['responseCode'] == MISSING_PARAM):
                     if('cbsdId' in r['response']['responseData']):
                         self.utest.assertNotIn('cbsdId', r)
                     else:
