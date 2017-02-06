@@ -71,4 +71,3 @@ class SAS_Connector(object):
 
     def GetVersionNumber(self):
         return(self.versionNumber)
-
