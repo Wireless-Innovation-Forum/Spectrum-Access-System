@@ -25,7 +25,7 @@ gdal_retile.py -v -of EHdr -ps 6000 6000 -levels 1 -ot Byte -r near \
   -targetDir nlcd_2011_landcover_2011_edition_2014_10_10_tiles/ \
   nlcd_2011_landcover_2011_edition_2014_10_10/nlcd_2011_landcover_2011_edition_2014_10_10.img
 
-rm -rf nlcd_2011_edition_2014_10_10_tiles/1
+rm -rf nlcd_2011_landcover_2011_edition_2014_10_10_tiles/1
 
 if [ ! -d ak_nlcd_2011_landcover_1_15_15_tiles ]; then
   mkdir ak_nlcd_2011_landcover_1_15_15_tiles
