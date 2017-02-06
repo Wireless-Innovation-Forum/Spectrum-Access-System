@@ -37,7 +37,7 @@ LOG_FORMAT = logging.Formatter(
 # Classes
 
 
-class SAS_Connector(object):
+class SasConnector(object):
     """ Class SAS Connector
         Container for SAS Host URL, Port, and Version
     """
@@ -51,16 +51,22 @@ class SAS_Connector(object):
         self.handler = handler
 
         self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('*** SAS_Connector ****')
-
-    def SetHttps(self, url):
-        self.https = url
-
-    def GetHttps(self):
-        return(self.https + '/' + self.versionNumber if self.https else '')
+        self.logger.debug('*** SasConnector ****')
 
     def SetVersionNumber(self, versionNumber):
         self.versionNumber = versionNumber
 
     def GetVersionNumber(self):
         return(self.versionNumber)
+
+    def SetCbsd(self, url):
+        self.cbsd = url
+
+    def GetCbsd(self):
+        return(self.cbsd + '/' + self.versionNumber if self.cbsd else '')
+
+    def SetAdmin(self, url):
+        self.admin = url
+
+    def GetAdmin(self):
+        return(self.admin + '/' + self.versionNumber if self.admin else '')

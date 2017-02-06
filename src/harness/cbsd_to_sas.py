@@ -25,7 +25,7 @@ import os
 from datetime import datetime
 from pytz import timezone
 # Import OWN
-from sas_interface import SAS_Interface
+from sas_interface import SasInterface
 from sas_interface import PUSH
 
 # Logging file path
@@ -71,12 +71,17 @@ RESOURCES = {
         'path': '/relinquishment',
         'req': 'relinquishmentRequest',
         'res': 'relinquishmentResponse',
-        'ini': 'RELINQUISHMENT'}}
+        'ini': 'RELINQUISHMENT'},
+    'reset': {
+        'name': 'RESET',
+        'path': '/reset',
+        'req': 'resetRequest',
+        'res': 'resetResponse'}}
 
 
 # Classes
 
-class CBSD_to_SAS(SAS_Interface):
+class SasInterfaceImpl(SasInterface):
     """ Class CBSD to SAS Gateway
         Send/Receive messages to/from given URL
     """
@@ -92,7 +97,7 @@ class CBSD_to_SAS(SAS_Interface):
         # Couple handler to logging instance
         logger.addHandler(handler)
 
-        super(CBSD_to_SAS, self).__init__(logger, handler)
+        super(SasInterfaceImpl, self).__init__(logger, handler)
 
         self.logger = logger
         self.handler = handler
@@ -272,3 +277,8 @@ class CBSD_to_SAS(SAS_Interface):
         # Send request, get response
         results = self.SendMessage(PUSH, RESOURCES['hb'], req_array)
         return(results[RESOURCES['hb']['res']])
+
+    # Admin Request
+
+    def Reset(self):
+        self.SendMessage(PUSH, RESOURCES['reset'], None)
