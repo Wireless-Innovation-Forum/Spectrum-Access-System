@@ -52,7 +52,7 @@ class RefractivityIndexer:
 
     irow = float((self.LATSTART - lat)/self.DLAT)
     icol = float((lon - self.LONSTART)/self.DLON)
-    print 'Got irow=%s, icol=%s' % (irow, icol)
+    # print 'Got irow=%s, icol=%s' % (irow, icol)
 
     # bilinear interpolation on values
     irowl = int(math.floor(irow))
@@ -64,7 +64,7 @@ class RefractivityIndexer:
     r2 = self.DATA[irowh, icolh]
     r3 = self.DATA[irowl, icolh]
     r4 = self.DATA[irowh, icoll]
-    print 'Got values ', r1, r2, r3, r4
+    # print 'Got values ', r1, r2, r3, r4
 
     refractivity = (((irow - float(irowl)) * (icol - float(icoll))) * r2 + 
                     ((float(irowh) - irow) * (float(icolh) - icol)) * r1 + 
