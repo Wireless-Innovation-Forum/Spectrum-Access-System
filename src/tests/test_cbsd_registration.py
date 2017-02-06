@@ -45,9 +45,7 @@ class TestRegistration(unittest.TestCase):
         from harness.cbsd_sas_harness import cbsd_to_sas as sas
         from common import cbsd
 
-        # sas.CCBSD_to_SAS(True)  then HTTPS (TLSv1.2)
-        # sas.CCBSD_to_SAS(False) then HTTP
-        self.req = sas.CBSD_to_SAS(True)
+        self.req = sas.CBSD_to_SAS()
         self.local_time = self.req.GetLocalTime()
         self.logger = self.req.logger
         self.handler = self.req.handler

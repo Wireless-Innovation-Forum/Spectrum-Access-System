@@ -81,7 +81,7 @@ class CBSD_to_SAS(SAS_Interface):
         Send/Receive messages to/from given URL
     """
 
-    def __init__(self, tls):
+    def __init__(self):
 
         # Logging Instance creation
         logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ class CBSD_to_SAS(SAS_Interface):
         # Couple handler to logging instance
         logger.addHandler(handler)
 
-        super(CBSD_to_SAS, self).__init__(tls, logger, handler)
+        super(CBSD_to_SAS, self).__init__(logger, handler)
 
         self.logger = logger
         self.handler = handler

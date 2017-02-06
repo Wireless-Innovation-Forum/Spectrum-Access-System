@@ -55,7 +55,6 @@ INI_FILE = 'tests/sas_settings.ini'
 INI_FILE_SECTION = 'HOST'
 INI_FILE_OPTIONS = {
     'VERSION': None,
-    'HTTP': None,
     'HTTPS': None,
     'CA_CERT': None,
     'CERT': None,
@@ -135,14 +134,13 @@ class SAS_Interface(SAS_Connector):
         Send/Receive messages to/from given URL
     """
 
-    def __init__(self, tls, logger, handler):
+    def __init__(self, logger, handler):
 
         super(SAS_Interface, self).__init__(logger, handler)
 
         self.logger = logger
         self.handler = handler
 
-        self.tls = tls
         self.debug_entries = []
 
         self.cfgFile = os.path.join(os.getcwd(), INI_FILE)
@@ -268,7 +266,6 @@ class SAS_Interface(SAS_Connector):
             os.getcwd(), 'ssl', self.ini[INI_FILE_SECTION]['KEY'])
         self.keypasswd = self.ini[INI_FILE_SECTION]['KEYPASSWD']
 
-        self.logger.debug('Http:     {}'.format(self.GetHttp()))
         self.logger.debug('Https:    {}'.format(self.GetHttps()))
         self.logger.debug('Config:   {}'.format(self.cfgFile))
         self.logger.debug('CA Cert:  {}'.format(self.caCert))
@@ -276,11 +273,10 @@ class SAS_Interface(SAS_Connector):
         self.logger.debug('Key:      {}'.format(self.key))
         self.logger.debug('Password: {}'.format(self.keypasswd))
 
-    def Request(self, pull, tls, url, request, ssl_caCert, ssl_cert, ssl_key):
+    def Request(self, pull, url, request, ssl_caCert, ssl_cert, ssl_key):
         """ Sends HTTP/S request
             Args:
                 pull: Define True as pull (GET) or False as push (POST)
-                tls: Define if request uses TLS or not
                 url: Destination of the HTTP/S request
                 request: Content of the request
                 ssl_caCert: Path to SSL CA cert used in HTTPS request
@@ -309,18 +305,17 @@ class SAS_Interface(SAS_Connector):
         #conn.setopt(conn.DEBUGFUNCTION, self.debug_function)
 
         # Setup TLS 1.2
-        if(tls):
-            conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
-            conn.setopt(conn.SSLCERTTYPE, 'PEM')
-            conn.setopt(conn.SSLCERT, ssl_cert)
-            conn.setopt(conn.SSLKEY, ssl_key)
-            if(self.keypasswd):
-                conn.setopt(conn.SSLKEYPASSWD, self.keypasswd)
-            conn.setopt(conn.CAINFO, ssl_caCert)
-            conn.setopt(conn.SSL_CIPHER_LIST, SSL_CIPHER_LIST)
-            # Unsecure settings
-            #conn.setopt(conn.SSL_VERIFYPEER, 0)
-            #conn.setopt(conn.SSL_VERIFYHOST, 0)
+        conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+        conn.setopt(conn.SSLCERTTYPE, 'PEM')
+        conn.setopt(conn.SSLCERT, ssl_cert)
+        conn.setopt(conn.SSLKEY, ssl_key)
+        if(self.keypasswd):
+            conn.setopt(conn.SSLKEYPASSWD, self.keypasswd)
+        conn.setopt(conn.CAINFO, ssl_caCert)
+        conn.setopt(conn.SSL_CIPHER_LIST, SSL_CIPHER_LIST)
+        # Unsecure settings
+        #conn.setopt(conn.SSL_VERIFYPEER, 0)
+        #conn.setopt(conn.SSL_VERIFYHOST, 0)
 
         # Default request is GET
         if(not pull):
@@ -362,8 +357,7 @@ class SAS_Interface(SAS_Connector):
         """
 
         # URL set-up
-        url = 'https://' + self.GetHttps() if self.tls else 'http://' + self.GetHttp()
-        url += resource['path']
+        url = 'https://' + self.GetHttps() + resource['path']
 
         if(id and pull):
             url += '/' + id
@@ -388,7 +382,7 @@ class SAS_Interface(SAS_Connector):
 
         try:
             results = self.Request(
-                pull, self.tls, url, data, self.caCert, self.cert, self.key)
+                pull, url, data, self.caCert, self.cert, self.key)
 
             if(results.status_code != 200):
                 self.logger.error(

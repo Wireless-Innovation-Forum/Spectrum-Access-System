@@ -44,7 +44,6 @@ class SAS_Connector(object):
 
     def __init__(self, logger, handler):
 
-        self.http = None
         self.https = None
         self.versionNumber = None
 
@@ -53,12 +52,6 @@ class SAS_Connector(object):
 
         self.handler.setFormatter(LOG_FORMAT)
         self.logger.debug('*** SAS_Connector ****')
-
-    def SetHttp(self, url):
-        self.http = url
-
-    def GetHttp(self):
-        return(self.http + '/' + self.versionNumber if self.http else '')
 
     def SetHttps(self, url):
         self.https = url
