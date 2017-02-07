@@ -43,15 +43,12 @@ class TestRegistration(unittest.TestCase):
         super(TestRegistration, self).__init__(*args, **kwargs)
 
         from harness import cbsd_to_sas as sas
-        from common import cbsd
 
         self.req = sas.SasInterfaceImpl()
         self.local_time = self.req.GetLocalTime()
+
         self.logger = self.req.logger
         self.handler = self.req.handler
-
-        self.res = cbsd.CBSD(self.logger, self.handler, sas)
-        self.res.utest(self)
 
         self.handler.setFormatter(LOG_FORMAT)
         self.logger.debug('*** TestRegistration ****')
@@ -62,7 +59,7 @@ class TestRegistration(unittest.TestCase):
         self.handler.setFormatter(LOG_FORMAT)
 
     def tearDown(self):
-        self.handler.setFormatter(LOG_FORMAT)
+        pass
 
     # Test Cases
 
@@ -80,9 +77,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
     def test_10_3_4_1_1_2(self):
         self.logger.info(
@@ -98,9 +93,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
     def test_10_3_4_1_1_3(self):
         self.logger.info(
@@ -125,11 +118,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 0)
 
     def test_10_3_4_1_1_4(self):
         self.logger.info(
@@ -158,9 +149,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
     def test_10_3_4_1_1_5(self):
         self.logger.info(
@@ -185,10 +174,8 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
 
         # Simulate CBSD power-cycle; do not send deregistration and send
         #   registration again
@@ -200,11 +187,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 0)
 
     def test_10_3_4_1_2_1(self):
         self.logger.info(
@@ -221,9 +206,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
     def test_10_3_4_1_2_2(self):
         self.logger.info(
@@ -251,11 +234,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 0)
 
     def test_10_3_4_1_2_3(self):
         self.logger.info(
@@ -272,17 +253,13 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
         # 2nd Registration (re-registration)
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 0}})
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
     def test_10_3_4_1_2_4(self):
         self.logger.info(
@@ -310,10 +287,8 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
 
         # Simulate CBSD power-cycle; do not send deregistration and send
         #   registration again
@@ -325,11 +300,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 0)
 
     def test_10_3_4_2_1(self):
         self.logger.info(
@@ -346,11 +319,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response":
-                {"responseCode": 102,
-                 "responseData": ["fccId"]}})
+        self.assertEqual(response[0]['response']['responseCode'], 102)
 
     def test_10_3_4_2_2(self):
         self.logger.info(
@@ -379,13 +348,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response": {"responseCode": 0}},
-             {"response": {"responseCode": 0}},
-             {"response":
-                {"responseCode": 102,
-                 "responseData": ["userId"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 102)
 
     def test_10_3_4_2_3(self):
         self.logger.info(
@@ -402,11 +367,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response":
-                {"responseCode": 200,
-                 "responseData": ["airInterface/radioTechnology"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 200)
 
     def test_10_3_4_2_4(self):
         self.logger.info(
@@ -435,13 +396,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"reponseCode": 0}},
-             {"responce": {"reponseCode": 0}},
-             {"response":
-                {"responseCode": 200,
-                 "responseData": ["measCapability"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 200)
 
     def test_10_3_4_2_5_1(self):
         self.logger.info(
@@ -458,11 +415,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response":
-                {"responseCode": 103,
-                 "responseData": ["cbsdSerialNumber"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 103)
 
     def test_10_3_4_2_5_2(self):
         self.logger.info(
@@ -491,13 +444,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"reponse": {"responceCode": 0}},
-             {"reponse": {"responceCode": 0}},
-             {"response":
-                {"responseCode": 103,
-                 "responseData": ["fccId"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 103)
 
     def test_10_3_4_2_5_3(self):
         self.logger.info(
@@ -514,11 +463,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"response":
-                {"responseCode": 103,
-                 "responseData": ["measCapability"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 103)
 
     def test_10_3_4_2_5_4(self):
         self.logger.info(
@@ -547,13 +492,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 0}},
-             {"response":
-                {"responseCode": 103,
-                 "responseData": ["airInterface/radioTechnology"]}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 103)
 
     def test_10_3_4_2_6(self):
         self.logger.info(
@@ -569,9 +510,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
 
         # Manually revoke the herein used cbsdId
         #
@@ -584,9 +523,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"response": {"responseCode": 101}})
+        self.assertEqual(response[0]['response']['responseCode'], 101)
 
     def test_10_3_4_2_7(self):
         self.logger.info(
@@ -613,11 +550,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 0}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 0)
 
         # Manually revoke the herein used 3rd cbsdId
         #
@@ -630,11 +565,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 101}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[1]['response']['responseCode'], 0)
+        self.assertEqual(response[2]['response']['responseCode'], 101)
 
     def test_10_3_4_2_8(self):
         self.logger.info(
@@ -652,9 +585,7 @@ class TestRegistration(unittest.TestCase):
         self.req.SetVersionNumber('v1.0')
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 100}})
+        self.assertEqual(response[0]['response']['responseCode'], 100)
 
     def test_10_3_4_2_9(self):
         self.logger.info(
@@ -684,11 +615,9 @@ class TestRegistration(unittest.TestCase):
         self.req.SetVersionNumber('v1.0')
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 100}},
-             {"responce": {"responceCode": 100}},
-             {"responce": {"responceCode": 100}}])
+        self.assertEqual(response[0]['response']['responseCode'], 100)
+        self.assertEqual(response[0]['response']['responseCode'], 100)
+        self.assertEqual(response[0]['response']['responseCode'], 100)
 
     def test_10_3_4_2_10(self):
         self.logger.info(
@@ -707,9 +636,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 201}})
+        self.assertEqual(response[0]['response']['responseCode'], 201)
 
     def test_10_3_4_2_11(self):
         self.logger.info(
@@ -739,11 +666,9 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 201}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 201)
 
     def test_10_3_4_2_12_1(self):
         self.logger.info(
@@ -764,9 +689,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 202}})
+        self.assertEqual(response[0]['response']['responseCode'], 202)
 
     def test_10_3_4_2_12_2(self):
         self.logger.info(
@@ -784,9 +707,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 202}})
+        self.assertEqual(response[0]['response']['responseCode'], 202)
 
     def test_10_3_4_2_12_3(self):
         self.logger.info(
@@ -806,9 +727,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 202}})
+        self.assertEqual(response[0]['response']['responseCode'], 202)
 
     def test_10_3_4_2_12_4(self):
         self.logger.info(
@@ -824,9 +743,7 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            {"responce": {"responceCode": 202}})
+        self.assertEqual(response[0]['response']['responseCode'], 202)
 
     def test_10_3_4_2_13(self):
         self.logger.info(
@@ -873,13 +790,11 @@ class TestRegistration(unittest.TestCase):
         response = self.req.RegistrationRequest(devices)
 
         # Check registration response
-        self.res.assertRegistrationResponse(
-            response,
-            [{"responce": {"responceCode": 0}},
-             {"responce": {"responceCode": 203}},
-             {"responce": {"responceCode": 203}},
-             {"responce": {"responceCode": 203}},
-             {"responce": {"responceCode": 203}}])
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertEqual(response[0]['response']['responseCode'], 203)
+        self.assertEqual(response[0]['response']['responseCode'], 203)
+        self.assertEqual(response[0]['response']['responseCode'], 203)
+        self.assertEqual(response[0]['response']['responseCode'], 203)
 
 
 if __name__ == '__main__':

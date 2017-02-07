@@ -21,7 +21,6 @@ __author__ = "Francisco Benavides (francisco.benavides@federatedwireless.com)"
 
 
 # Imports
-
 import os
 import logging
 
@@ -30,7 +29,7 @@ import logging
 
 # Log format
 LOG_FORMAT = logging.Formatter(
-    '%(asctime)-15s - SAS Connector - '
+    '%(asctime)-15s - SasConnector - '
     '%(funcName)s - %(levelname)s - %(message)s')
 
 
@@ -44,7 +43,7 @@ class SasConnector(object):
 
     def __init__(self, logger, handler):
 
-        self.https = None
+        self.url = None
         self.versionNumber = None
 
         self.logger = logger
@@ -59,14 +58,11 @@ class SasConnector(object):
     def GetVersionNumber(self):
         return(self.versionNumber)
 
-    def SetCbsd(self, url):
-        self.cbsd = url
+    def SetUrl(self, url):
+        self.url = url
 
-    def GetCbsd(self):
-        return(self.cbsd + '/' + self.versionNumber if self.cbsd else '')
+    def GetCbsdUrl(self):
+        return('https://' + self.url + '/cbsd/' + self.versionNumber)
 
-    def SetAdmin(self, url):
-        self.admin = url
-
-    def GetAdmin(self):
-        return(self.admin + '/' + self.versionNumber if self.admin else '')
+    def GetAdminUrl(self):
+        return('https://' + self.url + '/admin/' + self.versionNumber)

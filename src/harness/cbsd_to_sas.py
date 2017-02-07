@@ -32,7 +32,7 @@ from sas_interface import PUSH
 LOG_FILE = 'log/cbsd-to-sas-harness.log'
 # Log format
 LOG_FORMAT = logging.Formatter(
-    '%(asctime)-15s - CBSD to SAS Harness - '
+    '%(asctime)-15s - SasInterfaceImpl - '
     '%(funcName)s - %(levelname)s - %(message)s')
 # CBSD to SAS Resources
 RESOURCES = {
@@ -106,7 +106,7 @@ class SasInterfaceImpl(SasInterface):
         self.LoadSettings()
 
         self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('*** CBSD_to_SAS ****')
+        self.logger.debug('*** SasInterfaceImpl ****')
 
     def GetIniData(self, option, section):
         """ Return the configuration file defined option value """
@@ -135,8 +135,6 @@ class SasInterfaceImpl(SasInterface):
 
     def RegistrationRequest(self, reg_obj):
         """ Send Registration Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('REGISTRATION REQuest')
 
         # Build the message
         req_array = {}
@@ -150,8 +148,6 @@ class SasInterfaceImpl(SasInterface):
 
     def DeregistrationRequest(self, reg_obj):
         """ Send Deregistration Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('DEREGISTRATION REQuest')
 
         # Initialize request array object
         req_array = {}
@@ -166,8 +162,6 @@ class SasInterfaceImpl(SasInterface):
 
     def SpectrumInquiryRequest(self, reg_obj, spec_obj):
         """ Send Spectrum Inquiry Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('SPECTRUM INQUIRY REQuest')
 
         # Build the message
         req_array = {}
@@ -188,8 +182,6 @@ class SasInterfaceImpl(SasInterface):
 
     def GrantRequest(self, reg_obj, grant_obj):
         """ Send Grant Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('GRANT REQuest')
 
         # Build the message
         req_array = {}
@@ -210,8 +202,6 @@ class SasInterfaceImpl(SasInterface):
 
     def GrantRequestOneToMore(self, reg_obj, grant_obj):
         """ Send Grant Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('GRANT REQuest')
 
         # Build the message
         req_array = {}
@@ -234,8 +224,6 @@ class SasInterfaceImpl(SasInterface):
 
     def RelinquishmentRequest(self, grant_obj, rel_obj):
         """ Send Relinquishment Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('RELINQUISHMENT REQuest')
 
         # Build the message
         req_array = {}
@@ -257,8 +245,6 @@ class SasInterfaceImpl(SasInterface):
 
     def HeartbeatRequest(self, grant_obj, hb_obj):
         """ Send Hearbeat Request to SAS """
-        self.handler.setFormatter(LOG_FORMAT)
-        self.logger.debug('HEARTBEAT REQuest')
 
         # Build the message
         req_array = {}
@@ -281,4 +267,5 @@ class SasInterfaceImpl(SasInterface):
     # Admin Request
 
     def Reset(self):
-        self.SendMessage(PUSH, RESOURCES['reset'], None)
+        results = self.SendMessage(PUSH, RESOURCES['reset'], None)
+        return(results[RESOURCES['reset']['res']])
