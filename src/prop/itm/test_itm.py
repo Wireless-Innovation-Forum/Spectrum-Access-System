@@ -77,3 +77,10 @@ if abs(loss-135.8) > 0.2:
 else:
   print "SUCCESS: expected 135.8, got ", loss
 
+sloss, err, mode = itm.point_to_point_stat(path, 143.9, 8.5, 15, .005, 314, 41.5, 5, 0, .5,
+                                           [.1, .2, .5, .8, .9], 5)
+if abs(sloss[3] - loss) < 0.0001:
+  print "FAIL: expected ", loss
+if sloss[0] > sloss[4]:
+  print "FAIL: greater loss for lower reliability parameter", sloss
+
