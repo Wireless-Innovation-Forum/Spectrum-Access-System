@@ -17,6 +17,7 @@ import math
 import numpy
 import osr
 import os
+import osgeo.gdal
 import sys
 import time
 
@@ -108,8 +109,17 @@ class NlcdTileInfo:
     #print '  coord_bounds=', self.coord_bounds
     #print '  inv_txf=', self.inv_txf
     #print '  txf=', self.txf
-    x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
-    y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
+    
+    # The format of the return values from inv_txf (gdal.InvGeoTransform) changed from
+    # gdal version 1 to version 2
+    gdal_version = osgeo.gdal.__version__
+    if gdal_version[0] == '1':
+      x = self.inv_txf[1][0] + self.inv_txf[1][1] * coord[0] + self.inv_txf[1][2] * coord[1]
+      y = self.inv_txf[1][3] + self.inv_txf[1][4] * coord[0] + self.inv_txf[1][5] * coord[1]
+    else:
+      x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
+      y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
+      
     return [x, y]
 
 class NlcdIndexer:
