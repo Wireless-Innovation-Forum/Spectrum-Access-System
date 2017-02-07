@@ -175,6 +175,7 @@ class NlcdIndexer:
     self.LoadTileForLatLng(lat, lng)
     for t in self.tile_cache:
       if t.WithinTile(lat, lng):
+        # print 'Found in tile %s' % t.filename
         index = t.IndexCoords(lat, lng)
         a = self.tile_cache[t]
         self.tile_lru[t] = time.clock()
