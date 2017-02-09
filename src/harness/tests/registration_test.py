@@ -11,82 +11,45 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+""" CBSD Registration User Part """
+
 import json
 import os
 import unittest
+import cbsd_sas as sas
 
-import sas
+
+class TestRegistration(unittest.TestCase):
+    """ CBSD - SAS Registration Test Suite """
+
+    # Set-up and Tear-down
+
+    def setUp(self):
+        self._sas, self._sas_admin = sas.GetTestingSas()
+        # self._sas_admin.Reset()
+
+    def tearDown(self):
+        pass
+
+    # Test Cases
+
+    def test_10_3_4_1_1_1(self):
+        self._sas.logger.info(
+            '10.3.4.1.1.1 New Multi-Step registration for CBSD Cat A '
+            '(No existing CBSD ID)')
+
+        devices = json.load(
+            open(os.path.join(
+                os.getcwd(),
+                'tests', 'testdata', 'registration', 'device1_a.json')))
+
+        # Register
+        response = self._sas.Registration(devices)
+
+        # Check registration response
+        self.assertEqual(response[0]['response']['responseCode'], 0)
+        self.assertIn('cbsdId', response[0])
 
 
-class RegistrationTestcase(unittest.TestCase):
-
-  def setUp(self):
-    self._sas, self._sas_admin = sas.GetTestingSas()
-    self._sas_admin.Reset()
-
-  def tearDown(self):
-    pass
-
-  def test_10_3_4_1_1_1(self):
-    """New Multi-Step registration for CBSD Cat A (No existing CBSD ID).
-
-    The response should be SUCCESS.
-    """
-
-    # Register the device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertEqual(response['response']['responseCode'], 0)
-
-  def test_10_3_4_2_1(self):
-    """CBSD registration request with missing required parameter.
-
-    The required parameter 'userId' is missing in a registration request,
-    the response should be FAIL.
-    """
-
-    # Register the device, make sure at least one required parameter is missing
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    del device_a['userId']
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertEqual(response['response']['responseCode'], 102)
-
-  def test_10_3_4_2_5_1(self):
-    """CBSD registration request with invalid required parameter.
-
-    The value of required parameter 'fccId' is invalid(exceeds its max
-    length) in the registration request, the response should be FAIL.
-    """
-
-    # Register the device, make sure at least one required parameter is invalid
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['fccId'] = 'abcdefghijklmnopqrstuvwxyz'
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
-
-  def test_10_3_4_2_5_3(self):
-    """CBSD registration request with invalid conditional parameter.
-
-    The value of conditional parameter 'radioTechnology' of airInterface
-    object is invalid in the registration request, the response should be FAIL.
-    """
-    # Register the device, make sure at least one conditional parameter is
-    # invalid
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['airInterface']['radioTechnology'] = 'invalid value'
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
+if __name__ == '__main__':
+    unittest.main()
