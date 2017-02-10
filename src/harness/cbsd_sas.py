@@ -49,7 +49,7 @@ def GetTestingSas():
 
     config_parser = ConfigParser.RawConfigParser()
     config_parser.optionxform = str
-    config_parser.read(['tests/sas.cfg'])
+    config_parser.read(['tests/cbsd_sas.cfg'])
     host = {k: v for (k, v) in config_parser.items('SasConfig')}
     return SasImpl(logger, handler, host), SasAdminImpl(logger, handler, host)
 
