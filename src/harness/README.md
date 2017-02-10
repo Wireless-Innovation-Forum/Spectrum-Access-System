@@ -6,21 +6,22 @@ This folder contains code and testcases for SAS certification test as defined in
 ## Code prerequisites
 
 *   Python 2.7.12 (https://www.python.org/downloads/release/python-2712/)
-*   PycURL 7.43.0 (http://pycurl.io)
+*   PycURL 7.43.0 (http://pycurl.io) compiled with OpenSSL
+*   PyOpenSSL 16.2.0 (https://www.openssl.org/)
 
 ## Code location
 
 *   **.**: Test framework.
     *   **./test_main.py**: Main entrypoint to run all test cases.
-    *   **./sas_interface.py**: All needed interfaces.
-    *   **./sas.py**: Implementation of all needed interfaces.
+    *   **./cbsd_sas_interface.py**: All needed interfaces.
+    *   **./cbsd_sas.py**: Implementation of all needed interfaces.
     *   **./fake_sas.py**: A fake SAS implementation, and a HTTP server which
         runs with the fake implementation.
-*   **./testcases**: Test cases, grouped by section in the test specification.
-*   **./testcases/testdata**: Data used in test cases.
+*   **./tests**: Test cases, grouped by section in the test specification.
+*   **./tests/testdata**: Data used in test cases.
 
 ## Certificate
 
 A self-signed CA is used to generate all certs/keys in this folder, using RSA.
 To support ECDSA ciphers in the fake SAS server (fake_sas.py) or PycURL client
-(sas.py), generate a new certificate using EC cryptography.
+(cbsd_sas.py), generate a new certificate using EC cryptography.
