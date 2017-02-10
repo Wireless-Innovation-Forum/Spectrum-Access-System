@@ -17,16 +17,16 @@ import json
 import os
 import unittest
 import cbsd_sas as sas
+import time
 
 
 class TestRegistration(unittest.TestCase):
     """ CBSD - SAS Registration Test Suite """
 
-    # Set-up and Tear-down
-
     def setUp(self):
         self._sas, self._sas_admin = sas.GetTestingSas()
         # self._sas_admin.Reset()
+        pass
 
     def tearDown(self):
         pass
@@ -51,7 +51,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[0])
 
     def test_10_3_4_1_1_2(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.1.2 New Multi-Step registration for CBSD Cat B '
             '(No existing CBSD ID)')
 
@@ -68,7 +68,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[0])
 
     def test_10_3_4_1_1_3(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.1.3 New Array Multi-Step registration for CBSD Cat A&B '
             '(No existing CBSD ID)')
 
@@ -98,7 +98,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[2])
 
     def test_10_3_4_1_1_4(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.1.4 Re-registration of Multi-step-registered CBSD '
             '(CBSD ID exists)')
 
@@ -126,7 +126,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[0])
 
     def test_10_3_4_1_1_5(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10_3.4.1.1.5 Array Re-registration of Multi-step-registered CBSD '
             '(CBSD ID exists)')
 
@@ -169,7 +169,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[2])
 
     def test_10_3_4_1_2_1(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.2.1 New Single-Step registration '
             '(CAT A CBSD with no existing CBSD ID)')
 
@@ -177,7 +177,7 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -187,7 +187,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[0])
 
     def test_10_3_4_1_2_2(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.2.2 New Array Single-Step registration '
             '(CAT A CBSD with no existing CBSD ID)')
 
@@ -195,17 +195,17 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         devices = [device1_a, device2_a, device3_a]
@@ -220,7 +220,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[2])
 
     def test_10_3_4_1_2_3(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.2.3 Re-registration of Single-step-registered CBSD '
             '(CBSD ID exists)')
 
@@ -228,7 +228,7 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -244,7 +244,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[0])
 
     def test_10_3_4_1_2_4(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.1.2.4 Array Re-registration of Single-step-registered '
             'CBSD (CBSD ID exists)')
 
@@ -252,17 +252,17 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         devices = [device1_a, device2_a]
@@ -290,7 +290,7 @@ class TestRegistration(unittest.TestCase):
         self.assertIn('cbsdId', response[2])
 
     def test_10_3_4_2_1(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.1 Missing Required parameters (responseCode 102)')
 
         devices = json.load(
@@ -308,7 +308,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_2(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.2 Missing Required parameters in Array request '
             '(responseCode 102)')
 
@@ -342,14 +342,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_3(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.3 Pending registration (responseCode 200)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         del devices['airInterface']['radioTechnology']
@@ -360,7 +360,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_4(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.4 Pending registration in Array request '
             '(responseCode 200)')
 
@@ -368,17 +368,17 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         del device3_a['measCapability']
@@ -394,14 +394,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_5_1(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.5.1 Invalid Required parameters (responseCode 103)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         devices['cbsdSerialNumber'] = 10000
@@ -412,7 +412,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_5_2(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.5.2 Invalid Required parameters in Array request '
             '(responseCode 103)')
 
@@ -420,17 +420,17 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         device3_a['fccId'] = 10000
@@ -446,14 +446,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[2])
 
     def test_10_3_4_2_5_3(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.5.3 Invalid Conditional parameters (responseCode 103)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         devices['measCapability'] = 10000
@@ -464,7 +464,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_5_4(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.5.4 Invalid Conditional parameters in Array request '
             '(responseCode 103)')
 
@@ -472,17 +472,17 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         device3_a['airInterface']['radioTechnology'] = 10000
@@ -498,14 +498,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[2])
 
     def test_10_3_4_2_6(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.6 Revoked CBSD (responseCode 101)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -528,24 +528,24 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_7(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.7 Revoked CBSD in Array request (responseCode 101)')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         devices = [device1_a, device2_a, device3_a]
@@ -575,26 +575,25 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[2])
 
     def test_10_3_4_2_8(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.8 Unsupported SAS protocol version (responseCode 100)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
-        self.req.SetVersionNumber('v10.0')
+        self._sas.SetVersionNumber('v10.0')
         response = self._sas.Registration(devices)
-        self.req.SetVersionNumber('v1.0')
 
         # Check registration response
         self.assertEqual(response[0]['response']['responseCode'], 100)
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_9(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.9 Unsupported SAS protocol version in Array request '
             '(responseCode 100)')
 
@@ -602,23 +601,22 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
-        self.req.SetVersionNumber('v10.0')
+        self._sas.SetVersionNumber('v10.0')
         devices = [device1_a, device2_a, device3_a]
         response = self._sas.Registration(devices)
-        self.req.SetVersionNumber('v1.0')
 
         # Check registration response
         self.assertEqual(response[0]['response']['responseCode'], 100)
@@ -629,14 +627,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[2])
 
     def test_10_3_4_2_10(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.10 Group Error (responseCode 201)')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         devices['groupingParam'] = [
@@ -649,24 +647,24 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_11(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10_3.4.2.11 Group Error in Array request (responseCode 201)')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device3_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
 
         # Register
         device3_a['groupingParam'] = [
@@ -684,7 +682,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[2])
 
     def test_10_3_4_2_12_1(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.12.1 CBSD CAT A attempts to register with HAAT >6m, '
             'Category Error (responseCode 202)')
 
@@ -692,7 +690,7 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         devices['installationParam']['latitude'] = 38.8821619
@@ -706,7 +704,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_12_2(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.12.2 CBSD CAT A attempts to register with '
             'eirpCapability > 30 dBm/10MHz')
 
@@ -714,7 +712,7 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         # Register
         devices['installationParam']['eirpCapability'] = 50
@@ -725,7 +723,7 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_12_3(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.12.3 CBSD CAT B attempts to register with '
             'eirpCapability > 47 dBm/10MHz',
             'TC_10_3_4_2_12_3_REGISTER_SEND',
@@ -735,7 +733,7 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_b_singlestep.json')))
+                'testdata', 'registration', 'reg1_b_singlestep.json')))
 
         # Register
         devices['installationParam']['eirpCapability'] = 50
@@ -746,14 +744,14 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_12_4(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.12.4 CBSD CAT B attempts a Single-step registration')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_b_singlestep.json')))
+                'testdata', 'registration', 'reg1_b_singlestep.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -763,20 +761,20 @@ class TestRegistration(unittest.TestCase):
         self.assertNotIn('cbsdId', response[0])
 
     def test_10_3_4_2_13(self):
-        self.logger.info(
+        self._sas.logger.info(
             '10.3.4.2.13 Category Error in Array request (responseCode 202)')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_a_singlestep.json')))
+                'testdata', 'registration', 'reg1_a_singlestep.json')))
 
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device2_a_singlestep.json')))
+                'testdata', 'registration', 'reg2_a_singlestep.json')))
         device2_a['installationParam']['latitude'] = 38.882161
         device2_a['installationParam']['longitude'] = -77.115943
         device2_a['installationParam']['height'] = 8
@@ -786,21 +784,21 @@ class TestRegistration(unittest.TestCase):
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device3_a_singlestep.json')))
+                'testdata', 'registration', 'reg3_a_singlestep.json')))
         device3_a['installationParam']['eirpCapability'] = 50
 
         device1_b = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_b_singlestep.json')))
+                'testdata', 'registration', 'reg1_b_singlestep.json')))
         device1_b['installationParam']['eirpCapability'] = 50
 
         device2_b = json.load(
             open(os.path.join(
                 os.getcwd(),
                 'tests',
-                'testdata', 'registration', 'device1_b_singlestep.json')))
+                'testdata', 'registration', 'reg2_b_singlestep.json')))
 
         # Register
         devices = [device1_a, device2_a, device3_a, device1_b, device2_b]

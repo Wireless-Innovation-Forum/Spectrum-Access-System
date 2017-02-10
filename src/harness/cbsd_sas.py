@@ -125,34 +125,52 @@ class SasImpl(cbsd_sas_interface.SasInterface):
             self.logger.debug(self._ssl_pp)
 
     def Registration(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'registration',
-            {'registrationRequest': [request]})['registrationResponse']
+            {'registrationRequest': request})['registrationResponse']
 
     def SpectrumInquiry(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'spectrumInquiry',
-            {'spectrumInquiryRequest': [request]})['spectrumInquiryResponse']
+            {'spectrumInquiryRequest': request})['spectrumInquiryResponse']
 
     def Grant(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'grant',
-            {'grantRequest': [request]})['grantResponse']
+            {'grantRequest': request})['grantResponse']
 
     def Heartbeat(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'heartbeat',
-            {'heartbeatRequest': [request]})['heartbeatResponse']
+            {'heartbeatRequest': request})['heartbeatResponse']
 
     def Relinquishment(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'relinquishment',
-            {'relinquishmentRequest': [request]})['relinquishmentResponse']
+            {'relinquishmentRequest': request})['relinquishmentResponse']
 
     def Deregistration(self, request):
+        if(not isinstance(request, list)):
+            request = [request]
+
         return self._CbsdRequest(
             'deregistration',
-            {'deregistrationRequest': [request]})['deregistrationResponse']
+            {'deregistrationRequest': request})['deregistrationResponse']
 
     def _CbsdRequest(self, method_name, request):
         return _Request(
@@ -161,6 +179,9 @@ class SasImpl(cbsd_sas_interface.SasInterface):
             (self._base_url, self._sas_version, method_name),
             request,
             self._ssl_ca, self._ssl_cert, self._ssl_key, self._ssl_pp)
+
+    def SetVersionNumber(self, version):
+        self._sas_version = version
 
 
 class SasAdminImpl(cbsd_sas_interface.SasAdminInterface):
