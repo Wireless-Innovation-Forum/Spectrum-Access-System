@@ -14,5 +14,5 @@
 import unittest
 
 if __name__ == '__main__':
-  tests = unittest.TestLoader().discover('tests', 'registration_test.py')
+  tests = unittest.TestLoader().discover('tests', 'cbsd_sas_registration_test.py')
   unittest.TextTestRunner(verbosity=2).run(tests)
