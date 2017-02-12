@@ -31,7 +31,13 @@ class NlcdTileInfo:
 
     ds = gdal.Open(filename)
     self.txf = ds.GetGeoTransform()
-    self.inv_txf = gdal.InvGeoTransform(self.txf)
+    
+    # Handles difference in return from gdal.InvGeoTransform between gdal version 1 and 2
+    gdal_version = osgeo.gdal.__version__
+    if gdal_version[0] == '1':
+      self.inv_txf = gdal.InvGeoTransform(self.txf)[1]
+    else:
+      self.inv_txf = gdal.InvGeoTransform(self.txf)
 
     wgs84_ref = osr.SpatialReference()
     wgs84_ref.ImportFromEPSG(4326)
@@ -110,15 +116,8 @@ class NlcdTileInfo:
     #print '  inv_txf=', self.inv_txf
     #print '  txf=', self.txf
     
-    # The format of the return values from inv_txf (gdal.InvGeoTransform) changed from
-    # gdal version 1 to version 2
-    gdal_version = osgeo.gdal.__version__
-    if gdal_version[0] == '1':
-      x = self.inv_txf[1][0] + self.inv_txf[1][1] * coord[0] + self.inv_txf[1][2] * coord[1]
-      y = self.inv_txf[1][3] + self.inv_txf[1][4] * coord[0] + self.inv_txf[1][5] * coord[1]
-    else:
-      x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
-      y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
+    x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
+    y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
       
     return [x, y]
 
