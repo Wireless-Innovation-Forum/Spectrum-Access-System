@@ -165,3 +165,14 @@ class SasAdminInterface(object):
   def Reset(self):
     """SAS admin interface to reset the SAS between test cases."""
     pass
+
+  @abc.abstractmethod
+  def InjectFccId(self, request):
+    """SAS admin interface to inject fcc id information into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "fccId" and the value is a string of valid fccId which is going to be
+        injected into SAS under test.
+    """
+    pass
