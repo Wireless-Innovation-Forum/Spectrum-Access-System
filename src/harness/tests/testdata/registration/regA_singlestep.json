@@ -1,0 +1,21 @@
+{
+    "userId": "Jason Bourne",
+    "fccId": "FCCID_DUMMY__CBSD01",
+    "cbsdSerialNumber": "fed891011",
+    "callSign": "KQAD",
+    "cbsdCategory": "A",
+    "airInterface": {
+            "radioTechnology": "E_UTRA",
+            "supportedSpec": "FFS"
+        },
+    "installationParam": {
+            "latitude": 33.462042,
+            "longitude": -100.610427,
+            "height": 6,
+            "heightType": "AGL",
+            "indoorDeployment": true
+        },
+    "measCapability": [
+        "EUTRA_CARRIER_RSSI_NON_TX"
+        ]
+}

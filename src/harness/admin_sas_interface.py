@@ -11,7 +11,17 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import pytest
+""" Admin SAS interfaces for testing."""
 
-if __name__ == '__main__':
-    pytest.main(['tests'])
+import abc
+
+
+class AdminSasInterface(object):
+    """Minimal test control interface for the SAS under test."""
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def Reset(self):
+        """SAS admin interface to reset the SAS between test cases."""
+        pass
