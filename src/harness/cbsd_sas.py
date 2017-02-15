@@ -11,20 +11,21 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-""" Implementation of SasInterface """
+""" Implementation of CbsdSasInterface """
 
 import ConfigParser
 import json
 import StringIO
 import urlparse
 import logging
-
 import pycurl
-import cbsd_sas_interface
 
-LOG_FILE = 'log/cbsd-sas.log'
+import cbsd_sas_interface
+import admin_sas_interface
+
+LOG_FILE = 'log/cbsd_sas.log'
 LOG_FORMAT = logging.Formatter(
-    '%(asctime)-15s - SasInterface - '
+    '%(asctime)-15s - CbsdSas - '
     '%(funcName)s - %(levelname)s - %(message)s')
 HTTP_TIMEOUT_SECS = 30
 CIPHERS = ':'.join([
@@ -49,9 +50,9 @@ def GetTestingSas():
 
     config_parser = ConfigParser.RawConfigParser()
     config_parser.optionxform = str
-    config_parser.read(['tests/cbsd_sas.cfg'])
-    host = {k: v for (k, v) in config_parser.items('SasConfig')}
-    return SasImpl(logger, handler, host), SasAdminImpl(logger, handler, host)
+    config_parser.read(['tests/sas.cfg'])
+    config = {k: v for (k, v) in config_parser.items('SasConfig')}
+    return CbsdSasImpl(logger, config), AdminSasImpl(logger, config)
 
 
 def _Request(logger, url, request, ssl_ca, ssl_cert, ssl_key, ssl_pp):
@@ -60,8 +61,10 @@ def _Request(logger, url, request, ssl_ca, ssl_cert, ssl_key, ssl_pp):
     Args:
       url: Destination of the HTTPS request.
       request: Content of the request.
+      ssl_ca: Patht of SSL CA cert used in HTTPS request.
       ssl_cert: Path of SSL cert used in HTTPS request.
       ssl_key: Path of SSL key used in HTTPS request.
+      ssl_pp: Pahs phrase used in SSL key, if any.
     Returns:
       A dictionary represents the JSON response received from server.
     """
@@ -79,50 +82,50 @@ def _Request(logger, url, request, ssl_ca, ssl_cert, ssl_key, ssl_pp):
     conn.setopt(conn.SSLCERTTYPE, 'PEM')
     conn.setopt(conn.SSLCERT, 'ssl/' + ssl_cert)
     conn.setopt(conn.SSLKEY, 'ssl/' + ssl_key)
-    if(len(ssl_pp) > 0):
+    if len(ssl_pp) > 0:
         conn.setopt(conn.SSLKEYPASSWD, 'ssl/' + ssl_pp)
-    conn.setopt(conn.CAINFO, 'ssl/' + ssl_ca)
+    #conn.setopt(conn.CAINFO, 'ssl/' + ssl_ca)
     conn.setopt(conn.HTTPHEADER, header)
     conn.setopt(conn.SSL_CIPHER_LIST, CIPHERS)
     conn.setopt(conn.POST, True)
     request = json.dumps(request) if request else ''
-    if(len(request) > 0):
-        logger.info('Request to URL {}\n{}'.format(url, request))
+    if len(request) > 0:
+        logger.info('Request {}\n{}'.format(url, request))
     else:
-        logger.info('Request to URL {}'.format(url))
+        logger.info('Request {}'.format(url))
     conn.setopt(conn.POSTFIELDS, request)
     conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+    conn.setopt(conn.SSL_VERIFYPEER, 0)   
+    conn.setopt(conn.SSL_VERIFYHOST, 0)
     conn.perform()
     assert conn.getinfo(pycurl.HTTP_CODE) == 200
     conn.close()
     body = response.getvalue()
-    if(body != '""'):
+    if body != '""':
         logger.info('Response\n{}'.format(body))
     else:
         logger.info('Response <empty>')
     return json.loads(body)
 
 
-class SasImpl(cbsd_sas_interface.SasInterface):
+class CbsdSasImpl(cbsd_sas_interface.CbsdSasInterface):
     """Implementation of SasInterface for SAS certification testing."""
 
-    def __init__(self, logger, handler, host):
+    def __init__(self, logger, host):
         self._base_url = host['BaseUrl']
         self._sas_version = host['Version']
         self._ssl_ca = host['CA']
-        self._ssl_cert = host['cbsdCert']
-        self._ssl_key = host['cbsdKey']
-        self._ssl_pp = host['cbsdPP']
+        self._ssl_cert = host['CbsdCert']
+        self._ssl_key = host['CbsdKey']
+        self._ssl_pp = host['CbsdPassphrase']
 
-        self.logger = logger
-        self.handler = handler
-
-        self.logger.debug('*** SasInterfaceImpl ***')
-        self.logger.debug(self._ssl_ca)
-        self.logger.debug(self._ssl_cert)
-        self.logger.debug(self._ssl_key)
+        self._logger = logger
+        self._logger.debug('*** SasInterfaceImpl ***')
+        self._logger.debug(self._ssl_ca)
+        self._logger.debug(self._ssl_cert)
+        self._logger.debug(self._ssl_key)
         if(len(self._ssl_pp) > 0):
-            self.logger.debug(self._ssl_pp)
+            self._logger.debug(self._ssl_pp)
 
     def Registration(self, request):
         if(not isinstance(request, list)):
@@ -172,41 +175,39 @@ class SasImpl(cbsd_sas_interface.SasInterface):
             'deregistration',
             {'deregistrationRequest': request})['deregistrationResponse']
 
+    def SetVersionNumber(self, version):
+        self._sas_version = version
+
     def _CbsdRequest(self, method_name, request):
         return _Request(
-            self.logger,
+            self._logger,
             'https://%s/cbsd/%s/%s' %
             (self._base_url, self._sas_version, method_name),
             request,
             self._ssl_ca, self._ssl_cert, self._ssl_key, self._ssl_pp)
 
-    def SetVersionNumber(self, version):
-        self._sas_version = version
 
-
-class SasAdminImpl(cbsd_sas_interface.SasAdminInterface):
+class AdminSasImpl(admin_sas_interface.AdminSasInterface):
     """Implementation of SasAdminInterface for SAS certification testing."""
 
-    def __init__(self, logger, handler, host):
+    def __init__(self, logger, host):
         self._base_url = host['BaseUrl']
         self._ssl_ca = host['CA']
-        self._ssl_cert = host['adminCert']
-        self._ssl_key = host['adminKey']
-        self._ssl_pp = host['adminPP']
+        self._ssl_cert = host['AdminCert']
+        self._ssl_key = host['AdminKey']
+        self._ssl_pp = host['AdminPassphrase']
 
-        self.logger = logger
-        self.handler = handler
-
-        self.logger.debug('*** SasAdminImpl ***')
-        self.logger.debug(self._ssl_ca)
-        self.logger.debug(self._ssl_cert)
-        self.logger.debug(self._ssl_key)
+        self._logger = logger
+        self._logger.debug('*** SasAdminImpl ***')
+        self._logger.debug(self._ssl_ca)
+        self._logger.debug(self._ssl_cert)
+        self._logger.debug(self._ssl_key)
         if(len(self._ssl_pp) > 0):
-            self.logger.debug(self._ssl_pp)
+            self._logger.debug(self._ssl_pp)
 
     def Reset(self):
         _Request(
-            self.logger,
+            self._logger,
             'https://%s/admin/reset' % self._base_url,
             None,
             self._ssl_ca, self._ssl_cert, self._ssl_key, self._ssl_pp)

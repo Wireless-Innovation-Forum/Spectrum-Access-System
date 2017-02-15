@@ -11,12 +11,12 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-"""SAS interfaces for testing."""
+""" CBSD to SAS interfaces for testing."""
 
 import abc
 
 
-class SasInterface(object):
+class CbsdSasInterface(object):
     """WinnForum standardized interfaces.
 
     Includes SAS-CBSD interface and (will include) SAS-SAS interface.
@@ -155,13 +155,13 @@ class SasInterface(object):
         """
         pass
 
-
-class SasAdminInterface(object):
-    """Minimal test control interface for the SAS under test."""
-
-    __metaclass__ = abc.ABCMeta
-
     @abc.abstractmethod
-    def Reset(self):
-        """SAS admin interface to reset the SAS between test cases."""
+    def SetVersionNumber(self, version):
+        """ SAS-CBSD SetVersion
+
+            Change the interface version
+
+            Args:
+                version: String containing the version number to be used
+        """
         pass
