@@ -5,7 +5,7 @@
     "callSign": "KQAD",
     "cbsdCategory": "A",
     "airInterface": {
-            "radioTechnology": "E-UTRA",
+            "radioTechnology": "E_UTRA",
             "supportedSpec": "FFS"
         },
     "installationParam": {
@@ -16,6 +16,6 @@
             "indoorDeployment": true
         },
     "measCapability": [
-        "EutraCarrierRssiNonTx"
+        "EUTRA_CARRIER_RSSI_NON_TX"
         ]
 }

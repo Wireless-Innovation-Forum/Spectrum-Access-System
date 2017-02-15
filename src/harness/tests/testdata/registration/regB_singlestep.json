@@ -21,6 +21,6 @@
             "eirpCapability": 50
             },
     "measCapability":[
-        "EutraCarrierRssiNonTx"
+        "EUTRA_CARRIER_RSSI_NON_TX"
         ]
 }

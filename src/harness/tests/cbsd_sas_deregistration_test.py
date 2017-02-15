@@ -30,14 +30,14 @@ class TestDeregistration(unittest.TestCase):
     # Test Cases
 
     def test_10_15_4_1_1(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.1.1 Valid and correct CBSD ID : single '
             'deregistrationRequest object')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -51,19 +51,19 @@ class TestDeregistration(unittest.TestCase):
         self.assertEqual(response[0]['cbsdId'], regResponse[0]['cbsdId'])
 
     def test_10_15_4_1_2(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.1.2 Valid and correct CBSD ID : '
             'two deregistrationRequest objects')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
-        device2_a = json.load(
-            open(os.path.join(
-                os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg2_a.json')))
+        device2_a = device1_a
+        device2_a['userId'] = 'Robert Dewey'
+        device2_a['fccId'] = 'FCCID_DUMMY__CBSD02'
+        device2_a['cbsdSerialNumber'] = 'fed891012'
 
         # Register
         devices = [device1_a, device2_a]
@@ -83,40 +83,38 @@ class TestDeregistration(unittest.TestCase):
         self.assertEqual(response[1]['cbsdId'], regResponse[1]['cbsdId'])
 
     def test_10_15_4_2_1(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.2.1 Missing CBSD ID (TBD) : '
             'single object in the DeregistrationRequest')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         response = self._sas.Registration(devices)
         self.assertEqual(response[0]['response']['responseCode'], 0)
 
         # Deregistration
-        regResponse = response
-        del regResponse[0]['cbsdId']
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration({})
         self.assertEqual(response[0]['response']['responseCode'], 102)
-        self.assertNotIn('cbsdId', regResponse[0])
+        self.assertNotIn('cbsdId', response[0])
 
     def test_10_15_4_2_2(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.2.2 Missing CBSD ID (TBD) : '
             'two objects in the DeregistrationRequest')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
-        device2_a = json.load(
-            open(os.path.join(
-                os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg2_a.json')))
+        device2_a = device1_a
+        device2_a['userId'] = 'Robert Dewey'
+        device2_a['fccId'] = 'FCCID_DUMMY__CBSD02'
+        device2_a['cbsdSerialNumber'] = 'fed891012'
 
         # Register
         devices = [device1_a, device2_a]
@@ -126,47 +124,46 @@ class TestDeregistration(unittest.TestCase):
 
         # Deregistration
         regResponse = response
-        del regResponse[0]['cbsdId']
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration([
+            {'cbsdId': regResponse[0]['cbsdId']},
+            {}])
         self.assertEqual(response[0]['response']['responseCode'], 0)
         self.assertEqual(response[0]['cbsdId'], regResponse[0]['cbsdId'])
         self.assertEqual(response[1]['response']['responseCode'], 102)
-        self.assertNotIn('cbsdId', regResponse[1])
+        self.assertNotIn('cbsdId', response[1])
 
     def test_10_15_4_3_1(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.3.1 CBSD ID Does Not Exist in the SAS : '
             'single request object')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         response = self._sas.Registration(devices)
         self.assertEqual(response[0]['response']['responseCode'], 0)
 
         # Deregistration
-        regResponse = response
-        regResponse[0]['cbsdId'] = 'dummy'
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration({'cbsdId': 'dummy'})
         self.assertEqual(response[0]['response']['responseCode'], 103)
 
     def test_10_15_4_3_2(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.3.2 CBSD ID Does Not Exist in the SAS : '
             'two request objects')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
-        device2_a = json.load(
-            open(os.path.join(
-                os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg2_a.json')))
+        device2_a = device1_a
+        device2_a['userId'] = 'Robert Dewey'
+        device2_a['fccId'] = 'FCCID_DUMMY__CBSD02'
+        device2_a['cbsdSerialNumber'] = 'fed891012'
 
         # Register
         devices = [device1_a, device2_a]
@@ -176,15 +173,16 @@ class TestDeregistration(unittest.TestCase):
 
         # Deregistration
         regResponse = response
-        regResponse[1]['cbsdId'] = 'dummy'
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration([
+            {'cbsdId': regResponse[0]['cbsdId']},
+            {'cbsdId': 'dummy'}])
         self.assertEqual(response[0]['response']['responseCode'], 0)
         self.assertEqual(response[0]['cbsdId'], regResponse[0]['cbsdId'])
         self.assertEqual(response[1]['response']['responseCode'], 103)
-        self.assertNotIn('cbsdId', regResponse[1])
+        self.assertNotIn('cbsdId', response[1])
 
     def test_10_15_4_3_3(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.3.3 CBSD ID initially exists, CBSD deregisters first by '
             'sending Deregistration request. Then sends another '
             'Deregistration request to check that SAS has indeed erased the '
@@ -193,7 +191,7 @@ class TestDeregistration(unittest.TestCase):
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         response = self._sas.Registration(devices)
@@ -201,48 +199,48 @@ class TestDeregistration(unittest.TestCase):
 
         # Deregistration
         regResponse = response
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration(
+            {'cbsdId': regResponse[0]['cbsdId']})
         self.assertEqual(response[0]['response']['responseCode'], 0)
         self.assertEqual(response[0]['cbsdId'], regResponse[0]['cbsdId'])
 
         # 2nd Deregistration
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration(
+            {'cbsdId': regResponse[0]['cbsdId']})
         self.assertEqual(response[0]['response']['responseCode'], 103)
-        self.assertNotIn('cbsdId', regResponse[0])
+        self.assertNotIn('cbsdId', response[0])
 
     def test_10_15_4_3_4_1(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.3.4.1 CBSD ID value invalid: single request object')
 
         devices = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         response = self._sas.Registration(devices)
         self.assertEqual(response[0]['response']['responseCode'], 0)
 
         # Deregistration
-        regResponse = response
-        regResponse[0]['cbsdId'] = 1000
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration({'cbsdId': 1000})
         self.assertEqual(response[0]['response']['responseCode'], 103)
-        self.assertNotIn('cbsdId', regResponse[0])
+        self.assertNotIn('cbsdId', response[0])
 
     def test_10_15_4_3_4_2(self):
-        self._sas.logger.info(
+        self._sas._logger.info(
             '10.15.4.3.4.2 CBSD ID value invalid: two request objects')
 
         device1_a = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg1_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         device2_a = json.load(
             open(os.path.join(
                 os.getcwd(),
-                'tests', 'testdata', 'registration', 'reg2_a.json')))
+                'tests', 'testdata', 'registration', 'regA.json')))
 
         # Register
         devices = [device1_a, device2_a]
@@ -252,9 +250,10 @@ class TestDeregistration(unittest.TestCase):
 
         # Deregistration
         regResponse = response
-        regResponse[1]['cbsdId'] = 1000
-        response = self._sas.Deregistration(regResponse)
+        response = self._sas.Deregistration([
+            {'cbsdId': regResponse[0]['cbsdId']},
+            {'cbsdId': 1000}])
         self.assertEqual(response[0]['response']['responseCode'], 0)
         self.assertEqual(response[0]['cbsdId'], regResponse[0]['cbsdId'])
         self.assertEqual(response[1]['response']['responseCode'], 103)
-        self.assertNotIn('cbsdId', regResponse[1])
+        self.assertNotIn('cbsdId', response[1])
