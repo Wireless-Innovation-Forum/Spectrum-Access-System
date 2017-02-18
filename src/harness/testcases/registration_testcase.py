@@ -41,6 +41,20 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
 
+  def test_10_3_4_1_1_2(self):
+    """New Multi-Step registration for CBSD Cat B (No existing CBSD ID).
+
+    The response should be SUCCESS.
+    """
+
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+
   def test_10_3_4_2_1(self):
     """CBSD registration request with missing required parameter.
 
