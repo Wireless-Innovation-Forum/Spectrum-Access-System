@@ -134,7 +134,7 @@ class PropagationLossModel:
       land_cat = land_use.NlcdLandCategory(code)
     print 'Using land_cat =', land_cat
       
-    if land_cat == 'RURAL' or h1 > 200 or h2 > 200:
+    if land_cat == 'RURAL' or h1 >= 200 or h2 >= 200:
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
       print 'Returning itm_loss for rural > 200: ', itm_loss
       return itm_loss
