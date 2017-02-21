@@ -53,6 +53,8 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
   def test_10_3_4_2_1(self):
