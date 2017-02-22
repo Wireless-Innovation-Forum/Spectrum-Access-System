@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -40,15 +40,18 @@ for reg in region:
       profile[0] = int(profile[0])
       profile = profile[0:int(profile[0])+3]
 
-      loss_db = ehata.ExtendedHata_PropagationLoss(3500, 50, 3, reg, profile)
+      loss_db = ehata.ExtendedHata_PropagationLossStat(3500, 50, 3, reg, profile, [.01, .5, .99])
 
       delta = 0.15
       if target in [39, 44, 60, 65, 67, 70]:
         delta = 0.5
         # account for variances in rolling hill correction
 
-      if math.fabs(float(loss[0][target]) - loss_db) > delta:
-        print('FAIL prop loss on profile %d: %f vs %f' % (target, float(loss[0][target]), loss_db))
+      if math.fabs(float(loss[0][target]) - loss_db[1]) > delta:
+        print('FAIL prop loss stat test on profile %d: %f vs %f' % (target, float(loss[0][target]), loss_db[1]))
+        exit()
+      if loss_db[0] > loss_db[2]:
+        print('FAIL prop loss stat test on profile %d: %f vs %f' % (target, loss_db[0], loss_db[2]))
         exit()
       target = target + 1
 
