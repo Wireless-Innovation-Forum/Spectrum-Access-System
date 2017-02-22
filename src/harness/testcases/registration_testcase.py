@@ -52,6 +52,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Register the device, make sure at least one required parameter is missing
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     del device_a['userId']
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -68,6 +69,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Register the device, make sure at least one required parameter is invalid
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_a['fccId'] = 'abcdefghijklmnopqrstuvwxyz'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -85,6 +87,7 @@ class RegistrationTestcase(unittest.TestCase):
     # invalid
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_a['airInterface']['radioTechnology'] = 'invalid value'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
