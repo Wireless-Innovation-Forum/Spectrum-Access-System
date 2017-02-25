@@ -138,7 +138,7 @@ class PropagationLossModel:
     profile = self.nedIndx.Profile(lat1, lng1, lat2, lng2)
     h1eff, h2eff = EffectiveHeights(h1, h2, profile)
     
-    if land_cat == 'RURAL' or h1eff >= 200 or h2eff >= 200:
+    if land_cat == 'RURAL' or h1eff >= 200: # Only h1eff (CBSD effective height) counts
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
       print 'Returning itm_loss for rural > 200: ', itm_loss
       return itm_loss
