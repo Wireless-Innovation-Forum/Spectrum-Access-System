@@ -19,6 +19,7 @@
 import math
 import sys
 import os
+import random
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ehata import ehata
@@ -136,6 +137,8 @@ class PropagationLossModel:
       
     if land_cat == 'RURAL' or h1 >= 200 or h2 >= 200:
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
+      if land_cat == 'RURAL':
+        itm_loss += random.uniform(0., 15.) # For vegetative loss per TR 15-517, A.2
       print 'Returning itm_loss for rural > 200: ', itm_loss
       return itm_loss
     else:
