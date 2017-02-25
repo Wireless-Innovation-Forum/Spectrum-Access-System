@@ -133,8 +133,12 @@ class PropagationLossModel:
         code = self.nlcdIndx.NlcdCode(lat1, lng1)
       land_cat = land_use.NlcdLandCategory(code)
     print 'Using land_cat =', land_cat
-      
-    if land_cat == 'RURAL' or h1 >= 200 or h2 >= 200:
+
+#   Calculate effective heights of tx and rx:
+    profile = self.nedIndx.Profile(lat1, lng1, lat2, lng2)
+    h1eff, h2eff = EffectiveHeights(h1, h2, profile)
+    
+    if land_cat == 'RURAL' or h1eff >= 200 or h2eff >= 200:
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
       print 'Returning itm_loss for rural > 200: ', itm_loss
       return itm_loss
