@@ -127,6 +127,8 @@ class PropagationLossModel:
 
   # This is the oracle for propagation loss from point 1 to point 2 at frequency f (Mhz).
   def PropagationLoss(self, f, lat1, lng1, h1, lat2, lng2, h2, land_cat=''):
+  # Note: lat1/lng1/h1 _must_ correspond to the CBSD for proper implementation of R2-SGN-04
+
     if land_cat == '':
       code = self.nlcdIndx.NlcdCode(lat2, lng2)
       if code == 11:
@@ -134,17 +136,19 @@ class PropagationLossModel:
       land_cat = land_use.NlcdLandCategory(code)
     print 'Using land_cat =', land_cat
 
-#   Calculate effective heights of tx and rx:
+    # Note: R2-SGN-04 calls for a minimum CBSD height of 20 m for all eHata calculations.
+
+    # Calculate effective heights of CBSD and rx:
     profile = self.nedIndx.Profile(lat1, lng1, lat2, lng2)
-    h1eff, h2eff = EffectiveHeights(h1, h2, profile)
+    h1eff, h2eff = EffectiveHeights(max(h1,20.), h2, profile)
     
     if land_cat == 'RURAL' or h1eff >= 200: # Only h1eff (CBSD effective height) counts
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
-      print 'Returning itm_loss for rural > 200: ', itm_loss
+      print 'Returning itm_loss for rural or for h1eff > 200: ', itm_loss
       return itm_loss
     else:
       itm_loss = self.ITM_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, 0.5)
-      ehata_loss = self.ExtendedHata_AdjustedPropagationLoss(lat1, lng1, h1, lat2, lng2, h2, f, land_cat)
+      ehata_loss = self.ExtendedHata_AdjustedPropagationLoss(lat1, lng1, max(h1,20.), lat2, lng2, h2, f, land_cat)
       if ehata_loss > itm_loss:
         return ehata_loss
       return itm_loss
