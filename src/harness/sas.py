@@ -130,6 +130,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
+  def PreloadRegistrationData(self, request):
+    _Request('https://%s/admin/injectdata/registration' % self._base_url,
+             request, self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
 
