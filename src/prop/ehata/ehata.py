@@ -53,9 +53,9 @@ import numpy
 
 # Return the Extended-Hata Propagation Loss in dB given a
 #  f - frequency (in MHz)
-#  hb - base station (tx) height in meters
-#  hm - mobile station (rx) height in meters
-#  region - 'URBAN', 'SUBURBAN', 'DENSE_URBAN', 'RURAL' code for environment
+#  hb - base station (tx) structure height in meters (not effective height -- that is computed in this function)
+#  hm - mobile station (rx) structure height in meters
+#  region - 'URBAN', 'SUBURBAN', 'DENSE_URBAN' code for environment (RURAL is not supported)
 #  profile - ITM-style encoded profile data. First element is an integer
 #            corresponding to the number of points in the profile minus one.
 #            The second is the separation between points in meters.
@@ -99,7 +99,10 @@ def ExtendedHata_PropagationLoss(f, hb, hm, region, profile):
     return basic_loss_db + Kir - Kmp
 
 
-# Compute median basic transmission loss for urban region
+# Compute median basic transmission loss for the given region
+# d is the distance from tx to rx (geoid vincenty distance)
+# hb here is the base station (tx) effective height. TODO: change variable name
+# hm is the mobile (rx) station structure height
 def ExtendedHata_MedianBasicPropLoss(f, d, hb, hm, region):
 
   # TODO: add bounds checking for frequency
