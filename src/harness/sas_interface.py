@@ -176,3 +176,17 @@ class SasAdminInterface(object):
         injected into SAS under test.
     """
     pass
+
+  @abc.abstractmethod
+  def PreloadRegistrationData(self, request):
+    """SAS admin interface to preload registration data into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "registrationData" and the value is a list of individual CBSD
+        registration data which need to be preloaded into SAS (each of which is
+        itself a dictionary). The dictionary is a RegistrationRequest object,
+        the fccId and cbsdSerialNumber fields are required, other fields are
+        optional.
+    """
+    pass
