@@ -120,5 +120,4 @@ class RelinquishmentTestcase(unittest.TestCase):
       # Check the relinquishment response
       self.assertEqual(response['cbsdId'], cbsd_id)
       self.assertEqual(response['grantId'], grant_id[i])
-      self.assertEqual(response['response']['responseCode'], 0)
-      
+      self.assertEqual(response['response']['responseCode'], 102)
