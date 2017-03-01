@@ -75,3 +75,41 @@ class DeregistrationTestcase(unittest.TestCase):
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 102)    
+
+  def test_10_15_4_3_1(self):
+    """CBSD deregistration request when CBSD ID does not exist in SAS.
+
+    CBSD sends deregistration request when its CBSD ID is not in SAS,
+    the response should be FAIL.
+    """
+
+    # Deregister the device before registration, thus the CBSD ID does not exist in SAS
+    request = {'deregistrationRequest': [{'cbsdId': 'A non-exist cbsd id'}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  def test_10_15_4_3_4_1(self):
+    """CBSD ID value invalid: single request object.
+
+    CBSD sends deregistration request to SAS in which the CBSD ID is not a
+    string, but an arbitrary number. The response should be FAIL.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Deregister the device
+    request = {'deregistrationRequest': [{'cbsdId': 1234567890}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
