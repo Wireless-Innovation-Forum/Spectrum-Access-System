@@ -11,7 +11,17 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+import logging
+import sys
 import unittest
+
+logger = logging.getLogger()
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(
+    logging.Formatter(
+        '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 if __name__ == '__main__':
   tests = unittest.TestLoader().discover('testcases', '*_testcase.py')

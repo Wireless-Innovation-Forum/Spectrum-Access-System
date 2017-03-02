@@ -17,6 +17,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class HeartbeatTestcase(unittest.TestCase):
@@ -28,6 +29,7 @@ class HeartbeatTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_9_4_1_1_1(self):
     """Heartbeat request immediately after CBSD moves into Granted State.
 
@@ -75,6 +77,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                       '%Y-%m-%dT%H:%M:%SZ'))
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_10_9_4_2_3_1_1(self):
     """CBSD heartbeat request with missing cbsdId parameter.
 
@@ -135,6 +138,7 @@ class HeartbeatTestcase(unittest.TestCase):
     # Check the heartbeat response
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
   def test_10_9_4_2_3_1_2(self):
     """CBSD heartbeat request with missing grantId parameter.
 
@@ -195,6 +199,7 @@ class HeartbeatTestcase(unittest.TestCase):
     # Check the heartbeat response
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
   def test_10_9_4_2_3_1_3(self):
     """CBSD heartbeat request with missing operationState parameter.
 

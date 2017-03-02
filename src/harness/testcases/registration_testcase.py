@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class RegistrationTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class RegistrationTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_3_4_1_1_1(self):
     """New Multi-Step registration for CBSD Cat A (No existing CBSD ID).
 
@@ -42,6 +44,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_10_3_4_2_1(self):
     """CBSD registration request with missing required parameter.
 
@@ -59,6 +62,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
   def test_10_3_4_2_5_1(self):
     """CBSD registration request with invalid required parameter.
 
@@ -77,6 +81,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
+  @winnforum_testcase
   def test_10_3_4_2_5_3(self):
     """CBSD registration request with invalid conditional parameter.
 

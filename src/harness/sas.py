@@ -15,6 +15,7 @@
 
 import ConfigParser
 import json
+import logging
 import StringIO
 import urlparse
 
@@ -65,14 +66,14 @@ def _Request(url, request, ssl_cert, ssl_key):
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
   conn.setopt(conn.POST, True)
   request = json.dumps(request) if request else ''
-  print 'Request to URL ' + url + ':\n' + request
+  logging.debug('Request to URL ' + url + ':\n' + request)
   conn.setopt(conn.POSTFIELDS, request)
   conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
   conn.perform()
   assert conn.getinfo(pycurl.HTTP_CODE) == 200
   conn.close()
   body = response.getvalue()
-  print 'Response:\n' + body
+  logging.debug('Response:\n' + body)
   return json.loads(body)
 
 
