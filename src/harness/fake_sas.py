@@ -142,6 +142,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/reset':
       response = ''
+    elif self.path == '/admin/injectdata/fccId':
+      response = ''
     else:
       self.send_response(400)
       return

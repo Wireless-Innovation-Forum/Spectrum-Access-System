@@ -17,6 +17,7 @@ import math
 import numpy
 import osr
 import os
+import osgeo.gdal
 import sys
 import time
 
@@ -30,7 +31,13 @@ class NlcdTileInfo:
 
     ds = gdal.Open(filename)
     self.txf = ds.GetGeoTransform()
-    self.inv_txf = gdal.InvGeoTransform(self.txf)
+    
+    # Handles difference in return from gdal.InvGeoTransform between gdal version 1 and 2
+    gdal_version = osgeo.gdal.__version__
+    if gdal_version[0] == '1':
+      self.inv_txf = gdal.InvGeoTransform(self.txf)[1]
+    else:
+      self.inv_txf = gdal.InvGeoTransform(self.txf)
 
     wgs84_ref = osr.SpatialReference()
     wgs84_ref.ImportFromEPSG(4326)
@@ -108,8 +115,10 @@ class NlcdTileInfo:
     #print '  coord_bounds=', self.coord_bounds
     #print '  inv_txf=', self.inv_txf
     #print '  txf=', self.txf
+    
     x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
     y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
+      
     return [x, y]
 
 class NlcdIndexer:
@@ -175,6 +184,7 @@ class NlcdIndexer:
     self.LoadTileForLatLng(lat, lng)
     for t in self.tile_cache:
       if t.WithinTile(lat, lng):
+        # print 'Found in tile %s' % t.filename
         index = t.IndexCoords(lat, lng)
         a = self.tile_cache[t]
         self.tile_lru[t] = time.clock()

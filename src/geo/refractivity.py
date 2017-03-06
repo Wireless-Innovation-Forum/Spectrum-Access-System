@@ -41,7 +41,7 @@ class RefractivityIndexer:
 
   def Refractivity(self, lat, lon):
     """
-    Returns ITU climate zone for the specified lat/lon.
+    Returns ITU refractivity for the specified lat/lon.
 
     Andrew Clegg
     January 2017
