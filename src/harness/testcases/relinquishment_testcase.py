@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class RelinquishmentTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class RelinquishmentTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_13_4_1_1(self):
     """Successful CBSD relinquishment request.
 
