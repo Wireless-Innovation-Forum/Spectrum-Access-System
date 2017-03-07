@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class DeregistrationTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class DeregistrationTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_15_4_1_1(self):
     """Successful CBSD deregistration request.
 
@@ -52,6 +54,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_10_15_4_2_1(self):
     """CBSD deregistration request with missing required parameter.
 
@@ -76,6 +79,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 102)    
 
+  @winnforum_testcase
   def test_10_15_4_3_1(self):
     """CBSD deregistration request when CBSD ID does not exist in SAS.
 
@@ -90,6 +94,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
+  @winnforum_testcase
   def test_10_15_4_3_4_1(self):
     """CBSD ID value invalid: single request object.
 
@@ -113,3 +118,4 @@ class DeregistrationTestcase(unittest.TestCase):
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+

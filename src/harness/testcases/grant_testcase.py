@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class GrantTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class GrantTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_7_4_1_1_1_1(self):
     """Successful CBSD grant request.
 
@@ -57,6 +59,7 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(response['channelType'], 'GAA')
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_10_7_4_1_3_1_1_2(self):
     """CBSD grant request with missing operationParams.
 
@@ -84,6 +87,7 @@ class GrantTestcase(unittest.TestCase):
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
   def test_10_7_4_1_3_1_2_1(self):
     """CBSD grant request when CBSD ID does not exist in SAS.
 
