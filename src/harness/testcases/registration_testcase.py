@@ -63,10 +63,10 @@ class RegistrationTestcase(unittest.TestCase):
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     self._sas_admin.PreloadRegistrationData(conditionals)
     # Register the device
-    request = {'registrationRequest': [device_b]}
     del device_b['cbsdCategory']
     del device_b['airInterface']
     del device_b['installationParam']
+    request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertTrue('cbsdId' in response)
