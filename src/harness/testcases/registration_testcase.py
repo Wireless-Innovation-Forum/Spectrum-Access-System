@@ -51,11 +51,22 @@ class RegistrationTestcase(unittest.TestCase):
     The response should be SUCCESS.
     """
 
-    # Register the device
+    # Pre-load conditional parameters
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    conditionals = {'registrationData': [
+        {'cbsdCategory': 'B', 'fccId': device_b['fccId'],
+         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+         'airInterface': device_b['airInterface'], 
+         'installationParam': device_b['installationParam']}
+    ]}
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.PreloadRegistrationData(conditionals)
+    # Register the device
     request = {'registrationRequest': [device_b]}
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['installationParam']
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertTrue('cbsdId' in response)
