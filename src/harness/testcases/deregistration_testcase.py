@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class DeregistrationTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class DeregistrationTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_15_4_1_1(self):
     """Successful CBSD deregistration request.
 
@@ -37,6 +39,7 @@ class DeregistrationTestcase(unittest.TestCase):
     # Register the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -50,3 +53,28 @@ class DeregistrationTestcase(unittest.TestCase):
     # Check the deregistration response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_10_15_4_2_1(self):
+    """CBSD deregistration request with missing required parameter.
+
+    The required parameter 'cbsdId' is missing in a deregistration request,
+    the response should be FAIL.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Deregister the device
+    request = {'deregistrationRequest': [{}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 102)
