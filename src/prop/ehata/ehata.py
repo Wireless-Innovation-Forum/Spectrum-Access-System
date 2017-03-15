@@ -76,22 +76,22 @@ def ExtendedHata_PropagationLoss(f, hb, hm, region, profile):
   distance = float(profile[0] * resolution)
 
   basic_loss_db, above_median_loss_db = ExtendedHata_MedianBasicPropLoss(f, distance, hb_eff, hm_eff, region)
-  print 'Basic loss = %f (%f)' % (basic_loss_db, above_median_loss_db)
+  #print 'Basic loss = %f (%f)' % (basic_loss_db, above_median_loss_db)
 
   Kir = IsolatedRidgeCorrection(profile)
-  print 'Kir = %f' % Kir
+  #print 'Kir = %f' % Kir
 
   # TODO: get better sea indicator than elevation==0
   Kmp = MixedPathCorrection(profile, [float(i) == 0.0 for i in profile])
-  print 'Kmp = %f' % Kmp
+  #print 'Kmp = %f' % Kmp
 
   # If isolated ridge applies, then don't do rolling hill and general slope corrections
   if Kir == 0.0:
     Krh, Kh, Khf = RollingHillyCorrection(profile)
-    print 'Krh=%f' % Krh
+    #print 'Krh=%f' % Krh
 
     Kgs = GeneralSlopeCorrection(profile)
-    print 'Kgs=%f' % Kgs
+    #print 'Kgs=%f' % Kgs
 
     return basic_loss_db + Krh - Kgs - Kmp
 
@@ -247,7 +247,7 @@ def RollingHillyCorrection(elev):
   prof = []
   reversed_prof = profile[::-1]
   for i in range(0, int(math.ceil(radiusKm/resolution))):
-    if i*resolution <= radiusKm:
+    if i*resolution <= radiusKm and i < len(reversed_prof):
       prof.append(reversed_prof[i])
 
   prof = sorted(prof)
@@ -259,7 +259,7 @@ def RollingHillyCorrection(elev):
   irregularity = highest - lowest
 
   if distance < 10000.0:
-    irregularity = irregularity*(1-0.8*math.exp(-.2))/(1-0.8(math.exp(-.02*distance)))
+    irregularity = irregularity*(1.0-0.8*math.exp(-.2))/(1.0-0.8*(math.exp(-.02*distance)))
 
   if irregularity < 10.0:
     return 0.0, 0.0, 0.0

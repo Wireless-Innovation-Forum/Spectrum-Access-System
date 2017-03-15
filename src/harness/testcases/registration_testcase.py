@@ -16,6 +16,7 @@ import os
 import unittest
 
 import sas
+from util import winnforum_testcase
 
 
 class RegistrationTestcase(unittest.TestCase):
@@ -27,6 +28,7 @@ class RegistrationTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  @winnforum_testcase
   def test_10_3_4_1_1_1(self):
     """New Multi-Step registration for CBSD Cat A (No existing CBSD ID).
 
@@ -36,11 +38,13 @@ class RegistrationTestcase(unittest.TestCase):
     # Register the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_10_3_4_2_1(self):
     """CBSD registration request with missing required parameter.
 
@@ -51,12 +55,14 @@ class RegistrationTestcase(unittest.TestCase):
     # Register the device, make sure at least one required parameter is missing
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     del device_a['userId']
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
   def test_10_3_4_2_5_1(self):
     """CBSD registration request with invalid required parameter.
 
@@ -67,6 +73,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Register the device, make sure at least one required parameter is invalid
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_a['fccId'] = 'abcdefghijklmnopqrstuvwxyz'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -74,6 +81,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
+  @winnforum_testcase
   def test_10_3_4_2_5_3(self):
     """CBSD registration request with invalid conditional parameter.
 
@@ -84,6 +92,7 @@ class RegistrationTestcase(unittest.TestCase):
     # invalid
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_a['airInterface']['radioTechnology'] = 'invalid value'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]

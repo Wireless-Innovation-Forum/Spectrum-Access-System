@@ -17,6 +17,7 @@ import math
 import numpy
 import osr
 import os
+import osgeo.gdal
 import sys
 import time
 
@@ -30,40 +31,63 @@ class NlcdTileInfo:
 
     ds = gdal.Open(filename)
     self.txf = ds.GetGeoTransform()
-    self.inv_txf = gdal.InvGeoTransform(self.txf)
+    
+    # Handles difference in return from gdal.InvGeoTransform between gdal version 1 and 2
+    gdal_version = osgeo.gdal.__version__
+    if gdal_version[0] == '1':
+      self.inv_txf = gdal.InvGeoTransform(self.txf)[1]
+    else:
+      self.inv_txf = gdal.InvGeoTransform(self.txf)
 
     wgs84_ref = osr.SpatialReference()
     wgs84_ref.ImportFromEPSG(4326)
     sref = osr.SpatialReference()
     sref.ImportFromWkt(ds.GetProjection())
+    self.width = ds.RasterXSize
+    self.height = ds.RasterYSize
 
     self.transform = osr.CoordinateTransformation(wgs84_ref, sref)
     self.inv_transform = osr.CoordinateTransformation(sref, wgs84_ref)
 
-    #print 'x', ds.RasterXSize
-    #print 'y', ds.RasterYSize
     #print self.txf
     self.coord_bounds = [
       self.txf[0],     # upper left x
       self.txf[3],     # upper left y
-      self.txf[1] * ds.RasterXSize + self.txf[0],  # lower right x
-      self.txf[5] * ds.RasterYSize + self.txf[3]   # lower right y
+      self.txf[0] + self.txf[1] * ds.RasterXSize + self.txf[2] * ds.RasterYSize,  # lower right x
+      self.txf[3] + self.txf[4] * ds.RasterXSize + self.txf[5] * ds.RasterYSize   # lower right y
     ]
 
-    ul = self.inv_transform.TransformPoint(self.coord_bounds[0],
-                                           self.coord_bounds[1])
-    lr = self.inv_transform.TransformPoint(self.coord_bounds[2],
-                                           self.coord_bounds[3])
-    self.max_lng = max(ul[0], lr[0])
-    self.max_lat = max(ul[1], lr[1])
-    self.min_lng = min(ul[0], lr[0])
-    self.min_lat = min(ul[1], lr[1])
+    # Find the corners of the tile for examining lat/lng to find intersection with tile.
+    corners = []
+    for x in [0, ds.RasterXSize]:
+      for y in [0, ds.RasterYSize]:
+        corners.append([self.txf[0] + self.txf[1] * x + self.txf[2] * y,
+                        self.txf[3] + self.txf[4] * x + self.txf[5] * y])
+
+    # TODO: does this account for 180-crossing tiles?
+    self.max_lat = -100
+    self.min_lat = 100
+    self.max_lng = -500
+    self.min_lng = 500
+    for c in corners:
+      p = self.inv_transform.TransformPoint(c[0], c[1])
+      if p[0] > self.max_lng:
+        self.max_lng = p[0]
+      if p[0] < self.min_lng:
+        self.min_lng = p[0]
+      if p[1] > self.max_lat:
+        self.max_lat = p[1]
+      if p[1] < self.min_lat:
+        self.min_lat = p[1]
 
     # Close file
     ds = None
 
   def WithinTile(self, lat, lng):
-    #print 'Compare %f %f to %f %f' % (lat, lng, self.min_lat, self.min_lng)
+    #if abs(lng - self.max_lng) < 2 and abs(lat - self.max_lat) < 2:
+    #  print 'Compare %f %f to %f %f' % (lat, lng, self.min_lat, self.min_lng)
+    #  print self.filename
+
     # Fast latlng bounds check
     if (lng > self.max_lng or
         lng < self.min_lng or
@@ -73,15 +97,11 @@ class NlcdTileInfo:
       return False
 
     # Check with transform
-    coord = self.TileCoords(lat, lng)
-    #print ' ---compare ', coord, ' with ', self.coord_bounds
-    if (coord[0] >= self.coord_bounds[0] and
-        coord[0] <= self.coord_bounds[2] and
-        coord[1] >= self.coord_bounds[3] and
-        coord[1] <= self.coord_bounds[1]):
-      #print 'IN!'
+    coord = self.IndexCoords(lat, lng)
+    if (coord[0] >= 0 and coord[0] <= float(self.width) and
+        coord[1] >= 0 and coord[1] <= float(self.height)):
       return True
-
+      
     return False
 
   def TileCoords(self, lat, lng):
@@ -95,8 +115,10 @@ class NlcdTileInfo:
     #print '  coord_bounds=', self.coord_bounds
     #print '  inv_txf=', self.inv_txf
     #print '  txf=', self.txf
+    
     x = self.inv_txf[0] + self.inv_txf[1] * coord[0] + self.inv_txf[2] * coord[1]
     y = self.inv_txf[3] + self.inv_txf[4] * coord[0] + self.inv_txf[5] * coord[1]
+      
     return [x, y]
 
 class NlcdIndexer:
@@ -162,6 +184,7 @@ class NlcdIndexer:
     self.LoadTileForLatLng(lat, lng)
     for t in self.tile_cache:
       if t.WithinTile(lat, lng):
+        # print 'Found in tile %s' % t.filename
         index = t.IndexCoords(lat, lng)
         a = self.tile_cache[t]
         self.tile_lru[t] = time.clock()

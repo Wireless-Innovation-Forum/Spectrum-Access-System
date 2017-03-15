@@ -16,7 +16,7 @@
                   "description": "The call sign for the operator. Meaning and origin TBD" },
     "measCapability": { "type": "array",
                         "description": "List of supported sensing capabilities of the device",
-                        "items": { "enum": [ "EutraCarrierRssiNonTx", "EutraCarrierRssiAlways" ],
+                        "items": { "enum": [ "EUTRA_CARRIER_RSSI_NON_TX", "EUTRA_CARRIER_RSSI_ALWAYS" ],
                                    "description": "Measurement capabilities of the CBSD." }
                       },
     "groupingParam": {
@@ -49,6 +49,7 @@
 
   "groupParamObject": {
     "type": "object",
+    "required": [ "groupType", "groupId" ],
     "description": "Container for information about a CBSD membership group.",
     "properties": {
       "groupType": { "enum": [ "interference-coordination" ],
@@ -63,7 +64,7 @@
     "description": "Air interface parameter for a CBSD",
     "required": [ "radioTechnology" ],
     "properties": {
-      "radioTechnology": { "enum": [ "E-UTRA" ],
+      "radioTechnology": { "enum": [ "E_UTRA" ],
                            "description": "Which PHY radio technology is used by the device in the 3.5GHz band" },
       "supportedSpec": { "type": "string",
                          "description": "Description of the spec of the radio technology supported." }
