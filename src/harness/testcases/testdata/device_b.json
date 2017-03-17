@@ -1,0 +1,21 @@
+{
+  "fccId": "test_fcc_id_b",
+  "userId": "test_user_id_b",
+  "cbsdSerialNumber": "test_serial_number_b",
+  "callSign": "callsign_b",
+  "cbsdCategory": "B",
+  "airInterface": {
+    "radioTechnology": "E_UTRA"
+  },
+  "installationParam": {
+    "latitude": 37.293926,
+    "longitude": -122.046518,
+    "height": 7.6,
+    "heightType": "AGL",
+    "indoorDeployment": false,
+    "antennaGain": 16,
+    "antennaBeamwidth": 30,
+    "antennaAzimuth": 270,
+    "antennaDowntilt": -90
+  }
+}
