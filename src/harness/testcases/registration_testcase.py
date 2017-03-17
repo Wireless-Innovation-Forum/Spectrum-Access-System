@@ -45,6 +45,35 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_10_3_4_1_1_2(self):
+    """New Multi-Step registration for CBSD Cat B (No existing CBSD ID).
+
+    The response should be SUCCESS.
+    """
+
+    # Pre-load conditional parameters
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    conditionals = {'registrationData': [
+        {'cbsdCategory': 'B', 'fccId': device_b['fccId'],
+         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+         'airInterface': device_b['airInterface'], 
+         'installationParam': device_b['installationParam']}
+    ]}
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.PreloadRegistrationData(conditionals)
+    # Register the device
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['installationParam']
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertFalse('measReportConfig' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_10_3_4_2_1(self):
     """CBSD registration request with missing required parameter.
 
