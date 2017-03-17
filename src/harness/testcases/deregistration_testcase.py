@@ -29,7 +29,7 @@ class DeregistrationTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_10_15_4_1_1(self):
+  def test_WINFF_FT_S_DER_1(self):
     """Successful CBSD deregistration request.
 
     CBSD sends deregistration request to SAS with its correct and valid CBSD
@@ -55,7 +55,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_10_15_4_2_1(self):
+  def test_WINFF_FT_S_DER_3(self):
     """CBSD deregistration request with missing required parameter.
 
     The required parameter 'cbsdId' is missing in a deregistration request,
@@ -80,7 +80,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)    
 
   @winnforum_testcase
-  def test_10_15_4_3_1(self):
+  def test_WINFF_FT_S_DER_5(self):
     """CBSD deregistration request when CBSD ID does not exist in SAS.
 
     CBSD sends deregistration request when its CBSD ID is not in SAS,
@@ -94,18 +94,4 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
-  @winnforum_testcase
-  def test_10_15_4_3_4_1(self):
-    """CBSD ID value invalid: single request object.
-
-    CBSD sends deregistration request to SAS in which the CBSD ID is not a
-    string, but an arbitrary number. The response should be FAIL.
-    """
-
-    # Deregister the device
-    request = {'deregistrationRequest': [{'cbsdId': 1234567890}]}
-    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
-    # Check the deregistration response
-    self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
 
