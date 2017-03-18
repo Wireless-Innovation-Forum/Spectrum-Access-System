@@ -16,7 +16,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SIQ_8(self):
+  def test_WINFF_FT_S_SIQ_8(self):
     """Send Spectrum Inquiry with missing cbsdId field.
 
     The response should be MISSING_PARAM, code 102
