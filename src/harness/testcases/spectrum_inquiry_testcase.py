@@ -76,9 +76,9 @@ class SpectrumInquiryTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_0['cbsdId'] = cbsd_id
     del spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency']
-    self.assertFalse(
-        'highFrequency' in spectrum_inquiry_0['inquiredSpectrum'][0])
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     # Check Spectrum Inquiry Response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertTrue('cbsdId' in response)
+    self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['response']['responseCode'], 102)
