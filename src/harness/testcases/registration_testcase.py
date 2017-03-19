@@ -128,3 +128,25 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+
+@winnforum_testcase
+  def test_WINFF_FT_S_REG_23(self):
+    """CBSD Cat A attempts to register with HAAT >6m
+
+    The response should be FAILURE.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['latitude'] = 38.882162
+    device_a['installationParam']['longitude'] = 77.113755
+    device_a['installationParam']['height'] = 8
+    device_a['installationParam']['heightType'] = 'AGL'
+    device_a['installationParam']['indoorDeployment'] = False
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertTrue('cbsdId' in response)
