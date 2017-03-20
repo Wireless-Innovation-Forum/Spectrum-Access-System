@@ -88,7 +88,7 @@ class DeregistrationTestcase(unittest.TestCase):
     """
 
     # Deregister the device before registration, thus the CBSD ID does not exist in SAS
-    request = {'deregistrationRequest': [{'cbsdId': 'A non-exist cbsd id'}]}
+    request = {'deregistrationRequest': [{'cbsdId': 'A nonexistent cbsd id'}]}
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
