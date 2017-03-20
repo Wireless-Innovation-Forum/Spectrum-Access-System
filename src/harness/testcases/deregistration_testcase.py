@@ -77,7 +77,8 @@ class DeregistrationTestcase(unittest.TestCase):
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 102)    
+    self.assertTrue(response['response']['responseCode'] == 102 or
+                    response['response']['responseCode'] == 105)
 
   @winnforum_testcase
   def test_WINFF_FT_S_DER_5(self):
@@ -92,6 +93,7 @@ class DeregistrationTestcase(unittest.TestCase):
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertTrue(response['response']['responseCode'] == 103 or
+                    response['response']['responseCode'] == 105)
 
 
