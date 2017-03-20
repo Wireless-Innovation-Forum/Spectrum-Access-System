@@ -59,7 +59,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SIQ_11(self):
+  def test_WINFF_FT_S_SIQ_11(self):
     """Send Spectrum Inquiry with missing lowFrequency parameter.
 
     The response should be MISSING_PARAM, code 102
