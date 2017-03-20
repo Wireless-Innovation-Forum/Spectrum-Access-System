@@ -168,3 +168,21 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 202)
     self.assertTrue('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_25(self):
+    """CBSD Cat B attempts to register as Indoors deployment
+
+    The response should be FAILURE.
+    """
+
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    device_b['installationParam']['indoorDeployment'] = True
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertTrue('cbsdId' in response)
