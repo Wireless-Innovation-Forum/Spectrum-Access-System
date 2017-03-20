@@ -150,3 +150,21 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 202)
     self.assertTrue('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_24(self):
+    """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
+
+    The response should be FAILURE.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['eirpCapability'] = 31
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertTrue('cbsdId' in response)
