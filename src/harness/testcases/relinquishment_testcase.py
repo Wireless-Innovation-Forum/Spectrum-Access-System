@@ -137,8 +137,8 @@ class RelinquishmentTestcase(unittest.TestCase):
     # Relinquish the grant
     request = {
         'relinquishmentRequest': [{
-            'cbsdId': 'A non-exist cbsd id',
-            'grantId': 'A non-exist grant id'
+            'cbsdId': 'A nonexistent cbsd id',
+            'grantId': 'A nonexistent grant id'
         }]
     }
     response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
