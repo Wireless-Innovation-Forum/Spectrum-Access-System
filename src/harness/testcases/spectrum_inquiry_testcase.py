@@ -35,17 +35,8 @@ class SpectrumInquiryTestcase(unittest.TestCase):
 
     The response should be MISSING_PARAM, code 102
     """
-    # Register the device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-
-    # Send Spectrum Inquiry request
+    # Send Spectrum Inquiry request. Note: registration is not relevant for this
+    # case.
     spectrum_inquiry_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     self.assertFalse('cbsdId' in spectrum_inquiry_0)
