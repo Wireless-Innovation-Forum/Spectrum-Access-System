@@ -108,12 +108,17 @@ class FakeSas(sas_interface.SasInterface):
   def Grant(self, request, ssl_cert=None, ssl_key=None):
     response = {'grantResponse': []}
     for req in request['grantRequest']:
-      response['grantResponse'].append({
+      if ('cbsdId' not in req) :
+        response['grantResponse'].append({
+          'response': self._GetMissingParamResponse()
+        })
+      else :
+        response['grantResponse'].append({
           'cbsdId': req['cbsdId'],
           'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
           'channelType': 'GAA',
           'response': self._GetSuccessResponse()
-      })
+        })
     return response
 
   def Heartbeat(self, request, ssl_cert=None, ssl_key=None):
@@ -142,7 +147,7 @@ class FakeSas(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     response = {'deregistrationResponse': []}
     for req in request['deregistrationRequest']:
-      if (req.get('cbsdId') == None) :
+      if ('cbsdId' not in req) :
         response['deregistrationResponse'].append({
           'response': self._GetMissingParamResponse()
         })
