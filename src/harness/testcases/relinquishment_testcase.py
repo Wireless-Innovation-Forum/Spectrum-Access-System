@@ -164,7 +164,6 @@ class RelinquishmentTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
-    self.assertTrue('cbsdId' in response)
     cbsd_id = response['cbsdId']
     del request, response
 
