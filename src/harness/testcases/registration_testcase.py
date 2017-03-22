@@ -43,25 +43,6 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
-    
-  @winnforum_testcase
-  def test_WINFF_FT_S_REG_6(self):
-    """ Single-Step registration (Cat A CBSD with no existing CBSD ID)
-
-    The response should be SUCCESS.
-    """
-
-    # Register the device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['measCapability'] = []
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertTrue('cbsdId' in response)
-    self.assertFalse('measReportConfig' in response)
-    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_10_3_4_1_1_2(self):
@@ -86,6 +67,25 @@ class RegistrationTestcase(unittest.TestCase):
     del device_b['airInterface']
     del device_b['installationParam']
     request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertFalse('measReportConfig' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_6(self):
+    """ Single-Step registration (Cat A CBSD with no existing CBSD ID)
+
+    The response should be SUCCESS.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['measCapability'] = []
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertTrue('cbsdId' in response)
