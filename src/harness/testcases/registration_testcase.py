@@ -147,3 +147,30 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_19(self):
+    """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
+
+    The response should be FAILURE.
+    """
+
+    # Save sas version
+    version = self._sas._sas_version
+    # Use higher than supported version
+    self._sas._sas_version = 'v2.0'
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    # Register
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    # TODO: allow HTTP status 404
+    self.assertEqual(response['response']['responseCode'], 100)
+    self.assertFalse('cbsdId' in response)
+
+    # Put sas version back
+    self._sas._sas_version = version
