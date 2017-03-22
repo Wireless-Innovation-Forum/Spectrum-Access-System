@@ -165,12 +165,15 @@ class RegistrationTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
-    # Register
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    # TODO: allow HTTP status 404
-    self.assertEqual(response['response']['responseCode'], 100)
-    self.assertFalse('cbsdId' in response)
+    try:
+        # Register
+        response = self._sas.Registration(request)['registrationResponse'][0]
+        # Check registration response
+        self.assertEqual(response['response']['responseCode'], 100)
+        self.assertFalse('cbsdId' in response)
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
 
     # Put sas version back
     self._sas._sas_version = version
