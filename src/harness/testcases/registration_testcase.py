@@ -129,7 +129,7 @@ class RegistrationTestcase(unittest.TestCase):
   def test_WINFF_FT_S_REG_12(self):
     """Pending registration for Cat A CBSD (responseCode 200)
 
-    The response should be FAILURE.
+    The response should be FAILURE 200.
     """
 
     # Register the device
@@ -139,6 +139,26 @@ class RegistrationTestcase(unittest.TestCase):
     # Make sure one conditional parameter is missing
     del device_a['installationParam']['heightType']
     request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 200)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_13(self):
+    """Pending registration for Cat B CBSD (responseCode 200)
+
+    The response should be FAILURE 200.
+    """
+
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    # Make sure one conditional parameter is missing
+    del device_b['installationParam']['antennaDowntilt']
+    request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertFalse('cbsdId' in response)
