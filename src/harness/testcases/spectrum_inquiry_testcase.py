@@ -180,7 +180,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SIQ_15(self):
+  def test_WINFF_FT_S_SIQ_15(self):
     """Send Spectrum Inquiry with unsupported spectrum.
 
     The response should be INVALID_PARAM, code 300
