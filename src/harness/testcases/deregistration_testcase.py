@@ -78,3 +78,41 @@ class DeregistrationTestcase(unittest.TestCase):
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 102)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_DER_6(self):
+    """CBSD ID initially exists, CBSD deregisters first by sending
+    Deregistration request. Then sends another Deregistration request
+    to check that SAS indeed erased the CBSD information from its
+    database.
+
+    The response for the first Deregistration request should be SUCCESS.
+    The response for the second Deregistration request should be FAIL.
+    """
+
+    # Register the device
+    device = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    request = {'registrationRequest': [device]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Deregister the device
+    request = {'deregistrationRequest': [
+        {'cbsdId': cbsd_id}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    # Deregister the device again
+    request = {'deregistrationRequest': [
+        {'cbsdId': cbsd_id}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
