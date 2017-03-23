@@ -29,23 +29,38 @@ class RegistrationTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_10_3_4_1_1_1(self):
+  def test_WINFF_FT_S_REG_1(self):
     """New Multi-Step registration for CBSD Cat A (No existing CBSD ID).
 
     The response should be SUCCESS.
     """
 
-    # Register the device
+    # Pre-load conditional parameters
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    conditionals = {'registrationData': [
+        {'cbsdCategory': 'A',
+         'fccId': device_a['fccId'],
+         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+         'airInterface': device_a['airInterface'], 
+         'installationParam': device_a['installationParam']}
+    ]}
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.PreloadRegistrationData(conditionals)
+    # Register the device
+    del device_a['cbsdCategory']
+    del device_a['airInterface']
+    del device_a['installationParam']
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
+    
     # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_10_3_4_1_1_2(self):
+  def test_WINFF_FT_S_REG_2(self):
     """New Multi-Step registration for CBSD Cat B (No existing CBSD ID).
 
     The response should be SUCCESS.
@@ -110,6 +125,25 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 102)
 
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_12(self):
+    """Pending registration for Cat A CBSD (responseCode 200)
+
+    The response should be FAILURE.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # Make sure one conditional parameter is missing
+    del device_a['installationParam']['heightType']
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 200)
+    
   @winnforum_testcase
   def test_10_3_4_2_5_1(self):
     """CBSD registration request with invalid required parameter.
