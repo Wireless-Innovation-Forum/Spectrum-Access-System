@@ -176,5 +176,5 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     # Send the request
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     # Check Spectrum Inquiry Response
-    self.assertEqual(response['response']['responseCode'], 103)
     self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 103)
