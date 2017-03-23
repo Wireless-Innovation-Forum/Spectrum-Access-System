@@ -114,7 +114,7 @@ class RegistrationTestcase(unittest.TestCase):
     The response should be SUCCESS.
     """
 
-    # Register the device
+    # Load the devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_c = json.load(
