@@ -29,7 +29,7 @@ class DeregistrationTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_10_15_4_1_1(self):
+  def test_WINFF_FT_S_DER_1(self):
     """Successful CBSD deregistration request.
 
     CBSD sends deregistration request to SAS with its correct and valid CBSD
@@ -93,7 +93,7 @@ class DeregistrationTestcase(unittest.TestCase):
       self.assertEqual(response[x]['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_10_15_4_2_1(self):
+  def test_WINFF_FT_S_DER_3(self):
     """CBSD deregistration request with missing required parameter.
 
     The required parameter 'cbsdId' is missing in a deregistration request,
@@ -115,7 +115,22 @@ class DeregistrationTestcase(unittest.TestCase):
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 102)
+    self.assertIn(response['response']['responseCode'], [102, 105])
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_DER_5(self):
+    """CBSD deregistration request when CBSD ID does not exist in SAS.
+
+    CBSD sends deregistration request when its CBSD ID is not in SAS,
+    the response should be FAIL.
+    """
+
+    # Deregister the device before registration, thus the CBSD ID does not exist in SAS
+    request = {'deregistrationRequest': [{'cbsdId': 'A nonexistent cbsd id'}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertFalse('cbsdId' in response)
+    self.assertIn(response['response']['responseCode'], [103, 105])
 
   @winnforum_testcase
   def test_WINFF_FT_S_DER_6(self):
