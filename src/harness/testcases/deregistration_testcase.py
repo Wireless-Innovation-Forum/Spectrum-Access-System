@@ -93,7 +93,6 @@ class DeregistrationTestcase(unittest.TestCase):
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
     # Check the deregistration response
     self.assertFalse('cbsdId' in response)
-    self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 105)
+    self.assertIn(response['response']['responseCode'], [103, 105])
 
 
