@@ -110,5 +110,4 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response[0]['cbsdId'], cbsd_id)
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertFalse('cbsdId' in response[1])
-    self.assertTrue(response[1]['response']['responseCode'] == 103 or
-                    response[1]['response']['responseCode'] == 105)
+    self.assertIn(response[1]['response']['responseCode'], [103, 105])
