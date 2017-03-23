@@ -178,7 +178,7 @@ class RegistrationTestcase(unittest.TestCase):
     device_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # Device 2 category A
     device_2['installationParam']['latitude'] = 38.882162
@@ -187,7 +187,7 @@ class RegistrationTestcase(unittest.TestCase):
     device_2['installationParam']['heightType'] = 'AGL'
     device_2['installationParam']['indoorDeployment'] = False
 
-    # Device 3 category B eirpCapability > 30 dBm/10MHz
+    # Device 3 category A eirpCapability > 30 dBm/10MHz
     device_3['installationParam']['eirpCapability'] = 31
 
     # Device 4 category B indoorDeployment true
