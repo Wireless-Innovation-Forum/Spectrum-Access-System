@@ -180,6 +180,11 @@ class RegistrationTestcase(unittest.TestCase):
     device_4 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    self.assertEqual(device_1['cbsdCategory'], 'A')
+    self.assertEqual(device_2['cbsdCategory'], 'A')
+    self.assertEqual(device_3['cbsdCategory'], 'A')
+    self.assertEqual(device_4['cbsdCategory'], 'B')
+
     # Device 2 category A
     device_2['installationParam']['latitude'] = 38.882162
     device_2['installationParam']['longitude'] = 77.113755
@@ -195,7 +200,7 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Pre-load conditionals for Device 4
     conditionals_4 = {'registrationData': [
-        {'cbsdCategory': 'B', 
+        {'cbsdCategory': device_4['cbsdCategory'], 
          'fccId': device_4['fccId'],
          'cbsdSerialNumber': device_4['cbsdSerialNumber'],
          'airInterface': device_4['airInterface'], 
@@ -220,8 +225,6 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Second, third, fourth devices failure 202
     for x in range (1,4):
-        self.assertFalse('cbsdId' in response['registrationResponse'][x])
-        self.assertFalse('measReportConfig' in response['registrationResponse'][x])
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
 
 
