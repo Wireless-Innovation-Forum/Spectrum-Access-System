@@ -153,23 +153,17 @@ class RegistrationTestcase(unittest.TestCase):
     """Category Error in Array request (responseCode 202)
 
     The response should be SUCCESS for the first CBSD,
-    FAILURE for the second, third, and fourth CBSDs.
+    CATEGORY_ERROR for the second, third, and fourth CBSDs.
     """
 
     device_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     device_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-
-    # Set up unique FCC IDs
-    device_1['fccId'] = 'test_fcc_id_a1'
-    device_2['fccId'] = 'test_fcc_id_a2'
-    device_3['fccId'] = 'test_fcc_id_b3'
-    device_4['fccId'] = 'test_fcc_id_b4'
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
 
     # Device 2 category A
     device_2['installationParam']['latitude'] = 38.882162
@@ -184,7 +178,7 @@ class RegistrationTestcase(unittest.TestCase):
     # Device 4 category B indoorDeployment true
     device_4['installationParam']['indoorDeployment'] = True 
 
-    # Pre-load conditionals
+    # Pre-load conditionals for Device 4
     conditionals_4 = {'registrationData': [
         {'cbsdCategory': 'B', 
          'fccId': device_4['fccId'],
@@ -194,12 +188,14 @@ class RegistrationTestcase(unittest.TestCase):
     ]}
     self._sas_admin.PreloadRegistrationData([conditionals_4])
 
+    # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_3['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_4['fccId']})
     devices = [device_1, device_2, device_3, device_4]
     request = {'registrationRequest': devices}
+    # Register devices
     response = self._sas.Registration(request)
 
     # First device success
@@ -212,4 +208,5 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertFalse('cbsdId' in response['registrationResponse'][x])
         self.assertFalse('measReportConfig' in response['registrationResponse'][x])
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
+
 

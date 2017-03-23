@@ -1,0 +1,20 @@
+{
+  "fccId": "test_fcc_id_a2",
+  "userId": "test_user_id_a2",
+  "cbsdSerialNumber": "test_serial_number_a2",
+  "callSign": "callsign_a12345",
+  "cbsdCategory": "A",
+  "airInterface": {
+    "radioTechnology": "E_UTRA"
+  },
+  "measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
+  "installationParam": {
+    "latitude": 40.199168,
+    "longitude": -90.442536,
+    "height": 4.5,
+    "heightType": "AMSL",
+    "indoorDeployment": false,
+    "antennaGain": -127,
+    "antennaBeamwidth": 0
+  }
+}
