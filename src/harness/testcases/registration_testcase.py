@@ -137,7 +137,6 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)
     
-    print(response)
     # Check registration response
     for x in range (0,2):
         self.assertTrue('cbsdId' in response['registrationResponse'][x])
