@@ -1,8 +1,8 @@
 {
-  "fccId": "test_fcc_id_a4",
-  "userId": "test_user_id_a4",
-  "cbsdSerialNumber": "test_serial_number_a4",
-  "callSign": "callsign_a34567",
+  "fccId": "test_fcc_id_f",
+  "userId": "test_user_id_f",
+  "cbsdSerialNumber": "test_serial_number_f",
+  "callSign": "callsign_f",
   "cbsdCategory": "A",
   "airInterface": {
     "radioTechnology": "E_UTRA"
