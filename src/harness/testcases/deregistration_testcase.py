@@ -11,6 +11,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from datetime import datetime
 import json
 import os
 import unittest
@@ -203,3 +204,87 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response[1])
     self.assertIn(response[1]['response']['responseCode'], [103, 105])
 
+  @winnforum_testcase
+  def test_WINFF_FT_S_DER_8(self):
+    """CBSD ID initially exists with a grant, CBSD deregisters,
+    then re-registers and attempts to use the old grant ID. This
+    is to verify SAS deletes grants on deregistration.
+
+    """
+
+    # Register the device
+    device = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    request = {'registrationRequest': [device]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request for grant
+    grant = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant]}
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+    grant_id = response['grantId']
+    del request, response
+
+    # Send heartbeat so the device will be in Authorized state
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertLess(datetime.utcnow(),
+                    datetime.strptime(response['transmitExpireTime'],
+                                      '%Y-%m-%dT%H:%M:%SZ'))
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Deregister the device
+    request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Re-register the device
+    request = {'registrationRequest': [device]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Send heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'AUTHORIZED'
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    response_code = response['response']['responseCode']
+    # Check the heartbeat response
+    self.assertIn(response_code, [103, 500])
+    del request, response
+
+    # Deregister the device
+    request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    # Check the deregistration response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 0)
