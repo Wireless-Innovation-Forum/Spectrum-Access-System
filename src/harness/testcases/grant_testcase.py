@@ -162,3 +162,32 @@ class GrantTestcase(unittest.TestCase):
     self.assertTrue((response['response']['responseCode'] == 102) or \
                     (response['response']['responseCode'] == 105))
 
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_11(self):
+    """Missing highFrequency in operationParam object.
+    The highFrequency parameter is missing in the grant request. The response
+    should be FAIL.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    del grant_0['operationParam']['operationFrequencyRange']['highFrequency']
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 102)
