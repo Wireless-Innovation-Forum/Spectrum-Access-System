@@ -29,7 +29,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_10_13_4_1_1(self):
+  def test_WINFF_FT_S_RLQ_1(self):
     """Successful CBSD relinquishment request.
 
     CBSD Harness sends Relinquishment Request to SAS including CBSD ID and
@@ -73,7 +73,8 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['grantId'], grant_id)
     self.assertEqual(response['response']['responseCode'], 0)
 
-  def test_10_13_4_1_2(self):
+  @winnforum_testcase
+  def test_WINFF_FT_S_RLQ_2(self):
     """Multiple iterative CBSD relinquishments.
 
     CBSD Harness sends multiple Relinquishment Requests to SAS including CBSD 
@@ -123,3 +124,54 @@ class RelinquishmentTestcase(unittest.TestCase):
       self.assertEqual(response['cbsdId'], cbsd_id)
       self.assertEqual(response['grantId'], grant_id[i])
       self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_RLQ_4(self):
+    """CBSD relinquishment request with CBSD ID that does not exist in SAS.
+
+    CBSD Harness sends Relinquishment Request to SAS including CBSD ID and
+    Grant ID in correct format but the CBSD ID does not exist in SAS.
+    The response should be FAIL.
+    """
+
+    # Relinquish the grant
+    request = {
+        'relinquishmentRequest': [{
+            'cbsdId': 'A nonexistent cbsd id',
+            'grantId': 'A nonexistent grant id'
+        }]
+    }
+    response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
+    # Check the relinquishment response
+    self.assertFalse('cbsdId' in response)
+    self.assertTrue(response['response']['responseCode'] == 103 or
+                    response['response']['responseCode'] == 105)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_RLQ_5(self):
+    """CBSD relinquishment request of nonexistent grant
+
+    CBSD Harness sends Relinquishment Request to SAS including grant
+    with valid CBSD ID and nonexistent Grant ID. The response should
+    be FAIL.
+    """
+
+    # Register the device
+    device = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Relinquish grant
+    request = {'relinquishmentRequest': [
+        {'cbsdId': cbsd_id, 'grantId': 'A nonexistent grant id'}]}
+    response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
+    # Check the relinquishment response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
