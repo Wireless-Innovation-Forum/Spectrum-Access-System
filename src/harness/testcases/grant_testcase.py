@@ -162,3 +162,34 @@ class GrantTestcase(unittest.TestCase):
     self.assertTrue((response['response']['responseCode'] == 102) or \
                     (response['response']['responseCode'] == 105))
 
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_17(self):
+    """Frequency range value in operationParam partially outside 3550-3700 MHz.
+
+    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with frequency range partially outside 3550-3700 Mhz
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3450000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3650000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertTrue(response['response']['responseCode'] in (103, 300))
