@@ -126,7 +126,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_11(self):
+  def test_WINNF_FT_S_REG_11(self):
     """Missing Required parameters in Array request (responseCode 102)
 
     The response should be MISSING_PARAM 102.
