@@ -108,7 +108,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_9(self):
+  def test_WINNF_FT_S_REG_9(self):
     """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
 
     The response should be SUCCESS.
@@ -133,16 +133,15 @@ class RegistrationTestcase(unittest.TestCase):
     device_c['measCapability'] = []
 
     # Register two devices
-    devices = [device_a, device_b]
-    request = {'registrationRequest': devices}
+    request = {'registrationRequest': [device_a, device_b]}
     response = self._sas.Registration(request)
     
     # Check registration response
-    for x in range (0,2):
-        self.assertTrue('cbsdId' in response['registrationResponse'][x])
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
 
-    del devices, request, response
+    del request, response
 
     # Re-register two devices, register third device
     devices = [device_a, device_b, device_c]
@@ -150,10 +149,10 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)
 
     # Check registration response
-    for x in range (0,3):
-        self.assertTrue('cbsdId' in response['registrationResponse'][x])
-        self.assertFalse('measReportConfig' in response['registrationResponse'][x])
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_10_3_4_2_1(self):
