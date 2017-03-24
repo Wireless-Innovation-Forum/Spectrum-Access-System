@@ -64,6 +64,70 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_REG_3(self):
+    """Array Multi-Step registration for CBSD Cat A&B (No existing CBSD ID)
+
+    The response should be SUCCESS.
+    """
+
+    # Pre-load conditional parameters
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    conditionals_a = {'registrationData': [
+        {'cbsdCategory': device_a['cbsdCategory'], 
+         'fccId': device_a['fccId'],
+         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+         'airInterface': device_a['airInterface'], 
+         'installationParam': device_a['installationParam']}
+    ]}
+    conditionals_b = {'registrationData': [
+        {'cbsdCategory': device_b['cbsdCategory'], 
+         'fccId': device_b['fccId'],
+         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+         'airInterface': device_b['airInterface'], 
+         'installationParam': device_b['installationParam']}
+    ]}
+    conditionals_c = {'registrationData': [
+        {'cbsdCategory': device_c['cbsdCategory'], 
+         'fccId': device_c['fccId'],
+         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+         'airInterface': device_c['airInterface'], 
+         'installationParam': device_c['installationParam']}
+    ]}
+    conditionals = [conditionals_a, conditionals_b, conditionals_c];
+    self._sas_admin.PreloadRegistrationData(conditionals)
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    # Remove conditionals from registration
+    del device_a['cbsdCategory']
+    del device_a['airInterface']
+    del device_a['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['installationParam']
+    del device_c['cbsdCategory']
+    del device_c['airInterface']
+    del device_c['installationParam']
+
+    # Register the device
+    devices = [device_a, device_b, device_c]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+    # Check registration response
+    for x in range (0, 3):
+        self.assertTrue('cbsdId' in response['registrationResponse'][x])
+        self.assertFalse('measReportConfig' in response['registrationResponse'][x])
+        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
+        
+  @winnforum_testcase
   def test_10_3_4_1_1_2(self):
     """New Multi-Step registration for CBSD Cat B (No existing CBSD ID).
 
