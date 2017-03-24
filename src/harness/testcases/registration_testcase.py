@@ -170,7 +170,54 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_9(self):
+    """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
+
+    The response should be SUCCESS.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    # Make sure measCapability contains no value for all array elements
+    device_a['measCapability'] = []
+    device_b['measCapability'] = []
+    device_c['measCapability'] = []
+
+    # Register two devices
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)
     
+    # Check registration response
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+
+    del request, response
+
+    # Re-register two devices, register third device
+    devices = [device_a, device_b, device_c]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check registration response
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+
   @winnforum_testcase
   def test_10_3_4_2_5_1(self):
     """CBSD registration request with invalid required parameter.
