@@ -206,3 +206,51 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     # Check Spectrum Inquiry Response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_SIQ_21(self):
+    """Send Spectrum Inquiry (two requests, both unsuccessful).
+
+    The response should be INVALID_PARAM, code 103 for both requests.
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    request = {'registrationRequest': [device_a, device_b]}
+    response_1 = self._sas.Registration(request)['registrationResponse'][0]
+    response_2 = self._sas.Registration(request)['registrationResponse'][1]
+    # Check registration response
+    self.assertEqual(response_1['response']['responseCode'], 0)
+    self.assertEqual(response_2['response']['responseCode'], 0)
+    cbsd_ids = (response_1['cbsdId'], response_2['cbsdId'])
+    del request, response_1, response_2
+
+    # Create Invalid Spectrum Inquiry requests
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0,
+    }]
+
+    spectrum_inquiry_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_2['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_2['inquiredSpectrum'] = [{
+        'lowFrequency': 3750000000.0,
+        'highFrequency': 3650000000.0,
+    }]
+    request = {
+        'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
+    }
+    # Send Spectrum Inquiry requests and Check Responses
+    responses = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    for response_num, response in enumerate(responses):
+      self.assertEqual(response['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('availableChannel' in response)
+      self.assertEqual(response['response']['responseCode'], 103)
