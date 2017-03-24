@@ -142,9 +142,6 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertTrue('cbsdId' in response['registrationResponse'][x])
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
 
-    # Save CBSD IDs
-    cbsdId1 = response['registrationResponse'][0]['cbsdId']
-    cbsdId2 = response['registrationResponse'][1]['cbsdId']
     del devices, request, response
 
     # Re-register two devices, register third device
@@ -157,9 +154,6 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertTrue('cbsdId' in response['registrationResponse'][x])
         self.assertFalse('measReportConfig' in response['registrationResponse'][x])
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
-
-    self.assertTrue(cbsdId1 == response['registrationResponse'][0]['cbsdId'])
-    self.assertTrue(cbsdId2 == response['registrationResponse'][1]['cbsdId'])
 
   @winnforum_testcase
   def test_10_3_4_2_1(self):
