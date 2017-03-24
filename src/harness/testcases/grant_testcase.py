@@ -191,7 +191,7 @@ class GrantTestcase(unittest.TestCase):
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response
-    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 102)
 	
@@ -222,7 +222,7 @@ class GrantTestcase(unittest.TestCase):
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response
-    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 102)
 	
