@@ -238,6 +238,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINFF_FT_S_SIQ_16(self):
     """Send Spectrum Inquiry dual requests (GAA- successful case).
+
     The response should be NO_ERROR, code 0
     """
     # Register the devices
