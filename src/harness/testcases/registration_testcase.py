@@ -125,7 +125,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
-    cbsdId = response['cbsdId']
     del response
 
     # Re-register the device
@@ -134,7 +133,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue('cbsdId' in response)
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
-    self.assertTrue(cbsdId == response['cbsdId'])
 
   @winnforum_testcase
   def test_10_3_4_2_1(self):
