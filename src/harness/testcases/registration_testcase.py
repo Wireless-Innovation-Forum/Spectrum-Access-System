@@ -89,7 +89,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_3(self):
+  def test_WINNF_FT_S_REG_3(self):
     """Array Multi-Step registration for CBSD Cat A&B (No existing CBSD ID)
 
     The response should be SUCCESS.
