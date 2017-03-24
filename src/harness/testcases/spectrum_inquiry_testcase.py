@@ -144,6 +144,34 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_SIQ_12(self):
+    """Send Spectrum Inquiry with non-existent cbsdId parameter.
+
+    The response should be INVALID_PARAM, code 103
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Send Spectrum Inquiry request
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_id + '-changed'
+    self.assertNotEqual(cbsd_id, spectrum_inquiry_0['cbsdId'])
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertFalse('cbsdId' in response)
+    self.assertTrue(response['response']['responseCode'] in (103, 105))
+
+  @winnforum_testcase
   def test_WINFF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
@@ -206,6 +234,58 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     # Check Spectrum Inquiry Response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_SIQ_16(self):
+    """Send Spectrum Inquiry dual requests (GAA- successful case).
+
+    The response should be NO_ERROR, code 0
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    self.assertEqual(len(response), 2)
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    request = {
+        'spectrumInquiryRequest': [spectrum_inquiry_0, spectrum_inquiry_1]
+    }
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    self.assertEqual(len(response), 2)
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertTrue('availableChannel' in resp)
+      for available_channel in resp['availableChannel']:
+        self.assertEqual(available_channel['channelType'], 'GAA')
+        self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+      self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINFF_FT_S_SIQ_19(self):
