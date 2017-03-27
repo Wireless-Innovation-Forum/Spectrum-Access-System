@@ -286,3 +286,53 @@ class SpectrumInquiryTestcase(unittest.TestCase):
         self.assertEqual(available_channel['channelType'], 'GAA')
         self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
       self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_SIQ_19(self):
+    """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
+
+    The response should be NO_ERROR (code 0) and INVALID_PARAM, code 103
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    # Check registration response
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Create Spectrum Inquiry requests
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    # Use invalid range for the second spectrum inquiry request
+    spectrum_inquiry_1 = {
+        'cbsdId': cbsd_ids[1],
+        'inquiredSpectrum': [{
+            'lowFrequency': 3650000000.0,
+            'highFrequency': 3550000000.0
+        }]
+    }
+    request = {'spectrumInquiryRequest': [
+        spectrum_inquiry_0, spectrum_inquiry_1]}
+    # Send spectrumInquiryRequest and get response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    self.assertEqual(len(response), 2)
+    # Check Spectrum Inquiry Response
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertTrue('availableChannel' in response[0])
+    for available_channel in response[0]['availableChannel']:
+      self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('availableChannel' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
