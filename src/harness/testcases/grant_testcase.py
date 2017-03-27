@@ -163,7 +163,38 @@ class GrantTestcase(unittest.TestCase):
                     (response['response']['responseCode'] == 105))
 
   @winnforum_testcase
-  def test_WINFF_FT_S_GRA_17(self):
+  def test_WINFF_FT_S_GRA_14(self):
+    """lowFrequency and highFrequency value in operationParam mutually invalid.
+    The response should be 103 (INVALID_PARAM)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with mutually invalid frequency range
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3630000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3620000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_17(self):
     """Frequency range value in operationParam partially outside 3550-3700 MHz.
 
     The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
