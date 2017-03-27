@@ -165,6 +165,7 @@ class GrantTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINFF_FT_S_GRA_14(self):
     """lowFrequency and highFrequency value in operationParam mutually invalid.
+
     The response should be 103 (INVALID_PARAM)
     """
     # Register the device
