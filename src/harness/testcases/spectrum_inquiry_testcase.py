@@ -235,7 +235,6 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['response']['responseCode'], 300)
 
-
   @winnforum_testcase
   def test_WINFF_FT_S_SIQ_16(self):
     """Send Spectrum Inquiry dual requests (GAA- successful case).
