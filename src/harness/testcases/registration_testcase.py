@@ -29,7 +29,7 @@ class RegistrationTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_1(self):
+  def test_WINNF_FT_S_REG_1(self):
     """New Multi-Step registration for CBSD Cat A (No existing CBSD ID).
 
     The response should be SUCCESS.
@@ -60,7 +60,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_2(self):
+  def test_WINNF_FT_S_REG_2(self):
     """New Multi-Step registration for CBSD Cat B (No existing CBSD ID).
 
     The response should be SUCCESS.
@@ -110,7 +110,7 @@ class RegistrationTestcase(unittest.TestCase):
          'installationParam': device_a['installationParam']}
     ]}
     conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'], 
+        {'cbsdCategory': device_b['cbsdCategory'],
          'fccId': device_b['fccId'],
          'cbsdSerialNumber': device_b['cbsdSerialNumber'],
          'airInterface': device_b['airInterface'], 
@@ -142,7 +142,7 @@ class RegistrationTestcase(unittest.TestCase):
     del device_c['airInterface']
     del device_c['installationParam']
 
-    # Register the device
+    # Register the devices
     devices = [device_a, device_b, device_c]
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)
@@ -153,7 +153,7 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_6(self):
+  def test_WINNF_FT_S_REG_6(self):
     """ Single-Step registration (Cat A CBSD with no existing CBSD ID)
 
     The response should be SUCCESS.
@@ -172,7 +172,83 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_10_3_4_2_1(self):
+  def test_WINNF_FT_S_REG_8(self):
+    """ Re-registration of Single-step-registered CBSD (CBSD ID exists)
+
+    The response should be SUCCESS.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['measCapability'] = []
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    del response
+
+    # Re-register the device
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    self.assertTrue('cbsdId' in response)
+    self.assertFalse('measReportConfig' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_9(self):
+    """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
+
+    The response should be SUCCESS.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    # Make sure measCapability contains no value for all array elements
+    device_a['measCapability'] = []
+    device_b['measCapability'] = []
+    device_c['measCapability'] = []
+
+    # Register two devices
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)
+    
+    # Check registration response
+    self.assertEqual(len(response['registrationResponse']), 2)
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+
+    del request, response
+
+    # Re-register two devices, register third device
+    devices = [device_a, device_b, device_c]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check registration response
+    self.assertEqual(len(response['registrationResponse']), len(devices))
+    for resp in response['registrationResponse']:
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_10(self):
     """CBSD registration request with missing required parameter.
 
     The required parameter 'userId' is missing in a registration request,
@@ -190,7 +266,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_12(self):
+  def test_WINNF_FT_S_REG_12(self):
     """Pending registration for Cat A CBSD (responseCode 200)
 
     The response should be FAILURE.
@@ -207,47 +283,9 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
-    
-  @winnforum_testcase
-  def test_10_3_4_2_5_1(self):
-    """CBSD registration request with invalid required parameter.
-
-    The value of required parameter 'fccId' is invalid(exceeds its max
-    length) in the registration request, the response should be FAIL.
-    """
-
-    # Register the device, make sure at least one required parameter is invalid
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    device_a['fccId'] = 'abcdefghijklmnopqrstuvwxyz'
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_10_3_4_2_5_3(self):
-    """CBSD registration request with invalid conditional parameter.
-
-    The value of conditional parameter 'radioTechnology' of airInterface
-    object is invalid in the registration request, the response should be FAIL.
-    """
-    # Register the device, make sure at least one conditional parameter is
-    # invalid
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    device_a['airInterface']['radioTechnology'] = 'invalid value'
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
-
-  @winnforum_testcase
-  def test_WINFF_FT_S_REG_26(self):
+  def test_WINNF_FT_S_REG_26(self):
     """Category Error in Array request (responseCode 202)
 
     The response should be SUCCESS for the first CBSD,
