@@ -573,6 +573,33 @@ class RegistrationTestcase(unittest.TestCase):
         self._sas._sas_version = version
 
   @winnforum_testcase
+  def test_WINNF_FT_S_REG_21(self):
+    """Group Error (responseCode 201)
+    The response should be FAILURE
+    """
+
+    # Load device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Create invalid group - only 'INTERFERENCE_COORDINATION' allowed
+    device_a['groupingParam'] = [
+        {'groupType': 'FAKE_GROUP_TYPE',
+         'groupId': '1234'}
+    ]
+
+    # Inject FCC ID
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+
+    # Register device
+    request = {'registrationRequest': device_a}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check response
+    self.assertFalse('measReportConfig' in response)
+    self.assertTrue(response['response']['responseCode'] in (103, 201))
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
     """Category Error in Array request (responseCode 202)
 
