@@ -196,9 +196,9 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertTrue('cbsdId' in response['registrationResponse'][0])
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
-    for x in range(0,4):
+    for x in range(0, 4):
         self.assertFalse('measReportConfig' in response['registrationResponse'][x])
-    for x in range(1,4):
+    for x in range(1, 4):
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 102)
 
   @winnforum_testcase
