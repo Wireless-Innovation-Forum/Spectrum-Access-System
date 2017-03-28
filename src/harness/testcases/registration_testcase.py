@@ -543,6 +543,80 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 200)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_REG_16(self):
+    """Invalid Conditional parameters in Array request (responseCode 103)
+
+    The response should be SUCCESS for the first CBSD,
+    FAILURE 103 for the second and third CBSDs.
+    """
+
+    # Load devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
+
+    # Device 1 Cat A all valid conditionals
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    conditionals_a = {'registrationData': [
+        {'cbsdCategory': device_a['cbsdCategory'],
+         'fccId': device_a['fccId'],
+         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+         'airInterface': device_a['airInterface'],
+         'installationParam': device_a['installationParam']}
+    ]}
+
+    # Device 2 Cat A out-of-range or the wrong type azimuth
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    conditionals_c = {'registrationData': [
+        {'cbsdCategory': device_c['cbsdCategory'],
+         'fccId': device_c['fccId'],
+         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+         'airInterface': device_c['airInterface'],
+         'installationParam': device_c['installationParam']}
+    ]}
+    conditionals_c['registrationData'][0]['installationParam']['azimuth'] = -1
+
+    # Device 3 Cat A out-of-range, or the wrong Type value for latitude.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    conditionals_e = {'registrationData': [
+        {'cbsdCategory': device_e['cbsdCategory'],
+         'fccId': device_e['fccId'],
+         'cbsdSerialNumber': device_e['cbsdSerialNumber'],
+         'airInterface': device_e['airInterface'],
+         'installationParam': device_e['installationParam']}
+    ]}
+    conditionals_e['registrationData'][0]['installationParam']['latitude'] = 'a'
+
+    conditionals = [conditionals_a, conditionals_c, conditionals_e];
+    self._sas_admin.PreloadRegistrationData(conditionals)
+
+    # Remove conditionals from registration
+    devices = [device_a, device_c, device_e]
+    for device in devices:
+        del device['cbsdCategory']
+        del device['airInterface']
+        del device['installationParam']
+
+    # Register the devices
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+    # Check registration response
+    self.assertTrue('cbsdId' in response['registrationResponse'][0])
+    for resp in response['registrationResponse']:
+        self.assertFalse('measReportConfig' in resp)
+    self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
+    for resp in response['registrationResponse'][1:]:
+        self.assertEqual(resp['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINFF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
