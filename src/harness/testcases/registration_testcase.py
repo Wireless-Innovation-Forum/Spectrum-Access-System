@@ -153,7 +153,7 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_4(self):
+  def test_WINNF_FT_S_REG_4(self):
     """Re-registration of Multi-step-registered CBSD (CBSD ID exists)
     The response should be SUCCESS.
     """
@@ -199,7 +199,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue(cbsdId == response['cbsdId'])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_5(self):
+  def test_WINNF_FT_S_REG_5(self):
     """Array Re-registration of Multi-step-registered CBSD (CBSD ID exists)
     The response should be SUCCESS.
     """
@@ -293,7 +293,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
     
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_7(self):
+  def test_WINNF_FT_S_REG_7(self):
     """ Array Single-Step registration (Cat A CBSD with no existing CBSD ID)
     The response should be SUCCESS.
     """
@@ -523,7 +523,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_13(self):
+  def test_WINNF_FT_S_REG_13(self):
     """Pending registration for Cat B CBSD (responseCode 200)
 
     The response should be FAILURE 200.
@@ -542,8 +542,9 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
+
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_19(self):
+  def test_WINNF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
     The response should be FAILURE.
