@@ -11,6 +11,35 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
+# Some parts of this software was developed by employees of 
+# the National Institute of Standards and Technology (NIST), 
+# an agency of the Federal Government. 
+# Pursuant to title 17 United States Code Section 105, works of NIST employees 
+# are not subject to copyright protection in the United States and are 
+# considered to be in the public domain. Permission to freely use, copy, 
+# modify, and distribute this software and its documentation without fee 
+# is hereby granted, provided that this notice and disclaimer of warranty 
+# appears in all copies.
+
+# THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT ANY WARRANTY OF ANY KIND, EITHER 
+# EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, ANY WARRANTY
+# THAT THE SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY IMPLIED WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND FREEDOM FROM 
+# INFRINGEMENT, AND ANY WARRANTY THAT THE DOCUMENTATION WILL CONFORM TO THE 
+# SOFTWARE, OR ANY WARRANTY THAT THE SOFTWARE WILL BE ERROR FREE. IN NO EVENT
+# SHALL NIST BE LIABLE FOR ANY DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT, 
+# INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES, ARISING OUT OF, RESULTING FROM, 
+# OR IN ANY WAY CONNECTED WITH THIS SOFTWARE, WHETHER OR NOT BASED UPON 
+# WARRANTY, CONTRACT, TORT, OR OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED
+# BY PERSONS OR PROPERTY OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED
+# FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR SERVICES 
+# PROVIDED HEREUNDER.
+
+# Distributions of NIST software should also include copyright and licensing 
+# statements of any third-party software that are legally bundled with the 
+# code in compliance with the conditions of those licenses.
+
 import json
 import os
 import unittest
@@ -105,3 +134,127 @@ class GrantTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+
+  def test_WINFF_FT_S_GRA_7(self):
+    """CBSD sends grant with missing cbsdId. The response should be
+      responseCode = 102 or 105.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertTrue((response['response']['responseCode'] == 102) or \
+                    (response['response']['responseCode'] == 105))
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_14(self):
+    """lowFrequency and highFrequency value in operationParam mutually invalid.
+
+    The response should be 103 (INVALID_PARAM)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with mutually invalid frequency range
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3630000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3620000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_16(self):
+    """Frequency range is completely outside 3550-3700 MHz.
+
+    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with frequency range outside 3550-3700 MHz
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3350000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3450000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertTrue(response['response']['responseCode'] in (103, 300))
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_17(self):
+    """Frequency range value in operationParam partially outside 3550-3700 MHz.
+
+    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with frequency range partially outside 3550-3700 Mhz
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3450000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3650000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertTrue(response['response']['responseCode'] in (103, 300))
