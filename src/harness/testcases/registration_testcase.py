@@ -359,6 +359,44 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['airInterface']['radioTechnology'] = 'invalid value'
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_19(self):
+    """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
+
+    The response should be FAILURE.
+    """
+
+    # Save sas version
+    version = self._sas._sas_version
+    # Use higher than supported version
+    self._sas._sas_version = 'v2.0'
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    try:
+        # Register
+        response = self._sas.Registration(request)['registrationResponse'][0]
+        # Check registration response
+        self.assertEqual(response['response']['responseCode'], 100)
+        self.assertFalse('cbsdId' in response)
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
+    finally:
+        # Put sas version back
+        self._sas._sas_version = version
+
   @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
     """Category Error in Array request (responseCode 202)
@@ -423,5 +461,3 @@ class RegistrationTestcase(unittest.TestCase):
     # Second, third, fourth devices failure 202
     for x in range (1,4):
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
-
-
