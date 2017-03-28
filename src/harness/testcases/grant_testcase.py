@@ -258,3 +258,33 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertTrue(response['response']['responseCode'] in (103, 300))
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_21(self):
+    """maxEirp in Grant Request for Category A is unsupported.
+
+    The response should be 202 (CATEGORY_ERROR)
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create Grant Request with maxEirp exceeding maximum allowable (which is
+    # 30 dBm/10 MHz)
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['maxEirp'] = 31.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 202)
