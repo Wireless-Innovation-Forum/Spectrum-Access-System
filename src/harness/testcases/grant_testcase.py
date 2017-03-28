@@ -57,6 +57,34 @@ class GrantTestcase(unittest.TestCase):
   def tearDown(self):
     pass
 
+  def _assert_valid_response_format_for_approved_grant(self, grant_response):
+    """Validate an approved grant response.
+
+    Check presense and basic validity of each required field.
+    Check basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
+    """
+    # Check required string fields
+    for field_name in ('cbsdId', 'grantId', 'grantExpireTime', 'channelType'):
+      self.assertTrue(field_name in grant_response)
+      self.assertGreater(len(grant_response[field_name]), 0)
+
+    self.assertTrue('heartbeatInterval' in grant_response)
+
+    if 'measReportConfig' in grant_response:
+      self.assertGreater(len(grant_response['measReportConfig']), 0)
+
+    # operationParam should not be set if grant is approved
+    self.assertFalse('operationParam' in grant_response)
+
+    self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))
+
   @winnforum_testcase
   def test_10_7_4_1_1_1_1(self):
     """Successful CBSD grant request.
@@ -318,3 +346,50 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertTrue(response['response']['responseCode'] in (202, 103))
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_23(self):
+    """Dual grant requests for two devices. Successful case.
+
+    The response should be 0 (NO_ERROR)
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Create grant requests
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+    # Request for non-overlapping frequency spectrum
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3620000000.0,
+        'highFrequency': 3630000000.0
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3640000000.0,
+        'highFrequency': 3650000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self._assert_valid_response_format_for_approved_grant(resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
