@@ -70,7 +70,7 @@ def _Request(url, request, ssl_cert, ssl_key):
   conn.setopt(conn.POSTFIELDS, request)
   conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
   conn.perform()
-  assert conn.getinfo(pycurl.HTTP_CODE) == 200
+  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
   logging.debug('Response:\n' + body)
