@@ -89,8 +89,8 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_5(self):
-    """Array Re-registration of Multi-step-registered CBSD (CBSD ID exists)
+  def test_WINNF_FT_S_REG_3(self):
+    """Array Multi-Step registration for CBSD Cat A&B (No existing CBSD ID)
 
     The response should be SUCCESS.
     """
@@ -126,9 +126,10 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals = [conditionals_a, conditionals_b, conditionals_c];
     self._sas_admin.PreloadRegistrationData(conditionals)
 
-    # Inject FCC IDs for first two devices
+    # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
 
     # Remove conditionals from registration
     del device_a['cbsdCategory']
@@ -142,24 +143,11 @@ class RegistrationTestcase(unittest.TestCase):
     del device_c['installationParam']
 
     # Register the devices
-    devices = [device_a, device_b]
-    request = {'registrationRequest': devices}
-    response = self._sas.Registration(request)
-    # Check registration response
-    for x in range(0, 2):
-        self.assertTrue('cbsdId' in response['registrationResponse'][x])
-        self.assertFalse('measReportConfig' in response['registrationResponse'][x])
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
-    
-    del request, response, devices
-
-    # Register the devices
     devices = [device_a, device_b, device_c]
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)
-    
     # Check registration response
-    for x in range(0, 3):
+    for x in range (0, 3):
         self.assertTrue('cbsdId' in response['registrationResponse'][x])
         self.assertFalse('measReportConfig' in response['registrationResponse'][x])
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 0)
