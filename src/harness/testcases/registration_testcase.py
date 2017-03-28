@@ -164,6 +164,7 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)
     
     # Check registration response
+    self.assertEqual(len(response['registrationResponse']), 2)
     for resp in response['registrationResponse']:
         self.assertTrue('cbsdId' in resp)
         self.assertEqual(resp['response']['responseCode'], 0)
@@ -176,6 +177,7 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)
 
     # Check registration response
+    self.assertEqual(len(response['registrationResponse']), len(devices))
     for resp in response['registrationResponse']:
         self.assertTrue('cbsdId' in resp)
         self.assertFalse('measReportConfig' in resp)
