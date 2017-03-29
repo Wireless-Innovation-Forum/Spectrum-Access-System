@@ -243,6 +243,29 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_RLQ_6(self):
+    """CBSD relinquishment request of nonexistent cbsd id and
+    nonexistent grant id
+
+    CBSD Harness sends Relinquishment Request to SAS with nonexistent
+    CBSD ID and nonexistent Grant ID. The response should
+    be FAIL.
+    """
+
+    # Relinquish the grant
+    request = {
+        'relinquishmentRequest': [{
+            'cbsdId': 'A nonexistent cbsd id',
+            'grantId': 'A nonexistent grant id'
+        }]
+    }
+    response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
+    # Check the relinquishment response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertIn(response['response']['responseCode'], [103, 105])
+
+  @winnforum_testcase
   def test_WINFF_FT_S_RLQ_7(self):
     """CBSD relinquishment request of grant that does not belong to the CBSD
 
