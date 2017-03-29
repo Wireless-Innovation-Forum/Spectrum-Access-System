@@ -241,7 +241,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     # Register the device
     device = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    #self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device['fccId']})
     request = {'registrationRequest': [device]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
