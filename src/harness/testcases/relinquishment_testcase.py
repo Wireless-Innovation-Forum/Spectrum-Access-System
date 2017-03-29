@@ -318,6 +318,85 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_RLQ_11(self):
+    """CBSD relinquishment request of multiple grants
+
+    CBSD Harness sends Relinquishment Request to SAS including multiple
+    grants with valid CBSD ID and valid Grant ID, but with protocol
+    version not supported by SAS. The response should be FAIL.
+    """
+
+    # Register the device
+    device = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    request = {'registrationRequest': [device]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grants
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'] = {
+         'lowFrequency': 3600000000.0,
+         'highFrequency': 3610000000.0
+    }
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_id
+    grant_1['operationParam']['operationFrequencyRange'] = {
+         'lowFrequency': 3610000000.0,
+         'highFrequency': 3620000000.0
+    }
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_id
+    grant_2['operationParam']['operationFrequencyRange'] = {
+         'lowFrequency': 3620000000.0,
+         'highFrequency': 3630000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Check grant response
+    grant_id = []
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), 3)
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      self.assertEqual(resp['cbsdId'], cbsd_id)
+      grant_id.append(resp['grantId'])
+    del request, response
+
+    # Save sas version
+    version = self._sas._sas_version
+    # Use higher than supported version
+    self._sas._sas_version = 'v2.0'
+
+    # Relinquish the grants
+    request = {'relinquishmentRequest': [
+        {'cbsdId': cbsd_id, 'grantId': grant_id[0]},
+        {'cbsdId': cbsd_id, 'grantId': grant_id[1]},
+        {'cbsdId': cbsd_id, 'grantId': grant_id[2]}
+    ]}
+    try:
+        response = self._sas.Relinquishment(request)['relinquishmentResponse']
+        # Check relinquishment response
+        self.assertEqual(len(response), 3)
+        for resp_number, resp in enumerate(response):
+          self.assertEqual(resp['response']['responseCode'], 100)
+          self.assertEqual(resp['cbsdId'], cbsd_id)
+          self.assertEqual(resp['grantId'], grant_id[resp_number])
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
+    finally:
+        # Put sas version back
+        self._sas._sas_version = version
+
+  @winnforum_testcase
   def test_WINFF_FT_S_RLQ_12(self):
     """CBSD relinquishment request with missing CBSD ID
     relinquished.
