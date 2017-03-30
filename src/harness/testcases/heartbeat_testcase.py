@@ -139,6 +139,94 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_HBT_10(self):
+    """Initial Heartbeat Request (immediately after CBSD moves
+    into Granted State) is from three CBSDs with an unsupported
+    protocol version by SAS.
+
+    The response should be FAIL, code 100.
+    """
+
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_a, device_b, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for resp in response:
+        self.assertEqual(resp['response']['responseCode'], 0)
+    cbsd_ids = (response[0]['cbsdId'], response[1]['cbsdId'], response[2]['cbsdId'])
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3631000000.0
+    grant_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3640000000.0
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    grant_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3641000000.0
+    grant_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3650000000.0
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), len(cbsd_ids))
+    for resp_number, resp in enumerate(response):
+        self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+        self.assertTrue(resp['grantId'])
+        self.assertEqual(resp['response']['responseCode'], 0)
+    grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
+    del request, response
+
+    # Save sas version
+    version = self._sas._sas_version
+    # Use higher than supported version
+    self._sas._sas_version = 'v2.0'
+
+    # First Heartbeat with unsupported SAS-CBSD protocol version
+    heartbeat_0 = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_1 = {
+        'cbsdId': cbsd_ids[1],
+        'grantId': grant_ids[1],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_2 = {
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[2],
+        'operationState': 'GRANTED'
+    }
+    request = {'heartbeatRequest': [heartbeat_0, heartbeat_1, heartbeat_2]}
+    try:
+        response = self._sas.Heartbeat(request)['heartbeatResponse']
+        self.assertEqual(len(response), len(grant_ids))
+        for resp in response:
+            try:
+                # Check the heartbeat response
+                self.assertEqual(resp['response']['responseCode'], 100)
+            except AssertionError as e:
+                # Allow HTTP status 404
+                self.assertEqual(e.args[0], 404)
+    finally:
+        # Put sas version back
+        self._sas._sas_version = version
+
+  @winnforum_testcase
   def test_10_9_4_2_3_1_2(self):
     """CBSD heartbeat request with missing grantId parameter.
 
