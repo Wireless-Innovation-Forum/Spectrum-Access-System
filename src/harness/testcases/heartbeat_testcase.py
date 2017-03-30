@@ -78,6 +78,63 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_HBT_9(self):
+    """Initial Heartbeat Request (immediately after CBSD moves
+    into Granted State) is from a CBSD with an unsupported protocol
+    version by SAS.
+
+    The response should be FAIL, code 100.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['response']['responseCode'], 0)
+    grant_id = response['grantId']
+    del request, response
+
+    # Save SAS version
+    version = self._sas._sas_version
+    # Use higher than supported version
+    self._sas._sas_version = 'v2.0'
+
+    # First Heartbeat with unsupported SAS-CBSD protocol version
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    try:
+        response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+        # Check the heartbeat response
+        self.assertEqual(response['response']['responseCode'], 100)
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
+    finally:
+        # Put SAS version back
+        self._sas._sas_version = version
+
+  @winnforum_testcase
   def test_10_9_4_2_3_1_1(self):
     """CBSD heartbeat request with missing cbsdId parameter.
 
