@@ -401,13 +401,12 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
-    response_1 = self._sas.Registration(request)['registrationResponse'][0]
-    response_2 = self._sas.Registration(request)['registrationResponse'][1]
+    response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    self.assertEqual(response_1['response']['responseCode'], 0)
-    self.assertEqual(response_2['response']['responseCode'], 0)
-    cbsd_ids = (response_1['cbsdId'], response_2['cbsdId'])
-    del request, response_1, response_2
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    self.assertEqual(response[1]['response']['responseCode'], 0)
+    cbsd_ids = (response[0]['cbsdId'], response[1]['cbsdId'])
+    del request, response
 
     # Create Invalid Spectrum Inquiry requests
     spectrum_inquiry_1 = json.load(
