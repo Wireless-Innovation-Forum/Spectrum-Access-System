@@ -591,18 +591,12 @@ class RegistrationTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-
-    # Inject FCC IDs
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-
-    # Register devices
     devices = [device_a, device_b, device_c]
+    for device in devices:
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
     request = {'registrationRequest': devices}
-    response = self._sas.Registration(request)
-
     try:
+        response = self._sas.Registration(request)
         # Check response
         for resp in response['registrationResponse']:
             try:
