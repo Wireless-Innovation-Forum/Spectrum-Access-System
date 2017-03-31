@@ -241,10 +241,8 @@ class RelinquishmentTestcase(unittest.TestCase):
     # Register the device
     device_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2['fccId'] = "test_fcc_id_2"
     device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_4['fccId'] = "test_fcc_id_4"
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_4['fccId']})
     request = {'registrationRequest': [device_2, device_4]}
