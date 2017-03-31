@@ -551,70 +551,60 @@ class RegistrationTestcase(unittest.TestCase):
     """
 
     # Load the devices
-    device_1 = json.load(
+    device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
+    device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(
+    device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_4 = json.load(
+    device_f = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_5 = json.load(
+    device_g = json.load(
         open(os.path.join('testcases', 'testdata', 'device_g.json')))
-    device_6 = json.load(
+    device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    devices = [device_a, device_c, device_e, device_f, device_g, device_b]
 
-    # meascapability has no value for all devices
-    device_1['measCapability'] = []
-    device_2['measCapability'] = []
-    device_3['measCapability'] = []
-    device_4['measCapability'] = []
-    device_5['measCapability'] = []
-    device_6['measCapability'] = []
+    for device in devices:
+        # meascapability has no value for all devices
+        device['measCapability'] = []
+        # Inject FCC IDs
+        self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
 
     # Device 1 Cat A
-    self.assertEqual(device_1['cbsdCategory'], 'A')
+    self.assertEqual(device_a['cbsdCategory'], 'A')
 
     # Device 2 Cat A invalid cbsdSerialNumber - above max length of 64 octets
-    self.assertEqual(device_2['cbsdCategory'], 'A')
-    device_2['cbsdSerialNumber'] = 'a' * 65
+    self.assertEqual(device_c['cbsdCategory'], 'A')
+    device_c['cbsdSerialNumber'] = 'a' * 65
 
     # Device 3 Cat A invalid fccId - above max length of 19 chars
-    self.assertEqual(device_3['cbsdCategory'], 'A')
-    device_3['fccId'] = 'a' * 20
+    self.assertEqual(device_e['cbsdCategory'], 'A')
+    device_e['fccId'] = 'a' * 20
 
     # Device 4 Cat A invalid userId - invalid char (RFC-7542 Section 2.2)
-    self.assertEqual(device_4['cbsdCategory'], 'A')
-    device_4['userId'] = '^'
+    self.assertEqual(device_f['cbsdCategory'], 'A')
+    device_f['userId'] = '^'
 
     # Device 5 Cat A invalid latitude - invalid type
-    self.assertEqual(device_5['cbsdCategory'], 'A')
-    device_5['installationParam']['latitude'] = 'abc'
+    self.assertEqual(device_g['cbsdCategory'], 'A')
+    device_g['installationParam']['latitude'] = 91
 
     # Device 6 Cat B
-    self.assertEqual(device_6['cbsdCategory'], 'B')
-    device_6['installationParam']['eirpCapability'] = 48
-
-    # Inject FCC IDs
-    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_3['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_4['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_5['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_6['fccId']})
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    device_b['installationParam']['eirpCapability'] = 48
 
     # Pre-load conditionals for Device 6
-    conditionals_6 = {'registrationData': [
-        {'cbsdCategory': device_6['cbsdCategory'],
-         'fccId': device_6['fccId'],
-         'cbsdSerialNumber': device_6['cbsdSerialNumber'],
-         'airInterface': device_6['airInterface'],
-         'installationParam': device_6['installationParam']}
+    conditionals_b = {'registrationData': [
+        {'cbsdCategory': device_b['cbsdCategory'],
+         'fccId': device_b['fccId'],
+         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+         'airInterface': device_b['airInterface'],
+         'installationParam': device_b['installationParam']}
     ]}
-    self._sas_admin.PreloadRegistrationData([conditionals_6])
+    self._sas_admin.PreloadRegistrationData([conditionals_b])
 
     # Register devices
-    devices = [device_1, device_2, device_3, device_4, device_5, device_6]
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)
     # Check registration response
