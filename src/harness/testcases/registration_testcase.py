@@ -574,7 +574,7 @@ class RegistrationTestcase(unittest.TestCase):
     ]}
 
     # Device 2 Cat A out-of-range or the wrong type azimuth
-    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_c['cbsdCategory'], 'A')
     conditionals_c = {'registrationData': [
         {'cbsdCategory': device_c['cbsdCategory'],
          'fccId': device_c['fccId'],
@@ -585,7 +585,7 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_c['registrationData'][0]['installationParam']['azimuth'] = -1
 
     # Device 3 Cat A out-of-range, or the wrong Type value for latitude.
-    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_e['cbsdCategory'], 'A')
     conditionals_e = {'registrationData': [
         {'cbsdCategory': device_e['cbsdCategory'],
          'fccId': device_e['fccId'],
@@ -593,7 +593,7 @@ class RegistrationTestcase(unittest.TestCase):
          'airInterface': device_e['airInterface'],
          'installationParam': device_e['installationParam']}
     ]}
-    conditionals_e['registrationData'][0]['installationParam']['latitude'] = 'a'
+    conditionals_e['registrationData'][0]['installationParam']['latitude'] = '91'
 
     conditionals = [conditionals_a, conditionals_c, conditionals_e];
     self._sas_admin.PreloadRegistrationData(conditionals)
