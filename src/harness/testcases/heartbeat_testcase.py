@@ -162,7 +162,7 @@ class HeartbeatTestcase(unittest.TestCase):
     # Check registration response
     for resp in response:
         self.assertEqual(resp['response']['responseCode'], 0)
-    cbsd_ids = (response[0]['cbsdId'], response[1]['cbsdId'], response[2]['cbsdId'])
+    cbsd_ids = [resp['cbsdId'] for resp in response]
     del request, response
 
     # Request grant
@@ -172,13 +172,9 @@ class HeartbeatTestcase(unittest.TestCase):
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_ids[1]
-    grant_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3631000000.0
-    grant_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3640000000.0
     grant_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_2['cbsdId'] = cbsd_ids[2]
-    grant_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3641000000.0
-    grant_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3650000000.0
     request = {'grantRequest': [grant_0, grant_1, grant_2]}
     # Check grant response
     response = self._sas.Grant(request)['grantResponse']
