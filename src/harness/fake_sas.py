@@ -113,12 +113,19 @@ class FakeSas(sas_interface.SasInterface):
           'response': self._GetMissingParamResponse()
         })
       else :
-        response['grantResponse'].append({
-          'cbsdId': req['cbsdId'],
-          'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
-          'channelType': 'GAA',
-          'response': self._GetSuccessResponse()
-        })
+        if (('highFrequency' not in req['operationParam']['operationFrequencyRange']) or \
+           ('lowFrequency' not in req['operationParam']['operationFrequencyRange'])) :
+           response['grantResponse'].append({
+             'cbsdId': req['cbsdId'],
+             'response': self._GetMissingParamResponse()
+           })
+        else:   
+          response['grantResponse'].append({
+            'cbsdId': req['cbsdId'],
+            'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
+            'channelType': 'GAA',
+            'response': self._GetSuccessResponse()
+          })
     return response
 
   def Heartbeat(self, request, ssl_cert=None, ssl_key=None):
