@@ -159,8 +159,8 @@ class GrantTestcase(unittest.TestCase):
     self.assertFalse('grantId' in response)
     self.assertTrue((response['response']['responseCode'] == 102) or \
                     (response['response']['responseCode'] == 105))
-					
-  @winnforum_testcase
+
+    @winnforum_testcase
   def test_WINFF_FT_S_GRA_8(self):
     """CBSD grant request with missing operationParams.
 
