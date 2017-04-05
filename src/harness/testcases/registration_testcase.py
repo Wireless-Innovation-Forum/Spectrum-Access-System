@@ -182,6 +182,7 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
+    self.assertTrue('cbsdId' in response)
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
@@ -195,7 +196,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue('cbsdId' in response)
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
-    self.assertTrue(cbsdId == response['cbsdId'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_5(self):
