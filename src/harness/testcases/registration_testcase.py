@@ -779,6 +779,7 @@ class RegistrationTestcase(unittest.TestCase):
         # Put sas version back
         self._sas._sas_version = version
 
+
   @winnforum_testcase
   def test_WINNF_FT_S_REG_20(self):
     """Unsupported SAS protocol version in Array request (responseCode 100)
@@ -805,12 +806,11 @@ class RegistrationTestcase(unittest.TestCase):
         response = self._sas.Registration(request)
         # Check response
         for resp in response['registrationResponse']:
-            try:
-                self.assertEqual(resp['response']['responseCode'], 100)
-                self.assertFalse('cbsdId' in resp)
-            except AssertionError as e:
-                # Allow HTTP status 404
-                self.assertEqual(e.args[0], 404)
+            self.assertEqual(resp['response']['responseCode'], 100)
+            self.assertFalse('cbsdId' in resp)
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
     finally:
         # Put sas version back
         self._sas._sas_version = version
