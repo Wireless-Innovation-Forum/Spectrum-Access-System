@@ -835,7 +835,7 @@ class RegistrationTestcase(unittest.TestCase):
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
 
     # Register device
-    request = {'registrationRequest': device_a}
+    request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check response
     self.assertTrue(response['response']['responseCode'] in (103, 201))
