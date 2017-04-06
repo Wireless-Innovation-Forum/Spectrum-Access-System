@@ -82,10 +82,15 @@ class FakeSas(sas_interface.SasInterface):
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     response = {'registrationResponse': []}
     for req in request['registrationRequest']:
+      if 'fccId' not in req or 'cbsdSerialNumber' not in req:
+        response['registrationResponse'].append({
+            'response': self._GetSuccessResponse()
+        })
+        continue
       response['registrationResponse'].append({
-          'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
-          'response': self._GetSuccessResponse()
-      })
+        'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
+        'response': self._GetSuccessResponse()
+    })
     return response
 
   def SpectrumInquiry(self, request, ssl_cert=None, ssl_key=None):
