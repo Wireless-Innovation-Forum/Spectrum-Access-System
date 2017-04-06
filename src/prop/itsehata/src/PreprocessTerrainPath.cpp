@@ -329,8 +329,8 @@ void SingleHorizonTest(float *pfl, float h_m__meter, float h_b__meter, InterValu
 
     FindHorizons(pfl, gme, d__meter, h_m__meter, h_b__meter, interValues->d_hzn__meter);
 
-    float a = interValues->d_hzn__meter[0];
-    float b = interValues->d_hzn__meter[1];
+    // float a = interValues->d_hzn__meter[0];
+    // float b = interValues->d_hzn__meter[1];
     float d_diff__meter = d__meter - interValues->d_hzn__meter[0] - interValues->d_hzn__meter[1];
     float q = MAX(d_diff__meter - 0.5*pfl[1], 0) - MAX(-d_diff__meter - 0.5*pfl[1], 0);
     if (q != 0.0)
