@@ -192,12 +192,10 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path == '/admin/reset':
-      response = ''
-    elif self.path == '/admin/injectdata/fccId':
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration'):
       response = ''
     else:
-      self.send_response(400)
+      self.send_response(404)
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
