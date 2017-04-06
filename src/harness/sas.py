@@ -131,6 +131,21 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
+  def InjectEscZone(self, request):
+    _Request('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerEscZone(self, request):
+    _Request('https://%s/admin/trigger/esc_detection' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
+  def ResetEscZone(self, request):
+    _Request('https://%s/admin/trigger/esc_reset' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+    
   def PreloadRegistrationData(self, request):
     _Request('https://%s/admin/injectdata/registration' % self._base_url,
              request, self._GetDefaultAdminSSLCertPath(),
