@@ -1,15 +1,6 @@
 #pragma once
-#ifdef _WIN32
-// Export the DLL functions as "C" and not C++
-#define DLLEXPORT extern "C" __declspec(dllexport)
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
-#ifdef __linux__
-#define DLLEXPORT 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
 
 struct InterValues
 {
@@ -46,8 +37,8 @@ struct InterValues
 #define PI 3.14159265358979323846
 
 // public
-DLLEXPORT void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb);
-DLLEXPORT void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb, InterValues *interValues);
+void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb);
+void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb, InterValues *interValues);
 
 // private
 void FindAverageGroundHeight(float *pfl, InterValues *interValues);
