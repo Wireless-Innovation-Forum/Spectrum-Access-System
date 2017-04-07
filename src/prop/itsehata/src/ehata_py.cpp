@@ -51,14 +51,16 @@ static PyObject* ehata_point_to_point(PyObject* self, PyObject* args) {
                    &dbloss, &dbg_vals);
   delete[] elev;
 
-  return Py_BuildValue("dddddddddddddddddbddi", dbloss,
+  return Py_BuildValue("dddddddddddddddddddbddi", dbloss,
 		       (double)dbg_vals.d_bp__km, (double)dbg_vals.att_1km, (double)dbg_vals.att_100km,
 		       (double)dbg_vals.h_b_eff__meter, (double)dbg_vals.h_m_eff__meter,
 		       (double)dbg_vals.pfl10__meter, (double)dbg_vals.pfl50__meter,
 		       (double)dbg_vals.pfl90__meter, (double)dbg_vals.deltah__meter,
-		       (double)dbg_vals.d__km, (double)dbg_vals.d_hzn__meter[2],
+		       (double)dbg_vals.d__km,
+		       (double)dbg_vals.d_hzn__meter[0], (double)dbg_vals.d_hzn__meter[1],
+		       (double)dbg_vals.h_avg__meter[0], (double)dbg_vals.h_avg__meter[1],
 		       (double)dbg_vals.theta_m__mrad, (double)dbg_vals.beta, (double)dbg_vals.iend_ov_sea,
-		       (double)dbg_vals.iend_ov_sea, (double)dbg_vals.hedge_tilda, dbg_vals.single_horizon,
+		       (double)dbg_vals.hedge_tilda, dbg_vals.single_horizon,
 		       (double)dbg_vals.slope_max, (double)dbg_vals.slope_min, dbg_vals.trace_code);
 }
 
