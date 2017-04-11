@@ -176,7 +176,15 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
-
+  def InjectEscZone(self, request, ssl_cert=None, ssl_key=None)
+    zoneData = req['zoneDate']
+    if(zoneData['usage'] == 'EXCLUSION_ZONE'):
+      idAttributes = zoneData['id'].split('/')
+      zoneId = ''; 
+     for zoneIdPart in idAttributes[4 : len(idAttributes)]:
+       zoneId+=zoneIdPart
+     return {'zone_id' : zoneId}
+		
 class FakeSasHandler(BaseHTTPRequestHandler):
 
   def do_POST(self):
@@ -197,8 +205,12 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration'):
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration', '/admin/trigger/esc_reset'):
       response = ''
+    elif self.path == '/admin/injectdata/esc_zone':
+      response = FakeSas().InjectEscZone(request)
+    elif self.path == '/admin/trigger/esc_detection/':
+	  response = {'trigger_id': 'fake_trigger_id'}
     else:
       self.send_response(404)
       return

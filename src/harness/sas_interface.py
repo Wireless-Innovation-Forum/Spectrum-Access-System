@@ -154,8 +154,7 @@ class SasInterface(object):
       deregistration responses (each of which is itself a dictionary).
     """
     pass
-
-
+	
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
 
@@ -178,6 +177,39 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def InjectEscZone(self, request):
+    """SAS admin interface to inject fcc id information into SAS under test.
+    Args:
+      request: ey-value pair where the key is
+        "zoneData" and the value is  he information of the zone as specified in specified in SAS-SAS TS:
+		id	string with format zone/$CREATOR/$ZONE_ID
+		creator	string, Format: Human-readable string
+		usage string	•	Format: Enumeration (“CENSUS_TRACT”, “PPA”, “EXCLUSION_ZONE”)
+		ppaInfo	object: PPAInformation	For zones of type “PPA” this field should be included.
+		zone object: GeoJSON  
+		example : 
+			{"zoneDate" :
+			{id : "zone/exclusion_zone/ntia/2017_04_10/ZONE_ID_Example",
+			 creator : "SAS_Administrator_example",
+			 usage : “EXCLUSION_ZONE”,
+			 zone :     {
+					 "type": "Polygon",
+					 "coordinates": [
+						 [
+							 [100.0, 0.0],
+							 [101.0, 0.0],
+							 [101.0, 1.0],
+							 [100.0, 1.0],
+							 [100.0, 0.0]
+						 ]
+					 ]
+				 }}}
+	Returns: string zone_id
+	Behavior: SAS should act as if it has an ESC with the corresponding zone.
+    """
+    pass
+
+  @abc.abstractmethod
   def PreloadRegistrationData(self, request):
     """SAS admin interface to preload registration data into SAS under test.
 
@@ -189,4 +221,26 @@ class SasAdminInterface(object):
         the fccId and cbsdSerialNumber fields are required, other fields are
         optional.
     """
-    pass
+    pass	
+	
+  @abc.abstractmethod
+  def TriggerEscZone(self, request):
+	"""SAS admin interface to Trigger Esc Zone in SAS under test.
+	Args:
+		  request: A dictionary with a single key-value pair where one key is
+			"zone_id" a value of string type.
+			the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS                          SAS-CBSD TS  
+	Returns: string trigger_id
+	"""
+	pass
+	
+  @abc.abstractmethod
+  def ResetEscZone(self, request):
+
+	"""SAS admin interface to reset the Trigger of Esc Zone in SAS under test.
+	Args:
+		request: A dictionary with a single key-value pair where one key is
+		"trigger_id" with a value of string type.
+		the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS                          SAS-CBSD TS  
+	"""
+	pass
