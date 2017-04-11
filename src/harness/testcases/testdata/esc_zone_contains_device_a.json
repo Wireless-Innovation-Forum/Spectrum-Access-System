@@ -1,0 +1,16 @@
+{id : "zone/exclusion_zone/ntia/2017_04_10/ZONE_ID_Example",
+			 creator : "SAS_Administrator_Test",
+			 usage : “EXCLUSION_ZONE”,
+			 zone :
+			 {
+					 "type": "Polygon",
+					 "coordinates": [
+						 [
+						 [37.525056, -122.284112],
+						 [37.125056, -122.284112],
+                         [37.125056, -121.884112],
+						 [37.525056, -121.884112]
+						 ]
+					 ]
+			}
+}
