@@ -644,7 +644,7 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device 4 Cat A invalid userId - invalid char (RFC-7542 Section 2.2)
     self.assertEqual(device_f['cbsdCategory'], 'A')
-    device_f['userId'] = '^'
+    device_f['userId'] = '@'
 
     # Device 5 Cat A invalid latitude - invalid type
     self.assertEqual(device_g['cbsdCategory'], 'A')
