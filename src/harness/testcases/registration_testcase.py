@@ -515,7 +515,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 200)
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    device_a['airInterface']['radioTechnology'] = 'invalid value'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
