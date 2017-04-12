@@ -487,10 +487,10 @@ class GrantTestcase(unittest.TestCase):
     """
     # Register two devices
     device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
     response = self._sas.Registration(request)['registrationResponse']
@@ -536,10 +536,10 @@ class GrantTestcase(unittest.TestCase):
     """
     # Register two devices
     device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
     response = self._sas.Registration(request)['registrationResponse']
