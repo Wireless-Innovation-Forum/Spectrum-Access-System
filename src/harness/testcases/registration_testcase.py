@@ -515,7 +515,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 200)
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    device_a['airInterface']['radioTechnology'] = 'invalid value'
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -644,7 +643,7 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device 4 Cat A invalid userId - invalid char (RFC-7542 Section 2.2)
     self.assertEqual(device_f['cbsdCategory'], 'A')
-    device_f['userId'] = '^'
+    device_f['userId'] = '@'
 
     # Device 5 Cat A invalid latitude - invalid type
     self.assertEqual(device_g['cbsdCategory'], 'A')
