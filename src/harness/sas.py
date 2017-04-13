@@ -132,12 +132,12 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLKeyPath())
 
   def InjectEscZone(self, request):
-    _Request('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
+    return _Request('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
   def TriggerEscZone(self, request):
-    _Request('https://%s/admin/trigger/esc_detection' % self._base_url, request,
+    return _Request('https://%s/admin/trigger/esc_detection' % self._base_url, request,
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 

@@ -188,7 +188,7 @@ class SasAdminInterface(object):
 		ppaInfo	object: PPAInformation	For zones of type “PPA” this field should be included.
 		zone object: GeoJSON  
 		example : 
-			{"zoneDate" :
+			{"zone" :
 			{id : "zone/exclusion_zone/ntia/2017_04_10/ZONE_ID_Example",
 			 creator : "SAS_Administrator_example",
 			 usage : “EXCLUSION_ZONE”,
