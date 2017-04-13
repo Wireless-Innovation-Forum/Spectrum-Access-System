@@ -30,7 +30,7 @@ class DeregistrationTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_1(self):
+  def test_WINNF_FT_S_DER_1(self):
     """Successful CBSD deregistration request.
 
     CBSD sends deregistration request to SAS with its correct and valid CBSD
@@ -56,7 +56,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_2(self):
+  def test_WINNF_FT_S_DER_2(self):
     """Valid and correct CBSD ID: two deregistrationRequest objects
 
 
@@ -94,7 +94,7 @@ class DeregistrationTestcase(unittest.TestCase):
       self.assertEqual(response[x]['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_3(self):
+  def test_WINNF_FT_S_DER_3(self):
     """CBSD deregistration request with missing required parameter.
 
     The required parameter 'cbsdId' is missing in a deregistration request,
@@ -119,7 +119,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertIn(response['response']['responseCode'], [102, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_4(self):
+  def test_WINNF_FT_S_DER_4(self):
     """Missing CBSD ID: two objects in the DeregistrationRequest.
 
     CBSD sends Deregistration Request with two objects to the SAS, first
@@ -157,7 +157,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertIn(response[1]['response']['responseCode'], [102, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_5(self):
+  def test_WINNF_FT_S_DER_5(self):
     """CBSD deregistration request when CBSD ID does not exist in SAS.
 
     CBSD sends deregistration request when its CBSD ID is not in SAS,
@@ -172,7 +172,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertIn(response['response']['responseCode'], [103, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_6(self):
+  def test_WINNF_FT_S_DER_6(self):
     """CBSD ID initially exists, CBSD deregisters first by sending
     Deregistration request. Then sends another Deregistration request
     to check that SAS indeed erased the CBSD information from its
@@ -210,7 +210,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_7(self):
+  def test_WINNF_FT_S_DER_7(self):
     """CBSD ID value invalid: two request objects.
 
     CBSD sends deregistration request to SAS with two objects in which
@@ -243,7 +243,7 @@ class DeregistrationTestcase(unittest.TestCase):
     self.assertIn(response[1]['response']['responseCode'], [103, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_DER_8(self):
+  def test_WINNF_FT_S_DER_8(self):
     """CBSD ID initially exists with a grant, CBSD deregisters,
     then re-registers and attempts to use the old grant ID. This
     is to verify SAS deletes grants on deregistration.
