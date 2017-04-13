@@ -17,5 +17,7 @@
     "antennaBeamwidth": 30,
     "antennaAzimuth": 270,
     "antennaDowntilt": -90
-  }
+  },
+  "measCapability": [
+  ]
 }
