@@ -153,7 +153,7 @@ class GrantTestcase(unittest.TestCase):
     # Create and trigger the ESC Zone
     esc_zone_not_contain_device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'esc_zone_not_contain_device_a.json')))
-    zoneMessage = {'zoneData':esc_zone_not_contain_device_a}
+    zoneMessage = {'zone':esc_zone_not_contain_device_a}
     responseZone = self._sas_admin.InjectEscZone(zoneMessage)
     trigger_esc_zone_request = {'zone_id': responseZone['zone_id'],
                                     'frequency_range': {
@@ -196,7 +196,7 @@ class GrantTestcase(unittest.TestCase):
 
     esc_zone_contains_device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'esc_zone_contains_device_a.json')))
-    zoneMessage = {'zoneData':esc_zone_contains_device_a}
+    zoneMessage = {'zone':esc_zone_contains_device_a}
     responseZone = self._sas_admin.InjectEscZone(zoneMessage)
     trigger_esc_zone_request = {'zone_id': responseZone['zone_id'],
                                     'frequency_range': {

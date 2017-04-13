@@ -178,20 +178,20 @@ class SasAdminInterface(object):
 
   @abc.abstractmethod
   def InjectEscZone(self, request):
-    """SAS admin interface to inject fcc id information into SAS under test.
+    """SAS admin interface to inject EscZone information into SAS under test.
     Args:
       request: ey-value pair where the key is
-        "zoneData" and the value is  he information of the zone as specified in specified in SAS-SAS TS:
+        "zone" and the value is  he information of the zone of type ZoneData as specified in specified in SAS-SAS TS:
 		id	string with format zone/$CREATOR/$ZONE_ID
 		creator	string, Format: Human-readable string
-		usage string	•	Format: Enumeration (“CENSUS_TRACT”, “PPA”, “EXCLUSION_ZONE”)
-		ppaInfo	object: PPAInformation	For zones of type “PPA” this field should be included.
+		usage string Format: Enumeration ("CENSUS_TRACT", "PPA", "EXCLUSION_ZONE")
+		ppaInfo	object: PPAInformation	For zones of type "PPA" this field should be included.
 		zone object: GeoJSON  
 		example : 
 			{"zone" :
 			{id : "zone/exclusion_zone/ntia/2017_04_10/ZONE_ID_Example",
 			 creator : "SAS_Administrator_example",
-			 usage : “EXCLUSION_ZONE”,
+			 usage : "EXCLUSION_ZONE",
 			 zone :     {
 					 "type": "Polygon",
 					 "coordinates": [
@@ -229,7 +229,7 @@ class SasAdminInterface(object):
 	Args:
 		  request: A dictionary with a single key-value pair where one key is
 			"zone_id" a value of string type.
-			the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS                          SAS-CBSD TS  
+			the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS
 	Returns: string trigger_id
 	"""
 	pass
@@ -241,6 +241,6 @@ class SasAdminInterface(object):
 	Args:
 		request: A dictionary with a single key-value pair where one key is
 		"trigger_id" with a value of string type.
-		the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS                          SAS-CBSD TS  
+		the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS  
 	"""
 	pass
