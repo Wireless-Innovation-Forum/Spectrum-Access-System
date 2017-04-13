@@ -297,13 +297,14 @@ class DeregistrationTestcase(unittest.TestCase):
     # Check the deregistration response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    del request, response, cbsd_id
 
     # Re-register the device
     request = {'registrationRequest': [device]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
     del request, response
 
     # Send heartbeat
