@@ -136,6 +136,17 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
+  def BlacklistByFccId(self, request):
+    _Request('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
+  def BlacklistByFccIdAndSerialNumber(self, request):
+    _Request('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
+             self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
   def TriggerEscZone(self, request):
     _Request('https://%s/admin/trigger/esc_detection' % self._base_url, request,
              self._GetDefaultAdminSSLCertPath(),

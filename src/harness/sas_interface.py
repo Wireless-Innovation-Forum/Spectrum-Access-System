@@ -178,6 +178,28 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def BlacklistByFccId(self, request):
+    """Inject an FCC ID which will be blacklisted by the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "fccId" and the value is the FCC ID (string) to be blacklisted.
+    """
+    pass
+
+  @abc.abstractmethod
+  def BlacklistByFccIdAndSerialNumber(self, request):
+    """Inject an (FCC ID, serial number) pair which will be blacklisted by the
+       SAS under test.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) blacklisted FCC ID
+        "serialNumber": (string) blacklisted serial number
+    """
+    pass
+
+  @abc.abstractmethod
   def PreloadRegistrationData(self, request):
     """SAS admin interface to preload registration data into SAS under test.
 

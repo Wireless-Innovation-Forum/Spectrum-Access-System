@@ -478,3 +478,140 @@ class GrantTestcase(unittest.TestCase):
       self.assertTrue('grantId' in resp)
       self._assert_valid_response_format_for_approved_grant(resp)
       self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_26(self):
+    """Two grant requests. #1 Successful, #2 Unsuccessful.
+
+    Returns 0 (NO_ERROR) for successful and 103 (INVALID_VALUE) for unsuccessful
+    """
+    # Register two devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    # 1. valid
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    # 2. with lowFrequency > highFrequency
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertGreater(len(response[0]['grantId']), 0)
+    self._assert_valid_response_format_for_approved_grant(response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_27(self):
+    """Two grant requests. Both Unsuccessful.
+
+    Returns 102 (MISSING_PARAM) for unsuccessful for first request
+            103 (INVALID_VALUE) for second request
+    """
+    # Register two devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    request = {'registrationRequest': [device_a, device_b]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    #1. maxEirp is missing
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    del grant_0['operationParam']['maxEirp']
+    #2 lowFrequency is greater than the highFrequency
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertFalse('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 102)
+
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_28(self):
+    """Two grant requests for overlapping frequency range.
+
+    Returns 401 (GRANT_CONFLICT) for at least one request
+    """
+    # Register a device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Prepare grant requests with overlapping frequency range
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3565000000.0,
+        'highFrequency': 3567000000.0
+    }
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_id
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3566000000.0,
+        'highFrequency': 3568000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    self.assertEqual(response[0]['cbsdId'], cbsd_id)
+    self.assertEqual(response[1]['cbsdId'], cbsd_id)
+    self.assertTrue(response[0]['response']['responseCode'] == 401
+                    or response[1]['response']['responseCode'] == 401)
