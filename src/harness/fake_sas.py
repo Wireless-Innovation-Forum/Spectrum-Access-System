@@ -177,14 +177,15 @@ class FakeSas(sas_interface.SasInterface):
     return {'responseCode': MISSING_PARAM}
 
   def InjectEscZone(self, request, ssl_cert=None, ssl_key=None)
-    zoneData = req['zoneDate']
-    if(zoneData['usage'] == 'EXCLUSION_ZONE'):
-      idAttributes = zoneData['id'].split('/')
-      zoneId = ''; 
-     for zoneIdPart in idAttributes[4 : len(idAttributes)]:
-       zoneId+=zoneIdPart
-     return {'zone_id' : zoneId}
-		
+    zone_data = request['zoneData']
+    if(zone_data['usage'] == 'EXCLUSION_ZONE'):
+      id_attributes = zone_data['id'].split('/')
+      zone_id = ''; 
+      for zone_id_part in id_attributes[4 : len(id_attributes)]:
+        zone_id += zone_id_part
+      return {'zone_id' : zone_id}
+	return ''
+        
 class FakeSasHandler(BaseHTTPRequestHandler):
 
   def do_POST(self):

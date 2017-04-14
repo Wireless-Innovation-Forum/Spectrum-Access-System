@@ -136,7 +136,6 @@ class GrantTestcase(unittest.TestCase):
  @winnforum_testcase
   def test_WINFF_FT_S_GRA_2(self):
     """Successful CBSD grant request.
-
     Incumbent is present in the GAA frequency range requested by the
     CBSD which is outside the protection zone..
     """
@@ -153,9 +152,9 @@ class GrantTestcase(unittest.TestCase):
     # Create and trigger the ESC Zone
     esc_zone_not_contain_device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'esc_zone_not_contain_device_a.json')))
-    zoneMessage = {'zone':esc_zone_not_contain_device_a}
-    responseZone = self._sas_admin.InjectEscZone(zoneMessage)
-    trigger_esc_zone_request = {'zone_id': responseZone['zone_id'],
+    zone_request= {'zone':esc_zone_not_contain_device_a}
+    zone_response = self._sas_admin.InjectEscZone(zone_request)
+    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
                                     'frequency_range': {
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
@@ -175,7 +174,6 @@ class GrantTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINFF_FT_S_GRA_3(self):
     """Successful CBSD grant request.
-
     Federal Incumbent is present in the GAA frequency range requested by
     the CBSD which is inside the protection zone of Federal Incumbent.
     """
@@ -193,12 +191,11 @@ class GrantTestcase(unittest.TestCase):
     cbsd_id = response['cbsdId']
     del request, response
     # Create and trigger the ESC Zone
-
     esc_zone_contains_device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'esc_zone_contains_device_a.json')))
-    zoneMessage = {'zone':esc_zone_contains_device_a}
-    responseZone = self._sas_admin.InjectEscZone(zoneMessage)
-    trigger_esc_zone_request = {'zone_id': responseZone['zone_id'],
+    zone_request = {'zone':esc_zone_contains_device_a}
+    zone_response = self._sas_admin.InjectEscZone(zone_request)
+    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
                                     'frequency_range': {
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
