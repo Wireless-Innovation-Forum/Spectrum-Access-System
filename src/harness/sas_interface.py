@@ -212,3 +212,28 @@ class SasAdminInterface(object):
         optional.
     """
     pass
+  @abc.abstractmethod
+  def InjectFss(self, request):
+      """SAS admin interface to inject FSS information into SAS under test.
+
+      Args:
+          request: A dictionary with a single key-value pair where the key is
+          "fssData" and the value is a fixed satellite service object
+          (which is itself a dictionary). The dictionary is an
+          IncumbentProtectionData object (specified in SAS-SAS TS).
+      """
+      pass
+
+  @abc.abstractmethod
+  def InjectWisp(self, request):
+      """SAS admin interface to inject WISP information into SAS under test.
+
+      Args:
+        request: A dictionary with a single key-value pair where the key is
+          "wispData" and the value is a wireless internet service provider
+          object (which is itself a dictionary). The dictionary is an
+          IncumbentProtectionData object (specified in SAS-SAS TS).
+      Note: IncumbentProtectionData must include a zone_id which can be
+      obtained by first injecting the WISP zone.
+      """
+      pass
