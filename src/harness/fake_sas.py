@@ -180,7 +180,7 @@ class FakeSas(sas_interface.SasInterface):
     zone_data = request['zoneData']
     if(zone_data['usage'] == 'EXCLUSION_ZONE'):
       id_attributes = zone_data['id'].split('/')
-      zone_id = ''; 
+      zone_id = ''
       for zone_id_part in id_attributes[4 : len(id_attributes)]:
         zone_id += zone_id_part
       return {'zone_id' : zone_id}
@@ -207,7 +207,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration', '/admin/trigger/esc_reset','/admin/injectdata/registration','/admin/injectdata/blacklist_fcc_id','/admin/injectdata/blacklist_fcc_id_and_serial_number'):
-
       response = ''
     elif self.path == '/admin/injectdata/esc_zone':
       response = FakeSas().InjectEscZone(request)
