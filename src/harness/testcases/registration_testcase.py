@@ -737,7 +737,7 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertEqual(resp['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_19(self):
+  def test_WINNF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
     The response should be FAILURE.
