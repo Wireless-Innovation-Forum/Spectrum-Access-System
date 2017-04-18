@@ -749,6 +749,70 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertEqual(resp['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_REG_17(self):
+    """Blacklisted CBSD (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Pre-load conditional parameters
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # Register the device
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    # Blacklist the device
+    self._sas_admin.BlacklistByFccId({'fccId':device_a['fccId']})
+
+    # Re-register the device
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 101)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_18(self):
+    """Blacklisted CBSD in Array request (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    devices = [device_a, device_b, device_c]
+    for device in devices:
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for resp in response:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+    # Blacklist the third device
+    self._sas_admin.BlacklistByFccId({'fccId':device_c['fccId']})
+
+    # Re-register the devices
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    self.assertEqual(response[1]['response']['responseCode'], 0)
+    self.assertEqual(response[2]['response']['responseCode'], 101)
+
+  @winnforum_testcase
   def test_WINFF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
