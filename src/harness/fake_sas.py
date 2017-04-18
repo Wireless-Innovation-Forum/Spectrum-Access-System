@@ -82,10 +82,15 @@ class FakeSas(sas_interface.SasInterface):
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     response = {'registrationResponse': []}
     for req in request['registrationRequest']:
+      if 'fccId' not in req or 'cbsdSerialNumber' not in req:
+        response['registrationResponse'].append({
+            'response': self._GetSuccessResponse()
+        })
+        continue
       response['registrationResponse'].append({
-          'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
-          'response': self._GetSuccessResponse()
-      })
+        'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
+        'response': self._GetSuccessResponse()
+    })
     return response
 
   def SpectrumInquiry(self, request, ssl_cert=None, ssl_key=None):
@@ -192,12 +197,13 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path == '/admin/reset':
-      response = ''
-    elif self.path == '/admin/injectdata/fccId':
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
+                       '/admin/injectdata/registration',
+                       '/admin/injectdata/blacklist_fcc_id',
+                       '/admin/injectdata/blacklist_fcc_id_and_serial_number'):
       response = ''
     else:
-      self.send_response(400)
+      self.send_response(404)
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
