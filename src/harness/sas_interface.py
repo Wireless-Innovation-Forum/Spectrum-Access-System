@@ -154,7 +154,8 @@ class SasInterface(object):
       deregistration responses (each of which is itself a dictionary).
     """
     pass
-	
+
+
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
 
@@ -177,6 +178,28 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+    def BlacklistByFccId(self, request):
+    """Inject an FCC ID which will be blacklisted by the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "fccId" and the value is the FCC ID (string) to be blacklisted.
+    """
+    pass
+
+  @abc.abstractmethod
+  def BlacklistByFccIdAndSerialNumber(self, request):
+    """Inject an (FCC ID, serial number) pair which will be blacklisted by the
+       SAS under test.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) blacklisted FCC ID
+        "serialNumber": (string) blacklisted serial number
+    """
+    pass
+
+  @abc.abstractmethod
   def InjectEscZone(self, request):
     """SAS admin interface to inject EscZone information into SAS under test.
      
@@ -185,6 +208,16 @@ class SasAdminInterface(object):
         "zone" and the value is  he information of the zone of type ZoneData as specified in specified in SAS-SAS TS:
 	Returns: string zone_id
 	Behavior: SAS should act as if it has an ESC with the corresponding zone.
+    """
+    pass
+
+  @abc.abstractmethod
+       SAS under test.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) blacklisted FCC ID
+        "serialNumber": (string) blacklisted serial number
     """
     pass
 

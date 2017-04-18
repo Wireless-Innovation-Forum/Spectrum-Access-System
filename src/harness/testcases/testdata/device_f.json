@@ -16,5 +16,7 @@
     "indoorDeployment": true,
     "antennaGain": 90,
     "antennaBeamwidth": 60
-  }
+  },
+  "measCapability": [
+  ]
 }
