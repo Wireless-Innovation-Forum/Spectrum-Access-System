@@ -755,7 +755,7 @@ class RegistrationTestcase(unittest.TestCase):
     The response should be FAILURE 101.
     """
 
-    # Pre-load conditional parameters
+    # Register device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -765,14 +765,18 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertTrue('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
 
     # Blacklist the device
     self._sas_admin.BlacklistByFccId({'fccId':device_a['fccId']})
 
     # Re-register the device
+    request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
 
     # Check registration response
+    self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 101)
 
   @winnforum_testcase
@@ -792,12 +796,15 @@ class RegistrationTestcase(unittest.TestCase):
     devices = [device_a, device_b, device_c]
     for device in devices:
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
+        device['measCapability'] = []
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
+    cbsd_ids = []
     for resp in response:
         self.assertTrue('cbsdId' in resp)
         self.assertEqual(resp['response']['responseCode'], 0)
+        cbsd_ids.append(resp['cbsdId'])
     del request, response
 
     # Blacklist the third device
@@ -808,8 +815,12 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response
-    self.assertEqual(response[0]['response']['responseCode'], 0)
-    self.assertEqual(response[1]['response']['responseCode'], 0)
+    self.assertEqual(len(response), len(devices))
+    for response_num, resp in enumerate(response[:2]):
+        self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+    self.assertFalse('measReportConfig' in response[2])
     self.assertEqual(response[2]['response']['responseCode'], 101)
 
   @winnforum_testcase
