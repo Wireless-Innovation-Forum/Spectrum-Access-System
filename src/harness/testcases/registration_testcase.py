@@ -454,7 +454,7 @@ class RegistrationTestcase(unittest.TestCase):
         'fccId': device_c['fccId'],
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'], 
-         'installationParam': device_c['installationParam']}
+        'installationParam': device_c['installationParam']}
     conditionals_d = {
         'cbsdCategory': device_d['cbsdCategory'], 
         'fccId': device_d['fccId'],
@@ -559,15 +559,15 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device #4 is Category B with one conditional missing and conditionals pre-loaded
     self.assertTrue(device_d['cbsdCategory'], 'B')
-    conditionals_d = {'registrationData': [
-        {'cbsdCategory': device_d['cbsdCategory'],
-         'fccId': device_d['fccId'],
-         'cbsdSerialNumber': device_d['cbsdSerialNumber'],
-         'airInterface': device_d['airInterface'],
-         'installationParam': device_d['installationParam']}
-    ]}
-    del conditionals_d['registrationData'][0]['installationParam']['antennaBeamwidth']
-    self._sas_admin.PreloadRegistrationData(conditionals_d)
+    conditionals_d = {
+        'cbsdCategory': device_d['cbsdCategory'],
+        'fccId': device_d['fccId'],
+        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
+        'airInterface': device_d['airInterface'],
+        'installationParam': device_d['installationParam']}
+    del conditionals_d['installationParam']['antennaBeamwidth']
+    conditionals = {'registrationData': [conditionals_d]}    
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC ID's
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
