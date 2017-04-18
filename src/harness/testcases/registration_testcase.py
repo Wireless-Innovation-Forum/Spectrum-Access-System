@@ -38,15 +38,15 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    conditionals = {'registrationData': [
-        {'cbsdCategory': 'A',
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'], 
-         'installationParam': device_a['installationParam']}
-    ]}
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    conditionals_a = {
+        'cbsdCategory': 'A',
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'], 
+        'installationParam': device_a['installationParam']}
+    conditionals = {'registrationData': [conditionals_a]}
     self._sas_admin.PreloadRegistrationData(conditionals)
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     # Register the device
     del device_a['cbsdCategory']
     del device_a['airInterface']
@@ -69,13 +69,14 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    conditionals = {'registrationData': [
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    conditionals_b = {'registrationData': [
         {'cbsdCategory': 'B', 'fccId': device_b['fccId'],
          'cbsdSerialNumber': device_b['cbsdSerialNumber'],
          'airInterface': device_b['airInterface'], 
          'installationParam': device_b['installationParam']}
     ]}
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    conditionals = {'registrationData': [conditionals_b]}
     self._sas_admin.PreloadRegistrationData(conditionals)
     # Register the device
     del device_b['cbsdCategory']
@@ -158,13 +159,14 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    conditionals = {'registrationData': [
+    conditionals_b = {'registrationData': [
         {'cbsdCategory': device_b['cbsdCategory'], 
          'fccId': device_b['fccId'],
          'cbsdSerialNumber': device_b['cbsdSerialNumber'],
          'airInterface': device_b['airInterface'], 
          'installationParam': device_b['installationParam']}
     ]}
+    conditionals = {'registrationData': [conditionals_b]}
     self._sas_admin.PreloadRegistrationData(conditionals)
     
     # Inject FCC ID
@@ -566,7 +568,7 @@ class RegistrationTestcase(unittest.TestCase):
         'airInterface': device_d['airInterface'],
         'installationParam': device_d['installationParam']}
     del conditionals_d['installationParam']['antennaBeamwidth']
-    conditionals = {'registrationData': [conditionals_d]}    
+    conditionals = {'registrationData': [conditionals_d]}
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC ID's
@@ -645,14 +647,14 @@ class RegistrationTestcase(unittest.TestCase):
     device_b['installationParam']['eirpCapability'] = 48
 
     # Pre-load conditionals for Device 6
-    conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'],
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'],
-         'installationParam': device_b['installationParam']}
-    ]}
-    self._sas_admin.PreloadRegistrationData(conditionals_b)
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']}
+    conditionals = {'registrationData': [conditionals_b]}
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Register devices
     request = {'registrationRequest': devices}
@@ -902,14 +904,14 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(device_4['cbsdCategory'], 'B')
 
     # Pre-load conditionals for Device 4
-    conditionals_4 = {'registrationData': [
-        {'cbsdCategory': device_4['cbsdCategory'], 
-         'fccId': device_4['fccId'],
-         'cbsdSerialNumber': device_4['cbsdSerialNumber'],
-         'airInterface': device_4['airInterface'], 
-         'installationParam': device_4['installationParam']}
-    ]}
-    self._sas_admin.PreloadRegistrationData(conditionals_4)
+    conditionals_4 = {
+        'cbsdCategory': device_4['cbsdCategory'], 
+        'fccId': device_4['fccId'],
+        'cbsdSerialNumber': device_4['cbsdSerialNumber'],
+        'airInterface': device_4['airInterface'], 
+        'installationParam': device_4['installationParam']}
+    conditionals = {'registrationData': [conditionals_4]}
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
