@@ -788,11 +788,9 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    cbsd_ids = []
     for resp in response:
         self.assertTrue('cbsdId' in resp)
         self.assertEqual(resp['response']['responseCode'], 0)
-        cbsd_ids.append(resp['cbsdId'])
     del request, response
 
     # Blacklist the third device
