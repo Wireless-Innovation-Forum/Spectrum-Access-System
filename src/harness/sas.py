@@ -158,7 +158,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLKeyPath())
     
   def PreloadRegistrationData(self, request):
-    _Request('https://%s/admin/injectdata/registration' % self._base_url,
+    _Request(
+        'https://%s/admin/injectdata/conditional_registration' % self._base_url,
              request, self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
