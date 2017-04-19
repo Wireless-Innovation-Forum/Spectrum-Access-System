@@ -39,7 +39,6 @@ CA_CERT = 'ca.cert'
 #ssl_key = 'client.key'
 
 #CIPHERS = [
-
 #   'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 #]
 
@@ -47,3 +46,4 @@ CIPHERS = [
      'ecdhe_rsa_aes_128_gcm_sha_256'
      ]
 
+'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
