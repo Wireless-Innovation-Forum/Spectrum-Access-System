@@ -28,7 +28,7 @@ To support ECDSA ciphers in the fake SAS server (fake_sas.py) or PycURL client
 
 ## Known Issues
 
-The test harness is using pycurl packages and assumes they are compiled with openssl support.  If the packages were compiled with nss support insteadt this esults in “Uknown cipher” error when the harness is started.  To avoid this use the pycurl package with openssl support.  If not possible the following changes can be made to sas.py
+The test harness is using pycurl packages and assumes they are compiled with openssl support.  If the packages were compiled with nss support instead this results in an “Unknown cipher” error when the harness is started.  To avoid it use the pycurl package with openssl support.  If not possible the following changes can be made to sas.py
 
 HTTP_TIMEOUT_SECS = 30
 
