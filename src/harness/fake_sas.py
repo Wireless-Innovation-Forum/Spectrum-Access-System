@@ -206,7 +206,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration', '/admin/trigger/esc_reset','/admin/injectdata/registration','/admin/injectdata/blacklist_fcc_id','/admin/injectdata/blacklist_fcc_id_and_serial_number'):
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration', '/admin/trigger/esc_reset','/admin/injectdata/registration','/admin/injectdata/blacklist_fcc_id',
+                       '/admin/injectdata/blacklist_fcc_id_and_serial_number',
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp'):
       response = ''
     elif self.path == '/admin/injectdata/esc_zone':
       response = FakeSas().InjectEscZone(request)

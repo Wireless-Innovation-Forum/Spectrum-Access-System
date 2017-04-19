@@ -162,6 +162,16 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              request, self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
+  def InjectFss(self, request):
+    _Request('https://%s/admin/injectdata/fss' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
+  def InjectWisp(self, request):
+    _Request('https://%s/admin/injectdata/wisp' % self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
 

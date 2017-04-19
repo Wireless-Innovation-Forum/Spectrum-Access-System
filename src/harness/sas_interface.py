@@ -258,3 +258,4 @@ class SasAdminInterface(object):
 		the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS  
 	"""
 	pass
+      pass
