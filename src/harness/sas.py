@@ -136,6 +136,22 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLCertPath(),
              self._GetDefaultAdminSSLKeyPath())
 
+  def InjectZoneData(self, request):
+    return _Request('https://%s/admin/injectdata/zone' % self._base_url,
+                    request, self._GetDefaultAdminSSLCertPath(),
+                    self._GetDefaultAdminSSLKeyPath())
+
+  def InjectPalDatabaseRecord(self, request):
+    _Request('https://%s/admin/injectdata/pal_database_record' %
+             self._base_url, request,
+             self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
+  def InjectClusterList(self, request):
+    _Request('https://%s/admin/injectdata/cluster_list' % self._base_url,
+             request, self._GetDefaultAdminSSLCertPath(),
+             self._GetDefaultAdminSSLKeyPath())
+
   def BlacklistByFccId(self, request):
     _Request('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
              self._GetDefaultAdminSSLCertPath(),
