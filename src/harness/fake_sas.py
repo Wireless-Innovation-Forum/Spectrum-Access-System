@@ -198,7 +198,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
-                       '/admin/injectdata/registration',
+                       '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp'):
