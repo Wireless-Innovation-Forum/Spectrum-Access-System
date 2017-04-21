@@ -176,15 +176,8 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
-  def InjectEscZone(self, request, ssl_cert=None, ssl_key=None)
-    zone_data = request['zoneData']
-    if(zone_data['usage'] == 'EXCLUSION_ZONE'):
-      id_attributes = zone_data['id'].split('/')
-      zone_id = ''
-      for zone_id_part in id_attributes[4 : len(id_attributes)]:
-        zone_id += zone_id_part
-      return {'zone_id' : zone_id}
-	return ''
+  def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
         
 class FakeSasHandler(BaseHTTPRequestHandler):
 
@@ -206,14 +199,20 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path in ('/admin/reset', '/admin/injectdata/fccId', '/admin/injectdata/registration', '/admin/trigger/esc_reset','/admin/injectdata/registration','/admin/injectdata/blacklist_fcc_id',
+    elif self.path == '/admin/injectdata/zone':
+      response = FakeSas().InjectZoneData(request)
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
+                       '/admin/injectdata/conditional_registration',
+                       '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
-                       '/admin/injectdata/fss', '/admin/injectdata/wisp'):
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp',
+                       '/admin/injectdata/cluster_list',
+                       '/admin/injectdata/pal_database_record'):
       response = ''
-    elif self.path == '/admin/injectdata/esc_zone':
-      response = FakeSas().InjectEscZone(request)
+
     elif self.path == '/admin/trigger/esc_detection/':
-	  response = {'trigger_id': 'fake_trigger_id'}
+	    response = {'triggerId': 'fake_trigger_id'}
+    
     else:
       self.send_response(404)
       return
