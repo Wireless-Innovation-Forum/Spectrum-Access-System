@@ -767,7 +767,7 @@ class HeartbeatTestcase(unittest.TestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
       grant_ids.append(resp['grantId'])
       grant_expire_times.append(
-          datetime.strptime(response[0]['grantExpireTime'],
+          datetime.strptime(resp['grantExpireTime'],
                             '%Y-%m-%dT%H:%M:%SZ'))
     del request, response
 
