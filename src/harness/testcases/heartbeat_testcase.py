@@ -744,6 +744,24 @@ class HeartbeatTestcase(unittest.TestCase):
         datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
         transmit_expire_time_1)
 
+  def heartbeatRequest(self, cbsd_id, grant_id):
+    # Heartbeat Request Helper to check Heartbeat Response
+    # Request Heartbeat
+    request = {
+      'heartbeatRequest': [{
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+      }]
+    }
+
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    # Response Should fail with Code 103 or 500
+    self.assertTrue(response['response']['responseCode'] in (103, 500))
+    del request, response
+
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_17(self):
     """Heartbeat Request from CBSD in Registered state (immediately after CBSD's grant is expired)
@@ -787,24 +805,6 @@ class HeartbeatTestcase(unittest.TestCase):
     Timer(difference_time, lambda: self.heartbeatRequest(cbsd_id, grant_id)).start()
     # Sleep the Thread to the calculated seconds delay
     time.sleep(difference_time)
-
-  def heartbeatRequest(self, cbsd_id, grant_id):
-    # Heartbeat Request Helper to check Heartbeat Response
-    # Request Heartbeat
-    request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_id,
-        'grantId': grant_id,
-        'operationState': 'GRANTED'
-      }]
-    }
-
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    # Check the heartbeat response
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    # Response Should fail with Code 103 or 500
-    self.assertTrue(response['response']['responseCode'] in (103, 500))
-    del request, response
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_18(self):
