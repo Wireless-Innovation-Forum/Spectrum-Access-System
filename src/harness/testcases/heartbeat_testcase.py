@@ -116,7 +116,7 @@ class HeartbeatTestcase(unittest.TestCase):
     response = self._sas.Grant(request)['grantResponse']
     self.assertEqual(len(response), 3)
     grant_ids = []
-    grant_expire_time = []
+    grant_expire_times = []
     for response_num, resp in enumerate(response):
         self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
         self.assertEqual(resp['response']['responseCode'], 0)
@@ -146,7 +146,7 @@ class HeartbeatTestcase(unittest.TestCase):
         self.assertLessEqual(
             (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time,
-                             grant_expire_time[response_num])
+                             grant_expire_times[response_num])
         self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -400,7 +400,7 @@ class HeartbeatTestcase(unittest.TestCase):
         self.assertLessEqual(transmit_expire_time, grant_expire_times[resp_number])
         self.assertEqual(resp['response']['responseCode'], 0)
     self.assertTrue(response[0]['measReportConfig'])
-        
+
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_9(self):
     """Initial Heartbeat Request (immediately after CBSD moves
