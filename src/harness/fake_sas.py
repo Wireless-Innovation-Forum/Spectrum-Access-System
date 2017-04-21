@@ -176,6 +176,8 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
+  def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
 
 class FakeSasHandler(BaseHTTPRequestHandler):
 
@@ -197,11 +199,15 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
+    elif self.path == '/admin/injectdata/zone':
+      response = FakeSas().InjectZoneData(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
-                       '/admin/injectdata/registration',
+                       '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
-                       '/admin/injectdata/fss', '/admin/injectdata/wisp'):
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp',
+                       '/admin/injectdata/cluster_list',
+                       '/admin/injectdata/pal_database_record'):
       response = ''
     else:
       self.send_response(404)
