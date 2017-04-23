@@ -1,0 +1,26 @@
+{
+  "id": "incumbent/FCC/0",
+  "type": "FSS",
+  "deploymentParam": [
+    {
+      "installationParam": {
+        "latitude": 37.293926,
+        "longitude": -122.046518,
+        "height": 7.6,
+        "heightType": "AGL",
+        "indoorDeployment": false,
+        "antennaGain": 16,
+        "antennaBeamwidth": 30,
+        "antennaAzimuth": 270,
+        "antennaDowntilt": -90
+      },
+      "operationParam": {
+        "maxEirp": 10.1,
+        "operationFrequencyRange": {
+          "lowFrequency": 3520000000.0,
+          "highFrequency": 3580000000.0
+        }
+      }
+    }
+  ]
+}
