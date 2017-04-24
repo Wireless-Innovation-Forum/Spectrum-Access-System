@@ -346,6 +346,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
     """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
 
@@ -532,6 +533,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_14(self):
     """Pending registration in Array request (responseCode 200)
     The response should be FAILURE.
