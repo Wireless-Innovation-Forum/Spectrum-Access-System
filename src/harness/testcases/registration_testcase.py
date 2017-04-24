@@ -703,7 +703,7 @@ class RegistrationTestcase(unittest.TestCase):
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
         'installationParam': device_c['installationParam']}
-    conditionals_c['installationParam']['azimuth'] = -1
+    conditionals_c['installationParam']['antennaAzimuth'] = -1
 
     # Device 3 Cat A out-of-range, or the wrong Type value for latitude.
     self.assertEqual(device_e['cbsdCategory'], 'A')
