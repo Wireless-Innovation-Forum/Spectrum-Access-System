@@ -621,7 +621,7 @@ class RegistrationTestcase(unittest.TestCase):
         # meascapability has no value for all devices
         device['measCapability'] = []
         # Inject FCC IDs
-        self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
 
     # Device 1 Cat A
     self.assertEqual(device_a['cbsdCategory'], 'A')
