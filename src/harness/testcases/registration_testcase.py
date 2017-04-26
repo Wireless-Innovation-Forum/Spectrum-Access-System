@@ -346,6 +346,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
     """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
 
@@ -532,6 +533,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_14(self):
     """Pending registration in Array request (responseCode 200)
     The response should be FAILURE.
@@ -619,7 +621,7 @@ class RegistrationTestcase(unittest.TestCase):
         # meascapability has no value for all devices
         device['measCapability'] = []
         # Inject FCC IDs
-        self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
 
     # Device 1 Cat A
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -703,7 +705,7 @@ class RegistrationTestcase(unittest.TestCase):
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
         'installationParam': device_c['installationParam']}
-    conditionals_c['installationParam']['azimuth'] = -1
+    conditionals_c['installationParam']['antennaAzimuth'] = -1
 
     # Device 3 Cat A out-of-range, or the wrong Type value for latitude.
     self.assertEqual(device_e['cbsdCategory'], 'A')
@@ -737,7 +739,80 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertEqual(resp['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINNF_FT_S_REG_19(self):
+  def test_WINNF_FT_S_REG_17(self):
+    """Blacklisted CBSD (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Register device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # Register the device
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Blacklist the device
+    self._sas_admin.BlacklistByFccId({'fccId':device_a['fccId']})
+
+    # Re-register the device
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 101)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_18(self):
+    """Blacklisted CBSD in Array request (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    devices = [device_a, device_b, device_c]
+    for device in devices:
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
+        device['measCapability'] = []
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for resp in response:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+    # Blacklist the third device
+    self._sas_admin.BlacklistByFccId({'fccId':device_c['fccId']})
+
+    # Re-register the devices
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    self.assertEqual(len(response), len(devices))
+    for response_num, resp in enumerate(response[:2]):
+        self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+    self.assertFalse('measReportConfig' in response[2])
+    self.assertEqual(response[2]['response']['responseCode'], 101)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
     The response should be FAILURE.
