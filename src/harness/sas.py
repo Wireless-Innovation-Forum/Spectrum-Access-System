@@ -137,8 +137,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
              self._GetDefaultAdminSSLKeyPath())
 
   def InjectZoneData(self, request):
-    return _Request('https://%s/admin/injectdata/zone' % self._base_url,
-                    request, self._GetDefaultAdminSSLCertPath(),
+    return _Request('https://%s/admin/injectdata/zone' % self._base_url,request,            
+                    self._GetDefaultAdminSSLCertPath(),
                     self._GetDefaultAdminSSLKeyPath())
 
   def InjectPalDatabaseRecord(self, request):

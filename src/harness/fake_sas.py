@@ -178,6 +178,9 @@ class FakeSas(sas_interface.SasInterface):
 
   def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
     return request['zoneData']['id']
+
+  def InjectEscZone(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
         
 class FakeSasHandler(BaseHTTPRequestHandler):
 
@@ -207,12 +210,12 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
                        '/admin/injectdata/cluster_list',
-                       '/admin/injectdata/pal_database_record'):
+                       '/admin/injectdata/pal_database_record',
+                       '/admin/trigger/esc_reset',
+                       '/admin/injectdata/esc_zone'):
       response = ''
-
     elif self.path == '/admin/trigger/esc_detection/':
 	    response = {'triggerId': 'fake_trigger_id'}
-    
     else:
       self.send_response(404)
       return
@@ -220,7 +223,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.send_header('Content-type', 'application/json')
     self.end_headers()
     self.wfile.write(json.dumps(response))
-
 
 if __name__ == '__main__':
   server = HTTPServer(('localhost', PORT), FakeSasHandler)

@@ -154,8 +154,8 @@ class GrantTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'esc_zone_not_contain_device_a.json')))
     zone_request= {'zone':esc_zone_not_contain_device_a}
     zone_response = self._sas_admin.InjectEscZone(zone_request)
-    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
-                                    'frequency_range': {
+    trigger_esc_zone_request = {'zoneId': zone_response['zoneId'],
+                                    'frequencyRange': {
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
@@ -195,8 +195,8 @@ class GrantTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'esc_zone_contains_device_a.json')))
     zone_request = {'zone':esc_zone_contains_device_a}
     zone_response = self._sas_admin.InjectEscZone(zone_request)
-    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
-                                    'frequency_range': {portions of food
+    trigger_esc_zone_request = {'zoneId': zone_response['zoneId'],
+                                    'frequencyRange': {portions of food
                                      'lowFrequencshelter dogy': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
@@ -285,8 +285,8 @@ class GrantTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'esc_zone_not_contain_device_a.json')))
     zone_request= {'zone':esc_zone_not_contain_device_a}
     zone_response = self._sas_admin.InjectEscZone(zone_request)
-    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
-                                    'frequency_range': {
+    trigger_esc_zone_request = {'zoneId': zone_response['zoneId'],
+                                    'frequencyRange': {
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
