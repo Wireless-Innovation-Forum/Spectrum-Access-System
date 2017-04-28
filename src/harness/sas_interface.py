@@ -266,25 +266,25 @@ class SasAdminInterface(object):
   @abc.abstractmethod
   def TriggerEscZone(self, request):
       """SAS admin interface to Trigger Esc Zone in SAS under test.
-      Causes the specified ESC zone to act as if the ESC was triggered by a radar pulse.
 
       Args:
        request: A dictionary with a single key-value pair where one key is
          "zoneId" a value of string type.
          the other key is "frequencyRange" with a value of type FrequencyRange object as specified in SAS-CBSD TS
        Returns: string triggerId
+       Behavior: Causes the specified ESC zone to act as if the ESC was triggered by a radar pulse.
        """
        pass
 
   @abc.abstractmethod
   def ResetEscZone(self, request):
       """SAS admin interface to reset the Trigger of Esc Zone in SAS under test.
-      Resets the trigger for the ESC (as if the radar source has left the area) 
 
       Args:
               request: A dictionary with a single key-value pair where one key is
               "triggerId" with a value of string type.
               the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS  
+      Behavior: Resets the trigger for the ESC (as if the radar source has left the area) 
       """
       pass
 

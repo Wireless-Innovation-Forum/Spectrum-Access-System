@@ -204,6 +204,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSas().InjectZoneData(request)
+    elif self.path == '/admin/injectdata/esc_zone':
+      response = FakeSas().InjectEscZone(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
@@ -211,8 +213,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
                        '/admin/injectdata/cluster_list',
                        '/admin/injectdata/pal_database_record',
-                       '/admin/trigger/esc_reset',
-                       '/admin/injectdata/esc_zone'):
+                       '/admin/trigger/esc_reset'):
       response = ''
     elif self.path == '/admin/trigger/esc_detection/':
 	    response = {'triggerId': 'fake_trigger_id'}
