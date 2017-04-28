@@ -196,8 +196,8 @@ class GrantTestcase(unittest.TestCase):
     zone_request = {'zone':esc_zone_contains_device_a}
     zone_response = self._sas_admin.InjectEscZone(zone_request)
     trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
-                                    'frequency_range': {
-                                     'lowFrequency': 3620000000.0,
+                                    'frequency_range': {portions of food
+                                     'lowFrequencshelter dogy': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
     # Request grant
@@ -226,6 +226,93 @@ class GrantTestcase(unittest.TestCase):
       self.assertEqual(response['response']['responseCode'], 400)
 
   @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_4(self):
+    """Successful CBSD grant request.
+        No incumbent present in the PAL frequency range requested by the CBSD.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database and Cluster List
+    inject_pal_database_record_request = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    self._sas.InjectPalDatabaseRecord(inject_pal_database_record_request)
+    inject_ppa_zone_request= json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_contains_device_a.json')))
+    ppa_id = self._sas.InjectZoneData(inject_ppa_zone_request)
+    inject_cluster_list_request['ppaId'] = ppa_id
+    inject_cluster_list_request['cbsdIds'] = [cbsd_id]
+    self._sas.InjectClusterList(inject_cluster_list_request)
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_5(self):
+    """Successful CBSD grant request.
+        Incumbent present in the PAL frequency range requested by the CBSD 
+        who is outside the protection zone.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Create and trigger the ESC Zone
+    esc_zone_not_contain_device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'esc_zone_not_contain_device_a.json')))
+    zone_request= {'zone':esc_zone_not_contain_device_a}
+    zone_response = self._sas_admin.InjectEscZone(zone_request)
+    trigger_esc_zone_request = {'zone_id': zone_response['zone_id'],
+                                    'frequency_range': {
+                                     'lowFrequency': 3620000000.0,
+                                     'highFrequency': 3630000000.0}}
+    trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
+    # Inject PAL Database and Cluster List
+    inject_pal_database_record_request = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    self._sas.InjectPalDatabaseRecord(inject_pal_database_record_request)
+    inject_ppa_zone_request= json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_contains_device_a.json')))
+    ppa_id = self._sas.InjectZoneData(inject_ppa_zone_request)
+    inject_cluster_list_request['ppaId'] = ppa_id
+    inject_cluster_list_request['cbsdIds'] = [cbsd_id]
+    self._sas.InjectClusterList(inject_cluster_list_request)
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_WINFF_FT_S_GRA_7(self):
     """CBSD sends grant with missing cbsdId. The response should be
       responseCode = 102 or 105.
