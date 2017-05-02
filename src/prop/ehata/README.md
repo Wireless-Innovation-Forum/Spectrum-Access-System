@@ -1,5 +1,8 @@
 ## Extended-HATA Python implementation
 
+## MAY 2017
+## THIS CODE HAS BEEN DEPRECATED. DO NOT USE ANY CODE IN THIS DIRECTORY FOR WINNFORUM-COMPLIANT PROPAGATION MODELING.
+
 This module contains a Python implementation of the Extended HATA model
 described in the [NTIA Technical Report 15-517](https://www.ntia.doc.gov/report/2015/35-ghz-exclusion-zone-analyses-and-methodology).
 
