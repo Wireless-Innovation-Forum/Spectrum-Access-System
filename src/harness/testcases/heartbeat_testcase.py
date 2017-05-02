@@ -775,7 +775,7 @@ class HeartbeatTestcase(unittest.TestCase):
     del request, response
 
     # Calculate the Difference Between Current Time and the GrantExpireTime
-    difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
+    difference_time = (grant_expire_time - datetime.utcnow()).total_seconds() + 1
     # Log the Wait Time in seconds
     logging.debug('Difference between grantExpireTime and CurrentTime (in seconds) ', difference_time)
     # Ensure that GrantExpireTime is Greater than CurrentTime
