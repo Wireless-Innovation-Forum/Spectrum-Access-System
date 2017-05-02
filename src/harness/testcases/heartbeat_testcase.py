@@ -872,7 +872,6 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
     self.assertEqual(response['response']['responseCode'], 105)
-    del request, response
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_20(self):
@@ -883,14 +882,16 @@ class HeartbeatTestcase(unittest.TestCase):
     The response should be FAIL, code 105.
     """
     # Register the devices
-    devices = ['device_a', 'device_e', 'device_c']
-    device_list = []
-    for device in devices:
-      device_val = json.load(open(os.path.join('testcases', 'testdata', '{0}.json'.format(device))))
-      self._sas_admin.InjectFccId({'fccId': device_val['fccId']})
-      device_list.append(device_val)
+    registration_request = []
+    fcc_ids = []
+    for device_filename in ('device_a.json', 'device_b.json', 'device_c.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      fcc_ids.append(device['fccId'])
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
 
-    request = {'registrationRequest': device_list}
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
     for resp in response:
@@ -899,36 +900,40 @@ class HeartbeatTestcase(unittest.TestCase):
     del request, response
 
     # Request grant
-    grant_list = []
+    grant_request = []
     for cbsd_id in cbsd_ids:
       grant = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
       grant['cbsdId'] = cbsd_id
-      grant_list.append(grant)
-    request = {'grantRequest': grant_list}
+      grant_request.append(grant)
+    request = {'grantRequest': grant_request}
 
     # Check grant response
     response = self._sas.Grant(request)['grantResponse']
     self.assertEqual(len(response), len(cbsd_ids))
+    grant_expire_time = []
     for resp_number, resp in enumerate(response):
       self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
       self.assertTrue(resp['grantId'])
       self.assertEqual(resp['response']['responseCode'], 0)
+      grant_expire_time.append(
+        datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
+
     grant_ids = [resp['grantId'] for resp in response]
     del request, response
 
     # Inject Third Device into Blacklist
-    self._sas_admin.BlacklistByFccId({'fccId': device_list[2]['fccId']})
+    self._sas_admin.BlacklistByFccId({'fccId': fcc_ids[2]})
 
     # First Heartbeat Request
-    heartbeat_list = []
+    heartbeat_request = []
     for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
-      heartbeat_list.append({
+      heartbeat_request.append({
           'cbsdId': cbsd_id,
           'grantId': grant_id,
           'operationState': 'GRANTED'
       })
 
-    request = {'heartbeatRequest': heartbeat_list}
+    request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     self.assertEqual(len(response), len(grant_ids))
 
@@ -937,6 +942,13 @@ class HeartbeatTestcase(unittest.TestCase):
     for index, resp in enumerate(response[:2]):
       self.assertEqual(resp['cbsdId'], cbsd_ids[index])
       self.assertEqual(resp['grantId'], grant_ids[index])
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(
+        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+      self.assertLessEqual(transmit_expire_time,
+                           grant_expire_time[index])
       self.assertEqual(resp['response']['responseCode'], 0)
 
     # Last Device in Blacklist must have Response Code 105
