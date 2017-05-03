@@ -16,7 +16,7 @@ import time
 import json
 import os
 import unittest
-from threading import Timer
+import logging
 import sas
 from util import winnforum_testcase
 
@@ -272,32 +272,6 @@ class HeartbeatTestcase(unittest.TestCase):
         self.assertLess(datetime.utcnow(), grant_expire_times[response_num])
         self.assertEqual(resp['response']['responseCode'], 0)
 
-  def heartbeatRequestChangingFSS(self, cbsd_id, grant_id, grant_expire_time):
-    # Changing the Frequency of the FSS Zone other than CBSD
-    fss_zone_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-    self._sas_admin.InjectFss({'record': fss_zone_0})
-
-    # Heartbeat Request
-    request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_id,
-        'grantId': grant_id,
-        'operationState': 'GRANTED'
-      }]
-    }
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    # Check the heartbeat response
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    self.assertEqual(response['grantId'], grant_id)
-    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
-                                             '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLess(datetime.utcnow(), transmit_expire_time)
-    self.assertLessEqual((transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
-    self.assertLessEqual(transmit_expire_time, grant_expire_time)
-    self.assertLess(datetime.utcnow(), grant_expire_time)
-    self.assertEqual(response['response']['responseCode'], 0)
-
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_7(self):
     """Heartbeat Request for a CBSD (in Granted state) arrives after it is suspended."""
@@ -336,10 +310,15 @@ class HeartbeatTestcase(unittest.TestCase):
       }]
     }
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check Heartbeat Response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
-    self.assertLess(datetime.utcnow(), datetime.strptime(response['transmitExpireTime'],
-                                                         '%Y-%m-%dT%H:%M:%SZ'))
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertLessEqual((transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+    self.assertLessEqual(transmit_expire_time, grant_expire_time)
+    self.assertLess(datetime.utcnow(), grant_expire_time)
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
@@ -347,10 +326,12 @@ class HeartbeatTestcase(unittest.TestCase):
     device_operation_frequency_range = grant_0['operationParam']['operationFrequencyRange']
     fss_zone_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
-      ['lowFrequency'] = device_operation_frequency_range['lowFrequency']
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
-      ['highFrequency'] = device_operation_frequency_range['highFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam'] \
+      ['operationFrequencyRange']['lowFrequency'] = \
+      device_operation_frequency_range['lowFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam'] \
+      ['operationFrequencyRange']['highFrequency'] = \
+      device_operation_frequency_range['highFrequency']
     self._sas_admin.InjectFss({'record': fss_zone_0})
 
     # Heartbeat Request
@@ -367,36 +348,57 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['grantId'], grant_id)
     self.assertEqual(response['response']['responseCode'], 501)
     self.assertTrue('transmitExpireTime' in response)
-
-    # Calculate the Difference Between Current Time and the transmitExpireTime
-    transmit_expire_time = time.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-    current_time = time.strptime(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%dT%H:%M:%SZ')
-    difference_time = time.mktime(transmit_expire_time) - time.mktime(current_time)
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
     del request, response
 
-    print 'Difference between transmitExpireTime and CurrentTime (in seconds)', difference_time
-
+    # Calculate the Difference Between Current Time and the transmitExpireTime
+    difference_time = (transmit_expire_time - datetime.utcnow()).total_seconds() + 1
+    logging.debug("Difference between transmitExpireTime and CurrentTime (in seconds)", difference_time)
     # Ensure that TransmitExpireTime is Greater than CurrentTime
     self.assertGreater(difference_time, 0)
-    # Start the Time to request the Heartbeat after the calculated seconds delay from the current time
-    Timer(difference_time, lambda: self.heartbeatRequestChangingFSS(cbsd_id, grant_id, grant_expire_time)).start()
     # Delay the Thread to the calculated seconds delay
     time.sleep(difference_time)
+
+    # Changing the Frequency of the FSS Zone other than the CBSD Frequency Range
+    fss_zone_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
+    self._sas_admin.InjectFss({'record': fss_zone_0})
+
+    # Heartbeat Request
+    request = {
+      'heartbeatRequest': [{
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+      }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertLessEqual((transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+    self.assertLessEqual(transmit_expire_time, grant_expire_time)
+    self.assertLess(datetime.utcnow(), grant_expire_time)
+    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_8(self):
     """Heartbeat Request for CBSDs (in Granted state) arrives after it is suspended."""
 
     # Register the devices
-    devices = ['device_a', 'device_e', 'device_c']
-    device_list = []
-    for device in devices:
-      device_val = json.load(open(os.path.join('testcases', 'testdata', '{0}.json'.format(device))))
-      self._sas_admin.InjectFccId({'fccId': device_val['fccId']})
-      device_list.append(device_val)
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
 
-    request = {'registrationRequest': device_list}
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
+
     # Check registration response
     for resp in response:
       self.assertEqual(resp['response']['responseCode'], 0)
@@ -404,44 +406,49 @@ class HeartbeatTestcase(unittest.TestCase):
     del request, response
 
     # Request grant
-    grant_list = []
+    grant_request = []
     for cbsd_id in cbsd_ids:
       grant = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
       grant['cbsdId'] = cbsd_id
-      grant_list.append(grant)
-    request = {'grantRequest': grant_list}
+      grant_request.append(grant)
+    request = {'grantRequest': grant_request}
 
     # Check grant response
     response = self._sas.Grant(request)['grantResponse']
-    grant_id_op_frequency = []
     self.assertEqual(len(response), len(cbsd_ids))
-    for resp_number, resp in enumerate(response):
-      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+    for index, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[index])
       self.assertTrue(resp['grantId'])
       self.assertEqual(resp['response']['responseCode'], 0)
-    grant_response = [{"grantId": resp['grantId'], "grantExpireTime": resp['grantExpireTime']}
-                        for resp in response]
+    grant_response = [{"grantId": resp['grantId'], "grantExpireTime": datetime.strptime(resp['grantExpireTime'],
+                                                                                        '%Y-%m-%dT%H:%M:%SZ')}
+                      for resp in response]
     del request, response
 
-    # First Heartbeat Request for the Two Devices
-    heartbeat_list = []
-    for cbsd_id, grant_id in zip(cbsd_ids[:2], [values['grantId']
-                                                for values in grant_response[:2]]):
-      heartbeat_list.append({
+    # Heartbeat Request for the First Two Devices
+    heartbeat_request = []
+    for cbsd_id, grant_id in zip(cbsd_ids[:2], [grant_resp["grantId"] for grant_resp in grant_response[:2]]):
+      heartbeat_request.append({
         'cbsdId': cbsd_id,
         'grantId': grant_id,
         'operationState': 'GRANTED'
       })
+    request = {'heartbeatRequest': heartbeat_request}
 
-    request = {'heartbeatRequest': heartbeat_list}
-    # Check the Heartbeat Response
     response = self._sas.Heartbeat(request)['heartbeatResponse']
+    # Check the Heartbeat Response
     self.assertEqual(len(response), 2)
     for index, resp in enumerate(response):
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
       self.assertEqual(resp['cbsdId'], cbsd_ids[index])
-      self.assertEqual(resp['grantId'], grant_response[index]['grantId'])
-      self.assertLess(datetime.utcnow(), datetime.strptime(resp['transmitExpireTime'],
-                                                           '%Y-%m-%dT%H:%M:%SZ'))
+      self.assertEqual(resp['grantId'], grant_response[index]["grantId"])
+      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(
+        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+      self.assertLessEqual(transmit_expire_time,
+                           grant_response[index]["grantExpireTime"])
+      self.assertLess(datetime.utcnow(), grant_response[index]["grantExpireTime"])
       self.assertEqual(resp['response']['responseCode'], 0)
     del request, response
 
@@ -449,43 +456,63 @@ class HeartbeatTestcase(unittest.TestCase):
     device_operation_frequency_range = grant['operationParam']['operationFrequencyRange']
     fss_zone_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
-      ['lowFrequency'] = device_operation_frequency_range['lowFrequency']
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
-      ['highFrequency'] = device_operation_frequency_range['highFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam'] \
+      ['operationFrequencyRange']['lowFrequency'] = \
+      device_operation_frequency_range['lowFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam'] \
+      ['operationFrequencyRange']['highFrequency'] = \
+      device_operation_frequency_range['highFrequency']
     self._sas_admin.InjectFss({'record': fss_zone_0})
 
     # Heartbeat Request for Third Device
-    request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[2],
-        'grantId': grant_response[2]['grantId'],
-        'operationState': 'GRANTED'
-      }]
+    heartbeat_request = {
+      'cbsdId': cbsd_ids[2],
+      'grantId': grant_response[2]["grantId"],
+      'operationState': 'GRANTED'
     }
 
+    request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     # Check the heartbeat response for the Third Device
     self.assertEqual(response['cbsdId'], cbsd_ids[2])
     self.assertEqual(response['grantId'], grant_response[2]["grantId"])
     self.assertEqual(response['response']['responseCode'], 501)
-    self.assertTrue('transmitExpireTime' in response)
-
-    # Calculate the Difference Between Current Time and the transmitExpireTime
-    transmit_expire_time = time.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-    current_time = time.strptime(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), '%Y-%m-%dT%H:%M:%SZ')
-    difference_time = time.mktime(transmit_expire_time) - time.mktime(current_time)
+    self.assertTrue(response['transmitExpireTime'])
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
     del request, response
 
-    print 'Difference between transmitExpireTime and CurrentTime (in seconds)', difference_time
-
+    # Calculate the Difference Between Current Time and the transmitExpireTime
+    difference_time = (transmit_expire_time - datetime.utcnow()).total_seconds() + 1
+    logging.debug("Difference between transmitExpireTime and CurrentTime (in seconds)", difference_time)
     # Ensure that TransmitExpireTime is Greater than CurrentTime
     self.assertGreater(difference_time, 0)
-    # Start the Time to request the Heartbeat after the calculated seconds delay from the current time
-    Timer(difference_time, lambda: self.heartbeatRequestChangingFSS(cbsd_ids[2], grant_response[2]['grantId'],
-                                                                    grant_response[2]['grantExpireTime'])).start()
     # Delay the Thread to the calculated seconds delay
     time.sleep(difference_time)
+
+    # Changing the Frequency of the FSS Zone other than Third CBSD
+    fss_zone_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
+    self._sas_admin.InjectFss({'record': fss_zone_0})
+
+    # Heartbeat Request
+    request = {
+      'heartbeatRequest': [{
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_response[2]["grantId"],
+        'operationState': 'GRANTED'
+      }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_ids[2])
+    self.assertEqual(response['grantId'], grant_response[2]["grantId"])
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertLessEqual((transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+    self.assertLessEqual(transmit_expire_time, grant_response[2]["grantExpireTime"])
+    self.assertLess(datetime.utcnow(), grant_response[2]["grantExpireTime"])
+    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_9(self):
