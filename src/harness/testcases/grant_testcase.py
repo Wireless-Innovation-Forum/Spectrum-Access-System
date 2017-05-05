@@ -92,54 +92,30 @@ class GrantTestcase(unittest.TestCase):
     frequency range requested by the CBSD. Response should be SUCCESS.
     """
 
-    # Category A CBSD
-    # Register the device
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertEqual(response['response']['responseCode'], 0)
-    cbsd_id = response['cbsdId']
-    del request, response
+    # Category A and Category B Device
+    for device_filename in ('device_a.json', 'device_b.json'):
+      # Register the device
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response
+      self.assertEqual(response['response']['responseCode'], 0)
+      cbsd_id = response['cbsdId']
+      del request, response
 
-    # Request grant
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = cbsd_id
-    request = {'grantRequest': [grant_0]}
-    response = self._sas.Grant(request)['grantResponse'][0]
-    # Check grant response
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    self.assertTrue(response['grantId'])
-    self.assertEqual(response['channelType'], 'GAA')
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-
-    # Category B CBSD
-    # Register the device
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response
-    self.assertEqual(response['response']['responseCode'], 0)
-    cbsd_id = response['cbsdId']
-    del request, response
-
-    # Request grant
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = cbsd_id
-    request = {'grantRequest': [grant_0]}
-    response = self._sas.Grant(request)['grantResponse'][0]
-    # Check grant response
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    self.assertTrue(response['grantId'])
-    self.assertEqual(response['channelType'], 'GAA')
-    self.assertEqual(response['response']['responseCode'], 0)
+      # Request grant
+      grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant_0['cbsdId'] = cbsd_id
+      request = {'grantRequest': [grant_0]}
+      response = self._sas.Grant(request)['grantResponse'][0]
+      # Check grant response
+      self.assertEqual(response['cbsdId'], cbsd_id)
+      self.assertTrue(response['grantId'])
+      self.assertEqual(response['channelType'], 'GAA')
+      self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
@@ -313,6 +289,7 @@ class GrantTestcase(unittest.TestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -376,6 +353,7 @@ class GrantTestcase(unittest.TestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -408,6 +386,7 @@ class GrantTestcase(unittest.TestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -438,6 +417,7 @@ class GrantTestcase(unittest.TestCase):
     # Register the device
     device_b = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -468,8 +448,10 @@ class GrantTestcase(unittest.TestCase):
     # Register the devices
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
     request = {'registrationRequest': [device_a, device_c]}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
