@@ -221,6 +221,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectSasAdministratorRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
 
