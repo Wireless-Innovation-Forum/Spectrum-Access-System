@@ -165,7 +165,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLKeyPath())
 
   def InjectEscZone(self, request):
-    _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
+    return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
@@ -218,6 +218,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def InjectWisp(self, request):
     _RequestPost('https://%s/admin/injectdata/wisp' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectSasAdministratorRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
