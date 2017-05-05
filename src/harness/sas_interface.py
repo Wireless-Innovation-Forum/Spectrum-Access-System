@@ -283,7 +283,7 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a SAS Administrator information(which is 
+        "record" and the value is a SAS Administrator information (which is 
         itself a dictionary). The dictionary is an SASAdministrator object 
         (Specified in SAS-SAS TS WINNF-16-S-0096)
     """
