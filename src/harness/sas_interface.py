@@ -288,3 +288,15 @@ class SasAdminInterface(object):
         (Specified in SAS-SAS TS WINNF-16-S-0096)
     """
     pass
+
+  @abc.abstractmethod
+  def InjectSasImplementationRecord(self, request):
+    """SAS admin interface to inject SAS Implementation Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a SAS Implementation information (which is 
+        itself a dictionary). The dictionary is an SASImplementation object 
+        (Specified in SAS-SAS TS WINNF-16-S-0096)
+    """
+    pass
