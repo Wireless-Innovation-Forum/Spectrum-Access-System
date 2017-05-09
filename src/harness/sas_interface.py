@@ -300,3 +300,15 @@ class SasAdminInterface(object):
         (Specified in SAS-SAS TS WINNF-16-S-0096)
     """
     pass
+
+  @abc.abstractmethod
+  def InjectEscSensorDataRecord(self, request):
+    """SAS admin interface to inject ESC Sensor Data Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a ESC Sensor Data information (which is 
+        itself a dictionary). The dictionary is an EscSensorData object 
+        (Specified in SAS-SAS TS WINNF-16-S-0096)
+    """
+    pass
