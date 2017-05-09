@@ -288,3 +288,35 @@ class SasAdminInterface(object):
         (Specified in SAS-SAS TS WINNF-16-S-0096)
     """
     pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportRegistration(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    registration request 
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is a string of permitted enumerations
+        EUTRA_CARRIER_RSSI_NON_TX or EUTRA_CARRIER_RSSI_ALWAYS
+        
+    Note: The SAS will request a measurement report in the RegistrationResponse 
+    (if status == 0)
+
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportHeartbeat(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    heartbeat request 
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is a string of permitted enumerations
+        EUTRA_CARRIER_RSSI_NON_TX or EUTRA_CARRIER_RSSI_ALWAYS
+
+    Note: The SAS will request a measurement report in the HeartbeatResponse 
+    (if status == 0)
+
+    """
+    pass
