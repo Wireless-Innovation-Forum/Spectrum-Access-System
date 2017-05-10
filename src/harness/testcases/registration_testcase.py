@@ -907,7 +907,7 @@ class RegistrationTestcase(unittest.TestCase):
   def test_WINFF_FT_S_REG_23(self):
     """CBSD Cat A attempts to register with HAAT >6m
 
-    The response should be FAILURE.
+    The response should be FAILURE 103.
     """
 
     # Register the device
@@ -922,14 +922,14 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
-    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertEqual(response['response']['responseCode'], 103)
     self.assertTrue('cbsdId' in response)
 
   @winnforum_testcase
   def test_WINFF_FT_S_REG_24(self):
     """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
 
-    The response should be FAILURE.
+    The response should be FAILURE 103.
     """
 
     # Register the device
@@ -940,14 +940,14 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
-    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertEqual(response['response']['responseCode'], 103)
     self.assertTrue('cbsdId' in response)
 
   @winnforum_testcase
   def test_WINFF_FT_S_REG_25(self):
     """CBSD Cat B attempts to register as Indoors deployment
 
-    The response should be FAILURE.
+    The response should be FAILURE 103.
     """
 
     # Register the device
@@ -958,7 +958,7 @@ class RegistrationTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
-    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertEqual(response['response']['responseCode'], 103)
     self.assertTrue('cbsdId' in response)
 
   @winnforum_testcase
@@ -1000,7 +1000,7 @@ class RegistrationTestcase(unittest.TestCase):
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
-    """Category Error in Array request (responseCode 202)
+    """Category Error in Array request (responseCode 103)
 
     The response should be SUCCESS for the first CBSD,
     CATEGORY_ERROR for the second, third, and fourth CBSDs.
@@ -1059,6 +1059,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response['registrationResponse'][0])
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
 
-    # Second, third, fourth devices failure 202
+    # Second, third, fourth devices failure 103 
     for x in range (1,4):
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
+        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 103)
