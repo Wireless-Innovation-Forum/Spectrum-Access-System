@@ -208,7 +208,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
                        '/admin/injectdata/cluster_list',
                        '/admin/injectdata/pal_database_record',
-                       '/admin/injectdata/sas_admin'):
+                       '/admin/injectdata/sas_admin',
+                       '/admin/injectdata/sas_impl',
+                       '/admin/injectdata/esc_sensor'):
       response = ''
     else:
       self.send_response(404)

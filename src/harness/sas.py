@@ -226,6 +226,16 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectSasImplementationRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectEscSensorDataRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
 
