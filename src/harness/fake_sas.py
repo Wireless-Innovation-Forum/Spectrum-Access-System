@@ -82,10 +82,15 @@ class FakeSas(sas_interface.SasInterface):
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     response = {'registrationResponse': []}
     for req in request['registrationRequest']:
+      if 'fccId' not in req or 'cbsdSerialNumber' not in req:
+        response['registrationResponse'].append({
+            'response': self._GetSuccessResponse()
+        })
+        continue
       response['registrationResponse'].append({
-          'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
-          'response': self._GetSuccessResponse()
-      })
+        'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
+        'response': self._GetSuccessResponse()
+    })
     return response
 
   def SpectrumInquiry(self, request, ssl_cert=None, ssl_key=None):
@@ -113,12 +118,19 @@ class FakeSas(sas_interface.SasInterface):
           'response': self._GetMissingParamResponse()
         })
       else :
-        response['grantResponse'].append({
-          'cbsdId': req['cbsdId'],
-          'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
-          'channelType': 'GAA',
-          'response': self._GetSuccessResponse()
-        })
+        if (('highFrequency' not in req['operationParam']['operationFrequencyRange']) or \
+           ('lowFrequency' not in req['operationParam']['operationFrequencyRange'])) :
+           response['grantResponse'].append({
+             'cbsdId': req['cbsdId'],
+             'response': self._GetMissingParamResponse()
+           })
+        else:   
+          response['grantResponse'].append({
+            'cbsdId': req['cbsdId'],
+            'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
+            'channelType': 'GAA',
+            'response': self._GetSuccessResponse()
+          })
     return response
 
   def Heartbeat(self, request, ssl_cert=None, ssl_key=None):
@@ -164,6 +176,8 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
+  def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
 
 class FakeSasHandler(BaseHTTPRequestHandler):
 
@@ -185,12 +199,19 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
-    elif self.path == '/admin/reset':
-      response = ''
-    elif self.path == '/admin/injectdata/fccId':
+    elif self.path == '/admin/injectdata/zone':
+      response = FakeSas().InjectZoneData(request)
+    elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
+                       '/admin/injectdata/conditional_registration',
+                       '/admin/injectdata/blacklist_fcc_id',
+                       '/admin/injectdata/blacklist_fcc_id_and_serial_number',
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp',
+                       '/admin/injectdata/cluster_list',
+                       '/admin/injectdata/pal_database_record',
+                       '/admin/injectdata/sas_admin'):
       response = ''
     else:
-      self.send_response(400)
+      self.send_response(404)
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')

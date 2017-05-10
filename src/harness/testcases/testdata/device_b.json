@@ -8,8 +8,8 @@
     "radioTechnology": "E_UTRA"
   },
   "installationParam": {
-    "latitude": 37.293926,
-    "longitude": -122.046518,
+    "latitude": 39.139836,
+    "longitude": -97.770094,
     "height": 7.6,
     "heightType": "AGL",
     "indoorDeployment": false,
@@ -17,5 +17,7 @@
     "antennaBeamwidth": 30,
     "antennaAzimuth": 270,
     "antennaDowntilt": -90
-  }
+  },
+  "measCapability": [
+  ]
 }

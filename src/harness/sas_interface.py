@@ -178,6 +178,28 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def BlacklistByFccId(self, request):
+    """Inject an FCC ID which will be blacklisted by the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "fccId" and the value is the FCC ID (string) to be blacklisted.
+    """
+    pass
+
+  @abc.abstractmethod
+  def BlacklistByFccIdAndSerialNumber(self, request):
+    """Inject an (FCC ID, serial number) pair which will be blacklisted by the
+       SAS under test.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) blacklisted FCC ID
+        "serialNumber": (string) blacklisted serial number
+    """
+    pass
+
+  @abc.abstractmethod
   def PreloadRegistrationData(self, request):
     """SAS admin interface to preload registration data into SAS under test.
 
@@ -188,5 +210,81 @@ class SasAdminInterface(object):
         itself a dictionary). The dictionary is a RegistrationRequest object,
         the fccId and cbsdSerialNumber fields are required, other fields are
         optional.
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectZoneData(self, request):
+    """Inject PPA or NTIA zone information into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "zoneData": ZoneData object to be injected into SAS under test.
+        For more information about ZoneData please see the SAS-SAS TS
+        (WINNF-16-S-0096).
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectClusterList(self, request):
+    """"Associate a cluster list with an injected PPA.
+    The SAS under test will act as if the specified CBSDs were used to create
+    the PPA.
+
+    Args:
+      request: a dictionary with the following key-value pairs:
+        "zoneId": (string) the ID of the PPA to which this cluster list should
+        be added.
+        "cbsdIds": (array of string) the CBSD IDs of the devices in the cluster
+        list.
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectPalDatabaseRecord(self, request):
+    """Inject a PAL Database record into the SAS under test.
+
+    Args:
+      request:
+      For the contents of this request, please refer to the PAL Database TS
+      (WINNF-16-S-0245).
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectFss(self, request):
+    """SAS admin interface to inject FSS information into SAS under test.
+
+    Args:
+        request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a fixed satellite service object
+        (which is itself a dictionary). The dictionary is an
+        IncumbentProtectionData object (specified in SAS-SAS TS).
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectWisp(self, request):
+    """SAS admin interface to inject WISP information into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a wireless internet service provider
+        object (which is itself a dictionary). The dictionary is an
+        IncumbentProtectionData object (specified in SAS-SAS TS).
+    Note: IncumbentProtectionData must include a zoneId which can be
+    obtained by first injecting the WISP zone.
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectSasAdministratorRecord(self, request):
+    """SAS admin interface to inject SAS Administrator Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a SAS Administrator information (which is 
+        itself a dictionary). The dictionary is an SASAdministrator object 
+        (Specified in SAS-SAS TS WINNF-16-S-0096)
     """
     pass
