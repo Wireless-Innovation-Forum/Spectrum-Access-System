@@ -294,10 +294,9 @@ class SasAdminInterface(object):
     """SAS admin interface to inject SAS Implementation Record into SAS under test.
 
     Args:
-      request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a SAS Implementation information (which is 
-        itself a dictionary). The dictionary is an SASImplementation object 
-        (Specified in SAS-SAS TS WINNF-16-S-0096)
+      request: A dictionary with a single key-value pair where the key is "record" 
+      and the value is a SasImplementation object (which is itself a dictionary 
+      specified in the SAS-SAS TS, WINNF-16-S-0096).
     """
     pass
 
@@ -307,8 +306,9 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a ESC Sensor Data information (which is 
-        itself a dictionary). The dictionary is an EscSensorData object 
-        (Specified in SAS-SAS TS WINNF-16-S-0096)
+        "record" and the value is a EscSensorData object (which is 
+        itself a dictionary specified in SAS-SAS TS WINNF-16-S-0096)
+    Behavior: SAS should act as if it is connected to an ESC sensor with 
+    the provided parameters.
     """
     pass
