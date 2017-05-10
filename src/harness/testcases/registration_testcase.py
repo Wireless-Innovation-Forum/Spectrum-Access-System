@@ -944,7 +944,11 @@ class RegistrationTestcase(unittest.TestCase):
   def test_WINFF_FT_S_REG_23(self):
     """CBSD Cat A attempts to register with HAAT >6m
 
-    The response should be FAILURE 103.
+    The response should be FAILURE 103
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     # Register the device
@@ -967,6 +971,10 @@ class RegistrationTestcase(unittest.TestCase):
     """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
 
     The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     # Register the device
@@ -985,6 +993,10 @@ class RegistrationTestcase(unittest.TestCase):
     """CBSD Cat B attempts to register as Indoors deployment
 
     The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     # Register the device
@@ -1004,6 +1016,10 @@ class RegistrationTestcase(unittest.TestCase):
 
     The response should be SUCCESS for the first CBSD,
     CATEGORY_ERROR for the second, third, and fourth CBSDs.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     device_1 = json.load(
