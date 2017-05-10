@@ -903,6 +903,43 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 201))
     self.assertFalse('cbsdId' in response)
 
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_22(self):
+    """Group Error in Array request (responseCode 201)
+    The response should be SUCCESS for the first two devices,
+    FAILURE for the third device.
+    """
+
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    # Device #3 invalid group - only 'INTERFERENCE_COORDINATION' allowed
+    device_c['groupingParam'] = [
+        {'groupType': 'FAKE_GROUP_TYPE',
+         'groupId': '1234'}
+    ]
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    # Register devices
+    devices = [device_a, device_b, device_c]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check response
+    for resp in response['registrationResponse'][:2]:
+        self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertTrue('cbsdId' in resp)
+    self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
+
 @winnforum_testcase
   def test_WINFF_FT_S_REG_23(self):
     """CBSD Cat A attempts to register with HAAT >6m
@@ -960,43 +997,6 @@ class RegistrationTestcase(unittest.TestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 103)
     self.assertTrue('cbsdId' in response)
-
-  @winnforum_testcase
-  def test_WINNF_FT_S_REG_22(self):
-    """Group Error in Array request (responseCode 201)
-    The response should be SUCCESS for the first two devices,
-    FAILURE for the third device.
-    """
-
-    # Register the devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-
-    # Device #3 invalid group - only 'INTERFERENCE_COORDINATION' allowed
-    device_c['groupingParam'] = [
-        {'groupType': 'FAKE_GROUP_TYPE',
-         'groupId': '1234'}
-    ]
-
-    # Inject FCC IDs
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-
-    # Register devices
-    devices = [device_a, device_b, device_c]
-    request = {'registrationRequest': devices}
-    response = self._sas.Registration(request)
-
-    # Check response
-    for resp in response['registrationResponse'][:2]:
-        self.assertEqual(resp['response']['responseCode'], 0)
-        self.assertTrue('cbsdId' in resp)
-    self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
