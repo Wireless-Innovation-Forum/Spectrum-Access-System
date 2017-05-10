@@ -296,10 +296,10 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is a string of permitted enumerations
-        EUTRA_CARRIER_RSSI_NON_TX or EUTRA_CARRIER_RSSI_ALWAYS
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
         
-    Note: The SAS will request a measurement report in the RegistrationResponse 
+    Note: The SAS should request a measurement report in the RegistrationResponse 
     (if status == 0)
 
     """
@@ -312,10 +312,10 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is a string of permitted enumerations
-        EUTRA_CARRIER_RSSI_NON_TX or EUTRA_CARRIER_RSSI_ALWAYS
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
 
-    Note: The SAS will request a measurement report in the HeartbeatResponse 
+    Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
 
     """

@@ -209,8 +209,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/cluster_list',
                        '/admin/injectdata/pal_database_record',
                        '/admin/injectdata/sas_admin',
-                       '/admin/trigger/meas_report_in_registration',
-                       '/admin/trigger/meas_report_in_heartbeat'):
+                       '/admin/trigger/meas_report_in_registration_response',
+                       '/admin/trigger/meas_report_in_heartbeat_response'):
       response = ''
     else:
       self.send_response(404)
