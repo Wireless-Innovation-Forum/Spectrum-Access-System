@@ -964,7 +964,7 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 103)
-    self.assertTrue('cbsdId' in response)
+    self.assertFalse('cbsdId' in response)
 
   @winnforum_testcase
   def test_WINFF_FT_S_REG_24(self):
@@ -986,7 +986,7 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 103)
-    self.assertTrue('cbsdId' in response)
+    self.assertFalse('cbsdId' in response)
 
   @winnforum_testcase
   def test_WINFF_FT_S_REG_25(self):
@@ -1008,7 +1008,7 @@ class RegistrationTestcase(unittest.TestCase):
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 103)
-    self.assertTrue('cbsdId' in response)
+    self.assertFalse('cbsdId' in response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
