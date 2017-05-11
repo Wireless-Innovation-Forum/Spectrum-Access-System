@@ -9,8 +9,8 @@
   },
   "measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
   "installationParam": {
-    "latitude": 40.327834,
-    "longitude": -79.471247,
+    "latitude": 39.327050,
+    "longitude": -100.604567,
     "height": 6.1,
     "heightType": "AMSL",
     "indoorDeployment": false,
