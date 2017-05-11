@@ -169,7 +169,7 @@ class SasAdminInterface(object):
   @abc.abstractmethod
   def InjectFccId(self, request):
     """SAS admin interface to inject fcc id information into SAS under test.
-    
+
     Args:
       request: A dictionary with a single key-value pair where the key is
         "fccId" and the value is a string of valid fccId which is going to be
@@ -178,7 +178,7 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-    def BlacklistByFccId(self, request):
+  def BlacklistByFccId(self, request):
     """Inject an FCC ID which will be blacklisted by the SAS under test.
 
     Args:
@@ -214,7 +214,7 @@ class SasAdminInterface(object):
   @abc.abstractmethod
   def PreloadRegistrationData(self, request):
     """SAS admin interface to preload registration data into SAS under test.
-    
+
     Args:
       request: A dictionary with a single key-value pair where the key is
         "registrationData" and the value is a list of individual CBSD
@@ -236,6 +236,29 @@ class SasAdminInterface(object):
         (WINNF-16-S-0096).
     """
     pass
+
+  @abc.abstractmethod
+  def TriggerEscZone(self, request):
+      """SAS admin interface to Trigger Esc Zone in SAS under test.
+      Args:
+       request: A dictionary with a single key-value pair where one key is
+         "zoneId" a value of string type.
+         the other key is "frequencyRange" with a value of type FrequencyRange object as specified in SAS-CBSD TS
+       Returns: string triggerId
+       Behavior: Causes the specified ESC zone to act as if the ESC was triggered by a radar pulse.
+       """
+      pass
+
+  @abc.abstractmethod
+  def ResetEscZone(self, request):
+      """SAS admin interface to reset the Trigger of Esc Zone in SAS under test.
+      Args:
+              request: A dictionary with a single key-value pair where one key is
+              "triggerId" with a value of string type.
+              the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS  
+      Behavior: Resets the trigger for the ESC (as if the radar source has left the area) 
+      """
+      pass
 
   @abc.abstractmethod
   def InjectClusterList(self, request):
@@ -264,33 +287,9 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerEscZone(self, request):
-      """SAS admin interface to Trigger Esc Zone in SAS under test.
-
-      Args:
-       request: A dictionary with a single key-value pair where one key is
-         "zoneId" a value of string type.
-         the other key is "frequencyRange" with a value of type FrequencyRange object as specified in SAS-CBSD TS
-       Returns: string triggerId
-       Behavior: Causes the specified ESC zone to act as if the ESC was triggered by a radar pulse.
-       """
-       pass
-
-  @abc.abstractmethod
-  def ResetEscZone(self, request):
-      """SAS admin interface to reset the Trigger of Esc Zone in SAS under test.
-
-      Args:
-              request: A dictionary with a single key-value pair where one key is
-              "triggerId" with a value of string type.
-              the other key is "frequency_range" with a value of type FrequencyRange object as specified in SAS-CBSD TS  
-      Behavior: Resets the trigger for the ESC (as if the radar source has left the area) 
-      """
-      pass
-
-  @abc.abstractmethod
   def InjectFss(self, request):
     """SAS admin interface to inject FSS information into SAS under test.
+
     Args:
         request: A dictionary with a single key-value pair where the key is
         "record" and the value is a fixed satellite service object
@@ -298,7 +297,7 @@ class SasAdminInterface(object):
         IncumbentProtectionData object (specified in SAS-SAS TS).
     """
     pass
-    
+
   @abc.abstractmethod
   def InjectWisp(self, request):
     """SAS admin interface to inject WISP information into SAS under test.
