@@ -940,12 +940,86 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertTrue('cbsdId' in resp)
     self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
 
+@winnforum_testcase
+  def test_WINFF_FT_S_REG_23(self):
+    """CBSD Cat A attempts to register with HAAT >6m
+
+    The response should be FAILURE 103
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['latitude'] = 38.882162
+    device_a['installationParam']['longitude'] = 77.113755
+    device_a['installationParam']['height'] = 8
+    device_a['installationParam']['heightType'] = 'AGL'
+    device_a['installationParam']['indoorDeployment'] = False
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_24(self):
+    """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
+
+    The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['eirpCapability'] = 31
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_25(self):
+    """CBSD Cat B attempts to register as Indoors deployment
+
+    The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    device_b['installationParam']['indoorDeployment'] = True
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
   @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
-    """Category Error in Array request (responseCode 202)
+    """Category Error in Array request (responseCode 103)
 
     The response should be SUCCESS for the first CBSD,
     CATEGORY_ERROR for the second, third, and fourth CBSDs.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     device_1 = json.load(
@@ -1001,6 +1075,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response['registrationResponse'][0])
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
 
-    # Second, third, fourth devices failure 202
+    # Second, third, fourth devices failure 103 
     for x in range (1,4):
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
+        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 103)
