@@ -10,6 +10,11 @@ Technical Report [TR-15-517](https://www.its.bldrdoc.gov/publications/2805.aspx)
 "3.5 GHz Exclusion Zone Analyses and Methodology," June 2015 
 [TR-15-517] for the 3.5 GHz exclusion zone analysis.
 
+A Winnforum-compliant Python port of the ITS C++ code is in the source
+directory, under ehata_its_wf.py. As of May 2017, it contains all of the
+corrections listed under R2-SGN-04. If there are differences between
+the ITS C++ code and the Python code, the Python code should be used.
+
 ### Input Parameters
 
 * **float** pfl[] : A terrain profile line.  EHata uses the ITM-method of formatting
