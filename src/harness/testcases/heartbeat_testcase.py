@@ -778,7 +778,7 @@ class HeartbeatTestcase(unittest.TestCase):
     difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
     logging.debug('Difference between grantExpireTime and CurrentTime (in seconds) ', difference_time)
     self.assertGreaterEqual(grant_expire_time, datetime.utcnow())
-    time.sleep(difference_time + 1)
+    #time.sleep(difference_time + 1)
 
     # Request Heartbeat
     request = {
@@ -876,3 +876,102 @@ class HeartbeatTestcase(unittest.TestCase):
                            grant_expire_times[response_num])
     self.assertEqual(response[2]['response']['responseCode'], 103)
     # No need to check transmitExpireTime because this is the first heartbeat
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_HBT_25(self):
+    """SAS suspends the grant for CBSD in a ppa
+        with incumbent present in the PAL frequency range requested by the CBSD.
+    """
+
+    # Register cbsd
+    device_inside_esc_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+    self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
+    request = {'registrationRequest': [device_inside_esc_zone]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database Recoord
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
+    # Inject cbsd_id of ppa
+    cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+    # grant request for cbds 
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    grant_id = response['grantId']
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+    # First successful Heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED',
+            'grantRenew': True
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertFalse('measReportConfig' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    transmit_expire_time_1 = datetime.strptime(response['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
+    del request, response
+    exclusion_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                                    'frequencyRange': {
+                                     'lowFrequency': 3620000000.0,
+                                     'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # wait time to trigger exclusion
+    time.sleep(3)
+    # First successful Heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED',
+            'grantRenew': True
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertEqual(response['response']['responseCode'], 501)
+    transmit_expire_time_2 = datetime.strptime(response['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    self.assertLessEqual(transmit_expire_time_2, transmit_expire_time_1)
+    del request, response
+    # Second successful Heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED',
+            'grantRenew': True
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertEqual(response['response']['responseCode'], 501)
+    transmit_expire_time_3 = datetime.strptime(response['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    self.assertLessEqual(transmit_expire_time_3, transmit_expire_time_2)
