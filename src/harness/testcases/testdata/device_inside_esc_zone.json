@@ -16,6 +16,5 @@
     "eirpCapability": 23,
     "antennaGain": 16,
     "antennaBeamwidth": 30
-  },
-  "measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"]
+  }
 }
