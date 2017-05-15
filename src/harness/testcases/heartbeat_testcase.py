@@ -943,7 +943,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    time.sleep(10)
+    #time.sleep(10)
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -1075,7 +1075,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    time.sleep(10)
+    #time.sleep(10)
     # Second Heartbeat with SAS-CBSD protocol version
     heartbeat = [heartbeat_0, heartbeat_1, heartbeat_2]
     for heartbeat_num, hb in enumerate(heartbeat):
