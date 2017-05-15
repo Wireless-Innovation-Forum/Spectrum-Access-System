@@ -1025,21 +1025,18 @@ class HeartbeatTestcase(unittest.TestCase):
     # Send grant request and get response
     response = self._sas.Grant(request)['grantResponse']
     self.assertEqual(len(response), 3)
+    print response
     # Check grant response
-    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
-    self.assertTrue('grantId' in response[0])
-    self.assertEqual(response[0]['response']['responseCode'], 0)
-    self.assertEqual(response[0]['channelType'], 'GAA')
-
-    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
-    self.assertTrue('grantId' in response[1])
-    self.assertEqual(response[1]['response']['responseCode'], 0)
-    self.assertEqual(response[1]['channelType'], 'GAA')
-
-    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
-    self.assertTrue('grantId' in response[2])
-    self.assertEqual(response[2]['response']['responseCode'], 0)
-    self.assertEqual(response[2]['channelType'], 'PAL')
+    for response_num, resp in enumerate(response):
+    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+	print cbsd_ids[response_num]
+    	self.assertTrue('grantId' in resp)
+    	self.assertEqual(resp['response']['responseCode'], 0)
+        if(cbsd_ids[response_num] == cbsd_ids[2]):
+	    print cbsd_ids[response_num]
+	    self.assertEqual(resp['channelType'], 'PAL')
+	else:
+	    self.assertEqual(resp['channelType'], 'GAA') 
     grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
     del request, response
 
@@ -1063,8 +1060,8 @@ class HeartbeatTestcase(unittest.TestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     self.assertEqual(len(response), 3)
     for response_num, resp in enumerate(response):
-    	self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
-    	self.assertEqual(response[response_num]['grantId'], grant_ids[response_num])
+    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+    	self.assertEqual(resp['grantId'], grant_ids[response_num])
     	self.assertEqual(resp['response']['responseCode'], 0)
 	grant_expire_time_1 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
     	transmit_expire_time_1 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
@@ -1079,7 +1076,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                     'frequencyRange': {
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
-    trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
     time.sleep(10)
     # Second Heartbeat with unsupported SAS-CBSD protocol version
@@ -1101,8 +1098,8 @@ class HeartbeatTestcase(unittest.TestCase):
     request = {'heartbeatRequest': [heartbeat_0, heartbeat_1, heartbeat_2]}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     for response_num, resp in enumerate(response):
-    	self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
-    	self.assertEqual(response[response_num]['grantId'], grant_ids[response_num])
+    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+    	self.assertEqual(resp['grantId'], grant_ids[response_num])
         grant_expire_time_2 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
     	transmit_expire_time_2 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
     	self.assertLessEqual((transmit_expire_time_2 - datetime.utcnow()).total_seconds(), 240)
