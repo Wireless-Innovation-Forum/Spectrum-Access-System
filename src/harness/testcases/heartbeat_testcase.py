@@ -943,7 +943,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    time.sleep(3)
+    time.sleep(10)
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -975,3 +975,139 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 501)
     transmit_expire_time_3 = datetime.strptime(response['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
     self.assertLessEqual(transmit_expire_time_3, transmit_expire_time_2)
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_HBT_26(self):
+    """Array request for 3 CBSDs, SAS suspends the grant for a CBSD in a ppa
+        with incumbent present in the PAL frequency range requested by the CBSD.
+    """
+
+    # Register three devices
+    device_0_outside_ppa = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_0_outside_ppa.json')))
+    self._sas_admin.InjectFccId({'fccId': device_0_outside_ppa['fccId']})
+    device_1_outside_ppa = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_1_outside_ppa.json')))
+    self._sas_admin.InjectFccId({'fccId': device_1_outside_ppa['fccId']})
+    device_inside_esc_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+    self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
+    request = {'registrationRequest': [device_0_outside_ppa, device_1_outside_ppa, device_inside_esc_zone]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+        self.assertEqual(resp['response']['responseCode'], 0)
+        cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
+    # Inject cbsd_id of ppa
+    cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_ids[2]]}
+    self._sas_admin.InjectClusterList(cluster_list)
+
+    # Create and send grant requests
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), 3)
+    # Check grant response
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertTrue('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    self.assertEqual(response[0]['channelType'], 'GAA')
+
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertTrue('grantId' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 0)
+    self.assertEqual(response[1]['channelType'], 'GAA')
+
+    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
+    self.assertTrue('grantId' in response[2])
+    self.assertEqual(response[2]['response']['responseCode'], 0)
+    self.assertEqual(response[2]['channelType'], 'PAL')
+    grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
+    del request, response
+
+    # First Heartbeat with unsupported SAS-CBSD protocol version
+    heartbeat_0 = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_1 = {
+        'cbsdId': cbsd_ids[1],
+        'grantId': grant_ids[1],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_2 = {
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[2],
+        'operationState': 'GRANTED'
+    }
+    request = {'heartbeatRequest': [heartbeat_0, heartbeat_1, heartbeat_2]}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), 3)
+    for response_num, resp in enumerate(response):
+    	self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
+    	self.assertEqual(response[response_num]['grantId'], grant_ids[response_num])
+    	self.assertEqual(resp['response']['responseCode'], 0)
+	grant_expire_time_1 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    	transmit_expire_time_1 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    	self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
+        self.assertLessEqual(transmit_expire_time_1, grant_expire_time_1)
+    del request, response
+
+    exclusion_zone = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                                    'frequencyRange': {
+                                     'lowFrequency': 3620000000.0,
+                                     'highFrequency': 3630000000.0}}
+    trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # wait time to trigger exclusion
+    time.sleep(10)
+    # Second Heartbeat with unsupported SAS-CBSD protocol version
+    heartbeat_0 = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_1 = {
+        'cbsdId': cbsd_ids[1],
+        'grantId': grant_ids[1],
+        'operationState': 'GRANTED'
+    }
+    heartbeat_2 = {
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[2],
+        'operationState': 'GRANTED'
+    }
+    request = {'heartbeatRequest': [heartbeat_0, heartbeat_1, heartbeat_2]}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    for response_num, resp in enumerate(response):
+    	self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
+    	self.assertEqual(response[response_num]['grantId'], grant_ids[response_num])
+        grant_expire_time_2 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    	transmit_expire_time_2 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+    	self.assertLessEqual((transmit_expire_time_2 - datetime.utcnow()).total_seconds(), 240)
+	if cbsd_ids[response_num] == cbsd_ids[2]:
+	    self.assertEqual(resp['response']['responseCode'], 501)
+            self.assertLessEqual(transmit_expire_time_2, transmit_expire_time_1)
+	else:
+	    self.assertEqual(resp['response']['responseCode'], 0)
