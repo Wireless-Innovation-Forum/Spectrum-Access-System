@@ -246,6 +246,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def TriggerSasImplementationRecordPull(self, request):
+    _RequestPost('https://%s/admin/trigger/pull_sas_implementation' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
 
