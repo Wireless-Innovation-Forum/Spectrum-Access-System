@@ -308,7 +308,10 @@ class HeartbeatTestcase(unittest.TestCase):
                                           '%Y-%m-%dT%H:%M:%SZ')
     del request, response
 
-    # Heartbeat
+    # Trigger to request measurement report for all subsequent heartbeat request
+    self._sas_admin.TriggerMeasurementReportHeartbeat({'meas_report_config':
+                                                       ['EUTRA_CARRIER_RSSI_ALWAYS']})
+    # First Heartbeat Request to Authorize Device
     request = {
         'heartbeatRequest': [{
             'cbsdId': cbsd_id,
@@ -317,6 +320,35 @@ class HeartbeatTestcase(unittest.TestCase):
         }]
     }
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+
+    # Check the heartbeat response
+    self.assertTrue(response['measReportConfig'])
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    transmit_expire_time = datetime.strptime(
+      response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertLessEqual(
+      (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+    self.assertLessEqual(transmit_expire_time, grant_expire_time)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Get measReport
+    meas_report = json.load(
+        open(os.path.join('testcases', 'testdata', 'meas_report_0.json')))
+
+    # Second Heartbeat Request with measReport
+    request = {
+      'heartbeatRequest': [{
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
+        'operationState': 'GRANTED',
+        'measReport': meas_report
+      }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+
     # Check the heartbeat response
     self.assertTrue(response['measReportConfig'])
     self.assertEqual(response['cbsdId'], cbsd_id)
@@ -325,6 +357,8 @@ class HeartbeatTestcase(unittest.TestCase):
                                              '%Y-%m-%dT%H:%M:%SZ')
     self.assertLess(datetime.utcnow(), transmit_expire_time)
     self.assertLessEqual(transmit_expire_time, grant_expire_time)
+    self.assertLessEqual(
+      (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -376,10 +410,12 @@ class HeartbeatTestcase(unittest.TestCase):
         grant_expire_times.append(
             datetime.strptime(resp['grantExpireTime'],
                               '%Y-%m-%dT%H:%M:%SZ'))
-    self.assertTrue(response[0]['measReportConfig'])
     del request, response
 
-    # Heartbeat
+    # Trigger to request measurement report for all subsequent heartbeat request
+    self._sas_admin.TriggerMeasurementReportHeartbeat({'meas_report_config':
+                                                       ['EUTRA_CARRIER_RSSI_ALWAYS']})
+    # First Heartbeat Request to Authorize the Device
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_ids[0],
@@ -391,6 +427,7 @@ class HeartbeatTestcase(unittest.TestCase):
     }]
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
+
     # Check the heartbeat response
     for resp_number, resp in enumerate(response):
         self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
@@ -398,8 +435,42 @@ class HeartbeatTestcase(unittest.TestCase):
         transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLess(datetime.utcnow(), transmit_expire_time)
+        self.assertLessEqual(
+          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time, grant_expire_times[resp_number])
         self.assertEqual(resp['response']['responseCode'], 0)
+    self.assertTrue(response[0]['measReportConfig'])
+    del request, response
+
+    # Get measReport
+    meas_report = json.load(
+      open(os.path.join('testcases', 'testdata', 'meas_report_0.json')))
+
+    # Heartbeat Request
+    heartbeat_request = [{
+      'cbsdId': cbsd_ids[0],
+      'grantId': grant_ids[0],
+      'operationState': 'GRANTED',
+      'measReport': meas_report
+    }, {
+      'cbsdId': cbsd_ids[1],
+      'grantId': grant_ids[1],
+      'operationState': 'GRANTED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+
+    # Check the heartbeat response
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertEqual(resp['grantId'], grant_ids[resp_number])
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(
+        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+      self.assertLessEqual(transmit_expire_time, grant_expire_times[resp_number])
+      self.assertEqual(resp['response']['responseCode'], 0)
     self.assertTrue(response[0]['measReportConfig'])
 
   @winnforum_testcase
