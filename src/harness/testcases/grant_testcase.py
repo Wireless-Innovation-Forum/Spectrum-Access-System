@@ -314,6 +314,67 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_15(self):
+    """CBSD requests a frequency range which is a mix of PAL and GAA channel.
+    The Response Code should be 103(INVALID_PARAM)
+    """
+    # Register the device
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Inject Census Tract Zone Record
+    census_tract_zone_data_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'census_tract_zone_data_0.json')))
+    census_tract_zone_id = self._sas_admin.InjectZoneData({'zoneData':
+                                                           census_tract_zone_data_0})['zoneId']
+
+    # Inject PAL Database Record
+    pal_database_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+
+    # Add FIPS Code from the Census Tracts Zone Id to Pal Id
+    pal_id = [census_tract_zone_id.split('/')[4] if index == 2 else val
+              for index, val in enumerate(pal_database_record_0['palId'].split('/'))]
+    pal_database_record_0['palId'] = pal_id
+    pal_database_record_0['license']['licenseAreaExtent'] = census_tract_zone_id
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
+
+    # Inject PPA Zone Data
+    ppa_zone_data_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_zone_data_0.json')))
+    ppa_zone_id = self._sas_admin.InjectZoneData({'zoneData': ppa_zone_data_0})['zoneId']
+
+    # Inject Cluster List
+    cluster_list = {'zoneId': ppa_zone_id,
+                    'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+
+    # Create Grant Request with frequency range containing both
+    # PAL(3550000000 - 3560000000) and GAA(3560000001 - 3580000000) Channel
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+      'lowFrequency'] = 3550000000.0
+    grant_0['operationParam']['operationFrequencyRange'][
+      'highFrequency'] = 3580000000.0
+    request = {'grantRequest': [grant_0]}
+
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertTrue(response['response']['responseCode'] in 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Frequency range is completely outside 3550-3700 MHz.
     The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
