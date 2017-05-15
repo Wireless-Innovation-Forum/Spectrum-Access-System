@@ -135,7 +135,7 @@ class GrantTestcase(unittest.TestCase):
     del request, response
     # Create and trigger the ESC Zone
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone_request = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {
@@ -173,7 +173,7 @@ class GrantTestcase(unittest.TestCase):
     del request, response
     # Create and trigger the ESC Zone
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {
@@ -226,7 +226,7 @@ class GrantTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
     ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
     # Inject cbsd_ids of ppa
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
@@ -266,12 +266,12 @@ class GrantTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
     ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
     self._sas_admin.InjectClusterList(cluster_list)
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {
@@ -313,12 +313,12 @@ class GrantTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
     ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
     self._sas_admin.InjectClusterList(cluster_list)
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {

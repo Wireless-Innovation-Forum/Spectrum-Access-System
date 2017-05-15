@@ -899,7 +899,7 @@ class HeartbeatTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
     ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
     # Inject cbsd_id of ppa
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
@@ -935,7 +935,7 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
     del request, response
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {
@@ -943,7 +943,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    #time.sleep(10)
+    time.sleep(10)
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -965,7 +965,7 @@ class HeartbeatTestcase(unittest.TestCase):
         'heartbeatRequest': [{
             'cbsdId': cbsd_id,
             'grantId': grant_id,
-            'operationState': 'GRANTED',
+            'operationState': 'AUTHORIZED',
             'grantRenew': True
         }]
     }
@@ -1005,7 +1005,7 @@ class HeartbeatTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
     ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
     # Inject cbsd_id of ppa
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_ids[2]]}
@@ -1037,7 +1037,7 @@ class HeartbeatTestcase(unittest.TestCase):
     grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
     del request, response
 
-    # First Heartbeat with unsupported SAS-CBSD protocol version
+    # First Heartbeat with SAS-CBSD protocol version
     heartbeat_0 = {
         'cbsdId': cbsd_ids[0],
         'grantId': grant_ids[0],
@@ -1067,7 +1067,7 @@ class HeartbeatTestcase(unittest.TestCase):
     del request, response
 
     exclusion_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'exclusion_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone)
     trigger_esc_zone = {'zoneId': zone_response['zoneId'],
                                     'frequencyRange': {
@@ -1075,24 +1075,12 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    #time.sleep(10)
-    # Second Heartbeat with unsupported SAS-CBSD protocol version
-    heartbeat_0 = {
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
-        'operationState': 'GRANTED'
-    }
-    heartbeat_1 = {
-        'cbsdId': cbsd_ids[1],
-        'grantId': grant_ids[1],
-        'operationState': 'GRANTED'
-    }
-    heartbeat_2 = {
-        'cbsdId': cbsd_ids[2],
-        'grantId': grant_ids[2],
-        'operationState': 'GRANTED'
-    }
-    request = {'heartbeatRequest': [heartbeat_0, heartbeat_1, heartbeat_2]}
+    time.sleep(10)
+    # Second Heartbeat with SAS-CBSD protocol version
+    heartbeat = [heartbeat_0, heartbeat_1, heartbeat_2]
+    for heartbeat_num, hb in enumerate(heartbeat):
+        heartbeat[heartbeat_num]['operationState'] = 'AUTHORIZED'
+    request = {'heartbeatRequest': heartbeat}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     for response_num, resp in enumerate(response):
     	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
