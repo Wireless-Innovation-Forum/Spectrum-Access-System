@@ -778,7 +778,7 @@ class HeartbeatTestcase(unittest.TestCase):
     difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
     logging.debug('Difference between grantExpireTime and CurrentTime (in seconds) ', difference_time)
     self.assertGreaterEqual(grant_expire_time, datetime.utcnow())
-    #time.sleep(difference_time + 1)
+    time.sleep(difference_time + 1)
 
     # Request Heartbeat
     request = {
@@ -943,7 +943,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    time.sleep(10)
+    #time.sleep(10)
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -1075,7 +1075,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # wait time to trigger exclusion
-    time.sleep(10)
+    #time.sleep(10)
     # Second Heartbeat with unsupported SAS-CBSD protocol version
     heartbeat_0 = {
         'cbsdId': cbsd_ids[0],
