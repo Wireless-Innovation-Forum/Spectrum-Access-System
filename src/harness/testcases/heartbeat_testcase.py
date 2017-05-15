@@ -122,7 +122,7 @@ class HeartbeatTestcase(unittest.TestCase):
         self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
         self.assertEqual(resp['response']['responseCode'], 0)
         grant_ids.append(resp['grantId'])
-        grant_expire_time.append(
+        grant_expire_times.append(
             datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
     del request, response
 
