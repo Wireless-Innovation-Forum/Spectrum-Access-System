@@ -979,7 +979,8 @@ class HeartbeatTestcase(unittest.TestCase):
   @winnforum_testcase 
   def test_WINFF_FT_S_HBT_26(self):
     """Array request for 3 CBSDs, SAS suspends the grant for a CBSD in a ppa
-        with incumbent present in the PAL frequency range requested by the CBSD.
+        with incumbent present in the PAL frequency range requested by the CBSD
+	two others CBSDs ousite ppa continue to transmit.
     """
 
     # Register three devices
