@@ -310,7 +310,7 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Trigger to request measurement report for all subsequent heartbeat request
     self._sas_admin.TriggerMeasurementReportHeartbeat({'meas_report_config':
-                                                         ['EUTRA_CARRIER_RSSI_ALWAYS']})
+                                                       ['EUTRA_CARRIER_RSSI_ALWAYS']})
     # First Heartbeat Request to Authorize Device
     request = {
         'heartbeatRequest': [{
@@ -414,7 +414,7 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Trigger to request measurement report for all subsequent heartbeat request
     self._sas_admin.TriggerMeasurementReportHeartbeat({'meas_report_config':
-                                                         ['EUTRA_CARRIER_RSSI_ALWAYS']})
+                                                       ['EUTRA_CARRIER_RSSI_ALWAYS']})
     # First Heartbeat Request to Authorize the Device
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],

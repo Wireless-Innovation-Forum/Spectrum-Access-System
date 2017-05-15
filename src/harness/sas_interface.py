@@ -290,35 +290,6 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportRegistration(self, request):
-    """SAS admin interface to trigger measurement report request for all subsequent
-    registration request 
-
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
-        
-    Note: The SAS should request a measurement report in the RegistrationResponse 
-    (if status == 0)
-    """
-    pass
-
-  @abc.abstractmethod
-  def TriggerMeasurementReportHeartbeat(self, request):
-    """SAS admin interface to trigger measurement report request for all subsequent
-    heartbeat request 
-
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
-
-    Note: The SAS should request a measurement report in the HeartbeatResponse 
-    (if status == 0)
-    """
-    pass
-
   def InjectSasImplementationRecord(self, request):
     """SAS admin interface to inject SAS Implementation Record into SAS under test.
 
@@ -329,6 +300,7 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
   def InjectEscSensorDataRecord(self, request):
     """SAS admin interface to inject ESC Sensor Data Record into SAS under test.
 
@@ -338,5 +310,33 @@ class SasAdminInterface(object):
         itself a dictionary specified in SAS-SAS TS WINNF-16-S-0096)
     Behavior: SAS should act as if it is connected to an ESC sensor with 
     the provided parameters.
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportRegistration(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    registration request 
+  
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
+    Note: The SAS should request a measurement report in the RegistrationResponse 
+    (if status == 0)
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportHeartbeat(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    heartbeat request 
+  
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
+    Note: The SAS should request a measurement report in the HeartbeatResponse 
+    (if status == 0)
     """
     pass

@@ -940,7 +940,7 @@ class RegistrationTestcase(unittest.TestCase):
         self.assertTrue('cbsdId' in resp)
     self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
 
-@winnforum_testcase
+  @winnforum_testcase
   def test_WINFF_FT_S_REG_23(self):
     """CBSD Cat A attempts to register with HAAT >6m
 
