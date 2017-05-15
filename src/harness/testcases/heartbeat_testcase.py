@@ -1025,15 +1025,12 @@ class HeartbeatTestcase(unittest.TestCase):
     # Send grant request and get response
     response = self._sas.Grant(request)['grantResponse']
     self.assertEqual(len(response), 3)
-    print response
     # Check grant response
     for response_num, resp in enumerate(response):
     	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-	print cbsd_ids[response_num]
     	self.assertTrue('grantId' in resp)
     	self.assertEqual(resp['response']['responseCode'], 0)
         if(cbsd_ids[response_num] == cbsd_ids[2]):
-	    print cbsd_ids[response_num]
 	    self.assertEqual(resp['channelType'], 'PAL')
 	else:
 	    self.assertEqual(resp['channelType'], 'GAA') 
