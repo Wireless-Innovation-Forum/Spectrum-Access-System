@@ -59,38 +59,35 @@ class DeregistrationTestcase(unittest.TestCase):
   def test_WINNF_FT_S_DRG_2(self):
     """Valid and correct CBSD ID: two deregistrationRequest objects
 
-
     CBSD sends deregistration request to SAS with two deregistrationRequest
     objects that contain correct and valid CBSD ID, the response should be
     SUCCESS.
     """
 
     # Register the devices
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_1['fccId'] = "test_fcc_id_1"
-    device_2['fccId'] = "test_fcc_id_2"
-    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
-    request = {'registrationRequest': [device_1, device_2]}
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    cbsd_id = []
-    for x in range (0, 2) :
-      self.assertEqual(response[x]['response']['responseCode'], 0)
-      cbsd_id.append(response[x]['cbsdId'])
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
     del request, response
 
     # Deregister the device
     request = {'deregistrationRequest': [
-        {'cbsdId': cbsd_id[0]},
-        {'cbsdId': cbsd_id[1]}]}
+        {'cbsdId': cbsd_ids[0]},
+        {'cbsdId': cbsd_ids[1]}]}
     response = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
-    for x in range (0, 2):
-      self.assertEqual(response[x]['cbsdId'], cbsd_id[x])
+    for x in range(0, 2):
+      self.assertEqual(response[x]['cbsdId'], cbsd_ids[x])
       self.assertEqual(response[x]['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -127,31 +124,30 @@ class DeregistrationTestcase(unittest.TestCase):
     response for the first object should be SUCCESS. The response for the
     second object should be FAIL.
     """
-    
+
     # Register the devices
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_1['fccId'] = "test_fcc_id_1"
-    device_2['fccId'] = "test_fcc_id_2"
-    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
-    request = {'registrationRequest': [device_1, device_2]}
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    self.assertEqual(response[0]['response']['responseCode'], 0)
-    self.assertEqual(response[1]['response']['responseCode'], 0)
-    cbsd_id_1 = response[0]['cbsdId']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
     del request, response
-  
+
     # Deregister the device
     request = {'deregistrationRequest': [
-        {'cbsdId': cbsd_id_1},
+        {'cbsdId': cbsd_ids[0]},
         {}]}
     response = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
-    self.assertEqual(response[0]['cbsdId'], cbsd_id_1)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertFalse('cbsdId' in response[1])
     self.assertIn(response[1]['response']['responseCode'], [102, 105])
