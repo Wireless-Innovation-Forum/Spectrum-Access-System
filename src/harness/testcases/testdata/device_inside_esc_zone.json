@@ -1,0 +1,20 @@
+{
+  "fccId": "test_fcc_id_inside",
+  "userId": "test_user_id_inside",
+  "cbsdSerialNumber": "test_serial_number_inside",
+  "callSign": "callsign_inside",
+  "cbsdCategory": "A",
+  "airInterface": {
+    "radioTechnology": "E_UTRA"
+  },
+  "installationParam": {
+    "latitude": 34.1813,
+    "longitude": -119.1939,
+    "height": 4.3,
+    "heightType": "AGL",
+    "indoorDeployment": false,
+    "eirpCapability": 23,
+    "antennaGain": 16,
+    "antennaBeamwidth": 30
+  }
+}
