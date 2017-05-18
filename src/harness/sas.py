@@ -135,8 +135,8 @@ class SasImpl(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('deregistration', request, ssl_cert, ssl_key)
 
-  def ImplementationRecordExchange(self, request, ssl_cert=None, ssl_key=None):
-    return self._SasRequest('sas', request, ssl_cert, ssl_key)
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s/%s/%s' %
@@ -155,7 +155,6 @@ class SasImpl(sas_interface.SasInterface):
 
   def _GetDefaultCbsdSSLKeyPath(self):
     return 'client.key'
-
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""

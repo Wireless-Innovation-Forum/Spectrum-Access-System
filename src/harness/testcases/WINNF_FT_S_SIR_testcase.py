@@ -13,13 +13,12 @@
 #    limitations under the License.
 import json
 import os
-import unittest
 import sas
 from util import winnforum_testcase
-from jsonschema import validate, Draft4Validator, ValidationError, RefResolver
+import sas_testcase
 
 
-class ImplementationRecordExchangeTestcase(unittest.TestCase):
+class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -35,28 +34,12 @@ class ImplementationRecordExchangeTestcase(unittest.TestCase):
     
     Response Code should be 200
     """
-
     # Inject the SAS Implementation Record
     impl_record = json.load(
       open(os.path.join('testcases', 'testdata', 'sas_impl_record_0.json')))
     self._sas_admin.InjectSasImplementationRecord({'record': impl_record})
 
     # Get the SAS Implementation Record using Pull Command
-    response = self._sas.ImplementationRecordExchange(impl_record['id'])
-
+    response = self._sas.GetSasImplementationRecord(impl_record['id'])
     # Verify the response using SasImplementationMessage Object schema
-    schema_path = os.path.join('..', '..', 'schema', 'SasImplementationMessage.schema.json')
-    schema = json.load(open(schema_path))
-    Draft4Validator.check_schema(schema)
-    schema_directory = os.path.dirname(os.path.realpath(schema_path))
-    resolver = RefResolver(referrer=schema, base_uri='file://' + schema_directory + '/')
-    # Validate with schema
-    self.assertRaises(ValidationError, validate(response, schema, resolver=resolver))
-
-
-
-
-
-
-
-
+    self.AssertContainsRequiredFields("SasImplementationMessage.schema.json", response)

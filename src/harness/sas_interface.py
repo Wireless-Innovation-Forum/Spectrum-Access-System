@@ -155,6 +155,21 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Implementation Record Exchange interface
+    
+    Requests a Pull Command to get the Sas Implementation Record
+    
+    Args:
+      request: A string containing Sas Implementation Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Sas Implementation Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -338,5 +353,22 @@ class SasAdminInterface(object):
         enumerations specified in WINNF-16-S-0016
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
+    """
+    pass
+
+class SasTestcaseInterface(object):
+  """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
+
+  __metaclass__ = abc.ABCMeta
+
+  @abc.abstractmethod
+  def AssertContainsRequiredFields(self, schema_path=None, response=None):
+    """Assertion of Required Fields in Response validating it with Schema
+
+    Args:
+      schema_path: A string containing the filename of the schema to be used
+      to validate.
+      response: A dictionary containing the response to validate for required
+      fields using the schema.
     """
     pass
