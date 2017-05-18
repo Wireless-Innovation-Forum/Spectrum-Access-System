@@ -1,0 +1,23 @@
+{
+  "id": "sas/0/0",
+  "name": "Sas Implementation Record",
+  "administratorId": "sas_admin/sas/0",
+  "contactInformation": {
+    "contactType": "operation",
+    "name": "Contact Name",
+    "phoneNumber": ["123 456 7890"],
+    "email": ["admin@sas.com"],
+    "address": ["Address"],
+    "note": ["Test Data for Harness"]
+  },
+  "publicKey": "Key",
+  "fccInformation": {
+    "certificationId": "0",
+    "certificationDate": "2017-05-02",
+    "certificationExpiration": "2019-05-01",
+    "certificationConditions": "Condition",
+    "frn":"frn",
+    "sasPhase":"sas"
+  },
+  "url": "https://localhost"
+}

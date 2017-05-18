@@ -135,6 +135,15 @@ class SasImpl(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('deregistration', request, ssl_cert, ssl_key)
 
+  def ImplementationRecordExchange(self, request, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('sas', request, ssl_cert, ssl_key)
+
+  def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
+    return _RequestGet('https://%s/%s/%s' %
+                        (self._base_url, method_name, request),
+                        ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
+                        ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
+
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestPost('https://%s/%s/%s' %
                         (self._base_url, self._sas_version, method_name), request,
