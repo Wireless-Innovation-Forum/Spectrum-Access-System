@@ -778,7 +778,7 @@ class HeartbeatTestcase(unittest.TestCase):
     difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
     logging.debug('Difference between grantExpireTime and CurrentTime (in seconds) ', difference_time)
     self.assertGreaterEqual(grant_expire_time, datetime.utcnow())
-    #time.sleep(difference_time + 1)
+    time.sleep(difference_time + 1)
 
     # Request Heartbeat
     request = {
