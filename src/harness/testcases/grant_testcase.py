@@ -741,7 +741,7 @@ class GrantTestcase(unittest.TestCase):
     self._sas_admin.InjectClusterList(cluster_list)
     # grant request for cbds 
     grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
@@ -788,7 +788,7 @@ class GrantTestcase(unittest.TestCase):
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # grant request 
     grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
@@ -835,7 +835,7 @@ class GrantTestcase(unittest.TestCase):
     trigger_id = self._sas_admin.TriggerEscZone(trigger_esc_zone)
     # grant request 
     grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
