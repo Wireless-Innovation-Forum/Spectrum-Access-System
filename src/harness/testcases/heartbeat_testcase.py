@@ -778,7 +778,7 @@ class HeartbeatTestcase(unittest.TestCase):
     difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
     logging.debug('Difference between grantExpireTime and CurrentTime (in seconds) ', difference_time)
     self.assertGreaterEqual(grant_expire_time, datetime.utcnow())
-    time.sleep(difference_time + 1)
+    #time.sleep(difference_time + 1)
 
     # Request Heartbeat
     request = {
@@ -906,7 +906,7 @@ class HeartbeatTestcase(unittest.TestCase):
     self._sas_admin.InjectClusterList(cluster_list)
     # grant request for cbds 
     grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_pal_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
@@ -942,8 +942,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
-    # wait time to trigger exclusion
-    #time.sleep(10)
+
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -1075,8 +1074,7 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
-    # wait time to trigger exclusion
-    #time.sleep(10)
+
     # Second Heartbeat with SAS-CBSD protocol version
     heartbeat = [heartbeat_0, heartbeat_1, heartbeat_2]
     for heartbeat_num, hb in enumerate(heartbeat):
