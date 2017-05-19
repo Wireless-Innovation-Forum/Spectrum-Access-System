@@ -330,10 +330,10 @@ class GrantTestcase(unittest.TestCase):
     del request, response
 
     # Inject Census Tract Zone Record
-    census_tract_zone_data_0 = json.load(
+    census_tract_zone_data_c = json.load(
       open(os.path.join('testcases', 'testdata', 'census_tract_zone_data_c.json')))
     census_tract_zone_id = self._sas_admin.InjectZoneData({'zoneData':
-                                                           census_tract_zone_data_0})['zoneId']
+                                                           census_tract_zone_data_c})['zoneId']
 
     # Inject PAL Database Record
     pal_database_record_0 = json.load(
@@ -347,9 +347,9 @@ class GrantTestcase(unittest.TestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
 
     # Inject PPA Zone Data
-    ppa_zone_data_0 = json.load(
+    ppa_zone_data_c = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_zone_data_c.json')))
-    ppa_zone_id = self._sas_admin.InjectZoneData({'zoneData': ppa_zone_data_0})['zoneId']
+    ppa_zone_id = self._sas_admin.InjectZoneData({'zoneData': ppa_zone_data_c})['zoneId']
 
     # Inject Cluster List
     cluster_list = {'zoneId': ppa_zone_id,
