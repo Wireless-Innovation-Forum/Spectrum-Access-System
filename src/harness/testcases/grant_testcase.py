@@ -340,8 +340,8 @@ class GrantTestcase(unittest.TestCase):
       open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
 
     # Add FIPS Code from the Census Tracts Zone Id to Pal Id
-    pal_id = [census_tract_zone_id.split('/')[4] if index == 2 else val
-              for index, val in enumerate(pal_database_record_0['palId'].split('/'))]
+    pal_id = '/'.join([census_tract_zone_id.split('/')[4] if index == 2 else val
+              for index, val in enumerate(pal_database_record_0['palId'].split('/'))])
     pal_database_record_0['palId'] = pal_id
     pal_database_record_0['license']['licenseAreaExtent'] = census_tract_zone_id
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
