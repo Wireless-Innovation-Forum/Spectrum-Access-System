@@ -288,6 +288,91 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_SIQ_17(self):
+    """This test ensures that when a message with two requests, 
+    both for PAL channels, is sent with valid parameters, 
+    the SAS sends a successful response for both the requests.
+    Response Code must be 0 for all CBSDs
+    """
+
+    # Register the devices
+    registration_request = []
+    for device_filename in ('device_c.json', 'device_f.json'):
+      device = json.load(
+          open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+    census_tracts_ids = []
+    for census_tracts_filename in ('census_tract_zone_data_c.json', 'census_tract_zone_data_f.json'):
+      census_tracts = json.load(
+        open(os.path.join('testcases', 'testdata', census_tracts_filename)))
+      census_tracts_ids.append(self._sas_admin.InjectZoneData({'zoneData': census_tracts})
+                               ['zoneId'])
+
+    # Inject PAL Database Record
+    pal_database_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record_0['channelAssignment']['primaryAssignment']['highFrequency'] = 3700000000.0
+
+    for census_tracts_id in census_tracts_ids:
+      pal_id = '/'.join([census_tracts_id.split('/')[4] if index == 2 else val
+                         for index, val in enumerate(pal_database_record_0['palId'].split('/'))])
+      pal_database_record_0['palId'] = pal_id
+      pal_database_record_0['license']['licenseAreaExtent'] = census_tracts_id
+      self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
+
+    # Inject PPA Zone Data
+    ppa_ids = []
+    for ppa_data_filename in ('ppa_zone_data_c.json', 'ppa_zone_data_f.json'):
+      ppa_data = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_data_filename)))
+      ppa_ids.append(self._sas_admin.InjectZoneData({'zoneData': ppa_data})['zoneId'])
+
+    # Inject Cluster List
+    for ppa_id, cbsd_id in zip(ppa_ids,cbsd_ids):
+      cluster_list = {'zoneId': ppa_id,
+                      'cbsdIds': [cbsd_id]}
+      self._sas_admin.InjectClusterList(cluster_list)
+
+    # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    request = {
+        'spectrumInquiryRequest': [spectrum_inquiry_0, spectrum_inquiry_1]
+    }
+
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    self.assertEqual(len(response), 2)
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertTrue('availableChannel' in resp)
+      for available_channel in resp['availableChannel']:
+        self.assertEqual(available_channel['channelType'], 'PAL')
+        self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_WINFF_FT_S_SIQ_19(self):
     """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
 

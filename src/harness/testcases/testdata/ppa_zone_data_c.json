@@ -1,0 +1,50 @@
+{
+  "id": "zone/ppa/0/0",
+  "name": "PPA Zone 0",
+  "creator": "0",
+  "usage": "PPA",
+  "ppaInfo": {
+    "palId": [
+      "pal/05-2017/20041084200/A"
+    ],
+    "ppaBeginDate": "2017-05-01T00:00:00Z",
+    "ppaExpirationDate": "2020-07-01T00:00:00Z",
+    "ppaLandCategory": "Cultivated Crops"
+  },
+  "zone": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -97.23861694335938,
+                38.865374851611634
+              ],
+              [
+                -97.31964111328125,
+                38.7615795117574
+              ],
+              [
+                -97.16995239257811,
+                38.739088441876866
+              ],
+              [
+                -97.16171264648436,
+                38.86751337001198
+              ],
+              [
+                -97.23861694335938,
+                38.865374851611634
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}

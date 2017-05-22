@@ -1,0 +1,50 @@
+{
+  "id": "zone/ppa/0/1",
+  "name": "PPA Zone 1",
+  "creator": "0",
+  "usage": "PPA",
+  "ppaInfo": {
+    "palId": [
+      "pal/05-2017/20063955100/A"
+    ],
+    "ppaBeginDate": "2017-05-01T00:00:00Z",
+    "ppaExpirationDate": "2020-07-01T00:00:00Z",
+    "ppaLandCategory": "Grassland/Herbaceous"
+  },
+  "zone": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -100.3436279296875,
+                38.91027022759443
+              ],
+              [
+                -100.469970703125,
+                38.73051855149164
+              ],
+              [
+                -100.18707275390624,
+                38.74123075381228
+              ],
+              [
+                -100.1898193359375,
+                38.93163900447185
+              ],
+              [
+                -100.3436279296875,
+                38.91027022759443
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}
