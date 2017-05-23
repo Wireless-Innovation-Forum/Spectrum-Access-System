@@ -631,9 +631,9 @@ class GrantTestcase(unittest.TestCase):
     Incumbent is present in the GAA frequency range requested by the
     CBSD which is outside the protection zone..
     """
-    # Register the device
+    # Register the device outside of PPA
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_outside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -669,9 +669,9 @@ class GrantTestcase(unittest.TestCase):
     the CBSD which is inside the protection zone of Federal Incumbent.
     """
 
-    # Register the device
+    # Register the device inside the protection zone
     device_inside_esc_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
     request = {'registrationRequest': [device_inside_esc_zone]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -718,7 +718,7 @@ class GrantTestcase(unittest.TestCase):
         No incumbent present in the PAL frequency range requested by the CBSD.
     """
 
-    # Register cbsd
+    # Register device inside PPA
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -758,9 +758,9 @@ class GrantTestcase(unittest.TestCase):
         who is outside the protection zone.
     """
 
-    # Register cbsd
+    # Register device outside protection zone
     device_outside_esc_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_outside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_outside_esc_zone['fccId']})
     request = {'registrationRequest': [device_outside_esc_zone]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -807,7 +807,7 @@ class GrantTestcase(unittest.TestCase):
 
     # Register cbsd
     device_inside_esc_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
     request = {'registrationRequest': [device_inside_esc_zone]}
     response = self._sas.Registration(request)['registrationResponse'][0]
