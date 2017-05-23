@@ -885,7 +885,7 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Register cbsd
     device_inside_esc_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
     request = {'registrationRequest': [device_inside_esc_zone]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -896,6 +896,8 @@ class HeartbeatTestcase(unittest.TestCase):
     # Inject PAL Database Recoord
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    # Make sure Pal Database Record avec same userID that device_c 
+    pal_database_record['userId'] = device_inside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
@@ -942,7 +944,6 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
-
     # First successful Heartbeat
     request = {
         'heartbeatRequest': [{
@@ -984,13 +985,13 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Register three devices
     device_0_outside_ppa = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_0_outside_ppa.json')))
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
     self._sas_admin.InjectFccId({'fccId': device_0_outside_ppa['fccId']})
     device_1_outside_ppa = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_1_outside_ppa.json')))
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
     self._sas_admin.InjectFccId({'fccId': device_1_outside_ppa['fccId']})
     device_inside_esc_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_inside_esc_zone.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_inside_esc_zone['fccId']})
     request = {'registrationRequest': [device_0_outside_ppa, device_1_outside_ppa, device_inside_esc_zone]}
     response = self._sas.Registration(request)['registrationResponse']
@@ -1002,6 +1003,8 @@ class HeartbeatTestcase(unittest.TestCase):
 
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    # Make sure Pal Database Record avec same userID that device_c 
+    pal_database_record['userId'] = device_inside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
@@ -1074,7 +1077,6 @@ class HeartbeatTestcase(unittest.TestCase):
                                      'lowFrequency': 3620000000.0,
                                      'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
-
     # Second Heartbeat with SAS-CBSD protocol version
     heartbeat = [heartbeat_0, heartbeat_1, heartbeat_2]
     for heartbeat_num, hb in enumerate(heartbeat):
