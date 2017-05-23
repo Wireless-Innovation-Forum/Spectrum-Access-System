@@ -731,6 +731,7 @@ class GrantTestcase(unittest.TestCase):
     # Inject PAL Database Recoord
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_a['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
@@ -771,6 +772,7 @@ class GrantTestcase(unittest.TestCase):
     # Inject PAL Database Recoord
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_outside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
@@ -818,6 +820,7 @@ class GrantTestcase(unittest.TestCase):
     # Inject PAL Database Recoord
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_inside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
     ppa_zone = json.load(
