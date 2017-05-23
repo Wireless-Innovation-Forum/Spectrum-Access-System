@@ -1,7 +1,7 @@
 {
   "palId" : "pal/10-2017/123456789/A",
 	"licensee" : "SAS_Administrator_Test",
-	"userId" : "cbsdOp1",
+	"userId" : "test_user_id_c",
 	"registrationInformation" : {
 	  "frn" : "123456-789",
 	  "registrationDate": "2017-06-01"
