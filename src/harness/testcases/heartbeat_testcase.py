@@ -896,7 +896,6 @@ class HeartbeatTestcase(unittest.TestCase):
     # Inject PAL Database Recoord
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    # Make sure Pal Database Record avec same userID that device_c 
     pal_database_record['userId'] = device_inside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
@@ -1003,7 +1002,6 @@ class HeartbeatTestcase(unittest.TestCase):
 
     pal_database_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    # Make sure Pal Database Record avec same userID that device_c 
     pal_database_record['userId'] = device_inside_esc_zone['userId']
     self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
     # Inject PPA Zone
