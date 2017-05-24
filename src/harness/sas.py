@@ -162,7 +162,6 @@ class SasImpl(sas_interface.SasInterface):
   def _GetDefaultSasSSLKeyPath(self):
     return 'client.key'
 
-
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
 
