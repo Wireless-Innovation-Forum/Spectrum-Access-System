@@ -1,7 +1,7 @@
 {
-  "id": "sas_impl/0/0",
+  "id": "sas_impl/admin_0/impl_0",
   "name": "Sas Implementation Record",
-  "administratorId": "sas_admin/sas/0",
+  "administratorId": "sas_admin/admin_0",
   "contactInformation": {
     "contactType": "operation",
     "name": "Contact Name",
