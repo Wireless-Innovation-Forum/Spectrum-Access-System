@@ -340,3 +340,18 @@ class SasAdminInterface(object):
     (if status == 0)
     """
     pass
+
+  @abc.abstractmethod
+  def TriggerSasImplementationRecordPull(self, request):
+    """SAS admin interface to trigger Pull command for Sas Implementation
+    Record
+  
+    Args:
+      request: A dictionary with the following key-value pairs:
+      "address": (string) Url used by SAS under test to request Pull Command
+      "sasImplementationId": (string) Sas Implementation Id for which SAS under test
+      will pull the record
+    Behavior: SAS under test should pull the record for sasImplementationId from 
+    the specified address.
+    """
+    pass
