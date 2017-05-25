@@ -240,7 +240,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     """Handles GET requests."""
     path, value = self._parseUrl(self.path)
-    if path == "/v1.0/sas_impl":
+    if path == "v1.0/sas_impl":
      response = FakeSas().GetSasImplementationRecord(value)
     else:
       self.send_response(404)
