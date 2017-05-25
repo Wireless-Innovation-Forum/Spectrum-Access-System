@@ -696,6 +696,7 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertLessEqual(
         (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
     self.assertLess(transmit_expire_time, grant_expire_times[0])
+    self.assertTrue('transmitExpireTime' in response[1])
     self.assertTrue(response[1]['response']['responseCode'] in (102, 105))
     for response_num in (2, 3):
       self.assertEqual(response[response_num]['response']['responseCode'], 102)
@@ -898,6 +899,4 @@ class HeartbeatTestcase(unittest.TestCase):
       self.assertLessEqual(transmit_expire_time,
                            grant_expire_times[response_num])
     self.assertEqual(response[2]['response']['responseCode'], 103)
-    self.assertLess(datetime.utcnow(),
-                    datetime.strptime(response[2]['transmitExpireTime'],
-                                      '%Y-%m-%dT%H:%M:%SZ'))
+    self.assertTrue('transmitExpireTime' in response[2])
