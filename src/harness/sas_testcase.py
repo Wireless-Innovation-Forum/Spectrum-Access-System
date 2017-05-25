@@ -22,11 +22,11 @@ import sas_interface
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
-  def AssertContainsRequiredFields(self, schema_path=None, response=None):
-    schema_path = os.path.join('..', '..', 'schema', schema_path)
-    schema = json.load(open(schema_path))
+  def AssertContainsRequiredFields(self, schema_filename, response):
+    schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+    schema = json.load(open(schema_filename))
     Draft4Validator.check_schema(schema)
-    schema_dir = os.path.dirname(os.path.realpath(schema_path))
+    schema_dir = os.path.dirname(os.path.realpath(schema_filename))
     resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
     # Raises ValidationError when incorrect response
     validate(response, schema, resolver=resolver)

@@ -362,12 +362,12 @@ class SasTestcaseInterface(object):
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def AssertContainsRequiredFields(self, schema_path=None, response=None):
+  def AssertContainsRequiredFields(self, schema_filename, response):
     """Assertion of Required Fields in Response validating it with Schema
 
     Args:
-      schema_path: A string containing the filename of the schema to be used
-      to validate.
+      schema_filename: A string containing the filename of the schema to be used
+      to validate. (The schema file should exist in /schema directory)
       response: A dictionary containing the response to validate for required
       fields using the schema.
     """
