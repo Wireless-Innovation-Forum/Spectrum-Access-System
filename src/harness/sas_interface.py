@@ -155,6 +155,21 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Implementation Record Exchange interface
+    
+    Requests a Pull Command to get the Sas Implementation Record
+    
+    Args:
+      request: A string containing Sas Implementation Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Sas Implementation Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -253,26 +268,107 @@ class SasAdminInterface(object):
 
   @abc.abstractmethod
   def InjectFss(self, request):
-      """SAS admin interface to inject FSS information into SAS under test.
+    """SAS admin interface to inject FSS information into SAS under test.
 
-      Args:
-          request: A dictionary with a single key-value pair where the key is
-          "record" and the value is a fixed satellite service object
-          (which is itself a dictionary). The dictionary is an
-          IncumbentProtectionData object (specified in SAS-SAS TS).
-      """
-      pass
+    Args:
+        request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a fixed satellite service object
+        (which is itself a dictionary). The dictionary is an
+        IncumbentProtectionData object (specified in SAS-SAS TS).
+    """
+    pass
 
   @abc.abstractmethod
   def InjectWisp(self, request):
-      """SAS admin interface to inject WISP information into SAS under test.
+    """SAS admin interface to inject WISP information into SAS under test.
 
-      Args:
-        request: A dictionary with a single key-value pair where the key is
-          "record" and the value is a wireless internet service provider
-          object (which is itself a dictionary). The dictionary is an
-          IncumbentProtectionData object (specified in SAS-SAS TS).
-      Note: IncumbentProtectionData must include a zoneId which can be
-      obtained by first injecting the WISP zone.
-      """
-      pass
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a wireless internet service provider
+        object (which is itself a dictionary). The dictionary is an
+        IncumbentProtectionData object (specified in SAS-SAS TS).
+    Note: IncumbentProtectionData must include a zoneId which can be
+    obtained by first injecting the WISP zone.
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectSasAdministratorRecord(self, request):
+    """SAS admin interface to inject SAS Administrator Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a SAS Administrator information (which is 
+        itself a dictionary). The dictionary is an SASAdministrator object 
+        (Specified in SAS-SAS TS WINNF-16-S-0096)
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectSasImplementationRecord(self, request):
+    """SAS admin interface to inject SAS Implementation Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is "record" 
+      and the value is a SasImplementation object (which is itself a dictionary 
+      specified in the SAS-SAS TS, WINNF-16-S-0096).
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectEscSensorDataRecord(self, request):
+    """SAS admin interface to inject ESC Sensor Data Record into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is a EscSensorData object (which is 
+        itself a dictionary specified in SAS-SAS TS WINNF-16-S-0096)
+    Behavior: SAS should act as if it is connected to an ESC sensor with 
+    the provided parameters.
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportRegistration(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    registration request 
+  
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
+    Note: The SAS should request a measurement report in the RegistrationResponse 
+    (if status == 0)
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerMeasurementReportHeartbeat(self, request):
+    """SAS admin interface to trigger measurement report request for all subsequent
+    heartbeat request 
+  
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "meas_report_config" and the value is an array of string of permitted 
+        enumerations specified in WINNF-16-S-0016
+    Note: The SAS should request a measurement report in the HeartbeatResponse 
+    (if status == 0)
+    """
+    pass
+
+class SasTestcaseInterface(object):
+  """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
+
+  __metaclass__ = abc.ABCMeta
+
+  @abc.abstractmethod
+  def AssertContainsRequiredFields(self, schema_filename, response):
+    """Assertion of Required Fields in Response validating it with Schema
+
+    Args:
+      schema_filename: A string containing the filename of the schema to be used
+      to validate. (The schema file should exist in /schema directory)
+      response: A dictionary containing the response to validate for required
+      fields using the schema.
+    """
+    pass
