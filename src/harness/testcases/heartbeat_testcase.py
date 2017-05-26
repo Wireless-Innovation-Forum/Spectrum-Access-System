@@ -282,8 +282,9 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Register the device
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+
     device_a['measCapability'] = ['EUTRA_CARRIER_RSSI_ALWAYS']
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -302,7 +303,6 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertTrue(response['grantId'])
     self.assertEqual(response['response']['responseCode'], 0)
-    self.assertTrue(response['measReportConfig'])
     grant_id = response['grantId']
     grant_expire_time = datetime.strptime(response['grantExpireTime'],
                                           '%Y-%m-%dT%H:%M:%SZ')
@@ -322,7 +322,7 @@ class HeartbeatTestcase(unittest.TestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
 
     # Check the heartbeat response
-    self.assertTrue(response['measReportConfig'])
+    self.assertTrue('EUTRA_CARRIER_RSSI_ALWAYS' in response['measReportConfig'])
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
     transmit_expire_time = datetime.strptime(
@@ -350,7 +350,6 @@ class HeartbeatTestcase(unittest.TestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
 
     # Check the heartbeat response
-    self.assertTrue(response['measReportConfig'])
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
@@ -372,10 +371,10 @@ class HeartbeatTestcase(unittest.TestCase):
 
     # Register the device
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    devices = [device_a, device_b]
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    devices = [device_a, device_c]
     for device in devices:
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
     device_a['measCapability'] = ['EUTRA_CARRIER_RSSI_ALWAYS']
@@ -439,7 +438,7 @@ class HeartbeatTestcase(unittest.TestCase):
           (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time, grant_expire_times[resp_number])
         self.assertEqual(resp['response']['responseCode'], 0)
-    self.assertTrue(response[0]['measReportConfig'])
+    self.assertTrue('EUTRA_CARRIER_RSSI_ALWAYS' in response[0]['measReportConfig'])
     del request, response
 
     # Get measReport
@@ -471,7 +470,6 @@ class HeartbeatTestcase(unittest.TestCase):
         (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
       self.assertLessEqual(transmit_expire_time, grant_expire_times[resp_number])
       self.assertEqual(resp['response']['responseCode'], 0)
-    self.assertTrue(response[0]['measReportConfig'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_9(self):
