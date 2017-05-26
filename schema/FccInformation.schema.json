@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Describe all the Fcc related Information of SAS",
+  "type": "object",
+  "required": [
+    "certificationId",
+    "certificationDate",
+    "certificationExpiration",
+    "certificationConditions",
+    "frn",
+    "sasPhase"
+  ],
+  "properties": {
+    "certificationId": {
+      "type": "string",
+      "description": "Any FCC-issued certification ID. "
+    },
+    "certificationDate": {
+      "type": "string",
+      "description": "Date of certification, in format YYYY-MM-DD."
+    },
+    "certificationExpiration": {
+      "type": "string",
+      "description": "Date of certification expiration, in format YYYY-MM-DD"
+    },
+    "certificationConditions": {
+      "type": "string",
+      "description": "Human-readable string or reference annotating the certification"
+    },
+    "frn": {
+      "type": "string",
+      "description": "The FRN of the certified entity, if applicable. For a device, shall not be included."
+    },
+    "sasPhase": {
+      "type": "string",
+      "description": "If this is a SAS information object, defines the Phase (1 or 2) of certification."
+    }
+  }
+}
+
