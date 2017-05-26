@@ -20,7 +20,8 @@
           "lowFrequency": 3520000000.0,
           "highFrequency": 3580000000.0
         }
-      }
+      },
+      "protectionContour":""
     }
   ]
 }
