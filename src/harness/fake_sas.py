@@ -189,6 +189,9 @@ class FakeSas(sas_interface.SasInterface):
   def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
     return request['zoneData']['id']
 
+  def InjectEscZone(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
+        
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
     """Parse the Url into the path and value"""
@@ -216,6 +219,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSas().InjectZoneData(request)
+    elif self.path == '/admin/injectdata/esc_zone':
+      response = FakeSas().InjectEscZone(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
@@ -227,8 +232,11 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
-                       '/admin/trigger/meas_report_in_heartbeat_response'):
+                       '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/esc_reset'):
       response = ''
+    elif self.path == '/admin/trigger/esc_detection/':
+      response = {'triggerId': 'fake_trigger_id'}
     else:
       self.send_response(404)
       return
