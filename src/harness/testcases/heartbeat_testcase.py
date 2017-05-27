@@ -1122,9 +1122,7 @@ class HeartbeatTestcase(unittest.TestCase):
     # Check the first heartbeat response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
-    self.assertLess(datetime.utcnow(),
-                    datetime.strptime(response['transmitExpireTime'],
-                                      '%Y-%m-%dT%H:%M:%SZ'))
+    self.assertTrue('transmitExpireTime' in response)
     self.assertEqual(response['response']['responseCode'], 105)
 
   @winnforum_testcase
@@ -1208,8 +1206,6 @@ class HeartbeatTestcase(unittest.TestCase):
     # Last Device in Blacklist must have Response Code 105
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
-    self.assertLess(datetime.utcnow(),
-                    datetime.strptime(response[2]['transmitExpireTime'],
-                                      '%Y-%m-%dT%H:%M:%SZ'))
+    self.assertTrue('transmitExpireTime' in response[2])
     self.assertEqual(response[2]['response']['responseCode'], 105)
 
