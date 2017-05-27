@@ -36,9 +36,8 @@ def GetTestingSas():
   version = config_parser.get('SasConfig', 'Version')
   return SasImpl(base_url, version), SasAdminImpl(base_url)
 
-
-def _Request(url, request, ssl_cert, ssl_key):
-  """Sends HTTPS request.
+def _RequestPost(url, request, ssl_cert, ssl_key):
+  """Sends HTTPS POST request.
 
   Args:
     url: Destination of the HTTPS request.
@@ -76,6 +75,40 @@ def _Request(url, request, ssl_cert, ssl_key):
   logging.debug('Response:\n' + body)
   return json.loads(body)
 
+def _RequestGet(url, ssl_cert, ssl_key):
+  """Sends HTTPS GET request.
+
+  Args:
+    url: Destination of the HTTPS request.
+    ssl_cert: Path of SSL cert used in HTTPS request.
+    ssl_key: Path of SSL key used in HTTPS request.
+  Returns:
+    A dictionary represents the JSON response received from server.
+  """
+  response = StringIO.StringIO()
+  conn = pycurl.Curl()
+  conn.setopt(conn.URL, url)
+  conn.setopt(conn.WRITEFUNCTION, response.write)
+  header = [
+      'Host: %s' % urlparse.urlparse(url).hostname,
+      'content-type: application/json'
+  ]
+  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+  conn.setopt(conn.SSLCERTTYPE, 'PEM')
+  conn.setopt(conn.SSLCERT, ssl_cert)
+  conn.setopt(conn.SSLKEY, ssl_key)
+  conn.setopt(conn.CAINFO, CA_CERT)
+  conn.setopt(conn.HTTPHEADER, header)
+  conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
+  logging.debug('Request to URL ' + url)
+  conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+  conn.perform()
+  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+  conn.close()
+  body = response.getvalue()
+  logging.debug('Response:\n' + body)
+  return json.loads(body)
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
@@ -102,11 +135,20 @@ class SasImpl(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('deregistration', request, ssl_cert, ssl_key)
 
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
+
+  def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
+    return _RequestGet('https://%s/%s/%s/%s' %
+                        (self._base_url, self._sas_version, method_name, request),
+                        ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
+                        ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
+
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _Request('https://%s/%s/%s' %
-                    (self._base_url, self._sas_version, method_name), request,
-                    ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
-                    ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
+    return _RequestPost('https://%s/%s/%s' %
+                        (self._base_url, self._sas_version, method_name), request,
+                        ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
+                        ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
 
   def _GetDefaultCbsdSSLCertPath(self):
     return 'client.cert'
@@ -114,6 +156,11 @@ class SasImpl(sas_interface.SasInterface):
   def _GetDefaultCbsdSSLKeyPath(self):
     return 'client.key'
 
+  def _GetDefaultSasSSLCertPath(self):
+    return 'client.cert'
+
+  def _GetDefaultSasSSLKeyPath(self):
+    return 'client.key'
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -122,45 +169,96 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     self._base_url = base_url
 
   def Reset(self):
-    _Request('https://%s/admin/reset' % self._base_url, None,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/reset' % self._base_url, None,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def InjectFccId(self, request):
-    _Request('https://%s/admin/injectdata/fccId' % self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/injectdata/fccId' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def InjectEscZone(self, request):
-    _Request('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectZoneData(self, request):
+    return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
+                        request, self._GetDefaultAdminSSLCertPath(),
+                        self._GetDefaultAdminSSLKeyPath())
+
+  def InjectPalDatabaseRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/pal_database_record' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectClusterList(self, request):
+    _RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
+                 request, self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def BlacklistByFccId(self, request):
-    _Request('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def BlacklistByFccIdAndSerialNumber(self, request):
-    _Request('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
-             self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def TriggerEscZone(self, request):
-    _Request('https://%s/admin/trigger/esc_detection' % self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/trigger/esc_detection' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def ResetEscZone(self, request):
-    _Request('https://%s/admin/trigger/esc_reset' % self._base_url, request,
-             self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
     
   def PreloadRegistrationData(self, request):
-    _Request('https://%s/admin/injectdata/registration' % self._base_url,
-             request, self._GetDefaultAdminSSLCertPath(),
-             self._GetDefaultAdminSSLKeyPath())
+    _RequestPost('https://%s/admin/injectdata/conditional_registration' % self._base_url,
+                 request, self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectFss(self, request):
+    _RequestPost('https://%s/admin/injectdata/fss' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectWisp(self, request):
+    _RequestPost('https://%s/admin/injectdata/wisp' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectSasAdministratorRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerMeasurementReportRegistration(self, request):
+    _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerMeasurementReportHeartbeat(self, request):
+    _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectSasImplementationRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectEscSensorDataRecord(self, request):
+    _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
     return 'client.cert'
