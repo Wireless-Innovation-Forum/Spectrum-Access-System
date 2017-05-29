@@ -7,7 +7,6 @@
   "airInterface": {
     "radioTechnology": "E_UTRA"
   },
-  "measCapability": ["EUTRA_CARRIER_RSSI_NON_TX"],
   "installationParam": {
     "latitude": 39.173912,
     "longitude": -99.923414,
