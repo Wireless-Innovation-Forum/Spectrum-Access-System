@@ -1136,7 +1136,7 @@ class HeartbeatTestcase(unittest.TestCase):
     # Register the devices
     registration_request = []
     fcc_ids = []
-    for device_filename in ('device_a.json', 'device_b.json', 'device_c.json'):
+    for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
       device = json.load(
         open(os.path.join('testcases', 'testdata', device_filename)))
       fcc_ids.append(device['fccId'])
