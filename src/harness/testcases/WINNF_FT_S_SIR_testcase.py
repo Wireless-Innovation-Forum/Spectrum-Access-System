@@ -48,7 +48,7 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_SIR_3(self):
     """This test verifies that a SAS Under Test can handle the Unknown Implementation 
      Id 
-    Response Code must be 200"""
+    Response Code must be 200 with empty JSON Body"""
 
     # Inject the SAS Implementation Record
     impl_record = json.load(
