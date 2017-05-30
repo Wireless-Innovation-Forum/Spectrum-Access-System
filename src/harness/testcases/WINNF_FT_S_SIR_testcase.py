@@ -43,3 +43,19 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
     response = self._sas.GetSasImplementationRecord(impl_record['id'])
     # Verify the response using SasImplementationMessage Object schema
     self.AssertContainsRequiredFields("SasImplementationMessage.schema.json", response)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIR_3(self):
+    """This test verifies that a SAS Under Test can handle the Unknown Implementation 
+     Id 
+    Response Code must be 200"""
+
+    # Inject the SAS Implementation Record
+    impl_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'sas_impl_record_0.json')))
+    self._sas_admin.InjectSasImplementationRecord({'record': impl_record})
+
+    # Get the SAS Implementation Record using Pull Command with Unknown ID
+    response = self._sas.GetSasImplementationRecord(impl_record['id'] + '_unknown')
+    # Check if the response is empty JSON Object
+    self.assertEqual(response, {})
