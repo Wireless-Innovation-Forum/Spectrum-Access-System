@@ -1075,3 +1075,137 @@ class HeartbeatTestcase(unittest.TestCase):
                            grant_expire_times[response_num])
     self.assertEqual(response[2]['response']['responseCode'], 103)
     # No need to check transmitExpireTime because this is the first heartbeat
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_HBT_19(self):
+    """Heartbeat Request from CBSD in Granted or Authorized state 
+    (immediately after CBSD moves into Granted State or following
+     a Heartbeat Response) requires CBSD to de-register. 
+
+    The response should be FAIL, code 105."""
+
+    # Register the device
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['response']['responseCode'], 0)
+    grant_id = response['grantId']
+    del request, response
+
+    # Inject Device into Blacklist
+    self._sas_admin.BlacklistByFccId({'fccId': device_a['fccId']})
+
+    # Request Heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the first heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertTrue('transmitExpireTime' in response)
+    self.assertEqual(response['response']['responseCode'], 105)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_HBT_20(self):
+    """Heartbeat Request from CBSDs in Granted or Authorized state 
+    (immediately after CBSDs moves into Granted State or following
+     a Heartbeat Response) requires CBSDs to de-register. 
+
+    The response should be FAIL, code 105.
+    """
+    # Register the devices
+    registration_request = []
+    fcc_ids = []
+    for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      fcc_ids.append(device['fccId'])
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+    cbsd_ids = [resp['cbsdId'] for resp in response]
+    del request, response
+
+    # Request grant
+    grant_request = []
+    for cbsd_id in cbsd_ids:
+      grant = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant['cbsdId'] = cbsd_id
+      grant_request.append(grant)
+    request = {'grantRequest': grant_request}
+
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), len(cbsd_ids))
+    grant_expire_time = []
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertTrue(resp['grantId'])
+      self.assertEqual(resp['response']['responseCode'], 0)
+      grant_expire_time.append(
+        datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
+
+    grant_ids = [resp['grantId'] for resp in response]
+    del request, response
+
+    # Inject Third Device into Blacklist
+    self._sas_admin.BlacklistByFccId({'fccId': fcc_ids[2]})
+
+    # First Heartbeat Request
+    heartbeat_request = []
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_request.append({
+          'cbsdId': cbsd_id,
+          'grantId': grant_id,
+          'operationState': 'GRANTED'
+      })
+
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), len(grant_ids))
+
+    # Check the heartbeat response
+    # First two devices are not in Blacklist must have Response Code 0
+    for index, resp in enumerate(response[:2]):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[index])
+      self.assertEqual(resp['grantId'], grant_ids[index])
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(
+        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+      self.assertLessEqual(transmit_expire_time,
+                           grant_expire_time[index])
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+    # Last Device in Blacklist must have Response Code 105
+    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
+    self.assertEqual(response[2]['grantId'], grant_ids[2])
+    self.assertTrue('transmitExpireTime' in response[2])
+    self.assertEqual(response[2]['response']['responseCode'], 105)
+
