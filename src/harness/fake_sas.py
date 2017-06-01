@@ -53,7 +53,7 @@ from datetime import datetime
 from datetime import timedelta
 import json
 import ssl
-
+import os
 import sas_interface
 
 # Fake SAS server configurations.
@@ -170,14 +170,31 @@ class FakeSas(sas_interface.SasInterface):
         })
     return response
 
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    # Get the Sas implementation record
+    impl_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'impl_record_0.json')))
+    if request == impl_record['id']:
+      return impl_record
+    else:
+      # Return Empty if invalid Id
+      return {}
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
+  def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
+    return request['zoneData']['id']
 
 class FakeSasHandler(BaseHTTPRequestHandler):
+  def _parseUrl(self, url):
+    """Parse the Url into the path and value"""
+    splitted_url = url.split('/')[1:]
+    # Returns path and value
+    return '/'.join(splitted_url[0:2]), '/'.join(splitted_url[2:])
 
   def do_POST(self):
     """Handles POST requests."""
@@ -197,10 +214,20 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
+    elif self.path == '/admin/injectdata/zone':
+      response = FakeSas().InjectZoneData(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
-                       '/admin/injectdata/registration',
+                       '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
-                       '/admin/injectdata/blacklist_fcc_id_and_serial_number'):
+                       '/admin/injectdata/blacklist_fcc_id_and_serial_number',
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp',
+                       '/admin/injectdata/cluster_list',
+                       '/admin/injectdata/pal_database_record',
+                       '/admin/injectdata/sas_admin',
+                       '/admin/injectdata/sas_impl',
+                       '/admin/injectdata/esc_sensor',
+                       '/admin/trigger/meas_report_in_registration_response',
+                       '/admin/trigger/meas_report_in_heartbeat_response'):
       response = ''
     else:
       self.send_response(404)
@@ -210,6 +237,18 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
+  def do_GET(self):
+    """Handles GET requests."""
+    path, value = self._parseUrl(self.path)
+    if path == "v1.0/sas_impl":
+     response = FakeSas().GetSasImplementationRecord(value)
+    else:
+      self.send_response(404)
+      return
+    self.send_response(200)
+    self.send_header('Content-type', 'application/json')
+    self.end_headers()
+    self.wfile.write(json.dumps(response))
 
 if __name__ == '__main__':
   server = HTTPServer(('localhost', PORT), FakeSasHandler)

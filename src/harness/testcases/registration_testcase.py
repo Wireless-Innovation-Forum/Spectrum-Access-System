@@ -38,15 +38,15 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    conditionals = {'registrationData': [
-        {'cbsdCategory': 'A',
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'], 
-         'installationParam': device_a['installationParam']}
-    ]}
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    conditionals_a = {
+        'cbsdCategory': 'A',
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'], 
+        'installationParam': device_a['installationParam']}
+    conditionals = {'registrationData': [conditionals_a]}
     self._sas_admin.PreloadRegistrationData(conditionals)
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     # Register the device
     del device_a['cbsdCategory']
     del device_a['airInterface']
@@ -69,13 +69,13 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    conditionals = {'registrationData': [
-        {'cbsdCategory': 'B', 'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'], 
-         'installationParam': device_b['installationParam']}
-    ]}
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    conditionals_b = {
+        'cbsdCategory': 'B', 'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'], 
+        'installationParam': device_b['installationParam']}
+    conditionals = {'registrationData': [conditionals_b]}
     self._sas_admin.PreloadRegistrationData(conditionals)
     # Register the device
     del device_b['cbsdCategory']
@@ -102,28 +102,25 @@ class RegistrationTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    conditionals_a = {'registrationData': [
-        {'cbsdCategory': device_a['cbsdCategory'], 
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'], 
-         'installationParam': device_a['installationParam']}
-    ]}
-    conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'],
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'], 
-         'installationParam': device_b['installationParam']}
-    ]}
-    conditionals_c = {'registrationData': [
-        {'cbsdCategory': device_c['cbsdCategory'], 
-         'fccId': device_c['fccId'],
-         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
-         'airInterface': device_c['airInterface'], 
-         'installationParam': device_c['installationParam']}
-    ]}
-    conditionals = [conditionals_a, conditionals_b, conditionals_c];
+    conditionals_a = {
+        'cbsdCategory': device_a['cbsdCategory'], 
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'], 
+        'installationParam': device_a['installationParam']}
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'], 
+        'installationParam': device_b['installationParam']}
+    conditionals_c = {
+        'cbsdCategory': device_c['cbsdCategory'], 
+        'fccId': device_c['fccId'],
+        'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+        'airInterface': device_c['airInterface'], 
+        'installationParam': device_c['installationParam']}
+    conditionals = {'registrationData': [conditionals_a, conditionals_b, conditionals_c]};
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC IDs
@@ -161,13 +158,13 @@ class RegistrationTestcase(unittest.TestCase):
     # Pre-load conditional parameters
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    conditionals = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'], 
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'], 
-         'installationParam': device_b['installationParam']}
-    ]}
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'], 
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'], 
+        'installationParam': device_b['installationParam']}
+    conditionals = {'registrationData': [conditionals_b]}
     self._sas_admin.PreloadRegistrationData(conditionals)
     
     # Inject FCC ID
@@ -210,28 +207,25 @@ class RegistrationTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    conditionals_a = {'registrationData': [
-        {'cbsdCategory': device_a['cbsdCategory'], 
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'], 
-         'installationParam': device_a['installationParam']}
-    ]}
-    conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'],
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'], 
-         'installationParam': device_b['installationParam']}
-    ]}
-    conditionals_c = {'registrationData': [
-        {'cbsdCategory': device_c['cbsdCategory'], 
-         'fccId': device_c['fccId'],
-         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
-         'airInterface': device_c['airInterface'], 
-         'installationParam': device_c['installationParam']}
-    ]}
-    conditionals = [conditionals_a, conditionals_b, conditionals_c];
+    conditionals_a = {
+        'cbsdCategory': device_a['cbsdCategory'], 
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'], 
+        'installationParam': device_a['installationParam']}
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'], 
+        'installationParam': device_b['installationParam']}
+    conditionals_c = {
+        'cbsdCategory': device_c['cbsdCategory'], 
+        'fccId': device_c['fccId'],
+        'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+        'airInterface': device_c['airInterface'], 
+        'installationParam': device_c['installationParam']}
+    conditionals = {'registrationData': [conditionals_a, conditionals_b, conditionals_c]};
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC IDs for first two devices
@@ -352,6 +346,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
     """ Array Re-registration of Single-step-registered CBSD (CBSD ID exists)
 
@@ -443,35 +438,32 @@ class RegistrationTestcase(unittest.TestCase):
     self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
 
     # Pre-load conditionals
-    conditionals_a = {'registrationData': [
-        {'cbsdCategory': device_a['cbsdCategory'], 
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'], 
-         'installationParam': device_a['installationParam']}
-    ]}
-    conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'], 
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'], 
-         'installationParam': device_b['installationParam']}
-    ]}
-    conditionals_c = {'registrationData': [
-        {'cbsdCategory': device_c['cbsdCategory'], 
-         'fccId': device_c['fccId'],
-         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
-         'airInterface': device_c['airInterface'], 
-         'installationParam': device_c['installationParam']}
-    ]}
-    conditionals_d = {'registrationData': [
-        {'cbsdCategory': device_d['cbsdCategory'], 
-         'fccId': device_d['fccId'],
-         'cbsdSerialNumber': device_d['cbsdSerialNumber'],
-         'airInterface': device_d['airInterface'], 
-         'installationParam': device_d['installationParam']}
-    ]}
-    conditionals = [conditionals_a, conditionals_b, conditionals_c, conditionals_d];
+    conditionals_a = {
+        'cbsdCategory': device_a['cbsdCategory'], 
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'], 
+        'installationParam': device_a['installationParam']}
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'], 
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'], 
+        'installationParam': device_b['installationParam']}
+    conditionals_c = {
+        'cbsdCategory': device_c['cbsdCategory'], 
+        'fccId': device_c['fccId'],
+        'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+        'airInterface': device_c['airInterface'], 
+        'installationParam': device_c['installationParam']}
+    conditionals_d = {
+        'cbsdCategory': device_d['cbsdCategory'], 
+        'fccId': device_d['fccId'],
+        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
+        'airInterface': device_d['airInterface'], 
+        'installationParam': device_d['installationParam']}
+    conditionals = {'registrationData': [
+        conditionals_a, conditionals_b, conditionals_c, conditionals_d]};
     self._sas_admin.PreloadRegistrationData(conditionals)
     
     # Device 2 missing cbsdSerialNumber
@@ -541,6 +533,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_14(self):
     """Pending registration in Array request (responseCode 200)
     The response should be FAILURE.
@@ -568,15 +561,15 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device #4 is Category B with one conditional missing and conditionals pre-loaded
     self.assertTrue(device_d['cbsdCategory'], 'B')
-    conditionals_d = {'registrationData': [
-        {'cbsdCategory': device_d['cbsdCategory'],
-         'fccId': device_d['fccId'],
-         'cbsdSerialNumber': device_d['cbsdSerialNumber'],
-         'airInterface': device_d['airInterface'],
-         'installationParam': device_d['installationParam']}
-    ]}
-    del conditionals_d['registrationData'][0]['installationParam']['antennaBeamwidth']
-    self._sas_admin.PreloadRegistrationData([conditionals_d])
+    conditionals_d = {
+        'cbsdCategory': device_d['cbsdCategory'],
+        'fccId': device_d['fccId'],
+        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
+        'airInterface': device_d['airInterface'],
+        'installationParam': device_d['installationParam']}
+    del conditionals_d['installationParam']['antennaBeamwidth']
+    conditionals = {'registrationData': [conditionals_d]}
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC ID's
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -628,7 +621,7 @@ class RegistrationTestcase(unittest.TestCase):
         # meascapability has no value for all devices
         device['measCapability'] = []
         # Inject FCC IDs
-        self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
 
     # Device 1 Cat A
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -654,14 +647,14 @@ class RegistrationTestcase(unittest.TestCase):
     device_b['installationParam']['eirpCapability'] = 48
 
     # Pre-load conditionals for Device 6
-    conditionals_b = {'registrationData': [
-        {'cbsdCategory': device_b['cbsdCategory'],
-         'fccId': device_b['fccId'],
-         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-         'airInterface': device_b['airInterface'],
-         'installationParam': device_b['installationParam']}
-    ]}
-    self._sas_admin.PreloadRegistrationData([conditionals_b])
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']}
+    conditionals = {'registrationData': [conditionals_b]}
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Register devices
     request = {'registrationRequest': devices}
@@ -697,37 +690,34 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device 1 Cat A all valid conditionals
     self.assertEqual(device_a['cbsdCategory'], 'A')
-    conditionals_a = {'registrationData': [
-        {'cbsdCategory': device_a['cbsdCategory'],
-         'fccId': device_a['fccId'],
-         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-         'airInterface': device_a['airInterface'],
-         'installationParam': device_a['installationParam']}
-    ]}
+    conditionals_a = {
+        'cbsdCategory': device_a['cbsdCategory'],
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'],
+        'installationParam': device_a['installationParam']}
 
     # Device 2 Cat A out-of-range or the wrong type azimuth
     self.assertEqual(device_c['cbsdCategory'], 'A')
-    conditionals_c = {'registrationData': [
-        {'cbsdCategory': device_c['cbsdCategory'],
-         'fccId': device_c['fccId'],
-         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
-         'airInterface': device_c['airInterface'],
-         'installationParam': device_c['installationParam']}
-    ]}
-    conditionals_c['registrationData'][0]['installationParam']['azimuth'] = -1
+    conditionals_c = {
+        'cbsdCategory': device_c['cbsdCategory'],
+        'fccId': device_c['fccId'],
+        'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+        'airInterface': device_c['airInterface'],
+        'installationParam': device_c['installationParam']}
+    conditionals_c['installationParam']['antennaAzimuth'] = -1
 
     # Device 3 Cat A out-of-range, or the wrong Type value for latitude.
     self.assertEqual(device_e['cbsdCategory'], 'A')
-    conditionals_e = {'registrationData': [
-        {'cbsdCategory': device_e['cbsdCategory'],
-         'fccId': device_e['fccId'],
-         'cbsdSerialNumber': device_e['cbsdSerialNumber'],
-         'airInterface': device_e['airInterface'],
-         'installationParam': device_e['installationParam']}
-    ]}
-    conditionals_e['registrationData'][0]['installationParam']['latitude'] = '91'
+    conditionals_e = {
+        'cbsdCategory': device_e['cbsdCategory'],
+        'fccId': device_e['fccId'],
+        'cbsdSerialNumber': device_e['cbsdSerialNumber'],
+        'airInterface': device_e['airInterface'],
+        'installationParam': device_e['installationParam']}
+    conditionals_e['installationParam']['latitude'] = '91'
 
-    conditionals = [conditionals_a, conditionals_c, conditionals_e];
+    conditionals = {'registrationData': [conditionals_a, conditionals_c, conditionals_e]};
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
@@ -747,6 +737,79 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
     for resp in response['registrationResponse'][1:]:
         self.assertEqual(resp['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_17(self):
+    """Blacklisted CBSD (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Register device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # Register the device
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertTrue('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Blacklist the device
+    self._sas_admin.BlacklistByFccId({'fccId':device_a['fccId']})
+
+    # Re-register the device
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertFalse('cbsdId' in response)
+    self.assertEqual(response['response']['responseCode'], 101)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_18(self):
+    """Blacklisted CBSD in Array request (responseCode 101)
+    
+    The response should be FAILURE 101.
+    """
+
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    devices = [device_a, device_b, device_c]
+    for device in devices:
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
+        device['measCapability'] = []
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for resp in response:
+        self.assertTrue('cbsdId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+    # Blacklist the third device
+    self._sas_admin.BlacklistByFccId({'fccId':device_c['fccId']})
+
+    # Re-register the devices
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    self.assertEqual(len(response), len(devices))
+    for response_num, resp in enumerate(response[:2]):
+        self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertTrue('cbsdId' in resp)
+        self.assertFalse('measReportConfig' in resp)
+    self.assertFalse('measReportConfig' in response[2])
+    self.assertEqual(response[2]['response']['responseCode'], 101)
 
   @winnforum_testcase
   def test_WINFF_FT_S_REG_19(self):
@@ -878,11 +941,85 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
 
   @winnforum_testcase
+  def test_WINFF_FT_S_REG_23(self):
+    """CBSD Cat A attempts to register with HAAT >6m
+
+    The response should be FAILURE 103
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['latitude'] = 38.882162
+    device_a['installationParam']['longitude'] = 77.113755
+    device_a['installationParam']['height'] = 8
+    device_a['installationParam']['heightType'] = 'AGL'
+    device_a['installationParam']['indoorDeployment'] = False
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_24(self):
+    """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
+
+    The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    device_a['installationParam']['eirpCapability'] = 31
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_REG_25(self):
+    """CBSD Cat B attempts to register as Indoors deployment
+
+    The response should be FAILURE 103.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
+    """
+
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    device_b['installationParam']['indoorDeployment'] = True
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertFalse('cbsdId' in response)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_26(self):
-    """Category Error in Array request (responseCode 202)
+    """Category Error in Array request (responseCode 103)
 
     The response should be SUCCESS for the first CBSD,
     CATEGORY_ERROR for the second, third, and fourth CBSDs.
+
+    Note: WINNF-15-S-0061-CBRS Architecture Test and Certification 
+          Specification - SAS Operation v0.6.4 has 202, but the TS 
+          has removed 202 so this should be 103).
     """
 
     device_1 = json.load(
@@ -914,14 +1051,14 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(device_4['cbsdCategory'], 'B')
 
     # Pre-load conditionals for Device 4
-    conditionals_4 = {'registrationData': [
-        {'cbsdCategory': device_4['cbsdCategory'], 
-         'fccId': device_4['fccId'],
-         'cbsdSerialNumber': device_4['cbsdSerialNumber'],
-         'airInterface': device_4['airInterface'], 
-         'installationParam': device_4['installationParam']}
-    ]}
-    self._sas_admin.PreloadRegistrationData([conditionals_4])
+    conditionals_4 = {
+        'cbsdCategory': device_4['cbsdCategory'], 
+        'fccId': device_4['fccId'],
+        'cbsdSerialNumber': device_4['cbsdSerialNumber'],
+        'airInterface': device_4['airInterface'], 
+        'installationParam': device_4['installationParam']}
+    conditionals = {'registrationData': [conditionals_4]}
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
@@ -938,6 +1075,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response['registrationResponse'][0])
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
 
-    # Second, third, fourth devices failure 202
+    # Second, third, fourth devices failure 103 
     for x in range (1,4):
-        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 202)
+        self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 103)

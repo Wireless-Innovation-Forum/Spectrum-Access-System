@@ -7,10 +7,9 @@
   "airInterface": {
     "radioTechnology": "E_UTRA"
   },
-  "measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
   "installationParam": {
-    "latitude": 40.199168,
-    "longitude": -90.442536,
+    "latitude": 38.815291,
+    "longitude": -97.198805,
     "height": 4.5,
     "heightType": "AMSL",
     "indoorDeployment": false,
