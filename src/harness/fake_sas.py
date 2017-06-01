@@ -200,7 +200,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
                        '/admin/injectdata/registration',
                        '/admin/injectdata/blacklist_fcc_id',
-                       '/admin/injectdata/blacklist_fcc_id_and_serial_number'):
+                       '/admin/injectdata/blacklist_fcc_id_and_serial_number',
+                       '/admin/injectdata/fss', '/admin/injectdata/wisp'):
       response = ''
     else:
       self.send_response(404)

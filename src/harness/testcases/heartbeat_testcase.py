@@ -464,12 +464,11 @@ class HeartbeatTestcase(unittest.TestCase):
         response = self._sas.Heartbeat(request)['heartbeatResponse']
         self.assertEqual(len(response), len(grant_ids))
         for resp in response:
-            try:
-                # Check the heartbeat response
-                self.assertEqual(resp['response']['responseCode'], 100)
-            except AssertionError as e:
-                # Allow HTTP status 404
-                self.assertEqual(e.args[0], 404)
+            # Check the heartbeat response
+            self.assertEqual(resp['response']['responseCode'], 100)
+    except AssertionError as e:
+        # Allow HTTP status 404
+        self.assertEqual(e.args[0], 404)
     finally:
         # Put sas version back
         self._sas._sas_version = version
