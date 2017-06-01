@@ -43,12 +43,12 @@
 import json
 import os
 import unittest
-
+import sas_testcase
 import sas
 from util import winnforum_testcase
 
 
-class GrantTestcase(unittest.TestCase):
+class GrantTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -376,6 +376,53 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertTrue(response['response']['responseCode'] in (103, 300))
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_19(self):
+    """Frequency range requested overlaps with the frequency range of a FSS incumbent and 
+    CBSD is inside the protection zone of FSS.
+
+    Response Code should be 400"""
+
+    # Register the device
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Inject Incumbent Activity with Overlapping Frequency of CBSD
+    fss_zone_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
+    distance = self.CalculateDistance(device_a['installationParam']['latitude'],
+                                      device_a['installationParam']['longitude'],
+                                      fss_zone_0['deploymentParam'][0]['installationParam']['latitude'],
+                                      fss_zone_0['deploymentParam'][0]['installationParam']['longitude'])
+
+    # CBSD is within the 150km protection zone of FSS
+    self.assertLessEqual(distance, 150)
+    self._sas_admin.InjectFss({'record': fss_zone_0})
+
+    # Create grant request
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+      fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']
+    grant_0['operationParam']['operationFrequencyRange']['highFrequency'] = \
+      fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency']
+
+    request = {'grantRequest': [grant_0]}
+    # Send grant request
+    response = self._sas.Grant(request)['grantResponse'][0]
+
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 400)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_21(self):
