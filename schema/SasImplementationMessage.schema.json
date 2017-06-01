@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "SAS-SAS Implementation Record Exchange",
+    "type": "object",
+    "required": [
+      "id",
+      "name",
+      "administratorId",
+      "contactInformation",
+      "publicKey",
+      "fccInformation",
+      "url"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Unique designator for the Sas Implementation Record."
+      },
+      "name": {
+        "type": "string",
+        "description": "The name for the Sas Implementation Record."
+      },
+      "administratorId": {
+        "type": "string",
+        "description": "Reference Id of Sas Administrator Object"
+      },
+      "contactInformation": {
+        "$ref": "file:ContactInformation.schema.json"
+      },
+      "publicKey": {
+        "type": "string",
+        "description": "Public Key in format X.509"
+      },
+      "fccInformation": {
+        "$ref": "file:FccInformation.schema.json",
+        "description": "Contains the FCC certification information for this SAS implementation."
+      }
+    }
+
+}
+
+
+
