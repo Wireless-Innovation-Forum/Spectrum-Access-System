@@ -943,6 +943,103 @@ class HeartbeatTestcase(unittest.TestCase):
         transmit_expire_time_1)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_HBT_16(self):
+    """CBSD heartbeat request after grant is terminated.
+
+    Heartbeat request immediately after CBSD moves out of Granted State. The
+    grantId is invalid in heartbeat request. The response should be FAIL.
+    """
+
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+    grant_id = response['grantId']
+    grant_expire_time = datetime.strptime(response['grantExpireTime'],
+                                          '%Y-%m-%dT%H:%M:%SZ')
+    del request, response
+
+    # First successful Heartbeat
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    # Enter the Authorized state
+    request['heartbeatRequest'][0]['operationState'] = 'AUTHORIZED'
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Verify successful response
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Relinquish the grant
+    # Note: The Testcase requires grant to be terminated at this point, but
+    # here the grant is being relinquished. The test case document will be
+    # updated later to use this method
+    request = {
+        'relinquishmentRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id
+        }]
+    }
+    response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
+    # Check the relinquishment response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['grantId'], grant_id)
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    # use relinquished grantId in new heartbeat request after transmitExpireTime
+    # is passed, but before the grant expiry
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    transmit_expiry_wait_time = (
+        transmit_expire_time - datetime.utcnow()).total_seconds()
+    time.sleep(transmit_expiry_wait_time + 1)
+    self.assertGreater(datetime.utcnow(), transmit_expire_time)
+    self.assertLess(datetime.utcnow(), grant_expire_time)
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['response']['responseCode'] in (103, 500))
+    self.assertLessEqual(
+        datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
+        transmit_expire_time)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_HBT_17(self):
     """Heartbeat Request from CBSD in Registered state (immediately after CBSD's grant is expired)
 
@@ -1422,5 +1519,8 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response[2]['grantId'], grant_ids[2])
     self.assertTrue('transmitExpireTime' in response[2])
     self.assertEqual(response[2]['response']['responseCode'], 105)
+<<<<<<< HEAD
 
 >>>>>>> 115706de888b70c6972dc8c81f5172152fcdabf8
+=======
+>>>>>>> ccf94941b7a403626b14b412746ae7947babc55f
