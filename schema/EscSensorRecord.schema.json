@@ -6,6 +6,7 @@
     "id",
     "installationParam"
   ],
+  "additionalProperties": false,
   "properties": {
     "id": {
       "type": "string",
@@ -13,7 +14,7 @@
     },
     "installationParam": {
       "type": "Contains ESC Sensor Installation Parameters",
-      "$ref": "file:InstallationParam.schema.json"
+      "$ref": "file:InstallationParamEsc.schema.json"
     },
     "protectionLevel": {
       "description": "The protection level to be applied to the ESC Sensor in units of dBm/Mhz",
