@@ -941,7 +941,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertTrue(response['registrationResponse'][2]['response']['responseCode'] in (103, 201))
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_23(self):
+  def test_WINNF_FT_S_REG_23(self):
     """CBSD Cat A attempts to register with HAAT >6m
 
     The response should be FAILURE 103
@@ -956,7 +956,7 @@ class RegistrationTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_a['installationParam']['latitude'] = 38.882162
-    device_a['installationParam']['longitude'] = 77.113755
+    device_a['installationParam']['longitude'] = -77.113755
     device_a['installationParam']['height'] = 8
     device_a['installationParam']['heightType'] = 'AGL'
     device_a['installationParam']['indoorDeployment'] = False
@@ -1033,10 +1033,10 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Device A category A
     self.assertEqual(device_1['cbsdCategory'], 'A')
-    
+
     # Device 2 category A
     device_2['installationParam']['latitude'] = 38.882162
-    device_2['installationParam']['longitude'] = 77.113755
+    device_2['installationParam']['longitude'] = -77.113755
     device_2['installationParam']['height'] = 8
     device_2['installationParam']['heightType'] = 'AGL'
     device_2['installationParam']['indoorDeployment'] = False
@@ -1052,10 +1052,10 @@ class RegistrationTestcase(unittest.TestCase):
 
     # Pre-load conditionals for Device 4
     conditionals_4 = {
-        'cbsdCategory': device_4['cbsdCategory'], 
+        'cbsdCategory': device_4['cbsdCategory'],
         'fccId': device_4['fccId'],
         'cbsdSerialNumber': device_4['cbsdSerialNumber'],
-        'airInterface': device_4['airInterface'], 
+        'airInterface': device_4['airInterface'],
         'installationParam': device_4['installationParam']}
     conditionals = {'registrationData': [conditionals_4]}
     self._sas_admin.PreloadRegistrationData(conditionals)
@@ -1075,6 +1075,6 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('measReportConfig' in response['registrationResponse'][0])
     self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
 
-    # Second, third, fourth devices failure 103 
+    # Second, third, fourth devices failure 103
     for x in range (1,4):
         self.assertEqual(response['registrationResponse'][x]['response']['responseCode'], 103)
