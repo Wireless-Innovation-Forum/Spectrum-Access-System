@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "SAS-SAS ESC Sensor Data Message Exchange",
+  "type": "object",
+  "required": [
+    "id",
+    "installationParam",
+    "protectionLevel"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "ESC Sensor Id in the format esc_sensor/$ADMINISTRATOR/$SENSOR_ID"
+    },
+    "installationParam": {
+      "type": "Contains ESC Sensor Installation Parameters",
+      "$ref": "file:InstallationParam.schema.json"
+    },
+    "protectionLevel": {
+      "description": "The protection level to be applied to the ESC Sensor in units of dBm/Mhz",
+      "type": "number"
+    }
+  }
+}
+
