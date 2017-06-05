@@ -43,3 +43,4 @@ class EscSensorMessageExchangeTestcase(sas_testcase.SasTestCase):
     response = self._sas.GetEscSensorRecord(esc_sensor_record['id'])
     # Verify the response using EscSensorRecord Object schema
     self.AssertContainsRequiredFields("EscSensorRecord.schema.json", response)
+    self.assertEqual(response['id'], esc_sensor_record['id'])

@@ -8,6 +8,5 @@
     "indoorDeployment": false,
     "antennaGain": 16,
     "antennaBeamwidth": 30
- },
-  "protectionLevel":-100
+ }
 }

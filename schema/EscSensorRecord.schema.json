@@ -4,8 +4,7 @@
   "type": "object",
   "required": [
     "id",
-    "installationParam",
-    "protectionLevel"
+    "installationParam"
   ],
   "properties": {
     "id": {
