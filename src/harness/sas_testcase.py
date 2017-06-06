@@ -22,7 +22,7 @@ import sas_interface
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
-  def AssertContainsRequiredFields(self, schema_filename, response):
+  def assertContainsRequiredFields(self, schema_filename, response):
     schema_filename = os.path.join('..', '..', 'schema', schema_filename)
     schema = json.load(open(schema_filename))
     Draft4Validator.check_schema(schema)
@@ -31,7 +31,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     # Raises ValidationError when incorrect response
     validate(response, schema, resolver=resolver)
 
-  def AssertValidResponseFormatForApprovedGrant(self, grant_response):
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
     """Validate an approved grant response.
 
     Check presence and basic validity of each required field.

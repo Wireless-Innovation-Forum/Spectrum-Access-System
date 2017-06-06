@@ -376,7 +376,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertTrue('grantId' in response)
-    self.AssertValidResponseFormatForApprovedGrant(response)
+    self.assertValidResponseFormatForApprovedGrant(response)
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
@@ -388,7 +388,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 401)
-    del request, response
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_21(self):
@@ -498,7 +497,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     for response_num, resp in enumerate(response):
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
       self.assertTrue('grantId' in resp)
-      self.AssertValidResponseFormatForApprovedGrant(resp)
+      self.assertValidResponseFormatForApprovedGrant(resp)
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -542,7 +541,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), 2)
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertGreater(len(response[0]['grantId']), 0)
-    self.AssertValidResponseFormatForApprovedGrant(response[0])
+    self.assertValidResponseFormatForApprovedGrant(response[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
 
     self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
