@@ -42,13 +42,12 @@
 
 import json
 import os
-import unittest
-
+import sas_testcase
 import sas
 from util import winnforum_testcase
 
 
-class GrantTestcase(unittest.TestCase):
+class GrantTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -56,34 +55,6 @@ class GrantTestcase(unittest.TestCase):
 
   def tearDown(self):
     pass
-
-  def _assert_valid_response_format_for_approved_grant(self, grant_response):
-    """Validate an approved grant response.
-
-    Check presense and basic validity of each required field.
-    Check basic validity of optional fields if they exist.
-    Args:
-      grant_response: A dictionary with a single grant response object from an
-        array originally returned by a SAS server as specified in TS
-
-    Returns:
-      Nothing. It asserts if something about the response is broken/not per
-      specs. Assumes it is dealing with an approved request.
-    """
-    # Check required string fields
-    for field_name in ('cbsdId', 'grantId', 'grantExpireTime', 'channelType'):
-      self.assertTrue(field_name in grant_response)
-      self.assertGreater(len(grant_response[field_name]), 0)
-
-    self.assertTrue('heartbeatInterval' in grant_response)
-
-    if 'measReportConfig' in grant_response:
-      self.assertGreater(len(grant_response['measReportConfig']), 0)
-
-    # operationParam should not be set if grant is approved
-    self.assertFalse('operationParam' in grant_response)
-
-    self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_1(self):
@@ -405,7 +376,7 @@ class GrantTestcase(unittest.TestCase):
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertTrue('grantId' in response)
-    self._assert_valid_response_format_for_approved_grant(response)
+    self.AssertValidResponseFormatForApprovedGrant(response)
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
@@ -527,7 +498,7 @@ class GrantTestcase(unittest.TestCase):
     for response_num, resp in enumerate(response):
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
       self.assertTrue('grantId' in resp)
-      self._assert_valid_response_format_for_approved_grant(resp)
+      self.AssertValidResponseFormatForApprovedGrant(resp)
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -571,7 +542,7 @@ class GrantTestcase(unittest.TestCase):
     self.assertEqual(len(response), 2)
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertGreater(len(response[0]['grantId']), 0)
-    self._assert_valid_response_format_for_approved_grant(response[0])
+    self.AssertValidResponseFormatForApprovedGrant(response[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
 
     self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
