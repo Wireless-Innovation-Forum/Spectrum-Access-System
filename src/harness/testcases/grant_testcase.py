@@ -378,6 +378,48 @@ class GrantTestcase(unittest.TestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 300))
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_20(self):
+    """First request granted as PAL or GAA channel, send next request 
+    for PAL or GAA channel for the same frequency range
+
+    Response Code should be 401
+    """
+
+    # Register the device
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Send grant request
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue('grantId' in response)
+    self._assert_valid_response_format_for_approved_grant(response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    request = {'grantRequest': [grant_0]}
+    # Send grant request with the same frequency
+    response = self._sas.Grant(request)['grantResponse'][0]
+
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 401)
+    del request, response
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_21(self):
     """maxEirp in Grant Request for Category A is unsupported.
 
