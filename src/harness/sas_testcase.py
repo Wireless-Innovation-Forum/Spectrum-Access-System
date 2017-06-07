@@ -22,7 +22,7 @@ import sas_interface
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
-  def AssertContainsRequiredFields(self, schema_filename, response):
+  def assertContainsRequiredFields(self, schema_filename, response):
     schema_filename = os.path.join('..', '..', 'schema', schema_filename)
     schema = json.load(open(schema_filename))
     Draft4Validator.check_schema(schema)
@@ -30,3 +30,30 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
     # Raises ValidationError when incorrect response
     validate(response, schema, resolver=resolver)
+
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    """Validate an approved grant response.
+
+    Check presence and basic validity of each required field.
+    Check basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
+    """
+    # Check required string fields
+    for field_name in ('cbsdId', 'grantId', 'grantExpireTime', 'channelType'):
+      self.assertTrue(field_name in grant_response)
+      self.assertGreater(len(grant_response[field_name]), 0)
+
+    self.assertTrue('heartbeatInterval' in grant_response)
+
+    if 'measReportConfig' in grant_response:
+      self.assertGreater(len(grant_response['measReportConfig']), 0)
+
+    # operationParam should not be set if grant is approved
+    self.assertFalse('operationParam' in grant_response)
+    self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))
