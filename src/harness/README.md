@@ -26,3 +26,27 @@ This folder contains code and testcases for SAS certification test as defined in
 A self-signed CA is used to generate all certs/keys in this folder, using RSA.
 To support ECDSA ciphers in the fake SAS server (fake_sas.py) or PycURL client
 (sas.py), generate a new certificate using EC cryptography.
+
+
+## Known Issues
+
+The test harness is using pycurl packages and assumes they are compiled with openssl support.  If the packages were compiled with nss support instead this results in an “Unknown cipher” error when the harness is started.  To avoid it use the pycurl package with openssl support.  If not possible the following changes can be made to sas.py
+
+HTTP_TIMEOUT_SECS = 30
+
+CA_CERT = 'ca.cert'
+
+#ssl_cert = 'client.cert'
+
+#ssl_key = 'client.key'
+
+#CIPHERS = [
+
+##'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
+#]
+
+CIPHERS = [
+     'ecdhe_rsa_aes_128_gcm_sha_256'
+     ]
+
+
