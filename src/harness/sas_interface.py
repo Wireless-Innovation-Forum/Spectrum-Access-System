@@ -248,9 +248,9 @@ class SasAdminInterface(object):
 
     Args:
       request: a dictionary with the following key-value pairs:
-        "zoneId": (string) the ID of the PPA to which this cluster list should
+        "zone_id": (string) the ID of the PPA to which this cluster list should
         be added.
-        "cbsdIds": (array of string) the CBSD IDs of the devices in the cluster
+        "cbsd_ids": (array of string) the CBSD IDs of the devices in the cluster
         list.
     """
     pass
