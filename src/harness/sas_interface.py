@@ -362,7 +362,7 @@ class SasTestcaseInterface(object):
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def AssertContainsRequiredFields(self, schema_filename, response):
+  def assertContainsRequiredFields(self, schema_filename, response):
     """Assertion of Required Fields in Response validating it with Schema
 
     Args:
@@ -370,5 +370,21 @@ class SasTestcaseInterface(object):
       to validate. (The schema file should exist in /schema directory)
       response: A dictionary containing the response to validate for required
       fields using the schema.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    """Validate an approved grant response.
+
+    Check presence and basic validity of each required field.
+    Check basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
     """
     pass
