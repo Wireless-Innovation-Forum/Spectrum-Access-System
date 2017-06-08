@@ -30,7 +30,7 @@ def winnforum_testcase(testcase):
 
   return decorated_testcase
 
-def getRandomLatLongInPolygon(polygon):
+def _getRandomLatLongInPolygon(polygon):
 
   try:
     geojson_ppa = geojson.loads(json.dumps(polygon['features'][0]['geometry']))
@@ -44,10 +44,10 @@ def getRandomLatLongInPolygon(polygon):
     if Point([lng, lat]).within(ppa_polygon):
       return lat, lng
     else:
-      return getRandomLatLongInPolygon(polygon)
+      return _getRandomLatLongInPolygon(polygon)
   except NotImplementedError:
     # If there's no intercept again call the function
-    return getRandomLatLongInPolygon(polygon)
+    return _getRandomLatLongInPolygon(polygon)
 
 def _changeDateInPpaAndPal(record, prev_date, next_date):
   for key, value in record.iteritems():
@@ -60,6 +60,25 @@ def _changeDateInPpaAndPal(record, prev_date, next_date):
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records,
                                    ppa_fips_code, ppa_census_year,
                                    low_frequency, high_frequency, device):
+  """Make PPA, PAL and Device object consistent with the inputs and position 
+  the device in the PPA Polygon at some random location
+
+    Args:
+      ppa_record: (dictionary) An object containing PPA Record.
+      pal_records: (list) A list of PAL Records which has to be
+        associated with the PPA.
+      ppa_fips_code: (number) The FIPS Code of the Census Tract where 
+      the PPA belongs.
+      ppa_census_year: (number) The census year in which the census 
+      tract was defined.
+      low_frequency: (number) The Primary Low Frequency for PAL
+      high_frequency: (number) The Primary High Frequency for PAL
+      device: (dictionary) An object containing device which has to be
+      moved into the PPA Polygon.
+    Returns:
+      A tuple consisting of PPA Record, PAL Record List and Device with 
+      modified Latitude and Longitude
+  """
 
   previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
   next_year_date = datetime.now().replace(year=datetime.now().year + 1)
@@ -92,7 +111,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records,
   ppa_record['ppaInfo']['palId'] = [pal_record['palId'] for pal_record
                                     in pal_records]
   device['installationParam']['latitude'], device['installationParam']['longitude'] = \
-    getRandomLatLongInPolygon(ppa_record['zone'])
+    _getRandomLatLongInPolygon(ppa_record['zone'])
 
   return ppa_record, pal_records, device
 
