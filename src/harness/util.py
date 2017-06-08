@@ -30,8 +30,9 @@ def winnforum_testcase(testcase):
 
   return decorated_testcase
 
-def _getRandomLatLongInPolygon(polygon):
 
+def _getRandomLatLongInPolygon(polygon):
+  
   try:
     geojson_ppa = geojson.loads(json.dumps(polygon['features'][0]['geometry']))
     ppa_polygon = shape(geojson_ppa)
@@ -49,6 +50,7 @@ def _getRandomLatLongInPolygon(polygon):
     # If there's no intercept again call the function
     return _getRandomLatLongInPolygon(polygon)
 
+
 def _changeDateInPpaAndPal(record, prev_date, next_date):
   for key, value in record.iteritems():
     if type(record[key]) is dict:
@@ -56,6 +58,7 @@ def _changeDateInPpaAndPal(record, prev_date, next_date):
     record[key] = (next_date if 'Expiration' in key else
                   prev_date if 'Date' in key else record[key])
   return record
+
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records,
                                    ppa_fips_code, ppa_census_year,
