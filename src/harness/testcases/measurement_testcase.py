@@ -41,8 +41,7 @@ class MeasurementTestcase(unittest.TestCase):
 
     for device in devices:
         # set meascapability for all devices
-        device['measCapability'] = ['EUTRA_CARRIER_RSSI_ALWAYS']
-        #device['measCapability'] = ['RECEIVED_POWER_WITHOUT_GRANT']
+        device['measCapability'] = ['RECEIVED_POWER_WITHOUT_GRANT']
         # Inject FCC IDs
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
 
@@ -149,8 +148,7 @@ class MeasurementTestcase(unittest.TestCase):
 
     for device in devices:
         # set meascapability for all devices
-        device['measCapability'] = ['EUTRA_CARRIER_RSSI_ALWAYS']
-        #device['measCapability'] = ['RECEIVED_POWER_WITH_GRANT']
+        device['measCapability'] = ['RECEIVED_POWER_WITH_GRANT']
         # Inject FCC IDs
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
     cbsd_ids = []
