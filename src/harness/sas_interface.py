@@ -171,6 +171,23 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetCbsdDataRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS CBSD Data Record Exchange interface
+
+    Requests a Pull Command to get the Cbsd Data Record
+
+    Args:
+      request: A string containing Cbsd Reference Id as mentioned in CbsdData
+      Object of SAS-SAS Spec WINNF-16-S-0096
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of CbsdDataMessage object specified in 
+      WINNF-16-S-0096
+    """
+    pass
+
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
 

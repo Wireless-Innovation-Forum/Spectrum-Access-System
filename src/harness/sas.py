@@ -138,6 +138,9 @@ class SasImpl(sas_interface.SasInterface):
   def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
 
+  def GetCbsdDataRecord(self, request, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('cbsd', request, ssl_cert, ssl_key)
+
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s/%s/%s/%s' %
                         (self._base_url, self._sas_version, method_name, request),

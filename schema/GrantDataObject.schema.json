@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Grant Data Object",
+  "type": "object",
+  "required": [
+    "id",
+    "terminated",
+    "operationParam",
+    "channelType",
+    "grantExpireTime"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "A grant identifier unique to this grant and CBSD allowing peer SASs to identify the grant."
+    },
+    "terminated": {
+      "type": "boolean",
+      "description": "Indicates whether the grant is currently terminated or not."
+    },
+    "operationParam": {
+      "$ref": "file:OperationParam.schema.json"
+    },
+    "requestedOperationParam": {
+      "$ref": "file:OperationParam.schema.json"
+    },
+    "channelType": {
+      "type": "string",
+      "description": "Contains PAL or GAA channel Type"
+    },
+    "grantExpireTime": {
+      "type": "string",
+      "description": "Indicates the UTC time when the grant expires."
+    }
+  }
+}
