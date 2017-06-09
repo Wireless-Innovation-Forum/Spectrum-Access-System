@@ -18,6 +18,7 @@ import json
 import logging
 import StringIO
 import urlparse
+import os
 
 import pycurl
 import sas_interface
