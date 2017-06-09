@@ -16,6 +16,7 @@ import os
 import sas
 from util import winnforum_testcase
 import sas_testcase
+import urllib.request
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
@@ -67,16 +68,39 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         request = {'grantRequest': [grant_0, grant_1]}
         # Send grant requests
         response = self._sas.Grant(request)['grantResponse']
+        # Check registration response
+        grant_ids = []
+        for resp in response:
+            self.assertEqual(resp['response']['responseCode'], 0)
+            grant_ids.append(resp['grantId'])
         del request, response
 
         # Trigger the SAS under test to generate the activity dump
         self._sas_admin.TriggerFullActivityDump()
-        # Inject the SAS Implementation Record
-        impl_record = json.load(
-            open(os.path.join('testcases', 'testdata', 'sas_impl_record_0.json')))
-        self._sas_admin.InjectSasImplementationRecord({'record': impl_record})
-
         # Get the SAS Implementation Record using Pull Command
         response = self._sas.GetFullActivityDump()
         # Verify the response using SasImplementationMessage Object schema
         self.AssertContainsRequiredFields("FullActivityDump.schema.json", response)
+        # Verify the date field format of the full activity dump is valid
+        self.assertRegex("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$", response['generationDateTime'])
+        for file in response['files']:
+            # Verify the response using SasImplementationMessage Object schema
+            self.AssertContainsRequiredFields("ActivityDumpFiles.schema.json", file)
+            # Verify the url format is valid
+            self.assertRegex("^https?:\/\/[a-zA-Z0-9]{1,}(?:\/[a-zA-Z0-9]{1,})*.[a-zA-Z]+$", file['url'])
+            # Verify the link to download the file dump is valid
+            self.assertTrue(urllib.request.urlopen(file['url']).getcode() == 200) 
+            # Verify the SHA1 is the right size
+            self.assertTrue(len(file['checksum']) == 40)
+            # Verify the size is a number
+            self.assertTrue(float(file['size']))
+            # Verify the version follows the format "vX.X"
+            self.assertRegex("^v[0-9]{1,2}.[0-9]{1,2}$", file['version'])
+            # Verify the record type is "dump" like it's supposed to be
+            self.assertEqual("dump", file['recordType'])
+        # Dowloads the files and check if they contain the right grant ids and cbsd ids
+        for file in response['files']:
+            with urllib.request.urlopen(file['url']) as url:
+                data = json.loads(url.read().decode())
+                self.assertTrue(data['grants']['id'] in grant_ids)
+                self.assertTrue(data['grants']['cbsdId'] in cbsd_ids)
