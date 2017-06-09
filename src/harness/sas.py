@@ -23,7 +23,7 @@ import pycurl
 import sas_interface
 
 HTTP_TIMEOUT_SECS = 30
-CA_CERT = 'ca.cert'
+CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
     'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
@@ -151,16 +151,16 @@ class SasImpl(sas_interface.SasInterface):
                         ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
 
   def _GetDefaultCbsdSSLCertPath(self):
-    return 'client.cert'
+    return os.path.join('certs', 'client.cert')
 
   def _GetDefaultCbsdSSLKeyPath(self):
-    return 'client.key'
+    return os.path.join('certs', 'client.key')
 
   def _GetDefaultSasSSLCertPath(self):
-    return 'client.cert'
+    return os.path.join('certs', 'client.cert')
 
   def _GetDefaultSasSSLKeyPath(self):
-    return 'client.key'
+    return os.path.join('certs', 'client.key')
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -261,7 +261,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
-    return 'client.cert'
+    return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
-    return 'client.key'
+    return os.path.join('certs', 'admin_client.key')
