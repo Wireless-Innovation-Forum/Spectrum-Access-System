@@ -1,5 +1,5 @@
 {
-	"zone": {
+	"zoneData": {
 		"id": "zone/ppa/admin/ppa_zone_contains_deviceA_harness_test",
                 "name": "ppa_zone_for_Test",
 		"creator": "SAS_Administrator_Test",

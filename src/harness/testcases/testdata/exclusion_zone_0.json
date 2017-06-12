@@ -1,5 +1,5 @@
 {
-	"zone": {
+	"zoneData": {
 		"id": "zone/exclusion_zone/ntia/2017_04_10/esc_zone_not_contain_deviceA_harness_test",
                 "name": "exclusion_zone_for_Test",
 		"creator": "SAS_Administrator_Test",
