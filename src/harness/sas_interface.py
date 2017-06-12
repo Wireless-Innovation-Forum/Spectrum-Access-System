@@ -184,9 +184,23 @@ class SasInterface(object):
       ssl_key: Path to SSL key file, if None, will use default key file.
     Returns:
       A dictionary of CbsdDataMessage object specified in 
+      WINNF-16-S-0096"""
+
+  def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS ESC Sensor Record Exchange interface
+
+    Requests a Pull Command to get the ESC Sensor Data Message
+
+    Args:
+      request: A string containing Esc Sensor Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Esc Sensor Data Message object specified in 
       WINNF-16-S-0096
     """
     pass
+
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
