@@ -24,11 +24,7 @@ import pycurl
 import sas_interface
 
 HTTP_TIMEOUT_SECS = 30
-<<<<<<< HEAD
-CA_CERT = 'root_ca.crt'
-=======
 CA_CERT = os.path.join('certs', 'ca.cert')
->>>>>>> 138043f365fe6511f250dd8ee9da2395830cac34
 CIPHERS = [
     'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
