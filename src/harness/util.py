@@ -73,8 +73,8 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       user_id: (string) The userId from the CBSD.
 
     Returns:
-      A tuple containing pal records list which contains individual pal records 
-      in the form of dictionary and a ppa record which itself is a dictionary.
+      A tuple containing a ppa record which itself is a dictionary and pal records 
+      list which contains individual pal records in the form of dictionary.
     Note: The PPA Dictionary must contain censusYear (number) and fipsCode(number)
   """
 
@@ -106,7 +106,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     # Change Frequency Information in Pal
     pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
-    pal_records[index] = json.loads(json.dumps(pal_rec))
+    pal_records[index] = dict(pal_rec)
   # Add Pal Ids into the Ppa Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
