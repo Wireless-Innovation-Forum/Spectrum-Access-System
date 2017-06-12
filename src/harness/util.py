@@ -19,6 +19,7 @@ from shapely.geometry import shape, Point, LineString
 from collections import defaultdict
 import random
 from datetime import datetime
+import uuid
 
 
 def winnforum_testcase(testcase):
@@ -110,9 +111,11 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
   ppa_record['ppaInfo']['palId'] = [pal['palId'] for pal in pal_records]
-  ppa_record['id'] = 'zone/ppa/admin_0/%s' % (ppa_record['ppaInfo']['palId'][0])
+  ppa_record['id'] = 'zone/ppa/%s/%s/%s' % (ppa_record['creator'],
+                                            ppa_record['ppaInfo']['palId'][0],
+                                            uuid.uuid4().hex)
 
   # Make the date consistent in Ppa Record
   ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  return pal_records, ppa_record
+  return ppa_record, pal_records
