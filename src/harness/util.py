@@ -118,4 +118,5 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Make the date consistent in Ppa Record
   ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  ppa_record = dict(ppa_record)
   return ppa_record, pal_records
