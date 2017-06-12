@@ -16,9 +16,10 @@
 import logging
 import json
 from shapely.geometry import shape, Point, LineString
-import geojson
+from collections import defaultdict
 import random
 from datetime import datetime
+
 
 def winnforum_testcase(testcase):
   """Decorator for common features(such as logging) for Winnforum test cases."""
@@ -31,11 +32,17 @@ def winnforum_testcase(testcase):
   return decorated_testcase
 
 
-def _getRandomLatLongInPolygon(polygon):
-  
+def getRandomLatLongInPolygon(ppa):
+  """Generate the Random Latitude and Longitude inside the PPA Polygon
+  Args:
+    ppa: (dictionary) A dictionary containing PPA Record.
+  Returns:
+    A tuple in the form of latitude and longitude which itself is
+    a number.
+  """
+
   try:
-    geojson_ppa = geojson.loads(json.dumps(polygon['features'][0]['geometry']))
-    ppa_polygon = shape(geojson_ppa)
+    ppa_polygon = shape(ppa['zone']['features'][0]['geometry'])
     min_lng, min_lat, max_lng, max_lat = ppa_polygon.bounds
     lng = random.uniform(min_lng, max_lng)
     lng_line = LineString([(lng, min_lat), (lng, max_lat)])
@@ -45,76 +52,67 @@ def _getRandomLatLongInPolygon(polygon):
     if Point([lng, lat]).within(ppa_polygon):
       return lat, lng
     else:
-      return _getRandomLatLongInPolygon(polygon)
+      return getRandomLatLongInPolygon(ppa)
   except NotImplementedError:
-    # If there's no intercept again call the function
-    return _getRandomLatLongInPolygon(polygon)
+    # Cannot get the intercept call it again
+    return getRandomLatLongInPolygon(ppa)
 
 
-def _changeDateInPpaAndPal(record, prev_date, next_date):
-  for key, value in record.iteritems():
-    if type(record[key]) is dict:
-      _changeDateInPpaAndPal(record[key], prev_date, next_date)
-    record[key] = (next_date if 'Expiration' in key else
-                  prev_date if 'Date' in key else record[key])
-  return record
-
-
-def makePpaAndPalRecordsConsistent(ppa_record, pal_records,
-                                   ppa_fips_code, ppa_census_year,
-                                   low_frequency, high_frequency, device):
+def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
+                                   high_frequency, user_id):
   """Make PPA, PAL and Device object consistent with the inputs and position 
   the device in the PPA Polygon at some random location
 
     Args:
-      ppa_record: (dictionary) An object containing PPA Record.
-      pal_records: (list) A list of PAL Records which has to be
-        associated with the PPA.
-      ppa_fips_code: (number) The FIPS Code of the Census Tract where 
-      the PPA belongs.
-      ppa_census_year: (number) The census year in which the census 
-      tract was defined.
-      low_frequency: (number) The Primary Low Frequency for PAL
-      high_frequency: (number) The Primary High Frequency for PAL
-      device: (dictionary) An object containing device which has to be
-      moved into the PPA Polygon.
+      ppa_record: (dictionary) A dictionary containing PPA Record.
+      pal_records: (list) A list of PAL Records in the form of dictionary
+      which has to be associated with the PPA.
+      low_frequency: (number) The Primary Low Frequency for PAL.
+      high_frequency: (number) The Primary High Frequency for PAL.
+      user_id: (string) The userId from the CBSD.
+
     Returns:
-      A tuple consisting of PPA Record, PAL Record List and Device with 
-      modified Latitude and Longitude
+      A tuple containing pal records list which contains individual pal records 
+      in the form of dictionary and a ppa record which itself is a dictionary.
+    Note: The PPA Dictionary must contain censusYear (number) and fipsCode(number)
   """
 
   previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
   next_year_date = datetime.now().replace(year=datetime.now().year + 1)
+  fcc_channel_id = '1'
+  ppa_fips_code = ppa_record['fipsCode']
+  ppa_census_year = ppa_record['censusYear']
+  del ppa_record['censusYear'], ppa_record['fipsCode']
 
-  for pal_record in pal_records:
+  for index, pal_rec in enumerate(pal_records):
+    pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
     # Change the FIPS Code and Registration Date-Year in Pal Id
-    pal_record['palId'] = '/'.join([str(ppa_fips_code) if index == 2 else
-                           '%s-%d' % ('{:02d}'.format(previous_year_date.month),
-                                      previous_year_date.year)
-                           if index == 1 else str(val) for index, val in
-                                    enumerate(pal_record['palId'].split('/'))])
-    pal_record['userId'] = device['userId']
+    pal_rec['palId'] = '/'.join(['pal', '%s-%d' % ('{:02d}'.format(previous_year_date.month),
+                                                   previous_year_date.year), str(ppa_fips_code),
+                                 fcc_channel_id])
+    pal_rec['userId'] = user_id
     # Make the date consistent in Pal Record for Registration and License
-    pal_record = _changeDateInPpaAndPal(pal_record,
-                                        previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                        next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ'))
+    pal_rec['registrationInformation']['registrationDate'] = \
+      previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
     # Change License Information in Pal
-    pal_record['license']['licenseAreaIdentifier'] = str(ppa_fips_code)
-    pal_record['license']['licenseAreaExtent'] = \
+    pal_rec['license']['licenseAreaIdentifier'] = str(ppa_fips_code)
+    pal_rec['license']['licenseAreaExtent'] = \
       'zone/census_tract/census/%d/%d' % (ppa_census_year, ppa_fips_code)
+    pal_rec['license']['licenseDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+    pal_rec['license']['licenseExpiration'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+    pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
     # Change Frequency Information in Pal
-    for assign in ('primaryAssignment', 'secondaryAssignment'):
-      pal_record['channelAssignment'][assign]['lowFrequency'] = low_frequency
-      pal_record['channelAssignment'][assign]['highFrequency'] = high_frequency
-  # Make the date consistent in Ppa Record
-  ppa_record = _changeDateInPpaAndPal(ppa_record,
-                                      previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                      next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ'))
+    pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
+    pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
+    pal_records[index] = json.loads(json.dumps(pal_rec))
   # Add Pal Ids into the Ppa Record
-  ppa_record['ppaInfo']['palId'] = [pal_record['palId'] for pal_record
-                                    in pal_records]
-  device['installationParam']['latitude'], device['installationParam']['longitude'] = \
-    _getRandomLatLongInPolygon(ppa_record['zone'])
+  ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
-  return ppa_record, pal_records, device
+  ppa_record['ppaInfo']['palId'] = [pal['palId'] for pal in pal_records]
+  ppa_record['id'] = 'zone/ppa/admin_0/%s' % (ppa_record['ppaInfo']['palId'][0])
 
+  # Make the date consistent in Ppa Record
+  ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  return pal_records, ppa_record

@@ -1,28 +1,10 @@
 {
-  "palId": "pal/05-2017/20041084200/A",
   "licensee": "CBSD Operator No.1",
-  "userId": "cbsdOp1",
   "registrationInformation": {
-    "frn": "test_fcc_frn_pal_a",
-    "registrationDate": "2017-05-01T00:00:00Z"
+    "frn": "test_fcc_frn_pal_a"
   },
   "license": {
-    "licenseId": "test_fcc_id_pal_a",
-    "licenseDate": "2017-05-01T00:00:00Z",
-    "licenseExpiration": "2020-07-01T00:00:00Z",
-    "licenseAreaIdentifier": "Census Tract 20041084200 County Dickinson State Kansas",
-    "licenseAreaExtent": "zone/census_tract/census/2013/20041084200",
-    "licenseFrequencyChannelId": "1"
+    "licenseId": "test_fcc_id_pal_a"
   },
-  "licenseStatus": "VALID",
-  "channelAssignment": {
-    "primaryAssignment": {
-      "lowFrequency": 3550000000.0,
-      "highFrequency": 3560000000.0
-    },
-    "secondaryAssignment": {
-      "lowFrequency": 3580000000.0,
-      "highFrequency": 3590000000.0
-    }
-  }
+  "licenseStatus": "VALID"
 }
