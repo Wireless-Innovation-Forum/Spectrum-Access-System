@@ -106,6 +106,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     # Change Frequency Information in Pal
     pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
+    # Converting from defaultdict to dict
     pal_records[index] = json.loads(json.dumps(pal_rec))
   # Add Pal Ids into the Ppa Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
