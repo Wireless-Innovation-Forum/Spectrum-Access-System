@@ -182,10 +182,10 @@ class FakeSas(sas_interface.SasInterface):
 
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     # Get the Esc Sensor record
-    impl_record = json.load(
+    esc_sensor_record = json.load(
       open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
-    if request == impl_record['id']:
-      return impl_record
+    if request == esc_sensor_record['id']:
+      return esc_sensor_record
     else:
       # Return Empty if invalid Id
       return {}
