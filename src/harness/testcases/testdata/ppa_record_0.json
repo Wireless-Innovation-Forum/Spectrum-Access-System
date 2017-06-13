@@ -4,7 +4,7 @@
   "usage": "PPA",
   "terminated": false,
   "censusYear": 2010,
-  "fipsCode":24234234234,
+  "fipsCode":20041084200,
   "zone": {
     "type": "FeatureCollection",
     "features": [
