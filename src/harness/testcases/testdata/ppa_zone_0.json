@@ -1,0 +1,36 @@
+{
+	"zoneData": {
+		"id": "zone/ppa/admin/ppa_zone_contains_deviceA_harness_test",
+                "name": "ppa_zone_for_Test",
+		"creator": "SAS_Administrator_Test",
+		"usage": "PPA",
+		"ppaInfo": {
+			"palId": ["pal/10-2017/123456789/A"],
+			"ppaBeginDate": "2017-07-01T00:00:00Z",
+			"ppaExpirationDate": "2020-07-01T00:00:00Z",
+			"ppaLandCategory": "PPA",
+			"ppaCenterLatitude": 38.9530,
+			"ppaCenterLongitude": -97.9230
+		},
+		"zone": { 
+	      		"type": "FeatureCollection",
+	      		"features": [ {
+		    	"type": "Feature", 
+		    	"properties": {}, 
+		    	"geometry": { 
+			"type": "Polygon", 
+			"coordinates": [ 
+			    [ 
+			      	[39.1228, -98.6426],
+				[39.3519, -97.7307],
+				[38.9771, -96.8408],
+				[38.6432, -97.0716],
+				[38.7804, -98.6920],
+				[39.1228, -98.6426] 
+			    ]  
+			   ] 
+		    }
+	      }]
+	 }
+	}
+}
