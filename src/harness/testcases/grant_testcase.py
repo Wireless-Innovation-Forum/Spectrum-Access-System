@@ -39,7 +39,7 @@
 # Distributions of NIST software should also include copyright and licensing 
 # statements of any third-party software that are legally bundled with the 
 # code in compliance with the conditions of those licenses.
-
+from datetime import datetime
 import json
 import os
 import sas_testcase
@@ -87,6 +87,257 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertTrue(response['grantId'])
       self.assertEqual(response['channelType'], 'GAA')
       self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_2(self):
+    """Successful CBSD grant request.
+    Incumbent is present in the GAA frequency range requested by the
+    CBSD which is outside the protection zone..
+    """
+    # Register the device outside of PPA
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Create and trigger the ESC Zone
+    exclusion_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
+    trigger_esc_zone_request = {'zoneId': zone_response['zoneId'],
+                                'frequencyRange': {
+                                     'lowFrequency': 3620000000.0,
+                                     'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone_request)
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'GAA')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINFF_FT_S_GRA_3(self):
+    """Successful CBSD grant request.
+    Federal Incumbent is present in the GAA frequency range requested by
+    the CBSD which is inside the protection zone of Federal Incumbent.
+    """
+
+    # Register the device inside the protection zone
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Create and trigger the ESC Zone
+    exclusion_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                        'frequencyRange': {
+                             'lowFrequency': 3620000000.0,
+                             'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # Request grant
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    if response['response']['responseCode'] == 0:
+      self.assertTrue('grantId' in response)
+      self.assertEqual(response['channelType'], 'GAA')
+      grant_id = response['grantId']
+      del request, response
+      request = {
+          'heartbeatRequest': [{
+              'cbsdId': cbsd_id,
+              'grantId': grant_id,
+              'operationState': 'GRANTED'
+          }]
+      }
+      response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+      # Check the heartbeat response
+      self.assertEqual(response['cbsdId'], cbsd_id)
+      self.assertEqual(response['grantId'], grant_id)
+      self.assertFalse('transmitExpireTime' in response)
+      grant_expire_time = datetime.strptime(response['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+      transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLess(transmit_expire_time, grant_expire_time)
+      self.assertEqual(response['response']['responseCode'], 501)
+    else:
+      self.assertFalse('grantId' in response)
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_4(self):
+    """Successful CBSD grant request.
+        No incumbent present in the PAL frequency range requested by the CBSD.
+    """
+
+    # Register device inside PPA
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database Record
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_a['userId']
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
+    # Inject cbsd_ids of ppa
+    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+    # grant request for cbds 
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_5(self):
+    """Successful CBSD grant request.
+        Incumbent present in the PAL frequency range requested by the CBSD 
+        who is outside the protection zone.
+    """
+
+    # Register device outside protection zone
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database Recoord
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_a['userId']
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
+    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+    exclusion_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                        'frequencyRange': {
+                            'lowFrequency': 3620000000.0,
+                            'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # grant request 
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['grantId'])
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_6(self):
+    """No Authorized grant of CBSD .
+        Incumbent present in the PAL frequency range requested by the CBSD 
+        who is inside the protection zone identified by ESC. 
+    """
+
+    # Register device inside the protection zone
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database Recoord
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_c['userId']
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
+    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+    exclusion_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                        'frequencyRange': {
+                            'lowFrequency': 3620000000.0,
+                            'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # grant request 
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['response']['responseCode'] in (0, 400))
+    if response['response']['responseCode'] == 0:
+        self.assertTrue('grantId' in response)
+        self.assertEqual(response['channelType'], 'PAL')
+        grant_id = response['grantId']
+        del request, response
+        request = {
+            'heartbeatRequest': [{
+                'cbsdId': cbsd_id,
+                'grantId': grant_id,
+                'operationState': 'GRANTED'
+            }]
+        }
+        response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+        # Check the heartbeat response
+        grant_expire_time = datetime.strptime(response['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        self.assertEqual(response['cbsdId'], cbsd_id)
+        self.assertEqual(response['grantId'], grant_id)
+        self.assertLess(transmit_expire_time, grant_expire_time)
+        self.assertEqual(response['response']['responseCode'], 501)
+    else:
+        self.assertFalse('grantId' in response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
