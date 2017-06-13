@@ -77,11 +77,11 @@ class MeasurementTestcase(unittest.TestCase):
         if cbsd_id == cbsd_ids[5]:
             for meas_num, meas in enumerate(meas_report):
                 meas_report[meas_num]['measBandwidth'] = 15000000
-        spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReport': meas_report}
+        spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report}
 
-        # Delete RcvdPowerMeasReport for the 4th device
+        # Delete rcvdPowerMeasReports for the 4th device
         if cbsd_id == cbsd_ids[3]:
-            del spectrum_inquiry['measReport']['rcvdPowerMeasReport']
+            del spectrum_inquiry['measReport']['rcvdPowerMeasReports']
         # Delete MeasReport for the 5th device
         if cbsd_id == cbsd_ids[4]:
             del spectrum_inquiry['measReport']
@@ -221,13 +221,13 @@ class MeasurementTestcase(unittest.TestCase):
         heartbeat_request['measReport'] = meas_report
         if cbsd_id == cbsd_ids[1]:
             # Delete measFrequency for second devide
-            del heartbeat_request['measReport']['rcvdPowerMeasReport'][0]['measFrequency']
+            del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency']
         if cbsd_id == cbsd_ids[2]:
             # Set measFrequency to 3540 MHZ for 3th device
-            heartbeat_request['measReport']['rcvdPowerMeasReport'][0]['measFrequency'] = 3540000000.0
+            heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000.0
         if cbsd_id == cbsd_ids[3]:
-            # Delete rcvdPowerMeasReport for 4th device
-            del heartbeat_request['measReport']['rcvdPowerMeasReport'][0]
+            # Delete rcvdPowerMeasReports for 4th device
+            del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]
         if cbsd_id == cbsd_ids[4]:
             # Delete measReport for 5th device
             del heartbeat_request['measReport']
