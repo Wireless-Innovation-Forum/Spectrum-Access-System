@@ -393,7 +393,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_GRA_21(self):
     """maxEirp in Grant Request for Category A is unsupported.
 
-    The response should be 202 (CATEGORY_ERROR)
+    The response should be 103 (INVALID_VALUE)
     """
     # Register the device
     device_a = json.load(
@@ -418,13 +418,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
-    self.assertEqual(response['response']['responseCode'], 202)
+    self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_22(self):
     """maxEirp in Grant Request for Category B is unsupported.
 
-    The response should be 202 (CATEGORY_ERROR) or 103 (INVALID_VALUE)
+    The response should be 103 (INVALID_VALUE)
     """
     # Register the device
     device_b = json.load(
@@ -449,7 +449,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
-    self.assertTrue(response['response']['responseCode'] in (202, 103))
+    self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_23(self):
