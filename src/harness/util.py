@@ -106,7 +106,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     # Change Frequency Information in Pal
     pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
-    pal_records[index] = dict(pal_rec)
+    pal_records[index] = json.loads(json.dumps(pal_rec))
   # Add Pal Ids into the Ppa Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
@@ -118,5 +118,5 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Make the date consistent in Ppa Record
   ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  ppa_record = dict(ppa_record)
+  ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
