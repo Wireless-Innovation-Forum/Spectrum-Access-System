@@ -35,7 +35,7 @@
     "properties": {
       "allOf": [
         {
-          "$ref": "file:InstallationParam.schema.json",
+          "$ref": "file:InstallationParam.schema.json"
         }
       ]
     }

@@ -180,6 +180,16 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
+    # Get the Esc Sensor record
+    impl_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+    if request == impl_record['id']:
+      return impl_record
+    else:
+      # Return Empty if invalid Id
+      return {}
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -242,6 +252,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     path, value = self._parseUrl(self.path)
     if path == "v1.0/sas_impl":
      response = FakeSas().GetSasImplementationRecord(value)
+    elif path == "v1.0/esc_sensor":
+      response = FakeSas().GetEscSensorRecord(value)
     else:
       self.send_response(404)
       return
