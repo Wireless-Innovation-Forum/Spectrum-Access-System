@@ -47,6 +47,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     cbsd_id = response['cbsdId']
+    self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
     # Query for the spectrum affected by the coastal exclusion zone, i.e.
@@ -84,6 +85,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     device_b['installationParam']['longitude'] = -122.428628
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
 
@@ -105,6 +107,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     # Deregister the device and again register at new, non-coastal location
     request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
     # Query again, now in a location not affected by the coastal exclusion zone.
@@ -112,6 +115,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     request = {'registrationRequest': [device_b]}
     response = self._sas.Registration(request)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
     # Send spectrum inquiry and check response
