@@ -44,7 +44,8 @@ import json
 import os
 import sas_testcase
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -287,63 +288,62 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """CBSD requests a frequency range which is a mix of PAL and GAA channel.
+    
     The Response Code should be 103(INVALID_PARAM)
     """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    pal_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record_0, pal_record_0 = makePpaAndPalRecordsConsistent(ppa_record_0,
+                                                                [pal_record_0],
+                                                                pal_low_frequency,
+                                                                pal_high_frequency,
+                                                                device_a['userId'])
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
+      getRandomLatLongInPolygon(ppa_record_0)
+
     # Register the device
-    device_c = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-    request = {'registrationRequest': [device_c]}
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
 
-    # Inject Census Tract Zone Record
-    census_tract_zone_data_c = json.load(
-      open(os.path.join('testcases', 'testdata', 'census_tract_zone_data_c.json')))
-    census_tract_zone_id = self._sas_admin.InjectZoneData({'zoneData':
-                                                           census_tract_zone_data_c})['zoneId']
-
-    # Inject PAL Database Record
-    pal_database_record_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-
-    # Add FIPS Code from the Census Tracts Zone Id to Pal Id
-    pal_id = '/'.join([census_tract_zone_id.split('/')[4] if index == 2 else val
-              for index, val in enumerate(pal_database_record_0['palId'].split('/'))])
-    pal_database_record_0['palId'] = pal_id
-    pal_database_record_0['license']['licenseAreaExtent'] = census_tract_zone_id
-    self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
-
-    # Inject PPA Zone Data
-    ppa_zone_data_c = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_zone_data_c.json')))
-    ppa_zone_id = self._sas_admin.InjectZoneData({'zoneData': ppa_zone_data_c})['zoneId']
+    # Inject PAL and PPA Database Record
+    self._sas_admin.InjectPalDatabaseRecord(pal_record_0[0])
+    ppa_record_id = self._sas_admin.InjectZoneData({'zoneData': ppa_record_0})['zoneId']
 
     # Inject Cluster List
-    cluster_list = {'zoneId': ppa_zone_id,
+    cluster_list = {'zoneId': ppa_record_id,
                     'cbsdIds': [cbsd_id]}
     self._sas_admin.InjectClusterList(cluster_list)
 
-    # Create Grant Request with frequency range containing both
-    # PAL(3550000000 - 3560000000) and GAA(3560000001 - 3580000000) Channel
+    # Create Grant Request containing PAL and GAA frequency
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'][
-      'lowFrequency'] = 3550000000.0
+      'lowFrequency'] = pal_low_frequency
     grant_0['operationParam']['operationFrequencyRange'][
-      'highFrequency'] = 3580000000.0
+      'highFrequency'] = pal_high_frequency + 100000000.0
     request = {'grantRequest': [grant_0]}
-
-    # Send grant request and get response
+    # Send grant request
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertFalse('grantId' in response)
-    self.assertTrue(response['response']['responseCode'] in 103)
+    self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
