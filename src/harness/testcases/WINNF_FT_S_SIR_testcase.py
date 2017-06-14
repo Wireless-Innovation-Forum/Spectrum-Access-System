@@ -20,7 +20,6 @@ import sas_testcase
 
 
 class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
-
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -41,7 +40,7 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_SIR_1(self):
     """This test verifies that a SAS can successfully respond to an implementation record 
     request from another SAS
-    
+
     Response Code should be 200
     """
     # Inject the SAS Implementation Record
@@ -61,23 +60,23 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
 
     # Load Test Harness SAS Implementation Record
     sas_impl_record = json.load(open(os.path.join('testcases', 'testdata', 'sas_impl_record_0.json')))
-    sas_impl_record['id'] = 'sas/admin/0'
     self._sas_admin.InjectSasImplementationRecord({'record': sas_impl_record})
-    expected_path = '/sas/%s' % sas_impl_record['id']
+    expected_path = '/sas_impl/%s' % sas_impl_record['id']
 
     # Setup the Server with response body and expected path from SAS Under Test
     response = self._sas_server.setupServer({'responseBody': sas_impl_record, 'expectedPath': expected_path})
     self._sas_admin.TriggerSasImplementationRecord({'address': self._sas_server.getBaseUrl(),
                                                     'sasImplementationId': sas_impl_record['id']})
-
+    # Get Path and Body from the response
+    path, body = response()
     # Check the Path of the Pull Command
-    self.assertEqual(response(), expected_path)
+    self.assertEqual(path, expected_path)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIR_3(self):
     """This test verifies that a SAS Under Test can handle the Unknown 
     Implementation Id 
-    
+
     Response Code must be 200 with empty JSON Body"""
 
     # Get the SAS Implementation Record using Pull Command with Unknown ID

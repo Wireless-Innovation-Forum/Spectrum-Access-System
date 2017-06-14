@@ -52,19 +52,22 @@ from BaseHTTPServer import HTTPServer
 from datetime import datetime
 from datetime import timedelta
 import json
+import StringIO
+import urlparse
+import pycurl
 import ssl
 import os
 import sas_interface
 
 # Fake SAS server configurations.
 PORT = 9000
-CERT_FILE = 'server.cert'
-KEY_FILE = 'server.key'
-CA_CERT = 'ca.cert'
+CERT_FILE = os.path.join('certs', 'server.cert')
+KEY_FILE = os.path.join('certs', 'server.key')
+CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
     'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
-
+HTTP_TIMEOUT_SECS = 30
 MISSING_PARAM = 102
 INVALID_PARAM = 103
 
@@ -206,6 +209,44 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     # Returns path and value
     return '/'.join(splitted_url[0:2]), '/'.join(splitted_url[2:])
 
+  def _GetDefaultSasSSLCertPath(self):
+    return os.path.join('certs', 'client.cert')
+
+  def _GetDefaultSasSSLKeyPath(self):
+    return os.path.join('certs', 'client.key')
+
+  def _RequestGet(self, url):
+    """Sends HTTPS GET request.
+
+    Args:
+      url: Destination of the HTTPS request.
+    Returns:
+      A dictionary represents the JSON response received from server.
+    """
+    response = StringIO.StringIO()
+    conn = pycurl.Curl()
+    conn.setopt(conn.URL, url)
+    conn.setopt(conn.WRITEFUNCTION, response.write)
+    header = [
+      'Host: %s' % urlparse.urlparse(url).hostname,
+      'content-type: application/json'
+    ]
+    conn.setopt(conn.VERBOSE, 3)
+    conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+    conn.setopt(conn.SSLCERTTYPE, 'PEM')
+    conn.setopt(conn.SSLCERT, self._GetDefaultSasSSLCertPath())
+    conn.setopt(conn.SSLKEY, self._GetDefaultSasSSLKeyPath())
+    conn.setopt(pycurl.SSL_VERIFYHOST, 2)
+    conn.setopt(conn.CAINFO, CA_CERT)
+    conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
+    conn.setopt(conn.HTTPHEADER, header)
+    conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+    conn.perform()
+    assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+    conn.close()
+    body = response.getvalue()
+    return json.loads(body)
+
   def do_POST(self):
     """Handles POST requests."""
 
@@ -226,6 +267,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSas().InjectZoneData(request)
+    elif self.path == '/admin/trigger/pull_sas_implementation':
+      response = self._RequestGet("%s/sas_impl/%s" % (request['address'],
+                                                      request['sasImplementationId']))
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',

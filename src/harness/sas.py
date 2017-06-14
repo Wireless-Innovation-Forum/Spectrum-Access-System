@@ -28,7 +28,7 @@ import sas_interface
 HTTP_TIMEOUT_SECS = 30
 CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
-    'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
+  'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
 
 
@@ -39,12 +39,14 @@ def GetTestingSas():
   version = config_parser.get('SasConfig', 'Version')
   return SasImpl(base_url, version), SasAdminImpl(base_url)
 
+
 def GetServer():
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   server_base_url = config_parser.get('HttpServer', 'BaseUrl')
   server_port = int(config_parser.get('HttpServer', 'Port'))
   return HttpServer({'baseUrl': server_base_url, 'port': server_port})
+
 
 def _RequestPost(url, request, ssl_cert, ssl_key):
   """Sends HTTPS POST request.
@@ -62,8 +64,8 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   conn.setopt(conn.URL, url)
   conn.setopt(conn.WRITEFUNCTION, response.write)
   header = [
-      'Host: %s' % urlparse.urlparse(url).hostname,
-      'content-type: application/json'
+    'Host: %s' % urlparse.urlparse(url).hostname,
+    'content-type: application/json'
   ]
   conn.setopt(conn.VERBOSE, 3)
   conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
@@ -85,6 +87,7 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   logging.debug('Response:\n' + body)
   return json.loads(body)
 
+
 def _RequestGet(url, ssl_cert, ssl_key):
   """Sends HTTPS GET request.
 
@@ -100,8 +103,8 @@ def _RequestGet(url, ssl_cert, ssl_key):
   conn.setopt(conn.URL, url)
   conn.setopt(conn.WRITEFUNCTION, response.write)
   header = [
-      'Host: %s' % urlparse.urlparse(url).hostname,
-      'content-type: application/json'
+    'Host: %s' % urlparse.urlparse(url).hostname,
+    'content-type: application/json'
   ]
   conn.setopt(conn.VERBOSE, 3)
   conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
@@ -119,6 +122,7 @@ def _RequestGet(url, ssl_cert, ssl_key):
   body = response.getvalue()
   logging.debug('Response:\n' + body)
   return json.loads(body)
+
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
@@ -153,9 +157,9 @@ class SasImpl(sas_interface.SasInterface):
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s/%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name, request),
-                        ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
-                        ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
+                       (self._base_url, self._sas_version, method_name, request),
+                       ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
+                       ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestPost('https://%s/%s/%s' %
@@ -175,6 +179,7 @@ class SasImpl(sas_interface.SasInterface):
   def _GetDefaultSasSSLKeyPath(self):
     return os.path.join('certs', 'client.key')
 
+
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
 
@@ -193,8 +198,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def InjectEscZone(self, request):
     return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
-                 self._GetDefaultAdminSSLCertPath(),
-                 self._GetDefaultAdminSSLKeyPath())
+                        self._GetDefaultAdminSSLCertPath(),
+                        self._GetDefaultAdminSSLKeyPath())
 
   def InjectZoneData(self, request):
     return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
@@ -232,7 +237,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
-    
+
   def PreloadRegistrationData(self, request):
     _RequestPost('https://%s/admin/injectdata/conditional_registration' % self._base_url,
                  request, self._GetDefaultAdminSSLCertPath(),
@@ -273,11 +278,17 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def TriggerSasImplementationRecord(self, request):
+    _RequestPost('https://%s/admin/trigger/pull_sas_implementation' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
+
 
 class HttpServerHandler(BaseHTTPRequestHandler):
   def __init__(self, callbackHandler, getSetupParameters, *args):
@@ -292,7 +303,7 @@ class HttpServerHandler(BaseHTTPRequestHandler):
       self.send_header('Content-type', 'application/json')
       self.end_headers()
       self.wfile.write(json.dumps(self._parameters['responseBody']))
-      self._callbackHandler(self.path)
+      self._callbackHandler(self.path, '')
     else:
       self.send_response(404)
       self._callbackHandler()
@@ -308,7 +319,7 @@ class HttpServerHandler(BaseHTTPRequestHandler):
           self.send_header('Content-type', 'application/json')
           self.end_headers()
           self.wfile.write(json.dumps(self._parameters['responseBody']))
-          self._callbackHandler(request_body)
+          self._callbackHandler(self.path, request_body)
           return
         else:
           self.send_response(404)
@@ -316,22 +327,26 @@ class HttpServerHandler(BaseHTTPRequestHandler):
         self.send_response(422)
     self._callbackHandler()
 
+
 class HttpServer(sas_interface.HttpServerInterface):
   """Test Harness acting as a Http Server to receive Pull/GET and Push/POST 
   Requests from SAS Under Test
   """
+
   def __init__(self, server_details):
     self._server_details = server_details
     self._request_event = threading.Event()
     self.parameters = {}
-    self.response = None
+    self.path = None
+    self.body = None
 
   # Helper Methods Starts
 
-  def _callbackHandler(self, response=None):
+  def _callbackHandler(self, path=None, body=None):
     """Release wait initiated by _requestResponse when there is GET/POST Request from 
     SAS Under Test"""
-    self.response = response
+    self.path = path
+    self.body = body
     self._request_event.set()
 
   def _handleRequest(self, callbackHandler, getSetupParameters):
@@ -347,7 +362,13 @@ class HttpServer(sas_interface.HttpServerInterface):
     return the response as soon as _callbackHandler is called"""
     logging.info("Waiting for the Response from SAS Under Test")
     self._request_event.wait(20.0)
-    return self.response
+    return self.path, self.body
+
+  def _GetDefaultHttpServerSSLCertPath(self):
+    return os.path.join('certs', 'server.cert')
+
+  def _GetDefaultHttpServerSSLKeyPath(self):
+    return os.path.join('certs', 'server.key')
 
   # Helper Methods Ends
 
@@ -362,17 +383,14 @@ class HttpServer(sas_interface.HttpServerInterface):
     request_handler = self._handleRequest(self._callbackHandler, self._getSetupParameters)
     self.server = HTTPServer((self._server_details['baseUrl'], self._server_details['port']),
                              request_handler)
-    cert_file = 'server.cert'
-    key_file = 'server.key'
-    ca_cert = 'ca.cert'
     ciphers = [
       'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
     ]
     self.server.socket = ssl.wrap_socket(
       self.server.socket,
-      certfile=cert_file,
-      keyfile=key_file,
-      ca_certs=ca_cert,
+      certfile=self._GetDefaultHttpServerSSLCertPath(),
+      keyfile=self._GetDefaultHttpServerSSLKeyPath(),
+      ca_certs=CA_CERT,
       cert_reqs=ssl.CERT_REQUIRED,
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ciphers),

@@ -158,9 +158,9 @@ class SasInterface(object):
   @abc.abstractmethod
   def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
     """SAS-SAS Implementation Record Exchange interface
-    
+
     Requests a Pull Command to get the Sas Implementation Record
-    
+
     Args:
       request: A string containing Sas Implementation Record Id
       ssl_cert: Path to SSL cert file, if None, will use default cert file.
@@ -349,7 +349,7 @@ class SasAdminInterface(object):
   def TriggerMeasurementReportRegistration(self, request):
     """SAS admin interface to trigger measurement report request for all subsequent
     registration request 
-  
+
     Args:
       request: A dictionary with a single key-value pair where the key is
         "measReportConfig" and the value is an array of string of permitted 
@@ -363,7 +363,7 @@ class SasAdminInterface(object):
   def TriggerMeasurementReportHeartbeat(self, request):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
-  
+
     Args:
       request: A dictionary with a single key-value pair where the key is
         "measReportConfig" and the value is an array of string of permitted 
@@ -408,7 +408,6 @@ class SasTestcaseInterface(object):
 
 
 class HttpServerInterface(object):
-
   @abc.abstractmethod
   def setupServer(self, parameters=None):
     """Http Server interface to get the response based on the Pull/GET or Push/POST Request
@@ -423,9 +422,11 @@ class HttpServerInterface(object):
       and will return the response of the request made by SAS Under Test based on the following 
       criteria:
         1. If the request type is Pull/GET and expected path is correct then it will return 
-        the path of the request made by SAS Under Test or else will give HTTP 404 error. 
+        the path and empty body of the request made by SAS Under Test or else will give 
+        HTTP 404 error. 
         2. If the request type is Push/POST and expected path is correct then it will return
-        the request body posted by SAS Under Test or else it will give HTTP 404 error."""
+        the path and request body posted by SAS Under Test or else it will give 
+        HTTP 404 error."""
 
   @abc.abstractmethod
   def getBaseUrl(self):
