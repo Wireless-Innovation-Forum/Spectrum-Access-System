@@ -88,6 +88,74 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response['channelType'], 'GAA')
       self.assertEqual(response['response']['responseCode'], 0)
 
+  @winnforum_testcase 
+  def test_WINFF_FT_S_GRA_6(self):
+    """No Authorized grant of CBSD .
+        Incumbent present in the PAL frequency range requested by the CBSD 
+        who is inside the protection zone identified by ESC. 
+    """
+
+    # Register the device
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Inject PAL Database Recoord
+    pal_database_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
+    pal_database_record['userId'] = device_c['userId']
+    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
+    # Inject PPA Zone
+    ppa_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
+    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
+    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
+    self._sas_admin.InjectClusterList(cluster_list)
+    exclusion_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
+    zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
+    trigger_esc_zone = {'zoneId': zone_response['zoneId'],
+                        'frequencyRange': {
+                            'lowFrequency': 3620000000.0,
+                            'highFrequency': 3630000000.0}}
+    self._sas_admin.TriggerEscZone(trigger_esc_zone)
+    # grant request 
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertTrue(response['response']['responseCode'] in (0, 400))
+    if response['response']['responseCode'] == 0:
+        self.assertTrue('grantId' in response)
+        self.assertEqual(response['channelType'], 'PAL')
+        grant_id = response['grantId']
+        del request, response
+        request = {
+            'heartbeatRequest': [{
+                'cbsdId': cbsd_id,
+                'grantId': grant_id,
+                'operationState': 'GRANTED'
+            }]
+        }
+        response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+        # Check the heartbeat response
+        grant_expire_time = datetime.strptime(response['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        self.assertEqual(response['cbsdId'], cbsd_id)
+        self.assertEqual(response['grantId'], grant_id)
+        self.assertLess(transmit_expire_time, grant_expire_time)
+        self.assertEqual(response['response']['responseCode'], 501)
+    elif response['response']['responseCode'] == 400:
+        self.assertFalse('grantId' in response)
+
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
     """CBSD sends grant with missing cbsdId. The response should be
