@@ -46,8 +46,8 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     device_a['installationParam']['longitude'] = -122.428628
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
-    cbsd_id = response['cbsdId']
     self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
     del request, response
 
     # Query for the spectrum affected by the coastal exclusion zone, i.e.
@@ -62,9 +62,9 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     # Check spectrum inquiry response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(len(response['availableChannel']), 0)
-    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
@@ -101,9 +101,9 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     # Check spectrum inquiry response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(len(response['availableChannel']), 0)
-    self.assertEqual(response['response']['responseCode'], 0)
     # Deregister the device and again register at new, non-coastal location
     request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
     response = self._sas.Deregistration(request)['deregistrationResponse'][0]
@@ -128,9 +128,9 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     }
     request = {'spectrumInquiryRequest': [spectrum_inquiry_1]}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(len(response['availableChannel']), 0)
-    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINFF_FT_S_SIQ_8(self):
