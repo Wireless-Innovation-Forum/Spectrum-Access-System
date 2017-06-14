@@ -190,6 +190,9 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetCbsdDataRecord(self, request, ssl_cert=None, ssl_key=None):
+    return {}
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -254,6 +257,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == "v1.0/esc_sensor":
       response = FakeSas().GetEscSensorRecord(value)
+    elif path == "v1.0/cbsd":
+      response = FakeSas().GetCbsdDataRecord(value)
     else:
       self.send_response(404)
       return

@@ -141,6 +141,7 @@ class SasImpl(sas_interface.SasInterface):
 
   def GetCbsdDataRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('cbsd', request, ssl_cert, ssl_key)
+
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
