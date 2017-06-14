@@ -29,7 +29,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_1(self):
+  def test_WINNF_FT_S_RLQ_1(self):
     """Successful CBSD relinquishment request.
 
     CBSD Harness sends Relinquishment Request to SAS including CBSD ID and
@@ -74,7 +74,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_2(self):
+  def test_WINNF_FT_S_RLQ_2(self):
     """Multiple iterative CBSD relinquishments.
 
     CBSD Harness sends multiple Relinquishment Requests to SAS including CBSD 
@@ -126,7 +126,7 @@ class RelinquishmentTestcase(unittest.TestCase):
       self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_3(self):
+  def test_WINNF_FT_S_RLQ_3(self):
     """Multiple relinquishments: Successful simultaneous Relinquishment
     Request of multiple grants
 
@@ -192,7 +192,7 @@ class RelinquishmentTestcase(unittest.TestCase):
       self.assertEqual(resp['grantId'], grant_id[resp_number])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_4(self):
+  def test_WINNF_FT_S_RLQ_4(self):
     """CBSD relinquishment request with CBSD ID that does not exist in SAS.
 
     CBSD Harness sends Relinquishment Request to SAS including CBSD ID and
@@ -214,7 +214,7 @@ class RelinquishmentTestcase(unittest.TestCase):
                     response['response']['responseCode'] == 105)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_5(self):
+  def test_WINNF_FT_S_RLQ_5(self):
     """CBSD relinquishment request of nonexistent grant
 
     CBSD Harness sends Relinquishment Request to SAS including grant
@@ -243,7 +243,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_6(self):
+  def test_WINNF_FT_S_RLQ_6(self):
     """CBSD relinquishment request of nonexistent cbsd id and
     nonexistent grant id
 
@@ -266,7 +266,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertIn(response['response']['responseCode'], [103, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_7(self):
+  def test_WINNF_FT_S_RLQ_7(self):
     """CBSD relinquishment request of grant that does not belong to the CBSD
 
     CBSD Harness sends Relinquishment Request to SAS with valid CBSD ID and
@@ -311,7 +311,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_8(self):
+  def test_WINNF_FT_S_RLQ_8(self):
     """CBSD relinquishment request of grant that is previously
     relinquished.
 
@@ -370,7 +370,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_9(self):
+  def test_WINNF_FT_S_RLQ_9(self):
     """CBSD relinquishment request of multiple grants
 
     CBSD Harness sends Relinquishment Request to SAS including multiple
@@ -468,7 +468,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response[4]['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_10(self):
+  def test_WINNF_FT_S_RLQ_10(self):
     """CBSD relinquishment request of grant with protocol version not
     supported by SAS
 
@@ -539,7 +539,7 @@ class RelinquishmentTestcase(unittest.TestCase):
         self._sas._sas_version = version
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_11(self):
+  def test_WINNF_FT_S_RLQ_11(self):
     """CBSD relinquishment request of multiple grants
 
     CBSD Harness sends Relinquishment Request to SAS including multiple
@@ -618,7 +618,7 @@ class RelinquishmentTestcase(unittest.TestCase):
         self._sas._sas_version = version
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_12(self):
+  def test_WINNF_FT_S_RLQ_12(self):
     """CBSD relinquishment request with missing CBSD ID
     relinquished.
 
@@ -662,7 +662,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertIn(response['response']['responseCode'], [102, 105])
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_13(self):
+  def test_WINNF_FT_S_RLQ_13(self):
     """CBSD relinquishment request with missing Grant ID
     relinquished.
  
@@ -706,7 +706,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_RLQ_14(self):
+  def test_WINNF_FT_S_RLQ_14(self):
     """CBSD relinquishment request of multiple grants
 
     CBSD Harness sends Relinquishment Request to SAS including multiple
