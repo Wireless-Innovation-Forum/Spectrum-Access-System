@@ -274,47 +274,40 @@ class RelinquishmentTestcase(unittest.TestCase):
     should be FAIL.
     """
 
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-
-    # Set up unique FCC IDs
-    device_1['fccId'] = "test_fcc_id_1"
-    device_2['fccId'] = "test_fcc_id_2"
-
-    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
-
     # Register the devices
-    request = {'registrationRequest': [device_1, device_2]}
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json'):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    cbsd_id = []
-    for x in range (0, 2) :
-      self.assertEqual(response[x]['response']['responseCode'], 0)
-      cbsd_id.append(response[x]['cbsdId'])
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
     del request, response
 
     # Request grant
     grant = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant['cbsdId'] = cbsd_id[1]
+    grant['cbsdId'] = cbsd_ids[1]
     request = {'grantRequest': [grant]}
     # Check grant response
     response = self._sas.Grant(request)['grantResponse'][0]
-    self.assertEqual(response['cbsdId'], cbsd_id[1])
+    self.assertEqual(response['cbsdId'], cbsd_ids[1])
     self.assertEqual(response['response']['responseCode'], 0)
     grant_id = response['grantId']
     del request, response
 
     # Relinquish the grants
     request = {'relinquishmentRequest': [
-        {'cbsdId': cbsd_id[0], 'grantId': grant_id}]}
+        {'cbsdId': cbsd_ids[0], 'grantId': grant_id}]}
     response = self._sas.Relinquishment(request)['relinquishmentResponse'][0]
     # Check the relinquishment response
-    self.assertEqual(response['cbsdId'], cbsd_id[0])
-    self.assertEqual(response['grantId'], grant_id)
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
