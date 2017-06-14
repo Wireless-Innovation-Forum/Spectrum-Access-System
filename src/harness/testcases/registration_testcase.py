@@ -583,7 +583,8 @@ class RegistrationTestcase(unittest.TestCase):
     """Pending registration in Array request (responseCode 200)
     The response should be FAILURE.
     """
-    config_filename = os.path.join('testcases', 'config', 'REG_14.config')
+    config_filename = os.path.join('testcases', 'config',
+                                   'WINNF_FT_S_REG_14.config')
 
     if not os.path.isfile(config_filename):
       self.generate_REG_14_config(config_filename)
