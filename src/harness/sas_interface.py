@@ -155,6 +155,38 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Implementation Record Exchange interface
+    
+    Requests a Pull Command to get the Sas Implementation Record
+    
+    Args:
+      request: A string containing Sas Implementation Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Sas Implementation Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
+
+  @abc.abstractmethod
+  def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS ESC Sensor Record Exchange interface
+
+    Requests a Pull Command to get the ESC Sensor Data Message
+
+    Args:
+      request: A string containing Esc Sensor Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Esc Sensor Data Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
+
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -320,7 +352,7 @@ class SasAdminInterface(object):
   
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is an array of string of permitted 
+        "measReportConfig" and the value is an array of string of permitted 
         enumerations specified in WINNF-16-S-0016
     Note: The SAS should request a measurement report in the RegistrationResponse 
     (if status == 0)
@@ -334,9 +366,42 @@ class SasAdminInterface(object):
   
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "meas_report_config" and the value is an array of string of permitted 
+        "measReportConfig" and the value is an array of string of permitted 
         enumerations specified in WINNF-16-S-0016
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
+    """
+    pass
+
+class SasTestcaseInterface(object):
+  """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
+
+  __metaclass__ = abc.ABCMeta
+
+  @abc.abstractmethod
+  def assertContainsRequiredFields(self, schema_filename, response):
+    """Assertion of Required Fields in Response validating it with Schema
+
+    Args:
+      schema_filename: A string containing the filename of the schema to be used
+      to validate. (The schema file should exist in /schema directory)
+      response: A dictionary containing the response to validate for required
+      fields using the schema.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    """Validate an approved grant response.
+
+    Check presence and basic validity of each required field.
+    Check basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
     """
     pass
