@@ -133,7 +133,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(len(response['availableChannel']), 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_8(self):
+  def test_WINNF_FT_S_SIQ_8(self):
     """Send Spectrum Inquiry with missing cbsdId field.
 
     The response should be MISSING_PARAM, code 102
@@ -160,7 +160,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
                     response['response']['responseCode'] == 105)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_9(self):
+  def test_WINNF_FT_S_SIQ_9(self):
     """Send Spectrum Inquiry with missing frequencyRange object.
 
     The response should be MISSING_PARAM, code 102
@@ -189,7 +189,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_10(self):
+  def test_WINNF_FT_S_SIQ_10(self):
     """Send Spectrum Inquiry with missing highFrequency parameter.
 
     The response should be MISSING_PARAM, code 102
@@ -218,7 +218,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_11(self):
+  def test_WINNF_FT_S_SIQ_11(self):
     """Send Spectrum Inquiry with missing lowFrequency parameter.
 
     The response should be MISSING_PARAM, code 102
@@ -247,7 +247,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_12(self):
+  def test_WINNF_FT_S_SIQ_12(self):
     """Send Spectrum Inquiry with non-existent cbsdId parameter.
 
     The response should be INVALID_PARAM, code 103
@@ -275,7 +275,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 105))
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_14(self):
+  def test_WINNF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
     The response should be INVALID_PARAM, code 103
@@ -311,7 +311,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_15(self):
+  def test_WINNF_FT_S_SIQ_15(self):
     """Send Spectrum Inquiry with unsupported spectrum.
 
     The response should be INVALID_PARAM, code 300
@@ -339,7 +339,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 300)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_16(self):
+  def test_WINNF_FT_S_SIQ_16(self):
     """Send Spectrum Inquiry dual requests (GAA- successful case).
 
     The response should be NO_ERROR, code 0
@@ -391,7 +391,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_19(self):
+  def test_WINNF_FT_S_SIQ_19(self):
     """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
 
     The response should be NO_ERROR (code 0) and INVALID_PARAM, code 103
@@ -441,7 +441,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response[1]['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_20(self):
+  def test_WINNF_FT_S_SIQ_20(self):
     """Send Spectrum Inquiry requesting for spectrum out of range.
 
     The response should be UNSUPPORTED_SPECTRUM, code 300
@@ -491,7 +491,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response[1]['response']['responseCode'], 300)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_21(self):
+  def test_WINNF_FT_S_SIQ_21(self):
     """Send Spectrum Inquiry (two requests, both unsuccessful).
 
     The response should be INVALID_PARAM, code 103 for both requests.
