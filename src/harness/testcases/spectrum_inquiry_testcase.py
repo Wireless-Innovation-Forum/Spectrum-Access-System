@@ -15,9 +15,9 @@
 import json
 import os
 import unittest
-
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent
 
 
 class SpectrumInquiryTestcase(unittest.TestCase):
@@ -398,13 +398,33 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     Response Code must be 0 for all CBSDs
     """
 
-    # Register the devices
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3700000000.0
     registration_request = []
-    for device_filename in ('device_c.json', 'device_f.json'):
+    ppa_ids = []
+    for device_filename, ppa_filename in zip(('device_a.json', 'device_c.json'),
+                                             ('ppa_record_0.json', 'ppa_record_1.json')):
       device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+      ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_filename)))
+      ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                                  [pal_record],
+                                                                  pal_low_frequency,
+                                                                  pal_high_frequency,
+                                                                  device['userId'])
+
+      # Move the Device to a random location in PPA
+      device['installationParam']['latitude'], device['installationParam']['longitude'] = \
+        getRandomLatLongInPolygon(ppa_record)
+      ppa_ids.append(ppa_record['id'])
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       registration_request.append(device)
+
+    # Register the devices
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
@@ -413,31 +433,6 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
       cbsd_ids.append(resp['cbsdId'])
     del request, response
-    census_tracts_ids = []
-    for census_tracts_filename in ('census_tract_zone_data_c.json', 'census_tract_zone_data_f.json'):
-      census_tracts = json.load(
-        open(os.path.join('testcases', 'testdata', census_tracts_filename)))
-      census_tracts_ids.append(self._sas_admin.InjectZoneData({'zoneData': census_tracts})
-                               ['zoneId'])
-
-    # Inject PAL Database Record
-    pal_database_record_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    pal_database_record_0['channelAssignment']['primaryAssignment']['highFrequency'] = 3700000000.0
-
-    for census_tracts_id in census_tracts_ids:
-      pal_id = '/'.join([census_tracts_id.split('/')[4] if index == 2 else val
-                         for index, val in enumerate(pal_database_record_0['palId'].split('/'))])
-      pal_database_record_0['palId'] = pal_id
-      pal_database_record_0['license']['licenseAreaExtent'] = census_tracts_id
-      self._sas_admin.InjectPalDatabaseRecord(pal_database_record_0)
-
-    # Inject PPA Zone Data
-    ppa_ids = []
-    for ppa_data_filename in ('ppa_zone_data_c.json', 'ppa_zone_data_f.json'):
-      ppa_data = json.load(
-        open(os.path.join('testcases', 'testdata', ppa_data_filename)))
-      ppa_ids.append(self._sas_admin.InjectZoneData({'zoneData': ppa_data})['zoneId'])
 
     # Inject Cluster List
     for ppa_id, cbsd_id in zip(ppa_ids,cbsd_ids):
@@ -470,9 +465,10 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     for resp_number, resp in enumerate(response):
       self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
       self.assertTrue('availableChannel' in resp)
-      for available_channel in resp['availableChannel']:
-        self.assertEqual(available_channel['channelType'], 'PAL')
-        self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+      self.assertTrue(any(channel['channelType'] == 'PAL'
+                          for channel in resp['availableChannel']))
+      self.assertTrue(all(channel['ruleApplied'] == 'FCC_PART_96'
+                          for channel in resp['availableChannel']))
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
