@@ -44,8 +44,8 @@ import json
 import os
 import sas_testcase
 import sas
-from util import winnforum_testcase
-
+from util import winnforum_testcase, getRandomLatLongInPolygon,\
+  makePpaAndPalRecordsConsistent
 
 class GrantTestcase(sas_testcase.SasTestCase):
 
@@ -488,6 +488,78 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_1['operationParam']['operationFrequencyRange'] = {
       'lowFrequency': 3640000000.0,
       'highFrequency': 3650000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertValidResponseFormatForApprovedGrant(resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_24(self):
+    """Both requests are for PAL channels, no incumbent present in the PAL frequency 
+    ranges used in the two requests. 
+
+    The response should be 0 (NO_ERROR)"""
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3700000000.0
+    user_id = 'pal_device'
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    pal_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record_0, pal_record_0 = makePpaAndPalRecordsConsistent(ppa_record_0,
+                                                                [pal_record_0],
+                                                                pal_low_frequency,
+                                                                pal_high_frequency,
+                                                                user_id)
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
+      getRandomLatLongInPolygon(ppa_record_0)
+    device_c['installationParam']['latitude'], device_c['installationParam']['longitude'] = \
+      getRandomLatLongInPolygon(ppa_record_0)
+    device_a['userId'] = user_id
+    device_c['userId'] = user_id
+
+    # Register the devices
+    request = {'registrationRequest': [device_a, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Create grant requests
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+
+    # Request for non-overlapping frequency spectrum
+    grant_0['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_low_frequency,
+      'highFrequency': 3600000000.0
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': 3650000000.0,
+      'highFrequency': pal_high_frequency
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant requests
