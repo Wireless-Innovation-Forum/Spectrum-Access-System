@@ -1369,8 +1369,11 @@ class HeartbeatTestcase(unittest.TestCase):
     fss_zone_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
 
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = grant_0['operationParam']['operationFrequencyRange']['highFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+                             grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
+                             grant_0['operationParam']['operationFrequencyRange']['highFrequency']
+    self._sas_admin.InjectFss({fss_zone_0})
 
     """distance = self.CalculateDistance(device_a['installationParam']['latitude'],
                                       device_a['installationParam']['longitude'],
@@ -1485,8 +1488,11 @@ class HeartbeatTestcase(unittest.TestCase):
     fss_zone_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
 
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
-    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = grant_0['operationParam']['operationFrequencyRange']['highFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+                             grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
+    fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
+                             grant_0['operationParam']['operationFrequencyRange']['highFrequency']
+    self._sas_admin.InjectFss({fss_zone_0})
 
     """distance = self.CalculateDistance(device_a['installationParam']['latitude'],
                                       device_a['installationParam']['longitude'],
