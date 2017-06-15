@@ -533,7 +533,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c['installationParam']['latitude'], device_c['installationParam']['longitude'] = \
       getRandomLatLongInPolygon(ppa_record_0)
     device_a['userId'] = user_id
-    device_c['userId'] = user_id
 
     # Register the devices
     request = {'registrationRequest': [device_a, device_c]}
@@ -544,6 +543,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
       cbsd_ids.append(resp['cbsdId'])
     del request, response
+
+    # Inject Cluster List
+    cluster_list = {'zoneId': ppa_record_0['id'],
+                    'cbsdIds': [cbsd_ids[0]]}
+    self._sas_admin.InjectClusterList(cluster_list)
 
     # Create grant requests
     grant_0 = json.load(
