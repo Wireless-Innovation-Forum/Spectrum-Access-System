@@ -544,6 +544,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
+    #Inject Cluster List
+    cluster_list = {'zoneId': ppa_record_0['id'],
+                    'cbsdIds': [cbsd_ids]}
+    self._sas_admin.InjectClusterList(cluster_list)
+
     # Create grant requests
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
