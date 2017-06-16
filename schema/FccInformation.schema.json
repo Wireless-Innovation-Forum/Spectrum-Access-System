@@ -17,10 +17,12 @@
     },
     "certificationDate": {
       "type": "string",
+      "pattern": "((19|20)\\d\\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])",
       "description": "Date of certification, in format YYYY-MM-DD."
     },
     "certificationExpiration": {
       "type": "string",
+      "pattern": "((19|20)\\d\\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])",
       "description": "Date of certification expiration, in format YYYY-MM-DD"
     },
     "certificationConditions": {
@@ -33,7 +35,8 @@
     },
     "sasPhase": {
       "type": "string",
-      "description": "If this is a SAS information object, defines the Phase (1 or 2) of certification."
+      "description": "If this is a SAS information object, defines the Phase (1 or 2) of certification.",
+      "enum":["1", "2"]
     }
   }
 }
