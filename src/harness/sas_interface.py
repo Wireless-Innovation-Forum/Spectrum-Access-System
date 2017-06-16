@@ -182,7 +182,7 @@ class SasInterface(object):
       ssl_cert: Path to SSL cert file, if None, will use default cert file.
       ssl_key: Path to SSL key file, if None, will use default key file.
     Returns:
-      A dictionary of Esc Sensor Data Message object specified in 
+      A dictionary of Esc Sensor Data Message object specified in
       WINNF-16-S-0096
     """
     pass
@@ -403,5 +403,45 @@ class SasTestcaseInterface(object):
     Returns:
       Nothing. It asserts if something about the response is broken/not per
       specs. Assumes it is dealing with an approved request.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegistered(self, registration_request,
+                       conditional_registration_data=None):
+    """Register a list of devices.
+
+    Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
+    Includes injection of FCC IDs and conditional registration data.
+
+    Args:
+      registration_request: A complete registration request containing N
+        individual requests (format according to the SAS-CBSD TS).
+      conditional_registration_data: Conditional parameters (format
+        according to SasAdminInterface.PreloadRegistrationData()).
+
+    Returns:
+      A list of cbsd_ids.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegisteredAndGranted(self, registration_request, grant_request,
+                                 conditional_registration_data=None):
+    """Register and get grants for a list of devices.
+
+    Quickly register and grant N devices; assert SUCCESS for each step and
+    return corresponding CBSD and grant IDs.
+    Args:
+      registration_request: A complete registration request containing N
+        individual requests (format according to the SAS-CBSD TS).
+      grant_request: A complete grant request containing N individual requests
+        (format according to the SAS-CBSD TS). Note: cbsdId field should not be
+        specified.
+      conditional_registration_data: Conditional parameters, if any. (format
+        according to the SAS-CBSD TS).
+
+    Returns:
+      A list of  dictionaries, each with keys "cbsdId" and "grantId".
     """
     pass
