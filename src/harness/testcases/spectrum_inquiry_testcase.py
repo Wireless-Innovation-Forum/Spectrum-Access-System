@@ -400,7 +400,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
 
     # Load the Data
     pal_low_frequency = 3550000000.0
-    pal_high_frequency = 3700000000.0
+    pal_high_frequency = 3560000000.0
     registration_request = []
     ppa_ids = []
     for device_filename, ppa_filename in zip(('device_a.json', 'device_c.json'),
@@ -416,6 +416,9 @@ class SpectrumInquiryTestcase(unittest.TestCase):
                                                                   pal_low_frequency,
                                                                   pal_high_frequency,
                                                                   device['userId'])
+
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
       # Move the Device to a random location in PPA
       device['installationParam']['latitude'], device['installationParam']['longitude'] = \
