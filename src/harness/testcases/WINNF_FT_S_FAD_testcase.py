@@ -85,7 +85,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertRegex("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$", response['generationDateTime'])
         for file in response['files']:
             # Verify the response using SasImplementationMessage Object schema
-            self.AssertContainsRequiredFields("ActivityDumpFiles.schema.json", file)
+            self.AssertContainsRequiredFields("ActivityDumpFile.schema.json", file)
             # Verify the url format is valid
             self.assertRegex("^https?:\/\/[a-zA-Z0-9]{1,}(?:\/[a-zA-Z0-9]{1,})*.[a-zA-Z]+$", file['url'])
             # Verify the link to download the file dump is valid
@@ -97,7 +97,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             # Verify the version follows the format "vX.X"
             self.assertRegex("^v[0-9]{1,2}.[0-9]{1,2}$", file['version'])
             # Verify the record type is "dump" like it's supposed to be
-            self.assertEqual("dump", file['recordType'])
+            self.assertEqual("cbsd", file['recordType'])
         # Dowloads the files and check if they contain the right grant ids and cbsd ids
         for file in response['files']:
             with urllib.request.urlopen(file['url']) as url:
