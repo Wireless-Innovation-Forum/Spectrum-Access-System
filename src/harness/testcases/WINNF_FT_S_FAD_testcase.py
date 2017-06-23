@@ -102,5 +102,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for file in response['files']:
             with urllib.request.urlopen(file['url']) as url:
                 data = json.loads(url.read().decode())
+                self.AssertContainsRequiredFields("CbsdData.schema.json", file)
                 self.assertTrue(data['grants']['id'] in grant_ids)
                 self.assertTrue(data['grants']['cbsdId'] in cbsd_ids)
