@@ -372,13 +372,3 @@ class SasTestcaseInterface(object):
       fields using the schema.
     """
     pass
-
-  @abc.abstractmethod
-  def CalculateDistance(self, lat1, lon1, lat2, lon2):
-    """Calculate the distance between two points using haversine
-
-    Args:
-      lat1, lon1: Latitude and Longitude of the Start Point
-      lat2, lon2: Latitude and Longitude of the End Point
-    """
-    pass

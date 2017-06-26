@@ -387,23 +387,24 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    fss_zone_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
+
+    # Co-locating CBSD with FSS
+    device_a['installationParam']['latitude'] = \
+      fss_zone_0['deploymentParam'][0]['installationParam']['latitude']
+    device_a['installationParam']['longitude'] = \
+      fss_zone_0['deploymentParam'][0]['installationParam']['longitude']
+
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
+
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
 
     # Inject Incumbent Activity with Overlapping Frequency of CBSD
-    fss_zone_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-    distance = self.CalculateDistance(device_a['installationParam']['latitude'],
-                                      device_a['installationParam']['longitude'],
-                                      fss_zone_0['deploymentParam'][0]['installationParam']['latitude'],
-                                      fss_zone_0['deploymentParam'][0]['installationParam']['longitude'])
-
-    # CBSD is within the 150km protection zone of FSS
-    self.assertLessEqual(distance, 150)
     self._sas_admin.InjectFss({'record': fss_zone_0})
 
     # Create grant request
