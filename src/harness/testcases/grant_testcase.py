@@ -336,7 +336,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_0['operationParam']['operationFrequencyRange'][
       'lowFrequency'] = pal_low_frequency
     grant_0['operationParam']['operationFrequencyRange'][
-      'highFrequency'] = pal_high_frequency + 100000000.0
+      'highFrequency'] = pal_high_frequency + 10000000.0
     request = {'grantRequest': [grant_0]}
     # Send grant request
     response = self._sas.Grant(request)['grantResponse'][0]
