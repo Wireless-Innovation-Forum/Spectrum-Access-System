@@ -18,12 +18,11 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import os
 import unittest
 import sas_interface
-from math import radians, cos, sin, asin, sqrt
 
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
-  def AssertContainsRequiredFields(self, schema_filename, response):
+  def assertContainsRequiredFields(self, schema_filename, response):
     schema_filename = os.path.join('..', '..', 'schema', schema_filename)
     schema = json.load(open(schema_filename))
     Draft4Validator.check_schema(schema)
@@ -31,3 +30,18 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
     # Raises ValidationError when incorrect response
     validate(response, schema, resolver=resolver)
+
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    # Check required string fields
+    for field_name in ('cbsdId', 'grantId', 'grantExpireTime', 'channelType'):
+      self.assertTrue(field_name in grant_response)
+      self.assertGreater(len(grant_response[field_name]), 0)
+
+    self.assertTrue('heartbeatInterval' in grant_response)
+
+    if 'measReportConfig' in grant_response:
+      self.assertGreater(len(grant_response['measReportConfig']), 0)
+
+    # operationParam should not be set if grant is approved
+    self.assertFalse('operationParam' in grant_response)
+    self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))

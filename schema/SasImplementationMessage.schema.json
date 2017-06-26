@@ -11,6 +11,7 @@
       "fccInformation",
       "url"
     ],
+    "additionalProperties":false,
     "properties": {
       "id": {
         "type": "string",
@@ -34,6 +35,10 @@
       "fccInformation": {
         "$ref": "file:FccInformation.schema.json",
         "description": "Contains the FCC certification information for this SAS implementation."
+      },
+      "url": {
+        "type": "string",
+        "description": "Publicly addressable URL for the SAS"
       }
     }
 

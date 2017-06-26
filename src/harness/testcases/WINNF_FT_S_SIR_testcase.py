@@ -42,7 +42,7 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
     # Get the SAS Implementation Record using Pull Command
     response = self._sas.GetSasImplementationRecord(impl_record['id'])
     # Verify the response using SasImplementationMessage Object schema
-    self.AssertContainsRequiredFields("SasImplementationMessage.schema.json", response)
+    self.assertContainsRequiredFields("SasImplementationMessage.schema.json", response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIR_3(self):
