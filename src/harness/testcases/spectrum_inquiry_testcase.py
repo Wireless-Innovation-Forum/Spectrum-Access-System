@@ -30,7 +30,110 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     pass
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_8(self):
+  def test_WINNF_FT_S_SIQ_4(self):
+    """Send Spectrum Inquiry from inside coastal exclusion zone.
+       With no ESC deployed, use a Category A device to request Spectrum
+       Inquiry.
+
+    The response should be Success, with NO channels in result.
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # Locate this device close to coast (Half Moon Bay, Calif.)
+    device_a['installationParam']['latitude'] = 37.444267
+    device_a['installationParam']['longitude'] = -122.428628
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Query for the spectrum affected by the coastal exclusion zone, i.e.
+    # 3550-3650 MHz.
+    spectrum_inquiry_0 = {
+        'cbsdId': cbsd_id,
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000.0,
+            'highFrequency': 3650000000.0
+        }]
+    }
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    # Check spectrum inquiry response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(len(response['availableChannel']), 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_5(self):
+    """Send Spectrum Inquiry for coastal exclusion zone spectrum.
+
+    Category B device is located inside, then outside of the coastal exclusion
+    zone and inquires for spectrum reserved for coastal exclusion zone.
+
+    The response should be Success, with NO channels in result.
+    """
+    # Register the device
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    # Locate this device close to coast (Half Moon Bay, Calif.)
+    device_b['installationParam']['latitude'] = 37.444267
+    device_b['installationParam']['longitude'] = -122.428628
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Query for the spectrum affected by the coastal exclusion zone, i.e.
+    # 3550-3650 MHz.
+    spectrum_inquiry_0 = {
+        'cbsdId': cbsd_id,
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000.0,
+            'highFrequency': 3650000000.0
+        }]
+    }
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    # Check spectrum inquiry response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(len(response['availableChannel']), 0)
+    # Deregister the device and again register at new, non-coastal location
+    request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
+    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Query again, now in a location not affected by the coastal exclusion zone.
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    request = {'registrationRequest': [device_b]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+    # Send spectrum inquiry and check response
+    spectrum_inquiry_1 = {
+        'cbsdId': cbsd_id,
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000.0,
+            'highFrequency': 3650000000.0
+        }]
+    }
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_1]}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(len(response['availableChannel']), 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_8(self):
     """Send Spectrum Inquiry with missing cbsdId field.
 
     The response should be MISSING_PARAM, code 102
@@ -57,7 +160,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
                     response['response']['responseCode'] == 105)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_9(self):
+  def test_WINNF_FT_S_SIQ_9(self):
     """Send Spectrum Inquiry with missing frequencyRange object.
 
     The response should be MISSING_PARAM, code 102
@@ -86,7 +189,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_10(self):
+  def test_WINNF_FT_S_SIQ_10(self):
     """Send Spectrum Inquiry with missing highFrequency parameter.
 
     The response should be MISSING_PARAM, code 102
@@ -115,7 +218,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_11(self):
+  def test_WINNF_FT_S_SIQ_11(self):
     """Send Spectrum Inquiry with missing lowFrequency parameter.
 
     The response should be MISSING_PARAM, code 102
@@ -144,7 +247,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 102)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_12(self):
+  def test_WINNF_FT_S_SIQ_12(self):
     """Send Spectrum Inquiry with non-existent cbsdId parameter.
 
     The response should be INVALID_PARAM, code 103
@@ -172,7 +275,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 105))
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_14(self):
+  def test_WINNF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
     The response should be INVALID_PARAM, code 103
@@ -208,7 +311,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_15(self):
+  def test_WINNF_FT_S_SIQ_15(self):
     """Send Spectrum Inquiry with unsupported spectrum.
 
     The response should be INVALID_PARAM, code 300
@@ -236,7 +339,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 300)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_16(self):
+  def test_WINNF_FT_S_SIQ_16(self):
     """Send Spectrum Inquiry dual requests (GAA- successful case).
 
     The response should be NO_ERROR, code 0
@@ -288,7 +391,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_19(self):
+  def test_WINNF_FT_S_SIQ_19(self):
     """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
 
     The response should be NO_ERROR (code 0) and INVALID_PARAM, code 103
@@ -338,7 +441,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response[1]['response']['responseCode'], 103)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_20(self):
+  def test_WINNF_FT_S_SIQ_20(self):
     """Send Spectrum Inquiry requesting for spectrum out of range.
 
     The response should be UNSUPPORTED_SPECTRUM, code 300
@@ -388,7 +491,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response[1]['response']['responseCode'], 300)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_SIQ_21(self):
+  def test_WINNF_FT_S_SIQ_21(self):
     """Send Spectrum Inquiry (two requests, both unsuccessful).
 
     The response should be INVALID_PARAM, code 103 for both requests.

@@ -179,6 +179,22 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS ESC Sensor Record Exchange interface
+
+    Requests a Pull Command to get the ESC Sensor Data Message
+
+    Args:
+      request: A string containing Esc Sensor Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Esc Sensor Data Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
+
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
 
@@ -242,9 +258,9 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "zoneData": ZoneData object to be injected into SAS under test.
-        For more information about ZoneData please see the SAS-SAS TS
-        (WINNF-16-S-0096).
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
     """
     pass
 
@@ -378,7 +394,7 @@ class SasTestcaseInterface(object):
   __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
-  def AssertContainsRequiredFields(self, schema_filename, response):
+  def assertContainsRequiredFields(self, schema_filename, response):
     """Assertion of Required Fields in Response validating it with Schema
 
     Args:
@@ -386,5 +402,21 @@ class SasTestcaseInterface(object):
       to validate. (The schema file should exist in /schema directory)
       response: A dictionary containing the response to validate for required
       fields using the schema.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    """Validate an approved grant response.
+
+    Check presence and basic validity of each required field.
+    Check basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
     """
     pass
