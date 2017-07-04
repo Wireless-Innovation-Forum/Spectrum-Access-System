@@ -160,13 +160,13 @@ class NlcdIndexer:
         #print 'Found within tile %s' % fn
         dataset = gdal.Open(fn)
         self.tile_cache[t] = dataset.ReadAsArray().astype(numpy.byte)
-        self.tile_lru[t] = time.clock()
+        self.tile_lru[t] = time.time()
 
         if len(self.tile_lru) > self.tile_lru_size:
           mint = 0
           mink = ''
           for k in self.tile_lru.keys():
-            if self.tile_lru[k] > mint:
+            if self.tile_lru[k] < mint:
               mint = self.tile_lru[k]
               mink = k
           print 'Evicting tile %s' % k.filename
@@ -187,7 +187,7 @@ class NlcdIndexer:
         # print 'Found in tile %s' % t.filename
         index = t.IndexCoords(lat, lng)
         a = self.tile_cache[t]
-        self.tile_lru[t] = time.clock()
+        self.tile_lru[t] = time.time()
 
         iln = round(index[1])
         ipx = round(index[0])
