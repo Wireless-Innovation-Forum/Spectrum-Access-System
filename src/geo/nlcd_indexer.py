@@ -163,7 +163,7 @@ class NlcdIndexer:
         self.tile_lru[t] = time.time()
 
         if len(self.tile_lru) > self.tile_lru_size:
-          mint = 0
+          mint = float('inf')
           mink = ''
           for k in self.tile_lru.keys():
             if self.tile_lru[k] < mint:
