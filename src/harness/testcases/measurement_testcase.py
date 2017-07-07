@@ -158,8 +158,6 @@ class MeasurementTestcase(unittest.TestCase):
     # Check registration response
     for resp in response:
         self.assertTrue('cbsdId' in resp)
-        #self.assertEqual(resp['measReportConfig'], 'EUTRA_CARRIER_RSSI_ALWAYS')
-        self.assertTrue('EUTRA_CARRIER_RSSI_ALWAYS' in resp['measReportConfig'])
         self.assertEqual(resp['response']['responseCode'], 0)
         cbsd_ids.append(resp['cbsdId'])
 
@@ -186,7 +184,7 @@ class MeasurementTestcase(unittest.TestCase):
         grant_ids.append(resp['grantId'])
 
     # Trigger to request measurement report for all subsequent heartbeat request
-    self._sas_admin.TriggerMeasurementReportRegistration({'measReportConfig':
+    self._sas_admin.TriggerMeasurementReportHeartbeat({'measReportConfig':
                                                        ['RECEIVED_POWER_WITH_GRANT']})
     # Heartbeat the devices without measReport
     heartbeat_request = []
