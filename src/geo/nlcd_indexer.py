@@ -169,9 +169,9 @@ class NlcdIndexer:
             if self.tile_lru[k] < mint:
               mint = self.tile_lru[k]
               mink = k
-          print 'Evicting tile %s' % k.filename
-          del self.tile_cache[k]
-          del self.tile_lru[k]
+          print 'Evicting tile %s' % mink.filename
+          del self.tile_cache[mink]
+          del self.tile_lru[mink]
 
         # close the file
         dataset = None
@@ -189,8 +189,8 @@ class NlcdIndexer:
         a = self.tile_cache[t]
         self.tile_lru[t] = time.time()
 
-        iln = round(index[1])
-        ipx = round(index[0])
+        iln = round(index[1]) # floor?
+        ipx = round(index[0]) # floor?
         #print 'iln=', iln
         #print 'ipx=', ipx
 
