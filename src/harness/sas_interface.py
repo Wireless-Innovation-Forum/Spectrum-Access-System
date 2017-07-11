@@ -251,9 +251,9 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "zoneData": ZoneData object to be injected into SAS under test.
-        For more information about ZoneData please see the SAS-SAS TS
-        (WINNF-16-S-0096).
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
     """
     pass
 
