@@ -17,7 +17,8 @@ import os
 import unittest
 
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent
 
 
 class SpectrumInquiryTestcase(unittest.TestCase):
@@ -389,6 +390,87 @@ class SpectrumInquiryTestcase(unittest.TestCase):
         self.assertEqual(available_channel['channelType'], 'GAA')
         self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
       self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_18(self):
+    """This test ensures that when a message with two requests, 
+    one as a claimed PPA user and the other as a GAA user
+    Response Code must be 0 for all CBSDs
+    """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
+      getRandomLatLongInPolygon(ppa_record)
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Register the devices
+    request = {'registrationRequest': [device_a, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Inject Cluster List
+    cluster_list = {'zoneId': ppa_record['id'],
+                    'cbsdIds': [cbsd_ids[0]]}
+    self._sas_admin.InjectClusterList(cluster_list)
+
+    # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
+    spectrum_inquiry_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'] = [{
+      'lowFrequency': 3550000000.0,
+      'highFrequency': 3700000000.0
+    }]
+    spectrum_inquiry_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+      'lowFrequency': 3550000000.0,
+      'highFrequency': 3700000000.0
+    }]
+    request = {
+      'spectrumInquiryRequest': [spectrum_inquiry_0, spectrum_inquiry_1]
+    }
+
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    for resp, resp_num in response:
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+    # Response Should contain PAL in available channel
+    self.assertTrue(any(channel['channelType'] == 'PAL'
+                        for channel in response[0]['availableChannel']))
+    self.assertTrue(all(channel['ruleApplied'] == 'FCC_PART_96'
+                        for channel in response[0]['availableChannel']))
+
+    # If availableChannel is not null then all availableChannels should be GAA
+    if response[1]['availableChannel']:
+      self.assertTrue(all(channel['channelType'] == 'GAA'
+                          for channel in response[0]['availableChannel']))
+      self.assertTrue(all(channel['ruleApplied'] == 'FCC_PART_96'
+                          for channel in response[0]['availableChannel']))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_19(self):
