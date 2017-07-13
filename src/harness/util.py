@@ -60,7 +60,7 @@ def getRandomLatLongInPolygon(ppa):
 
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
-                                   high_frequency, user_id, cbsd_ids):
+                                   high_frequency, user_id, cbsd_ids, fcc_channel_id='1'):
   """Make PPA, PAL and Device object consistent with the inputs and position 
   the device in the PPA Polygon at some random location
 
@@ -72,7 +72,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       high_frequency: (number) The Primary High Frequency for PAL.
       user_id: (string) The userId from the CBSD.
       cbsd_ids: (list) A list containing cbsd ids in string format.
-
+      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
     Returns:
       A tuple containing a ppa record which itself is a dictionary and pal records 
       list which contains individual pal records in the form of dictionary.
@@ -81,7 +81,6 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
 
   previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
   next_year_date = datetime.now().replace(year=datetime.now().year + 1)
-  fcc_channel_id = '1'
   ppa_fips_code = ppa_record['fipsCode']
   ppa_census_year = ppa_record['censusYear']
   del ppa_record['censusYear'], ppa_record['fipsCode']
