@@ -31,7 +31,7 @@
       "description": "Email contact information for this entity.",
       "items": {
         "type": "string",
-        "pattern": "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$)"
+        "format": "email"
       }
     },
     "address": {
