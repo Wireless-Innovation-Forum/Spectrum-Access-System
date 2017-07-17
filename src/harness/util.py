@@ -60,7 +60,7 @@ def getRandomLatLongInPolygon(ppa):
 
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
-                                   high_frequency, user_id, cbsd_ids, fcc_channel_id='1'):
+                                   high_frequency, user_id, fcc_channel_id='1'):
   """Make PPA and PAL object consistent with the inputs and add cbsd cluster list 
   to PPA object
 
@@ -71,7 +71,6 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       low_frequency: (number) The Primary Low Frequency for PAL.
       high_frequency: (number) The Primary High Frequency for PAL.
       user_id: (string) The userId from the CBSD.
-      cbsd_ids: (list) A list containing cbsd ids in string format.
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
     Returns:
       A tuple containing a ppa record which itself is a dictionary and pal records 
@@ -115,8 +114,6 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   ppa_record['id'] = 'zone/ppa/%s/%s/%s' % (ppa_record['creator'],
                                             ppa_record['ppaInfo']['palId'][0],
                                             uuid.uuid4().hex)
-
-  ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_ids
 
   # Make the date consistent in Ppa Record
   ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
