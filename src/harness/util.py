@@ -61,8 +61,7 @@ def getRandomLatLongInPolygon(ppa):
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
                                    high_frequency, user_id, fcc_channel_id='1'):
-  """Make PPA and PAL object consistent with the inputs and add cbsd cluster list 
-  to PPA object
+  """Make PPA and PAL object consistent with the inputs
 
     Args:
       ppa_record: (dictionary) A dictionary containing PPA Record.
