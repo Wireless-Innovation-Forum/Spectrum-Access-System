@@ -22,22 +22,31 @@
     "phoneNumber": {
       "type": "array",
       "description": "Phone numbers at which this entity can be reached",
-      "items":{"type":"string"}
+      "items": {
+        "type": "string"
+      }
     },
     "email": {
       "type": "array",
       "description": "Email contact information for this entity.",
-      "items":{"type":"string"}
+      "items": {
+        "type": "string",
+        "format": "email"
+      }
     },
     "address": {
       "type": "array",
       "description": "Address for this entity.",
-      "items":{"type":"string"}
+      "items": {
+        "type": "string"
+      }
     },
     "note": {
       "type": "array",
       "description": "Human-readable information for this entity.",
-      "items":{"type":"string"}
+      "items": {
+        "type": "string"
+      }
     }
   }
 }
