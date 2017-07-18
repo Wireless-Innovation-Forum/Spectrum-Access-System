@@ -251,9 +251,9 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "zoneData": ZoneData object to be injected into SAS under test.
-        For more information about ZoneData please see the SAS-SAS TS
-        (WINNF-16-S-0096).
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
     """
     pass
 
@@ -415,10 +415,15 @@ class SasTestcaseInterface(object):
     Includes injection of FCC IDs and conditional registration data.
 
     Args:
-      registration_request: A complete registration request containing N
-        individual requests (format according to the SAS-CBSD TS).
-      conditional_registration_data: Conditional parameters (format
-        according to SasAdminInterface.PreloadRegistrationData()).
+      registration_request:  A dictionary with a single key-value pair where
+      the key is "registrationRequest" and the value is a list of individual
+      CBSD registration requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+      where the key is "registrationData" and the value is a list of individual
+      CBSD registration data which need to be preloaded into SAS (each of which
+      is itself a dictionary). The dictionary is a RegistrationRequest object,
+      the fccId and cbsdSerialNumber fields are required, other fields are
+      optional.
 
     Returns:
       A list of cbsd_ids.
@@ -433,13 +438,18 @@ class SasTestcaseInterface(object):
     Quickly register and grant N devices; assert SUCCESS for each step and
     return corresponding CBSD and grant IDs.
     Args:
-      registration_request: A complete registration request containing N
-        individual requests (format according to the SAS-CBSD TS).
-      grant_request: A complete grant request containing N individual requests
-        (format according to the SAS-CBSD TS). Note: cbsdId field should not be
-        specified.
-      conditional_registration_data: Conditional parameters, if any. (format
-        according to the SAS-CBSD TS).
+      registration_request:  A dictionary with a single key-value pair where
+      the key is "registrationRequest" and the value is a list of individual
+      CBSD registration requests (each of which is itself a dictionary).
+      grant_request: A dictionary with a single key-value pair where the key is
+      "grantRequest" and the value is a list of individual CBSD
+      grant requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+      where the key is "registrationData" and the value is a list of individual
+      CBSD registration data which need to be preloaded into SAS (each of which
+      is itself a dictionary). The dictionary is a RegistrationRequest object,
+      the fccId and cbsdSerialNumber fields are required, other fields are
+      optional.
 
     Returns:
       A list of  dictionaries, each with keys "cbsdId" and "grantId".
