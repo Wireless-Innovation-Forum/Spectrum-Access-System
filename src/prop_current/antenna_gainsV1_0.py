@@ -8,18 +8,16 @@ import vincenty
 from ehata_its_wf import *
 from cmath import isnan
 
-def GetCBSDAntennaGain(antennaLat, antennaLon, receiverLat, receiverLon, antennaAzimut, antennaBeamWidth):
+def GetCBSDAntennaGain(AZ, antennaAzimut, antennaBeamWidth):
     """
     Returns the CBSD antenna gain (R2-SGN-20).
     Inputs:
-        antennaLat, antennaLon    lat/lon of CBSD (deg)
-        receiverLat, receiverLon  lat/lon of Receiver (deg)
-        antennaAzimut             (deg : 0 - 359 )
-        antennaBeamWidth          3-dB antenna beamwidth (deg : 0 - 359 )
+        AZ                        azimuth angle (deg : 0 - 359)
+        antennaAzimut             (deg : 0 - 359)
+        antennaBeamWidth          3-dB antenna beamwidth (deg : 0 - 359)
     Output:
         CBSD antenna gain
     """
-    d, AZ, backaz = vincenty.dist_bear_vincenty(antennaLat, antennaLon, receiverLat, receiverLon)
     teta = antennaAzimut - AZ
     return -min(12 * pow(teta/antennaBeamWidth,2), 20)
 
@@ -57,7 +55,7 @@ def GetFSSAntennaGain(pfl, h_b__meter, h_m__meter, antennaLat, antennaLon, FSSLa
     If the FSS earth station registration data includes values for w1 and w2, 
     SAS shall use these values. Otherwise SAS shall assume w1=0 and w2=1.
     """
-    if (isnan(w1) | isnan(w2)):
+    if isnan(w1) or isnan(w2):
         FSSGain = GgsoT
     else:
         FSSGain = w1*Ggso + w2*GgsoT
@@ -132,21 +130,21 @@ def GetGgsoAndGgsoT(Theta):
     Ggso = 0.0
     GgsoT = 0.0
 
-    if (Theta > 48 and Theta <= 180):
+    if Theta > 48 and Theta <= 180:
         Ggso = -10;
         GgsoT = -10;
         return Ggso, GgsoT
 
-    if (Theta > 3 and Theta <= 48):
-        GgsoT = 32 - 25*math.log10(Theta);
-        if (Theta <= 7):
+    if Theta > 3 and Theta <= 48:
+        GgsoT = 32 - 25*math.log10(Theta)
+        if Theta <= 7:
             Ggso = 29 - 25*math.log10(Theta)
-        if (Theta > 7 and Theta <= 9.2):
+        if Theta > 7 and Theta <= 9.2:
             Ggso = 8;
-        if (Theta > 9.2):
+        if Theta > 9.2:
             Ggso = 32 - 25*math.log10(Theta)
         return Ggso, GgsoT
     
-    if (Theta >= 1.5):
+    if Theta >= 1.5:
         Ggso = 29 - 25*math.log10(Theta)
     return Ggso, GgsoT
