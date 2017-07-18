@@ -60,7 +60,7 @@ def getRandomLatLongInPolygon(ppa):
 
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
-                                   high_frequency, user_id):
+                                   high_frequency, user_id, fcc_channel_id="1"):
   """Make PPA and PAL object consistent with the inputs
 
     Args:
@@ -70,12 +70,13 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       low_frequency: (number) The Primary Low Frequency for PAL.
       high_frequency: (number) The Primary High Frequency for PAL.
       user_id: (string) The userId from the CBSD.
+      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
 
     Returns:
       A tuple containing a ppa record which itself is a dictionary and pal records 
       list which contains individual pal records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear (number), 
-          fipsCode(number) and fccChannelId(string)
+    Note: The PAL Dictionary must contain censusYear(number) and 
+          fipsCode(number)
   """
 
   previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
@@ -84,14 +85,13 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   for index, pal_rec in enumerate(pal_records):
     pal_fips_code = pal_rec['fipsCode']
     pal_census_year = pal_rec['censusYear']
-    pal_fcc_channel_id = pal_rec['fccChannelId']
-    del pal_rec['fipsCode'], pal_rec['censusYear'], pal_rec['fccChannelId']
+    del pal_rec['fipsCode'], pal_rec['censusYear']
 
     pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
     # Change the FIPS Code and Registration Date-Year in Pal Id
     pal_rec['palId'] = '/'.join(['pal', '%s-%d' % ('{:02d}'.format(previous_year_date.month),
                                                    previous_year_date.year), str(pal_fips_code),
-                                 pal_fcc_channel_id])
+                                 fcc_channel_id])
     pal_rec['userId'] = user_id
     # Make the date consistent in Pal Record for Registration and License
     pal_rec['registrationInformation']['registrationDate'] = \
@@ -103,7 +103,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       'zone/census_tract/census/%d/%d' % (pal_census_year, pal_fips_code)
     pal_rec['license']['licenseDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseExpiration'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    pal_rec['license']['licenseFrequencyChannelId'] = pal_fcc_channel_id
+    pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
     # Change Frequency Information in Pal
     pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
