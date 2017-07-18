@@ -89,9 +89,10 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
 
     pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
     # Change the FIPS Code and Registration Date-Year in Pal Id
-    pal_rec['palId'] = '/'.join(['pal', '%s-%d' % ('{:02d}'.format(previous_year_date.month),
-                                                   previous_year_date.year), str(pal_fips_code),
-                                 fcc_channel_id])
+    pal_rec['palId'] = '/'.join(['pal', '%s-%d' %
+                                 ('{:02d}'.format(previous_year_date.month),
+                                  previous_year_date.year),
+                                 str(pal_fips_code), fcc_channel_id])
     pal_rec['userId'] = user_id
     # Make the date consistent in Pal Record for Registration and License
     pal_rec['registrationInformation']['registrationDate'] = \
@@ -124,4 +125,3 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
-
