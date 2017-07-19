@@ -10,7 +10,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "ESC Sensor Id in the format esc_sensor/$ADMINISTRATOR/$SENSOR_ID"
+      "description": "ESC Sensor Id in the format esc_sensor/$ADMINISTRATOR/$SENSOR_ID",
+      "pattern": "((.+?)\/(.+?)\/(.+?)+)"
     },
     "installationParam": {
       "$ref": "#/escInstallationParam"
