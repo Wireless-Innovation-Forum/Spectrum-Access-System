@@ -11,6 +11,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
 import json
 import os
 import sas
@@ -19,7 +20,6 @@ import sas_testcase
 
 
 class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
-
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -27,11 +27,20 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
 
+  @classmethod
+  def setUpClass(self):
+    self._sas_server = sas.GetServer()
+    self._sas_server.StartServer()
+
+  @classmethod
+  def tearDownClass(self):
+    self._sas_server.StopServer()
+
   @winnforum_testcase
   def test_WINNF_FT_S_SIR_1(self):
     """This test verifies that a SAS can successfully respond to an implementation record 
     request from another SAS
-    
+
     Response Code should be 200
     """
     # Inject the SAS Implementation Record
@@ -46,10 +55,29 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
     self.assertDictEqual(impl_record, response)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIR_2(self):
+    """This test verifies that the SAS Under Test can successfully pull a SAS Implementation 
+    Record from the SAS Test Harness."""
+
+    # Load Test Harness SAS Implementation Record
+    sas_impl_record = json.load(open(os.path.join('testcases', 'testdata', 'sas_impl_record_0.json')))
+    self._sas_admin.InjectSasImplementationRecord({'record': sas_impl_record})
+    expected_path = '/sas_impl/%s' % sas_impl_record['id']
+
+    # Setup the Server with response body and expected path from SAS Under Test
+    response = self._sas_server.setupServer({'responseBody': sas_impl_record, 'expectedPath': expected_path})
+    self._sas_admin.TriggerSasImplementationRecord({'address': self._sas_server.getBaseUrl(),
+                                                    'sasImplementationId': sas_impl_record['id']})
+    # Get Path and Body from the response
+    path, body = response()
+    # Check the Path of the Pull Command
+    self.assertEqual(path, expected_path)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_SIR_3(self):
     """This test verifies that a SAS Under Test can handle the Unknown 
     Implementation Id 
-    
+
     Response Code must be 200 with empty JSON Body"""
 
     # Get the SAS Implementation Record using Pull Command with Unknown ID
