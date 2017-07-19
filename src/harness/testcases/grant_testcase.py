@@ -509,28 +509,28 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Load the Data
     pal_low_frequency = 3550000000.0
-    pal_high_frequency = 3700000000.0
+    pal_high_frequency = 3560000000.0
     user_id = 'pal_device'
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
-    pal_record_0 = json.load(
+    pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record_0 = json.load(
+    ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    ppa_record_0, pal_record_0 = makePpaAndPalRecordsConsistent(ppa_record_0,
-                                                                [pal_record_0],
-                                                                pal_low_frequency,
-                                                                pal_high_frequency,
-                                                                user_id)
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
 
     # Move the Device to a random location in PPA
-    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record_0)
-    device_c['installationParam']['latitude'], device_c['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record_0)
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_c['installationParam']['latitude'], \
+    device_c['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_a['userId'] = user_id
     device_c['userId'] = user_id
 
@@ -544,10 +544,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    #Inject Cluster List
-    cluster_list = {'zoneId': ppa_record_0['id'],
-                    'cbsdIds': [cbsd_ids]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_ids
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
     # Create grant requests
     grant_0 = json.load(
@@ -560,10 +560,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Request for non-overlapping frequency spectrum
     grant_0['operationParam']['operationFrequencyRange'] = {
       'lowFrequency': pal_low_frequency,
-      'highFrequency': 3600000000.0
+      'highFrequency': 3580000000.0
     }
     grant_1['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3650000000.0,
+      'lowFrequency': 3590000000.0,
       'highFrequency': pal_high_frequency
     }
     request = {'grantRequest': [grant_0, grant_1]}
