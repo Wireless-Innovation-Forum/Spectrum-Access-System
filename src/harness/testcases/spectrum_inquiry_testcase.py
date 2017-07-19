@@ -413,10 +413,8 @@ class SpectrumInquiryTestcase(unittest.TestCase):
                                                             pal_low_frequency,
                                                             pal_high_frequency,
                                                             device_a['userId'])
-    self._sas_admin.InjectZoneData({"record": ppa_record})
-    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
-    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record)
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Register the devices
@@ -429,10 +427,10 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    # Inject Cluster List
-    cluster_list = {'zoneId': ppa_record['id'],
-                    'cbsdIds': [cbsd_ids[0]]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_ids
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
     # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
     spectrum_inquiry_0 = json.load(
