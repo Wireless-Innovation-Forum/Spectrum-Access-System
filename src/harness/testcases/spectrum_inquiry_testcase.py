@@ -402,28 +402,30 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     pal_low_frequency = 3550000000.0
     pal_high_frequency = 3560000000.0
     registration_request = []
-    ppa_ids = []
-    for device_filename, ppa_filename in zip(('device_a.json', 'device_c.json'),
-                                             ('ppa_record_0.json', 'ppa_record_1.json')):
+    ppa_records = []
+    pal_records = []
+    for device_filename, pal_filename, ppa_filename in zip(
+      ('device_a.json', 'device_c.json'),
+      ('pal_record_0.json', 'pal_record_1.json'),
+      ('ppa_record_0.json', 'ppa_record_1.json')):
+
       device = json.load(
         open(os.path.join('testcases', 'testdata', device_filename)))
       pal_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+        open(os.path.join('testcases', 'testdata', pal_filename)))
       ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', ppa_filename)))
       ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
-                                                                  [pal_record],
-                                                                  pal_low_frequency,
-                                                                  pal_high_frequency,
-                                                                  device['userId'])
-
-      self._sas_admin.InjectZoneData({"record": ppa_record})
-      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+                                                              [pal_record],
+                                                              pal_low_frequency,
+                                                              pal_high_frequency,
+                                                              device['userId'])
 
       # Move the Device to a random location in PPA
-      device['installationParam']['latitude'], device['installationParam']['longitude'] = \
-        getRandomLatLongInPolygon(ppa_record)
-      ppa_ids.append(ppa_record['id'])
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+      ppa_records.append(ppa_record)
+      pal_records.append(pal_record[0])
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       registration_request.append(device)
 
@@ -437,11 +439,11 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    # Inject Cluster List
-    for ppa_id, cbsd_id in zip(ppa_ids,cbsd_ids):
-      cluster_list = {'zoneId': ppa_id,
-                      'cbsdIds': [cbsd_id]}
-      self._sas_admin.InjectClusterList(cluster_list)
+    for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
+      # Update PPA Record with CBSD ID and Inject Data
+      ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
     # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
     spectrum_inquiry_0 = json.load(
