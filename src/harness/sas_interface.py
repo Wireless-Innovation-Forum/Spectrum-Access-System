@@ -416,14 +416,14 @@ class SasTestcaseInterface(object):
 
     Args:
       registration_request:  A dictionary with a single key-value pair where
-      the key is "registrationRequest" and the value is a list of individual
-      CBSD registration requests (each of which is itself a dictionary).
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
       conditional_registration_data: A dictionary with a single key-value pair
-      where the key is "registrationData" and the value is a list of individual
-      CBSD registration data which need to be preloaded into SAS (each of which
-      is itself a dictionary). The dictionary is a RegistrationRequest object,
-      the fccId and cbsdSerialNumber fields are required, other fields are
-      optional.
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
 
     Returns:
       A list of cbsd_ids.
@@ -439,17 +439,17 @@ class SasTestcaseInterface(object):
     return corresponding CBSD and grant IDs.
     Args:
       registration_request:  A dictionary with a single key-value pair where
-      the key is "registrationRequest" and the value is a list of individual
-      CBSD registration requests (each of which is itself a dictionary).
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
       grant_request: A dictionary with a single key-value pair where the key is
-      "grantRequest" and the value is a list of individual CBSD
-      grant requests (each of which is itself a dictionary).
+        "grantRequest" and the value is a list of individual CBSD
+        grant requests (each of which is itself a dictionary).
       conditional_registration_data: A dictionary with a single key-value pair
-      where the key is "registrationData" and the value is a list of individual
-      CBSD registration data which need to be preloaded into SAS (each of which
-      is itself a dictionary). The dictionary is a RegistrationRequest object,
-      the fccId and cbsdSerialNumber fields are required, other fields are
-      optional.
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
 
     Returns:
       A list of  dictionaries, each with keys "cbsdId" and "grantId".
