@@ -60,9 +60,8 @@ def getRandomLatLongInPolygon(ppa):
 
 
 def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
-                                   high_frequency, user_id):
-  """Make PPA, PAL and Device object consistent with the inputs and position 
-  the device in the PPA Polygon at some random location
+                                   high_frequency, user_id, fcc_channel_id="1"):
+  """Make PPA and PAL object consistent with the inputs
 
     Args:
       ppa_record: (dictionary) A dictionary containing PPA Record.
@@ -71,35 +70,38 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       low_frequency: (number) The Primary Low Frequency for PAL.
       high_frequency: (number) The Primary High Frequency for PAL.
       user_id: (string) The userId from the CBSD.
+      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
 
     Returns:
       A tuple containing a ppa record which itself is a dictionary and pal records 
       list which contains individual pal records in the form of dictionary.
-    Note: The PPA Dictionary must contain censusYear (number) and fipsCode(number)
+    Note: The PAL Dictionary must contain censusYear(number) and 
+          fipsCode(number)
   """
 
   previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
   next_year_date = datetime.now().replace(year=datetime.now().year + 1)
-  fcc_channel_id = '1'
-  ppa_fips_code = ppa_record['fipsCode']
-  ppa_census_year = ppa_record['censusYear']
-  del ppa_record['censusYear'], ppa_record['fipsCode']
 
   for index, pal_rec in enumerate(pal_records):
+    pal_fips_code = pal_rec['fipsCode']
+    pal_census_year = pal_rec['censusYear']
+    del pal_rec['fipsCode'], pal_rec['censusYear']
+
     pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
     # Change the FIPS Code and Registration Date-Year in Pal Id
-    pal_rec['palId'] = '/'.join(['pal', '%s-%d' % ('{:02d}'.format(previous_year_date.month),
-                                                   previous_year_date.year), str(ppa_fips_code),
-                                 fcc_channel_id])
+    pal_rec['palId'] = '/'.join(['pal', '%s-%d' %
+                                 ('{:02d}'.format(previous_year_date.month),
+                                  previous_year_date.year),
+                                 str(pal_fips_code), fcc_channel_id])
     pal_rec['userId'] = user_id
     # Make the date consistent in Pal Record for Registration and License
     pal_rec['registrationInformation']['registrationDate'] = \
       previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     # Change License Information in Pal
-    pal_rec['license']['licenseAreaIdentifier'] = str(ppa_fips_code)
+    pal_rec['license']['licenseAreaIdentifier'] = str(pal_fips_code)
     pal_rec['license']['licenseAreaExtent'] = \
-      'zone/census_tract/census/%d/%d' % (ppa_census_year, ppa_fips_code)
+      'zone/census_tract/census/%d/%d' % (pal_census_year, pal_fips_code)
     pal_rec['license']['licenseDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseExpiration'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
@@ -108,6 +110,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
     # Converting from defaultdict to dict
     pal_records[index] = json.loads(json.dumps(pal_rec))
+
   # Add Pal Ids into the Ppa Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
@@ -119,5 +122,6 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Make the date consistent in Ppa Record
   ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
