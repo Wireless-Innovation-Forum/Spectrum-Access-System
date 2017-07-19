@@ -366,21 +366,21 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
-    pal_record_0 = json.load(
+    pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record_0 = json.load(
+    ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    ppa_record_0, pal_record_0 = makePpaAndPalRecordsConsistent(ppa_record_0,
-                                                                [pal_record_0],
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                                [pal_record],
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 user_id)
 
     # Move the Device to a random location in PPA
-    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record_0)
-    device_c['installationParam']['latitude'], device_c['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record_0)
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_c['installationParam']['latitude'], \
+    device_c['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_a['userId'] = user_id
 
     # Register the devices
@@ -394,10 +394,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    # Inject Cluster List with PPA and device_a
-    cluster_list = {'zoneId': ppa_record_0['id'],
-                    'cbsdIds': [cbsd_ids[0]]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+
     # Create grant request for first device
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
