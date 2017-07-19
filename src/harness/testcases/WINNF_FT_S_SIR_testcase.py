@@ -43,6 +43,7 @@ class ImplementationRecordExchangeTestcase(sas_testcase.SasTestCase):
     response = self._sas.GetSasImplementationRecord(impl_record['id'])
     # Verify the response using SasImplementationMessage Object schema
     self.assertContainsRequiredFields("SasImplementationMessage.schema.json", response)
+    self.assertDictEqual(impl_record, response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIR_3(self):
