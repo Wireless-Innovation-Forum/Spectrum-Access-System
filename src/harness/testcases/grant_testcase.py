@@ -44,7 +44,7 @@ import json
 import os
 import sas_testcase
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -93,29 +93,45 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """Successful CBSD grant request.
         No incumbent present in the PAL frequency range requested by the CBSD.
     """
-
-    # Register the device
+    # load the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # load PAL Database Record
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    # load PPA record
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+
+    #change device location to be inside PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    #register device
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
-    # Inject PAL Database Record
-    pal_database_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    pal_database_record['userId'] = device_a['userId']
-    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
-    # Inject PPA Zone
-    ppa_zone_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
-    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
-    # Inject cbsd_ids of ppa
-    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
-    self._sas_admin.InjectClusterList(cluster_list)
+
+    pal_low_frequency = 3620000000.0
+    pal_high_frequency = 3630000000.0
+
+    #Make PPA and PAL records
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
+        pal_low_frequency,pal_high_frequency,device_a['userId'])
+
+    #Add cbsd reference to PPA
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+    
+    # Inject PAL record record
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+
+    # Inject PPA record with cbds_id reference
+    ppa_record = {'zoneData':ppa_record}
+    self._sas_admin.InjectZoneData(ppa_record)
+
     # grant request
     grant_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
@@ -134,28 +150,45 @@ class GrantTestcase(sas_testcase.SasTestCase):
         Incumbent present in the PAL frequency range requested by the CBSD 
         who is outside the protection zone.
     """
-
-    # Register device outside protection zone
+    # load the device
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    # load PAL Database Record
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    # load PPA record
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+
+    #change device location to be outiside esc_zone
+    device_a['installationParam']['latitude'] = 38.8452
+    device_a['installationParam']['longitude'] = -97.2056
+    #register device
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
     self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
-    # Inject PAL Database Recoord
-    pal_database_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    pal_database_record['userId'] = device_a['userId']
-    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
-    # Inject PPA Zone
-    ppa_zone_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
-    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
-    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
-    self._sas_admin.InjectClusterList(cluster_list)
+
+    pal_low_frequency = 3620000000.0
+    pal_high_frequency = 3630000000.0
+
+    #Make PPA and PAL records
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
+        pal_low_frequency,pal_high_frequency,device_a['userId'])
+
+    #Add cbsd reference to PPA
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+    
+    #Inject PAL record record
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    #Inject PPA record with cbds_id reference
+    ppa_record = {'zoneData':ppa_record}
+    self._sas_admin.InjectZoneData(ppa_record)
+    
+    #load exclusion_zone
     exclusion_zone_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'exclusion_zone_0.json')))
     zone_response = self._sas_admin.InjectEscZone(exclusion_zone_0)
@@ -164,7 +197,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
                             'lowFrequency': 3620000000.0,
                             'highFrequency': 3630000000.0}}
     self._sas_admin.TriggerEscZone(trigger_esc_zone)
-    # grant request 
+    # grant request
     grant_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
