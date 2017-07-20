@@ -297,19 +297,19 @@ class GrantTestcase(sas_testcase.SasTestCase):
     pal_high_frequency = 3560000000.0
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    pal_record_0 = json.load(
+    pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record_0 = json.load(
+    ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    ppa_record_0, pal_record_0 = makePpaAndPalRecordsConsistent(ppa_record_0,
-                                                                [pal_record_0],
-                                                                pal_low_frequency,
-                                                                pal_high_frequency,
-                                                                device_a['userId'])
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
 
     # Move the Device to a random location in PPA
-    device_a['installationParam']['latitude'], device_a['installationParam']['longitude'] = \
-      getRandomLatLongInPolygon(ppa_record_0)
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
 
     # Register the device
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -321,13 +321,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Inject PAL and PPA Database Record
-    self._sas_admin.InjectPalDatabaseRecord(pal_record_0[0])
-    ppa_record_id = self._sas_admin.InjectZoneData({'zoneData': ppa_record_0})['zoneId']
-
-    # Inject Cluster List
-    cluster_list = {'zoneId': ppa_record_id,
-                    'cbsdIds': [cbsd_id]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_id
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({'record': ppa_record})
 
     # Create Grant Request containing PAL and GAA frequency
     grant_0 = json.load(
