@@ -19,7 +19,7 @@
       "description": "The SHA-1 checksum of the contents of the activity dump file referred to by url."
     },
     "size": {
-      "type": "string",
+      "type": "number",
       "description": "The size of the activity dump file in bytes."
     },
     "version": {
