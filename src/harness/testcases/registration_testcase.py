@@ -812,7 +812,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertEqual(response[2]['response']['responseCode'], 101)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_19(self):
+  def test_WINNF_FT_S_REG_19(self):
     """Unsupported SAS protocol version (responseCode 100 or HTTP status 404)
 
     The response should be FAILURE.
@@ -967,7 +967,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_24(self):
+  def test_WINNF_FT_S_REG_24(self):
     """CBSD Cat A attempts to register with eirpCapability > 30 dBm/10MHz
 
     The response should be FAILURE 103.
@@ -989,7 +989,7 @@ class RegistrationTestcase(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
 
   @winnforum_testcase
-  def test_WINFF_FT_S_REG_25(self):
+  def test_WINNF_FT_S_REG_25(self):
     """CBSD Cat B attempts to register as Indoors deployment
 
     The response should be FAILURE 103.
