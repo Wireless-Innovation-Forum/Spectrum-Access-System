@@ -15,5 +15,10 @@ def GetCBSDAntennaGain(AZ, antennaAzimut, antennaBeamWidth):
     Output:
         CBSD antenna gain
     """
-    teta = antennaAzimut - AZ
-    return -min(12 * pow(teta/antennaBeamWidth,2), 20)
+    theta = antennaAzimut - AZ
+    if theta > 180: 
+        theta -= 360
+    elif theta < -180: 
+        theta += 360
+        
+    return -min(12 * pow(theta/antennaBeamWidth,2), 20)
