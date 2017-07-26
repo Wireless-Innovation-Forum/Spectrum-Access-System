@@ -64,6 +64,8 @@ def ppa_creation_model(device_filenames, pal_record_filenames,
   Returns:
      A Tuple containing PPA Polygon in GeoJSON, a List of 
      Consistent PAL Record and Device List
+   Note: Device Records must contain eirpCapability in installationParam Object
+   and Pal Records must contain fipsCode
   """
   devices, pal_records = load_files(device_filenames, pal_record_filenames,
                                    pal_user_id, pal_low_frequency, pal_high_frequency)
