@@ -530,8 +530,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Move the Device to a random location in PPA
     device_a['installationParam']['latitude'], \
     device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
-    device_c['installationParam']['latitude'], \
-    device_c['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_a['userId'] = user_id
 
     # Register the devices
