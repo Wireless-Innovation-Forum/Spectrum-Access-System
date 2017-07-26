@@ -508,34 +508,39 @@ class GrantTestcase(sas_testcase.SasTestCase):
     The response should be 0 (NO_ERROR)"""
 
     # Load the Data
-    pal_low_frequency = 3550000000.0
-    pal_high_frequency = 3560000000.0
-    user_id = 'pal_device'
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    registration_request = []
+    ppa_records = []
+    pal_records = []
+    pal_frequency_0 = [3550000000.0, 3560000000.0]
+    pal_frequency_1 = [3570000000.0, 3580000000.0]
 
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
-                                                            [pal_record],
-                                                            pal_low_frequency,
-                                                            pal_high_frequency,
-                                                            user_id)
+    for device_filename, pal_filename, ppa_filename, frequency in zip(
+      ('device_a.json', 'device_c.json'),
+      ('pal_record_0.json', 'pal_record_1.json'),
+      ('ppa_record_0.json', 'ppa_record_1.json'),
+      (pal_frequency_0, pal_frequency_1)):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', pal_filename)))
+      ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_filename)))
+      ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                              [pal_record],
+                                                              frequency[0],
+                                                              frequency[1],
+                                                              device['userId'])
 
-    # Move the Device to a random location in PPA
-    device_a['installationParam']['latitude'], \
-    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
-    device_c['installationParam']['latitude'], \
-    device_c['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
-    device_a['userId'] = user_id
-    device_c['userId'] = user_id
+      # Move the Device to a random location in PPA
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+      ppa_records.append(ppa_record)
+      pal_records.append(pal_record[0])
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
 
     # Register the devices
-    request = {'registrationRequest': [device_a, device_c]}
+    request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
     cbsd_ids = []
@@ -544,10 +549,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    # Update PPA Record with CBSD ID and Inject Data
-    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_ids
-    self._sas_admin.InjectZoneData({"record": ppa_record})
-    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
+      # Update PPA Record with CBSD ID and Inject Data
+      ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
     # Create grant requests
     grant_0 = json.load(
@@ -557,14 +563,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_1['cbsdId'] = cbsd_ids[1]
 
-    # Request for non-overlapping frequency spectrum
     grant_0['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': pal_low_frequency,
-      'highFrequency': 3580000000.0
+      'lowFrequency': pal_frequency_0[0],
+      'highFrequency': pal_frequency_0[1]
     }
     grant_1['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3590000000.0,
-      'highFrequency': pal_high_frequency
+      'lowFrequency': pal_frequency_1[0],
+      'highFrequency': pal_frequency_1[1]
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant requests
