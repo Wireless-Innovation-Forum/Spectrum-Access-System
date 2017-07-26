@@ -258,21 +258,6 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def InjectClusterList(self, request):
-    """"Associate a cluster list with an injected PPA.
-    The SAS under test will act as if the specified CBSDs were used to create
-    the PPA.
-
-    Args:
-      request: a dictionary with the following key-value pairs:
-        "zoneId": (string) the ID of the PPA to which this cluster list should
-        be added.
-        "cbsdIds": (array of string) the CBSD IDs of the devices in the cluster
-        list.
-    """
-    pass
-
-  @abc.abstractmethod
   def InjectPalDatabaseRecord(self, request):
     """Inject a PAL Database record into the SAS under test.
 
