@@ -14,9 +14,9 @@ def GetFSSAntennaGain(pfl, cbsdLat, cbsdLng, cbsdHeight, fssLat, fssLng, fssHeig
     Inputs:
         pfl                       Terrain profile line
         cbsdLat, cbsdLng          lat/lon of cbsd (deg)
-        cbsdHeight                height of the CBSD, in meters
+        cbsdHeight                height of the CBSD, in meters (AGL)
         fssLat, fssLng            lat/lon of fss (deg) 
-        fssHeight                 height of the FSS, in meters
+        fssHeight                 height of the FSS, in meters (AGL)
         fssPointingElevation      the FSS earth station antenna elevation (deg : 0 - 359)        
         fssPointingAzimuth        FSS earth station antenna azimuth (deg : 0 - 359)
         w1, w2                    weights 
@@ -30,7 +30,7 @@ def GetFSSAntennaGain(pfl, cbsdLat, cbsdLng, cbsdHeight, fssLat, fssLng, fssHeig
     
             
     # off-axis angle
-    ThetaAngle = (180 * (1 / math.cos( (math.cos(theta[0]) * math.cos(math.radians(fssPointingElevation))\
+    ThetaAngle = (180 * (math.acos( (math.cos(theta[0]) * math.cos(math.radians(fssPointingElevation))\
                                         * math.cos(math.radians(fssPointingAzimuth - AZ))) + (math.sin(theta[0]) * math.sin(math.radians(fssPointingElevation))) )))/ math.pi
         
     Ggso, GgsoP = GetGgsoAndGgsoP(ThetaAngle)
