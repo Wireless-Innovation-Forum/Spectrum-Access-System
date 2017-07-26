@@ -59,7 +59,7 @@ def ppa_creation_model(device_filenames, pal_record_filenames,
     pal_user_id: (String) Pal User Id to be used in all Pal Records. 
     pal_low_frequency: (Number) Pal Primary Low Frequency to be assigned 
     to all Pal Records. 
-    pal_high_frequency: (Number) Pal Primary Hight Frequency to be assigned 
+    pal_high_frequency: (Number) Pal Primary High Frequency to be assigned 
     to all Pal Records. 
   Returns:
      A Tuple containing PPA Polygon in GeoJSON, a List of 
