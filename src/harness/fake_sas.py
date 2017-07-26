@@ -236,7 +236,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
-                       '/admin/trigger/meas_report_in_heartbeat_response'):
+                       '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/create_full_activity_dump',
+                       '/v1.0/dump'):
       response = ''
     else:
       self.send_response(404)
