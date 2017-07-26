@@ -2,14 +2,14 @@
   "id": "sas_impl/admin_0/impl_0",
   "name": "Sas Implementation Record",
   "administratorId": "sas_admin/admin_0",
-  "contactInformation": {
+  "contactInformation": [{
     "contactType": "operation",
     "name": "Contact Name",
     "phoneNumber": ["123 456 7890"],
     "email": ["admin@sas.com"],
     "address": ["Address"],
     "note": ["Test Data for Harness"]
-  },
+  }],
   "publicKey": "Key",
   "fccInformation": {
     "certificationId": "0",
