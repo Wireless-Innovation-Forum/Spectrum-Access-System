@@ -1,7 +1,7 @@
 # The SAS Test Harness
 
 This folder contains code and testcases for SAS certification test as defined in
-"CBRS Architecture Test and Certification Specification" (WINNF-15-P-0061).
+"CBRS Architecture Test and Certification Specification" (WINNF-15-S-0061).
 
 ## Code prerequisites
 

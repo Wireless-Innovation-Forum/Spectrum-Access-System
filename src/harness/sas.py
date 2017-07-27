@@ -201,11 +201,6 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
-  def InjectClusterList(self, request):
-    _RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
-                 request, self._GetDefaultAdminSSLCertPath(),
-                 self._GetDefaultAdminSSLKeyPath())
-
   def BlacklistByFccId(self, request):
     _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),

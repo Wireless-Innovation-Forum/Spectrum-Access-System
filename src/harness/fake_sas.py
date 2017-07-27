@@ -60,7 +60,7 @@ import sas_interface
 PORT = 9000
 CERT_FILE = 'server.cert'
 KEY_FILE = 'server.key'
-CA_CERT = 'ca.cert'
+CA_CERT = 'certs/ca.cert'
 CIPHERS = [
     'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
@@ -231,7 +231,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
-                       '/admin/injectdata/cluster_list',
                        '/admin/injectdata/pal_database_record',
                        '/admin/injectdata/sas_admin',
                        '/admin/injectdata/sas_impl',
