@@ -452,7 +452,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
+extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 #FCCID
 #CBSDID

@@ -26,7 +26,11 @@ import sas_interface
 HTTP_TIMEOUT_SECS = 30
 CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
-    'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
+    'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
+    'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 ]
 
 
@@ -37,16 +41,23 @@ def GetTestingSas():
   version = config_parser.get('SasConfig', 'Version')
   return SasImpl(base_url, version), SasAdminImpl(base_url)
 
+
 def _RequestPost(url, request, ssl_cert, ssl_key):
   """Sends HTTPS POST request.
 
   Args:
     url: Destination of the HTTPS request.
     request: Content of the request.
-    ssl_cert: Path of SSL cert used in HTTPS request.
-    ssl_key: Path of SSL key used in HTTPS request.
+    ssl_cert: Path of SSL client cert used in HTTPS request.
+    ssl_key: Path of SSL client key used in HTTPS request.
   Returns:
     A dictionary represents the JSON response received from server.
+  Raises:
+    AssertionError: with args[0] is an integer code representing:
+      * libcurl SSL code response, if code < 100:
+        https://curl.haxx.se/libcurl/c/libcurl-errors.html
+      * HTTP code response, if code >= 100:
+        https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   """
   response = StringIO.StringIO()
   conn = pycurl.Curl()
@@ -69,20 +80,27 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   logging.debug('Request to URL ' + url + ':\n' + request)
   conn.setopt(conn.POSTFIELDS, request)
   conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
-  conn.perform()
-  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+  try:
+    conn.perform()
+  except pycurl.error as e:
+    # e contains a tuple (libcurl_error_code, string_description).
+    # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
+    raise AssertionError(e.args[0])
+  http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
   logging.debug('Response:\n' + body)
+  assert http_code == 200, http_code
   return json.loads(body)
+
 
 def _RequestGet(url, ssl_cert, ssl_key):
   """Sends HTTPS GET request.
 
   Args:
     url: Destination of the HTTPS request.
-    ssl_cert: Path of SSL cert used in HTTPS request.
-    ssl_key: Path of SSL key used in HTTPS request.
+    ssl_cert: Path of SSL client cert used in HTTPS request.
+    ssl_key: Path of SSL client key used in HTTPS request.
   Returns:
     A dictionary represents the JSON response received from server.
   """
@@ -110,6 +128,7 @@ def _RequestGet(url, ssl_cert, ssl_key):
   body = response.getvalue()
   logging.debug('Response:\n' + body)
   return json.loads(body)
+
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
@@ -142,17 +161,17 @@ class SasImpl(sas_interface.SasInterface):
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
-  def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
+  def _SasRequest(self, path, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s/%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name, request),
-                        ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
-                        ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
+                       (self._base_url, self._sas_version, path, request),
+                       ssl_cert or self._GetDefaultSasSSLCertPath(),
+                       ssl_key or self._GetDefaultSasSSLKeyPath())
 
-  def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
+  def _CbsdRequest(self, path, request, ssl_cert=None, ssl_key=None):
     return _RequestPost('https://%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name), request,
-                        ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
-                        ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
+                        (self._base_url, self._sas_version, path), request,
+                        ssl_cert or self._GetDefaultCbsdSSLCertPath(),
+                        ssl_key or self._GetDefaultCbsdSSLKeyPath())
 
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')
@@ -198,6 +217,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectClusterList(self, request):
+    _RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
+                 request, self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def BlacklistByFccId(self, request):
     _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
@@ -218,7 +242,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
-    
+
   def PreloadRegistrationData(self, request):
     _RequestPost('https://%s/admin/injectdata/conditional_registration' % self._base_url,
                  request, self._GetDefaultAdminSSLCertPath(),

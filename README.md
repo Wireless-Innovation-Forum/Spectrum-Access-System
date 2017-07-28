@@ -63,18 +63,18 @@ may be installed as part of the SciPy packages.
 
 * shapely (https://pypi.python.org/pypi/Shapely)
 
-This Python library can be installed with <code>pip</code>. It provides libraries
-for processing geometrical objects and shapes in Python.
+This Python library can be installed with <code>pip</code>. It provides
+libraries for processing geometrical objects and shapes in Python.
 
 * pykml (https://pythonhosted.org/pykml/installation.html)
 
-This Python library can be installed with <code>pip</code>. It provides libraries
-for handling KML geospatial files in Python.
+This Python library can be installed with <code>pip</code>. It provides
+libraries for handling KML geospatial files in Python.
 
 * pyshp (https://github.com/GeospatialPython/pyshp)
 
-This Python library can be installed with <code>pip</code>. It provides libraries
-for handling SHP geospatial files in Python.
+This Python library can be installed with <code>pip</code>. It provides
+libraries for handling SHP geospatial files in Python.
 
 * ftputil (http://ftputil.sschwarzer.net/trac/wiki/Documentation)
 
@@ -97,4 +97,5 @@ run the Python interpreter and then issue an <code>import xyz</code> command,
 where <code>xyz</code> is the name of the package. Error-free import means
 that the package is installed successfully.
 
-
+* Security certificates, as described in
+<code>src/harness/testcases/testdata/certs/README.md</code>
