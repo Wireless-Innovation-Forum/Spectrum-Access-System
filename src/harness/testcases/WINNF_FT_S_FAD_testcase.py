@@ -98,5 +98,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             data = json.loads(data)
             for record in data['recordData']:
                 self.assertContainsRequiredFields("CbsdData.schema.json", record)
+                self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
+                self.assertTrue(record['registration']['cbsdSerialNumber'] in (device_a['cbsdSerialNumber'], device_c['cbsdSerialNumber']))
+                self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
                 for grant in record['grants']:
                     self.assertTrue(grant['id'] in grant_ids)
