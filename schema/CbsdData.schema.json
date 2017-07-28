@@ -10,9 +10,7 @@
 	"properties":{
 		"id":{
 			"type": "string",
-			"description": "Format cbsd/$CBSD_REFERENCE_ID where $CBSD_REFERENCE_ID is defined as 
-			UTF-8($FCC_ID + “/” + sha1($SERIAL_NUMBER)), the SHA-1 hash of the device manufacturer 
-			serial number that is unique within the FCC ID namespace scope "
+			"description": "Format cbsd/$CBSD_REFERENCE_ID where $CBSD_REFERENCE_ID is defined as UTF-8($FCC_ID + '/' + sha1($SERIAL_NUMBER)), the SHA-1 hash of the device manufacturer serial number that is unique within the FCC ID namespace scope "
 		},
 		"registration":{
 			"type": "object",

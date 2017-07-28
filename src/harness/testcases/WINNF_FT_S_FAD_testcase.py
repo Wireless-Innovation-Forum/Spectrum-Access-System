@@ -97,5 +97,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             #dump_response = data.decode('utf-8')
             data = json.loads(data)
             for record in data['recordData']:
+                self.assertContainsRequiredFields("CbsdData.schema.json", record)
                 for grant in record['grants']:
                     self.assertTrue(grant['id'] in grant_ids)
