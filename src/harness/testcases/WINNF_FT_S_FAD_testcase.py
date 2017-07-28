@@ -79,10 +79,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # Trigger the SAS under test to generate the activity dump
         self._sas_admin.TriggerFullActivityDump()
 
-        # Get the SAS Implementation Record using Pull Command
-        #response = self._sas.GetFullActivityDump()
-        response = device_a = json.load(
-            open(os.path.join('/home/red/', 'Bureau/', 'dump_response.json')))
+        # Get dump 
+        response = self._sas.GetFullActivityDump()
         # Verify the response using SasImplementationMessage Object schema
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         for file in response['files']:
