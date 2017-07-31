@@ -182,7 +182,7 @@ class SasInterface(object):
       ssl_cert: Path to SSL cert file, if None, will use default cert file.
       ssl_key: Path to SSL key file, if None, will use default key file.
     Returns:
-      A dictionary of Esc Sensor Data Message object specified in 
+      A dictionary of Esc Sensor Data Message object specified in
       WINNF-16-S-0096
     """
     pass
@@ -251,24 +251,9 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with a single key-value pair where the key is
-        "zoneData": ZoneData object to be injected into SAS under test.
-        For more information about ZoneData please see the SAS-SAS TS
-        (WINNF-16-S-0096).
-    """
-    pass
-
-  @abc.abstractmethod
-  def InjectClusterList(self, request):
-    """"Associate a cluster list with an injected PPA.
-    The SAS under test will act as if the specified CBSDs were used to create
-    the PPA.
-
-    Args:
-      request: a dictionary with the following key-value pairs:
-        "zoneId": (string) the ID of the PPA to which this cluster list should
-        be added.
-        "cbsdIds": (array of string) the CBSD IDs of the devices in the cluster
-        list.
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
     """
     pass
 
@@ -403,5 +388,55 @@ class SasTestcaseInterface(object):
     Returns:
       Nothing. It asserts if something about the response is broken/not per
       specs. Assumes it is dealing with an approved request.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegistered(self, registration_request,
+                       conditional_registration_data=None):
+    """Register a list of devices.
+
+    Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
+    Includes injection of FCC IDs and conditional registration data.
+
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A list of cbsd_ids.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegisteredAndGranted(self, registration_request, grant_request,
+                                 conditional_registration_data=None):
+    """Register and get grants for a list of devices.
+
+    Quickly register and grant N devices; assert SUCCESS for each step and
+    return corresponding CBSD and grant IDs.
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      grant_request: A dictionary with a single key-value pair where the key is
+        "grantRequest" and the value is a list of individual CBSD
+        grant requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A list of  dictionaries, each with keys "cbsdId" and "grantId".
     """
     pass
