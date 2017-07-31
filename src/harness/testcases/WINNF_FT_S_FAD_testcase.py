@@ -84,7 +84,9 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         response = self._sas.GetFullActivityDump()
         # Verify the response with  FullActivityDump.schema.json Object schema
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
-        if response['generationDateTime'] >= (datetime.utcnow() - timedelta(days=7)):
+        generation_date_time = datetime.strptime(response['generationDateTime'],
+                                          '%Y-%m-%dT%H:%M:%SZ')
+        if generation_date_time >= (datetime.utcnow() - timedelta(days=7)):
             for file in response['files']:
                 # Verify the response files with ActivityDumpFile.schema.json Object schema
                 self.assertContainsRequiredFields("ActivityDumpFile.schema.json", file)
@@ -96,9 +98,10 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 self.assertEqual(file['recordType'], 'cbsd')
                 #get data in file
                 data = urlopen(file['url']).read()
-                #Decoding JSON message from data 
+                #Decoding JSON message from file 
                 data = json.loads(data)
                 for record in data['recordData']:
+                    # Verify the response files with CbsdData.schema.json Object schema
                     self.assertContainsRequiredFields("CbsdData.schema.json", record)
                     self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
                     self.assertTrue(record['registration']['cbsdSerialNumber'] in (device_a['cbsdSerialNumber'], device_c['cbsdSerialNumber']))
