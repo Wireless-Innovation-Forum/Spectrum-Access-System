@@ -20,7 +20,7 @@ from functools import partial
 from src.harness.util import getRandomLatLongInPolygon
 import random
 
-THRESHOLD = 0.5
+THRESHOLD = -96
 
 
 def __compute_points_gain_prop(device):
