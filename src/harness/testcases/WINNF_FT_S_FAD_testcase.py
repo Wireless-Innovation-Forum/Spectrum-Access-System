@@ -18,6 +18,7 @@ from util import winnforum_testcase
 import sas_testcase
 from urllib import urlopen
 import validators
+from datetime import datetime, timedelta
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
@@ -76,30 +77,31 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             grant_ids.append(resp['grantId'])
         del request, response
 
-        # Trigger the SAS under test to generate the activity dump
+        # Trigger the SAS to generate the activity dump
         self._sas_admin.TriggerFullActivityDump()
 
         # Get dump 
         response = self._sas.GetFullActivityDump()
-        # Verify the response using SasImplementationMessage Object schema
+        # Verify the response with  FullActivityDump.schema.json Object schema
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
-        for file in response['files']:
-            # Verify the response using SasImplementationMessage Object schema
-            self.assertContainsRequiredFields("ActivityDumpFile.schema.json", file)
-            # Verify the url format is valid (pip install validators)
-            self.assertTrue(validators.url(file['url']))
-            # Verify the link to download the file dump is valid
-            self.assertEqual(urlopen(file['url']).getcode(), 200)
-            # Verify the record type 
-            self.assertEqual(file['recordType'], 'cbsd')
-            #get data in file
-            data = urlopen(file['url']).read()
-            #dump_response = data.decode('utf-8')
-            data = json.loads(data)
-            for record in data['recordData']:
-                self.assertContainsRequiredFields("CbsdData.schema.json", record)
-                self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
-                self.assertTrue(record['registration']['cbsdSerialNumber'] in (device_a['cbsdSerialNumber'], device_c['cbsdSerialNumber']))
-                self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
-                for grant in record['grants']:
-                    self.assertTrue(grant['id'] in grant_ids)
+        if response['generationDateTime'] >= (datetime.utcnow() - timedelta(days=7)):
+            for file in response['files']:
+                # Verify the response files with ActivityDumpFile.schema.json Object schema
+                self.assertContainsRequiredFields("ActivityDumpFile.schema.json", file)
+                # Verify the url format is valid (pip install validators)
+                self.assertTrue(validators.url(file['url']))
+                # Verify the link to download the file dump is valid
+                self.assertEqual(urlopen(file['url']).getcode(), 200)
+                # Verify the record type 
+                self.assertEqual(file['recordType'], 'cbsd')
+                #get data in file
+                data = urlopen(file['url']).read()
+                #Decoding JSON message from data 
+                data = json.loads(data)
+                for record in data['recordData']:
+                    self.assertContainsRequiredFields("CbsdData.schema.json", record)
+                    self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
+                    self.assertTrue(record['registration']['cbsdSerialNumber'] in (device_a['cbsdSerialNumber'], device_c['cbsdSerialNumber']))
+                    self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
+                    for grant in record['grants']:
+                        self.assertTrue(grant['id'] in grant_ids)
