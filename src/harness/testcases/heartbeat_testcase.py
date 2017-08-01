@@ -1498,6 +1498,9 @@ class HeartbeatTestcase(unittest.TestCase):
         self.assertLessEqual(transmit_expire_time_1, grant_expire_time_1)
     del request, response
 
+    # load FSS data
+    fss_zone_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
     # Co-locating FSS with CBSD
     fss_zone_0['deploymentParam'][0]['installationParam']['latitude'] = \
         device_c['installationParam']['latitude']
@@ -1505,9 +1508,6 @@ class HeartbeatTestcase(unittest.TestCase):
         device_c['installationParam']['longitude']
 
     # Inject Incumbent Activity with Overlapping Frequency of CBSD
-    fss_zone_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-
     fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
                              grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
     fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
