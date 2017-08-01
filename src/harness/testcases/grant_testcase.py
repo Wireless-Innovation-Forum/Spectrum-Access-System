@@ -321,7 +321,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Inject PAL and PPA Database Record
-    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_id
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     self._sas_admin.InjectZoneData({'record': ppa_record})
 
