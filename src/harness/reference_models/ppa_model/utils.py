@@ -18,17 +18,13 @@ import geojson
 from shapely.geometry import shape
 from shapely.ops import cascaded_union
 from src.harness.util import getRandomLatLongInPolygon
+from src.geo.vincenty import to_dist_bear_vincenty
 from collections import defaultdict
 from datetime import datetime
 import random
 import json
 import os
 import glob
-
-
-def to_dist_bear_vincenty(**kwargs):
-  """Placeholder to Call Vincenty, will be removed when the Vincenty is moved to reference models"""
-  pass
 
 
 def great_circle(**kwargs):

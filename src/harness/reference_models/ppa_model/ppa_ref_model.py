@@ -16,9 +16,6 @@ from concurrent.futures import ProcessPoolExecutor as Pool
 import multiprocessing
 from utils import *
 from compute import load_partials
-from functools import partial
-from src.harness.util import getRandomLatLongInPolygon
-import random
 
 THRESHOLD = -96
 
