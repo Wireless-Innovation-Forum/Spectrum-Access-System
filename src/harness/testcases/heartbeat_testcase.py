@@ -1406,7 +1406,7 @@ class HeartbeatTestcase(unittest.TestCase):
   def test_WINFF_FT_S_HBT_22(self):
     """Array request for 3 CBSDs, SAS terminates the grant for third CBSD in the ppa
         with incumbent present in the PAL frequency range requested by the CBSD
-	two others CBSDs ousite ppa continue to transmit.
+    two others CBSDs ousite ppa continue to transmit.
     """
 
     # Register three devices
@@ -1434,23 +1434,21 @@ class HeartbeatTestcase(unittest.TestCase):
     # load PPA record
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+
     pal_low_frequency = 3620000000.0
     pal_high_frequency = 3630000000.0
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
         pal_low_frequency,pal_high_frequency,device_c['userId'])
 
     #Add cbsd reference to PPA
-    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[2]]
 
     # Inject PAL record
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     # Inject PPA record with cbds_id reference
     ppa_record = {'zoneData':ppa_record}
-    zone_id = self._sas_admin.InjectZoneData(ppa_record)
 
-    # Inject cbsd_id of ppa
-    cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_ids[2]]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    ppa_id = self._sas_admin.InjectZoneData(ppa_record)
 
     # Create and send grant requests
     grant_0 = json.load(
@@ -1468,13 +1466,13 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(len(response), 3)
     # Check grant response
     for response_num, resp in enumerate(response):
-    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-    	self.assertTrue('grantId' in resp)
-    	self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+        self.assertTrue('grantId' in resp)
+        self.assertEqual(resp['response']['responseCode'], 0)
         if cbsd_ids[response_num] == cbsd_ids[2]:
-	        self.assertEqual(resp['channelType'], 'PAL')
+            self.assertEqual(resp['channelType'], 'PAL')
         else:
-	        self.assertEqual(resp['channelType'], 'GAA') 
+            self.assertEqual(resp['channelType'], 'GAA') 
     grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
     del request, response
 
@@ -1491,14 +1489,20 @@ class HeartbeatTestcase(unittest.TestCase):
 
     self.assertEqual(len(response), 3)
     for response_num, resp in enumerate(response):
-    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-    	self.assertEqual(resp['grantId'], grant_ids[response_num])
-    	self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+        self.assertEqual(resp['grantId'], grant_ids[response_num])
+        self.assertEqual(resp['response']['responseCode'], 0)
         grant_expire_time_1 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
-    	transmit_expire_time_1 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
-    	self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
+        transmit_expire_time_1 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+        self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time_1, grant_expire_time_1)
     del request, response
+
+    # Co-locating FSS with CBSD
+    fss_zone_0['deploymentParam'][0]['installationParam']['latitude'] = \
+        device_c['installationParam']['latitude']
+    fss_zone_0['deploymentParam'][0]['installationParam']['longitude'] = \
+        device_c['installationParam']['longitude']
 
     # Inject Incumbent Activity with Overlapping Frequency of CBSD
     fss_zone_0 = json.load(
@@ -1508,9 +1512,11 @@ class HeartbeatTestcase(unittest.TestCase):
                              grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
     fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
                              grant_0['operationParam']['operationFrequencyRange']['highFrequency']
-    self._sas_admin.InjectFss({fss_zone_0})
+    
+    self._sas_admin.InjectFss({'record': fss_zone_0})
 
-    """distance = self.CalculateDistance(device_a['installationParam']['latitude'],
+    """
+    distance = self.CalculateDistance(device_a['installationParam']['latitude'],
                                       device_a['installationParam']['longitude'],
                                       fss_zone_0['deploymentParam'][0]['installationParam']['latitude'],
                                       fss_zone_0['deploymentParam'][0]['installationParam']['longitude'])
@@ -1518,7 +1524,8 @@ class HeartbeatTestcase(unittest.TestCase):
     # CBSD is within the 150km protection zone of FSS
     self.assertLessEqual(distance, 150)
     self._sas_admin.InjectFss({'record': fss_zone_0})
-    self._sas_admin.InjectFss({fss_zone_0})"""
+    self._sas_admin.InjectFss({fss_zone_0})
+    """
 
     # Second Heartbeat
     for heartbeat_num, heartbeat in enumerate(heartbeat_request):
@@ -1527,14 +1534,14 @@ class HeartbeatTestcase(unittest.TestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse']
 
     for response_num, resp in enumerate(response):
-    	self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-    	self.assertEqual(resp['grantId'], grant_ids[response_num])
+        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+        self.assertEqual(resp['grantId'], grant_ids[response_num])
         grant_expire_time_2 = datetime.strptime(resp['grantExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
-    	transmit_expire_time_2 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
-    	self.assertLessEqual((transmit_expire_time_2 - datetime.utcnow()).total_seconds(), 240)
+        transmit_expire_time_2 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+        self.assertLessEqual((transmit_expire_time_2 - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time_2, grant_expire_time_2)
         if cbsd_ids[response_num] == cbsd_ids[2]:
             self.assertEqual(resp['response']['responseCode'], 500)
             self.assertLessEqual(transmit_expire_time_2, transmit_expire_time_1)
         else:
-	        self.assertEqual(resp['response']['responseCode'], 0)
+            self.assertEqual(resp['response']['responseCode'], 0)
