@@ -18,7 +18,7 @@ import os
 import unittest
 import logging
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 
 class HeartbeatTestcase(unittest.TestCase):
@@ -1309,7 +1309,7 @@ class HeartbeatTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_21(self):
     """SAS supended grant of CBSD when.
-        Incumbent activity that excludes CBSD's usage of the shared 
+        Incumbent activity,like FSS,that excludes CBSD's usage of the shared 
         spectrum. 
     """
 
@@ -1323,17 +1323,25 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
     cbsd_id = response['cbsdId']
     del request, response
-    # Inject PAL Database Recoord
-    pal_database_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    pal_database_record['userId'] = device_c['userId']
-    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
-    # Inject PPA Zone
-    ppa_zone_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
-    ppa_id = self._sas_admin.InjectZoneData(ppa_zone_0)
-    cluster_list = {'ppaId': ppa_id['zoneId'], 'cbsdIds': [cbsd_id]}
-    self._sas_admin.InjectClusterList(cluster_list)
+    # load PAL record
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    # load PPA record
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_low_frequency = 3620000000.0
+    pal_high_frequency = 3630000000.0
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
+        pal_low_frequency,pal_high_frequency,device_c['userId'])
+
+    #Add cbsd reference to PPA
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+
+    # Inject PAL record
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    # Inject PPA record with cbds_id reference
+    ppa_record = {'zoneData':ppa_record}
+    self._sas_admin.InjectZoneData(ppa_record)
 
     # grant request 
     grant_0 = json.load(
@@ -1365,25 +1373,22 @@ class HeartbeatTestcase(unittest.TestCase):
     self.assertLess(datetime.utcnow(), transmit_expire_time_1)
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
-    # Inject Incumbent Activity with Overlapping Frequency of CBSD
+
     fss_zone_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_zone_0.json')))
-
+    # Inject Incumbent Activity with Overlapping Frequency of CBSD
     fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
                              grant_0['operationParam']['operationFrequencyRange']['lowFrequency']
     fss_zone_0['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
                              grant_0['operationParam']['operationFrequencyRange']['highFrequency']
-    self._sas_admin.InjectFss({fss_zone_0})
 
-    """distance = self.CalculateDistance(device_a['installationParam']['latitude'],
-                                      device_a['installationParam']['longitude'],
-                                      fss_zone_0['deploymentParam'][0]['installationParam']['latitude'],
-                                      fss_zone_0['deploymentParam'][0]['installationParam']['longitude'])
+    # Co-locating FSS with CBSD
+    fss_zone_0['deploymentParam'][0]['installationParam']['latitude'] = \
+        device_c['installationParam']['latitude']
+    fss_zone_0['deploymentParam'][0]['installationParam']['longitude'] = \
+        device_c['installationParam']['longitude']
 
-    # CBSD is within the 150km protection zone of FSS
-    self.assertLessEqual(distance, 150)
     self._sas_admin.InjectFss({'record': fss_zone_0})
-    self._sas_admin.InjectFss({fss_zone_0})"""
     # Second heartbeat
     heartbeat_request['operationState'] = 'AUTHORIZED'
     request = {'heartbeatRequest': [heartbeat_request]}
@@ -1423,15 +1428,26 @@ class HeartbeatTestcase(unittest.TestCase):
         cbsd_ids.append(resp['cbsdId'])
     del request, response
 
+    # load PAL record
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    # load PPA record
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_low_frequency = 3620000000.0
+    pal_high_frequency = 3630000000.0
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
+        pal_low_frequency,pal_high_frequency,device_c['userId'])
+
+    #Add cbsd reference to PPA
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+
     # Inject PAL record
-    pal_database_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_database_record_0.json')))
-    pal_database_record['userId'] = device_c['userId']
-    self._sas_admin.InjectPalDatabaseRecord(pal_database_record)
-    # Inject PPA Zone
-    ppa_zone = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_zone_0.json')))
-    ppa_id = self._sas_admin.InjectZoneData(ppa_zone)
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    # Inject PPA record with cbds_id reference
+    ppa_record = {'zoneData':ppa_record}
+    zone_id = self._sas_admin.InjectZoneData(ppa_record)
+
     # Inject cbsd_id of ppa
     cluster_list = {'ppaId' : ppa_id['zoneId'], 'cbsdIds': [cbsd_ids[2]]}
     self._sas_admin.InjectClusterList(cluster_list)
