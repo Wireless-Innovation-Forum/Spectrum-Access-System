@@ -1,0 +1,12 @@
+{
+  "id": "incumbent/ibfs/wisp_id_a",
+  "type": "PART_90",
+  "deploymentParam": [
+    {
+      "operationParam": {
+        "lowFrequency": 3620000000.0,
+        "highFrequency": 3630000000.0
+      }
+    }
+  ]
+}
