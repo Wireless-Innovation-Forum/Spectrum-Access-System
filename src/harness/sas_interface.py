@@ -285,12 +285,13 @@ class SasAdminInterface(object):
     """SAS admin interface to inject WISP information into SAS under test.
 
     Args:
-      request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a wireless internet service provider
-        object (which is itself a dictionary). The dictionary is an
-        IncumbentProtectionData object (specified in SAS-SAS TS).
-    Note: IncumbentProtectionData must include a zoneId which can be
-    obtained by first injecting the WISP zone.
+      request: A dictionary with two key-value pairs where the keys are
+        "record" and "zone" with the values IncumbentProtectionData 
+        object (specified in SAS-SAS TS) and zoneObject (specified in 
+        SAS-SAS TS) respectively.
+    Note: Required Field in IncumbentProtectionData are id, type, 
+    deploymentParam->operationParam->operationFrequencyRange->
+    lowFrequency, highFrequency
     """
     pass
 
