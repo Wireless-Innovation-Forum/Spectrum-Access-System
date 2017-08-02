@@ -60,7 +60,7 @@ import sas_interface
 PORT = 9000
 CERT_FILE = 'server.cert'
 KEY_FILE = 'server.key'
-CA_CERT = 'ca.cert'
+CA_CERT = 'certs/ca.cert'
 CIPHERS = [
     'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
 ]
