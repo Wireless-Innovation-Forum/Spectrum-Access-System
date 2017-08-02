@@ -359,7 +359,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Load the Data
     pal_low_frequency = 3550000000.0
-    pal_high_frequency = 3600000000.0
+    pal_high_frequency = 3560000000.0
     user_id = 'pal_device'
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -371,10 +371,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
-                                                                [pal_record],
-                                                                pal_low_frequency,
-                                                                pal_high_frequency,
-                                                                user_id)
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
 
     # Move the Device to a random location in PPA
     device_a['installationParam']['latitude'], \
