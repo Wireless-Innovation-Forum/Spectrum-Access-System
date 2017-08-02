@@ -129,7 +129,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
     # Inject PPA record with cbds_id reference
-    ppa_record = {'zoneData':ppa_record}
+    ppa_record = {'record':ppa_record}
     self._sas_admin.InjectZoneData(ppa_record)
 
     # grant request
@@ -185,7 +185,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     #Inject PAL record record
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     #Inject PPA record with cbds_id reference
-    ppa_record = {'zoneData':ppa_record}
+    ppa_record = {'record':ppa_record}
     self._sas_admin.InjectZoneData(ppa_record)
     
     #load exclusion_zone
