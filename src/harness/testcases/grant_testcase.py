@@ -532,20 +532,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_a['userId'] = user_id
 
-    # Register the devices
-    request = {'registrationRequest': [device_a, device_c]}
-    response = self._sas.Registration(request)['registrationResponse']
-    # Check registration response
-    cbsd_ids = []
-    for resp in response:
-      self.assertEqual(resp['response']['responseCode'], 0)
-      cbsd_ids.append(resp['cbsdId'])
-    del request, response
+    # Register the devices and assert the Response
+    cbsd_ids = self.assertRegistered([device_a, device_c])
 
     # Update PPA Record with CBSD ID and Inject Data
     ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
-    self._sas_admin.InjectZoneData({"record": ppa_record})
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
 
     # Create grant requests
     grant_0 = json.load(
