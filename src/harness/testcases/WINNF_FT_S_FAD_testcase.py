@@ -95,7 +95,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 # Verify the link to download the file dump is valid
                 self.assertEqual(urlopen(file['url']).getcode(), 200)
                 # Verify the record type 
-                self.assertEqual(file['recordType'], 'cbsd')
+                self.assertTrue(file['recordType'] in ('cbsd','zone', 'coordination'))
                 #get data in file
                 data = urlopen(file['url']).read()
                 #Decoding JSON message from file 
