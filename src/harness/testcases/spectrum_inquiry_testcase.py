@@ -54,8 +54,8 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     cbsd_id = response['cbsdId']
     del request, response
     # Inject WISP such that no channels are available
-    self._sas_admin.InjectWisp({"zone": zone_record_0,
-                                "record": wisp_record_0})
+    self._sas_admin.InjectWisp({"record": wisp_record_0,
+                                "zone": zone_record_0})
     operation_param = wisp_record_0['deploymentParam'][0]['operationParam']
     spectrum_inquiry_0 = {
       'cbsdId': cbsd_id,
@@ -70,7 +70,6 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(response['response']['responseCode'], 0)
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(len(response['availableChannel']), 0)
-
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_4(self):
