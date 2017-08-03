@@ -287,8 +287,7 @@ class SasAdminInterface(object):
     Args:
       request: A dictionary with two key-value pairs where the keys are
         "record" and "zone" with the values IncumbentProtectionData 
-        object (specified in SAS-SAS TS) and zoneObject (specified in 
-        SAS-SAS TS) respectively.
+        object (specified in SAS-SAS TS) and a GeoJSON Object respectively
     Note: Required Field in IncumbentProtectionData are id, type, 
     deploymentParam->operationParam->operationFrequencyRange->
     lowFrequency, highFrequency
