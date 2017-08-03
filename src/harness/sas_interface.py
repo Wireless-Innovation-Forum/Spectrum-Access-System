@@ -358,6 +358,23 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def TriggerPpaCreation(self, request):
+    """SAS admin interface to trigger PPA creation based on the CBSD Ids, 
+    Pal Ids and Provided Contour
+    
+    Args:
+      request: A dictionary with multiple key-value pairs where the keys are
+        cbsdIds: array of string containing CBSD Id
+        palIds: array of string containing PAL Id
+        providedContour(optional): GeoJSON Object
+        
+    Returns:
+      PPA Id in string format
+    """
+    pass
+
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
