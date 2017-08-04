@@ -51,6 +51,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 from datetime import datetime
 from datetime import timedelta
+import uuid
 import json
 import ssl
 import os
@@ -67,6 +68,7 @@ CIPHERS = [
 
 MISSING_PARAM = 102
 INVALID_PARAM = 103
+
 
 class FakeSas(sas_interface.SasInterface):
   """A fake implementation of SasInterface.
@@ -196,8 +198,55 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
-  def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
-    return request['zoneData']['id']
+
+class FakeSasAdmin(sas_interface.SasAdminInterface):
+  """Implementation of SAS Admin for Fake SAS."""
+  def Reset(self):
+    pass
+
+  def InjectFccId(self, request):
+    pass
+
+  def BlacklistByFccId(self, request):
+    pass
+
+  def BlacklistByFccIdAndSerialNumber(self, request):
+    pass
+
+  def PreloadRegistrationData(self, request):
+    pass
+
+  def InjectZoneData(self, request, ssl_cert=None, ssl_key=None):
+    return request['record']['id']
+
+  def InjectPalDatabaseRecord(self, request):
+    pass
+
+  def InjectFss(self, request):
+    pass
+
+  def InjectWisp(self, request):
+    pass
+
+  def InjectSasAdministratorRecord(self, request):
+    pass
+
+  def InjectSasImplementationRecord(self, request):
+    pass
+
+  def InjectEscSensorDataRecord(self, request):
+    pass
+
+  def TriggerMeasurementReportRegistration(self, request):
+    pass
+
+  def TriggerMeasurementReportHeartbeat(self, request):
+    pass
+
+  def TriggerPpaCreation(self, request, ssl_cert=None, ssl_key=None):
+    return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
+                                        uuid.uuid4().hex)
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -225,7 +274,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == '/v1.0/deregistration':
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
-      response = FakeSas().InjectZoneData(request)
+      response = FakeSasAdmin().InjectZoneData(request)
+    elif self.path == 'admin/trigger/create_ppa':
+      response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
