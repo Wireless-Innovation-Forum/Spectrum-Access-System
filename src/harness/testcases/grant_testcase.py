@@ -396,15 +396,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Update PPA Record with CBSD ID and Inject Data
     ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
-    self._sas_admin.InjectZoneData({"record": ppa_record})
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
 
     # Create grant request for first device
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
     grant_0['cbsdId'] = cbsd_ids[0]
-
     grant_0['operationParam']['operationFrequencyRange'] = {
       'lowFrequency': pal_low_frequency,
       'highFrequency': pal_high_frequency
@@ -424,7 +422,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Create grant request for second device
     grant_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
     grant_1['cbsdId'] = cbsd_ids[1]
     # Request for overlapping frequency spectrum
     grant_1['operationParam']['operationFrequencyRange'] = {
