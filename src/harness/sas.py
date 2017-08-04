@@ -240,12 +240,14 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLKeyPath())
 
   def TriggerMeasurementReportRegistration(self, request):
-    _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' % self._base_url, request,
+    _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' %
+                 self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
   def TriggerMeasurementReportHeartbeat(self, request):
-    _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' % self._base_url, request,
+    _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
+                 self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
@@ -258,6 +260,12 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerPpaCreation(self, request):
+    return _RequestPost('https://%s/admin/trigger/create_ppa' %
+                        self._base_url, request,
+                        self._GetDefaultAdminSSLCertPath(),
+                        self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
