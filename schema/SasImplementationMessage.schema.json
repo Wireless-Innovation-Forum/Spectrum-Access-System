@@ -27,7 +27,10 @@
       "description": "Reference Id of Sas Administrator Object"
     },
     "contactInformation": {
-      "$ref": "file:ContactInformation.schema.json"
+      "type": "array",
+      "items": {
+        "$ref": "file:ContactInformation.schema.json"
+      }
     },
     "publicKey": {
       "type": "string",
