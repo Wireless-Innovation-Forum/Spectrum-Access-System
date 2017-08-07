@@ -86,25 +86,38 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         generation_date_time = datetime.strptime(response['generationDateTime'],
                                           '%Y-%m-%dT%H:%M:%SZ')
-        if generation_date_time >= (datetime.utcnow() - timedelta(days=7)):
-            for file in response['files']:
-                # Verify the response files with ActivityDumpFile.schema.json Object schema
-                self.assertContainsRequiredFields("ActivityDumpFile.schema.json", file)
-                # Verify the url format is valid (pip install validators)
-                self.assertTrue(validators.url(file['url']))
-                # Verify the link to download the file dump is valid
-                self.assertEqual(urlopen(file['url']).getcode(), 200)
+        if generation_date_time >= (datetime.utcnow() - timedelta(minutes=1)):
+            for activity_dump_file in response['files']:
                 # Verify the record type 
-                self.assertEqual(file['recordType'], 'cbsd')
-                #get data in file
-                data = urlopen(file['url']).read()
-                #Decoding JSON message from file 
-                data = json.loads(data)
-                for record in data['recordData']:
-                    # Verify the response files with CbsdData.schema.json Object schema
-                    self.assertContainsRequiredFields("CbsdData.schema.json", record)
-                    self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
-                    self.assertTrue(record['registration']['cbsdSerialNumber'] in (device_a['cbsdSerialNumber'], device_c['cbsdSerialNumber']))
-                    self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
-                    for grant in record['grants']:
-                        self.assertTrue(grant['id'] in grant_ids)
+                if activity_dump_file['recordType'] == 'cbsd':
+                    # Verify the response files with ActivityDumpFile.schema.json Object schema
+                    self.assertContainsRequiredFields("ActivityDumpFile.schema.json", activity_dump_file)
+                    # Verify the url format is valid (pip install validators)
+                    self.assertTrue(validators.url(activity_dump_file['url']))
+                    # Verify the link to download the file dump is valid
+                    self.assertEqual(urlopen(activity_dump_file['url']).getcode(), 200)
+
+                    # Get data in file
+                    data = urlopen(activity_dump_file['url']).read()
+                    #Decoding JSON message from file 
+                    data = json.loads(data)
+                    # Verify that everything in the full dump matches a cbsd or grant created at the beginning
+                    for record in data['recordData']:
+                        # Verify the response files with CbsdData.schema.json Object schema
+                        self.assertContainsRequiredFields("CbsdData.schema.json", record)
+                        self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
+                        self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
+                        for grant in record['grants']:
+                            self.assertTrue(grant['id'] in grant_ids)
+                    
+                    # Check that all cbsds and grants are present in the full dump
+                    for cbsd_id in cbsd_ids:
+                        record_id = 'cbsd/'+ cbsd_id
+                        # Get grants by cbsd_id
+                        grants_of_cbsd = [x['grants'] for x in data['recordData'] if x['id'] == record_id]
+                        # Verify that grant_id in the full dump matches a grant created at the beginning
+                        self.assertTrue(grants_of_cbsd[0][0]['id'] in (grant_ids))
+                        # Get cbsd informations by cbsd_id
+                        cbsd_informations = [x['registration'] for x in data['recordData'] if x['id'] == record_id]
+                        self.assertTrue(cbsd_informations[0]['fccId'] in (device_a['fccId'], device_c['fccId']))
+                        self.assertTrue(cbsd_informations[0]['userId'] in (device_a['userId'], device_c['userId']))
