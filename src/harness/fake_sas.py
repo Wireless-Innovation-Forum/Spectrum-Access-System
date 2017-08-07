@@ -277,7 +277,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == 'admin/trigger/create_ppa':
       response = FakeSasAdmin().TriggerPpaCreation(request)
-    elif self.path in ('/admin/reset', '/admin/injectdata/fccId',
+    elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
