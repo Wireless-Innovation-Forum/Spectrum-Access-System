@@ -199,6 +199,9 @@ class FakeSas(sas_interface.SasInterface):
   def InjectZoneData(self, request,ssl_cert=None, ssl_key=None):
     return request['zoneData']['id']
 
+  def GetFullActivityDump(self):
+    return {'files':[{'url':None, 'checksum':None, 'size':0, 'version':None, 'recordType':None}]}
+
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
     """Parse the Url into the path and value"""
@@ -237,8 +240,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
-                       '/admin/trigger/create_full_activity_dump',
-                       '/v1.0/dump'):
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
@@ -255,6 +257,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == "v1.0/esc_sensor":
       response = FakeSas().GetEscSensorRecord(value)
+    elif self.path == '/v1.0/dump':
+      response = FakeSas().GetFullActivityDump()
     else:
       self.send_response(404)
       return
