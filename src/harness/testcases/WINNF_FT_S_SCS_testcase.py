@@ -162,8 +162,9 @@ class SecurityTestcase(sas_testcase.SasTestCase):
           response['registrationResponse'][0]['response']['responseCode'], 104)
     except AssertionError as e:
       # Error during SSL handshake could be:
-      # - CURLE_SSL_CONNECT_ERROR,
-      # - CURLE_PEER_FAILED_VERIFICATION
+      # - 35: CURLE_SSL_CONNECT_ERROR,
+      # - 51: CURLE_PEER_FAILED_VERIFICATION
+      # - 400: HTTP Bad Request. Can occur depending of the HTTP proxy.
       # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
       ssl_code = e.args[0]
-      self.assertTrue(ssl_code in (35, 51))
+      self.assertTrue(ssl_code in (35, 51, 400), 'With ssl_code=%d' % ssl_code)
