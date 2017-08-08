@@ -416,6 +416,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
