@@ -247,6 +247,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
                                         uuid.uuid4().hex)
 
+  def GetFullActivityDump(self):
+    return {'files':[{'url':None, 'checksum':None, 'size':0, 'version':None, 'recordType':None}]}
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -287,7 +290,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
-                       '/admin/trigger/meas_report_in_heartbeat_response'):
+                       '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
