@@ -147,7 +147,7 @@ class SasImpl(sas_interface.SasInterface):
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s'%'/'.join(value for value in
-                        [self._base_url, self._sas_version, method_name, request],
+                        [self._base_url, self._sas_version, method_name, request] if value),
                         ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
                         ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
 
