@@ -192,6 +192,9 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetFullActivityDump(self):
+    return {'files':[{'url':None, 'checksum':None, 'size':0, 'version':None, 'recordType':None}]}
+  
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -247,8 +250,8 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
                                         uuid.uuid4().hex)
 
-  def GetFullActivityDump(self):
-    return {'files':[{'url':None, 'checksum':None, 'size':0, 'version':None, 'recordType':None}]}
+  def TriggerFullActivityDump(self):
+      pass
 
 
 class FakeSasHandler(BaseHTTPRequestHandler):
