@@ -271,7 +271,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                         self._GetDefaultAdminSSLKeyPath())
 
   def TriggerFullActivityDump(self):
-    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url, None,
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % 
+                 self._base_url, None,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
