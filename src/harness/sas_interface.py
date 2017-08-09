@@ -173,7 +173,8 @@ class SasInterface(object):
 
   @abc.abstractmethod
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
-    """SAS-SAS Full Activity Dump  interface Requests a Pull Command to get Full Activity Dump Message
+    """SAS-SAS Full Activity Dump  interface Requests a Pull Command 
+      to get Full Activity Dump Message
     Returns:
      the message as an "FullActivityDump" object specified in WINNF-16-S-0096
     """
@@ -292,12 +293,12 @@ class SasAdminInterface(object):
     """SAS admin interface to inject WISP information into SAS under test.
 
     Args:
-      request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a wireless internet service provider
-        object (which is itself a dictionary). The dictionary is an
-        IncumbentProtectionData object (specified in SAS-SAS TS).
-    Note: IncumbentProtectionData must include a zoneId which can be
-    obtained by first injecting the WISP zone.
+      request: A dictionary with two key-value pairs where the keys are
+        "record" and "zone" with the values IncumbentProtectionData 
+        object (specified in SAS-SAS TS) and a GeoJSON Object respectively
+    Note: Required Field in IncumbentProtectionData are id, type, 
+    deploymentParam->operationParam->operationFrequencyRange->
+    lowFrequency, highFrequency
     """
     pass
 
@@ -372,6 +373,23 @@ class SasAdminInterface(object):
     Note : SAS should not return until the full dump creation is complete
     """
     pass
+
+  @abc.abstractmethod
+  def TriggerPpaCreation(self, request):
+    """SAS admin interface to trigger PPA creation based on the CBSD Ids, 
+    Pal Ids and Provided Contour
+    
+    Args:
+      request: A dictionary with multiple key-value pairs where the keys are
+        cbsdIds: array of string containing CBSD Id
+        palIds: array of string containing PAL Id
+        providedContour(optional): GeoJSON Object
+        
+    Returns:
+      PPA Id in string format
+    """
+    pass
+
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
