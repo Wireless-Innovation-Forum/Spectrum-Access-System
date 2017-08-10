@@ -387,9 +387,9 @@ class SasAdminInterface(object):
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:
-      A dictionary with a single key-value pair where the key is "status" and the
-      value is a boolean(when the daily activities is running it will be set to 
-      true and when it's not running/failing it will be set to false)
+      A dictionary with a single key-value pair where the key is "completed" and the
+      value is a boolean with value as true if the daily activities is completed and 
+      false if the daily activities is running/failing.
     """
     pass
 
