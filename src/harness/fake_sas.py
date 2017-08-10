@@ -192,6 +192,17 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    response =  {'files':[{
+                    'url': None,
+                    'checksum': None,
+                    'size': 0,
+                    'version': None,
+                    'recordType': None
+                    }]
+                }
+    return response
+  
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -247,6 +258,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
                                         uuid.uuid4().hex)
 
+  def TriggerFullActivityDump(self):
+      pass
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -287,7 +301,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
-                       '/admin/trigger/meas_report_in_heartbeat_response'):
+                       '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
@@ -304,6 +319,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == "v1.0/esc_sensor":
       response = FakeSas().GetEscSensorRecord(value)
+    elif self.path == '/v1.0/dump':
+      response = FakeSas().GetFullActivityDump()
     else:
       self.send_response(404)
       return

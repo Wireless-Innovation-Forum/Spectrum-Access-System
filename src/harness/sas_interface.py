@@ -187,6 +187,14 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Full Activity Dump  interface Requests a Pull Command
+       to get Full Activity Dump Message
+    Returns:
+      the message as an "FullActivityDump" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -371,6 +379,13 @@ class SasAdminInterface(object):
         
     Returns:
       PPA Id in string format
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerFullActivityDump(self):
+    """SAS admin interface to trigger Generation Of Full Activity Dump
+      Note : SAS should not return until the full dump creation is complete
     """
     pass
 

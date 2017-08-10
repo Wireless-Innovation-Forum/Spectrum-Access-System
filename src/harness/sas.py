@@ -142,9 +142,12 @@ class SasImpl(sas_interface.SasInterface):
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('dump', None, ssl_cert, ssl_key)
+
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _RequestGet('https://%s/%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name, request),
+    return _RequestGet('https://%s'%'/'.join(value for value in
+                        [self._base_url, self._sas_version, method_name, request] if value),
                         ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
                         ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
 
@@ -266,6 +269,12 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                         self._base_url, request,
                         self._GetDefaultAdminSSLCertPath(),
                         self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerFullActivityDump(self):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % 
+                 self._base_url, None,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
