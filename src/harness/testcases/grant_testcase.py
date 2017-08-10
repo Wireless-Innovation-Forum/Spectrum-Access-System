@@ -359,7 +359,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -606,7 +605,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
     # Register a device
     device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -615,18 +614,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Prepare grant requests with overlapping frequency range
     grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3565000000.0,
-      'highFrequency': 3567000000.0
+        'lowFrequency': 3560000000.0,
+        'highFrequency': 3570000000.0
     }
     grant_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3566000000.0,
-      'highFrequency': 3568000000.0
+        'lowFrequency': 3565000000.0,
+        'highFrequency': 3580000000.0
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant request and get response
