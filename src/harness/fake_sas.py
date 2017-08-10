@@ -247,6 +247,12 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
                                         uuid.uuid4().hex)
 
+  def TriggerDailyActivitiesImmediately(self):
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    return {'status': 'completed'}
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -277,6 +283,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == 'admin/trigger/create_ppa':
       response = FakeSasAdmin().TriggerPpaCreation(request)
+    elif self.path == 'admin/get_daily_activities_status':
+      response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
@@ -287,7 +295,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
-                       '/admin/trigger/meas_report_in_heartbeat_response'):
+                       '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/daily_activities_immediately'):
       response = ''
     else:
       self.send_response(404)

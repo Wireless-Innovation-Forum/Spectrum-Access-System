@@ -374,6 +374,21 @@ class SasAdminInterface(object):
     """
     pass
 
+  def TriggerDailyActivitiesImmediately(self):
+    """SAS admin interface to trigger daily activities immediately which will
+    execute the activities mentioned in the SAS admin agreement
+    """
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    """SAS admin interface to get the daily activities status
+    Returns:
+      A dictionary with single key-value pair where the key is "status" and the
+      value is a string of permitted enumerations specified in SAS Under Testing
+      API Doc
+    """
+    pass
+
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
