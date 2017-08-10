@@ -193,8 +193,15 @@ class FakeSas(sas_interface.SasInterface):
       return {}
 
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
-    return {'files':[{'url': None, 'checksum': None, 'size': 0, 'version': None,
-           'recordType': None}]}
+    response =  {'files':[{
+                    'url': None,
+                    'checksum': None,
+                    'size': 0,
+                    'version': None,
+                    'recordType': None
+                    }]
+                }
+    return response
   
   def _GetSuccessResponse(self):
     return {'responseCode': 0}

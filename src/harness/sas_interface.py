@@ -189,7 +189,8 @@ class SasInterface(object):
 
   @abc.abstractmethod
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
-    """SAS-SAS Full Activity Dump  interface Requests a Pull Command to get Full Activity Dump Message
+    """SAS-SAS Full Activity Dump  interface Requests a Pull Command
+       to get Full Activity Dump Message
     Returns:
       the message as an "FullActivityDump" object specified in WINNF-16-S-0096
     """
