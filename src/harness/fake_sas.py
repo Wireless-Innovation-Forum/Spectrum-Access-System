@@ -251,7 +251,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def GetDailyActivitiesStatus(self):
-    return {'status': 'completed'}
+    return {'completed': True}
 
 
 class FakeSasHandler(BaseHTTPRequestHandler):
