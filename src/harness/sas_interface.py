@@ -376,7 +376,11 @@ class SasAdminInterface(object):
 
   def TriggerDailyActivitiesImmediately(self):
     """SAS admin interface to trigger daily activities immediately which will
-    execute the activities mentioned in the SAS admin agreement
+    execute the following activities:
+      1. Pull from all External Database and other SASes (URLs will be injected to 
+      SAS UUT using another RPC Call)
+      2. Run IAP and DPA Calculations
+      3. Apply EIRP updates to devices
     """
     pass
 
