@@ -44,8 +44,9 @@ import json
 import os
 import sas_testcase
 import sas
+import signal
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent
+  makePpaAndPalRecordsConsistent, TimeoutException, timeout_error
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -324,6 +325,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
     ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     self._sas_admin.InjectZoneData({'record': ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self._sas_admin.TriggerDailyActivitiesImmediately()
+    signal.signal(signal.SIGALRM, timeout_error)
+    # Timeout after 2 hours if it's not completed
+    signal.alarm(7200)
+    while not self._sas_admin.GetDailyActivitiesStatus():
+      pass
+    signal.alarm(0)
 
     # Create Grant Request containing PAL and GAA frequency
     grant_0 = json.load(

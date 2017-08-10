@@ -22,6 +22,14 @@ from datetime import datetime
 import uuid
 
 
+class TimeoutException(Exception):
+  def __init__(self):
+    Exception.__init__(self, "Process Timeout")
+
+
+def timeout_error(signum, frame):
+  raise TimeoutException()
+
 def winnforum_testcase(testcase):
   """Decorator for common features(such as logging) for Winnforum test cases."""
 
