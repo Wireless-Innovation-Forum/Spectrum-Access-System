@@ -192,8 +192,9 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
-  def GetFullActivityDump(self):
-    return {'files':[{'url':None, 'checksum':None, 'size':0, 'version':None, 'recordType':None}]}
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    return {'files':[{'url': None, 'checksum': None, 'size':0, 'version': None,
+            'recordType': None }]}
 
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
