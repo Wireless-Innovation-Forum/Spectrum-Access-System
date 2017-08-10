@@ -374,6 +374,25 @@ class SasAdminInterface(object):
     """
     pass
 
+  def TriggerDailyActivitiesImmediately(self):
+    """SAS admin interface to trigger daily activities immediately which will
+    execute the following activities:
+      1. Pull from all External Database and other SASes (URLs will be injected to 
+      SAS UUT using another RPC Call)
+      2. Run IAP and DPA Calculations
+      3. Apply EIRP updates to devices
+    """
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    """SAS admin interface to get the daily activities status
+    Returns:
+      A dictionary with a single key-value pair where the key is "completed" and the
+      value is a boolean with value as true if the daily activities is completed and 
+      false if the daily activities is running/failing.
+    """
+    pass
+
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""

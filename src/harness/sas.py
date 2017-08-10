@@ -218,7 +218,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
-    
+
   def PreloadRegistrationData(self, request):
     _RequestPost('https://%s/admin/injectdata/conditional_registration' % self._base_url,
                  request, self._GetDefaultAdminSSLCertPath(),
@@ -266,6 +266,19 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                         self._base_url, request,
                         self._GetDefaultAdminSSLCertPath(),
                         self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerDailyActivitiesImmediately(self):
+    _RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
+                 self._base_url, None,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def GetDailyActivitiesStatus(self):
+    return _RequestPost('https://%s/admin/get_daily_activities_status' %
+                 self._base_url, None,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
