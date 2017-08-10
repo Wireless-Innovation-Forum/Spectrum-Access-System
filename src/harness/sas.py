@@ -181,7 +181,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLKeyPath())
 
   def InjectFccId(self, request):
-    _RequestPost('https://%s/admin/injectdata/fccId' % self._base_url, request,
+    _RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
