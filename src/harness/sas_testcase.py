@@ -19,6 +19,9 @@ import os
 import unittest
 import sas_interface
 import sas
+import signal
+import time
+from util import timeout_error
 
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
@@ -100,3 +103,16 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
     # Return cbsd_ids and grant_ids
     return list_of_cbsd_ids_and_grant_ids
+
+  def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
+    self._sas_admin.TriggerDailyActivitiesImmediately()
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(Exception('Daily Activity Check Timeout')))
+
+    # Timeout after 2 hours if it's not completed
+    signal.alarm(7200)
+    # Check the Status of Daily Activities every 10 seconds
+    while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
+      time.sleep(10)
+    signal.alarm(0)
