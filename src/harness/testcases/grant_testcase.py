@@ -44,6 +44,7 @@ import json
 import os
 import sas_testcase
 import sas
+import time
 import signal
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent, TimeoutException, timeout_error
@@ -331,8 +332,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     signal.signal(signal.SIGALRM, timeout_error)
     # Timeout after 2 hours if it's not completed
     signal.alarm(7200)
-    while not self._sas_admin.GetDailyActivitiesStatus():
-      pass
+    # Check the Status of Daily Activities every 10 seconds
+    while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
+      time.sleep(10)
     signal.alarm(0)
 
     # Create Grant Request containing PAL and GAA frequency
