@@ -22,11 +22,6 @@ from datetime import datetime
 import uuid
 
 
-class TimeoutException(Exception):
-  def __init__(self):
-    Exception.__init__(self, "Process Timeout")
-
-
 def winnforum_testcase(testcase):
   """Decorator for common features(such as logging) for Winnforum test cases."""
 
@@ -130,9 +125,3 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
-
-
-def timeout_error(signum, frame):
-  raise TimeoutException()
-
-

@@ -106,7 +106,10 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
   def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
     self._sas_admin.TriggerDailyActivitiesImmediately()
-    signal.signal(signal.SIGALRM, timeout_error)
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(Exception('Daily Activity Check Timeout')))
+
     # Timeout after 2 hours if it's not completed
     signal.alarm(7200)
     # Check the Status of Daily Activities every 10 seconds
