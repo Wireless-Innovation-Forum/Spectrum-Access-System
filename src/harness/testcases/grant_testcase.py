@@ -44,11 +44,8 @@ import json
 import os
 import sas_testcase
 import sas
-import time
-import signal
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent, \
-  TriggerDailyActivitiesImmediatelyAndWaitUntilComplete
+  makePpaAndPalRecordsConsistent
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -328,7 +325,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectZoneData({'record': ppa_record})
 
     # Trigger daily activities and wait for it to get it complete
-    TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self._sas_admin)
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Create Grant Request containing PAL and GAA frequency
     grant_0 = json.load(
