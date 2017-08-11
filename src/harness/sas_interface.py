@@ -182,7 +182,7 @@ class SasInterface(object):
       ssl_cert: Path to SSL cert file, if None, will use default cert file.
       ssl_key: Path to SSL key file, if None, will use default key file.
     Returns:
-      A dictionary of Esc Sensor Data Message object specified in 
+      A dictionary of Esc Sensor Data Message object specified in
       WINNF-16-S-0096
     """
     pass
@@ -258,21 +258,6 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def InjectClusterList(self, request):
-    """"Associate a cluster list with an injected PPA.
-    The SAS under test will act as if the specified CBSDs were used to create
-    the PPA.
-
-    Args:
-      request: a dictionary with the following key-value pairs:
-        "zoneId": (string) the ID of the PPA to which this cluster list should
-        be added.
-        "cbsdIds": (array of string) the CBSD IDs of the devices in the cluster
-        list.
-    """
-    pass
-
-  @abc.abstractmethod
   def InjectPalDatabaseRecord(self, request):
     """Inject a PAL Database record into the SAS under test.
 
@@ -300,12 +285,12 @@ class SasAdminInterface(object):
     """SAS admin interface to inject WISP information into SAS under test.
 
     Args:
-      request: A dictionary with a single key-value pair where the key is
-        "record" and the value is a wireless internet service provider
-        object (which is itself a dictionary). The dictionary is an
-        IncumbentProtectionData object (specified in SAS-SAS TS).
-    Note: IncumbentProtectionData must include a zoneId which can be
-    obtained by first injecting the WISP zone.
+      request: A dictionary with two key-value pairs where the keys are
+        "record" and "zone" with the values IncumbentProtectionData 
+        object (specified in SAS-SAS TS) and a GeoJSON Object respectively
+    Note: Required Field in IncumbentProtectionData are id, type, 
+    deploymentParam->operationParam->operationFrequencyRange->
+    lowFrequency, highFrequency
     """
     pass
 
@@ -373,6 +358,42 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def TriggerPpaCreation(self, request):
+    """SAS admin interface to trigger PPA creation based on the CBSD Ids, 
+    Pal Ids and Provided Contour
+    
+    Args:
+      request: A dictionary with multiple key-value pairs where the keys are
+        cbsdIds: array of string containing CBSD Id
+        palIds: array of string containing PAL Id
+        providedContour(optional): GeoJSON Object
+        
+    Returns:
+      PPA Id in string format
+    """
+    pass
+
+  def TriggerDailyActivitiesImmediately(self):
+    """SAS admin interface to trigger daily activities immediately which will
+    execute the following activities:
+      1. Pull from all External Database and other SASes (URLs will be injected to 
+      SAS UUT using another RPC Call)
+      2. Run IAP and DPA Calculations
+      3. Apply EIRP updates to devices
+    """
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    """SAS admin interface to get the daily activities status
+    Returns:
+      A dictionary with a single key-value pair where the key is "completed" and the
+      value is a boolean with value as true if the daily activities is completed and 
+      false if the daily activities is running/failing.
+    """
+    pass
+
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -403,5 +424,55 @@ class SasTestcaseInterface(object):
     Returns:
       Nothing. It asserts if something about the response is broken/not per
       specs. Assumes it is dealing with an approved request.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegistered(self, registration_request,
+                       conditional_registration_data=None):
+    """Register a list of devices.
+
+    Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
+    Includes injection of FCC IDs and conditional registration data.
+
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A list of cbsd_ids.
+    """
+    pass
+
+  @abc.abstractmethod
+  def assertRegisteredAndGranted(self, registration_request, grant_request,
+                                 conditional_registration_data=None):
+    """Register and get grants for a list of devices.
+
+    Quickly register and grant N devices; assert SUCCESS for each step and
+    return corresponding CBSD and grant IDs.
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      grant_request: A dictionary with a single key-value pair where the key is
+        "grantRequest" and the value is a list of individual CBSD
+        grant requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A list of  dictionaries, each with keys "cbsdId" and "grantId".
     """
     pass
