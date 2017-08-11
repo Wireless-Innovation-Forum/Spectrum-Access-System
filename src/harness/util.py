@@ -20,6 +20,8 @@ from collections import defaultdict
 import random
 from datetime import datetime
 import uuid
+import signal
+import time
 
 
 class TimeoutException(Exception):
@@ -133,3 +135,14 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
+
+
+def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(_sas_admin):
+  _sas_admin.TriggerDailyActivitiesImmediately()
+  signal.signal(signal.SIGALRM, timeout_error)
+  # Timeout after 2 hours if it's not completed
+  signal.alarm(7200)
+  # Check the Status of Daily Activities every 10 seconds
+  while not _sas_admin.GetDailyActivitiesStatus()['completed']:
+    time.sleep(10)
+  signal.alarm(0)

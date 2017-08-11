@@ -47,11 +47,11 @@ import sas
 import time
 import signal
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent, TimeoutException, timeout_error
+  makePpaAndPalRecordsConsistent, \
+  TriggerDailyActivitiesImmediatelyAndWaitUntilComplete
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
-
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -328,14 +328,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectZoneData({'record': ppa_record})
 
     # Trigger daily activities and wait for it to get it complete
-    self._sas_admin.TriggerDailyActivitiesImmediately()
-    signal.signal(signal.SIGALRM, timeout_error)
-    # Timeout after 2 hours if it's not completed
-    signal.alarm(7200)
-    # Check the Status of Daily Activities every 10 seconds
-    while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
-      time.sleep(10)
-    signal.alarm(0)
+    TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self._sas_admin)
 
     # Create Grant Request containing PAL and GAA frequency
     grant_0 = json.load(
