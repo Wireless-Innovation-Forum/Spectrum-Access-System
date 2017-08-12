@@ -599,6 +599,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     self._sas_admin.InjectZoneData({"record": ppa_record})
 
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    
     # Create grant requests
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
