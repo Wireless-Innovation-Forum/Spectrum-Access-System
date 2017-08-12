@@ -14,14 +14,13 @@
 
 import json
 import os
-import unittest
-
+import sas_testcase
 import sas
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent
 
 
-class SpectrumInquiryTestcase(unittest.TestCase):
+class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -429,8 +428,12 @@ class SpectrumInquiryTestcase(unittest.TestCase):
 
     # Update PPA Record with CBSD ID and Inject Data
     ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_ids
-    self._sas_admin.InjectZoneData({"record": ppa_record})
+
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
     spectrum_inquiry_0 = json.load(
