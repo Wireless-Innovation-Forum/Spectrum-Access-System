@@ -18,9 +18,20 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import os
 import unittest
 import sas_interface
+import sas
+import signal
+import time
+from util import timeout_error
 
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
+
+  def setUp(self):
+    self._sas, self._sas_admin = sas.GetTestingSas()
+    self._sas_admin.Reset()
+
+  def tearDown(self):
+    pass
 
   def assertContainsRequiredFields(self, schema_filename, response):
     schema_filename = os.path.join('..', '..', 'schema', schema_filename)
@@ -45,3 +56,63 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     # operationParam should not be set if grant is approved
     self.assertFalse('operationParam' in grant_response)
     self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))
+
+  def assertRegistered(self, registration_request,
+                       conditional_registration_data=None):
+    for device in registration_request:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+    if conditional_registration_data:
+      self._sas_admin.PreloadRegistrationData(conditional_registration_data)
+
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check the registration response; collect CBSD IDs
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      self.assertTrue('cbsdId' in resp)
+      cbsd_ids.append(resp['cbsdId'])
+
+    # Return list of cbsd_ids
+    return cbsd_ids
+
+  def assertRegisteredAndGranted(self, registration_request, grant_request,
+                                 conditional_registration_data=None):
+    self.assertEqual(len(registration_request), len(grant_request))
+    cbsd_ids = self.assertRegistered(registration_request,
+                                     conditional_registration_data)
+    list_of_cbsd_ids_and_grant_ids = []
+
+    for cbsd_id, grant_req in zip(cbsd_ids, grant_request):
+      grant_req['cbsdId'] = cbsd_id
+
+    request = {'grantRequest': grant_request}
+    grant_response = self._sas.Grant(request)['grantResponse']
+
+    # Check the grant response; collect CBSD and Grant IDs
+    for cbsd_id, grant_resp in zip(cbsd_ids, grant_response):
+      self.assertEqual(grant_resp['cbsdId'], cbsd_id)
+      self.assertTrue(grant_resp['grantId'])
+      self.assertEqual(grant_resp['response']['responseCode'], 0)
+
+      list_of_cbsd_ids_and_grant_ids.append({
+          'cbsdId': grant_resp['cbsdId'],
+          'grantId': grant_resp['grantId']
+      })
+
+    # Return cbsd_ids and grant_ids
+    return list_of_cbsd_ids_and_grant_ids
+
+  def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
+    self._sas_admin.TriggerDailyActivitiesImmediately()
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(Exception('Daily Activity Check Timeout')))
+
+    # Timeout after 2 hours if it's not completed
+    signal.alarm(7200)
+    # Check the Status of Daily Activities every 10 seconds
+    while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
+      time.sleep(10)
+    signal.alarm(0)

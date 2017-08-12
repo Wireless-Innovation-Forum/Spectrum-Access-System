@@ -44,11 +44,11 @@ import json
 import os
 import sas_testcase
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
-
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -285,6 +285,65 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_15(self):
+    """CBSD requests a frequency range which is a mix of PAL and GAA channel.
+    
+    The Response Code should be 103(INVALID_PARAM)
+    """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+
+    # Register the device
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Inject PAL and PPA Database Record
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({'record': ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create Grant Request containing PAL and GAA frequency
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'][
+      'lowFrequency'] = pal_low_frequency
+    grant_0['operationParam']['operationFrequencyRange'][
+      'highFrequency'] = pal_high_frequency + 10000000.0
+    request = {'grantRequest': [grant_0]}
+    # Send grant request
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Frequency range is completely outside 3550-3700 MHz.
     The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
@@ -359,6 +418,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
