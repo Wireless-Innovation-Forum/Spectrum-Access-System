@@ -67,7 +67,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
     self.assertEqual(len(response['availableChannel']), 0)
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SIQ_5(self):
+  def test_WINNF_FT_S_SIQ_5_DEPRECATED(self):
     """Send Spectrum Inquiry for coastal exclusion zone spectrum.
 
     Category B device is located inside, then outside of the coastal exclusion
