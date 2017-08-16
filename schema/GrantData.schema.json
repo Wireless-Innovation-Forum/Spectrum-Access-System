@@ -4,10 +4,8 @@
 	"type": "object",
 	"required": [
     	"id",
-    	"terminated",
-    	"operationParam",
-    	"requestedOperationParam",
     	"channelType",
+    	"requestedOperationParam",
     	"grantExpireTime"
 	],
 	"properties":{

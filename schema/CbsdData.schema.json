@@ -16,7 +16,7 @@
 			"type": "object",
 			"description" : "Contains device installation parameters.",
 			"items" : {
-				"$ref" : "file:RegistrationRequest.schema.json"
+				"$ref" : "file:RegistrationData.schema.json"
 			}
 		},
 		"grants":{
