@@ -254,6 +254,12 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerFullActivityDump(self):
     pass
 
+  def TriggerDailyActivitiesImmediately(self):
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    return {'completed': True}
+
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
     """Parse the Url into the path and value"""
@@ -283,6 +289,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == 'admin/trigger/create_ppa':
       response = FakeSasAdmin().TriggerPpaCreation(request)
+    elif self.path == 'admin/get_daily_activities_status':
+      response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
@@ -295,6 +303,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
                        '/admin/trigger/create_full_activity_dump'):
+                       '/admin/trigger/daily_activities_immediately'):
       response = ''
     else:
       self.send_response(404)
