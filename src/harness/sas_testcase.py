@@ -21,6 +21,7 @@ import sas_interface
 import sas
 import signal
 import time
+from util import timeout_error
 
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
