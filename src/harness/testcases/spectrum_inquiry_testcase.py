@@ -442,8 +442,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
       # Update PPA Record with CBSD ID and Inject Data
       ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
-      self._sas_admin.InjectZoneData({"record": ppa_record})
       self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      self._sas_admin.InjectZoneData({"record": ppa_record})
 
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
