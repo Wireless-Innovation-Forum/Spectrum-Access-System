@@ -19,6 +19,7 @@ import sas_testcase
 from urllib import urlopen
 import validators
 from datetime import datetime, timedelta
+import hashlib
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
@@ -106,18 +107,18 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                         # Verify the response files with CbsdData.schema.json Object schema
                         self.assertContainsRequiredFields("CbsdData.schema.json", record)
                         self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
-                        self.assertTrue(record['registration']['userId'] in (device_a['userId'], device_c['userId']))
+                        self.assertTrue(record['registration']['cbsdCategory'] in (device_a['cbsdCategory'], device_c['cbsdCategory']))
                         for grant in record['grants']:
                             self.assertTrue(grant['id'] in grant_ids)
                     
                     # Check that all cbsds and grants are present in the full dump
-                    for cbsd_id in cbsd_ids:
-                        record_id = 'cbsd/'+ cbsd_id
+                    for device in [device_a, device_c]:
+                        record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
                         # Get grants by cbsd_id
                         grants_of_cbsd = [x['grants'] for x in data['recordData'] if x['id'] == record_id]
                         # Verify that grant_id in the full dump matches a grant created at the beginning
                         self.assertTrue(grants_of_cbsd[0][0]['id'] in (grant_ids))
                         # Get cbsd informations by cbsd_id
                         cbsd_informations = [x['registration'] for x in data['recordData'] if x['id'] == record_id]
-                        self.assertTrue(cbsd_informations[0]['fccId'] in (device_a['fccId'], device_c['fccId']))
-                        self.assertTrue(cbsd_informations[0]['userId'] in (device_a['userId'], device_c['userId']))
+                        self.assertEqual(cbsd_informations[0]['fccId'], device['fccId'])
+                        self.assertEqual(cbsd_informations[0]['cbsdCategory'], device['cbsdCategory'])
