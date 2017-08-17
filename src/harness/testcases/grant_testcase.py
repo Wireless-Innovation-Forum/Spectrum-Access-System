@@ -255,7 +255,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_14(self):
     """lowFrequency and highFrequency value in operationParam mutually invalid.
-    The response should be 103 (INVALID_PARAM)
+    The response should be 103 (INVALID_VALUE)
     """
     # Register the device
     device_a = json.load(
@@ -287,8 +287,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """CBSD requests a frequency range which is a mix of PAL and GAA channel.
-    
-    The Response Code should be 103(INVALID_PARAM)
+
+    The Response Code should be 103 (INVALID_VALUE)
     """
 
     # Load the Data
@@ -346,7 +346,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Frequency range is completely outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
@@ -378,7 +378,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_17(self):
     """Frequency range value in operationParam partially outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
