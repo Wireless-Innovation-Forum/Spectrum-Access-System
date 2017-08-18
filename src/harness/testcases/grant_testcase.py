@@ -255,7 +255,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_14(self):
     """lowFrequency and highFrequency value in operationParam mutually invalid.
-    The response should be 103 (INVALID_PARAM)
+    The response should be 103 (INVALID_VALUE)
     """
     # Register the device
     device_a = json.load(
@@ -287,8 +287,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """CBSD requests a frequency range which is a mix of PAL and GAA channel.
-    
-    The Response Code should be 103(INVALID_PARAM)
+
+    The Response Code should be 103 (INVALID_VALUE)
     """
 
     # Load the Data
@@ -346,7 +346,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Frequency range is completely outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
@@ -378,7 +378,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_17(self):
     """Frequency range value in operationParam partially outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
@@ -656,6 +656,75 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_25(self):
+    """One request is for a PAL channel and the other for a GAA channel, 
+    no incumbent present in the PAL and GAA frequency ranges used in the two requests.
+
+    The response should be 0 (NO_ERROR)"""
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    user_id = 'pal_device'
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_a['userId'] = user_id
+
+    # Register the devices and assert the Response
+    cbsd_ids = self.assertRegistered([device_a, device_c])
+
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    
+    # Create grant requests
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+    # Request for non-overlapping frequency spectrum
+    grant_0['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_low_frequency,
+      'highFrequency': pal_high_frequency
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': 3570000000.0,
+      'highFrequency': 3580000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertValidResponseFormatForApprovedGrant(resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_26(self):
     """Two grant requests. #1 Successful, #2 Unsuccessful.
 
@@ -760,7 +829,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
     # Register a device
     device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
@@ -769,18 +838,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Prepare grant requests with overlapping frequency range
     grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3565000000.0,
-      'highFrequency': 3567000000.0
+        'lowFrequency': 3560000000.0,
+        'highFrequency': 3570000000.0
     }
     grant_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-      'lowFrequency': 3566000000.0,
-      'highFrequency': 3568000000.0
+        'lowFrequency': 3565000000.0,
+        'highFrequency': 3580000000.0
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant request and get response
