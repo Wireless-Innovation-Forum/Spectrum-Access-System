@@ -39,18 +39,10 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # register devices
         device_a = json.load(
             open(os.path.join('testcases', 'testdata', 'device_a.json')))
-        self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
         device_c = json.load(
             open(os.path.join('testcases', 'testdata', 'device_c.json')))
-        self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-        request = {'registrationRequest': [device_a, device_c]}
-        response = self._sas.Registration(request)['registrationResponse']
-        # Check registration response
-        cbsd_ids = []
-        for resp in response:
-            self.assertEqual(resp['response']['responseCode'], 0)
-            cbsd_ids.append(resp['cbsdId'])
-        del request, response
+        # Register the devices and assert the Response
+        cbsd_ids = self.assertRegistered([device_a, device_c])
 
         # Create grant requests
         grant_0 = json.load(
@@ -74,6 +66,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # Check registration response
         grant_ids = []
         for resp in response:
+            self.assertValidResponseFormatForApprovedGrant(resp)
             self.assertEqual(resp['response']['responseCode'], 0)
             grant_ids.append(resp['grantId'])
         del request, response
