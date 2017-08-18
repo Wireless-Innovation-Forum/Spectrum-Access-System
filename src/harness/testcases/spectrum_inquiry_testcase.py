@@ -250,7 +250,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   def test_WINNF_FT_S_SIQ_12(self):
     """Send Spectrum Inquiry with non-existent cbsdId parameter.
 
-    The response should be INVALID_PARAM, code 103
+    The response should be INVALID_VALUE, code 103
     """
     # Register the device
     device_a = json.load(
@@ -278,7 +278,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   def test_WINNF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
-    The response should be INVALID_PARAM, code 103
+    The response should be INVALID_VALUE, code 103
     """
     # Register the device
     device_a = json.load(
@@ -314,7 +314,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   def test_WINNF_FT_S_SIQ_15(self):
     """Send Spectrum Inquiry with unsupported spectrum.
 
-    The response should be INVALID_PARAM, code 300
+    The response should be INVALID_VALUE, code 300
     """
     # Register the device
     device_a = json.load(
@@ -394,7 +394,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   def test_WINNF_FT_S_SIQ_19(self):
     """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
 
-    The response should be NO_ERROR (code 0) and INVALID_PARAM, code 103
+    The response should be NO_ERROR (code 0) and INVALID_VALUE, code 103
     """
     # Register the devices
     device_a = json.load(
@@ -494,7 +494,7 @@ class SpectrumInquiryTestcase(unittest.TestCase):
   def test_WINNF_FT_S_SIQ_21(self):
     """Send Spectrum Inquiry (two requests, both unsuccessful).
 
-    The response should be INVALID_PARAM, code 103 for both requests.
+    The response should be INVALID_VALUE, code 103 for both requests.
     """
     # Register the devices
     device_a = json.load(
