@@ -671,6 +671,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
     ppa_record = json.load(
