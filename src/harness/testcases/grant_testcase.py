@@ -424,6 +424,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
     ppa_record = json.load(
@@ -471,7 +474,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     request = {'grantRequest': [grant_0]}
     # Send grant requests
-    response = self._sas.Grant(request)['grantResponse']
+    response = self._sas.Grant(request)['grantResponse'][0]
 
     # Check grant response for first device Response Code 0
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
@@ -492,7 +495,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     request = {'grantRequest': [grant_1]}
     # Send grant requests
-    response = self._sas.Grant(request)['grantResponse']
+    response = self._sas.Grant(request)['grantResponse'][0]
 
     # Check grant response for second device Response Code 400
     self.assertEqual(response['cbsdId'], cbsd_ids[1])
