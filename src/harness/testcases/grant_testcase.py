@@ -561,6 +561,83 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_24(self):
+    """Both requests are for PAL channels, no incumbent present in the PAL frequency 
+    ranges used in the two requests. 
+
+    The response should be 0 (NO_ERROR)"""
+
+    # Load the Data
+    registration_request = []
+    ppa_records = []
+    pal_records = []
+    pal_frequency_0 = [3550000000.0, 3560000000.0]
+    pal_frequency_1 = [3570000000.0, 3580000000.0]
+
+    for device_filename, pal_filename, ppa_filename, frequency in zip(
+      ('device_a.json', 'device_c.json'),
+      ('pal_record_0.json', 'pal_record_1.json'),
+      ('ppa_record_0.json', 'ppa_record_1.json'),
+      (pal_frequency_0, pal_frequency_1)):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', pal_filename)))
+      ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_filename)))
+      ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                              [pal_record],
+                                                              frequency[0],
+                                                              frequency[1],
+                                                              device['userId'])
+
+      # Move the Device to a random location in PPA
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+      ppa_records.append(ppa_record)
+      pal_records.append(pal_record[0])
+      registration_request.append(device)
+
+    # Register the devices and assert the Response
+    cbsd_ids = self.assertRegistered(registration_request)
+
+    for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
+      # Update PPA Record with CBSD ID and Inject Data
+      ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create grant requests
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+
+    grant_0['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_frequency_0[0],
+      'highFrequency': pal_frequency_0[1]
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_frequency_1[0],
+      'highFrequency': pal_frequency_1[1]
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertValidResponseFormatForApprovedGrant(resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_26(self):
     """Two grant requests. #1 Successful, #2 Unsuccessful.
 
