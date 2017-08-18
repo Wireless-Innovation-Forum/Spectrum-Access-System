@@ -1,0 +1,27 @@
+{
+	"zoneData": {
+		"id": "zone/exclusion_zone/ntia/2017_04_10/esc_zone_not_contain_deviceA_harness_test",
+                "name": "exclusion_zone_for_Test",
+		"creator": "SAS_Administrator_Test",
+		"usage": "EXCLUSION_ZONE",  
+		"zone": { 
+	      		"type": "FeatureCollection",
+	      		"features": [ {
+		    		"type": "Feature", 
+		    		"properties": {}, 
+		    		"geometry": { 
+			  		"type": "Polygon", 
+			  		"coordinates": [ 
+			    		    [ 
+			      			[38.8, -97.34], 
+						[38.78, -97.22], 
+						[38.73, -96.23], 
+						[39.73, -96.31], 
+						[38.8, -97.34] 
+			    		    ]  
+			   		] 
+		    		}
+	      		}]
+	 	}
+	}
+}
