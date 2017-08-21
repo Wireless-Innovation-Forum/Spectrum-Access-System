@@ -194,14 +194,14 @@ class FakeSas(sas_interface.SasInterface):
 
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
     return {'files':[
-             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/Spectrum-Access-System/\
-             3a15aafa0c6c8bff1525dfa78295011f03026573/schema/empty_activity_dump_file.json",
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
               'checksum': None, 'size':0, 'version': "v1.0",'recordType': "cbsd" },
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-             Spectrum-Access-System/3a15aafa0c6c8bff1525dfa78295011f03026573/schema/empty_activity_dump_file.json",
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
               'checksum': None, 'size':0, 'version': "v1.0",'recordType': "zone" },
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-             Spectrum-Access-System/3a15aafa0c6c8bff1525dfa78295011f03026573/schema/empty_activity_dump_file.json",
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
               'checksum': None, 'size':0, 'version': "v1.0",'recordType': "coordination" }
             ],
             'generationDateTime': datetime.utcnow(),
