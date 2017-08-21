@@ -193,8 +193,17 @@ class FakeSas(sas_interface.SasInterface):
       return {}
 
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
-    return {'files':[{'url': "localhost", 'checksum': None, 'size':0, 'version': "v1.0",
-            'recordType': "cbsd" }],
+    return {'files':[
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/b6d36daf03bb68b82ca1db55cd2ac78a2e148986/schema/ActivityDumpFile.schema.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "cbsd" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/b6d36daf03bb68b82ca1db55cd2ac78a2e148986/schema/ActivityDumpFile.schema.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "zone" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/b6d36daf03bb68b82ca1db55cd2ac78a2e148986/schema/ActivityDumpFile.schema.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "coordination" }
+            ],
             'generationDateTime': datetime.utcnow(),
             'description':"Full activity dump files" }
 
