@@ -111,6 +111,32 @@ def _RequestGet(url, ssl_cert, ssl_key):
   logging.debug('Response:\n' + body)
   return json.loads(body)
 
+def DownloadFile(url, ssl_cert, ssl_key):
+  response = StringIO.StringIO()
+  conn = pycurl.Curl()
+  conn.setopt(conn.URL, url)
+  conn.setopt(conn.WRITEFUNCTION, response.write)
+  header = [
+      'Host: %s' % urlparse.urlparse(url).hostname,
+      'content-type: application/json'
+  ]
+  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+  conn.setopt(conn.SSLCERTTYPE, 'PEM')
+  conn.setopt(conn.SSLCERT, ssl_cert)
+  conn.setopt(conn.SSLKEY, ssl_key)
+  conn.setopt(conn.CAINFO, CA_CERT)
+  conn.setopt(conn.HTTPHEADER, header)
+  conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
+  logging.debug('Request to URL ' + url)
+  conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+  conn.perform()
+  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+  conn.close()
+  body = response.getvalue()
+  logging.debug('Response:\n' + body)
+  return json.loads(body)
+
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 

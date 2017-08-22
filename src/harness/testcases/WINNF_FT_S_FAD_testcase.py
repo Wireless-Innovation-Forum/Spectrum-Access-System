@@ -16,8 +16,6 @@ import os
 import sas
 from util import winnforum_testcase
 import sas_testcase
-from urllib import urlopen
-import validators
 from datetime import datetime, timedelta
 import hashlib
 
@@ -36,6 +34,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
         Response Code should be 200
         """
+        client_cert = os.path.join('certs', 'admin_client.cert')
+        client_key = os.path.join('certs', 'admin_client.key')
         # register devices
         device_a = json.load(
             open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -73,8 +73,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
         # Trigger the SAS to generate the activity dump
         self._sas_admin.TriggerFullActivityDump()
-
-        # Get dump 
+        # Get dump
         response = self._sas.GetFullActivityDump()
         # Verify the response with  FullActivityDump.schema.json Object schema
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
@@ -86,15 +85,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 if activity_dump_file['recordType'] == 'cbsd':
                     # Verify the response files with ActivityDumpFile.schema.json Object schema
                     self.assertContainsRequiredFields("ActivityDumpFile.schema.json", activity_dump_file)
-                    # Verify the url format is valid (pip install validators)
-                    self.assertTrue(validators.url(activity_dump_file['url']))
-                    # Verify the link to download the file dump is valid
-                    self.assertEqual(urlopen(activity_dump_file['url']).getcode(), 200)
-
-                    # Get data in file
-                    data = urlopen(activity_dump_file['url']).read()
-                    #Decoding JSON message from file 
-                    data = json.loads(data)
+                    # Get json data from url
+                    data = sas.DownloadFile(activity_dump_file['url'], client_cert, client_key)
                     # Verify that everything in the full dump matches a cbsd or grant created at the beginning
                     for record in data['recordData']:
                         # Verify the response files with CbsdData.schema.json Object schema
