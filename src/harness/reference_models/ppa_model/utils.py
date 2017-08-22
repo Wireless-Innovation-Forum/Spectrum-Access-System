@@ -30,7 +30,7 @@ import glob
 def great_circle(**kwargs):
   latitude = kwargs.pop('latitude')
   longitude = kwargs.pop('longitude')
-  distance = kwargs.pop('distance') # In Km.
+  distance = kwargs.pop('distance')  # In Km.
   azimuth = kwargs.pop('azimuth')
   calc = np.vectorize(to_dist_bear_vincenty)
   lat, lon, reverse = calc(latitude, longitude, distance, azimuth)
@@ -54,7 +54,7 @@ def convert_shape(polygon):
 
 
 def smooth(x, window_len=15):
-  s = np.r_[x[-1:-window_len / 2:-1], x, x[window_len / 2:0:-1]]
+  s = np.r_[x[-(window_len / 2):], x, x[0:window_len / 2]]
   w = np.hamming(window_len)
   y = np.convolve(w / w.sum(), s, mode='valid')
   return y
@@ -101,7 +101,7 @@ def make_pal_consistent(pal_record, pal_user_id, low_frequency, high_frequency):
 
 
 def load_files(device_filenames, pal_record_filenames,
-              pal_user_id, low_frequency, high_frequency):
+               pal_user_id, low_frequency, high_frequency):
   pal_records = []
   devices = []
 
@@ -109,7 +109,7 @@ def load_files(device_filenames, pal_record_filenames,
     pal_record = json.load(
       open(os.path.join('..', '..', 'testcases', 'testdata', pal_record_filename)))
     pal_record = make_pal_consistent(pal_record, pal_user_id,
-                                   low_frequency, high_frequency)
+                                     low_frequency, high_frequency)
     pal_records.append(pal_record)
 
   for device_filename in device_filenames:
@@ -140,11 +140,8 @@ def clip_ppa_census_tracts(pal_records, ppa_polygon):
   census_tracts = []
   for pal_record in pal_records:
     census_geometry = get_census_tracts(pal_record['license']
-                                      ['licenseAreaIdentifier'])
+                                        ['licenseAreaIdentifier'])
     census_tracts.append(census_geometry['zone']['features'][0]['geometry'])
   census_tracts = map(convert_shape, census_tracts)
   census_tracts_union = cascaded_union(census_tracts)
   return ppa_polygon.intersection(census_tracts_union)
-
-
-
