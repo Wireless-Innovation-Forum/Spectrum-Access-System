@@ -67,72 +67,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response['availableChannel']), 0)
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SIQ_5(self):
-    """Send Spectrum Inquiry for coastal exclusion zone spectrum.
-
-    Category B device is located inside, then outside of the coastal exclusion
-    zone and inquires for spectrum reserved for coastal exclusion zone.
-
-    The response should be Success, with NO channels in result.
-    """
-    # Register the device
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    self.assertEqual(device_b['cbsdCategory'], 'B')
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    # Locate this device close to coast (Half Moon Bay, Calif.)
-    device_b['installationParam']['latitude'] = 37.444267
-    device_b['installationParam']['longitude'] = -122.428628
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
-    cbsd_id = response['cbsdId']
-    del request, response
-
-    # Query for the spectrum affected by the coastal exclusion zone, i.e.
-    # 3550-3650 MHz.
-    spectrum_inquiry_0 = {
-        'cbsdId': cbsd_id,
-        'inquiredSpectrum': [{
-            'lowFrequency': 3550000000.0,
-            'highFrequency': 3650000000.0
-        }]
-    }
-    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
-    # Check spectrum inquiry response
-    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    self.assertEqual(len(response['availableChannel']), 0)
-    # Deregister the device and again register at new, non-coastal location
-    request = {'deregistrationRequest': [{'cbsdId': cbsd_id}]}
-    response = self._sas.Deregistration(request)['deregistrationResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-
-    # Query again, now in a location not affected by the coastal exclusion zone.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
-    cbsd_id = response['cbsdId']
-    del request, response
-    # Send spectrum inquiry and check response
-    spectrum_inquiry_1 = {
-        'cbsdId': cbsd_id,
-        'inquiredSpectrum': [{
-            'lowFrequency': 3550000000.0,
-            'highFrequency': 3650000000.0
-        }]
-    }
-    request = {'spectrumInquiryRequest': [spectrum_inquiry_1]}
-    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
-    self.assertEqual(response['cbsdId'], cbsd_id)
-    self.assertEqual(len(response['availableChannel']), 0)
-
-  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_8(self):
     """Send Spectrum Inquiry with missing cbsdId field.
 
@@ -250,7 +184,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_SIQ_12(self):
     """Send Spectrum Inquiry with non-existent cbsdId parameter.
 
-    The response should be INVALID_PARAM, code 103
+    The response should be INVALID_VALUE, code 103
     """
     # Register the device
     device_a = json.load(
@@ -278,7 +212,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
-    The response should be INVALID_PARAM, code 103
+    The response should be INVALID_VALUE, code 103
     """
     # Register the device
     device_a = json.load(
@@ -314,7 +248,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_SIQ_15(self):
     """Send Spectrum Inquiry with unsupported spectrum.
 
-    The response should be INVALID_PARAM, code 300
+    The response should be INVALID_VALUE, code 300
     """
     # Register the device
     device_a = json.load(
@@ -388,6 +322,94 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       for available_channel in resp['availableChannel']:
         self.assertEqual(available_channel['channelType'], 'GAA')
         self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_17(self):
+    """This test ensures that when a message with two requests, 
+    both for PAL channels, is sent with valid parameters, 
+    the SAS sends a successful response for both the requests.
+    Response Code must be 0 for all CBSDs
+    """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    registration_request = []
+    ppa_records = []
+    pal_records = []
+    for device_filename, pal_filename, ppa_filename in zip(
+      ('device_a.json', 'device_c.json'),
+      ('pal_record_0.json', 'pal_record_1.json'),
+      ('ppa_record_0.json', 'ppa_record_1.json')):
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', pal_filename)))
+      ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_filename)))
+      ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                              [pal_record],
+                                                              pal_low_frequency,
+                                                              pal_high_frequency,
+                                                              device['userId'])
+
+      # Move the Device to a random location in PPA
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+      ppa_records.append(ppa_record)
+      pal_records.append(pal_record[0])
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+
+    # Register the devices
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
+      # Update PPA Record with CBSD ID and Inject Data
+      ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
+    spectrum_inquiry_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'] = [{
+      'lowFrequency': 3550000000.0,
+      'highFrequency': 3700000000.0
+    }]
+    spectrum_inquiry_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+      'lowFrequency': 3550000000.0,
+      'highFrequency': 3700000000.0
+    }]
+    request = {
+      'spectrumInquiryRequest': [spectrum_inquiry_0, spectrum_inquiry_1]
+    }
+
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    self.assertEqual(len(response), 2)
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertTrue('availableChannel' in resp)
+      self.assertTrue(any(channel['channelType'] == 'PAL'
+                          for channel in resp['availableChannel']))
+      self.assertTrue(all(channel['ruleApplied'] == 'FCC_PART_96'
+                          for channel in resp['availableChannel']))
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -476,15 +498,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_19(self):
     """Send Spectrum Inquiry with dual requests #1 successful #2 unsuccessful.
-
-    The response should be NO_ERROR (code 0) and INVALID_PARAM, code 103
+    The response should be NO_ERROR (code 0) and INVALID_VALUE, code 103
     """
     # Register the devices
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+      open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
     response = self._sas.Registration(request)['registrationResponse']
@@ -497,18 +518,18 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Create Spectrum Inquiry requests
     spectrum_inquiry_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
     # Use invalid range for the second spectrum inquiry request
     spectrum_inquiry_1 = {
-        'cbsdId': cbsd_ids[1],
-        'inquiredSpectrum': [{
-            'lowFrequency': 3650000000.0,
-            'highFrequency': 3550000000.0
-        }]
+      'cbsdId': cbsd_ids[1],
+      'inquiredSpectrum': [{
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+      }]
     }
     request = {'spectrumInquiryRequest': [
-        spectrum_inquiry_0, spectrum_inquiry_1]}
+      spectrum_inquiry_0, spectrum_inquiry_1]}
     # Send spectrumInquiryRequest and get response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
     self.assertEqual(len(response), 2)
@@ -526,14 +547,13 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_20(self):
     """Send Spectrum Inquiry requesting for spectrum out of range.
-
     The response should be UNSUPPORTED_SPECTRUM, code 300
     """
     # Register the devices
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+      open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
@@ -548,18 +568,18 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Create two Spectrum Inquiry requests, second one with frequency range
     # outside 3550 - 3700 MHz
     spectrum_inquiry_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_1['cbsdId'] = cbsd_ids[0]
 
     spectrum_inquiry_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_2['cbsdId'] = cbsd_ids[1]
     spectrum_inquiry_2['inquiredSpectrum'] = [{
-        'lowFrequency': 3300000000.0,
-        'highFrequency': 3350000000.0
+      'lowFrequency': 3300000000.0,
+      'highFrequency': 3350000000.0
     }]
     request = {
-        'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
+      'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
     }
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
     # Check Spectrum Inquiry Response #1
@@ -576,14 +596,13 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_21(self):
     """Send Spectrum Inquiry (two requests, both unsuccessful).
-
-    The response should be INVALID_PARAM, code 103 for both requests.
+    The response should be INVALID_VALUE, code 103 for both requests.
     """
     # Register the devices
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+      open(os.path.join('testcases', 'testdata', 'device_b.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     request = {'registrationRequest': [device_a, device_b]}
@@ -596,22 +615,22 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Create Invalid Spectrum Inquiry requests
     spectrum_inquiry_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_1['cbsdId'] = cbsd_ids[0]
     spectrum_inquiry_1['inquiredSpectrum'] = [{
-        'lowFrequency': 3650000000.0,
-        'highFrequency': 3550000000.0,
+      'lowFrequency': 3650000000.0,
+      'highFrequency': 3550000000.0,
     }]
 
     spectrum_inquiry_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_2['cbsdId'] = cbsd_ids[1]
     spectrum_inquiry_2['inquiredSpectrum'] = [{
-        'lowFrequency': 3750000000.0,
-        'highFrequency': 3650000000.0,
+      'lowFrequency': 3750000000.0,
+      'highFrequency': 3650000000.0,
     }]
     request = {
-        'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
+      'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
     }
     # Send Spectrum Inquiry requests and Check Responses
     responses = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
