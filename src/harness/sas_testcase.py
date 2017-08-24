@@ -89,7 +89,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     request = {'grantRequest': grant_request}
     grant_response = self._sas.Grant(request)['grantResponse']
 
-    # Check the grant response; collect CBSD and Grant IDs
+    # Check the grant response
     for cbsd_id, grant_resp in zip(cbsd_ids, grant_response):
       self.assertEqual(grant_resp['cbsdId'], cbsd_id)
       self.assertTrue(grant_resp['grantId'])
