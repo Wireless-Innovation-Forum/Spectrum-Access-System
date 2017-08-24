@@ -255,7 +255,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_14(self):
     """lowFrequency and highFrequency value in operationParam mutually invalid.
-    The response should be 103 (INVALID_PARAM)
+    The response should be 103 (INVALID_VALUE)
     """
     # Register the device
     device_a = json.load(
@@ -287,8 +287,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """CBSD requests a frequency range which is a mix of PAL and GAA channel.
-    
-    The Response Code should be 103(INVALID_PARAM)
+
+    The Response Code should be 103 (INVALID_VALUE)
     """
 
     # Load the Data
@@ -346,7 +346,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Frequency range is completely outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
@@ -378,7 +378,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_17(self):
     """Frequency range value in operationParam partially outside 3550-3700 MHz.
-    The response should be 103 (INVALID_PARAM) or 300 (UNSUPPORTED_SPECTRUM)
+    The response should be 103 (INVALID_VALUE) or 300 (UNSUPPORTED_SPECTRUM)
     """
     # Register the device
     device_a = json.load(
@@ -408,6 +408,101 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 300))
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_18(self):
+    """Frequency range requested by a CBSD overlaps with PAL channel and 
+    the CBSD is inside claimed PPA boundary.
+
+    Response Code should be 400 for second device
+    """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    user_id = 'pal_device'
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_c['installationParam']['latitude'], \
+    device_c['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_a['userId'] = user_id
+
+    # Register the devices
+    request = {'registrationRequest': [device_a, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create grant request for first device
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_low_frequency,
+      'highFrequency': pal_high_frequency
+    }
+
+    request = {'grantRequest': [grant_0]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse'][0]
+
+    # Check grant response for first device Response Code 0
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertTrue('grantId' in response)
+    self.assertValidResponseFormatForApprovedGrant(response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Create grant request for second device
+    grant_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    # Request for overlapping frequency spectrum
+    grant_1['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_low_frequency,
+      'highFrequency': pal_high_frequency
+    }
+
+    request = {'grantRequest': [grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse'][0]
+
+    # Check grant response for second device Response Code 400
+    self.assertEqual(response['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 400)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_20(self):
     """First request granted as PAL or GAA channel, send next request 
     for PAL or GAA channel for the same frequency range
@@ -418,6 +513,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register the device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request)['registrationResponse'][0]
     # Check registration response
@@ -547,6 +643,78 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_1['operationParam']['operationFrequencyRange'] = {
       'lowFrequency': 3640000000.0,
       'highFrequency': 3650000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertValidResponseFormatForApprovedGrant(resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_25(self):
+    """One request is for a PAL channel and the other for a GAA channel, 
+    no incumbent present in the PAL and GAA frequency ranges used in the two requests.
+
+    The response should be 0 (NO_ERROR)"""
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    user_id = 'pal_device'
+    device_a = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
+
+    # Move the Device to a random location in PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_a['userId'] = user_id
+
+    # Register the devices and assert the Response
+    cbsd_ids = self.assertRegistered([device_a, device_c])
+
+    # Update PPA Record with CBSD ID and Inject Data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    
+    # Create grant requests
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+    # Request for non-overlapping frequency spectrum
+    grant_0['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': pal_low_frequency,
+      'highFrequency': pal_high_frequency
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+      'lowFrequency': 3570000000.0,
+      'highFrequency': 3580000000.0
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant requests
