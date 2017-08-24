@@ -14,13 +14,13 @@
 
 import json
 import os
-import unittest
-
+import sas_testcase
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent
 
 
-class SpectrumInquiryTestcase(unittest.TestCase):
+class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -322,6 +322,95 @@ class SpectrumInquiryTestcase(unittest.TestCase):
       for available_channel in resp['availableChannel']:
         self.assertEqual(available_channel['channelType'], 'GAA')
         self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_17(self):
+    """This test ensures that when a message with two requests, 
+    both for PAL channels, is sent with valid parameters, 
+    the SAS sends a successful response for both the requests.
+    Response Code must be 0 for all CBSDs
+    """
+
+    # Load the Data
+    pal_low_frequency = 3550000000.0
+    pal_high_frequency = 3560000000.0
+    registration_request = []
+    ppa_records = []
+    pal_records = []
+    for device_filename, pal_filename, ppa_filename in zip(
+      ('device_a.json', 'device_c.json'),
+      ('pal_record_0.json', 'pal_record_1.json'),
+      ('ppa_record_0.json', 'ppa_record_1.json')):
+
+      device = json.load(
+        open(os.path.join('testcases', 'testdata', device_filename)))
+      pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', pal_filename)))
+      ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', ppa_filename)))
+      ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                              [pal_record],
+                                                              pal_low_frequency,
+                                                              pal_high_frequency,
+                                                              device['userId'])
+
+      # Move the Device to a random location in PPA
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+      ppa_records.append(ppa_record)
+      pal_records.append(pal_record[0])
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      registration_request.append(device)
+
+    # Register the devices
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    for ppa_record, pal_record, cbsd_id in zip(ppa_records, pal_records, cbsd_ids):
+      # Update PPA Record with CBSD ID and Inject Data
+      ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_id]
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to get it complete
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create Spectrum Inquiry requests, setting freq. ranges to 3550-3700 MHz
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[1]
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000.0,
+        'highFrequency': 3700000000.0
+    }]
+    request = {
+        'spectrumInquiryRequest': [spectrum_inquiry_0, spectrum_inquiry_1]
+    }
+
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    self.assertEqual(len(response), 2)
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
+      self.assertTrue('availableChannel' in resp)
+      self.assertTrue(any(channel['channelType'] == 'PAL'
+                          for channel in resp['availableChannel']))
+      self.assertTrue(all(channel['ruleApplied'] == 'FCC_PART_96'
+                          for channel in resp['availableChannel']))
       self.assertEqual(resp['response']['responseCode'], 0)
 
   @winnforum_testcase
