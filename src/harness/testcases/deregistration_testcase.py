@@ -315,6 +315,7 @@ class DeregistrationTestcase(unittest.TestCase):
     response_code = response['response']['responseCode']
     # Check the heartbeat response
     self.assertIn(response_code, [103, 500])
+    self.assertTrue('transmitExpireTime' in response)
     del request, response
 
     # Deregister the device
