@@ -473,7 +473,7 @@ class SasTestcaseInterface(object):
         required, other fields are optional.
 
     Returns:
-      A list of  dictionaries, each with keys "cbsdId" and "grantId".
+      A tuple containing list of cbsdIds and grantIds.
     """
     pass
 

@@ -81,11 +81,11 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     self.assertEqual(len(registration_request), len(grant_request))
     cbsd_ids = self.assertRegistered(registration_request,
                                      conditional_registration_data)
-    list_of_cbsd_ids_and_grant_ids = []
 
     for cbsd_id, grant_req in zip(cbsd_ids, grant_request):
       grant_req['cbsdId'] = cbsd_id
 
+    grant_ids = []
     request = {'grantRequest': grant_request}
     grant_response = self._sas.Grant(request)['grantResponse']
 
@@ -94,14 +94,10 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
       self.assertEqual(grant_resp['cbsdId'], cbsd_id)
       self.assertTrue(grant_resp['grantId'])
       self.assertEqual(grant_resp['response']['responseCode'], 0)
-
-      list_of_cbsd_ids_and_grant_ids.append({
-        'cbsdId': grant_resp['cbsdId'],
-        'grantId': grant_resp['grantId']
-      })
+      grant_ids.append(grant_resp['grantId'])
 
     # Return cbsd_ids and grant_ids
-    return list_of_cbsd_ids_and_grant_ids
+    return cbsd_ids, grant_ids
 
   def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
     transmit_expire_times = []
