@@ -15,6 +15,7 @@
 
 import json
 from jsonschema import validate, Draft4Validator, RefResolver
+from datetime import datetime
 import os
 import unittest
 import sas_interface
@@ -24,7 +25,6 @@ import time
 
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
-
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -81,27 +81,52 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     self.assertEqual(len(registration_request), len(grant_request))
     cbsd_ids = self.assertRegistered(registration_request,
                                      conditional_registration_data)
-    list_of_cbsd_ids_and_grant_ids = []
 
     for cbsd_id, grant_req in zip(cbsd_ids, grant_request):
       grant_req['cbsdId'] = cbsd_id
 
+    grant_ids = []
     request = {'grantRequest': grant_request}
     grant_response = self._sas.Grant(request)['grantResponse']
 
-    # Check the grant response; collect CBSD and Grant IDs
+    # Check the grant response
     for cbsd_id, grant_resp in zip(cbsd_ids, grant_response):
       self.assertEqual(grant_resp['cbsdId'], cbsd_id)
       self.assertTrue(grant_resp['grantId'])
       self.assertEqual(grant_resp['response']['responseCode'], 0)
-
-      list_of_cbsd_ids_and_grant_ids.append({
-          'cbsdId': grant_resp['cbsdId'],
-          'grantId': grant_resp['grantId']
-      })
+      grant_ids.append(grant_resp['grantId'])
 
     # Return cbsd_ids and grant_ids
-    return list_of_cbsd_ids_and_grant_ids
+    return cbsd_ids, grant_ids
+
+  def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
+    transmit_expire_times = []
+    self.assertEqual(len(cbsd_ids), len(grant_ids))
+    self.assertEqual(len(cbsd_ids), len(operation_states))
+    heartbeat_requests = []
+    for cbsd_id, grant_id, operation_state in zip(cbsd_ids, grant_ids,
+                                                  operation_states):
+      heartbeat_requests.append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
+        'operationState': operation_state
+      })
+
+    heartbeat_response = self._sas.Heartbeat({
+      'heartbeatRequest': heartbeat_requests})['heartbeatResponse']
+
+    for index, response in enumerate(heartbeat_response):
+      # Check the heartbeat response
+      self.assertEqual(response['cbsdId'], cbsd_ids[index])
+      self.assertEqual(response['grantId'], grant_ids[index])
+      transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(
+        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+      self.assertEqual(response['response']['responseCode'], 0)
+      transmit_expire_times.append(response['transmitExpireTime'])
+    return transmit_expire_times
 
   def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
     self._sas_admin.TriggerDailyActivitiesImmediately()
