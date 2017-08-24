@@ -476,3 +476,32 @@ class SasTestcaseInterface(object):
       A list of  dictionaries, each with keys "cbsdId" and "grantId".
     """
     pass
+
+  @abc.abstractmethod
+  def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
+    """Make a heartbeat requests for list of devices with its grants
+    
+    Sends heartbeat requests and assert the response with a check for valid cbsd id,
+     grant id, and transmit expire time
+    Args:
+      cbsd_ids: A list containing cbsd Ids 
+      grant_ids: A list containing grant Id associated with each device in cbsd_ids list
+      operation_states: A list containing operation states (AUTHORIZED or GRANTED)
+      for each devices in the cbsd_ids list
+    Returns:
+      A list of transmit expire time in the format YYYY-MM-DDThh:mm:ssZ    
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
+    """
+    Trigger the Daily Activities Immediately and will check for the status
+    of activity every 10 seconds until it is completed.
+    If the status is not changed within 2 hours it will throw an exception
+    """
+    pass
+
+
+
+
