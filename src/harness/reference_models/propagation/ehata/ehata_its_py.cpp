@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include <Python.h>
-
 #include <iostream>
+
 #include "its/ehata.h"
 
 static PyObject* ExtendedHata(PyObject* self, PyObject* args) {
@@ -31,19 +31,33 @@ static PyObject* ExtendedHata(PyObject* self, PyObject* args) {
   if (!PyList_Check(elev_obj)) {
     return NULL;
   }
-
   Py_ssize_t size = PyList_Size(elev_obj);
+  if (size < 4) {
+    PyErr_SetString(PyExc_ValueError, "Invalid profile size. Should be >= 4.");
+    return NULL;
+  }
+  // Build reverse profile from Rx to Tx, as it is the convention
+  // for E-Hata C++ module.
   double* elev = new double[size];
-  for (Py_ssize_t i = 0; i < size; i++) {
-    PyObject* i_obj = PyList_GetItem(elev_obj, i);
+  PyObject *obj = PyList_GetItem(elev_obj, 0);
+  elev[0] = PyFloat_AsDouble(obj);
+  obj = PyList_GetItem(elev_obj, 1);
+  elev[1] = PyFloat_AsDouble(obj);
+  for (Py_ssize_t i = 2; i < size; i++) {
+    PyObject* i_obj = PyList_GetItem(elev_obj, size+1-i);
     elev[i] = PyFloat_AsDouble(i_obj);
-    if (PyErr_Occurred()) {
-      delete[] elev;
-      return NULL;
-    }
+  }
+  if (PyErr_Occurred()) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Profile should only contain numerical values.");
+    return NULL;
+  }
+  if (elev[0] > size-3) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Invalid Profile. Size in slot 0 bigger than actual list size.");
+    return NULL;
   }
 
-  elev[0] = size-3;
   double dbloss;
   InterValues dbg_vals;
   ExtendedHata_DBG(elev, frq_mhz, hb_m, hm_m, environment,
@@ -117,7 +131,7 @@ static PyObject* SetWinnForumExtensions(PyObject* self, PyObject* args) {
 
   SetWinnForumExtensions(on);
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 

@@ -108,7 +108,7 @@ class TestWfHybrid(unittest.TestCase):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.771594, -122.253895, 10.0
     reliabilities = [0.1, 0.5, 0.9]
-    expected_losses = [170.677, 170.677, 170.677]
+    expected_losses = [148.740, 148.740, 148.740]
 
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
@@ -160,38 +160,6 @@ class TestWfHybrid(unittest.TestCase):
                                     reliability=-1, freq_mhz=3625.,
                                     region='SUBURBAN')
     self.assertAlmostEqual(avg_res.db_loss, np.mean(losses), 5)
-
-  def test_eff_height_within3km(self):
-    profile = [4, 500, 1, 2, 3, 4, 5]
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(50, eff_tx_m)
-
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(19, profile)
-    self.assertEqual(20, eff_tx_m)
-
-  def test_eff_height_within15km(self):
-    profile = [9, 1000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(47, eff_tx_m)
-
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(21, profile)
-    self.assertEqual(20, eff_tx_m)
-
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(19, profile)
-    self.assertEqual(20, eff_tx_m)
-
-    profile = [5, 800, 12, 2, 3, 4, 5, 7]
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(50.5, eff_tx_m)
-
-  def test_eff_height_over15km(self):
-    profile = [9, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(45.5, eff_tx_m)
-
-    profile = [12, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40]
-    eff_tx_m = wf_hybrid.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(45.5, eff_tx_m)
 
 
 if __name__ == '__main__':

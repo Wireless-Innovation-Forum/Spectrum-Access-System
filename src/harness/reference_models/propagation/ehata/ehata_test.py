@@ -20,8 +20,8 @@ import unittest
 
 from reference_models.propagation.ehata import ehata
 
-
 # Read a profile in test/pfls directory
+# Note: reverse it to be from Tx to Rx
 def ReadProfileFile(filename):
   profiles = []
   with open(filename) as fd:
@@ -30,7 +30,11 @@ def ReadProfileFile(filename):
       profile = [float(val) for val in row]
       profile[0] = int(profile[0])
       profile = profile[0:int(profile[0])+3]
-      profiles.append(profile)
+      # Reverse profiles from Tx to Rx
+      rev_profile = profile[0:2]
+      rev_profile.extend(profile[-1:1:-1])
+      profiles.append(rev_profile)
+
   return profiles
 
 
@@ -53,9 +57,9 @@ class TestEHata(unittest.TestCase):
         os.path.join(self.test_dir, 'test-inputs-wfmod.csv'))
 
   # Test the ITS eHata version with original testbed code from ITS
-  def test_its_testbed_c(self):
-    if not 'c_ehata' in globals(): return
-    c_ehata.SetWinnForumExtensions(False)
+  def test_its_testbed(self):
+    ehata.SetWinnForumExtensions(False)
+    print "ITS extension module"
     for test in self.tests:
       # read all data for the profile test
       scenario = test[self.columns.index('Scenario Title')]
@@ -68,9 +72,41 @@ class TestEHata(unittest.TestCase):
       env_code = int(test[self.columns.index('env')])
       exp_ploss = float(test[self.columns.index('Path Loss(dB)')])
 
-      ploss = c_ehata.ExtendedHata(profile, freq_mhz, hb, hm, env_code)
-      #print "%s: %f vs %f" % (scenario, ploss, exp_ploss)
+      ploss = ehata.ExtendedHata(profile, freq_mhz, hb, hm, env_code)
+      print "%s: %f vs %f" % (scenario, ploss, exp_ploss)
       self.assertAlmostEqual(ploss, exp_ploss, 4)
+
+  def test_eff_height_within3km(self):
+    profile = [4, 500, 1, 2, 3, 4, 5]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(50, eff_tx_m)
+
+    eff_tx_m = ehata.CbsdEffectiveHeights(19, profile)
+    self.assertEqual(20, eff_tx_m)
+
+  def test_eff_height_within15km(self):
+    profile = [9, 1000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(47, eff_tx_m)
+
+    eff_tx_m = ehata.CbsdEffectiveHeights(21, profile)
+    self.assertEqual(20, eff_tx_m)
+
+    eff_tx_m = ehata.CbsdEffectiveHeights(19, profile)
+    self.assertEqual(20, eff_tx_m)
+
+    profile = [5, 800, 12, 2, 3, 4, 5, 9]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(50.5, eff_tx_m)
+
+  def test_eff_height_over15km(self):
+    profile = [9, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(46.0, eff_tx_m)
+
+    profile = [12, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(46.0, eff_tx_m)
 
 
 if __name__ == '__main__':

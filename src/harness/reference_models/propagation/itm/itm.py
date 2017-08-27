@@ -31,7 +31,7 @@ def point_to_point(its_elev, height_tx, height_rx,
   """Computes the ITM propagation path loss.
 
   Inputs:
-    its_elev:   Terrain profile in ITS format:
+    its_elev:   Terrain profile in ITS format from transmitter to receiver::
                  - pfl[0] = number of elevation points - 1
                  - pfl[1] = step size, in meters
                  - pfl[2..N] = elevation above mean sea level, in meters

@@ -246,7 +246,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   internals['itm_db_loss'] = db_loss_itm
 
   # Calculate the effective heights of the tx
-  height_cbsd_eff = CbsdEffectiveHeights(height_cbsd, its_elev)
+  height_cbsd_eff = ehata.CbsdEffectiveHeights(height_cbsd, its_elev)
   internals['effective_height_cbsd'] = height_cbsd_eff
 
   # Use ITM if CBSD effective height greater than 200 m
@@ -381,43 +381,3 @@ def CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx):
   r = math.sqrt((1000. * dist_km)**2 + (height_cbsd - height_rx)**2)
   db_loss = 20. * math.log10(r) + 20. * math.log10(freq_mhz) - 27.56
   return db_loss
-
-
-def CbsdEffectiveHeights(height_cbsd, its_elev):
-  """Get the CBSD effective height 'h_b'.
-
-  According to Winnforum spec R2-SGN-04.
-
-  Inputs:
-    height_cbsd: height of the CBSD above terrain (meters).
-    its_elev:  terrain profile in ITS format.
-
-  Returns:
-    the CBSD effective height.
-  """
-
-  np = int(its_elev[0])
-  xi = its_elev[1] * 0.001   # step size of the profile points, in km
-  dist_km = np * xi          # path distance, in km
-  elev_cbsd = its_elev[2]
-
-  if height_cbsd < 20:
-    height_cbsd = 20.
-
-  if dist_km < 3.0:
-    eff_height = height_cbsd
-
-  else: # dist_km >= 3
-    i_start = 2 + int(math.ceil(3.0 / xi))
-    i_end = np + 2
-    if dist_km > 15:
-      i_end = 2 + int(math.floor(15.0 / xi))
-      dist_km = 15.0
-
-    avg_height = sum(its_elev[i_start:i_end+1]) / float(i_end - i_start + 1)
-    eff_height = height_cbsd + (dist_km - 3.0) / 12.0 * (elev_cbsd - avg_height)
-
-  if eff_height < 20:
-    eff_height = 20
-
-  return eff_height

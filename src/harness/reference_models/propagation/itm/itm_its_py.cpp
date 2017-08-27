@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "its/itm.h"
 #include <Python.h>
-
 #include <iostream>
+
+#include "its/itm.h"
+
 
 static PyObject* itm_point_to_point(PyObject* self, PyObject* args) {
   PyObject* elev_obj = NULL;
@@ -38,18 +39,28 @@ static PyObject* itm_point_to_point(PyObject* self, PyObject* args) {
   }
 
   Py_ssize_t size = PyList_Size(elev_obj);
+  if (size < 4) {
+    PyErr_SetString(PyExc_ValueError, "Invalid profile size. Should be >= 4.");
+    return NULL;
+  }
+
   double* elev = new double[size];
   for (Py_ssize_t i = 0; i < size; i++) {
     PyObject* i_obj = PyList_GetItem(elev_obj, i);
     double elev_val = PyFloat_AsDouble(i_obj);
-    if (PyErr_Occurred()) {
-      delete[] elev;
-      return NULL;
-    }
     elev[i] = elev_val;
   }
+  if (PyErr_Occurred()) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Profile should only contain numerical values.");
+    return NULL;
+  }
+  if (elev[0] > size-3) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Invalid Profile. Size in slot 0 bigger than actual list size.");
+    return NULL;
+  }
 
-  elev[0] = size-3;
   double dbloss;
   char strmode[100];
   int errnum;
@@ -86,30 +97,46 @@ static PyObject* itm_point_to_point_rels(PyObject* self, PyObject* args) {
   if (!PyList_Check(rels_obj)) {
     return NULL;
   }
-
+  // Get the profile
   Py_ssize_t size = PyList_Size(elev_obj);
+  if (size < 4) {
+    PyErr_SetString(PyExc_ValueError, "Invalid profile size. Should be >= 4.");
+    return NULL;
+  }
+
   double* elev = new double[size];
   for (Py_ssize_t i = 0; i < size; i++) {
     PyObject* i_obj = PyList_GetItem(elev_obj, i);
     double elev_val = PyFloat_AsDouble(i_obj);
-    if (PyErr_Occurred()) {
-      delete[] elev;
-      return NULL;
-    }
     elev[i] = elev_val;
   }
-  elev[0] = size-3;
-
+  if (PyErr_Occurred()) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Profile should only contain numerical values.");
+    return NULL;
+  }
+  if (elev[0] > size-3) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Invalid Profile. Size in slot 0 bigger than actual list size.");
+    return NULL;
+  }
+  // Get the reliability list
   size = PyList_Size(rels_obj);
+  if (size <= 0) {
+    delete[] elev;
+    PyErr_SetString(PyExc_ValueError, "Reliabilities list empty.");
+  }
   double* rels = new double[size];
   for (Py_ssize_t i = 0; i < size; i++) {
     PyObject* rel_obj = PyList_GetItem(rels_obj, i);
     double rel = PyFloat_AsDouble(rel_obj);
-    if (PyErr_Occurred()) {
-      delete[] rels;
-      return NULL;
-    }
     rels[i] = rel;
+  }
+  if (PyErr_Occurred()) {
+    delete[] elev;
+    delete[] rels;
+    PyErr_SetString(PyExc_ValueError, "Reliabilities list should only contain numerical values.");
+    return NULL;
   }
   int num_rels = size;
   double* db_losses = new double[num_rels];

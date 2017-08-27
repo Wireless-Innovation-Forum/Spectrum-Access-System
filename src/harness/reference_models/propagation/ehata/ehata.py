@@ -29,44 +29,82 @@ def SetWinnForumExtensions(on):
   ehata_its.SetWinnForumExtensions(on)
 
 def ExtendedHata(its_elev, freq_mhz, height_tx, height_rx, region_code):
-    """Computes the E-Hata propagation path loss.
+  """Computes the E-Hata propagation path loss.
 
-    Inputs:
-      its_elev : Terrain profile in ITS format:
-                 - pfl[0] = number of elevation points - 1
-                 - pfl[1] = step size, in meters
-                 - pfl[2..N] = elevation above mean sea level, in meters
-      freq_mhz:  frequency (MHz).
-      height_tx: height of transmitter (meters).
-      height_rx: height of receiver (meters).
-      region_code: environment code among:
-              22 = suburban
-              23 or 24 = urban
-              other = rural
-    Returns:
-      the path loss in dB.
-    """
-    step_meters = its_elev[1]
-    if step_meters <= 25:
-      raise Exception("E-HATA model does not support profile step below 25m.")
-    return ehata_its.ExtendedHata(its_elev, freq_mhz, height_tx, height_rx, region_code)
+  Inputs:
+    its_elev : Terrain profile in ITS format from transmitter to receiver:
+               - pfl[0] = number of elevation points - 1
+               - pfl[1] = step size, in meters
+               - pfl[2..N] = elevation above mean sea level, in meters
+    freq_mhz:  frequency (MHz).
+    height_tx: height of transmitter (meters).
+    height_rx: height of receiver (meters).
+    region_code: environment code among:
+            22 = suburban
+            23 or 24 = urban
+            other = rural
+  Returns:
+    the path loss in dB.
+  """
+  return ehata_its.ExtendedHata(its_elev, freq_mhz, height_tx, height_rx, region_code)
 
 
 def MedianBasicPropLoss(freq_mhz, height_tx, height_rx, dist_km, region_code):
-    """Computes the Median Basic propagation loss.
+  """Computes the Median Basic propagation loss.
 
-    Differs from ExtendedHata() by not applying the various internal corrections.
+  Differs from ExtendedHata() by not applying the various internal corrections.
 
-    Inputs:
-      freq_mhz:  frequency (MHz).
-      height_tx: height of transmitter (meters).
-      height_rx: height of receiver (meters).
-      dist_km: distance between Tx and Rx (km)
-      region_code: environment code among:
-              22 = suburban
-              23 or 24 = urban
-              other = rural
-    Returns:
-      the pathloss in dB.
-    """
-    return ehata_its.MedianBasicPropLoss(freq_mhz, height_tx, height_rx, dist_km, region_code)
+  Inputs:
+    freq_mhz:  frequency (MHz).
+    height_tx: height of transmitter (meters).
+    height_rx: height of receiver (meters).
+    dist_km: distance between Tx and Rx (km)
+    region_code: environment code among:
+            22 = suburban
+            23 or 24 = urban
+            other = rural
+  Returns:
+    the pathloss in dB.
+  """
+  return ehata_its.MedianBasicPropLoss(freq_mhz, height_tx, height_rx, dist_km, region_code)
+
+
+def CbsdEffectiveHeights(height_cbsd, its_elev):
+  """Get the CBSD effective height 'h_b'.
+
+  According to Winnforum spec R2-SGN-04. Also same logic
+  as in internal ITS code (after corrections).
+
+  Inputs:
+    height_cbsd: height of the CBSD above terrain (meters).
+    its_elev:  terrain profile in ITS format.
+
+  Returns:
+    the CBSD effective height.
+  """
+
+  np = int(its_elev[0])
+  xi = its_elev[1] * 0.001   # step size of the profile points, in km
+  dist_km = np * xi          # path distance, in km
+  elev_cbsd = its_elev[2]
+
+  if height_cbsd < 20:
+    height_cbsd = 20.
+
+  if dist_km < 3.0:
+    eff_height = height_cbsd
+
+  else: # dist_km >= 3 km
+    i_start = 2 + int(3.0 / xi)
+    i_end = np + 2
+    if dist_km > 15:
+      i_end = 2 + int(15.0 / xi)
+      dist_km = 15.0
+
+    avg_height = sum(its_elev[i_start:i_end+1]) / float(i_end - i_start + 1)
+    eff_height = height_cbsd + (dist_km - 3.0) / 12.0 * (elev_cbsd - avg_height)
+
+  if eff_height < 20:
+    eff_height = 20
+
+  return eff_height

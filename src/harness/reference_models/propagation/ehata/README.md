@@ -12,10 +12,16 @@ A simple python wrapper `ehata.py` is provided for defining the model interface.
 
 ## Interface
 
-The entry points are the routines `ExtendedHata()` and `MedianBasicPropLoss()`,
-which take as parameters the frequency, base station and mobile heights, and the
-terrain profile in the same ITS format as used by the ITM (Irregular Terrain
+The entry points are the routines `ExtendedHata()` and `MedianBasicPropLoss()`
+in ehata.py, which take as parameters the frequency, base station and mobile heights,
+and the terrain profile in the same ITS format as used by the ITM (Irregular Terrain
 Model) propagation model.
+
+Note that the original ITS C++ code uses a reversed profile compared to the ITM:
+the profile shall be given from the mobile station to the transmitter station.
+The python extension module `ehata_its_py.cpp` module takes care of this adaptation
+so that the outer interface is consistent with the ITM interface (ie the profile from
+transmitter to receiver).
 
 See the python wrapper `ehata.py` for a complete description of input/output parameters.
 
@@ -35,10 +41,11 @@ The modification relates mostly to:
 
   - the minimal value for the effective cbsd height being 20m instead of 30m
   - the mobile effective height not used (structural height used instead)
-  - slight modification in formulas used to compute the internal effective height between 3km and 15km
+  - modification of formulas used to compute the terrain effective height
+  between 3km and 15km (due to an issue in original formulas)
   - a buffer overflow bug fix in the original ITS code for quantile calculation.
   (see `FindQuantile.cpp`), which makes the result vary depending on the run.
-  Note: Fix is pending and not yet submitted at this time
+  Note: fix is pending and not yet submitted at this time
 
 In addition all the code has been ported to use double instead of float, using
 a global #define in `ehata.h`. This allows much more consistent results across existing
