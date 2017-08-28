@@ -105,6 +105,7 @@ _IncidenceAngles = namedtuple('_IncidenceAngles',
 # Main entry point for the Winnforum compliant ITM propagation model
 def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                            lat_rx, lon_rx, height_rx,
+                           cbsd_indoor=False,
                            reliability=0.5, freq_mhz=3625.,
                            refractivity=-1, climate=-1,
                            its_elev=None):
@@ -121,6 +122,7 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   Inputs:
     lat_cbsd, lon_cbsd, height_cbsd: Lat/lon (deg) and height AGL (m) of CBSD
     lat_rx, lon_rx, height_rx:       Lat/lon (deg) and height AGL (m) of Rx point
+    cbsd_indoor:         CBSD indoor status - Default=False.
     reliability:         Reliability. Default is 0.5 (median value)
                          Different options:
                            value in [0,1]: returns the CDF quantile
@@ -220,12 +222,20 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   if err_num !=  ItmErrorCode.NONE:
     logging.info('Got ITM applicability warning [%d]: %s' % (err_num, str_mode))
 
+  # Add indoor losses
+  if cbsd_indoor:
+    if np.isscalar(db_loss):
+      db_loss += 15
+    else:
+      db_loss = [loss+15 for loss in db_loss]
+
   # Get the incidence angles
   ver_cbsd, ver_rx, _, _ = GetHorizonAngles(its_elev, height_cbsd, height_rx, refractivity)
 
   # Create distance/terrain arrays for plotting if desired
   prof_d_km = (its_elev[1]/1000.) * np.arange(len(its_elev)-2)
   prof_elev = np.asarray(its_elev[2:])
+
 
   return _PropagResult(
       db_loss = db_loss,

@@ -87,11 +87,37 @@ class TestWfItm(unittest.TestCase):
                                           reliability=rel, freq_mhz=3625.,
                                           climate=5, refractivity=314)
       self.assertEqual(res.db_loss, exp_loss)
-    # internalaverage
+    # Internal average
     avg_res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                             reliability=-1, freq_mhz=3625.,
                                             climate=5, refractivity=314)
     self.assertAlmostEqual(avg_res.db_loss, np.mean(results.db_loss), 5)
+
+  def test_indoor(self):
+    lat1, lng1, height1 = 37.756672, -122.508512, 20.0
+    lat2, lng2, height2 = 37.754406, -122.388342, 10.0
+    # scalar version
+    res_outdoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                                cbsd_indoor=False,
+                                                reliability=0.5, freq_mhz=3625.,
+                                                climate=5, refractivity=314)
+    res_indoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                               cbsd_indoor=True,
+                                               reliability=0.5, freq_mhz=3625.,
+                                               climate=5, refractivity=314)
+    self.assertEqual(res_indoor.db_loss, res_outdoor.db_loss + 15)
+    # vector version
+    reliabilities = np.arange(0.01, 1.0, 0.01)
+    res_outdoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                                cbsd_indoor=False,
+                                                reliability=reliabilities, freq_mhz=3625.,
+                                                climate=5, refractivity=314)
+    res_indoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                               cbsd_indoor=True,
+                                               reliability=reliabilities, freq_mhz=3625.,
+                                               climate=5, refractivity=314)
+    self.assertEqual(np.max(np.abs(
+        np.array(res_indoor.db_loss) - np.array(res_outdoor.db_loss) - 15)), 0)
 
 
   def test_hor_angles(self):

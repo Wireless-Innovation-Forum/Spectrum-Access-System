@@ -145,6 +145,7 @@ _IncidenceAngles = namedtuple('_IncidenceAngles',
 # Main entry point of the Hybrid model
 def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                               lat_rx, lon_rx, height_rx,
+                              cbsd_indoor=False,
                               reliability=-1,
                               freq_mhz=3625.,
                               region='RURAL',
@@ -168,6 +169,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   Inputs:
     lat_cbsd, lon_cbsd, height_cbsd: Lat/lon (deg) and height AGL (m) of CBSD
     lat_rx, lon_rx, height_rx:       Lat/lon (deg) and height AGL (m) of Rx point
+    cbsd_indoor:        CBSD indoor status - Default=False.
     freq_mhz:           Frequency (MHz). Default is mid-point of band.
     reliability:        Reliability. Default is -1 (average value).
                         Options:
@@ -242,7 +244,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   db_loss_itm, incidence_angles, internals = wf_itm.CalcItmPropagationLoss(
       lat_cbsd, lon_cbsd, height_cbsd,
       lat_rx, lon_rx, height_rx,
-      reliability, freq_mhz, refractivity, climate, its_elev)
+      False, reliability, freq_mhz, refractivity, climate, its_elev)
   internals['itm_db_loss'] = db_loss_itm
 
   # Calculate the effective heights of the tx
@@ -251,11 +253,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
   # Use ITM if CBSD effective height greater than 200 m
   if height_cbsd_eff >= 200:
-    internals['hybrid_opcode'] = HybridMode.ITM_HIGH_HEIGHT
-    return _PropagResult(
-        db_loss = db_loss_itm,
-        incidence_angles = incidence_angles,
-        internals = internals)
+    return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                        HybridMode.ITM_HIGH_HEIGHT, cbsd_indoor)
 
   # Set the environment code number.
   if region == 'URBAN':
@@ -263,11 +262,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   elif region == 'SUBURBAN':
     region_code = 22
   else:  # 'RURAL': use ITM
-    internals['hybrid_opcode'] = HybridMode.ITM_RURAL
-    return _PropagResult(
-        db_loss = db_loss_itm,
-        incidence_angles = incidence_angles,
-        internals = internals)
+    return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                        HybridMode.ITM_RURAL, cbsd_indoor)
 
   # The eHata offset to apply (in case the mean is requested)
   offset_median_to_mean = 0.
@@ -279,11 +275,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
   if dist_km <= 0.1:  # Use Free Space Loss
     db_loss = CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx)
-    internals['hybrid_opcode'] = HybridMode.FSL
-    return _PropagResult(
-        db_loss = db_loss,
-        incidence_angles = incidence_angles,
-        internals = internals)
+    return _BuildOutput(db_loss, incidence_angles, internals,
+                        HybridMode.FSL, cbsd_indoor)
 
   elif dist_km > 0.1 and dist_km < 1:  # Use E-Hata Median Basic Prop Loss
     fsl_100m = CalcFreeSpaceLoss(0.1, freq_mhz, height_cbsd, height_rx)
@@ -296,11 +289,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     # TODO: validate the following approach with WinnForum participants:
     # Weight the offset as well from 0 (100m) to 1.0 (1km).
     db_loss += alpha * offset_median_to_mean
-    internals['hybrid_opcode'] = HybridMode.EHATA_FSL_INTERP
-    return _PropagResult(
-        db_loss = db_loss,
-        incidence_angles = incidence_angles,
-        internals = internals)
+    return _BuildOutput(db_loss, incidence_angles, internals,
+                        HybridMode.EHATA_FSL_INTERP, cbsd_indoor)
 
   elif dist_km >= 1 and dist_km <= 80:  # Use best of E-Hata / ITM
     ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
@@ -310,21 +300,15 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     else:
       itm_loss_med = wf_itm.CalcItmPropagationLoss(
           lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
-          0.5, freq_mhz, refractivity, climate, its_elev).db_loss
+          False, 0.5, freq_mhz, refractivity, climate, its_elev).db_loss
 
     if itm_loss_med >= ehata_loss_med:
-      internals['hybrid_opcode'] = HybridMode.ITM_DOMINANT
-      return _PropagResult(
-          db_loss = db_loss_itm,
-          incidence_angles = incidence_angles,
-          internals = internals)
+      return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                          HybridMode.ITM_DOMINANT, cbsd_indoor)
     else:
       ehata_loss = ehata_loss_med + offset_median_to_mean
-      internals['hybrid_opcode'] = HybridMode.EHATA_DOMINANT
-      return _PropagResult(
-          db_loss = ehata_loss,
-          incidence_angles = incidence_angles,
-          internals = internals)
+      return _BuildOutput(ehata_loss, incidence_angles, internals,
+                          HybridMode.EHATA_DOMINANT, cbsd_indoor)
 
   elif dist_km > 80:  # Use the ITM with correction from E-Hata @ 80km
     # Calculate the ITM median and eHata median losses at a
@@ -354,16 +338,13 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     itm_loss_80km = wf_itm.CalcItmPropagationLoss(
         lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
-        0.5, freq_mhz, refractivity, climate, its_elev_80km).db_loss
+        False, 0.5, freq_mhz, refractivity, climate, its_elev_80km).db_loss
 
     J = max(ehata_loss_80km - itm_loss_80km, 0)
     db_loss = db_loss_itm + J
 
-    internals['hybrid_opcode'] = HybridMode.ITM_CORRECTED
-    return _PropagResult(
-        db_loss = db_loss,
-        incidence_angles = incidence_angles,
-        internals = internals)
+    return _BuildOutput(db_loss, incidence_angles, internals,
+                        HybridMode.ITM_CORRECTED, cbsd_indoor)
 
 
 def CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx):
@@ -381,3 +362,16 @@ def CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx):
   r = math.sqrt((1000. * dist_km)**2 + (height_cbsd - height_rx)**2)
   db_loss = 20. * math.log10(r) + 20. * math.log10(freq_mhz) - 27.56
   return db_loss
+
+# Convenience function to build the output, applying the indoor loss
+# and setting the opcode
+def _BuildOutput(db_loss, incidence_angles, internals,
+                 hybrid_opcode, is_indoor):
+  """Build the output of CalcHybridPropagationLoss."""
+  internals['hybrid_opcode'] = hybrid_opcode
+  if is_indoor:
+    db_loss += 15
+  return _PropagResult(
+      db_loss = db_loss,
+      incidence_angles = incidence_angles,
+      internals = internals)

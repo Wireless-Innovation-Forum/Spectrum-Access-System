@@ -161,6 +161,19 @@ class TestWfHybrid(unittest.TestCase):
                                     region='SUBURBAN')
     self.assertAlmostEqual(avg_res.db_loss, np.mean(losses), 5)
 
+  def test_indoor(self):
+    lat1, lng1, height1 = 37.756672, -122.508512, 20.0
+    lat2, lng2, height2 = 37.754406, -122.388342, 10.0
+    res_outdoor = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                                   cbsd_indoor=False,
+                                                   reliability=0.5, freq_mhz=3625.,
+                                                   region='SUBURBAN')
+    res_indoor = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
+                                                     cbsd_indoor=True,
+                                                     reliability=0.5, freq_mhz=3625.,
+                                                     region='SUBURBAN')
+    self.assertEqual(res_indoor.db_loss, res_outdoor.db_loss + 15)
+
 
 if __name__ == '__main__':
   unittest.main()

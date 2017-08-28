@@ -125,6 +125,7 @@ static PyObject* itm_point_to_point_rels(PyObject* self, PyObject* args) {
   if (size <= 0) {
     delete[] elev;
     PyErr_SetString(PyExc_ValueError, "Reliabilities list empty.");
+    return NULL;
   }
   double* rels = new double[size];
   for (Py_ssize_t i = 0; i < size; i++) {
