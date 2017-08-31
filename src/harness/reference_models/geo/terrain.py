@@ -250,7 +250,7 @@ class TerrainDriver:
           # Nothing to set, all values already at 0
           continue
 
-      idx = np.where(ilatlon == key)
+      idx = np.where(ilatlon == key)[0]
       if do_interp:
         ymxm = tile_cache[ym[idx], xm[idx]]
         ymxp = tile_cache[ym[idx], xp[idx]]

@@ -65,6 +65,7 @@ class NlcdDriver:
   """TerrainDriver class to retrieve land cover data.
 
   Keeps a LRU cache of most recent needed tiles.
+  This driver works on 1-degrees unprojected NLCD tile database.
 
   Typical usage:
     # Initialize driver
@@ -180,8 +181,7 @@ class NlcdDriver:
         if tile_cache is None:
           # Nothing to set, all values already at 0
           continue
-
-      idx = np.where(ilatlon == key)
+      idx = np.where(ilatlon == key)[0]
       codes[idx] = tile_cache[iy[idx], ix[idx]]
 
     if is_scalar:

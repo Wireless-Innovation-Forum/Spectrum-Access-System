@@ -45,43 +45,45 @@ class TestNlcd(unittest.TestCase):
   def test_get_land(self):
     # Selected pixels hand picked in SF region
     # to validate that no offset introduced
-
     # Twin Peaks - SF
-    # - general pixel
     code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.751458, lon=-122.447831)
+        lat=37.751113, lon=-122.449722)
+    region = nlcd.GetRegionType(code)
+    self.assertEqual(code, 24)
+    self.assertEqual(region, 'URBAN')
+
+    code = self.nlcd_driver.GetLandCoverCodes(
+        lat=37.753571, lon=-122.44803)
+    region = nlcd.GetRegionType(code)
+    self.assertEqual(code, 22)
+    self.assertEqual(region, 'SUBURBAN')
+
+    # Downtown - SF
+    code = self.nlcd_driver.GetLandCoverCodes(
+        lat=37.781941, lon=-122.404195)
+    region = nlcd.GetRegionType(code)
+    self.assertEqual(code, 23)
+    self.assertEqual(region, 'URBAN')
+
+    code = self.nlcd_driver.GetLandCoverCodes(
+        lat=37.779704, lon=-122.417747)
     region = nlcd.GetRegionType(code)
     self.assertEqual(code, 21)
     self.assertEqual(region, 'RURAL')
 
-    # - single pixel at Suburban
-    code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.750835, lon=-122.447780)
-    self.assertEqual(code, 22)
-    # - Single pixel at dense urban
-    code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.551113, lon=-122.449722)
-    self.assertEqual(code, 24)
-
-    # Downtown - SF
-    code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.794494, lon=-122.405920)
-    region = nlcd.GetRegionType(code)
-    self.assertEqual(code, 24)
-    self.assertEqual(region, 'URBAN')
-    # - single pixel at suburban
-    code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.785269, lon=-122.405007)
-    self.assertEqual(code, 22)
-
     # Bay Bridge
     code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.79692, lon=-122.37920)
-    self.assertEqual(code, 21)
+        lat=37.794435, lon=-122.381947)
+    self.assertEqual(code, 22)
+
+    code = self.nlcd_driver.GetLandCoverCodes(
+        lat=37.794685, lon=-122.382446)
+    self.assertEqual(code, 11)
+    self.assertEqual(region, 'RURAL')
 
     # Residential Sunset - SF
     code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.761592, lon=-122.469308)
+        lat=37.760220, lon=-122.482720)
     region = nlcd.GetRegionType(code)
     self.assertEqual(code, 22)
     self.assertEqual(region, 'SUBURBAN')
@@ -110,17 +112,15 @@ class TestNlcd(unittest.TestCase):
     self.assertEqual(code, 0.0)
 
   def test_region_vote(self):
-    points = [
-        (37.751458, -122.447831),  # SF downtown (URBAN)
-        (37.761592, 122.469308),  # Residential (SUBURBAN)
-        (37.751458, -122.447831),  # Twin Peaks (RURAL)
-        (37.750036, -122.51527),  # Ocean Beach (RURAL)
-        (37.750036, -122.999) # Far Ocean (RURAL)
-    ]
+    points = [(37.751113, -122.449722),  # Urban
+              (37.753571, -122.44803), # Suburban
+              (37.779704, -122.417747),  # Rural
+              (37.750036, -122.51527),     # Rural
+              (37.750036, -122.51527)]     # Rural
     self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:1]), 'URBAN')
     self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:2]), 'URBAN')
     self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:3]), 'SUBURBAN')
-    self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:4]), 'RURAL')
+    self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:4]), 'SUBURBAN')
     self.assertEqual(self.nlcd_driver.RegionNlcdVote(points[0:5]), 'RURAL')
 
   def test_multitile(self):
