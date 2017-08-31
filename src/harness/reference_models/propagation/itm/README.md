@@ -47,11 +47,15 @@ then run the `itm_test.py` module:
 ## Building the python extension module
 
 A Python wrapper is provided to generate a Python extension module.
+To build this extension, use the make command:
 
-To build this extension:
+    `make`
+    
+which basically runs:
 
-    `python setup.py build_ext -i`
+    `python setup.py build_ext --inplace`
 
+For Windows specific compilation, see upper level [README.md](../README.md).
 
 ## Thread safety
 

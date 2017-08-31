@@ -59,7 +59,6 @@ class TestEHata(unittest.TestCase):
   # Test the ITS eHata version with original testbed code from ITS
   def test_its_testbed(self):
     ehata.SetWinnForumExtensions(False)
-    print "ITS extension module"
     for test in self.tests:
       # read all data for the profile test
       scenario = test[self.columns.index('Scenario Title')]
@@ -73,7 +72,7 @@ class TestEHata(unittest.TestCase):
       exp_ploss = float(test[self.columns.index('Path Loss(dB)')])
 
       ploss = ehata.ExtendedHata(profile, freq_mhz, hb, hm, env_code)
-      print "%s: %f vs %f" % (scenario, ploss, exp_ploss)
+      #print "%s: %f vs %f" % (scenario, ploss, exp_ploss)
       self.assertAlmostEqual(ploss, exp_ploss, 4)
 
   def test_eff_height_within3km(self):

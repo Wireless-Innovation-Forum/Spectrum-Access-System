@@ -17,6 +17,7 @@
 # module. See distutils documentation for more info.
 
 from distutils.core import Extension, setup
+from distutils.sysconfig import get_config_vars
 
 ehata_module = Extension('ehata_its',
                          sources = ['its/ExtendedHata.cpp',
@@ -30,7 +31,15 @@ ehata_module = Extension('ehata_its',
                                     'its/MedianRollingHillyTerrainCorrectionFactor.cpp',
                                     'its/MixedPathCorrectionFactor.cpp',
                                     'its/PreprocessTerrainPath.cpp',
-                                    'ehata_its_py.cpp'])
+                                    'ehata_its_py.cpp'],
+                         extra_compile_args=['-D_hypot=hypot'])
+
+# Remove the "-Wstrict-prototypes" compiler option (not valid for C++).
+cfg_vars = get_config_vars()
+for key, value in cfg_vars.items():
+  if isinstance(value, str):
+    cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+
 
 setup(name = 'ehata_its',
       version = '1.0',

@@ -43,9 +43,6 @@ The modification relates mostly to:
   - the mobile effective height not used (structural height used instead)
   - modification of formulas used to compute the terrain effective height
   between 3km and 15km (due to an issue in original formulas)
-  - a buffer overflow bug fix in the original ITS code for quantile calculation.
-  (see `FindQuantile.cpp`), which makes the result vary depending on the run.
-  Note: fix is pending and not yet submitted at this time
 
 In addition all the code has been ported to use double instead of float, using
 a global #define in `ehata.h`. This allows much more consistent results across existing
@@ -62,9 +59,13 @@ then run the `ehata_test.py` module:
 ## Building the python extension module
 
 A Python wrapper is provided to generate a Python extension module.
+To build this extension, use the make command:
 
-To build this extension:
+    `make`
+    
+which basically runs:
 
-    `python setup.py build_ext -i`
+    `python setup.py build_ext --inplace`
 
+For Windows specific compilation, see upper level [README.md](../README.md).
 

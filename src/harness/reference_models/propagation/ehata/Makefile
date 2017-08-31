@@ -3,8 +3,11 @@ SETUP	:= setup.py
 
 all:
 	$(PYTHON) $(SETUP)  build_ext -i
+	make cleantmp
 
+cleantmp:
+	-rm -rf build
 
-clean:
-	-rm -rf build *.so
+clean:	cleantmp
+	-rm -rf *.so *.pyd
 
