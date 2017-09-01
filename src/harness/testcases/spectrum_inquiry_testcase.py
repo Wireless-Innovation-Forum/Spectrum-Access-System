@@ -209,6 +209,55 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 105))
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_13(self):
+    """Send Spectrum Inquiry from cbsdId different from its assigned cbsdId,
+        SAS should reject Spectrum inquiry.
+
+    The responseCode should be (103, 105), with NO channels in result.
+    """
+    device_a_cert = os.path.join('certs', 'device_a.cert')
+    device_a_key = os.path.join('certs', 'device_a.key')
+
+    device_c_cert = os.path.join('certs', 'device_c.cert')
+    device_c_key = os.path.join('certs', 'device_c.key')
+    # Checks that devices certificate are valid (checking all chain).
+    self.assertValidClientCertificate(device_a_cert, sas.CA_CERT)
+    self.assertValidClientCertificate(device_c_cert, sas.CA_CERT)
+
+    # Registers the device with valid certificates.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request, device_a_cert,
+                                      device_a_key)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id_a = response['cbsdId']
+    del request, response
+
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request, device_c_cert,
+                                      device_c_key)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id_c = response['cbsdId']
+    del request, response
+
+    # Create Spectrum Inquiry request for device_a using device_c_cert and device_c_key
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_id_a
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
+    self.assertFalse('cbsdId' in response)
+    self.assertTrue(response['response']['responseCode'] == 103 or
+                    response['response']['responseCode'] == 105)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_14(self):
     """Send Spectrum Inquiry with mutually invalid set of parameters.
 
