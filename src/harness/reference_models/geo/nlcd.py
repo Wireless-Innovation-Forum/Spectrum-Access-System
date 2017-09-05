@@ -81,13 +81,13 @@ class NlcdDriver:
     region_type = driver.RegionNlcdVote(points)
   """
   def __init__(self, nlcd_directory=None, cache_size=8):
-    self.SetTerrainDirectory(nlcd_directory)
+    self.SetNlcdDirectory(nlcd_directory)
     self.SetCacheSize(cache_size)
     # Keep a small tile cache, LRU fashion
     self._tile_cache = {}
     self._tile_lru = {}
 
-  def SetTerrainDirectory(self, nlcd_directory):
+  def SetNlcdDirectory(self, nlcd_directory):
     """Configures the NLCD data directory."""
     self._nlcd_dir = nlcd_directory
     if self._nlcd_dir is None:
