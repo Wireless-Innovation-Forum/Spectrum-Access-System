@@ -374,6 +374,25 @@ class SasAdminInterface(object):
     """
     pass
 
+  def TriggerDailyActivitiesImmediately(self):
+    """SAS admin interface to trigger daily activities immediately which will
+    execute the following activities:
+      1. Pull from all External Database and other SASes (URLs will be injected to 
+      SAS UUT using another RPC Call)
+      2. Run IAP and DPA Calculations
+      3. Apply EIRP updates to devices
+    """
+    pass
+
+  def GetDailyActivitiesStatus(self):
+    """SAS admin interface to get the daily activities status
+    Returns:
+      A dictionary with a single key-value pair where the key is "completed" and the
+      value is a boolean with value as true if the daily activities is completed and 
+      false if the daily activities is running/failing.
+    """
+    pass
+
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
@@ -454,6 +473,37 @@ class SasTestcaseInterface(object):
         required, other fields are optional.
 
     Returns:
-      A list of  dictionaries, each with keys "cbsdId" and "grantId".
+      A tuple containing list of cbsdIds and grantIds.
     """
     pass
+
+  @abc.abstractmethod
+  def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
+    """Make a heartbeat requests for the list of devices with its grants and 
+    operation states.
+    
+    Sends heartbeat requests and assert the response for valid cbsd id,
+     grant id, and transmit expire time
+    Args:
+      cbsd_ids: A list containing cbsd Ids.
+      grant_ids: A list containing grant Id associated with each device in 
+      cbsd_ids list.
+      operation_states: A list containing operation states (AUTHORIZED or 
+      GRANTED) for each devices in the cbsd_ids list.
+    Returns:
+      A list of transmit expire time in the format YYYY-MM-DDThh:mm:ssZ.    
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
+    """
+    Trigger the Daily Activities Immediately and will check for the status
+    of activity every 10 seconds until it is completed.
+    If the status is not changed within 2 hours it will throw an exception.
+    """
+    pass
+
+
+
+
