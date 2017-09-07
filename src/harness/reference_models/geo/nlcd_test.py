@@ -145,5 +145,12 @@ class TestNlcd(unittest.TestCase):
     self.assertEqual(len(self.nlcd_driver._tile_cache), 2)
     self.assertEqual(len(self.nlcd_driver._tile_lru), 2)
 
+  def test_vote_undefd(self):
+    points = [(37.75, -121.9998)]
+    reg_type = self.nlcd_driver.RegionNlcdVote(points, out_forbid=False)
+    self.assertEqual(reg_type, 'RURAL')
+    with self.assertRaises(ValueError):
+      reg_type = self.nlcd_driver.RegionNlcdVote(points, out_forbid=True)
+
 if __name__ == '__main__':
   unittest.main()

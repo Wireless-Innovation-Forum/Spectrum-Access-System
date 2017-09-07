@@ -192,16 +192,22 @@ class NlcdDriver:
       return list(codes)
 
 
-  def RegionNlcdVote(self, points):
+  def RegionNlcdVote(self, points, out_forbid=True):
     """Vote on most common NLCD in a region.
 
     According to WinnForum spec R2-SGN-04.
 
     Inputs:
-      points: array of (lat,lon) tuple defining a region
-
+      points: list of (lat,lon) tuple defining a region
+      out_forbid: If True (default), will raise an exception
+                  if some points have land cover code 0 (meaning
+                  they are out of bounds of the NLCD).
     Returns:
       the region type among 'RURAL', 'URBAN', 'SUBURBAN'
+
+    Raises:
+      ValueError if request point outside of NLCD effective bounds
+      (ie when code=0) AND out_forbid is True.
     """
     avg_code = 0
     lat, lon = zip(*points)
@@ -209,6 +215,11 @@ class NlcdDriver:
     codes22 = np.where(codes==22)[0]
     codes23 = np.where(codes==23)[0]
     codes24 = np.where(codes==24)[0]
+    if out_forbid:
+      codes0 = np.where(codes==0)[0]
+      if len(codes0):
+        raise ValueError('Request NLCD vote in area with undefined code.')
+
     avg_code = (1.0 * len(codes22) + 2.0 * (len(codes23) + len(codes24))) / len(points)
     if avg_code < 2./3.:
       return 'RURAL'
