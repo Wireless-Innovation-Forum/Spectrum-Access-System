@@ -111,7 +111,7 @@ def _RequestGet(url, ssl_cert, ssl_key):
   logging.debug('Response:\n' + body)
   return json.loads(body)
 
-def DownloadFile(url, ssl_cert=None, ssl_key=None):
+def _DownloadFile(url, ssl_cert, ssl_key):
   response = StringIO.StringIO()
   conn = pycurl.Curl()
   conn.setopt(conn.URL, url)
@@ -123,8 +123,8 @@ def DownloadFile(url, ssl_cert=None, ssl_key=None):
   conn.setopt(conn.VERBOSE, 3)
   conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
-  conn.setopt(conn.SSLCERT, ssl_cert if ssl_cert else _GetDefaultAdminSSLCertPath())
-  conn.setopt(conn.SSLKEY, ssl_key if ssl_key else _GetDefaultAdminSSLKeyPath())
+  conn.setopt(conn.SSLCERT, ssl_cert)
+  conn.setopt(conn.SSLKEY, ssl_key)
   conn.setopt(conn.CAINFO, CA_CERT)
   conn.setopt(conn.HTTPHEADER, header)
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
@@ -182,6 +182,11 @@ class SasImpl(sas_interface.SasInterface):
                         (self._base_url, self._sas_version, method_name), request,
                         ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
                         ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
+
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    return _DownloadFile('%s' % url,
+                 ssl_cert if ssl_cert else self._GetDefaultAdminSSLCertPath(),
+                 ssl_key if ssl_key else self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')

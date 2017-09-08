@@ -86,7 +86,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     # Verify the response files with ActivityDumpFile.schema.json Object schema
                     self.assertContainsRequiredFields("ActivityDumpFile.schema.json", activity_dump_file)
                     # Get json data from url
-                    data = sas.DownloadFile(activity_dump_file['url'], client_cert, client_key)
+                    data = self._sas.DownloadFile(activity_dump_file['url'], client_cert, client_key)
                     # Verify that everything in the full dump matches a cbsd or grant created at the beginning
                     for record in data['recordData']:
                         # Verify the response files with CbsdData.schema.json Object schema

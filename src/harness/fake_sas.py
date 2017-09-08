@@ -313,7 +313,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
-                       '/admin/trigger/create_full_activity_dump'):
+                       '/admin/trigger/create_full_activity_dump'),
                        '/admin/trigger/daily_activities_immediately'):
       response = ''
     else:
