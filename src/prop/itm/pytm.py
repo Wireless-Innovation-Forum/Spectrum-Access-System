@@ -94,10 +94,10 @@ def point_to_point(elevation, transmitter_height_meters, receiver_height_meters,
     raise Exception('Confidence greater than 1')
 
   if reliability < 0.0:
-    raise Exception('Confidence less than 0')
+    raise Exception('Reliability less than 0')
 
   if reliability > 1.0:
-    raise Exception('Confidence greater than 1')
+    raise Exception('Reliability greater than 1')
 
   loss, err, mode = itm.point_to_point(elevation, transmitter_height_meters, receiver_height_meters,
                                        dielectric_constant, soil_conductivity, refractivity,
@@ -108,5 +108,59 @@ def point_to_point(elevation, transmitter_height_meters, receiver_height_meters,
     print 'Warning: got an applicability warning [%d] in ITM for mode %s' % (err, mode)
 
   return loss
+
+def point_to_point_stat(elevation, transmitter_height_meters, receiver_height_meters,
+                   dielectric_constant, soil_conductivity, refractivity,
+                   frequency_mhz, radio_climate, polarization,
+                   confidence, reliability):
+  if transmitter_height_meters < 1.0:
+    print 'Transmitter height less than 1m'
+    return -1
+
+  if transmitter_height_meters > 1000.0:
+    raise Exception('Transmitter height greater than 1000m')
+
+  if receiver_height_meters < 1.0:
+    raise Exception('Receiver height less than 1m')
+
+  if receiver_height_meters > 1000.0:
+    raise Exception('Receiver height greater than 1000m')
+
+  if frequency_mhz < 40.0:
+    raise Exception('Frequency less than 40MHz')
+
+  if frequency_mhz > 10000.0:
+    raise Exception('Frequency greater than 10,000 MHz')
+
+  if refractivity < 250.0:
+    raise Exception('Refractivity less than 250')
+
+  if refractivity > 400.0:
+    raise Exception('Refractivity more than 400')
+
+  if polarization != 0 and polarization != 1:
+    raise Exception('Bad polarization value (not 0 or 1)')
+
+  if (radio_climate != 1 and radio_climate != 2 and
+      radio_climate != 3 and radio_climate != 4 and
+      radio_climate != 5 and radio_climate != 6 and radio_climate != 7):
+    raise Exception('Bad radio climate value (not 1, 2, 3, 4, 5, 6, 7)')
+
+  if confidence < 0.0:
+    raise Exception('Confidence less than 0')
+
+  if confidence > 1.0:
+    raise Exception('Confidence greater than 1')
+
+  loss, err, mode = itm.point_to_point_stat(elevation, transmitter_height_meters, receiver_height_meters,
+                                       dielectric_constant, soil_conductivity, refractivity,
+                                       frequency_mhz, radio_climate, polarization,
+                                       confidence, reliability, len(reliability))
+
+  if err != 0:
+    print 'Warning: got an applicability warning [%d] in ITM for mode %s' % (err, mode)
+
+  return loss
+
 
 # TODO: main method that takes freq/location and prints loss

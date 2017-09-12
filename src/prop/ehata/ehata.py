@@ -50,6 +50,7 @@
 
 import math
 import numpy
+import scipy.stats
 
 # Return the Extended-Hata Propagation Loss in dB given a
 #  f - frequency (in MHz)
@@ -98,8 +99,27 @@ def ExtendedHata_PropagationLoss(f, hb, hm, region, profile):
   else:
     return basic_loss_db + Kir - Kmp
 
+# Return the Extended-Hata propagation loss given a particular set of
+# reliability values.
+def ExtendedHata_PropagationLossStat(f, hb, hm, region, profile, reliability):
+  loss_db = ExtendedHata_PropagationLoss(f, hb, hm, region, profile)
 
-# Compute median basic transmission loss for urban region
+  # Assume stdev for RURAL or SUBURBAN is the stdev_urban + 2. See p.35
+  region = region.upper().strip()
+  if region == 'URBAN' or region == 'DENSEURBAN':
+    stdev = EHataStdDevUrban(f)
+  else:
+    stdev = EHataStdDevSuburban(f)
+
+  n = scipy.stats.norm(loc=0.0, scale=stdev)
+  rel = n.ppf(reliability)
+  for i in range(0, len(rel)):
+    rel[i] = rel[i] + loss_db
+
+  return rel
+
+
+# Compute median basic transmission loss for a given region
 def ExtendedHata_MedianBasicPropLoss(f, d, hb, hm, region):
 
   # TODO: add bounds checking for frequency
