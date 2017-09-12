@@ -83,19 +83,19 @@ class NedIndexer:
     self.txf[k] = gdal.InvGeoTransform(tx)
 
     self.tile_cache[k] = dataset.ReadAsArray().astype(numpy.float)
-    self.tile_lru[k] = time.clock()
+    self.tile_lru[k] = time.time()
 
     # evict a tile if there are more than tile_lru_size elements in the cache
     if len(self.tile_lru) > self.tile_lru_size:
-      mint = 0
+      mint = float('inf')
       mink = ''
       for k in self.tile_lru.keys():
-        if self.tile_lru[k] > mint:
+        if self.tile_lru[k] < mint:
           mint = self.tile_lru[k]
           mink = k
-      print 'Evicting tile %s' % k
-      del self.tile_cache[k]
-      del self.tile_lru[k]
+      print 'Evicting tile %s' % mink
+      del self.tile_cache[mink]
+      del self.tile_lru[mink]
 
     # close the file
     dataset = None
@@ -116,7 +116,7 @@ class NedIndexer:
     iln = tx[3] + tx[4] * lng + tx[5] * lat
 
     a = self.tile_cache[k]
-    self.tile_lru[k] = time.clock()
+    self.tile_lru[k] = time.time()
     #print 'Retrieving (%s, %s) from (%f, %f) from tile %s' % (lat, lng, ipx, iln, k)
 
     ilnf = int(math.floor(iln))
