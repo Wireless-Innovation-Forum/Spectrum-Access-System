@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "SAS-SAS CBSD Data Message Exchange",
+  "type": "object",
+  "required": [
+    "id",
+    "registration",
+    "grants"
+  ],
+  "additonalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "CBSD Reference Id defined in SAS-SAS TS"
+    },
+    "registration": {
+      "$ref": "file:RegistrationRequest.schema.json"
+    },
+    "grants": {
+      "description": "Contains the active grants of the CBSD.",
+      "type": "array",
+      "items": {
+        "$ref": "file:GrantDataObject.schema.json"
+      }
+    }
+  }
+}
