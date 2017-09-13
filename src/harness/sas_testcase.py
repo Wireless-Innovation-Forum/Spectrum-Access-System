@@ -22,7 +22,22 @@ import sas_interface
 import sas
 import signal
 import time
+from OpenSSL import crypto, SSL
+import re
+import urlparse
+import socket
 
+_PEM_RE = re.compile(b"""-----BEGIN CERTIFICATE-----\r?
+.+?\r?
+-----END CERTIFICATE-----\r?\n?""", re.DOTALL)
+
+def VerifyCertificate(certificate_content, ca_bundle_content, is_server):
+  certificate = crypto.load_certificate(crypto.FILETYPE_PEM, certificate_content)
+  store = crypto.X509Store()
+  for match in _PEM_RE.finditer(ca_bundle_content):
+    store.add_cert(crypto.load_certificate(crypto.FILETYPE_PEM, match.group(0)))
+  store_ctx = crypto.X509StoreContext(store, certificate)
+  store_ctx.verify_certificate()
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
   def setUp(self):
@@ -140,3 +155,14 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
       time.sleep(10)
     signal.alarm(0)
+
+  def assertValidClientCertificate(self, certificate_filename,
+                                     ca_bundle_filename):
+    with open(certificate_filename, 'rb') as f:
+      certificate_data = f.read()
+    with open(ca_bundle_filename) as f:
+      bundle_data = f.read()
+    try:
+      res = VerifyCertificate(certificate_data, bundle_data, False)
+    except crypto.X509StoreContextError as e:
+      self.fail('Invalid client certificate: ' + str(e.message))
