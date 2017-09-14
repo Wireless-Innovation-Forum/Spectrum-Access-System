@@ -438,6 +438,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
     device_c = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Inject Fcc Id
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
     # Register the devices
     request = {'registrationRequest': [device_a, device_c]}
     response = self._sas.Registration(request)['registrationResponse']
