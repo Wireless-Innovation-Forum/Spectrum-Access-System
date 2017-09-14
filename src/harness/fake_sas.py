@@ -59,11 +59,15 @@ import sas_interface
 
 # Fake SAS server configurations.
 PORT = 9000
-CERT_FILE = 'server.cert'
-KEY_FILE = 'server.key'
+CERT_FILE = 'certs/server.cert'
+KEY_FILE = 'certs/server.key'
 CA_CERT = 'certs/ca.cert'
 CIPHERS = [
-    'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
+    'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
+    'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 ]
 
 MISSING_PARAM = 102
@@ -290,6 +294,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
+                       '/admin/injectdata/cluster_list',
                        '/admin/injectdata/pal_database_record',
                        '/admin/injectdata/sas_admin',
                        '/admin/injectdata/sas_impl',
@@ -328,7 +333,7 @@ if __name__ == '__main__':
       certfile=CERT_FILE,
       keyfile=KEY_FILE,
       ca_certs=CA_CERT,
-      cert_reqs=ssl.CERT_REQUIRED,
+      cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(CIPHERS),
       server_side=True)

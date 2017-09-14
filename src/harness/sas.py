@@ -26,7 +26,11 @@ import sas_interface
 HTTP_TIMEOUT_SECS = 30
 CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
-    'AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256'
+    'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
+    'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 ]
 
 
@@ -47,6 +51,12 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
     ssl_key: Path of SSL key used in HTTPS request.
   Returns:
     A dictionary represents the JSON response received from server.
+  Raises:
+    AssertionError: with args[0] is an integer code representing:
+      * libcurl SSL code response, if code < 100:
+        https://curl.haxx.se/libcurl/c/libcurl-errors.html
+      * HTTP code response, if code >= 100:
+        https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   """
   response = StringIO.StringIO()
   conn = pycurl.Curl()
@@ -69,12 +79,19 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   logging.debug('Request to URL ' + url + ':\n' + request)
   conn.setopt(conn.POSTFIELDS, request)
   conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
-  conn.perform()
-  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+  try:
+    conn.perform()
+  except pycurl.error as e:
+    # e contains a tuple (libcurl_error_code, string_description).
+    # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
+    raise AssertionError(e.args[0])
+  http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
   logging.debug('Response:\n' + body)
+  assert http_code == 200, http_code
   return json.loads(body)
+
 
 def _RequestGet(url, ssl_cert, ssl_key):
   """Sends HTTPS GET request.
@@ -196,6 +213,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/pal_database_record' %
                  self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectClusterList(self, request):
+    _RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
+                 request, self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
   def BlacklistByFccId(self, request):

@@ -1,0 +1,5 @@
+# Exclude all certificate/key.
+# See README.md for information on how to generate them.
+*.cert
+*.key
+
