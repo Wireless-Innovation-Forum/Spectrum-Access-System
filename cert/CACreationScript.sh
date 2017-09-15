@@ -53,15 +53,12 @@ then
   if [ "$1" == "pkey" ]
   then
     cp $2 cbsd_req.pkey  
-    #cp $2 cbsd_oem_req.pkey
   elif [ "$1" == "csr" ]
   then
     cp $2 cbsd_req.csr  
-    #cp $2 cbsd_oem_req.csr
   fi
 else
   rm cbsd_req.pkey cbsd_req.csr
-  #rm cbsd_oem_req.pkey cbsd_oem_req.csr 
 fi
   
 #ROOT
