@@ -161,6 +161,9 @@ class SecurityTestcase(sas_testcase.SasTestCase):
       self.assertEqual(
           response['registrationResponse'][0]['response']['responseCode'], 104)
     except AssertionError as e:
+      # Forward other assert, like the one on line 162...
+      if isinstance(e.args[0], str):
+        raise
       # Error during SSL handshake could be:
       # - 35: CURLE_SSL_CONNECT_ERROR,
       # - 51: CURLE_PEER_FAILED_VERIFICATION
