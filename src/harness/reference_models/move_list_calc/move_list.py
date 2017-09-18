@@ -341,6 +341,7 @@ def find_nc(I, bearing, t):
     for a in azimuths:
         # Calculate interference contributions at output of receiver antenna.
         G = np.full((1,Nc),G_discrim)
+
         idx = grantsInMainBeam(a,bearing)
         if idx.size:
             G[:,idx] = 1.0
@@ -350,11 +351,11 @@ def find_nc(I, bearing, t):
         # grants until the protection threshold is met or all grants are moved.
         A95 = np.percentile(IG.sum(1), PROTECTION_PERCENTILE, interpolation='lower')
         while (A95 > t_mW):
-            I_mW[:,nc-1] = 0.0   # zero-out the nc-th column of I_mW
+            I_mW[:, nc - 1] = 0.0  # zero-out the nc-th column of I_mW
+            IG[:, nc - 1] = 0.0    # zero-out the nc-th column of IG
             nc = nc - 1
             if nc == 0:
                 return 0
-            IG = I_mW*G
             A95 = np.percentile(IG.sum(1), PROTECTION_PERCENTILE, interpolation='lower')
 
     return nc
