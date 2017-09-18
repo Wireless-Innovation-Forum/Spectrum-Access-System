@@ -75,7 +75,7 @@ def GetAntennaPatternGains(hor_dirs, ant_azimuth,
   return gains
 
 
-def GetStandardAntennaGains(hor_dirs, ant_azimuth, ant_beamwidth, ant_gain):
+def GetStandardAntennaGains(hor_dirs, ant_azimuth=0, ant_beamwidth=None, ant_gain=0):
   """Computes the antenna gains from a standard antenna defined by beamwidth.
 
   See R2-SGN-20.
@@ -89,6 +89,7 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth, ant_beamwidth, ant_gain):
                     Either a scalar or an iterable.
     ant_azimut:     Antenna azimuth (degrees).
     ant_beamwidth:  Antenna 3dB curoff beamwidth (degrees).
+                    If None, then antenna is isotropic (default).
     ant_gain:       Antenna gain (dBi).
 
   Returns:
@@ -98,12 +99,15 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth, ant_beamwidth, ant_gain):
   is_scalar = np.isscalar(hor_dirs)
   hor_dirs = np.atleast_1d(hor_dirs)
 
-  bore_angle = hor_dirs - ant_azimuth
-  bore_angle[bore_angle > 180] -= 360
-  bore_angle[bore_angle < -180] += 360
-  gains = -12 * (bore_angle / float(ant_beamwidth))**2
-  gains[gains < -20] = -20.
-  gains += ant_gain
+  if ant_beamwidth is None:
+    gains = ant_gain * np.ones(hor_dirs.shape)
+  else:
+    bore_angle = hor_dirs - ant_azimuth
+    bore_angle[bore_angle > 180] -= 360
+    bore_angle[bore_angle < -180] += 360
+    gains = -12 * (bore_angle / float(ant_beamwidth))**2
+    gains[gains < -20] = -20.
+    gains += ant_gain
 
   if is_scalar: return gains[0]
   return gains
