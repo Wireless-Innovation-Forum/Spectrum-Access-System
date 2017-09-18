@@ -19,6 +19,9 @@
 echo Run this script from the directory containing the CBRS openssl.cnf file present in it. The openssl command must be present on the path.
 
 echo Usage: ./CACreationScript.sh
+
+echo Run this script with below arguments in order to generate CBSD EndEntity Certificate using pre define key/CSR
+
 echo Usage: ./CACreationScript.sh pkey cbsd_ee.pkey
 echo Usage: ./CACreationScript.sh csr cbsd_ee.csr
 
@@ -53,12 +56,15 @@ then
   if [ "$1" == "pkey" ]
   then
     cp $2 cbsd_req.pkey  
+    #cp $2 cbsd_oem_req.pkey
   elif [ "$1" == "csr" ]
   then
     cp $2 cbsd_req.csr  
+    #cp $2 cbsd_oem_req.csr
   fi
 else
   rm cbsd_req.pkey cbsd_req.csr
+  #rm cbsd_oem_req.pkey cbsd_oem_req.csr 
 fi
   
 #ROOT
