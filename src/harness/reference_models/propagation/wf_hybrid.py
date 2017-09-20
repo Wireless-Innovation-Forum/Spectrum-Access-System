@@ -148,8 +148,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                               cbsd_indoor=False,
                               reliability=-1,
                               freq_mhz=3625.,
-                              region='RURAL',
-                              refractivity=-1, climate=-1):
+                              region='RURAL'):
   """Implements the Hybrid ITM/eHata NTIA propagation model.
 
   As specified by Winforum, see:
@@ -176,10 +175,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                           Value in [0,1]: returns the CDF quantile
                           -1: returns the mean path loss
     region:             Region type among 'URBAN', 'SUBURBAN, 'RURAL'
-    refractivity        Refractivity [0-1]. Default -1
-                        If < 0 (default), use lookup for midpoint in database.
-    climate             Climate value [0-1]. Default -1
-                        If < 0 (default), use lookup for midpoint in database.
 
   Returns:
     A namedtuple of:
@@ -218,10 +213,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     raise Exception('Frequency outside range [40MHz - 10GHz].')
   if region not in ['RURAL', 'URBAN', 'SUBURBAN']:
     raise Exception('Region %s not allowed' % region)
-  if refractivity >= 0 and (refractivity < 250.0 or refractivity > 400.0):
-    raise Exception('Refractivity outside range [250 - 400].')
-  if climate >= 0 and (climate < 1 or climate > 7):
-    raise Exception('Bad radio climate value (not within [1..7]).')
 
   if reliability != -1 and reliability != 0.5:
     logging.warning('E-Hata submodel only computes the median.'
@@ -244,7 +235,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   db_loss_itm, incidence_angles, internals = wf_itm.CalcItmPropagationLoss(
       lat_cbsd, lon_cbsd, height_cbsd,
       lat_rx, lon_rx, height_rx,
-      False, reliability, freq_mhz, refractivity, climate, its_elev)
+      False, reliability, freq_mhz, its_elev)
   internals['itm_db_loss'] = db_loss_itm
 
   # Calculate the effective heights of the tx
@@ -282,7 +273,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     fsl_100m = CalcFreeSpaceLoss(0.1, freq_mhz, height_cbsd, height_rx)
     median_basic_loss = ehata.MedianBasicPropLoss(
         freq_mhz, height_cbsd, height_rx,
-        dist_km, region_code)
+        1, region_code)
     alpha = 1. + math.log10(dist_km)
     db_loss = fsl_100m + alpha * (median_basic_loss - fsl_100m)
 
@@ -300,7 +291,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     else:
       itm_loss_med = wf_itm.CalcItmPropagationLoss(
           lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
-          False, 0.5, freq_mhz, refractivity, climate, its_elev).db_loss
+          False, 0.5, freq_mhz, its_elev).db_loss
 
     if itm_loss_med >= ehata_loss_med:
       return _BuildOutput(db_loss_itm, incidence_angles, internals,
@@ -338,7 +329,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     itm_loss_80km = wf_itm.CalcItmPropagationLoss(
         lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
-        False, 0.5, freq_mhz, refractivity, climate, its_elev_80km).db_loss
+        False, 0.5, freq_mhz, its_elev_80km).db_loss
 
     J = max(ehata_loss_80km - itm_loss_80km, 0)
     db_loss = db_loss_itm + J

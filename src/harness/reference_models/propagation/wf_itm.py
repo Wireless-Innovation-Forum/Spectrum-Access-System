@@ -107,7 +107,6 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                            lat_rx, lon_rx, height_rx,
                            cbsd_indoor=False,
                            reliability=0.5, freq_mhz=3625.,
-                           refractivity=-1, climate=-1,
                            its_elev=None):
   """Implements the WinnForum-compliant ITM point-to-point propagation model.
 
@@ -129,10 +128,6 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                            -1: returns the mean path loss
                            iterable sequence: returns a list of path losses
     freq_mhz:            Frequency (MHz). Default is mid-point of band.
-    refractivity:        Refractivity [0-1].
-                           If <0 (default), use lookup for midpoint.
-    climate:             Climate value [0-1].
-                           If < 0 (default), use lookup for midpoint.
     its_elev:            Optional profile to use (in ITM format). Default=None
                            If not specified, it is extracted from the terrain.
 
@@ -164,10 +159,6 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     raise Exception('Endpoint height greater than 1000m')
   if freq_mhz < 40.0 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz]')
-  if refractivity >= 0 and (refractivity < 250 or refractivity > 400):
-    raise Exception('Refractivity outside range [250 - 400]')
-  if climate >= 0 and (climate < 1 or climate > 7):
-    raise Exception('Bad radio climate value (not within [1;7])')
 
   # Internal ITM parameters are always set to following values in WF version:
   confidence = 0.5     # Confidence (always 0.5)
@@ -189,18 +180,16 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   latmid, lonmid, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd, dist_km/2., bearing_cbsd)
 
   # Determine climate value, based on ITU-R P.617 method:
-  if climate < 0:
-    climate = climateDriver.TropoClim(latmid, lonmid)
-    # If the common volume lies over the sea, the climate value to use depends
-    # on the climate values at either end. A simple min() function should
-    # properly implement the logic, since water is the max.
-    if climate == 7:
-      climate = min(climateDriver.TropoClim(lat_cbsd, lon_cbsd),
-                    climateDriver.TropoClim(lat_rx, lon_rx))
+  climate = climateDriver.TropoClim(latmid, lonmid)
+  # If the common volume lies over the sea, the climate value to use depends
+  # on the climate values at either end. A simple min() function should
+  # properly implement the logic, since water is the max.
+  if climate == 7:
+    climate = min(climateDriver.TropoClim(lat_cbsd, lon_cbsd),
+                  climateDriver.TropoClim(lat_rx, lon_rx))
 
   # Look up the refractivity at the path midpoint, if not explicitly provided
-  if refractivity < 0:
-    refractivity = refractDriver.Refractivity(latmid, lonmid)
+  refractivity = refractDriver.Refractivity(latmid, lonmid)
 
   # Call ITM prop loss.
   reliabilities = reliability

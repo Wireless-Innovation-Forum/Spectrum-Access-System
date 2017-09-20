@@ -18,9 +18,6 @@ import numpy as np
 import unittest
 
 from reference_models.geo import testutils
-from reference_models.geo import terrain
-from reference_models.geo import tropoclim
-from reference_models.geo import refractivity
 
 from reference_models.propagation import wf_hybrid
 
@@ -35,6 +32,9 @@ class TestWfHybrid(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls.unzip_files = testutils.UnzipTestDir(TERRAIN_TEST_DIR)
+    # Mocking the ITU drivers to always return fixed values
+    wf_hybrid.wf_itm.climateDriver.TropoClim = lambda lat, lon: 5
+    wf_hybrid.wf_itm.refractDriver.Refractivity = lambda lat, lon: 314
 
   @classmethod
   def tearDownClass(cls):
@@ -84,7 +84,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                 reliability=reliability, freq_mhz=3625.,
                                 region='URBAN')
-    self.assertAlmostEqual(res.db_loss, 143.454, 3)
+    self.assertAlmostEqual(res.db_loss, 144.836, 3)
     self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.EHATA_FSL_INTERP)
 
   def test_itm_dominant(self):
@@ -96,7 +96,7 @@ class TestWfHybrid(unittest.TestCase):
     for rel, exp_loss in zip(reliabilities, expected_itm_losses):
       res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                   reliability=rel, freq_mhz=3625.,
-                                  region='SUBURBAN', climate=5, refractivity=314)
+                                  region='SUBURBAN')
       self.assertAlmostEqual(res.db_loss, exp_loss, 2)
       self.assertEqual(res.db_loss, res.internals['itm_db_loss'])  # ploss == ploss_itm
       self.assertEqual(res.internals['hybrid_opcode'],
@@ -113,7 +113,7 @@ class TestWfHybrid(unittest.TestCase):
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                   reliability=rel, freq_mhz=3625.,
-                                  region='SUBURBAN', climate=5, refractivity=314)
+                                  region='SUBURBAN')
       self.assertAlmostEqual(res.db_loss, exp_loss, 2)
       self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.EHATA_DOMINANT)
 
@@ -127,10 +127,10 @@ class TestWfHybrid(unittest.TestCase):
 
     res_med = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                     reliability=0.5, freq_mhz=3625.,
-                                    region='SUBURBAN', climate=5, refractivity=314)
+                                    region='SUBURBAN')
     res_mean = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                      reliability=-1, freq_mhz=3625.,
-                                     region='SUBURBAN', climate=5, refractivity=314)
+                                     region='SUBURBAN')
     self.assertAlmostEqual(res_mean[0], res_med[0] + expected_offset, 2)
 
   def test_over_80km(self):
@@ -140,7 +140,7 @@ class TestWfHybrid(unittest.TestCase):
 
     res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                 reliability=0.5, freq_mhz=3625.,
-                                region='SUBURBAN', climate=5, refractivity=314)
+                                region='SUBURBAN')
     self.assertAlmostEqual(res.db_loss, expected_loss, 3)
     self.assertAlmostEqual(res.db_loss, res.internals['itm_db_loss'], 0)
     self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.ITM_CORRECTED)

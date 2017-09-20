@@ -17,9 +17,6 @@ import numpy as np
 import unittest
 
 from reference_models.geo import testutils
-from reference_models.geo import terrain
-from reference_models.geo import tropoclim
-from reference_models.geo import refractivity
 
 from reference_models.propagation import wf_itm
 
@@ -28,11 +25,15 @@ TERRAIN_TEST_DIR = os.path.join(os.path.dirname(__file__),
 ITU_TEST_DIR = os.path.join(os.path.dirname(__file__),
                             '..', 'geo', 'testdata', 'itu')
 
+
 class TestWfItm(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
     cls.unzip_files = testutils.UnzipTestDir(TERRAIN_TEST_DIR)
+    # Mocking the ITU drivers to always return fixed values
+    wf_itm.climateDriver.TropoClim = lambda lat, lon: 5
+    wf_itm.refractDriver.Refractivity = lambda lat, lon: 314
 
   @classmethod
   def tearDownClass(cls):
@@ -48,8 +49,7 @@ class TestWfItm(unittest.TestCase):
     lat2, lng2, height2 = 37.756559, -122.507882, 10.0
     reliability = 0.5
     res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                        reliability=reliability, freq_mhz=3625.,
-                                        climate=5, refractivity=314)
+                                        reliability=reliability, freq_mhz=3625.)
     self.assertAlmostEqual(res.db_loss, 78.7408, 4)
     self.assertEqual(res.internals['itm_err_num'], wf_itm.ItmErrorCode.OTHER)  # LOS mode
 
@@ -61,15 +61,13 @@ class TestWfItm(unittest.TestCase):
 
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                          reliability=rel, freq_mhz=3625.,
-                                          climate=5, refractivity=314)
+                                          reliability=rel, freq_mhz=3625.)
       self.assertAlmostEqual(res.db_loss, exp_loss, 2)
       self.assertEqual(res.internals['itm_err_num'], wf_itm.ItmErrorCode.WARNING)  # Double horizon
 
     # Reliability list input
     res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                        reliability=reliabilities, freq_mhz=3625.,
-                                        climate=5, refractivity=314)
+                                        reliability=reliabilities, freq_mhz=3625.)
     for loss, exp_loss in zip(res.db_loss, expected_losses):
       self.assertAlmostEqual(loss, exp_loss, 2)
 
@@ -79,18 +77,15 @@ class TestWfItm(unittest.TestCase):
     reliabilities = np.arange(0.01, 1.0, 0.01)
     # vector call
     results = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                            reliability=reliabilities, freq_mhz=3625.,
-                                            climate=5, refractivity=314)
+                                            reliability=reliabilities, freq_mhz=3625.)
     # Scalar call
     for rel, exp_loss in zip(reliabilities, results.db_loss):
       res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                          reliability=rel, freq_mhz=3625.,
-                                          climate=5, refractivity=314)
+                                          reliability=rel, freq_mhz=3625.)
       self.assertEqual(res.db_loss, exp_loss)
     # Internal average
     avg_res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                            reliability=-1, freq_mhz=3625.,
-                                            climate=5, refractivity=314)
+                                            reliability=-1, freq_mhz=3625.)
     self.assertAlmostEqual(avg_res.db_loss, np.mean(results.db_loss), 5)
 
   def test_indoor(self):
@@ -99,23 +94,19 @@ class TestWfItm(unittest.TestCase):
     # scalar version
     res_outdoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                                 cbsd_indoor=False,
-                                                reliability=0.5, freq_mhz=3625.,
-                                                climate=5, refractivity=314)
+                                                reliability=0.5, freq_mhz=3625.)
     res_indoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                                cbsd_indoor=True,
-                                               reliability=0.5, freq_mhz=3625.,
-                                               climate=5, refractivity=314)
+                                               reliability=0.5, freq_mhz=3625.)
     self.assertEqual(res_indoor.db_loss, res_outdoor.db_loss + 15)
     # vector version
     reliabilities = np.arange(0.01, 1.0, 0.01)
     res_outdoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                                 cbsd_indoor=False,
-                                                reliability=reliabilities, freq_mhz=3625.,
-                                                climate=5, refractivity=314)
+                                                reliability=reliabilities, freq_mhz=3625.)
     res_indoor = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                                cbsd_indoor=True,
-                                               reliability=reliabilities, freq_mhz=3625.,
-                                               climate=5, refractivity=314)
+                                               reliability=reliabilities, freq_mhz=3625.)
     self.assertEqual(np.max(np.abs(
         np.array(res_indoor.db_loss) - np.array(res_outdoor.db_loss) - 15)), 0)
 
