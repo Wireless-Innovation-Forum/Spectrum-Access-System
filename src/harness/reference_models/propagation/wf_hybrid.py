@@ -131,7 +131,7 @@ def _GetMedianToMeanOffsetDb(freq_mhz, is_urban):
     the offset in dB to apply to the median
   """
   std = GetEHataStandardDeviation(freq_mhz, is_urban)
-  offset = std**2 / (20. * math.log(10.))
+  offset = std**2 * math.log(10.) / 20.
   return offset
 
 

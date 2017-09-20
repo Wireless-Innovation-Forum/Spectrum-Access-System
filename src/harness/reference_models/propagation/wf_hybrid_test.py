@@ -121,7 +121,7 @@ class TestWfHybrid(unittest.TestCase):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.771594, -122.253895, 10.0
     expected_med_loss = 161.93
-    expected_offset = 2.3462
+    expected_offset = 12.4393
     self.assertAlmostEqual(wf_hybrid._GetMedianToMeanOffsetDb(3625., False),
                            expected_offset, 2)
 
@@ -174,6 +174,15 @@ class TestWfHybrid(unittest.TestCase):
                                                      region='SUBURBAN')
     self.assertEqual(res_indoor.db_loss, res_outdoor.db_loss + 15)
 
+  def test_median_to_mean_offset(self):
+    # Test median to mean offset formula on lognormal sample
+    np.random.seed(1234)
+    median = -80
+    std = wf_hybrid.GetEHataStandardDeviation(3625, True)
+    signal = median + np.random.randn(1000000) * std
+    signal_mean = 10*np.log10(np.mean(10**(signal / 10.)))
+    offset = wf_hybrid._GetMedianToMeanOffsetDb(3625, True)
+    self.assertAlmostEqual(median + offset, signal_mean, 1)
 
 if __name__ == '__main__':
   unittest.main()
