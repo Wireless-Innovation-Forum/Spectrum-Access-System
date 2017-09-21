@@ -15,6 +15,8 @@
 """Simple wrapper module for ITS E-Hata module with WinnForum extensions.
 """
 
+import math
+
 try:
   from reference_models.propagation.ehata import ehata_its
 except:
@@ -83,9 +85,9 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
     the CBSD effective height.
   """
 
-  np = int(its_elev[0])
-  xi = its_elev[1] * 0.001   # step size of the profile points, in km
-  dist_km = np * xi          # path distance, in km
+  npts = int(its_elev[0])
+  xi = its_elev[1] / 1000   # step size of the profile points, in km
+  dist_km = npts * xi         # path distance, in km
   elev_cbsd = its_elev[2]
 
   if height_cbsd < 20:
@@ -95,10 +97,10 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
     eff_height = height_cbsd
 
   else: # dist_km >= 3 km
-    i_start = 2 + int(3.0 / xi)
-    i_end = np + 2
+    i_start = 2 + int(math.ceil(3.0 / xi))
+    i_end = npts + 2
     if dist_km > 15:
-      i_end = 2 + int(15.0 / xi)
+      i_end = 2 + int(math.floor(15.0 / xi))
       dist_km = 15.0
 
     avg_height = sum(its_elev[i_start:i_end+1]) / float(i_end - i_start + 1)

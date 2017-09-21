@@ -42,7 +42,8 @@ The modification relates mostly to:
   - the minimal value for the effective cbsd height being 20m instead of 30m
   - the mobile effective height not used (structural height used instead)
   - modification of formulas used to compute the terrain effective height
-  between 3km and 15km (due to an issue in original formulas)
+  between 3km and 15km (due to an issue in original formulas), and to use
+  terrain strictly included within the 3km and 15km range.
 
 In addition all the code has been ported to use double instead of float, using
 a global #define in `ehata.h`. This allows much more consistent results across existing

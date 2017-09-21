@@ -96,16 +96,16 @@ class TestEHata(unittest.TestCase):
 
     profile = [5, 800, 12, 2, 3, 4, 5, 9]
     eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(50.5, eff_tx_m)
+    self.assertEqual(50, eff_tx_m)
 
   def test_eff_height_over15km(self):
     profile = [9, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(46.0, eff_tx_m)
+    self.assertEqual(45.5, eff_tx_m)
 
     profile = [12, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40]
     eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(46.0, eff_tx_m)
+    self.assertEqual(45.5, eff_tx_m)
 
 
 if __name__ == '__main__':
