@@ -51,6 +51,11 @@ class TestAntenna(unittest.TestCase):
                                            0, None, 5)
     self.assertEqual(np.max(np.abs(
         gains - 5 * np.ones(4))), 0)
+    gains = antenna.GetStandardAntennaGains([0, 90, 180, 270],
+                                           None, 90, 5)
+    self.assertEqual(np.max(np.abs(
+        gains - 5 * np.ones(4))), 0)
+
     # Back lobe: maximum attenuation
     gain = antenna.GetStandardAntennaGains(180, 0, 120, 10)
     self.assertEqual(gain, -10)
