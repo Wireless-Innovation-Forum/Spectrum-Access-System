@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -12,8 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""This script extracts geo info from the NED original files as retrieved.
-Results go alongside source files in the data/ned and data/nlcd directories.
+"""Extract NED and NLCD tiles to be used with reference propagation models.
+
+The zipped tiles are stored in Git LFS under geo/ned and geo/nlcd folders.
+Tiles are unzipped into the top level data/ned and data/nlcd folders.
 """
 
 import os
@@ -21,18 +23,18 @@ import zipfile
 
 # Extract the wanted zipped data files from the given zipfile into the
 # given temporary directory.
-def UnzipNeededFiles(zip_filename, tmp_dir):
+def UnzipNeededFiles(zip_filename, dest_dir):
+  """Unzip all needed geo files from zip.
+  """
   zf = zipfile.ZipFile(zip_filename, 'r')
   for datfile in zf.infolist():
-    if (datfile.filename.endswith('.flt') or
-        datfile.filename.endswith('.hdr') or
-        datfile.filename.endswith('.prj')):
+    if (datfile.filename.endswith('.int') or datfile.filename.endswith('.flt') or
+        datfile.filename.endswith('.hdr') or datfile.filename.endswith('.prj')):
       try:
-        print '   extracting %s' % datfile.filename
-        zf.extract(datfile, tmp_dir)
-      except Exception, err:
-        raise Exception('Cannot extract ' + datfile.filename + ' from ' + zip_filename)
-
+        zf.extract(datfile, dest_dir)
+      except:
+        raise Exception('Cannot extract ' + datfile.filename +
+                        ' from ' + zip_filename)
 
 def ExtractData(directory):
   for f in os.listdir(directory):
@@ -43,8 +45,12 @@ def ExtractData(directory):
 # Find the directory of this script.
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.dirname(os.path.dirname(cur_dir))
-ned_dir = os.path.join(os.path.join(rootDir, 'data'), 'ned_orig')
+geo_dir = os.path.join(root_dir, 'data', 'geo')
 
-
+ned_dir = os.path.join(geo_dir, 'ned')
 print 'Extracting NED data files from zip files in dir=%s' % ned_dir
 ExtractData(ned_dir)
+
+nlcd_dir = os.path.join(geo_dir, 'nlcd')
+print 'Extracting NLCD data files from zip files in dir=%s' % nlcd_dir
+ExtractData(nlcd_dir)

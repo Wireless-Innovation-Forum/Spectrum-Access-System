@@ -18,15 +18,14 @@ It writes them into the data/ned_orig directory.
 If the .zip files already exist, the script will only download files if
 they are newer than the local versions.
 
-
 Warning:
 NED tiles are often updated in the USGS site.This script is provided for when
 the reference NED database shall be updated.
 
 The official set of reference NED files (to be used in SAS) are the ones stored
-in GCS and obtained with the `retrieve_geo.py` script. This set is frozen and will
-be updated only on specific schedule, so that all SAS providers use the same
-reference geo data.
+in the geo/ned folder (GIT submodule).
+This set is frozen and will be updated only on specific schedule, so that all
+ SAS providers use the same reference geo data.
 """
 
 import ftputil
