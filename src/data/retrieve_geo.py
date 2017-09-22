@@ -33,7 +33,7 @@ def UnzipNeededFiles(zip_filename, dest_dir):
   """Unzip all needed geo files from zip.
   """
   zf = zipfile.ZipFile(zip_filename, 'r')
-  for datfile i n zf.infolist():
+  for datfile in zf.infolist():
     if (datfile.filename.endswith('.int') or datfile.filename.endswith('.flt') or
         datfile.filename.endswith('.hdr') or datfile.filename.endswith('.prj')):
       try:
