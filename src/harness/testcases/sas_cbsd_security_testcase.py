@@ -53,7 +53,7 @@ def _VerifyCertificate(certificate_content, ca_bundle_content, is_server):
   store_ctx.verify_certificate()
 
 
-class SecurityTestcase(sas_testcase.SasTestCase):
+class SecurityTestcaseUsingOldIds(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
