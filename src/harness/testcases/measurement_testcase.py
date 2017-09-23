@@ -46,8 +46,7 @@ class MeasurementTestcase(unittest.TestCase):
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
 
     # Trigger to request measurement report for spectrum Inquery and grant request
-    self._sas_admin.TriggerMeasurementReportRegistration({'measReportConfig':
-                                                       ['RECEIVED_POWER_WITHOUT_GRANT']})
+    self._sas_admin.TriggerMeasurementReportRegistration({'measReportConfig': []})
     cbsd_ids = []
     # Register devices
     request = {'registrationRequest': devices}
@@ -100,8 +99,8 @@ class MeasurementTestcase(unittest.TestCase):
     self.assertTrue('cbsdId' in response[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertEqual(response[5]['response']['responseCode'], 103)
-    """ for resp in response[1:4]
-    self.assertEqual(resp['response']['responseCode'], 102)"""
+    for resp in response[1:5]
+    self.assertEqual(resp['response']['responseCode'], 102)
     del request, response
     # Create Grant Request for the six devices with frequency range 3550-3560 MHz
     grant_request = []
@@ -124,7 +123,7 @@ class MeasurementTestcase(unittest.TestCase):
     self.assertTrue('grantId' in response[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertEqual(response[5]['response']['responseCode'], 103)
-    for resp in response[1:4]:
+    for resp in response[1:5]:
         self.assertEqual(resp['response']['responseCode'], 102)
 
   @winnforum_testcase
@@ -144,13 +143,17 @@ class MeasurementTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    devices = [device_a, device_b, device_c, device_d, device_e]
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    devices = [device_a, device_b, device_c, device_d, device_e, device_f]
 
     for device in devices:
         # set meascapability for all devices
         device['measCapability'] = ['RECEIVED_POWER_WITH_GRANT']
         # Inject FCC IDs
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
+
+    device_f['measCapability'] = ['RECEIVED_POWER_WITHOUT_GRANT']
     cbsd_ids = []
     # Register devices
     request = {'registrationRequest': devices}
@@ -184,8 +187,7 @@ class MeasurementTestcase(unittest.TestCase):
         grant_ids.append(resp['grantId'])
 
     # Trigger to request measurement report for all subsequent heartbeat request
-    self._sas_admin.TriggerMeasurementReportHeartbeat({'measReportConfig':
-                                                       ['RECEIVED_POWER_WITH_GRANT']})
+    self._sas_admin.TriggerMeasurementReportHeartbeat({'measReportConfig':[]})
     # Heartbeat the devices without measReport
     heartbeat_request = []
     for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
@@ -197,15 +199,27 @@ class MeasurementTestcase(unittest.TestCase):
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     for response_num, resp in enumerate(response):
-        self.assertEqual(resp['response']['responseCode'], 0)
-        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-        self.assertEqual(resp['grantId'], grant_ids[response_num])
-        transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
-                                             '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLess(datetime.utcnow(), transmit_expire_time)
-        self.assertLessEqual(
-            (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
-        self.assertTrue('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
+        if response_num != len(response) - 1 :
+            self.assertEqual(resp['response']['responseCode'], 0)
+            self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+            self.assertEqual(resp['grantId'], grant_ids[response_num])
+            transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                                 '%Y-%m-%dT%H:%M:%SZ')
+            self.assertLess(datetime.utcnow(), transmit_expire_time)
+            self.assertLessEqual(
+                (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+            self.assertTrue('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
+        else:
+            self.assertEqual(resp['response']['responseCode'], 0)
+            self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+            self.assertEqual(resp['grantId'], grant_ids[response_num])
+            transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                                 '%Y-%m-%dT%H:%M:%SZ')
+            self.assertLess(datetime.utcnow(), transmit_expire_time)
+            self.assertLessEqual(
+                (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+            self.assertFalse('RECEIVED_POWER_WITHOUT_GRANT' in resp)
+            self.assertFalse('measReportConfig' in resp)
 
     # Heartbeat the devices with measReport
     heartbeat_requests = []
@@ -218,7 +232,7 @@ class MeasurementTestcase(unittest.TestCase):
         heartbeat_request['operationState'] = 'AUTHORIZED'
         heartbeat_request['measReport'] = meas_report
         if cbsd_id == cbsd_ids[1]:
-            # Delete measFrequency for second devide
+            # Delete measFrequency for second device
             del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency']
         if cbsd_id == cbsd_ids[2]:
             # Set measFrequency to 3540 MHZ for 3th device
@@ -226,8 +240,8 @@ class MeasurementTestcase(unittest.TestCase):
         if cbsd_id == cbsd_ids[3]:
             # Delete rcvdPowerMeasReports for 4th device
             del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]
-        if cbsd_id == cbsd_ids[4]:
-            # Delete measReport for 5th device
+        if cbsd_id in (cbsd_ids[4], cbsd_ids[5]):
+            # Delete measReport for devices 5 and 6
             del heartbeat_request['measReport']
         heartbeat_requests.append(heartbeat_request)
     request = {'heartbeatRequest': heartbeat_requests}
@@ -237,3 +251,4 @@ class MeasurementTestcase(unittest.TestCase):
     self.assertEqual(response[2]['response']['responseCode'], 103)
     self.assertEqual(response[3]['response']['responseCode'], 102)
     self.assertEqual(response[4]['response']['responseCode'], 102)
+    self.assertEqual(response[5]['response']['responseCode'], 0)
