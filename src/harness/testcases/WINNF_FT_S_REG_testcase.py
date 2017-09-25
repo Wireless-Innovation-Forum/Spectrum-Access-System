@@ -49,8 +49,8 @@ class RegistrationTestcase(unittest.TestCase):
         'fccId': device_a['fccId'],
         'userId': device_a['userId'],
         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
-        'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam']
+        'airInterface': device_a['airInterface'],
+        'installationParam': device_a['installationParam']
     }
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
@@ -71,7 +71,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals = {
         'registrationData': [conditionals_a, conditionals_b, conditionals_c]
     }
-    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -82,6 +81,8 @@ class RegistrationTestcase(unittest.TestCase):
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     self._sas_admin.InjectUserId({'userId': device_b['userId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
+
+    self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
     del device_a['cbsdCategory']
@@ -121,18 +122,6 @@ class RegistrationTestcase(unittest.TestCase):
     device_d = json.load(
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
 
-    # Inject FCC IDs
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
-
-    # Inject User IDs
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    self._sas_admin.InjectUserId({'userId': device_c['userId']})
-    self._sas_admin.InjectUserId({'userId': device_d['userId']})
-
     # Pre-load conditionals
     conditionals_a = {
         'cbsdCategory': device_a['cbsdCategory'],
@@ -171,6 +160,19 @@ class RegistrationTestcase(unittest.TestCase):
             conditionals_a, conditionals_b, conditionals_c, conditionals_d
         ]
     }
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
+
+    # Inject User IDs
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    self._sas_admin.InjectUserId({'userId': device_b['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+    self._sas_admin.InjectUserId({'userId': device_d['userId']})
+
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Device 2 missing cbsdSerialNumber
@@ -237,6 +239,7 @@ class RegistrationTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_REG_10(self):
     """Unsupported SAS protocol version in Array request (responseCode 100).
+
     The response should be FAILURE 100.
     """
 
