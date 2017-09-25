@@ -134,7 +134,7 @@ class TerrainDriver:
     ilon = math.floor(lon)
     try:
       tile_cache = self._tile_cache[(ilat, ilon)]
-      self._CacheLruUpdate((key.real, key.imag))
+      self._CacheLruUpdate((ilat, ilon))
     except:
       tile_cache = self._CacheGridTile(ilat, ilon)
       if tile_cache is None:
@@ -150,9 +150,9 @@ class TerrainDriver:
       float_x -= 0.5
       float_y -= 0.5
       # Bilinear interpolation
-      xm = math.floor(float_x)
+      xm = int(math.floor(float_x))
       xp = xm + 1
-      ym = math.floor(float_y)
+      ym = int(math.floor(float_y))
       yp = ym + 1
 
       # Calculate the areas used for weighting
