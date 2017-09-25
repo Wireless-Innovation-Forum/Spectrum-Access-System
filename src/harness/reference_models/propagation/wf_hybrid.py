@@ -302,31 +302,17 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                           HybridMode.EHATA_DOMINANT, cbsd_indoor)
 
   elif dist_km > 80:  # Use the ITM with correction from E-Hata @ 80km
-    # Calculate the ITM median and eHata median losses at a
-    # distance of 80 km.
+    # Calculate the ITM median and eHata median losses at 80km
     bearing = incidence_angles.hor_cbsd
 
-    # TODO: validate the following approach with WinnForum participants:
-    # Note: For best performance, and avoiding another profile extraction,
-    #       we get the 80km from the original profile instead of extraction
-    #       from scratch which would require the following slow operations:
-    #
-    # lat_80km, lon_80km, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd,
-    #                                                80., bearing)
-    # its_elev_80km = terrainDriver.TerrainProfile(lat_cbsd, lon_cbsd, lat_80km, lon_80km,
-    #                                              30, 1501)
-    num_points = int(80000. / its_elev[1]) + 1
-    its_elev_80km = its_elev[0:num_points+2]
-    its_elev_80km[0] = num_points - 1
-    dist_80km = (num_points - 1) * its_elev_80km[1]
-
-    # Calculate eHata loss and the ITM median loss at 80 km
+    lat_80km, lon_80km, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd,
+                                                   80., bearing)
+    its_elev_80km = terrainDriver.TerrainProfile(lat_cbsd, lon_cbsd, lat_80km, lon_80km,
+                                                 target_res_meter=30.,
+                                                 do_interp=True, max_points=1501)
     ehata_loss_80km = ehata.ExtendedHata(its_elev_80km, freq_mhz,
                                          height_cbsd, height_rx,
                                          region_code)
-    lat_80km, lon_80km, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd,
-                                                   dist_80km, bearing)
-
     itm_loss_80km = wf_itm.CalcItmPropagationLoss(
         lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
         False, 0.5, freq_mhz, its_elev_80km).db_loss

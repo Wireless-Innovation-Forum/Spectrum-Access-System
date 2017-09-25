@@ -136,13 +136,14 @@ class TestWfHybrid(unittest.TestCase):
   def test_over_80km(self):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.094745, -122.040671, 10.0  # 81km away
-    expected_loss = 269.067
+    expected_loss = 282.254
+    expected_itm_loss = 269.067
 
     res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                 reliability=0.5, freq_mhz=3625.,
                                 region='SUBURBAN')
     self.assertAlmostEqual(res.db_loss, expected_loss, 3)
-    self.assertAlmostEqual(res.db_loss, res.internals['itm_db_loss'], 0)
+    self.assertAlmostEqual(expected_itm_loss, res.internals['itm_db_loss'], 0)
     self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.ITM_CORRECTED)
 
   def test_average(self):
