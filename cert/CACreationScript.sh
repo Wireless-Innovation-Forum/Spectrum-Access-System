@@ -18,6 +18,13 @@
 
 echo Run this script from the directory containing the CBRS openssl.cnf file present in it. The openssl command must be present on the path.
 
+echo Usage: ./CACreationScript.sh
+
+echo Run this script with below arguments in order to generate CBSD EndEntity Certificate using pre define key/CSR
+
+echo Usage: ./CACreationScript.sh pkey cbsd_ee.pkey
+echo Usage: ./CACreationScript.sh csr cbsd_ee.csr
+
 DIR=./root
 PAPA=$DIR/ca
 CERTI=$PAPA/certs
@@ -44,6 +51,22 @@ ROOT_RSA_KEY_SIZE=4096
 INT_RSA_KEY_SIZE=4096
 EE_RSA_KEY_SIZE=2048
 
+if [ $# -eq 2 ]
+then
+  if [ "$1" == "pkey" ]
+  then
+    cp $2 cbsd_req.pkey  
+    #cp $2 cbsd_oem_req.pkey
+  elif [ "$1" == "csr" ]
+  then
+    cp $2 cbsd_req.csr  
+    #cp $2 cbsd_oem_req.csr
+  fi
+else
+  rm cbsd_req.pkey cbsd_req.csr
+  #rm cbsd_oem_req.pkey cbsd_oem_req.csr 
+fi
+  
 #ROOT
 
 #RSA
@@ -119,7 +142,13 @@ openssl ca -create_serial -cert $ROOT.crt -keyfile $ROOT.pkey -outdir $CSR -batc
 CBSD_EE=cbsd_req
 CBSD_EE_SIGN=$CBSD_EE$SIG
 
-openssl req -new -newkey rsa:$EE_RSA_KEY_SIZE -nodes -reqexts $CBSD_EE -out $CBSD_EE.csr -keyout $CBSD_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD End-Entity Example" -config openssl.cnf
+if [ -f $CBSD_EE.pkey ]
+then
+  openssl req -new -nodes -reqexts $CBSD_EE -out $CBSD_EE.csr -key $CBSD_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD End-Entity Example" -config openssl.cnf
+elif [ ! -f $CBSD_EE.csr ]
+then
+  openssl req -new -newkey rsa:$EE_RSA_KEY_SIZE -nodes -reqexts $CBSD_EE -out $CBSD_EE.csr -keyout $CBSD_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD End-Entity Example" -config openssl.cnf
+fi
 
 openssl ca -create_serial -cert $CBSD.crt -keyfile $CBSD.pkey -outdir $CSR -batch -out $CBSD_EE.crt -utf8 -days $EE_VALIDITY -policy policy_anything -md sha384 -extensions $CBSD_EE_SIGN -config openssl.cnf -in $CBSD_EE.csr
 
@@ -135,6 +164,13 @@ openssl ca -create_serial -cert $CBSD.crt -keyfile $CBSD.pkey -outdir $CSR -batc
 CBSD_OEM_EE=cbsd_oem_req
 CBSD_OEM_EE_SIGN=$CBSD_OEM_EE$SIG
 
-openssl req -new -newkey rsa:$EE_RSA_KEY_SIZE -nodes -reqexts $CBSD_OEM_EE -out $CBSD_OEM_EE.csr -keyout $CBSD_OEM_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD OEM End-Entity Example" -config openssl.cnf
+if [ -f $CBSD_OEM_EE.pkey ]
+then
+  openssl req -new -nodes -reqexts $CBSD_OEM_EE -out $CBSD_OEM_EE.csr -key $CBSD_OEM_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD OEM End-Entity Example" -config openssl.cnf
+elif [ ! -f $CBSD_OEM_EE.csr ]
+then
+  openssl req -new -newkey rsa:$EE_RSA_KEY_SIZE -nodes -reqexts $CBSD_OEM_EE -out $CBSD_OEM_EE.csr -keyout $CBSD_OEM_EE.pkey -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=CBSD OEM End-Entity Example" -config openssl.cnf
+fi
 
 openssl ca -create_serial -cert $CBSD_OEM.crt -keyfile $CBSD_OEM.pkey -outdir $CSR -batch -out $CBSD_OEM_EE.crt -utf8 -days $EE_VALIDITY -policy policy_anything -md sha384 -extensions $CBSD_OEM_EE_SIGN -config openssl.cnf -in $CBSD_OEM_EE.csr
+
