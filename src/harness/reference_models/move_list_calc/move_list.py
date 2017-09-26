@@ -204,8 +204,7 @@ def computeInterference(cbsd_grant, c, K):
     # Consider only CBSD transmitted power inside the frequency range of
     # protection constraint
     eff_bandwidth = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
-    FDR = 10 * np.log10((high_freq_cbsd-low_freq_cbsd) / eff_bandwidth)
-    eirp_cbsd = eirp_cbsd - FDR
+    eirp_cbsd = eirp_cbsd + 10 * np.log10(eff_bandwidth / 1000000.0)
 
     # Compute median and K random realizations of path loss/interference contribution
     # based on ITM model as defined in [R2-SGN-03] (in dB)
