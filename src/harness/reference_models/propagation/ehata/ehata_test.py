@@ -55,10 +55,13 @@ class TestEHata(unittest.TestCase):
     self.test_profile_dir = os.path.join(self.test_dir, 'pfls')
     self.columns, self.tests = ReadTestInputs(
         os.path.join(self.test_dir, 'test-inputs-wfmod.csv'))
+    ehata.SetWinnForumExtensions(False)
+
+  def tearDown(self):
+    ehata.SetWinnForumExtensions(True)
 
   # Test the ITS eHata version with original testbed code from ITS
   def test_its_testbed(self):
-    ehata.SetWinnForumExtensions(False)
     for test in self.tests:
       # read all data for the profile test
       scenario = test[self.columns.index('Scenario Title')]
