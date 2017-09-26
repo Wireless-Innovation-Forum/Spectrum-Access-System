@@ -26,8 +26,8 @@ _BASE_DATA_DIR = os.path.abspath(
                  '..', '..', '..', '..', 'data'))
 
 ITU_DIR = os.path.join(_BASE_DATA_DIR, 'itu')
-TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'ned')
-LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'nlcd')
+TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'ned')
+LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
 
 # If not using the standard location for the data files,
 # define the absolute path of your data directories

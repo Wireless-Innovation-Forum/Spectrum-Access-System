@@ -19,8 +19,8 @@ Before use of the models, one should make sure that the required geodata is
 correctly set in the WinnForum/data/ folder for:
 
   - ITU climate and refractivity files (TropClim.txt and n050.txt): in data/itu
-  - USGS 3DEP terrain altitude: in data/ned/
-  - NLCD land cover: in data/nlcd/
+  - USGS 3DEP terrain altitude: in data/geo/ned/
+  - NLCD land cover: in data/geo/nlcd/
 
 ### Other Location
 

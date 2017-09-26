@@ -9,3 +9,11 @@ models:
  - vincenty.py: precise methods for deriving geodesic between two points in the earth
  modeled as ellipsoid
  - testutils.py: miscellaneous utility routines for test
+
+The geo databases (NED, NLCD and ITU) default locations are specified in
+the CONFIG.py file to point to upper level folders:
+ - data/geo/ned/
+ - data/geo/nlcd/
+ - data/itu/ 
+ 
+ Modify the CONFIG.py file if using other locations.
