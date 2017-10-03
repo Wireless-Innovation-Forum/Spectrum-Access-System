@@ -48,7 +48,7 @@ from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent
 
 
-class GrantTestcase(sas_testcase.SasTestCase):
+class GrantTestcaseUsingOldIds(sas_testcase.SasTestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()

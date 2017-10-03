@@ -21,7 +21,7 @@ import sas
 from util import winnforum_testcase
 
 
-class HeartbeatTestcase(unittest.TestCase):
+class HeartbeatTestcaseUsingOldIds(unittest.TestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
