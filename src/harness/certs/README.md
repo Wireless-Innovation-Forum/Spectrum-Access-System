@@ -16,9 +16,9 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
                                /     \                              |
                               /       \                       unknown_device
                          sas_ca       cbsd_ca
-                         /    |         |
-                        /     |         |
-             admin_client  server   client+device_xxx
+                         /    |          \
+                        /     |           \
+             admin_client  server   client|device_[a|c]
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -39,6 +39,12 @@ Required certificates are:
 
 * `client.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
   Used in all tests not concerned with security-related features.
+
+* `device_a.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
+  Used to authenticate the device_c when connecting to a SAS server.
+
+* `device_c.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
+  Used to authenticate the device_c when connecting to a SAS server.
 
 * `admin_client.[cert|key]`: leaf certificate signed by `sas_ca`.
   Used to authenticate the test harness when connecting to the SAS testing API.
