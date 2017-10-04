@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "SAS-SAS Full Activity Dump Message ",
+    "required": [
+      "files",
+      "generationDateTime",
+      "description"
+    ],
+    "properties": {
+      "files": {
+        "type": "array",
+        "description": "Array of one or more objects corresponding to files comprising the full activity dump.",
+		"items":{"$ref": "file:ActivityDumpFile.schema.json"},
+		"maxItems" : 101
+      },
+      "generationDateTime": {
+        "type": "string",
+        "description": "The date and time at which the activity dump was generated."
+      },
+      "description": {
+        "type": "string",
+        "description": "additional human-readable description of the source"
+      }
+    }
+}

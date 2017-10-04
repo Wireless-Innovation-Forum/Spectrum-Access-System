@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Registration parameters provided for a CBSD",
+  "type": "object",
+  "required": [ "fccId", "cbsdCategory", "airInterface", "installationParam", "measCapability"],
+  "properties": {
+    "userId": { "type": "string",
+                "description": "Unique user designator for the operator. Generation mechanism TBD" },
+    "fccId": { "type": "string",
+               "description": "The certification FCC ID for the hardware" },
+    "cbsdSerialNumber": { "type": "string",
+                          "description": "Unique identifier for the CBSD chosen by the manufacturer" },
+    "cbsdCategory": { "enum" : [ "A", "B" ],
+                      "description": "A if the device is Category A; B if it is Category B" },
+    "callSign": { "type": "string",
+                  "description": "The call sign for the operator. Meaning and origin TBD" },
+    "measCapability": { "type": "array",
+                        "description": "List of supported sensing capabilities of the device",
+                        "items": { "enum": [ "RECEIVED_POWER_WITHOUT_GRANT", "RECEIVED_POWER_WITH_GRANT" ],
+                                   "description": "Measurement capabilities of the CBSD." }
+                      },
+    "groupingParam": {
+      "type": "array",
+      "description": "List of group memberships of this CBSD.",
+      "items": { "$ref": "#/groupParamObject" }
+    },
+    "cbsdInfo": { "$ref": "#/cbsdInfoObject" },
+    "airInterface": { "$ref": "#/airInterfaceObject" },
+    "installationParam": { "$ref": "file:InstallationParamData.schema.json" }
+  },
+
+  "cbsdInfoObject": {
+    "type": "object",
+    "description": "Container for optional information related to the CBSD hardware and software configuration.",
+    "properties": {
+      "vendor": { "type": "string",
+                  "description": "Name of the CBSD manufacturer" },
+      "model": { "type": "string",
+                 "description": "Name of the CBSD model." },
+      "softwareVersion": { "type": "string",
+                           "description": "Name of the CBSD software version." },
+      "hardwareVersion": { "type": "string",
+                           "description": "Name of the CBSD hardware version." },
+      "firmwareVersion": { "type": "string",
+                           "description": "Name of the CBSD firmware version." },
+      "additionalProperties": true
+    }
+  },
+
+  "groupParamObject": {
+    "type": "object",
+    "required": [ "groupType", "groupId" ],
+    "description": "Container for information about a CBSD membership group.",
+    "properties": {
+      "groupType": { "enum": [ "interference-coordination" ],
+	             "description": "Type of the group" },
+      "groupId": { "type": "string",
+	           "description": "ID of the group" }
+    }
+  },
+
+  "airInterfaceObject": {
+    "type": "object",
+    "description": "Air interface parameter for a CBSD",
+    "required": [ "radioTechnology" ],
+    "properties": {
+      "radioTechnology": { "enum": [ "E_UTRA" ],
+                           "description": "Which PHY radio technology is used by the device in the 3.5GHz band" },
+      "supportedSpec": { "type": "string",
+                         "description": "Description of the spec of the radio technology supported." }
+    }
+  }
+}
+
