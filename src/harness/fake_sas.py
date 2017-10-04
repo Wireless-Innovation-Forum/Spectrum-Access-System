@@ -195,13 +195,40 @@ class FakeSas(sas_interface.SasInterface):
     else:
       # Return Empty if invalid Id
       return {}
-
+  
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    response = json.loads(json.dumps({'files':[
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': "xxsqsdqsdsqd",'size':0, 'version': "v1.0",'recordType': "cbsd" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': "xxsqsdqsdsqd", 'size':0, 'version': "v1.0",'recordType': "zone" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': "xxsqsdqsdsqd", 'size':0, 'version': "v1.0",'recordType': "esc_sensor" },        
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': "xxsqsdqsdsqd", 'size':0, 'version': "v1.0",'recordType': "coordination" }
+            ],
+            'generationDateTime': datetime.utcnow().strftime(
+                                      '%Y-%m-%dT%H:%M:%SZ'),
+            'description':"Full activity dump files" }))
+    return response;
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
+
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
-
+    
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Get data from json files after generate the
+     Full Activity Dump Message
+    Returns:
+     the message as an "json data" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class FakeSasAdmin(sas_interface.SasAdminInterface):
   """Implementation of SAS Admin for Fake SAS."""
@@ -254,9 +281,11 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
 
+  def TriggerFullActivityDump(self):
+    pass
+
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
-
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -301,7 +330,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/esc_sensor',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
-                       '/admin/trigger/daily_activities_immediately'):
+                       '/admin/trigger/daily_activities_immediately',
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
@@ -318,6 +348,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == "v1.0/esc_sensor":
       response = FakeSas().GetEscSensorRecord(value)
+    elif self.path == '/v1.0/dump':
+      response = FakeSas().GetFullActivityDump()
     else:
       self.send_response(404)
       return
