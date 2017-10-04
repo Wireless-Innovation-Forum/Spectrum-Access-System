@@ -91,11 +91,17 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_7(self):
-    """Send Spectrum Inquiry from cbsdId different from its assigned cbsdId,
-        SAS should reject Spectrum inquiry.
-    The responseCode should be (103, 105), with NO channels in result.
+    """
+    Purpose : cbsdId different from its assigned cbsdId and
+              the cbsdId exists in the SAS.
+
+    Result:SAS rejects the request by sending a Spectrum Inquiry Response as follows:
+       - SAS response does not include cbsdId.
+       - responseCode = 103, indicating invalid parameter (cbsdId, in this case), or
+                        105 if SAS identifies the CBSD, requesting the CBSD to de-register
 
     TS verrsion : BASED_ON_V0.0.0-r5.0 (15 September 2017)
+
     Test version : 0.1
     """
     # STEP 1
