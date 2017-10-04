@@ -160,7 +160,9 @@ class TestWfHybrid(unittest.TestCase):
     avg_res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                     reliability=-1, freq_mhz=3625.,
                                     region='SUBURBAN')
-    self.assertAlmostEqual(avg_res.db_loss, np.mean(losses), 5)
+    self.assertAlmostEqual(avg_res.db_loss,
+                           10*np.log10(np.mean(10**(np.array(losses)/10.))),
+                           5)
 
   def test_indoor(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0

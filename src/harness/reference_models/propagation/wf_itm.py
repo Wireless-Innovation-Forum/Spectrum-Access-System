@@ -206,7 +206,7 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                                                   confidence, reliabilities,
                                                   mdvar, False)
   if do_avg:
-    db_loss = np.mean(db_loss)
+    db_loss = 10*np.log10(np.mean(10**(np.array(db_loss)/10.)))
 
   if err_num !=  ItmErrorCode.NONE:
     logging.info('Got ITM applicability warning [%d]: %s' % (err_num, str_mode))
