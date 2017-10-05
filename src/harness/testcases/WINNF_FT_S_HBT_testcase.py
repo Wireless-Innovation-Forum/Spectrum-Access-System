@@ -11,15 +11,15 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
 import json
 import os
 import sas
-import unittest
+from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
+import sas_testcase
+from datetime import datetime, timedelta
+import hashlib
 
-from util import winnforum_testcase
-
-class HeartbeatTestcase(unittest.TestCase):
+class HeartbeatTestcase(sas_testcase.SasTestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -37,8 +37,8 @@ class HeartbeatTestcase(unittest.TestCase):
         })
     return {'heartbeatRequest': heartbeat_request}
 
-  def sendAndAssertSuccessfulHeartBeat(self,cbsd_ids, grant_ids, status):    
-    request = getHeartBeatRequest
+  def sendAndAssertSuccessfulHeartBeat(self, cbsd_ids, grant_ids, status):    
+    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, status)
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # check Heartbeat response 
     self.assertEqual(len(response), 3)
@@ -50,7 +50,7 @@ class HeartbeatTestcase(unittest.TestCase):
         transmit_expire_time_1 = datetime.strptime(resp['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual((transmit_expire_time_1 - datetime.utcnow()).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time_1, grant_expire_time_1)
-    del request, heartbeat_request
+    del request
     return response
    
   @winnforum_testcase
@@ -98,31 +98,30 @@ class HeartbeatTestcase(unittest.TestCase):
     grant_d = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_d['cbsdId'] = cbsd_ids[1]
-    grant_d['operationFrequencyRange']['lowFrequency'] = 3560
-    grant_d['operationFrequencyRange']['highFrequency'] = 3570
+    grant_d['operationParam']['operationFrequencyRange']['lowFrequency'] = 3560
+    grant_d['operationParam']['operationFrequencyRange']['highFrequency'] = 3570
     grant_e = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_e['cbsdId'] = cbsd_ids[2]
-    grant_e['operationFrequencyRange']['lowFrequency'] = 3560
-    grant_e['operationFrequencyRange']['highFrequency'] = 3570
+    grant_e['operationParam']['operationFrequencyRange']['lowFrequency'] = 3560
+    grant_e['operationParam']['operationFrequencyRange']['highFrequency'] = 3570
     request = {'grantRequest': [grant_c, grant_d, grant_e]}
     # send grant request and get response
     response = self._sas.Grant(request)['grantResponse']
-    self.assertEqual(len(response), 3)     
-    response.sort(key=lambda grant: grant["cbsdId"])    
+    self.assertEqual(len(response), 3)       
     grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
     del request, response
     # First Heartbeat
-    sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, 'GRANTED')
-    
+    response = self.sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, "GRANTED")
+    del response
     # STEP 2
     # load and inject FSS data
     fss_c = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_c.json')))
     # Inject Incumbent Activity with Overlapping Frequency of CBSD
-    fss_c['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+    fss_c['deploymentParam']['operationParam']['operationFrequencyRange']['lowFrequency'] = \
                              grant_c['operationParam']['operationFrequencyRange']['lowFrequency']
-    fss_c['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
+    fss_c['deploymentParam']['operationParam']['operationFrequencyRange']['highFrequency'] = \
                              grant_c['operationParam']['operationFrequencyRange']['highFrequency']
     
     self._sas_admin.InjectFss({'record': fss_c})   
@@ -130,24 +129,22 @@ class HeartbeatTestcase(unittest.TestCase):
     gwpz_c = json.load(
         open(os.path.join('testcases', 'testdata', 'gwpz_record_c.json')))
     # Inject Incumbent Activity with Overlapping Frequency of CBSD
-    gwpz_c['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+    gwpz_c['deploymentParam']['operationParam']['operationFrequencyRange']['lowFrequency'] = \
                              grant_c['operationParam']['operationFrequencyRange']['lowFrequency']
-    gwpz_c['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = \
+    gwpz_c['deploymentParam']['operationParam']['operationFrequencyRange']['highFrequency'] = \
                              grant_c['operationParam']['operationFrequencyRange']['highFrequency']
     
-    self._sas_admin.InjectFss({'record': fss_c})      
+    self._sas_admin.InjectWisp({'record': gwpz_c})      
     # Send Heartbeat before trigger the IAP to extent grants' expiration time
-    heartbeat_response_1 = sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, 'AUTHORIZED')
-    heartbeat_response_1.sort(key=lambda grant: grant["cbsdId"])  
+    heartbeat_response_1 = self.sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, 'AUTHORIZED')
      
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
     # Send Heartbeat after triggering the IAP
-    request = getHeartBeatRequest(cbsd_ids, grant_ids, 'AUTHORIZED')
+    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, 'AUTHORIZED')
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # CHECK
-    response.sort(key=lambda grant: grant["cbsdId"])   
     for response_num, resp in enumerate(response):
         self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
         self.assertEqual(resp['grantId'], grant_ids[response_num])
