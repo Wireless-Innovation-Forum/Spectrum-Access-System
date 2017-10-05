@@ -73,10 +73,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     @winnforum_testcase
     def test_WINNF_FT_S_FAD_1(self):
         """
-        Purpose : This test verifies that a SAS UUT can successfully respond to a full
+          Purpose : This test verifies that a SAS UUT can successfully respond to a full
                   activity dump request from a SAS Test Harness
 
-        Result:S
+          Result  : SAS UUT approves the request and responds of dump
+					-	The FAD message includes all required fields, and all fields are syntactically correct.
+					-	HTTP status code shall be 200 (SUCCESS).
+					- 	The files obtained collectively reflect all of the activity and use correct format
 
           TS version : BASED_ON_V0.0.0-r5.0 (15 September 2017)
 
@@ -91,22 +94,22 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # Register the devices and assert the Response
         cbsd_ids = self.assertRegistered([device_a, device_c])
         # Create grant requests
-        grant_0 = json.load(
+        grant_a = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-        grant_1 = json.load(
+        grant_c = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-        grant_0['cbsdId'] = cbsd_ids[0]
-        grant_1['cbsdId'] = cbsd_ids[1]
+        grant_a['cbsdId'] = cbsd_ids[0]
+        grant_c['cbsdId'] = cbsd_ids[1]
         # Request for non-overlapping frequency spectrum
-        grant_0['operationParam']['operationFrequencyRange'] = {
+        grant_a['operationParam']['operationFrequencyRange'] = {
             'lowFrequency': 3620000000.0,
             'highFrequency': 3630000000.0
         }
-        grant_1['operationParam']['operationFrequencyRange'] = {
+        grant_c['operationParam']['operationFrequencyRange'] = {
             'lowFrequency': 3640000000.0,
             'highFrequency': 3650000000.0
         }
-        request = {'grantRequest': [grant_0, grant_1]}
+        request = {'grantRequest': [grant_a, grant_c]}
         # Send grant requests
         grant_response = self._sas.Grant(request)['grantResponse']
         # Check registration response
@@ -160,11 +163,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                         self.assertEqual(1, len(record['grants']))
                         if record['registration']['fccId'] == device_a['fccId']:
                             assertCbsdRecordEqual(record['registration'], device_a)
-                            assertGrantRecord(record['grants'][0], grant_0, grant_response[0])                   
+                            assertGrantRecord(record['grants'][0], grant_a, grant_response[0])                   
                         else:
                             self.assertEqual(record['registration']['fccId'], device_c['fccId'])
                             assertCbsdRecordEqual(record['registration'], device_c)
-                            assertGrantRecord(record['grants'][0], grant_1, grant_response[1])
+                            assertGrantRecord(record['grants'][0], grant_c, grant_response[1])
                 if activity_dump_file['recordType'] == 'esc_sensor':
                     self.assertEqual(1, len(data['recordData']))
                     # Verify the response file of Esc Sensor
