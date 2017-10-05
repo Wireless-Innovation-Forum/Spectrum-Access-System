@@ -4,8 +4,8 @@
   "deploymentParam": [
     {
       "installationParam": {
-        "latitude": 38.8,
-        "longitude": -97.92,
+        "latitude": 38.815291,
+        "longitude": -97.098805,
         "height": 7.6,
         "heightType": "AGL",
         "indoorDeployment": false,

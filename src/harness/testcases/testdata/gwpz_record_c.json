@@ -4,8 +4,8 @@
   "deploymentParam": [
     {
       "installationParam": {
-        "latitude": 38.9,
-        "longitude": -96.91,
+        "latitude": 38.715291,
+        "longitude": -96.998805,
         "antennaBeamwidth": 30,
         "antennaAzimuth": 270,
         "antennaDowntilt": -90
