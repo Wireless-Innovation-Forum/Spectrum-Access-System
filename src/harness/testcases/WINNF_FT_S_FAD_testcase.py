@@ -91,7 +91,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             open(os.path.join('testcases', 'testdata', 'device_a.json')))
         device_c = json.load(
             open(os.path.join('testcases', 'testdata', 'device_c.json')))
-        # Register the devices and assert the Response
         cbsd_ids = self.assertRegistered([device_a, device_c])
         # Create grant requests
         grant_a = json.load(
@@ -112,7 +111,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         request = {'grantRequest': [grant_a, grant_c]}
         # Send grant requests
         grant_response = self._sas.Grant(request)['grantResponse']
-        # Check registration response
         grant_ids = []
         for resp in grant_response:
             grant_ids.append(resp['grantId'])

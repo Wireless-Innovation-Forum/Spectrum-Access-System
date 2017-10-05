@@ -2,15 +2,11 @@
 	"$schema": "http://json-schema.org/draft-04/schema#",
   	"description": "Describe the GrantData object",
     "type": "object",
-    "anyOf": [
-        {"required": ["operationParam"]},
-        {"required": ["requestedOperationParam"]}
-    ],
-    "type": "object",
 	"required": [
     	"id",
     	"channelType",
-        "grantExpireTime"
+        "grantExpireTime",
+		"requestedOperationParam"
 	],
 	"properties":{
 		"id":{
