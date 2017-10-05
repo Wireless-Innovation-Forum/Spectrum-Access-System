@@ -31,39 +31,41 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     def assertCbsdRecordEqual(self, first_cbsd, second_cbsd):
         self.assertEqual(first_cbsd['cbsdCategory'],second_cbsd['cbsdCategory'])
         self.assertEqual(first_cbsd['airInterface']['radioTechnology'],\
-		second_cbsd['airInterface']['radioTechnology'])
+		                 second_cbsd['airInterface']['radioTechnology'])
         self.assertEqual(first_cbsd['installationParam']['latitude'],\
-		second_cbsd['installationParam']['latitude'])
+		                 second_cbsd['installationParam']['latitude'])
         self.assertEqual(first_cbsd['installationParam']['longitude'],\
-		second_cbsd['installationParam']['longitude'])
+                         second_cbsd['installationParam']['longitude'])
         self.assertEqual(first_cbsd['installationParam']['height'],\
-		second_cbsd['installationParam']['height'])
+		                 second_cbsd['installationParam']['height'])
         self.assertEqual(first_cbsd['installationParam']['heightType'], \
-		second_cbsd['installationParam']['heightType'])
+		                 second_cbsd['installationParam']['heightType'])
         self.assertEqual(first_cbsd['installationParam']['indoorDeployment'], \
-		second_cbsd['installationParam']['indoorDeployment'])
+		                 second_cbsd['installationParam']['indoorDeployment'])
         self.assertEqual(first_cbsd['installationParam']['antennaGain'], \
-		second_cbsd['installationParam']['antennaGain'])
+		                 second_cbsd['installationParam']['antennaGain'])
         
 
     def assertGrantRecord(self, grant_record, grant_request, grant_response):
         self.assertEqual(grant_record['id'],grant_response['grantId'])
         if grant_record['operationParam'] != null :
             self.assertEqual(grant_record['operationParam']['maxEirp'],\
-			grant_request['operationParam']['maxEirp'])    
-            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['lowFrequency'],\
-			grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
+                             grant_request['operationParam']['maxEirp'])    
+            self.assertEqual(grant_record['operationParam']\
+                             ['operationFrequencyRange']['lowFrequency'],\
+                             grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
             self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['highFrequency'],\
-			grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
+                             grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
         self.assertEqual(grant_record['requestedOperationParam']['maxEirp'],\
-		grant_request['requestedOperationParam']['maxEirp'])    
-        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']\
-		['lowFrequency'], grant_request['requestedOperationParam']['operationFrequencyRange']\
-		['lowFrequency'])
+                         grant_request['requestedOperationParam']['maxEirp'])    
         self.assertEqual(grant_record['requestedOperationParam']\
-		['operationFrequencyRange']['highFrequency'],\
-		grant_request['requestedOperationParam']['operationFrequencyRange']\
-		['highFrequency'])
+                         ['operationFrequencyRange']['lowFrequency'],\
+                         grant_request['requestedOperationParam']\
+                         ['operationFrequencyRange']['lowFrequency'])
+        self.assertEqual(grant_record['requestedOperationParam']\
+                         ['operationFrequencyRange']['highFrequency'],\
+                         grant_request['requestedOperationParam']\
+                         ['operationFrequencyRange']['highFrequency'])
         self.assertEqual(grant_record['channelType'], grant_response['channelType'])
         self.assertEqual(grant_record['grantExpireTime'], grant_response['grantExpireTime'])
         self.assertEqual(false, grant_record['terminated']) 
