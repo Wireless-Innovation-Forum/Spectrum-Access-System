@@ -30,24 +30,40 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 	
     def assertCbsdRecordEqual(self, first_cbsd, second_cbsd):
         self.assertEqual(first_cbsd['cbsdCategory'],second_cbsd['cbsdCategory'])
-        self.assertEqual(first_cbsd['airInterface']['radioTechnology'],second_cbsd['airInterface']['radioTechnology'])
-        self.assertEqual(first_cbsd['installationParam']['latitude'],second_cbsd['installationParam']['latitude'])
-        self.assertEqual(first_cbsd['installationParam']['longitude'],second_cbsd['installationParam']['longitude'])
-        self.assertEqual(first_cbsd['installationParam']['height'],second_cbsd['installationParam']['height'])
-        self.assertEqual(first_cbsd['installationParam']['heightType'],second_cbsd['installationParam']['heightType'])
-        self.assertEqual(first_cbsd['installationParam']['indoorDeployment'],second_cbsd['installationParam']['indoorDeployment'])
-        self.assertEqual(first_cbsd['installationParam']['antennaGain'],second_cbsd['installationParam']['antennaGain'])
+        self.assertEqual(first_cbsd['airInterface']['radioTechnology'],\
+		second_cbsd['airInterface']['radioTechnology'])
+        self.assertEqual(first_cbsd['installationParam']['latitude'],\
+		second_cbsd['installationParam']['latitude'])
+        self.assertEqual(first_cbsd['installationParam']['longitude'],\
+		second_cbsd['installationParam']['longitude'])
+        self.assertEqual(first_cbsd['installationParam']['height'],\
+		second_cbsd['installationParam']['height'])
+        self.assertEqual(first_cbsd['installationParam']['heightType'], \
+		second_cbsd['installationParam']['heightType'])
+        self.assertEqual(first_cbsd['installationParam']['indoorDeployment'], \
+		second_cbsd['installationParam']['indoorDeployment'])
+        self.assertEqual(first_cbsd['installationParam']['antennaGain'], \
+		second_cbsd['installationParam']['antennaGain'])
         
 
     def assertGrantRecord(self, grant_record, grant_request, grant_response):
         self.assertEqual(grant_record['id'],grant_response['grantId'])
         if grant_record['operationParam'] != null :
-            self.assertEqual(grant_record['operationParam']['maxEirp'], grant_request['operationParam']['maxEirp'])    
-            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['lowFrequency'], grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
-            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['highFrequency'], grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
-        self.assertEqual(grant_record['requestedOperationParam']['maxEirp'], grant_request['requestedOperationParam']['maxEirp'])    
-        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']['lowFrequency'], grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
-        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']['highFrequency'], grant_request['requestedOperationParam']['operationFrequencyRange']['highFrequency'])
+            self.assertEqual(grant_record['operationParam']['maxEirp'],\
+			grant_request['operationParam']['maxEirp'])    
+            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['lowFrequency'],\
+			grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
+            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['highFrequency'],\
+			grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
+        self.assertEqual(grant_record['requestedOperationParam']['maxEirp'],\
+		grant_request['requestedOperationParam']['maxEirp'])    
+        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']\
+		['lowFrequency'], grant_request['requestedOperationParam']['operationFrequencyRange']\
+		['lowFrequency'])
+        self.assertEqual(grant_record['requestedOperationParam']\
+		['operationFrequencyRange']['highFrequency'],\
+		grant_request['requestedOperationParam']['operationFrequencyRange']\
+		['highFrequency'])
         self.assertEqual(grant_record['channelType'], grant_response['channelType'])
         self.assertEqual(grant_record['grantExpireTime'], grant_response['grantExpireTime'])
         self.assertEqual(false, grant_record['terminated']) 
@@ -65,10 +81,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           Test version : 0.1
           """
         # STEP 1
-        """
-        CBSD Test Harness registers 2 CBSDs with the SAS UUT, and follows the CBSD Grant Request
-        procedure to obtain grants for those CBSDs.
-        """
         # register devices
         device_a = json.load(
             open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -102,9 +114,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         del request
         
         # STEP 2
-        """
-        Use Test Harness to inject a PPA with ZONE_ID = X, and ESC Sensor data with ESC ID = Y, into SAS UUT
-        """
         # Inject PPA
         pal_low_frequency = 3550000000.0
         pal_high_frequency = 3560000000.0
@@ -125,34 +134,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
         self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor_record})
         # STEP 3
-        """
-        Trigger the SAS UUT to generate the activity dump.
-        """
         self._sas_admin.TriggerFullActivityDump()
         # STEP 4
-        """
-        SAS Test Harness establishes a TLS session with SAS UUT.  SAS Test Harness sends a correctly-formatted
-        full activity dump request to SAS UUT, of the form: GET $BASE_URL/dump.
-        """
         response = self._sas.GetFullActivityDump()
         # STEP 5
-        """
-        SAS UUT approves the request and responds with a Full Activity Dump message.
-        - The message includes all required fields, and all fields are syntactically correct.
-        - HTTP status code shall be 200 (SUCCESS).
-        """
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         generation_date_time = datetime.strptime(response['generationDateTime'],
                                           '%Y-%m-%dT%H:%M:%SZ')
-        # STEP 6
-        """
-        SAS test harness retrieves the individual files referenced in the FullActivityDump message.
-        """
-        # CHECK
-        """
-        The files obtained in Step 6 collectively reflect all of the activity in Step 1 and 2 and use
-        the format defined in [n.11]
-        """
+        # STEP 6 AND CHECK
         if generation_date_time >= (datetime.utcnow() - timedelta(minutes=1)):
             for activity_dump_file in response['files']:
                 # Verify the record type
@@ -168,7 +157,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                         self.assertContainsRequiredFields("CbsdData.schema.json", record)
                         self.assertEqual(1, len(record['grants']))
                         if record['registration']['fccId'] == device_a['fccId']:
-                            assertCbsdRecordEqual(record['registration'],device_a)
+                            assertCbsdRecordEqual(record['registration'], device_a)
                             assertGrantRecord(record['grants'][0], grant_0, grant_response[0])                   
                         else:
                             self.assertEqual(record['registration']['fccId'], device_c['fccId'])
