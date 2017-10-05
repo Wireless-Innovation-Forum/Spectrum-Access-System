@@ -17,7 +17,6 @@ import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
 import sas_testcase
 from datetime import datetime, timedelta
-import hashlib
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
@@ -160,12 +159,12 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                         self.assertContainsRequiredFields("CbsdData.schema.json", record)
                         self.assertEqual(1, len(record['grants']))
                         if record['registration']['fccId'] == device_a['fccId']:
-                            assertCbsdRecordEqual(record['registration'], device_a)
-                            assertGrantRecord(record['grants'][0], grant_a, grant_response[0])                   
+                            self.assertCbsdRecordEqual(record['registration'], device_a)
+                            self.assertGrantRecord(record['grants'][0], grant_a, grant_response[0])                   
                         else:
                             self.assertEqual(record['registration']['fccId'], device_c['fccId'])
-                            assertCbsdRecordEqual(record['registration'], device_c)
-                            assertGrantRecord(record['grants'][0], grant_c, grant_response[1])
+                            self.assertCbsdRecordEqual(record['registration'], device_c)
+                            self.assertGrantRecord(record['grants'][0], grant_c, grant_response[1])
                 if activity_dump_file['recordType'] == 'esc_sensor':
                     self.assertEqual(1, len(data['recordData']))
                     # Verify the response file of Esc Sensor
