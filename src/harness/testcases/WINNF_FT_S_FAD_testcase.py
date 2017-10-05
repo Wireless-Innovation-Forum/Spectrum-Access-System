@@ -175,8 +175,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     self.assertEqual(ppa_record['id'], data['recordData'][0]['id'])
                     self.assertEqual(ppa_record['usage'], data['recordData'][0]['usage'])
                     self.assertEqual(ppa_record['terminated'], data['recordData'][0]['terminated'])
-                    self.assertEqual(ppa_record['zone']['features'][0]['geometry']['coordinates'], data['recordData'][0]['zone']['features'][0]['geometry']['coordinates'])
-                    self.assertEqual(set(ppa_record['ppaInfo']['palId']), set(data['recordData'][0]['ppaInfo']['palId']))
-                    self.assertEqual(set(ppa_record['ppaInfo']['cbsdReferenceId']), set(data['recordData'][0]['ppaInfo']['cbsdReferenceId']))
-                    self.assertEqual(ppa_record['ppaInfo']['ppaBeginDate'], data['recordData'][0]['ppaInfo']['ppaBeginDate'])
-                    self.assertEqual(ppa_record['ppaInfo']['ppaExpirationDate'], data['recordData'][0]['ppaInfo']['ppaExpirationDate'])                                    
+                    self.assertEqual(ppa_record['zone']['features'][0]['geometry']['coordinates'],\
+                                      data['recordData'][0]['zone']['features'][0]['geometry']['coordinates'])
+                    self.assertEqual(set(ppa_record['ppaInfo']['palId']),\
+                                      set(data['recordData'][0]['ppaInfo']['palId']))
+                    self.assertEqual(set(ppa_record['ppaInfo']['cbsdReferenceId']), \
+                                     set(data['recordData'][0]['ppaInfo']['cbsdReferenceId']))
+                    self.assertEqual(ppa_record['ppaInfo']['ppaBeginDate'],\
+                                      data['recordData'][0]['ppaInfo']['ppaBeginDate'])
+                    self.assertEqual(ppa_record['ppaInfo']['ppaExpirationDate'],\
+                                      data['recordData'][0]['ppaInfo']['ppaExpirationDate'])                                    
