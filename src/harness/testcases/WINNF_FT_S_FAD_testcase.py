@@ -75,14 +75,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           Purpose : This test verifies that a SAS UUT can successfully respond to a full
                   activity dump request from a SAS Test Harness
 
-          Result  : SAS UUT approves the request and responds of dump
-					-	The FAD message includes all required fields, and all fields are syntactically correct.
-					-	HTTP status code shall be 200 (SUCCESS).
-					- 	The files obtained collectively reflect all of the activity and use correct format
-
-          TS version : BASED_ON_V0.0.0-r5.0 (15 September 2017)
-
-          Test version : 0.1
+          Result  : SAS UUT approves the request and responds,
+				  with correct content and format for both dump message and files 
           """
         # STEP 1
         # register devices
