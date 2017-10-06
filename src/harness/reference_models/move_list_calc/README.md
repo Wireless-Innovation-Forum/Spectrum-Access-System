@@ -13,9 +13,9 @@ The main routine to find which CBSD grants are on the move-list is
 
 Reference models:
 
-   - WInnForum ITM propagation reference model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/sbdt_ref_propag_models/src/harness/reference_models/propagation)   
-   - WInnForum geo modules and geo data (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/sbdt_ref_propag_models/src/harness/reference_models/geo)
-   - WInnForum CBSD antenna gain model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/pull/250/files/5132501d260396ee7000925b411bb9186b795d38#diff-3a804be21d4dd3e9f9121868f3597257)
+   - WInnForum ITM propagation reference model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/propagation)   
+   - WInnForum geo modules and geo data (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/geo)
+   - WInnForum antenna gain models (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/antenna)
 
 Python software and packages:
    - python 2.7 (https://www.python.org/download/releases/2.7/)
