@@ -71,12 +71,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 		
     @winnforum_testcase
     def test_WINNF_FT_S_FAD_1(self):
-        """
-          Purpose : This test verifies that a SAS UUT can successfully respond to a full
-                  activity dump request from a SAS Test Harness
-
-          Result  : SAS UUT approves the request and responds,
-				  with correct content and format for both dump message and files 
+        """ This test verifies that a SAS UUT can successfully respond to a full
+             activity dump request from a SAS Test Harness
+			
+		SAS UUT approves the request and responds,
+		with correct content and format for both dump message and files 
           """
         # STEP 1
         # register devices
