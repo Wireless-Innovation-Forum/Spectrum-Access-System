@@ -38,11 +38,12 @@ import numpy as np
 from operator import itemgetter
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
+from collections import namedtuple
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
-from reference_models.antenna_gain import cbsd_antenna_gain
+from reference_models.antenna import antenna
 
 # Set constant parameters based on requirements in the WINNNF-TS-0112
 CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km) [R2-SGN-24]
@@ -53,13 +54,11 @@ CAT_B_LONG_HT = 200             # height of Cat_B CBSD (in meters) in considerat
                                 # neighborhood distance Cat_B_NBRHD_DIST_FOR_HT [R2-SGN-24]
 PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection [R2-SGN-24]
 
-REF_INC_ANTENNA_HT = 50         # reference radar's antenna height (in meters) [R2-IPM-04]
-RADAR_BEAMWIDTH = 3.0           # reference radar's attenna beamwidth (in degrees)
+REF_INC_ANTENNA_HT = 50         # reference incumbent radar's antenna height (in meters) [R2-IPM-04]
+REF_INC_ANTENNA_ROT_STEP_SIZE = 1.5 # reference incumbent radar's antenna rotation step size beginning
+                                #  with the main beam boresight at true north (in degrees)
                                 # [R2-IPM-04]
-INTRF_ATTEN_OUTSIDE_MAIN_BEAM = -25.0   # attenuation of interference for CBSD outsides of
-                                        # radar main beam [R2-IPM-04]
-BLDG_CLUTTER_LOSS = 15          # attenuation due to building loss to be added to indoor CBSD
-                                # (in dB) [R2-SGN-03]
+FREQ_PROP_MODEL = 3625.0        # frequency used in propagation model (in MHz) [R2-SGN-04]
 
 def haat(lat, lon, ht):
 
@@ -74,22 +73,24 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
                                  exclusion_zone):
 
     """
-    Identify the Nc CBSD grants in the neighborhood of protection constraint (c).
+    Identify the Nc CBSD grants in the neighborhood of protection constraint.
 
     Inputs:
         reg_request:    a list of CBSD registration requests
         grant_request:  a list of grant requests
-        grant_index:    an array contains index of grant
-        constraint:     protection constraint c = (p, f)
+        grant_index:    an array of grant indices
+        constraint:     protection constraint, a tuple with named fields of
+                        'latitude', 'longitude', 'low_frequency', 'high_frequency'
         exclusion_zone: a list of locations used to form the exclusion zone
 
     Returns:
-        grant_inside:   a dictionary contains installation and grant information of all
+        grants_inside:  a list of grants, each one being a dictionary containing
+                        installation and grant information of all
                         CBSDs inside the neighborhood of the protection constraint.
     """
 
     grants_inside = []
-    polygon_ez = SPolygon(exclusion_zone)  # create polygon of the exclusion zone
+    polygon_ex_zone = SPolygon(exclusion_zone)  # create polygon of the exclusion zone
 
     # Loop over each CBSD grant
     for i in range(len(reg_request)):
@@ -99,15 +100,15 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
         lat_cbsd = reg_request[i].get('installationParam', {}).get('latitude')
         lon_cbsd = reg_request[i].get('installationParam', {}).get('longitude')
         height_cbsd = reg_request[i].get('installationParam', {}).get('height')
-                      # assume AGL height (in m)
-        lat_c = constraint['latitude']
-        lon_c = constraint['longitude']
+                                        # assume AGL height (in m)
+        lat_c = constraint.latitude
+        lon_c = constraint.longitude
         dist_km, bearing, _ = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd,
                                                                lat_c, lon_c)
         flag_geo = False
         if cbsd_cat == 'A':
             point_cbsd = SPoint(lat_cbsd, lon_cbsd)  # create point
-            if dist_km <= CAT_A_NBRHD_DIST and polygon_ez.contains(point_cbsd):
+            if dist_km <= CAT_A_NBRHD_DIST and polygon_ex_zone.contains(point_cbsd):
                 flag_geo = True
         elif cbsd_cat == 'B':
             if dist_km <= CAT_B_NBRHD_DIST:
@@ -115,16 +116,16 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
             elif (dist_km <= CAT_B_NBRHD_DIST_FOR_HT) and \
                     (haat(lat_cbsd, lon_cbsd, height_cbsd) >= CAT_B_LONG_HT):
                 flag_geo = True
-        else:  # unknown category, include this CBSD in the neighborhood
-            flag_geo = True
+        else:
+            raise ValueError('Unknown category %s' % cbsd_cat)
 
         # Check frequency range
         low_freq_cbsd = grant_request[i].get('operationParam', {}).\
             get('operationFrequencyRange', {}).get('lowFrequency')
         high_freq_cbsd = grant_request[i].get('operationParam', {}).\
             get('operationFrequencyRange', {}).get('highFrequency')
-        low_freq_c = constraint['lowFrequency']
-        high_freq_c = constraint['highFrequency']
+        low_freq_c = constraint.low_frequency
+        high_freq_c = constraint.high_frequency
         overlapping_bw = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
         flag_freq = (overlapping_bw > 0)
 
@@ -153,20 +154,20 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
     return grants_inside
 
 
-def computeInterference(cbsd_grant, c, K):
+def computeInterference(cbsd_grant, constraint, num_iteration):
 
     """
     Calculate interference contribution of each grant in the neighborhood to
     the protection constraint c.
 
     Inputs:
-        cbsd_grant:     a dictionary contains installation and grant information of the CBSD
-        c: 				a dictionary contains information of the protection constraint
-                        c = (p, f)
-        K: 				number of Monte Carlo iterations
+        cbsd_grant:     a dictionary containing installation and grant information of the CBSD
+        constraint: 	protection constraint, a tuple with named fields of
+                        'latitude', 'longitude', 'low_frequency', 'high_frequency'
+        num_iteration:  a number of Monte Carlo iterations
 
     Returns:
-        interference: 	a dictionary contains CBSD index, median interference contribution,
+        interference: 	a dictionary containing CBSD index, median interference contribution,
                         K random interference contributions of the grant to the protection
                         constraint c, and bearing from c to CBSD location.
     """
@@ -177,65 +178,49 @@ def computeInterference(cbsd_grant, c, K):
     lon_cbsd = cbsd_grant.get('longitude')
     h_cbsd = cbsd_grant.get('height')
     indoor_cbsd = cbsd_grant.get('indoorDeployment')
-    # ant_gain_cbsd = cbsd_grant.get('antennaGain')     # unused
     ant_beamwidth_cbsd = cbsd_grant.get('antennaBeamwidth')
     ant_az_cbsd = cbsd_grant.get('antennaAzimuth')
-    maxEirp_cbsd = cbsd_grant.get('maxEirp')
+    maxEirpPerMHz_cbsd = cbsd_grant.get('maxEirp')
     low_freq_cbsd = cbsd_grant.get('lowFrequency')
     high_freq_cbsd = cbsd_grant.get('highFrequency')
 
     # Get protection constraint information (protection point and frequency range)
-    lat_c = c.get('latitude')
-    lon_c = c.get('longitude')
-    low_freq_c = c.get('lowFrequency')
-    high_freq_c = c.get('highFrequency')
+    lat_c = constraint.latitude
+    lon_c = constraint.longitude
+    low_freq_c = constraint.low_frequency
+    high_freq_c = constraint.high_frequency
     h_c = REF_INC_ANTENNA_HT
-
-    # Compute CBSD conducted EIRP within the frequency range ch
-    if (ant_beamwidth_cbsd is None) or (ant_az_cbsd is None): # use maxEirp for CBSD EIRP
-        eirp_cbsd = maxEirp_cbsd
-    else:  # compute CBSD antenna gain ratio in the direction of the protection point p,
-           # and subtract it from maxEirp
-        _, bearing, _ = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd, lat_c, lon_c)
-        ant_gain_ratio = cbsd_antenna_gain.GetCBSDAntennaGain(bearing, ant_az_cbsd,
-                                                              ant_beamwidth_cbsd)
-        eirp_cbsd = maxEirp_cbsd + ant_gain_ratio
-
-    # Consider only CBSD transmitted power inside the frequency range of
-    # protection constraint
-    eff_bandwidth = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
-    eirp_cbsd = eirp_cbsd + 10 * np.log10(eff_bandwidth / 1000000.0)
 
     # Compute median and K random realizations of path loss/interference contribution
     # based on ITM model as defined in [R2-SGN-03] (in dB)
-    center_freq_mhz = (low_freq_c + (high_freq_c - low_freq_c) / 2.0) / 1000000.0
-    reliabilities = np.random.rand(K)       # get K random reliability values from a
-                                            # uniform distribution over [0,1)
+    reliabilities = np.random.rand(num_iteration)    # get K random reliability values from an
+                                                     # uniform distribution over [0,1)
     reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
                                             # a last value to reliabilities array
     results = wf_itm.CalcItmPropagationLoss(lat_cbsd, lon_cbsd, h_cbsd, lat_c, lon_c, h_c,
+                                            indoor_cbsd,
                                             reliability=reliabilities,
-                                            freq_mhz=center_freq_mhz)
+                                            freq_mhz=FREQ_PROP_MODEL)
     path_loss = np.array(results.db_loss)
-    # If the CBSD is indoors, account for attenuation due to building loss [R2-SGN-03]
-    if indoor_cbsd:
-        path_loss += BLDG_CLUTTER_LOSS
+
+    # Compute CBSD EIRP inside the frequency range of protection constraint
+    eirpPerMHz_cbsd = antenna.GetStandardAntennaGains(results.incidence_angles.hor_cbsd,
+                                                      ant_az_cbsd, ant_beamwidth_cbsd,
+                                                      maxEirpPerMHz_cbsd)
+    eff_bandwidth = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
+    eirp_cbsd = eirpPerMHz_cbsd + 10 * np.log10(eff_bandwidth / 1000000.0)
 
     # Calculate the interference contributions
     interf = eirp_cbsd - path_loss
     median_interf = interf[-1]      # last element is the median interference
     K_interf = interf[:-1]          # first 'K' interference
 
-    # Compute bearing from protection constraint c to the CBSD for later usage
-    _, bearing_c_cbsd, _ = vincenty.GeodesicDistanceBearing(lat_c, lon_c, lat_cbsd,
-                                                            lon_cbsd)
-
-    # Store interference contributions		
+    # Store interference contributions
     interference = {
         'grantIndex': grant_index,
         'medianInterference': median_interf,
         'randomInterference': K_interf,
-        'bearing_c_cbsd': bearing_c_cbsd}
+        'bearing_c_cbsd': results.incidence_angles.hor_rx}
 
     return interference
 
@@ -246,8 +231,9 @@ def formInterferenceMatrix(cbsd_grant_list, constraint, num_iter):
     Form the matrix of interference contributions to protection constraint c.
 
     Inputs:
-        cbsd_grant_list:    a list contains cbsd grants
-        constraint:         a dictionary contains information of protection constraint (c)
+        cbsd_grant_list:    a list of CBSD grants
+        constraint:         protection constraint, a tuple with named fields of
+                            'latitude', 'longitude', 'low_frequency', 'high_frequency'
         num_iter:           number of random iterations
 
     Returns:
@@ -275,39 +261,7 @@ def formInterferenceMatrix(cbsd_grant_list, constraint, num_iter):
     return I, sorted_grant_index, sorted_bearing
 
 
-def grantsInMainBeam(ant_az, bearing):
-
-    """
-    Identify the grants in the main beam of the receiver antenna.
-
-    Inputs:
-        ant_az:     antenna azimuth (degrees)
-        bearing:    a list of bearing values (due north) from the protection point
-                    to the CBSDs
-
-    Returns:
-        an array contains index of CBSD inside the main beam
-    """
-
-    idx = []
-
-    # Compute off-axis angle between the axis of the main-beam of the incumbent
-    # receiver and the line between the protection point and each CBSD
-    for i in range(len(bearing)):
-        theta = ant_az - bearing[i]
-        if theta > 180:
-            theta -= 360
-        elif theta < -180:
-           theta += 360
-
-        # Check if the CBSD is inside or outside the antenna main-beam
-        if (theta >= (-1) * RADAR_BEAMWIDTH/2.0) and (theta <= RADAR_BEAMWIDTH/2.0):
-            idx.append(i)
-
-    return np.array(idx)	
-
-
-def find_nc(I, bearing, t):
+def find_nc(I, bearings, t):
 
     """
     Return the index (nc) of the grant in the ordered list of grants such that
@@ -324,7 +278,7 @@ def find_nc(I, bearing, t):
     """
 
     # Create array of incumbent antenna azimuth angles (degrees).
-    azimuths = np.arange(0.0, 360.0, RADAR_BEAMWIDTH/2.0)
+    azimuths = np.arange(0.0, 360.0, REF_INC_ANTENNA_ROT_STEP_SIZE)
 
     # Initialize nc to Nc.
     Nc = I.shape[1]
@@ -334,28 +288,22 @@ def find_nc(I, bearing, t):
     # discrimination to linear units.
     t_mW = np.power(10.0, t/10.0)
     I_mW = np.power(10.0, I/10.0)
-    G_discrim = np.power(10.0, INTRF_ATTEN_OUTSIDE_MAIN_BEAM/10.0)
 
     # Loop through every azimuth angle.
-    for a in azimuths:
+    for azi in azimuths:
         # Calculate interference contributions at output of receiver antenna.
-        G = np.full((1,Nc),G_discrim)
-
-        idx = grantsInMainBeam(a,bearing)
-        if idx.size:
-            G[:,idx] = 1.0
-        IG = I_mW*G
+        dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi)
+        IG = I_mW * 10**(dpa_gains/10.0)
 
         # Compute the 95th percentile of the aggregate interference, and remove
         # grants until the protection threshold is met or all grants are moved.
-        A95 = np.percentile(IG.sum(1), PROTECTION_PERCENTILE, interpolation='lower')
+        A95 = np.percentile(np.sum(IG[:, 0:nc], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+
         while (A95 > t_mW):
-            I_mW[:, nc - 1] = 0.0  # zero-out the nc-th column of I_mW
-            IG[:, nc - 1] = 0.0    # zero-out the nc-th column of IG
             nc = nc - 1
             if nc == 0:
                 return 0
-            A95 = np.percentile(IG.sum(1), PROTECTION_PERCENTILE, interpolation='lower')
+            A95 = np.percentile(np.sum(IG[:, 0:nc], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
 
     return nc
 
@@ -364,48 +312,58 @@ def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
                  registration_request, grant_request, exclusion_zone):
 
     """
-    Main routine to find CBSD indices on the move-list.
+    Main routine to find CBSD indices on the move list.
 
     Inputs:
-        protection_points:  a list of protection points
-        low_freq:           low frequency
-        high_freq:          high frequency
-        threshold:          protection threshold
-        registration_request: a list of CBSD registration requests
-        grant_request:      a list of grant requests
-        exclusion_zone:     a list of locations used to form the exclusion zone
+        protection_points:  a list of protection points, each one being a tuple with
+                            named fields of 'latitude' and 'longitude'
+        low_freq:           low frequency of protection constraint (Hz)
+        high_freq:          high frequency of protection constraint (Hz)
+        threshold:          protection threshold (dBm/10 MHz)
+        num_iter:           number of Monte Carlo iterations
+        registration_request: a list of CBSD registration requests, each one being
+                            a dictionary containing CBSD registration information
+        grant_request:      a list of grant requests, each one being a dictionary
+                            containing grant information
+        exclusion_zone:     a list of locations, each one being a tuple with fields
+                            'latitude' and 'longitude'
 
     Returns:
-        result:             a Boolean array (same size as the registration_request/
+        result:             a Boolean array (same size as registration_request/
                             grant_request) with TRUE elements at indices having
-                            CBSDs on the move-list
+                            grants on the move list
     """
 
     # Index the grant requests in the same order in the registration_request and
     # grant_request lists [1, 2,..., N].
     grant_index = range(1, len(registration_request) + 1)
 
-    # Loop over each protection point and find the move-list
+    # Loop over each protection point and find the move list
     M_temp = []
-    for p in range(len(protection_points)):
 
-        Mc = []         # Initialize move-list for current protection constraint c
+    # Define protection constraint, i.e., a tuple with named fields of
+    # 'latitude', 'longitude', 'low_frequency', 'high_frequency'
+    ProtectionConstraint = namedtuple('ProtectionConstraint', ['latitude', 'longitude',
+                                                               'low_frequency', 'high_frequency'])
 
-        # Define protection constraint c = (p, f)
-        c = {
-            'latitude': protection_points[p].get('latitude'),
-            'longitude': protection_points[p].get('longitude'),
-            'lowFrequency': low_freq,
-            'highFrequency': high_freq}
+    for point in protection_points:
+
+        Mc = []         # Initialize move list for current protection constraint c
+
+        # Assign values to the protection constraint
+        constraint = ProtectionConstraint(latitude=point.latitude,
+                                           longitude=point.longitude,
+                                           low_frequency=low_freq,
+                                           high_frequency=high_freq)
 
         # Identify Nc CBSD grants in the neighborhood of protection constraint c
         Nc_grants = findGrantsInsideNeighborhood(registration_request, grant_request,
-                                                 grant_index, c, exclusion_zone)
+                                                 grant_index, constraint, exclusion_zone)
 
         if len(Nc_grants):  # Found CBSDs in the neighborhood
 
             # Form the matrix of interference contributions
-            I, sorted_grant_index, bearing = formInterferenceMatrix(Nc_grants, c,
+            I, sorted_grant_index, bearing = formInterferenceMatrix(Nc_grants, constraint,
                                                                     num_iter)
 
             # Find the index (nc) of the grant in the ordered list of grants such that
@@ -413,7 +371,7 @@ def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
             # the threshold for all azimuths of the receiver antenna.
             nc = find_nc(I, bearing, threshold)
 
-            # Determine the associated move-list (Mc)
+            # Determine the associated move list (Mc)
             Mc = sorted_grant_index[nc:]
 
             # Add Mc to M_temp list
@@ -423,7 +381,7 @@ def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
     M = np.unique(M_temp)
 
     # Set to TRUE the elements of the output Boolean array that have grant_index in
-    # the move-list
+    # the move list
     result = np.zeros(len(grant_index), bool)
     if M.size:
         result[M - 1] = True
