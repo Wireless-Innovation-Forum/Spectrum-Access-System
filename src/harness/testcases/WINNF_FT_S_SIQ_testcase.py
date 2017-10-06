@@ -31,10 +31,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
-    """
-    Purpose : Tests related to PAL Protection Area (PPA)
+    """Tests related to PAL Protection Area (PPA)
 
-    Result:SAS sending responseCode = 0 successful response
+	SAS sending responseCode = 0 successful response
 	without include the frequency range of PPA
     """
     # STEP 1
@@ -85,11 +84,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_7(self):
-    """
-    Purpose : cbsdId different from its assigned cbsdId and
-              the cbsdId exists in the SAS.
+    """cbsdId different from its assigned cbsdId and the cbsdId exists in the SAS.
 
-    Result: SAS rejects the request by sending responseCode = 103 or 105 
+    SAS rejects the request by sending responseCode = 103 or 105 
     """
     # STEP 1
     # Load device_a [cert|key]
