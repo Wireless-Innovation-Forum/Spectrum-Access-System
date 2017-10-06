@@ -17,7 +17,8 @@ import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
 import sas_testcase
 from datetime import datetime, timedelta
-import hashlib
+import time
+
 
 class HeartbeatTestcase(sas_testcase.SasTestCase):
   def setUp(self):
@@ -27,9 +28,15 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
 
-  def getHeartBeatRequest(self,cbsd_ids, grant_ids, status):     
+  def getHeartBeatRequest(self,cbsd_ids, grant_ids, previousTransmitExpireTime):     
     heartbeat_request = []
-    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+    for cbsd_id, grant_id, transmitExpireTime in zip(cbsd_ids, grant_ids, previousTransmitExpireTime):
+        status = 'AUTHORIZED'
+        if(transmitExpireTime == None):
+            status = 'GRANTED'
+        elif datetime.strptime(transmitExpireTime,'%Y-%m-%dT%H:%M:%SZ') <=  (datetime.utcnow() + timedelta(seconds= 2)):
+            time.sleep(2)
+            status = 'GRANTED'
         heartbeat_request.append({
             'cbsdId': cbsd_id,
             'grantId': grant_id,
@@ -37,8 +44,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         })
     return {'heartbeatRequest': heartbeat_request}
 
-  def sendAndAssertSuccessfulHeartBeat(self, cbsd_ids, grant_ids, status):    
-    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, status)
+  def sendAndAssertSuccessfulHeartBeat(self, cbsd_ids, grant_ids, previousTransmitExpireTime):    
+    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, previousTransmitExpireTime)
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # check Heartbeat response 
     self.assertEqual(len(response), 3)
@@ -57,20 +64,10 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_HBT_9(self):
     """
     Purpose : Array request, of three cbsds,SAS terminates the Grant for the one
-     with incumbent present (in Granted or Authorized state)
-     in response to its Heartbeat Request immediately after CBSD 
-     moves into Granted State or following a previous Heartbeat Response
+     that impacts incumbent activity.
 
-    Result:SAS responds with a basic Heartbeat Response in the form of one 3-element Array as follows:
-     - SAS response includes the cbsdId, and grantId that match the request from each CBSD in the array.
-     - The responseCode in Response Object shall be 0 for the first two CBSDs concluding a successful operation.
-      transmitExpireTime is set to a valid UTC time in the future for the first two CBSDs. It shall be not later than 240 seconds in the future and not later than the grantExpireTime.
-     - The responseCode in Response Object for the third CBSD set to 500, concluding a failed operation due to termination of the Grant. Other potential errors in the previous Heartbeat Request are ignored.
-      transmitExpireTime set to a value equal or less than the transmitExpireTime in the previous successful Heartbeat response. If this is the first Heartbeat response, any value for transmitExpireTime is acceptable, for the third CBSD
-
-    TS verrsion : BASED_ON_V0.0.0-r5.0 (15 September 2017)
-
-    Test version : 0.1
+    Result: successful heartbeat for the grants of two cbsds that doesn't impact the incumbent
+            and failed with responseCode 500 for the third one.
     """
     # STEP 1
     # register three devices 
@@ -112,8 +109,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     grant_ids = (response[0]['grantId'], response[1]['grantId'], response[2]['grantId'])
     del request, response
     # First Heartbeat
-    response = self.sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, "GRANTED")
-    del response
+    first_HB_response = self.sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, [None, None, None])
+    transmitExpireTime = (first_HB_response[0]['transmitExpireTime'], first_HB_response[1]['transmitExpireTime'], first_HB_response[2]['transmitExpireTime'])
     # STEP 2
     # load and inject FSS data
     fss_c = json.load(
@@ -135,14 +132,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
                              grant_c['operationParam']['operationFrequencyRange']['highFrequency']
     
     self._sas_admin.InjectWisp({'record': gwpz_c})      
-    # Send Heartbeat before trigger the IAP to extent grants' expiration time
-    heartbeat_response_1 = self.sendAndAssertSuccessfulHeartBeat(cbsd_ids, grant_ids, 'AUTHORIZED')
-     
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
     # Send Heartbeat after triggering the IAP
-    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, 'AUTHORIZED')
+    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, transmitExpireTime)
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # CHECK
     for response_num, resp in enumerate(response):
@@ -154,8 +148,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         self.assertLessEqual(transmit_expire_time_2, grant_expire_time_2)
         if cbsd_ids[response_num] == cbsd_ids[2]:
             self.assertEqual(resp['response']['responseCode'], 500)
-            transmit_expire_time_1 = datetime.strptime(heartbeat_response_1[response_num]\
-                                                       ['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
-            self.assertLessEqual(transmit_expire_time_2, transmit_expire_time_1)
+            if request['heartbeatRequest'][response_num]['operationState'] == 'AUTHORIZED':
+                transmit_expire_time_1 = datetime.strptime(first_HB_response[response_num]\
+                                                           ['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')
+                self.assertLessEqual(transmit_expire_time_2, transmit_expire_time_1)
         else:
             self.assertEqual(resp['response']['responseCode'], 0)
