@@ -62,12 +62,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
    
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_9(self):
-    """
-    Purpose : Array request, of three cbsds,SAS terminates the Grant for the one
-     that impacts incumbent activity.
+    """ Array request, of three cbsds,SAS terminates the Grant for the one
+    that impacts incumbent activity.
 
-    Result: successful heartbeat for the grants of two cbsds that doesn't impact the incumbent
-            and failed with responseCode 500 for the third one.
+    successful heartbeat for the grants of two cbsds that don't impact the incumbent
+    and failed with responseCode 500 for the third one.
     """
     # STEP 1
     # register three devices 
