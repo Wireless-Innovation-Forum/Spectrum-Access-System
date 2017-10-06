@@ -27,7 +27,7 @@
 
 #=============================================================================
 # Test move_list calculation.
-# Expected result is 'Move-list output: [True, True, True, False, True, False]'
+# Expected result is 'Move list output: [True, True, True, False, True, False]'
 #=============================================================================
 
 
@@ -36,14 +36,15 @@ import os
 from pykml import parser
 import move_list
 import time
+from collections import namedtuple
 
 if __name__ == '__main__':
 
     # Inputs
-    low_f = 3600000000 	# low frequency of protection constraint (Hz)
-    high_f = 3610000000 # high frequency of protection constraint (Hz)
-    t = -144			# protection threshold (dBm/10 MHz)
-    K = 2000			# number of Monte Carlo iterations
+    low_freq = 3600000000 	# low frequency of protection constraint (Hz)
+    high_freq = 3610000000  # high frequency of protection constraint (Hz)
+    protection_thres = -144	# protection threshold (dBm/10 MHz)
+    num_iter = 2000			# number of Monte Carlo iterations
 
     # Data directory
     current_dir = os.getcwd()
@@ -78,31 +79,31 @@ if __name__ == '__main__':
     with open(filename, 'r') as kml_file:
         coastalZoneDoc = parser.parse(kml_file).getroot()
     placemarks = list(coastalZoneDoc.Document.Placemark)
-    ez = []
+    exclusion_zone = []
     for pm in placemarks:
         name = pm.name.text
         if (name == 'East-Gulf Combined Contour'):
             line = pm.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
             coords = line.split(' ')
-            lngLat = []
+            lat_long = []
             for c in coords:
                 if c.strip():
                     xy = c.strip().split(',')
-                    lngLat.append([float(xy[1]), float(xy[0])])
-                    ez = lngLat
+                    lat_long.append([float(xy[1]), float(xy[0])])
+                    exclusion_zone = lat_long
+					
+    # Populate protection points (a list of namedtuples with fields 'latitude' and 'longitude')
+    ProtectionPoints = namedtuple('ProtectionPoints', ['latitude', 'longitude'])
+    protection_points = {ProtectionPoints(latitude=36.9400, longitude=-75.9989),
+                         ProtectionPoints(latitude=37.7579, longitude=-75.4105),
+                         ProtectionPoints(latitude=36.1044, longitude=-73.3147),
+                         ProtectionPoints(latitude=36.1211, longitude=-75.5939)}
 
-    # Populate protection points
-    protection_points = [{'latitude': 36.9400, 'longitude': -75.9989},
-              {'latitude': 37.7579, 'longitude': -75.4105},
-              {'latitude': 36.1044, 'longitude': -73.3147},
-              {'latitude': 36.1211, 'longitude': -75.5939}]
-              # {'latitude': 36.7547, 'longitude': -74.6106},  # missing terrain file floatn37w075_1_std.flt
-
-    # Determine which CBSD grants are on the move-list
+    # Determine which CBSD grants are on the move list
     start_time = time.time()
-    res = move_list.findMoveList(protection_points, low_f, high_f, t, K, reg_request_list,
-                                 grant_request_list, ez)
+    res = move_list.findMoveList(protection_points, low_freq, high_freq, protection_thres, num_iter, reg_request_list,
+                                 grant_request_list, exclusion_zone)
     end_time = time.time()
-    print 'Move-list output: ' + str(res)
+    print 'Move list output: ' + str(res)
     print 'Computation time: ' + str(end_time - start_time)
 
