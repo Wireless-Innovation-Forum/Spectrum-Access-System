@@ -34,14 +34,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
     Purpose : Tests related to PAL Protection Area (PPA)
 
-    Result:SAS approves the request by sending a Spectrum Inquiry Response as follows:
-    - SAS response includes cbsdId = C.
-    - availableChannel parameter does not include the frequency range FR1.
-    - responseCode = 0, indicating a successful inquiry of the spectrum.
-
-    TS verrsion : BASED_ON_V0.0.0-r5.0 (15 September 2017)
-
-    Test version : 0.1
+    Result:SAS sending responseCode = 0 successful response
+	without include the frequency range of PPA
     """
     # STEP 1
     # Load the device : equivalent to cbsdId=C from the TS
@@ -95,14 +89,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     Purpose : cbsdId different from its assigned cbsdId and
               the cbsdId exists in the SAS.
 
-    Result:SAS rejects the request by sending a Spectrum Inquiry Response as follows:
-       - SAS response does not include cbsdId.
-       - responseCode = 103, indicating invalid parameter (cbsdId, in this case), or
-                        105 if SAS identifies the CBSD, requesting the CBSD to de-register
-
-    TS verrsion : BASED_ON_V0.0.0-r5.0 (15 September 2017)
-
-    Test version : 0.1
+    Result: SAS rejects the request by sending responseCode = 103 or 105 
     """
     # STEP 1
     # Load device_a [cert|key]
