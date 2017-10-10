@@ -27,7 +27,7 @@
 
 #==================================================================================
 # DPA Move List Reference Model.
-# Based on WINNF-TS-0112, Version V1.2.0-r5.6, 17 August 2017.
+# Based on WINNF-TS-0112, Version V1.3.0, 27 September 2017.
 # This version of the code only addresses 'co-channel' frequency range protection
 # in R2-SGN-24.
 
