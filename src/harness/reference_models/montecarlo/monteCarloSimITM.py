@@ -13,7 +13,8 @@
 #    limitations under the License.
 
 # this function runs the Monte Carlo aggregation Simulation and computes the
-# distribution of the aggregate received power.
+# distribution of the aggregate received power. The code is built on the 
+# reference propagation model 
 # The transmitter CBSD profile is omni 
 # For the power computation, the Receiver is assumed to be flat 0dB over
 # the band and hence the Rx Power is simply equal to (Transmit power-PL)
