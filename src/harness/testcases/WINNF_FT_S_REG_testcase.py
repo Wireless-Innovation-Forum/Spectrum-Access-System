@@ -47,7 +47,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_a = {
         'cbsdCategory': device_a['cbsdCategory'],
         'fccId': device_a['fccId'],
-        'userId': device_a['userId'],
         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
         'airInterface': device_a['airInterface'],
         'installationParam': device_a['installationParam']
@@ -55,7 +54,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
         'fccId': device_b['fccId'],
-        'userId': device_b['userId'],
         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
@@ -63,7 +61,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
-        'userId': device_c['userId'],
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
         'installationParam': device_c['installationParam']
@@ -126,7 +123,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_a = {
         'cbsdCategory': device_a['cbsdCategory'],
         'fccId': device_a['fccId'],
-        'userId': device_a['userId'],
         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
         'airInterface': device_a['airInterface'],
         'installationParam': device_a['installationParam']
@@ -134,7 +130,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
         'fccId': device_b['fccId'],
-        'userId': device_b['userId'],
         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
@@ -142,7 +137,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
-        'userId': device_c['userId'],
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
         'installationParam': device_c['installationParam']
@@ -150,7 +144,6 @@ class RegistrationTestcase(unittest.TestCase):
     conditionals_d = {
         'cbsdCategory': device_d['cbsdCategory'],
         'fccId': device_d['fccId'],
-        'userId': device_d['userId'],
         'cbsdSerialNumber': device_d['cbsdSerialNumber'],
         'airInterface': device_d['airInterface'],
         'installationParam': device_d['installationParam']
