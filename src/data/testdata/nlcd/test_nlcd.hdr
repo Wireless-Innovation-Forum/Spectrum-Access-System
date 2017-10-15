@@ -1,0 +1,14 @@
+BYTEORDER      I
+LAYOUT         BIL
+NROWS          2515
+NCOLS          2753
+NBANDS         1
+NBITS          8
+BANDROWBYTES   2753
+TOTALROWBYTES  2753
+PIXELTYPE      UNSIGNEDINT
+ULXMAP         -2302140
+ULYMAP         1980750
+XDIM           30
+YDIM           30
+NODATA         nan
