@@ -91,7 +91,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant_a['cbsdId'] = cbsd_ids[0]
         grant_c['cbsdId'] = cbsd_ids[1]
-        # Request for non-overlapping frequency spectrum
+        # Set frequencys of the grants 
         grant_a['operationParam']['operationFrequencyRange'] = {
             'lowFrequency': 3620000000.0,
             'highFrequency': 3630000000.0
