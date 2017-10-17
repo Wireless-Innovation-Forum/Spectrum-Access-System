@@ -36,11 +36,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 	SAS sending responseCode = 0 successful response
 	without include the frequency range of PPA
     """
-    # STEP 1
-    # Load the device : equivalent to cbsdId=C from the TS
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     # Load PAL Database Record
     pal_record = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -48,19 +43,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
-    # Change device location to be inside PPA
-    device_a['installationParam']['latitude'], \
-    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
-
     pal_low_frequency = 3620000000.0
     pal_high_frequency = 3630000000.0
+    pal_user_id = "pal_user"
 
-    # Make PPA and PAL records consitent
+    # Make PPA and PAL records consistent
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
-        pal_low_frequency,pal_high_frequency,device_a['userId'])
+        pal_low_frequency,pal_high_frequency,pal_user_id)
 
-    # Register the devices and assert the Response
-    cbsd_ids = self.assertRegistered([device_a])
     # Inject PAL record record
     self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
     # Inject PPA record
@@ -68,6 +58,17 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Trigger daily activities and wait for it to be completed
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Load CBSD info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Change device location to be inside PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])
 
     # Send spectrumInquiry in which the frequency range(3550-3650)overlaps with PPA frequency
     spectrum_inquiry_0 = json.load(
@@ -77,10 +78,11 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Check : Check spectrum inquiry response
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     for available_channel in response['availableChannel']:
-        self.assertNotEqual(available_channel['frequencyRange'], pal_record[0]['channelAssignment']['primaryAssignment'])
+        self.assertEqual(self.overlapsFrequencies(pal_record[0]['channelAssignment']['primaryAssignment'],
+                        available_channel['frequencyRange']), 'FALSE')
+    self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_7(self):
@@ -88,7 +90,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     SAS rejects the request by sending responseCode = 103 or 105 
     """
-    # STEP 1
     # Load device_a [cert|key]
     device_a_cert = os.path.join('certs', 'device_a.cert')
     device_a_key = os.path.join('certs', 'device_a.key')
@@ -120,7 +121,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     cbsd_id_c = response['cbsdId']
     del request, response
 
-    # STEP 2
     # Create Spectrum Inquiry and Send request for device_a using device_c_cert and device_c_key
     spectrum_inquiry_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
@@ -128,7 +128,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
-    # CHECK : Check Spectrum Inquiry Response
+    # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
-    self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 105)
+    self.assertEqual(response['response']['responseCode'], 103)

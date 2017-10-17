@@ -41,7 +41,7 @@ Required certificates are:
   Used in all tests not concerned with security-related features.
 
 * `device_a.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
-  Used to authenticate the device_c when connecting to a SAS server.
+  Used to authenticate the device_a when connecting to a SAS server.
 
 * `device_c.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
   Used to authenticate the device_c when connecting to a SAS server.

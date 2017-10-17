@@ -140,3 +140,15 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
       time.sleep(10)
     signal.alarm(0)
+
+  def overlapsFrequencies(self, frequency_range_1, frequency_range_2):
+    result = 'FALSE'
+    if frequency_range_2['highFrequency'] > frequency_range_1['lowFrequency'] and frequency_range_2['highFrequency'] < frequency_range_1['highFrequency']:
+      result = 'TRUE'
+    elif frequency_range_2['lowFrequency'] < frequency_range_1['lowFrequency'] and frequency_range_2['highFrequency'] > frequency_range_1['highFrequency']:
+      result = 'TRUE'
+    elif frequency_range_2['lowFrequency'] < frequency_range_1['highFrequency'] and frequency_range_2['highFrequency'] > frequency_range_1['highFrequency']:
+      result = 'TRUE'
+    elif frequency_range_2['lowFrequency'] == frequency_range_1['lowFrequency'] and frequency_range_2['highFrequency'] == frequency_range_1['highFrequency']:
+      result = 'TRUE'
+    return result
