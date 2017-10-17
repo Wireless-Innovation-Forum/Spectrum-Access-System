@@ -49,21 +49,24 @@ class RegistrationTestcase(unittest.TestCase):
         'fccId': device_a['fccId'],
         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
         'airInterface': device_a['airInterface'],
-        'installationParam': device_a['installationParam']
+        'installationParam': device_a['installationParam'],
+        'measCapability': device_a['measCapability']
     }
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
         'fccId': device_b['fccId'],
         'cbsdSerialNumber': device_b['cbsdSerialNumber'],
         'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam']
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
     }
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
-        'installationParam': device_c['installationParam']
+        'installationParam': device_c['installationParam'],
+        'measCapability': device_c['measCapability']
     }
     conditionals = {
         'registrationData': [conditionals_a, conditionals_b, conditionals_c]
@@ -85,12 +88,15 @@ class RegistrationTestcase(unittest.TestCase):
     del device_a['cbsdCategory']
     del device_a['airInterface']
     del device_a['installationParam']
+    del device_a['measCapability']
     del device_b['cbsdCategory']
     del device_b['airInterface']
     del device_b['installationParam']
+    del device_b['measCapability']
     del device_c['cbsdCategory']
     del device_c['airInterface']
     del device_c['installationParam']
+    del device_c['measCapability']
 
     # Register the devices
     devices = [device_a, device_b, device_c]
@@ -112,12 +118,12 @@ class RegistrationTestcase(unittest.TestCase):
     # Load Devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
 
     # Pre-load conditionals
     conditionals_a = {
@@ -125,60 +131,82 @@ class RegistrationTestcase(unittest.TestCase):
         'fccId': device_a['fccId'],
         'cbsdSerialNumber': device_a['cbsdSerialNumber'],
         'airInterface': device_a['airInterface'],
-        'installationParam': device_a['installationParam']
-    }
-    conditionals_b = {
-        'cbsdCategory': device_b['cbsdCategory'],
-        'fccId': device_b['fccId'],
-        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-        'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam']
+        'installationParam': device_a['installationParam'],
+        'measCapability': device_a['measCapability']
     }
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
         'cbsdSerialNumber': device_c['cbsdSerialNumber'],
         'airInterface': device_c['airInterface'],
-        'installationParam': device_c['installationParam']
+        'installationParam': device_c['installationParam'],
+        'measCapability': device_c['measCapability']
     }
-    conditionals_d = {
-        'cbsdCategory': device_d['cbsdCategory'],
-        'fccId': device_d['fccId'],
-        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
-        'airInterface': device_d['airInterface'],
-        'installationParam': device_d['installationParam']
+    conditionals_e = {
+        'cbsdCategory': device_e['cbsdCategory'],
+        'fccId': device_e['fccId'],
+        'cbsdSerialNumber': device_e['cbsdSerialNumber'],
+        'airInterface': device_e['airInterface'],
+        'installationParam': device_e['installationParam'],
+        'measCapability': device_e['measCapability']
+    }
+    conditionals_f = {
+        'cbsdCategory': device_f['cbsdCategory'],
+        'fccId': device_f['fccId'],
+        'cbsdSerialNumber': device_f['cbsdSerialNumber'],
+        'airInterface': device_f['airInterface'],
+        'installationParam': device_f['installationParam'],
+        'measCapability': device_f['measCapability']
     }
     conditionals = {
         'registrationData': [
-            conditionals_a, conditionals_b, conditionals_c, conditionals_d
+            conditionals_a, conditionals_c, conditionals_e, conditionals_f
         ]
     }
 
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_f['fccId']})
 
     # Inject User IDs
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
-    self._sas_admin.InjectUserId({'userId': device_d['userId']})
+    self._sas_admin.InjectUserId({'userId': device_e['userId']})
+    self._sas_admin.InjectUserId({'userId': device_f['userId']})
 
     self._sas_admin.PreloadRegistrationData(conditionals)
 
+    # Remove conditionals from registration
+    del device_a['cbsdCategory']
+    del device_a['airInterface']
+    del device_a['installationParam']
+    del device_a['measCapability']
+    del device_c['cbsdCategory']
+    del device_c['airInterface']
+    del device_c['installationParam']
+    del device_c['measCapability']
+    del device_e['cbsdCategory']
+    del device_e['airInterface']
+    del device_e['installationParam']
+    del device_e['measCapability']
+    del device_f['cbsdCategory']
+    del device_f['airInterface']
+    del device_f['installationParam']
+    del device_f['measCapability']
+
     # Device 2 missing cbsdSerialNumber
-    del device_b['cbsdSerialNumber']
+    del device_c['cbsdSerialNumber']
 
     # Device 3 missing fccId
-    del device_c['fccId']
+    del device_e['fccId']
 
     # Device 4 missing userId
-    del device_d['userId']
+    del device_f['userId']
 
     # Register devices
-    devices = [device_a, device_b, device_c, device_d]
+    devices = [device_a, device_c, device_e, device_f]
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)
     # Check registration response
@@ -199,11 +227,11 @@ class RegistrationTestcase(unittest.TestCase):
     # Load Devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    devices = [device_a, device_b, device_c]
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    devices = [device_a, device_c, device_e]
     for device in devices:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
@@ -216,7 +244,7 @@ class RegistrationTestcase(unittest.TestCase):
     del request, response
 
     # Blacklist the third device
-    self._sas_admin.BlacklistByFccId({'fccId': device_c['fccId']})
+    self._sas_admin.BlacklistByFccId({'fccId': device_e['fccId']})
 
     # Re-register the devices
     request = {'registrationRequest': devices}
@@ -242,11 +270,11 @@ class RegistrationTestcase(unittest.TestCase):
     # Load Devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    devices = [device_a, device_b, device_c]
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    devices = [device_a, device_c, device_e]
     for device in devices:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
