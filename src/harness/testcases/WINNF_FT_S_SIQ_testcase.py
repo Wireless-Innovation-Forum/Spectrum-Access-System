@@ -133,4 +133,4 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
     self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 105)
+                    response['response']['responseCode'] == 104)
