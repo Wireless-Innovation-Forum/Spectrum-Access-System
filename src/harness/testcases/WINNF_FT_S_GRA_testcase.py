@@ -130,7 +130,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('grantId' in resp)
     self.assertEqual(response[0]['response']['responseCode'], 103)
-    self.assertTrue(response[1]['response']['responseCode'] in (103, 300))
-    self.assertTrue(response[2]['response']['responseCode'] in (103, 300))
+    self.assertTrue(response[1]['response']['responseCode'], 300)
+    self.assertTrue(response[2]['response']['responseCode'], 300)
 
 
