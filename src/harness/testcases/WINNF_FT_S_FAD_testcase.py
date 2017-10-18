@@ -32,20 +32,16 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         if grant_record['operationParam'] != null :
             self.assertEqual(grant_record['operationParam']['maxEirp'],\
                              grant_request['operationParam']['maxEirp'])    
-            self.assertEqual(grant_record['operationParam']\
-                             ['operationFrequencyRange']['lowFrequency'],\
+            self.assertEqual(grant_record['operationParam'], ['operationFrequencyRange']['lowFrequency'],\
                              grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
             self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['highFrequency'],\
                              grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
         self.assertEqual(grant_record['requestedOperationParam']['maxEirp'],\
                          grant_request['requestedOperationParam']['maxEirp'])    
+        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']\
+                         ['lowFrequency'],grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
         self.assertEqual(grant_record['requestedOperationParam']\
-                         ['operationFrequencyRange']['lowFrequency'],\
-                         grant_request['requestedOperationParam']\
-                         ['operationFrequencyRange']['lowFrequency'])
-        self.assertEqual(grant_record['requestedOperationParam']\
-                         ['operationFrequencyRange']['highFrequency'],\
-                         grant_request['requestedOperationParam']\
+                         ['operationFrequencyRange']['highFrequency'], grant_request['requestedOperationParam']\
                          ['operationFrequencyRange']['highFrequency'])
         self.assertEqual(grant_record['channelType'], grant_response['channelType'])
         self.assertEqual(grant_record['grantExpireTime'], grant_response['grantExpireTime'])
@@ -82,7 +78,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             'lowFrequency': 3640000000.0,
             'highFrequency': 3650000000.0
         }
-        request = {'grantRequest': [grant_a, grant_c]}
+        grants_to_request = [grant_a, grant_c]
+        grant_request = {'grantRequest': grants_to_request}
         # Send grant requests
         grant_response = self._sas.Grant(request)['grantResponse']
         grant_ids = []
@@ -102,7 +99,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 device_a['userId'])
-        ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[1]]
         self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
         self._sas_admin.InjectZoneData({'record': ppa_record})
         # Inject Esc Sensor
@@ -150,7 +146,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     # Get grants by cbsd_id
                     grants_of_cbsd = [cbsd['grants'] for cbsd in data['recordData'] if cbsd['id'] == record_id]
                     self.assertEqual(grants_of_cbsd[0][0]['id'], (grant_ids[index]))
-                    self.assertGrantRecord(record['grants'][0], grant_c, grant_response[index])
+                    self.assertGrantRecord(record['grants'][0], grants_to_request[index], grant_response[index])
             elif activity_dump_file['recordType'] == 'esc_sensor':
                 self.assertEqual(1, len(data['recordData']))
                 # Verify the response file of Esc Sensor
