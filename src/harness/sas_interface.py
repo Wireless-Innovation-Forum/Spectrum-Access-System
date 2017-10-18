@@ -210,6 +210,17 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def InjectUserId(self, request):
+    """SAS admin interface to whitelist a user ID in the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "userId" and the value is a string of valid userId to be whitelisted by
+        the SAS under test.
+    """
+    pass
+
+  @abc.abstractmethod
   def BlacklistByFccId(self, request):
     """Inject an FCC ID which will be blacklisted by the SAS under test.
 

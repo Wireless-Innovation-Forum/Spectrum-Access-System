@@ -199,6 +199,12 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectUserId(self, request):
+    _RequestPost('https://%s/admin/injectdata/user_id' % self._base_url,
+                 request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def InjectEscZone(self, request):
     return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
