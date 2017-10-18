@@ -70,18 +70,20 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Register device
     cbsd_ids = self.assertRegistered([device_a])
 
-    # Send spectrumInquiry in which the frequency range(3550-3650)overlaps with PPA frequency
+    # Create spectrumInquiry with the frequency range full overlaps with PAL frequency
     spectrum_inquiry_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'] = \
+                pal_record[0]['channelAssignment']['primaryAssignment']['lowFrequency']
+    spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = \
+                pal_record[0]['channelAssignment']['primaryAssignment']['highFrequency']
 
     # Check : Check spectrum inquiry response
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
-    for available_channel in response['availableChannel']:
-        self.assertEqual(self.overlapsFrequencies(pal_record[0]['channelAssignment']['primaryAssignment'],
-                        available_channel['frequencyRange']), 'FALSE')
+    self.assertFalse('availableChannel' in response)
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -130,4 +132,5 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
     # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertTrue(response['response']['responseCode'] == 103 or
+                    response['response']['responseCode'] == 105)

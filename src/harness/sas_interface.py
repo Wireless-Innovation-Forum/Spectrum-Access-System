@@ -503,16 +503,3 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-
-  @abc.abstractmethod
-  def overlapsFrequencies(self, frequency_range_1, frequency_range_2):
-    """Check if two Frequancies are parttially or full overlaping .
-
-    Returns:
-      TRUE if overlaps and FALSE if not.
-    """
-    pass
-
-
-
-
