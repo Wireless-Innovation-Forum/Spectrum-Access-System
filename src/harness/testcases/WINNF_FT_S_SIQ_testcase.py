@@ -38,16 +38,16 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Register the devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
 
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
 
-    request = {'registrationRequest': [device_a, device_b]}
+    request = {'registrationRequest': [device_a, device_c]}
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response
