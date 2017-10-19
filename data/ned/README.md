@@ -1,15 +1,21 @@
-This directory contains the extracted seamless tiled data from the NED 1-arcsecond
-data set maintained by the National Map project of USGS.
+This directory contains the retiled data for the USGS NED (National Elevation Data)
+in 1x1 degrees tiles with grid every 1 arcsecond.
 
-* float\*.hdr, float\*.prj, float\*.flt
+Content for each tile:
 
-    These files are the geospatial data for square-degree areas, as extracted from the
-    ArcFLOAT data downloads from USGS.
+ * floatnXXwYYY_std.[prj,hdr] : geo referencing header files
+ * floatnXXwYYY_std.flt : raw data in ArcFloat format.
+ * floatnXXwYYY_std.md5 : MD5 signature used for future update of the tiles
 
-* usgs\_ned\_\*.hdr, usgs\_ned\_\*.prj, usgs\_ned\_\*.flt
+An updated version of some of the tiles are provided with the prefix 
+`usgs_ned_1_nXXwYYY_gridfloat_std`: this data corresponds to newer data gathering
+techniques (primarily LIDAR).
 
-    These files are the geospatial data for updated square-degree areas, as extracted
-    from the ArcFLOAT data downloads from USGS. This data corresponds to newer data
-    gathering techniques (primarily LIDAR).
+The reference data can be retrieved by using the `src/data/retrieve_geo.py`, and
+corresponds to a snapshot of the latest USGS data available from July 2017.
 
-The data files are readable by the GDAL 32-bit Ehdr driver.
+The data is read by the NED terrain driver found in `harness/src/reference_models/geo/terrain.py`,
+and in particular is used by the reference propagation models in `harness/src/reference_models/propagation`.
+
+It can be displayed on any GIS tool.
+

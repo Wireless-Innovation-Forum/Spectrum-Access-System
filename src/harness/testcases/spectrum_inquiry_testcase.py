@@ -20,7 +20,7 @@ from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent
 
 
-class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
+class SpectrumInquiryTestcaseUsingOldIds(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()

@@ -203,9 +203,20 @@ class SasAdminInterface(object):
     """SAS admin interface to inject fcc id information into SAS under test.
 
     Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) valid fccId to be injected into SAS under test
+        "fccMaxEirp": (double) optional; default value of 47 dBm/10 MHz
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectUserId(self, request):
+    """SAS admin interface to whitelist a user ID in the SAS under test.
+
+    Args:
       request: A dictionary with a single key-value pair where the key is
-        "fccId" and the value is a string of valid fccId which is going to be
-        injected into SAS under test.
+        "userId" and the value is a string of valid userId to be whitelisted by
+        the SAS under test.
     """
     pass
 

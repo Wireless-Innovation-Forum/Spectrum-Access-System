@@ -20,7 +20,7 @@ import sas
 from util import winnforum_testcase
 
 
-class DeregistrationTestcase(unittest.TestCase):
+class DeregistrationTestcaseUsingOldIds(unittest.TestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
