@@ -30,6 +30,76 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     pass
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_6(self):
+    """cbsdId sent in Spectrum Inquiry is non-existent and not the assigned one.
+
+    The response should be INVALID_VALUE, code 103.
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Send Spectrum Inquiry request
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_id + '-changed'
+    self.assertNotEqual(cbsd_id, spectrum_inquiry_0['cbsdId'])
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+
+    # Check Spectrum Inquiry Response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertFalse('cbsdId' in response)
+    self.assertTrue(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_8(self):
+    """Parameters in Inquired Spectrum mutually invalid.
+
+    The response should be INVALID_VALUE, code 103.
+    """
+    # Register the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Create and send Spectrum Inquiry request
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_id
+    # Swap low and high frequencies to create an invalid range.
+    (spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'],
+     spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency']) = (
+         spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'],
+         spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'])
+    self.assertLess(
+        spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'],
+        spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'])
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    # Send the request
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+
+    # Check Spectrum Inquiry Response
+    self.assertEqual(response['cbsdId'], cbsd_id)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_11(self):
     """Unsupported frequency range inquiry array.
 
