@@ -18,7 +18,7 @@
         "maxEirp": 10.1,
         "operationFrequencyRange": {
           "lowFrequency": 3650000000.0,
-          "highFrequency": 3700000000.0
+          "highFrequency": 4200000000.0
         }
       }
     }
