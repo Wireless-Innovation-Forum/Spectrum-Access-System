@@ -26,26 +26,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
     def tearDown(self):
         pass
-
-    def assertGrantRecord(self, grant_record, grant_request, grant_response):
-        self.assertEqual(grant_record['id'],grant_response['grantId'])
-        if grant_record['operationParam'] != null :
-            self.assertEqual(grant_record['operationParam']['maxEirp'],\
-                             grant_request['operationParam']['maxEirp'])    
-            self.assertEqual(grant_record['operationParam'], ['operationFrequencyRange']['lowFrequency'],\
-                             grant_request['operationParam']['operationFrequencyRange']['lowFrequency'])
-            self.assertEqual(grant_record['operationParam']['operationFrequencyRange']['highFrequency'],\
-                             grant_request['operationParam']['operationFrequencyRange']['highFrequency'])
-        self.assertEqual(grant_record['requestedOperationParam']['maxEirp'],\
-                         grant_request['requestedOperationParam']['maxEirp'])    
-        self.assertEqual(grant_record['requestedOperationParam']['operationFrequencyRange']\
-                         ['lowFrequency'],grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
-        self.assertEqual(grant_record['requestedOperationParam']\
-                         ['operationFrequencyRange']['highFrequency'], grant_request['requestedOperationParam']\
-                         ['operationFrequencyRange']['highFrequency'])
-        self.assertEqual(grant_record['channelType'], grant_response['channelType'])
-        self.assertEqual(grant_record['grantExpireTime'], grant_response['grantExpireTime'])
-        self.assertEqual(false, grant_record['terminated']) 
 		
     @winnforum_testcase
     def test_WINNF_FT_S_FAD_1(self):
@@ -147,6 +127,25 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     grants_of_cbsd = [cbsd['grants'] for cbsd in data['recordData'] if cbsd['id'] == record_id]
                     self.assertEqual(grants_of_cbsd[0][0]['id'], (grant_ids[index]))
                     self.assertGrantRecord(record['grants'][0], grants_to_request[index], grant_response[index])
+                    # Verify the Grant Of the Cbsd
+                    self.assertEqual(record['grants'][0]['id'],grant_response[index]['grantId'])
+                    if record['grants'][0]['operationParam'] != null :
+                        self.assertEqual(record['grants'][0]['operationParam']['maxEirp'],\
+                                         grants_to_request[index]['operationParam']['maxEirp'])    
+                        self.assertEqual(record['grants'][0]['operationParam'], ['operationFrequencyRange']['lowFrequency'],\
+                                         grants_to_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
+                        self.assertEqual(record['grants'][0]['operationParam']['operationFrequencyRange']['highFrequency'],\
+                                         grants_to_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
+                    self.assertEqual(record['grants'][0]['requestedOperationParam']['maxEirp'],\
+                                     grants_to_request[index]['requestedOperationParam']['maxEirp'])    
+                    self.assertEqual(record['grants'][0]['requestedOperationParam']['operationFrequencyRange']\
+                                     ['lowFrequency'],grants_to_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
+                    self.assertEqual(record['grants'][0]['requestedOperationParam']\
+                                     ['operationFrequencyRange']['highFrequency'], grants_to_request[index]['requestedOperationParam']\
+                                     ['operationFrequencyRange']['highFrequency'])
+                    self.assertEqual(record['grants'][0]['channelType'], grant_response[index]['channelType'])
+                    self.assertEqual(record['grants'][0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
+                    self.assertEqual(false, record['grants'][0]['terminated']) 
             elif activity_dump_file['recordType'] == 'esc_sensor':
                 self.assertEqual(1, len(data['recordData']))
                 # Verify the response file of Esc Sensor
