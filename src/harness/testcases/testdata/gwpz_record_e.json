@@ -1,21 +1,16 @@
 {
-  "id": "incumbent/ibfs/0",
-  "type": "FSS",
+  "id": "incumbent/wisp/0",
+  "type": "wisp",
   "deploymentParam": 
     {
       "installationParam": {
-        "latitude": 38.815291,
-        "longitude": -97.098805,
-        "height": 7.6,
-        "heightType": "AGL",
-        "indoorDeployment": false,
-        "antennaGain": 16,
+        "latitude": 39.1,
+        "longitude": -99.7,
         "antennaBeamwidth": 30,
         "antennaAzimuth": 270,
         "antennaDowntilt": -90
       },
       "operationParam": {
-        "maxEirp": 10.1,
         "operationFrequencyRange": {
           "lowFrequency": 3650000000.0,
           "highFrequency": 3700000000.0
