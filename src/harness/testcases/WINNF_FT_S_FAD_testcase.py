@@ -145,7 +145,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                      ['operationFrequencyRange']['highFrequency'])
                     self.assertEqual(record['grants'][0]['channelType'], grant_response[index]['channelType'])
                     self.assertEqual(record['grants'][0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-                    self.assertEqual(false, record['grants'][0]['terminated']) 
+                    self.assertEqual(False, record['grants'][0]['terminated']) 
             elif activity_dump_file['recordType'] == 'esc_sensor':
                 self.assertEqual(1, len(data['recordData']))
                 # Verify the response file of Esc Sensor
