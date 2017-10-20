@@ -131,5 +131,5 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
     self.assertEqual(response[2]['response']['responseCode'], 500)
-    self.assertLessEqual((datetime.strptime(response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')\
-                           - datetime.utcnow()).total_seconds(), 1)
+    self.assertLessEqual((datetime.utcnow() - \
+                          datetime.strptime(response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')).total_seconds(), 1)
