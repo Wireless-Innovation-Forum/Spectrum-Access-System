@@ -42,6 +42,7 @@ class DeregistrationTestcase(unittest.TestCase):
       device = json.load(
         open(os.path.join('testcases', 'testdata', device_filename)))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
@@ -77,6 +78,7 @@ class DeregistrationTestcase(unittest.TestCase):
       device = json.load(
         open(os.path.join('testcases', 'testdata', device_filename)))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
