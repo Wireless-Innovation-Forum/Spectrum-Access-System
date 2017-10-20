@@ -130,15 +130,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Check the third  CBSD with unsuccessful HB response of code 500
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
-    grant_expire_time = datetime.strptime(response[2]['grantExpireTime'],\
-                                          '%Y-%m-%dT%H:%M:%SZ')
-    transmit_expire_time = datetime.strptime(response[2]['transmitExpireTime'],\
-                                             '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLessEqual((transmit_expire_time -\
-                          datetime.utcnow()).total_seconds(), 240)
-    self.assertLessEqual(transmit_expire_time, grant_expire_time)
-    self.assertEqual(resp['response']['responseCode'], 500)
-    if request['heartbeatRequest'][response_num]['operationState'] == 'AUTHORIZED':
-        self.assertLessEqual(transmit_expire_time,\
-                              datetime.strptime(first_HB_response[response_num]['transmitExpireTime']\
-                                                ,'%Y-%m-%dT%H:%M:%SZ'))
+    self.assertEqual(response[2]['response']['responseCode'], 500)
+    self.assertLessEqual((datetime.strptime(response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')\
+                           - datetime.utcnow()).total_seconds(), 1)

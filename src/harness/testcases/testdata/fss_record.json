@@ -8,14 +8,12 @@
         "longitude":  -100.1,
         "height": 7.6,
         "heightType": "AGL",
-        "indoorDeployment": false,
         "antennaGain": 16,
         "antennaBeamwidth": 30,
         "antennaAzimuth": 270,
         "antennaDowntilt": -90
       },
       "operationParam": {
-        "maxEirp": 10.1,
         "operationFrequencyRange": {
           "lowFrequency": 3650000000.0,
           "highFrequency": 4200000000.0
