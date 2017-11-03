@@ -40,6 +40,7 @@
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
 
+from datetime import datetime
 import json
 import os
 import sas
@@ -132,5 +133,119 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['response']['responseCode'], 103)
     self.assertTrue(response[1]['response']['responseCode'], 300)
     self.assertTrue(response[2]['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_13(self):
+    """Requests for multiple PAL channels and for multiple GAA channels.
+
+    No incumbent present in the PAL and GAA frequency ranges used in the
+    requests.
+
+    The response should be 0.
+    """
+
+    # Load 3 devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    # First PPA with device_a and FR1 = 3550 - 3560
+    pal_low_frequency1 = 3550000000
+    pal_high_frequency1 = 3560000000
+    pal_record1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record1, pal_record1 = makePpaAndPalRecordsConsistent(
+        ppa_record1, [pal_record1], pal_low_frequency1, pal_high_frequency1,
+        device_a['userId'])
+
+    # Move device_a into the first PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record1)
+
+    # Second PPA with device_c and FR2 = 3600 - 3610
+    pal_low_frequency2 = 3600000000
+    pal_high_frequency2 = 3610000000
+    pal_record2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    ppa_record2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    ppa_record2, pal_record2 = makePpaAndPalRecordsConsistent(
+        ppa_record2, [pal_record2], pal_low_frequency2, pal_high_frequency2,
+        device_c['userId'])
+
+    # Move device_c into the second PPA zone
+    device_c['installationParam']['latitude'], device_c['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record2)
+
+    # Register 3 devices.
+    cbsd_ids = self.assertRegistered([device_a, device_c, device_e])
+
+    # Update PPA record with device_a's CBSD ID and Inject data
+    ppa_record1['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record1[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record1})
+    self.assertTrue(zone_id)
+
+    # Update PPA record with device_c's CBSD ID and Inject data
+    ppa_record2['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[1]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record2[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record2})
+    self.assertTrue(zone_id)
+
+    # Create grant requests
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_2['cbsdId'] = cbsd_ids[2]
+    # Grant 1 & 2: Request for PAL frequency
+    # Grant 3: Frequency does not overlap with FR1 and FR2
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': pal_low_frequency1,
+        'highFrequency': pal_high_frequency1
+    }
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': pal_low_frequency2,
+        'highFrequency': pal_high_frequency2
+    }
+    grant_2['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3630000000,
+        'highFrequency': 3640000000
+    }
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Send grant requests
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response 1 and 2
+    self.assertEqual(len(response), 3)
+    for response_num, resp in enumerate(response[:2]):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertEqual(resp['channelType'], 'PAL')
+      self.assertEqual(resp['response']['responseCode'], 0)
+    # Check grantExpireTime is less than corresponding PAL licenseExpiration
+    self.assertLess(
+        datetime.strptime(response[0]['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
+        datetime.strptime(
+            pal_record1[0]['license']['licenseExpiration'],
+            '%Y-%m-%dT%H:%M:%SZ'))
+    self.assertLess(
+        datetime.strptime(response[1]['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
+        datetime.strptime(
+            pal_record2[0]['license']['licenseExpiration'],
+            '%Y-%m-%dT%H:%M:%SZ'))
+    # Check grant response 3
+    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
+    self.assertTrue('grantId' in response[2])
+    self.assertEqual(response[2]['channelType'], 'GAA')
+    self.assertEqual(response[2]['response']['responseCode'], 0)
 
 
