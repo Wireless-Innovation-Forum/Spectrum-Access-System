@@ -124,4 +124,78 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertFalse('grantId' in response[response_num])
       self.assertEqual(response[response_num]['response']['responseCode'], 102)
 
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_7(self):
+    """Invalid operationFrequencyRange.
 
+    The response should be:
+    - 103 (INVALID_VALUE) for first request.
+    - 103 or 300 (UNSUPPORTED_SPECTRUM) for second and third requests.
+    """
+    # Register three devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+    self._sas_admin.InjectUserId({'userId': device_e['userId']})
+
+    devices = [device_a, device_c, device_e]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check registration response
+    cbsd_ids = []
+    for resp in response['registrationResponse']:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare 3 grant requests.
+    # 1. With lowFrequency > highFrequency.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+
+    # 2. With frequency range completely outside the CBRS band.
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3350000000.0
+    grant_1['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3450000000.0
+
+    # 3. With frequency range partially overlapping with the CBRS band.
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    grant_2['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3450000000.0
+    grant_2['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3650000000.0
+
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check grant response array
+    self.assertEqual(len(response), 3)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('grantId' in resp)
+    self.assertEqual(response[0]['response']['responseCode'], 103)
+    self.assertTrue(response[1]['response']['responseCode'], 300)
+    self.assertTrue(response[2]['response']['responseCode'], 300)
