@@ -195,7 +195,15 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLKeyPath())
 
   def InjectFccId(self, request):
+    if 'fccMaxEirp' not in request:
+      request['fccMaxEirp'] = 47
     _RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def InjectUserId(self, request):
+    _RequestPost('https://%s/admin/injectdata/user_id' % self._base_url,
+                 request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 

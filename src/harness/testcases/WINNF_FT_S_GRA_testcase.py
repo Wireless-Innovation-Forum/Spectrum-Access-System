@@ -58,6 +58,149 @@ class GrantTestcase(sas_testcase.SasTestCase):
     pass
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_2(self):
+    """Grant request array with various required parameters missing.
+
+    1. Missing cbsdId
+    2. Missing operationParam object
+    3. Missing maxEirp
+    4. Missing highFrequency
+    5. Missing lowFrequency
+
+    Returns 102 (MISSING_PARAM) for all requests.
+    """
+    # Register the devices
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json', 'device_e.json',
+                            'device_f.json', 'device_g.json'):
+      device = json.load(
+          open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    # 1. Missing cbsdId.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # 2. Missing operationParam object.
+    grant_1 = {'cbsdId': cbsd_ids[1]}
+    # 3. Missing maxEirp.
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    del grant_2['operationParam']['maxEirp']
+    # 4. Missing highFrequency.
+    grant_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3['cbsdId'] = cbsd_ids[3]
+    del grant_3['operationParam']['operationFrequencyRange']['highFrequency']
+    # 5. Missing lowFrequency.
+    grant_4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4['cbsdId'] = cbsd_ids[4]
+    del grant_4['operationParam']['operationFrequencyRange']['lowFrequency']
+
+    request = {'grantRequest': [grant_0, grant_1, grant_2, grant_3, grant_4]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    self.assertEqual(len(response), 5)
+    # Check grant response # 1
+    self.assertFalse('cbsdId' in response[0])
+    self.assertFalse('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 102)
+    # Check grant response # 2, 3, 4, 5
+    for response_num in (1, 2, 3, 4):
+      self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('grantId' in response[response_num])
+      self.assertEqual(response[response_num]['response']['responseCode'], 102)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_7(self):
+    """Invalid operationFrequencyRange.
+
+    The response should be:
+    - 103 (INVALID_VALUE) for first request.
+    - 103 or 300 (UNSUPPORTED_SPECTRUM) for second and third requests.
+    """
+    # Register three devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+    self._sas_admin.InjectUserId({'userId': device_e['userId']})
+
+    devices = [device_a, device_c, device_e]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check registration response
+    cbsd_ids = []
+    for resp in response['registrationResponse']:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare 3 grant requests.
+    # 1. With lowFrequency > highFrequency.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+
+    # 2. With frequency range completely outside the CBRS band.
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3350000000.0
+    grant_1['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3450000000.0
+
+    # 3. With frequency range partially overlapping with the CBRS band.
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    grant_2['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3450000000.0
+    grant_2['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3650000000.0
+
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check grant response array
+    self.assertEqual(len(response), 3)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('grantId' in resp)
+    self.assertEqual(response[0]['response']['responseCode'], 103)
+    self.assertTrue(response[1]['response']['responseCode'], 300)
+    self.assertTrue(response[2]['response']['responseCode'], 300)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
 
