@@ -199,3 +199,62 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['response']['responseCode'], 103)
     self.assertTrue(response[1]['response']['responseCode'], 300)
     self.assertTrue(response[2]['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_15(self):
+    """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
+
+    Returns 102 (MISSING_PARAM) for first request.
+            103 (INVALID_VALUE) for second request.
+    """
+    # Register two devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+
+    request = {'registrationRequest': [device_a, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    # 1. maxEirp is missing.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    del grant_0['operationParam']['maxEirp']
+
+    # 2. highFrequency is lower than the lowFrequency.
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    self.assertEqual(len(response), 2)
+    # Check grant response # 1
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertFalse('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 102)
+    # Check grant response # 2
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
+
+
