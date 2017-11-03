@@ -11,6 +11,8 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
+from datetime import datetime
 import json
 import os
 import unittest
@@ -107,6 +109,170 @@ class RegistrationTestcase(unittest.TestCase):
       self.assertTrue('cbsdId' in response['registrationResponse'][x])
       self.assertEqual(
           response['registrationResponse'][x]['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_2(self):
+    """Array Re-registration of multiple CBSDs.
+
+    The response should be SUCCESS for Re-registration.
+    """
+
+    # Load devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_g = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+
+    # Pre-load conditionals
+    conditionals_a = {
+        'cbsdCategory': device_a['cbsdCategory'],
+        'fccId': device_a['fccId'],
+        'cbsdSerialNumber': device_a['cbsdSerialNumber'],
+        'airInterface': device_a['airInterface'],
+        'installationParam': device_a['installationParam'],
+        'measCapability': device_a['measCapability']
+    }
+    conditionals_c = {
+        'cbsdCategory': device_c['cbsdCategory'],
+        'fccId': device_c['fccId'],
+        'cbsdSerialNumber': device_c['cbsdSerialNumber'],
+        'airInterface': device_c['airInterface'],
+        'installationParam': device_c['installationParam'],
+        'measCapability': device_c['measCapability']
+    }
+    conditionals_e = {
+        'cbsdCategory': device_e['cbsdCategory'],
+        'fccId': device_e['fccId'],
+        'cbsdSerialNumber': device_e['cbsdSerialNumber'],
+        'airInterface': device_e['airInterface'],
+        'installationParam': device_e['installationParam'],
+        'measCapability': device_e['measCapability']
+    }
+    conditionals_f = {
+        'cbsdCategory': device_f['cbsdCategory'],
+        'fccId': device_f['fccId'],
+        'cbsdSerialNumber': device_f['cbsdSerialNumber'],
+        'airInterface': device_f['airInterface'],
+        'installationParam': device_f['installationParam'],
+        'measCapability': device_f['measCapability']
+    }
+    conditionals_g = {
+        'cbsdCategory': device_g['cbsdCategory'],
+        'fccId': device_g['fccId'],
+        'cbsdSerialNumber': device_g['cbsdSerialNumber'],
+        'airInterface': device_g['airInterface'],
+        'installationParam': device_g['installationParam'],
+        'measCapability': device_g['measCapability']
+    }
+    conditionals = {
+        'registrationData': [
+            conditionals_a, conditionals_c, conditionals_e, conditionals_f,
+            conditionals_g
+        ]
+    }
+
+    # Inject FCC IDs and User IDs
+    for device in [device_a, device_c, device_e, device_f, device_g]:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    self._sas_admin.PreloadRegistrationData(conditionals)
+
+    # Remove conditionals from registration
+    for device in [device_a, device_c, device_e, device_f, device_g]:
+      del device['cbsdCategory']
+      del device['airInterface']
+      del device['installationParam']
+      del device['measCapability']
+
+    # Register 4 devices.
+    devices = [device_a, device_c, device_e, device_f]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response and record cbsdIds
+    cbsd_ids = []
+    for response_num in range(0, 4):
+      self.assertTrue('cbsdId' in response[response_num])
+      cbsd_ids.append(response[response_num]['cbsdId'])
+      self.assertEqual(response[response_num]['response']['responseCode'], 0)
+    del request, response
+
+    # CBSDs C3 and C4 request a grant, exchange heartbeats to enter and stay in
+    # Authorized state.
+    grant_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e['cbsdId'] = cbsd_ids[2]
+    grant_f['cbsdId'] = cbsd_ids[3]
+    request = {'grantRequest': [grant_e, grant_f]}
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), 2)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[2])
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[3])
+    grant_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      grant_ids.append(resp['grantId'])
+    del request, response
+
+    heartbeat_request = [{
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[0],
+        'operationState': 'GRANTED'
+    }, {
+        'cbsdId': cbsd_ids[3],
+        'grantId': grant_ids[1],
+        'operationState': 'GRANTED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    # Check the heartbeat response
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[2])
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[3])
+    for resp_number, resp in enumerate(response):
+      self.assertEqual(resp['grantId'], grant_ids[resp_number])
+      self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+    # Send Re-registration request as a 5 element array
+    devices = [device_a, device_c, device_e, device_f, device_g]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check Re-registration response
+    for response_num in range(0, 5):
+      self.assertTrue('cbsdId' in response[response_num])
+      self.assertEqual(response[response_num]['response']['responseCode'], 0)
+    del request, response
+
+    # CBSDs C3 and C4 send a heartbeat request again.
+    heartbeat_request = [{
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[0],
+        'operationState': 'AUTHORIZED'
+    }, {
+        'cbsdId': cbsd_ids[3],
+        'grantId': grant_ids[1],
+        'operationState': 'AUTHORIZED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+
+    # Check the heartbeat response
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[2])
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[3])
+    for resp in response:
+      self.assertTrue(resp['response']['responseCode'] in (103, 500))
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLessEqual(transmit_expire_time, datetime.utcnow())
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_5(self):
