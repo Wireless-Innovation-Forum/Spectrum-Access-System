@@ -84,23 +84,7 @@ class HeartbeatTestcase(unittest.TestCase):
           datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
     del request, response
 
-    # 3rd CBSD - Sends a Heartbeat request to Authorize the device.
-    request = {
-        'heartbeatRequest': [{
-            'cbsdId': cbsd_ids[2],
-            'grantId': grant_ids[2],
-            'operationState': 'GRANTED'
-        }]
-    }
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    # Check 3rd CBSD's heartbeat response.
-    self.assertEqual(response['cbsdId'], cbsd_ids[2])
-    self.assertEqual(response['grantId'], grant_ids[2])
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-
-    # All 3 devices send a heartbeat request.
-    # CBSD 1 & CBSD 2 in GRANTED state, CBSD 3 in AUTHORIZED state.
+    # CBSDs send a Heartbeat request to Authorize the device.
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_ids[0],
@@ -109,6 +93,30 @@ class HeartbeatTestcase(unittest.TestCase):
         'cbsdId': cbsd_ids[1],
         'grantId': grant_ids[1],
         'operationState': 'GRANTED'
+    }, {
+        'cbsdId': cbsd_ids[2],
+        'grantId': grant_ids[2],
+        'operationState': 'GRANTED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    # Check the heartbeat response.
+    self.assertEqual(len(response), 3)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertEqual(resp['grantId'], grant_ids[response_num])
+      self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+    # All 3 devices send a heartbeat request in AUTHORIZED state.
+    heartbeat_request = [{
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'AUTHORIZED'
+    }, {
+        'cbsdId': cbsd_ids[1],
+        'grantId': grant_ids[1],
+        'operationState': 'AUTHORIZED'
     }, {
         'cbsdId': cbsd_ids[2],
         'grantId': grant_ids[2],
