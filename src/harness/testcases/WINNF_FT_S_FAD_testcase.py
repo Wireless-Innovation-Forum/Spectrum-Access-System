@@ -64,6 +64,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         grant_response = self._sas.Grant(request)['grantResponse']
         grant_ids = []
         for resp in grant_response:
+            self.assertEqual(resp['response']['responseCode'], 0)
             grant_ids.append(resp['grantId'])
         del request
         # STEP 2
@@ -92,70 +93,85 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # STEP 5
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         # STEP 6 AND CHECK
-        for activity_dump_file in response['files']:
-            # Verify the record type
-            # Verify the response files with ActivityDumpFile.schema.json Object schema
-            self.assertContainsRequiredFields("ActivityDumpFile.schema.json", activity_dump_file)
-            # Get json data from url
-            data = self._sas.DownloadFile(activity_dump_file['url'])
-            if activity_dump_file['recordType'] == 'cbsd':
-                 # Verify that everything in the full dump matches a cbsd or grant created at the beginning
-                for record in data['recordData']:
-                # Verify the response files with CbsdData.schema.json Object schema
-                    self.assertContainsRequiredFields("CbsdData.schema.json", record)
-                    self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
-                # Verify all the previous activities on CBSDs and Grants exist in the dump files    
-                for index, device in enumerate([device_a, device_c]):
-                    record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
-                    cbsd_record = [record['registration'] for record in data['recordData'] if record['id'] == record_id]
-                    self.assertEqual(first_cbsd['cbsdCategory'],second_cbsd['cbsdCategory'])
-                    self.assertEqual(device['airInterface']['radioTechnology'],\
-                                     cbsd_record['airInterface']['radioTechnology'])
-                    self.assertEqual(device['installationParam']['latitude'],\
-                                     cbsd_record['installationParam']['latitude'])
-                    self.assertEqual(device['installationParam']['longitude'],\
-                                     cbsd_record['installationParam']['longitude'])
-                    self.assertEqual(device['installationParam']['height'],\
-                                     cbsd_record['installationParam']['height'])
-                    self.assertEqual(device['installationParam']['heightType'], \
-                                     cbsd_record['installationParam']['heightType'])
-                    self.assertEqual(device['installationParam']['indoorDeployment'], \
-                                     cbsd_record['installationParam']['indoorDeployment'])
-                    self.assertEqual(device['installationParam']['antennaGain'], \
-                                     cbsd_record['installationParam']['antennaGain'])                           
-                    # Get grants by cbsd_id
-                    grants_of_cbsd = [cbsd['grants'] for cbsd in data['recordData'] if cbsd['id'] == record_id]
-                    self.assertEqual(grants_of_cbsd[0][0]['id'], (grant_ids[index]))
-                    self.assertGrantRecord(record['grants'][0], grants_to_request[index], grant_response[index])
-                    # Verify the Grant Of the Cbsd
-                    self.assertEqual(record['grants'][0]['id'],grant_response[index]['grantId'])
-                    if record['grants'][0]['operationParam'] != null :
-                        self.assertEqual(record['grants'][0]['operationParam']['maxEirp'],\
-                                         grants_to_request[index]['operationParam']['maxEirp'])    
-                        self.assertEqual(record['grants'][0]['operationParam'], ['operationFrequencyRange']['lowFrequency'],\
-                                         grants_to_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
-                        self.assertEqual(record['grants'][0]['operationParam']['operationFrequencyRange']['highFrequency'],\
-                                         grants_to_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
-                    self.assertEqual(record['grants'][0]['requestedOperationParam']['maxEirp'],\
-                                     grants_to_request[index]['requestedOperationParam']['maxEirp'])    
-                    self.assertEqual(record['grants'][0]['requestedOperationParam']['operationFrequencyRange']\
-                                     ['lowFrequency'],grants_to_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
-                    self.assertEqual(record['grants'][0]['requestedOperationParam']\
-                                     ['operationFrequencyRange']['highFrequency'], grants_to_request[index]['requestedOperationParam']\
-                                     ['operationFrequencyRange']['highFrequency'])
-                    self.assertEqual(record['grants'][0]['channelType'], grant_response[index]['channelType'])
-                    self.assertEqual(record['grants'][0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-                    self.assertEqual(False, record['grants'][0]['terminated']) 
-            elif activity_dump_file['recordType'] == 'esc_sensor':
-                self.assertEqual(1, len(data['recordData']))
-                # Verify the response file of Esc Sensor
-                self.assertContainsRequiredFields("EscSensorRecord.schema.json", data['recordData'][0])
-                self.assertDictEqual(esc_sensor_record, data['recordData'][0])
-            else:
-                self.assertEqual(activity_dump_file['recordType'],'zone')
-                self.assertEqual(1, len(data['recordData']))
-                # Verify the response file of PPA
-                self.assertContainsRequiredFields("zoneData.schema.json", data['recordData'][0])
-                self.assertDictEqual(ppa_record, data['recordData'][0] )
-                 
-                                                  
+        self.assertEqual(3, len(response['files']))
+        cbsd_dump_file = [file for file in response['files'] if file['recordType'] ==  'cbsd']
+        esc_sensor_dump_file = [file for file in response['files'] if file['recordType'] ==  'esc_sensor']
+        zone_dump_file = [file for file in response['files'] if file['recordType'] ==  'zone']        
+        # Verify the record type
+        # Verify the response files with ActivityDumpFile.schema.json Object schema
+        for file in [cbsd_dump_file, esc_sensor_dump_file, zone_dump_file]:
+            self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
+                                               file[0])
+            self.assertEqual(1, len(file))
+        # Get json data from url
+        data = self._sas.DownloadFile(cbsd_dump_file['url'])
+        # Verify that everything in the full dump matches a cbsd or grant created at the beginning
+        for record in data['recordData']:
+            # Verify the response files with CbsdData.schema.json Object schema
+            self.assertContainsRequiredFields("CbsdData.schema.json", record)
+            self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
+        # Verify all the previous activities on CBSDs and Grants exist in the dump files    
+        for index, device in enumerate([device_a, device_c]):
+            record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
+            cbsd_record = [record['registration'] for record in data['recordData'] if record['id'] == record_id]
+            self.assertEqual(1, len(cbsd_record))
+            self.assertEqual(device['cbsdCategory'], cbsd_record[0]['cbsdCategory'])
+            self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
+            self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
+            self.assertEqual(device['airInterface']['radioTechnology'],\
+                             cbsd_record[0]['airInterface']['radioTechnology'])
+            self.assertEqual(device['installationParam']['latitude'],\
+                             cbsd_record[0]['installationParam']['latitude'])
+            self.assertEqual(device['installationParam']['longitude'],\
+                             cbsd_record[0]['installationParam']['longitude'])
+            self.assertEqual(device['installationParam']['height'],\
+                             cbsd_record[0]['installationParam']['height'])
+            self.assertEqual(device['installationParam']['heightType'], \
+                             cbsd_record[0]['installationParam']['heightType'])
+            self.assertEqual(device['installationParam']['indoorDeployment'], \
+                             cbsd_record[0]['installationParam']['indoorDeployment'])
+            self.assertEqual(device['installationParam']['antennaGain'], \
+                             cbsd_record[0]['installationParam']['antennaGain'])     
+            self.assertEqual(device['installationParam']['antennaAzimuth'], \
+                             cbsd_record[0]['installationParam']['antennaAzimuth'])        
+            self.assertEqual(device['installationParam']['antennaDowntilt'], \
+                             cbsd_record[0]['installationParam']['antennaDowntilt'])       
+            self.assertEqual(device['installationParam']['antennaBeamwidth'], \
+                             cbsd_record[0]['installationParam']['antennaBeamwidth'])                 
+            # Get grants by cbsd_id
+            grants_of_cbsd = [cbsd['grants'] for cbsd in record if cbsd['id'] == record_id]
+            self.assertEqual(1, len(grants_of_cbsd))
+            self.assertTrue('id' in grants_of_cbsd[0])
+            # Verify the Grant Of the Cbsd
+            if grants_of_cbsd[0]['operationParam'] is not None :
+                self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
+                                 grants_to_request[index]['operationParam']['maxEirp'])    
+                self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
+                                 grants_to_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
+                self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
+                                 grants_to_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
+            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                             grants_to_request[index]['requestedOperationParam']['maxEirp'])    
+            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                             ['lowFrequency'],grants_to_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
+            self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                             ['operationFrequencyRange']['highFrequency'], grants_to_request[index]['requestedOperationParam']\
+                             ['operationFrequencyRange']['highFrequency'])
+            self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
+            self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
+            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
+        del data
+        data = self._sas.DownloadFile(esc_sensor_dump_file['url'])
+        # Verify that everything in the full dump matches a cbsd or grant created at the beginning
+        for record in data['recordData']:
+            self.assertEqual(1, len(data['recordData']))
+            # Verify the response file of Esc Sensor
+            self.assertContainsRequiredFields("EscSensorRecord.schema.json", data['recordData'][0])
+            self.assertDictEqual(esc_sensor_record, data['recordData'][0])    
+        del data  
+        data = self._sas.DownloadFile(zone_dump_file['url'])
+        for record in data['recordData']:
+            self.assertEqual(1, len(data['recordData']))
+            # Verify the response file of PPA
+            self.assertContainsRequiredFields("zoneData.schema.json", data['recordData'][0])
+            self.assertDictEqual(ppa_record, data['recordData'][0] )
