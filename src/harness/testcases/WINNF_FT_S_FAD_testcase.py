@@ -104,7 +104,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                                file[0])
             self.assertEqual(1, len(file))
         # Get json data from url
-        data = self._sas.DownloadFile(cbsd_dump_file['url'])
+        data = self._sas.DownloadFile(cbsd_dump_file[0]['url'])
         # Verify that everything in the full dump matches a cbsd or grant created at the beginning
         for record in data['recordData']:
             # Verify the response files with CbsdData.schema.json Object schema
@@ -161,7 +161,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
             self.assertEqual(False, grants_of_cbsd[0]['terminated'])
         del data
-        data = self._sas.DownloadFile(esc_sensor_dump_file['url'])
+        data = self._sas.DownloadFile(esc_sensor_dump_file[0]['url'])
         # Verify that everything in the full dump matches a cbsd or grant created at the beginning
         for record in data['recordData']:
             self.assertEqual(1, len(data['recordData']))
@@ -169,7 +169,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", data['recordData'][0])
             self.assertDictEqual(esc_sensor_record, data['recordData'][0])    
         del data  
-        data = self._sas.DownloadFile(zone_dump_file['url'])
+        data = self._sas.DownloadFile(zone_dump_file[0]['url'])
         for record in data['recordData']:
             self.assertEqual(1, len(data['recordData']))
             # Verify the response file of PPA
