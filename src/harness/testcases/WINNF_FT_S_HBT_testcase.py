@@ -28,24 +28,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
 
-  def getHeartBeatRequest(self,cbsd_ids, grant_ids, previous_transmit_expire_time):     
-    heartbeat_request = []
-    for cbsd_id, grant_id, transmit_expire_time in\
-     zip(cbsd_ids, grant_ids, previous_transmit_expire_time):
-        status = 'AUTHORIZED'
-        if(transmit_expire_time is None):
-            status = 'GRANTED'
-        elif datetime.strptime(transmit_expire_time,'%Y-%m-%dT%H:%M:%SZ') <=\
-         (datetime.utcnow() + timedelta(seconds= 2)):
-            time.sleep(2)
-            status = 'GRANTED'
-        heartbeat_request.append({
-            'cbsdId': cbsd_id,
-            'grantId': grant_id,
-            'operationState': status
-        })
-    return {'heartbeatRequest': heartbeat_request}
-   
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_9(self):
     """ Array request, of three cbsds,SAS terminates the Grant for the one
@@ -63,7 +45,13 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    registration_request = [device_a, device_c, device_e]
+    request = {'registrationRequest': [device_a, device_c, device_e]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
 
     # load and set Grants data
     grant_a = json.load(
@@ -76,28 +64,29 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
                              ['lowFrequency'] = 3650000000
     grant_e['operationParam']['operationFrequencyRange']\
                              ['highFrequency'] = 3660000000
-    grant_request = [grant_a, grant_c, grant_e]
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(registration_request,
-                                                           grant_request)
+    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+    # send grant request
+    response = self._sas.Grant(request)['grantResponse']
+    grant_ids = []
+    grant_expire_times = []
+    for response_num, resp in enumerate(response):
+      grant_ids.append(resp['grantId'])
+      grant_expire_times.append(
+          datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
+    del request, response
     # First Heartbeat
-    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids, [None, None, None])
-    response = self._sas.Heartbeat(request)['heartbeatResponse']
-    # check Heartbeat response 
-    self.assertEqual(len(first_hb_response), len(grant_ids))
-    for response_num, resp in enumerate(first_hb_response):
-        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-        self.assertEqual(resp['grantId'], grant_ids[response_num])
-        self.assertEqual(resp['response']['responseCode'], 0)
-        grant_expire_time = datetime.strptime(resp['grantExpireTime'],\
-                                              '%Y-%m-%dT%H:%M:%SZ')
-        transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],\
-                                                 '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLessEqual((transmit_expire_time - \
-                               datetime.utcnow()).total_seconds(), 240)
-        self.assertLessEqual(transmit_expire_time, grant_expire_time)
-    first_hb_transmit_expire_time = (first_hb_response[0]['transmitExpireTime'],\
-                                   first_hb_response[1]['transmitExpireTime'],\
-                                   first_hb_response[2]['transmitExpireTime'])
+    request = []
+    for cbsd_id, grant_id in\
+     zip(cbsd_ids, grant_ids):
+        heartbeat_request.append({
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        })
+    
+    response = self._sas.Heartbeat({'heartbeatRequest': request})['heartbeatResponse']
+    
+    del request, response
     # STEP 2
     # load and inject FSS data with Overlapping Frequency of CBSD
     fss_e = json.load(
@@ -106,30 +95,35 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # load and inject GWPZ data with Overlapping Frequency of CBSD 
     gwpz_e = json.load(
         open(os.path.join('testcases', 'testdata', 'gwpz_record.json')))  
-    self._sas_admin.InjectWisp({'record': gwpz_c})      
+    self._sas_admin.InjectWisp(gwpz_e)      
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
     # Send Heartbeat after triggering the IAP
-    request =  self.getHeartBeatRequest(cbsd_ids, grant_ids,\
-                                        first_hb_transmit_expire_time)
-    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    request = []
+    for cbsd_id, grant_id in\
+     zip(cbsd_ids, grant_ids):
+        heartbeat_request.append({
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        })
+    response = self._sas.Heartbeat({'heartbeatRequest': request})['heartbeatResponse']
+    del request
     # CHECK
     # Check first two CBSDs with a successful HB response
     for response_num, resp in enumerate(response[:2]):
         self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
         self.assertEqual(resp['grantId'], grant_ids[response_num])
-        grant_expire_time = datetime.strptime(resp['grantExpireTime'],\
-                                              '%Y-%m-%dT%H:%M:%SZ')
+        self.assertEqual(resp['response']['responseCode'], 0)
         transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],\
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual((transmit_expire_time - \
                               datetime.utcnow()).total_seconds(), 240)
-        self.assertLessEqual(transmit_expire_time, grant_expire_time)
-        self.assertEqual(resp['response']['responseCode'], 0)
+        self.assertLessEqual(transmit_expire_time, grant_expire_times[response_num])
     # Check the third  CBSD with unsuccessful HB response of code 500
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
     self.assertEqual(response[2]['response']['responseCode'], 500)
-    self.assertLessEqual((datetime.utcnow() - \
-                          datetime.strptime(response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ')).total_seconds(), 1)
+    self.assertLessEqual(datetime.strptime(
+        response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.utcnow())
