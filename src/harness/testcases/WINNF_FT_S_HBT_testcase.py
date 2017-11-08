@@ -79,8 +79,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
     # First Heartbeat
     request = []
-    for cbsd_id, grant_id in\
-     zip(cbsd_ids, grant_ids):
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
         heartbeat_request.append({
             'cbsdId': cbsd_id,
             'grantId': grant_id,
