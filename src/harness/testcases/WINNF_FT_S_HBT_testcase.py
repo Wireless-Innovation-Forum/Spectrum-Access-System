@@ -105,7 +105,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     request = []
     for cbsd_id, grant_id in\
      zip(cbsd_ids, grant_ids):
-        heartbeat_request.append({
+        request.append({
             'cbsdId': cbsd_id,
             'grantId': grant_id,
             'operationState': 'GRANTED'
