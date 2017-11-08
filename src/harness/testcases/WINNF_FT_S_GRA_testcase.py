@@ -281,6 +281,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del device_3['airInterface']
     del device_3['installationParam']
     del device_3['measCapability']
+    del device_4['cbsdCategory']
+    del device_4['airInterface']
+    del device_4['installationParam']
+    del device_4['measCapability']
     del device_5['cbsdCategory']
     del device_5['airInterface']
     del device_5['installationParam']
@@ -288,9 +292,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # set eirpCapability = 20 for cbsdId 1
     device_1['installationParam']['eirpCapability'] = 20
-    # set eirpCapability = 40 for cbsdId 4
-    device_4['installationParam']['eirpCapability'] = 40
-
+    
     # send registration requests
     devices = [device_1, device_2, device_3, device_4, device_5]
     request = {'registrationRequest': devices}
@@ -329,9 +331,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # No grantIds, responseCode should be 103
     self.assertEqual(len(response), 5)
     for response_num, resp in enumerate(response):
-      self.assertEqual(resp['response']['responseCode'], 103)
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('grantId' in resp)
+      self.assertEqual(resp['response']['responseCode'], 103)
     del request, response
 
     # Prepare 5 grant requests with various supported maxEirp values
@@ -349,9 +351,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # response should have valid cbsdIds, grantIds, responseCode 0
     self.assertEqual(len(response), 5)
     for response_num, resp in enumerate(response):
-      self.assertEqual(resp['response']['responseCode'], 0)
-      self.assertTrue('grantId' in resp)
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
     del request, response
 
   @winnforum_testcase
@@ -415,10 +417,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # 1st and 2nd cbsdId responseCode should be 0
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertEqual(response[1]['response']['responseCode'], 0)
-
-    # 1st and 2nd cbsdId should have a grantId
-    self.assertTrue('grantId' in response[0])
-    self.assertTrue('grantId' in response[1])
 
     # 1st and 2nd cbsdId should have channelType set to GAA
     self.assertEqual(response[0]['channelType'], 'GAA')
