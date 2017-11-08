@@ -56,15 +56,18 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # load and set Grants data
     grant_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a['cbsdId'] = cbsd_ids[0]
     grant_c = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c['cbsdId'] = cbsd_ids[1]
     grant_e = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e['cbsdId'] = cbsd_ids[2]
     grant_e['operationParam']['operationFrequencyRange']\
                              ['lowFrequency'] = 3650000000
     grant_e['operationParam']['operationFrequencyRange']\
-                             ['highFrequency'] = 3660000000
-    request = {'grantRequest': [grant_0, grant_1, grant_2]}
+                             ['highFrequency'] = 3700000000
+    request = {'grantRequest': [grant_a, grant_c, grant_e]}
     # send grant request
     response = self._sas.Grant(request)['grantResponse']
     grant_ids = []
