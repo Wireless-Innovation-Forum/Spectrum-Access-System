@@ -26,7 +26,58 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
     def tearDown(self):
         pass
-		
+    
+    def assertCbsdRecord(self, registration_request, grant_request, grant_response, recordData):
+        for index, device in enumerate(registration_request):
+            record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
+            cbsd_record = [record['registration'] for record in recordData if record['id'] == record_id]
+            self.assertEqual(1, len(cbsd_record))
+            self.assertEqual(device['cbsdCategory'], cbsd_record[0]['cbsdCategory'])
+            self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
+            self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
+            self.assertEqual(device['airInterface']['radioTechnology'],\
+                             cbsd_record[0]['airInterface']['radioTechnology'])
+            self.assertEqual(device['installationParam']['latitude'],\
+                             cbsd_record[0]['installationParam']['latitude'])
+            self.assertEqual(device['installationParam']['longitude'],\
+                             cbsd_record[0]['installationParam']['longitude'])
+            self.assertEqual(device['installationParam']['height'],\
+                             cbsd_record[0]['installationParam']['height'])
+            self.assertEqual(device['installationParam']['heightType'], \
+                             cbsd_record[0]['installationParam']['heightType'])
+            self.assertEqual(device['installationParam']['indoorDeployment'], \
+                             cbsd_record[0]['installationParam']['indoorDeployment'])
+            self.assertEqual(device['installationParam']['antennaGain'], \
+                             cbsd_record[0]['installationParam']['antennaGain'])     
+            self.assertEqual(device['installationParam']['antennaAzimuth'], \
+                             cbsd_record[0]['installationParam']['antennaAzimuth'])        
+            self.assertEqual(device['installationParam']['antennaDowntilt'], \
+                             cbsd_record[0]['installationParam']['antennaDowntilt'])       
+            self.assertEqual(device['installationParam']['antennaBeamwidth'], \
+                             cbsd_record[0]['installationParam']['antennaBeamwidth'])                 
+            # Get grants by cbsd_id
+            grants_of_cbsd = [cbsd['grants'] for cbsd in recordData if cbsd['id'] == record_id]
+            self.assertEqual(1, len(grants_of_cbsd))
+            self.assertTrue('id' in grants_of_cbsd[0])
+            # Verify the Grant Of the Cbsd
+            if grants_of_cbsd[0]['operationParam'] is not None :
+                self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
+                                 grant_request[index]['operationParam']['maxEirp'])    
+                self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
+                                 grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
+                self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
+                                 grant_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
+            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                             grant_request[index]['requestedOperationParam']['maxEirp'])    
+            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                             ['lowFrequency'], grant_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
+            self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                             ['operationFrequencyRange']['highFrequency'], grant_request[index]['requestedOperationParam']\
+                             ['operationFrequencyRange']['highFrequency'])
+            self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
+            self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
+            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
+    
     @winnforum_testcase
     def test_WINNF_FT_S_FAD_1(self):
         """ This test verifies that a SAS UUT can successfully respond to a full
@@ -58,15 +109,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             'lowFrequency': 3640000000.0,
             'highFrequency': 3650000000.0
         }
-        grants_to_request = [grant_a, grant_c]
-        grant_request = {'grantRequest': grants_to_request}
+        grant_request = [grant_a, grant_c]
+        request = {'grantRequest': grant_request}     
         # Send grant requests
         grant_response = self._sas.Grant(request)['grantResponse']
         grant_ids = []
         for resp in grant_response:
             self.assertEqual(resp['response']['responseCode'], 0)
             grant_ids.append(resp['grantId'])
-        del request
         # STEP 2
         # Inject PPA
         pal_low_frequency = 3550000000.0
@@ -110,56 +160,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             # Verify the response files with CbsdData.schema.json Object schema
             self.assertContainsRequiredFields("CbsdData.schema.json", record)
             self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
-        # Verify all the previous activities on CBSDs and Grants exist in the dump files    
-        for index, device in enumerate([device_a, device_c]):
-            record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
-            cbsd_record = [record['registration'] for record in data['recordData'] if record['id'] == record_id]
-            self.assertEqual(1, len(cbsd_record))
-            self.assertEqual(device['cbsdCategory'], cbsd_record[0]['cbsdCategory'])
-            self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
-            self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
-            self.assertEqual(device['airInterface']['radioTechnology'],\
-                             cbsd_record[0]['airInterface']['radioTechnology'])
-            self.assertEqual(device['installationParam']['latitude'],\
-                             cbsd_record[0]['installationParam']['latitude'])
-            self.assertEqual(device['installationParam']['longitude'],\
-                             cbsd_record[0]['installationParam']['longitude'])
-            self.assertEqual(device['installationParam']['height'],\
-                             cbsd_record[0]['installationParam']['height'])
-            self.assertEqual(device['installationParam']['heightType'], \
-                             cbsd_record[0]['installationParam']['heightType'])
-            self.assertEqual(device['installationParam']['indoorDeployment'], \
-                             cbsd_record[0]['installationParam']['indoorDeployment'])
-            self.assertEqual(device['installationParam']['antennaGain'], \
-                             cbsd_record[0]['installationParam']['antennaGain'])     
-            self.assertEqual(device['installationParam']['antennaAzimuth'], \
-                             cbsd_record[0]['installationParam']['antennaAzimuth'])        
-            self.assertEqual(device['installationParam']['antennaDowntilt'], \
-                             cbsd_record[0]['installationParam']['antennaDowntilt'])       
-            self.assertEqual(device['installationParam']['antennaBeamwidth'], \
-                             cbsd_record[0]['installationParam']['antennaBeamwidth'])                 
-            # Get grants by cbsd_id
-            grants_of_cbsd = [cbsd['grants'] for cbsd in record if cbsd['id'] == record_id]
-            self.assertEqual(1, len(grants_of_cbsd))
-            self.assertTrue('id' in grants_of_cbsd[0])
-            # Verify the Grant Of the Cbsd
-            if grants_of_cbsd[0]['operationParam'] is not None :
-                self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
-                                 grants_to_request[index]['operationParam']['maxEirp'])    
-                self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
-                                 grants_to_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
-                self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
-                                 grants_to_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
-            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
-                             grants_to_request[index]['requestedOperationParam']['maxEirp'])    
-            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
-                             ['lowFrequency'],grants_to_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
-            self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                             ['operationFrequencyRange']['highFrequency'], grants_to_request[index]['requestedOperationParam']\
-                             ['operationFrequencyRange']['highFrequency'])
-            self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
-            self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
+        # Verify all the previous activities on CBSDs and Grants exist in the dump files
+        self.assertCbsdRecord([device_a, device_c], grant_request, grant_response, data['recordData'])
         del data
         data = self._sas.DownloadFile(esc_sensor_dump_file[0]['url'])
         # Verify that everything in the full dump matches a cbsd or grant created at the beginning
