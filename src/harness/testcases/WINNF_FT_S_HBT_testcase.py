@@ -66,13 +66,14 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     grant_e['operationParam']['operationFrequencyRange']\
                              ['lowFrequency'] = 3650000000
     grant_e['operationParam']['operationFrequencyRange']\
-                             ['highFrequency'] = 3700000000
+                             ['highFrequency'] = 3660000000
     request = {'grantRequest': [grant_a, grant_c, grant_e]}
     # send grant request
     response = self._sas.Grant(request)['grantResponse']
     grant_ids = []
     grant_expire_times = []
     for response_num, resp in enumerate(response):
+      self.assertEqual(resp['response']['responseCode'], 0)
       grant_ids.append(resp['grantId'])
       grant_expire_times.append(
           datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
@@ -122,6 +123,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual((transmit_expire_time - \
                               datetime.utcnow()).total_seconds(), 240)
+        self.assertLessEqual(datetime.utcnow(), transmit_expire_time)
         self.assertLessEqual(transmit_expire_time, grant_expire_times[response_num])
     # Check the third  CBSD with unsuccessful HB response of code 500
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
