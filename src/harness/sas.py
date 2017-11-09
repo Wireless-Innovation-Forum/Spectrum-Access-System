@@ -309,6 +309,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectCpiUser(self, request):
+    _RequestPost('https://%s/admin/injectdata/cpi_user' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
