@@ -46,22 +46,43 @@ class DeregistrationTestcase(unittest.TestCase):
       registration_request.append(device)
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
+
     # Check registration response
     cbsd_ids = []
+    self.assertEqual(len(response), 2)
     for resp in response:
       self.assertEqual(resp['response']['responseCode'], 0)
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
     # Deregister the device
-    request = {'deregistrationRequest': [
-        {'cbsdId': cbsd_ids[0]},
-        {'cbsdId': cbsd_ids[1]}]}
+    request = {'deregistrationRequest': [{'cbsdId': cbsd_ids[0]}, {'cbsdId': cbsd_ids[1]}]}
     response = self._sas.Deregistration(request)['deregistrationResponse']
+
     # Check the deregistration response
+    self.assertEqual(len(response), 2)
     for x in range(0, 2):
       self.assertEqual(response[x]['cbsdId'], cbsd_ids[x])
       self.assertEqual(response[x]['response']['responseCode'], 0)
+    del request, response
+
+     # Prepare grant requests for two cbsdIds
+    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[0]
+    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[1]
+
+    # Send the grant requests
+    request = {'grantRequest': [grant_1, grant_2]}
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check the grant responses
+    # valid cbsdIds, responseCode should be 103 for both cbsdIds
+    self.assertEqual(len(response), 2)
+    for x, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[x])
+      self.assertEqual(resp['response']['responseCode'], 103)
+    del request, response
 
   @winnforum_testcase
   def test_WINNF_FT_S_DRG_2(self):
@@ -72,7 +93,7 @@ class DeregistrationTestcase(unittest.TestCase):
     second object should be FAIL.
     """
 
-    # Register the devices
+    # Register two devices
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json'):
       device = json.load(
@@ -82,21 +103,25 @@ class DeregistrationTestcase(unittest.TestCase):
       registration_request.append(device)
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(request)['registrationResponse']
+
     # Check registration response
     cbsd_ids = []
+    self.assertEqual(len(response), 2)
     for resp in response:
       self.assertEqual(resp['response']['responseCode'], 0)
       cbsd_ids.append(resp['cbsdId'])
     del request, response
 
-    # Deregister the device
-    request = {'deregistrationRequest': [
-        {'cbsdId': cbsd_ids[0]},
-        {}]}
+    # Deregister
+    # Send a deregister request with two elements
+    # 1st element with 1st cbsdId, the 2nd element with no cbsdId
+    request = {'deregistrationRequest': [{'cbsdId': cbsd_ids[0]}, {}]}
     response = self._sas.Deregistration(request)['deregistrationResponse']
+
     # Check the deregistration response
+    self.assertEqual(len(response), 2)
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
     self.assertFalse('cbsdId' in response[1])
     self.assertEqual(response[1]['response']['responseCode'], 102)
-
+    
