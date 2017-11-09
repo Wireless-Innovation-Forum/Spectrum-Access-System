@@ -93,7 +93,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # STEP 2
     # load and inject FSS data with Overlapping Frequency of CBSD
     fss_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'fss_record.json')))
+        open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     self._sas_admin.InjectFss({'record': fss_e})   
     # load and inject GWPZ data with Overlapping Frequency of CBSD 
     gwpz_e = json.load(
