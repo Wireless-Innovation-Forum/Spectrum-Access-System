@@ -523,6 +523,6 @@ class SasTestcaseInterface(object):
       request: A dictionary with the following key-value pairs:
         "cpiId": (string) valid cpiId to be injected into SAS under test
         "cpiName": (string) valid name for cpi user to be injected into SAS under test
-        "cpiPublicKey": public key value for cpi user to be injected into SAS under test
+        "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
     """
     pass
