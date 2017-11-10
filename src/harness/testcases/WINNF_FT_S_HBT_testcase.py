@@ -14,7 +14,7 @@
 import json
 import os
 import sas
-from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
+from  util import winnforum_testcase
 import sas_testcase
 from datetime import datetime, timedelta
 import time
