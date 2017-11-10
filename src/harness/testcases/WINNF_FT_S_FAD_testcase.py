@@ -144,7 +144,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # STEP 5
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         # STEP 6 AND CHECK
-        self.assertEqual()
         self.assertGreaterEqual(3, len(response['files']))
         self.assertLessEqual(2 + len(cbsd_ids), len(response['files']))
         cbsd_dump_files = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'cbsd']
@@ -157,7 +156,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                                dump_file[0])
             self.assertEqual(1, len(dump_file))
         self.assertGreaterEqual(1, len(cbsd_dump_files))
-        self.assertLessEqual(len(cbsd_ids), len(cbsd_dump_files))
+        self.assertLessEqual(len(cbsd_dump_files), len(cbsd_ids))
         data = []
         for dump_file in cbsd_dump_files:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",

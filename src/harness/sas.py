@@ -176,7 +176,7 @@ class SasImpl(sas_interface.SasInterface):
                         ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
     
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return _DownloadFile('%s' % url,
+    return self._DownloadFile('%s' % url,
                  ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
                  ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
     
@@ -192,7 +192,7 @@ class SasImpl(sas_interface.SasInterface):
   def _GetDefaultSasSSLKeyPath(self):
     return os.path.join('certs', 'client.key')
 
-  def _DownloadFile(url, ssl_cert, ssl_key):
+  def _DownloadFile(self, url, ssl_cert, ssl_key):
     response = StringIO.StringIO()
     conn = pycurl.Curl()
     conn.setopt(conn.URL, url)
