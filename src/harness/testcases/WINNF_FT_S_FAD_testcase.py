@@ -16,6 +16,7 @@ import os
 import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
 import sas_testcase
+import hashlib
 from datetime import datetime, timedelta
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
@@ -34,7 +35,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(1, len(cbsd_record))
             self.assertEqual(device['cbsdCategory'], cbsd_record[0]['cbsdCategory'])
             self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
-            self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
             self.assertEqual(device['airInterface']['radioTechnology'],\
                              cbsd_record[0]['airInterface']['radioTechnology'])
             self.assertEqual(device['installationParam']['latitude'],\
@@ -54,30 +54,31 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(device['installationParam']['antennaDowntilt'], \
                              cbsd_record[0]['installationParam']['antennaDowntilt'])       
             self.assertEqual(device['installationParam']['antennaBeamwidth'], \
-                             cbsd_record[0]['installationParam']['antennaBeamwidth'])                 
+                             cbsd_record[0]['installationParam']['antennaBeamwidth'])    
+                         
             # Get grants by cbsd_id
             grants_of_cbsd = [cbsd['grants'] for cbsd in recordData if cbsd['id'] == record_id]
             self.assertEqual(1, len(grants_of_cbsd))
             self.assertTrue('id' in grants_of_cbsd[0])
             # Verify the Grant Of the Cbsd
-            if grants_of_cbsd[0]['operationParam'] is not None :
-                self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
-                                 grant_request[index]['operationParam']['maxEirp'])    
-                self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
-                                 grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
-                self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
-                                 grant_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
-            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
-                             grant_request[index]['requestedOperationParam']['maxEirp'])    
-            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
-                             ['lowFrequency'], grant_request[index]['requestedOperationParam']['operationFrequencyRange']['lowFrequency'])
-            self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                             ['operationFrequencyRange']['highFrequency'], grant_request[index]['requestedOperationParam']\
-                             ['operationFrequencyRange']['highFrequency'])
+            if grants_of_cbsd[0]['requestedOperationParam'] is not None :
+                self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                             grant_request[index]['operationParam']['maxEirp'])    
+                self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                                 ['lowFrequency'], grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
+                self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                                 ['operationFrequencyRange']['highFrequency'], grant_request[index]['operationParam']\
+                                 ['operationFrequencyRange']['highFrequency']) 
+                
+            self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
+                             grant_request[index]['operationParam']['maxEirp'])    
+            self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
+                             grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
+            self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
+                             grant_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
             self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
-    
+            self.assertEqual(False, grants_of_cbsd[0]['terminated'])   
     @winnforum_testcase
     def test_WINNF_FT_S_FAD_1(self):
         """ This test verifies that a SAS UUT can successfully respond to a full
@@ -143,25 +144,35 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # STEP 5
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         # STEP 6 AND CHECK
-        self.assertEqual(3, len(response['files']))
-        cbsd_dump_file = [file for file in response['files'] if file['recordType'] ==  'cbsd']
-        esc_sensor_dump_file = [file for file in response['files'] if file['recordType'] ==  'esc_sensor']
-        zone_dump_file = [file for file in response['files'] if file['recordType'] ==  'zone']        
+        self.assertEqual()
+        self.assertGreaterEqual(3, len(response['files']))
+        self.assertLessEqual(2 + len(cbsd_ids), len(response['files']))
+        cbsd_dump_files = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'cbsd']
+        esc_sensor_dump_file = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'esc_sensor']
+        zone_dump_file = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'zone']        
         # Verify the record type
         # Verify the response files with ActivityDumpFile.schema.json Object schema
-        for file in [cbsd_dump_file, esc_sensor_dump_file, zone_dump_file]:
+        for dump_file in [esc_sensor_dump_file, zone_dump_file]:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
-                                               file[0])
-            self.assertEqual(1, len(file))
+                                               dump_file[0])
+            self.assertEqual(1, len(dump_file))
+        self.assertGreaterEqual(1, len(cbsd_dump_files))
+        self.assertLessEqual(len(cbsd_ids), len(cbsd_dump_files))
+        data = []
+        for dump_file in cbsd_dump_files:
+            self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
+                                               dump_file)
+            data.append(self._sas.DownloadFile(dump_file['url']))
         # Get json data from url
-        data = self._sas.DownloadFile(cbsd_dump_file[0]['url'])
+        #for dump_file in cbsd_dump_files    
         # Verify that everything in the full dump matches a cbsd or grant created at the beginning
-        for record in data['recordData']:
+        cbsd_records = [cbsd_record['recordData'] for cbsd_record in data]
+        for record in cbsd_records:
             # Verify the response files with CbsdData.schema.json Object schema
             self.assertContainsRequiredFields("CbsdData.schema.json", record)
             self.assertTrue(record['registration']['fccId'] in (device_a['fccId'], device_c['fccId']))
         # Verify all the previous activities on CBSDs and Grants exist in the dump files
-        self.assertCbsdRecord([device_a, device_c], grant_request, grant_response, data['recordData'])
+        self.assertCbsdRecord([device_a, device_c], grant_request, grant_response, cbsd_records)
         del data
         data = self._sas.DownloadFile(esc_sensor_dump_file[0]['url'])
         # Verify that everything in the full dump matches a cbsd or grant created at the beginning
@@ -176,4 +187,4 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(1, len(data['recordData']))
             # Verify the response file of PPA
             self.assertContainsRequiredFields("zoneData.schema.json", data['recordData'][0])
-            self.assertDictEqual(ppa_record, data['recordData'][0] )
+            self.assertDictEqual(ppa_record, data['recordData'][0])
