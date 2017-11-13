@@ -260,9 +260,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
-  def InjectCpiUser(self, request):
-    pass
-
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
