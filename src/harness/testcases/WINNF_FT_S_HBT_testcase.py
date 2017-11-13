@@ -129,15 +129,15 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Check grant response
     response = self._sas.Grant(request)['grantResponse']
     self.assertEqual(len(response), len(cbsd_ids))
+    grant_ids = []
     grant_expire_time = []
     for resp_number, resp in enumerate(response):
       self.assertEqual(resp['cbsdId'], cbsd_ids[resp_number])
       self.assertTrue(resp['grantId'])
       self.assertEqual(resp['response']['responseCode'], 0)
+      grant_ids.append(resp['grantId'])
       grant_expire_time.append(
           datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
-
-    grant_ids = [resp['grantId'] for resp in response]
     del request, response
 
     # Inject Third Device into Blacklist
