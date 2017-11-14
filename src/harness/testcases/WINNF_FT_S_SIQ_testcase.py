@@ -305,46 +305,49 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Check Spectrum Inquiry response
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
-    for resp_num, resp in enumerate(response):
-      self.assertEqual(resp['cbsdId'], cbsd_ids[resp_num])
-      self.assertEqual(resp['response']['responseCode'], 0)
-
     # Response 0 and 1 contain at least 1 PAL channelType in availableChannel.
     for resp_num in [0, 1]:
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
       self.assertTrue(
           any(channel['channelType'] == 'PAL'
               for channel in response[resp_num]['availableChannel']))
       self.assertTrue(
           all(channel['ruleApplied'] == 'FCC_PART_96'
               for channel in response[resp_num]['availableChannel']))
-      # Verify that the upper frequency is valid (lower frequency will be
-      # checked below).
-      self.assertTrue(
-          all(channel['frequencyRange']['highFrequency'] <= 3700000000
-              for channel in response[resp_num]['availableChannel']))
-    # Check the frequency range of assigned PAL and GAA channels.
+    # Check response 0.
     for channel in response[0]['availableChannel']:
       if channel['channelType'] == 'PAL':
         self.assertTrue(
             channel['frequencyRange']['lowFrequency'] == 3550000000)
         self.assertTrue(
             channel['frequencyRange']['highFrequency'] == 3560000000)
-      if channel['channelType'] == 'GAA':
+      else:
+        self.assertTrue(channel['channelType'] == 'GAA')
+        # Verify the low & high frequency in GAA.
+        self.assertTrue(channel['frequencyRange']['lowFrequency'] >= 3560000000)
         self.assertTrue(
-            channel['frequencyRange']['lowFrequency'] >= 3560000000)
+            (channel['frequencyRange']['highFrequency'] <= 3700000000))
+
+    # Check response 1.
     for channel in response[1]['availableChannel']:
       if channel['channelType'] == 'PAL':
         self.assertTrue(
             channel['frequencyRange']['lowFrequency'] == 3600000000)
         self.assertTrue(
             channel['frequencyRange']['highFrequency'] == 3610000000)
-      if channel['channelType'] == 'GAA':
+      else:
+        self.assertTrue(channel['channelType'] == 'GAA')
+        # Verify the low & high frequency in GAA.
+        self.assertTrue(channel['frequencyRange']['lowFrequency'] >= 3610000000)
         self.assertTrue(
-            channel['frequencyRange']['lowFrequency'] >= 3610000000)
+            (channel['frequencyRange']['highFrequency'] <= 3700000000))
 
     # Response 2 and 3
     # If availableChannel is not null then all availableChannels should be GAA
     for resp_num in [2, 3]:
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
       if response[resp_num]['availableChannel']:
         self.assertTrue(
             all(channel['channelType'] == 'GAA'
