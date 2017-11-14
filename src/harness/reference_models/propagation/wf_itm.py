@@ -313,3 +313,22 @@ def GetHorizonAngles(its_elev, height_cbsd, height_rx, refractivity):
           np.arctan(theta1) * 180/np.pi,
           dl0,
           dl1)
+
+# Utility function to compute the HAAT for a CBSD
+def ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd, height_is_agl=True):
+  """Computes a CBSD HAAT (Height above average terrain).
+
+  Args:
+    lat_cbsd, lon_cbsd: the CBSD location (degrees).
+    height_cbsd: the CBSD antenna height (meters)
+    height_is_agl: boolean specifying if height is AGL (Above Ground Level)
+      or AMSL (Above Mean Sea Level).
+
+  Returns:
+    the CBSD HAAT (meters).
+  """
+  norm_haat, alt_ground = terrainDriver.ComputeNormalizedHaat(lat_cbsd, lon_cbsd)
+  if height_is_agl:
+    return height_cbsd + norm_haat
+  else:
+    return height_cbsd - alt_ground + norm_haat
