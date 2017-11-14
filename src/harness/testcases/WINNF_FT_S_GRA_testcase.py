@@ -58,6 +58,73 @@ class GrantTestcase(sas_testcase.SasTestCase):
     pass
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_2(self):
+    """Grant request array with various required parameters missing.
+
+    1. Missing cbsdId
+    2. Missing operationParam object
+    3. Missing maxEirp
+    4. Missing highFrequency
+    5. Missing lowFrequency
+
+    Returns 102 (MISSING_PARAM) for all requests.
+    """
+    # Register the devices
+    registration_request = []
+    for device_filename in ('device_a.json', 'device_c.json', 'device_e.json',
+                            'device_f.json', 'device_g.json'):
+      device = json.load(
+          open(os.path.join('testcases', 'testdata', device_filename)))
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      registration_request.append(device)
+    request = {'registrationRequest': registration_request}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    # 1. Missing cbsdId.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # 2. Missing operationParam object.
+    grant_1 = {'cbsdId': cbsd_ids[1]}
+    # 3. Missing maxEirp.
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[2]
+    del grant_2['operationParam']['maxEirp']
+    # 4. Missing highFrequency.
+    grant_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3['cbsdId'] = cbsd_ids[3]
+    del grant_3['operationParam']['operationFrequencyRange']['highFrequency']
+    # 5. Missing lowFrequency.
+    grant_4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4['cbsdId'] = cbsd_ids[4]
+    del grant_4['operationParam']['operationFrequencyRange']['lowFrequency']
+
+    request = {'grantRequest': [grant_0, grant_1, grant_2, grant_3, grant_4]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    self.assertEqual(len(response), 5)
+    # Check grant response # 1
+    self.assertFalse('cbsdId' in response[0])
+    self.assertFalse('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 102)
+    # Check grant response # 2, 3, 4, 5
+    for response_num in (1, 2, 3, 4):
+      self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('grantId' in response[response_num])
+      self.assertEqual(response[response_num]['response']['responseCode'], 102)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
     """Invalid operationFrequencyRange.
 
@@ -132,5 +199,62 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['response']['responseCode'], 103)
     self.assertTrue(response[1]['response']['responseCode'], 300)
     self.assertTrue(response[2]['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_15(self):
+    """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
+
+    Returns 102 (MISSING_PARAM) for first request.
+            103 (INVALID_VALUE) for second request.
+    """
+    # Register two devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+
+    request = {'registrationRequest': [device_a, device_c]}
+    response = self._sas.Registration(request)['registrationResponse']
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Prepare grant requests.
+    # 1. maxEirp is missing.
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    del grant_0['operationParam']['maxEirp']
+
+    # 2. highFrequency is lower than the lowFrequency.
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[1]
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000.0,
+        'highFrequency': 3550000000.0
+    }
+
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+
+    self.assertEqual(len(response), 2)
+    # Check grant response # 1
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertFalse('grantId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 102)
+    # Check grant response # 2
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
 
 

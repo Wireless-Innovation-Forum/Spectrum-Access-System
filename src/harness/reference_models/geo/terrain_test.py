@@ -131,5 +131,17 @@ class TestTerrain(unittest.TestCase):
     self.assertEqual(len(self.terrain_driver._tile_lru), 2)
 
 
+  def test_haat(self):
+    # Twin Peaks - SF
+    haat, h0 = self.terrain_driver.ComputeNormalizedHaat(
+        lat=37.751458, lon=-122.447831)
+    self.assertAlmostEqual(haat, 249.81, 2)
+    self.assertAlmostEqual(h0, 274.69, 2)
+    # Ocean - far away from the coast
+    haat, h0 = self.terrain_driver.ComputeNormalizedHaat(
+        lat=37.50, lon=-122.999)
+    self.assertEqual(haat, 0.0)
+    self.assertEqual(h0, 0.0)
+
 if __name__ == '__main__':
   unittest.main()
