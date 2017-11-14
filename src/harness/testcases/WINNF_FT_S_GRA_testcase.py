@@ -254,6 +254,69 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+    
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_9(self):
+    """Frequency range requested by a CBSD overlaps with PAL channel and
+    the CBSD is inside claimed PPA boundary.
+
+    Response Code should be 400 for second device
+    """
+
+    # Load the devices, data
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_low_frequency = 3550000000
+    pal_high_frequency = 3560000000
+    user_id = device_a['userId']
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            user_id)
+
+    # Move device_a and device_c into the PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record)
+    device_c['installationParam']['latitude'], device_c['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record)
+
+    # Register the two devices.
+    cbsd_ids = self.assertRegistered([device_a, device_c])
+
+    # Update PPA record with only device_a's CBSD ID and Inject data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
+    self.assertTrue(zone_id)
+
+    # Trigger daily activities
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create grant request for second device
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c['cbsdId'] = cbsd_ids[1]
+    # Set frequency range that overlaps with PAL frequency.
+    grant_c['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': pal_low_frequency,
+        'highFrequency': pal_high_frequency
+    }
+
+    request = {'grantRequest': [grant_c]}
+    # Send grant request
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response for second device response code 400
+    self.assertEqual(response['cbsdId'], cbsd_ids[1])
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 400)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
