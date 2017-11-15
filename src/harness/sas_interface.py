@@ -514,3 +514,15 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
+  
+  @abc.abstractmethod
+  def InjectCpiUser(self, request):
+    """SAS admin interface to add a CPI User as if it came directly from the CPI database.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "cpiId": (string) valid cpiId to be injected into SAS under test
+        "cpiName": (string) valid name for cpi user to be injected into SAS under test
+        "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
+    """
+    pass

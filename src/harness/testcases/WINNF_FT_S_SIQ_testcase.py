@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -319,13 +319,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     for channel in response[0]['availableChannel']:
       if channel['channelType'] == 'PAL':
         self.assertTrue(
-            channel['frequencyRange']['lowFrequency'] == 3550000000)
+            channel['frequencyRange']['lowFrequency'] == pal_low_frequency1)
         self.assertTrue(
-            channel['frequencyRange']['highFrequency'] == 3560000000)
+            channel['frequencyRange']['highFrequency'] == pal_high_frequency1)
       else:
         self.assertTrue(channel['channelType'] == 'GAA')
         # Verify the low & high frequency in GAA.
-        self.assertTrue(channel['frequencyRange']['lowFrequency'] >= 3560000000)
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] >= pal_high_frequency1)
         self.assertTrue(
             (channel['frequencyRange']['highFrequency'] <= 3700000000))
 
@@ -333,13 +334,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     for channel in response[1]['availableChannel']:
       if channel['channelType'] == 'PAL':
         self.assertTrue(
-            channel['frequencyRange']['lowFrequency'] == 3600000000)
+            channel['frequencyRange']['lowFrequency'] == pal_low_frequency2)
         self.assertTrue(
-            channel['frequencyRange']['highFrequency'] == 3610000000)
+            channel['frequencyRange']['highFrequency'] == pal_high_frequency2)
       else:
         self.assertTrue(channel['channelType'] == 'GAA')
         # Verify the low & high frequency in GAA.
-        self.assertTrue(channel['frequencyRange']['lowFrequency'] >= 3610000000)
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] >= pal_high_frequency2)
         self.assertTrue(
             (channel['frequencyRange']['highFrequency'] <= 3700000000))
 
@@ -357,24 +359,146 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                 for channel in response[resp_num]['availableChannel']))
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_10(self):
+    """Send Spectrum Inquiry with Array request with successful and unsuccessful responses.
+     The response codes will vary
+    """
+
+    # Register six devices
+    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_4 = json.load(open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_5 = json.load(open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_6 = json.load(open(os.path.join('testcases', 'testdata', 'device_i.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_3['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_4['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_5['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_6['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_1['userId']})
+    self._sas_admin.InjectUserId({'userId': device_2['userId']})
+    self._sas_admin.InjectUserId({'userId': device_3['userId']})
+    self._sas_admin.InjectUserId({'userId': device_4['userId']})
+    self._sas_admin.InjectUserId({'userId': device_5['userId']})
+    self._sas_admin.InjectUserId({'userId': device_6['userId']})
+
+    # send registration requests
+    devices = [device_1, device_2, device_3, device_4, device_5, device_6]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+
+    # Check registration response
+    cbsd_ids = []
+    for resp in response['registrationResponse']:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Send Spectrum Inquiry request for six cbsds
+    # create inquiry with 6 requests
+    #
+    # the 1st inquiry is valid
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['cbsdId'] = cbsd_ids[0]
+
+    # the 2nd inquiry has one one parameter invalid
+    spectrum_inquiry_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    # cause invalid parameters by changing frequencies
+    spectrum_inquiry_2['inquiredSpectrum'][0]['lowFrequency'] = 3650000000
+    spectrum_inquiry_2['inquiredSpectrum'][0]['highFrequency'] = 3560000000
+    spectrum_inquiry_2['cbsdId'] = cbsd_ids[1]
+
+    # the 3rd inquiry has highFrequency parameter in inquiredSpectrum object is missing
+    spectrum_inquiry_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    del spectrum_inquiry_3['inquiredSpectrum'][0]['highFrequency']
+    spectrum_inquiry_3['cbsdId'] = cbsd_ids[2]
+
+    # the 4th inquiry has lowFrequency parameter in inquiredSpectrum object is missing
+    spectrum_inquiry_4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    del spectrum_inquiry_4['inquiredSpectrum'][0]['lowFrequency']
+    spectrum_inquiry_4['cbsdId'] = cbsd_ids[3]
+
+    # the 5th inquiry has inquiredSpectrum object completely missing
+    spectrum_inquiry_5 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    del spectrum_inquiry_5['inquiredSpectrum']
+    spectrum_inquiry_5['cbsdId'] = cbsd_ids[4]
+
+    # the 6th inquiry has the cbsdId missing
+    spectrum_inquiry_6 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2,
+        spectrum_inquiry_3, spectrum_inquiry_4, spectrum_inquiry_5, spectrum_inquiry_6]}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+
+    # Check Spectrum Inquiry Response
+    # response length check for 6 responses
+    self.assertEqual(len(response), 6)
+
+    # the 1st object will be response code 0
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertTrue('availableChannel' in response[0])
+    for available_channel in response[0]['availableChannel']:
+      self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+
+    # the 2nd object will be response code 103
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    self.assertFalse('availableChannel' in response[1])
+    self.assertEqual(response[1]['response']['responseCode'], 103)
+
+    # the 3rd object will be response code 102
+    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
+    self.assertFalse('availableChannel' in response[2])
+    self.assertEqual(response[2]['response']['responseCode'], 102)
+
+    # the 4th object will be response code 102
+    self.assertEqual(response[3]['cbsdId'], cbsd_ids[3])
+    self.assertFalse('availableChannel' in response[3])
+    self.assertEqual(response[3]['response']['responseCode'], 102)
+
+    # the 5th object will be response code 102
+    self.assertEqual(response[4]['cbsdId'], cbsd_ids[4])
+    self.assertFalse('availableChannel' in response[4])
+    self.assertEqual(response[4]['response']['responseCode'], 102)
+
+    # the 6th object will have no cbsdId
+    self.assertFalse('cbsdId' in response[5])
+    self.assertFalse('availableChannel' in response[5])
+    self.assertEqual(response[5]['response']['responseCode'], 102)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_11(self):
     """Unsupported frequency range inquiry array.
 
-    The response for Inquiry #2 should be UNSUPPORTED_SPECTRUM, code 300
+    The response for Inquiry #2 and #3 should be UNSUPPORTED_SPECTRUM, code 300
     """
     # Register the devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
 
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
+    self._sas_admin.InjectUserId({'userId': device_e['userId']})
 
-    request = {'registrationRequest': [device_a, device_c]}
+    request = {'registrationRequest': [device_a, device_c, device_e]}
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response
@@ -389,29 +513,42 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_1['cbsdId'] = cbsd_ids[0]
 
-    # 2. Spectrum Inquiry: lowFrequency & highFrequency outside 3550 - 3700 MHz.
+    # 2. Spectrum Inquiry: lowFrequency & highFrequency fully
+    #    outside 3550 - 3700 MHz.
     spectrum_inquiry_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_2['cbsdId'] = cbsd_ids[1]
     spectrum_inquiry_2['inquiredSpectrum'] = [{
-        'lowFrequency': 3300000000.0,
-        'highFrequency': 3350000000.0
+        'lowFrequency': 3300000000,
+        'highFrequency': 3350000000
+    }]
+
+    # 3. Spectrum Inquiry: lowFrequency & highFrequency partially
+    #    outside 3550 - 3700 MHz.
+    spectrum_inquiry_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_3['cbsdId'] = cbsd_ids[2]
+    spectrum_inquiry_3['inquiredSpectrum'] = [{
+        'lowFrequency': 3600000000,
+        'highFrequency': 3800000000
     }]
 
     request = {
-        'spectrumInquiryRequest': [spectrum_inquiry_1, spectrum_inquiry_2]
+        'spectrumInquiryRequest': [
+            spectrum_inquiry_1, spectrum_inquiry_2, spectrum_inquiry_3
+        ]
     }
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
 
-    self.assertEqual(len(response), 2)
+    self.assertEqual(len(response), 3)
     # Check Spectrum Inquiry Response #1
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertTrue('availableChannel' in response[0])
     for available_channel in response[0]['availableChannel']:
       self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
     self.assertEqual(response[0]['response']['responseCode'], 0)
-
-    # Check Spectrum Inquiry Response #2
-    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
-    self.assertFalse('availableChannel' in response[1])
-    self.assertEqual(response[1]['response']['responseCode'], 300)
+    # Check Spectrum Inquiry Response #2 and #3
+    for response_num in (1, 2):
+      self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('availableChannel' in response[response_num])
+      self.assertEqual(response[response_num]['response']['responseCode'], 300)
