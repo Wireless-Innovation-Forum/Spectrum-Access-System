@@ -319,6 +319,25 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['response']['responseCode'], 400)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_12(self):
+    """CBSD grant request when CBSD ID does not exist in SAS.
+    CBSD sends grant request when its CBSD Id is not in SAS. The response
+    should be FAIL.
+    """
+
+    # Send grant request with CBSD ID not exists in SAS
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = 'A non-exist cbsd id'
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    print response
+    # Check grant response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
 
