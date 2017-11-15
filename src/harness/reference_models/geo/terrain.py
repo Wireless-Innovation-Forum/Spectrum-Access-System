@@ -322,3 +322,28 @@ class TerrainDriver:
     lat, lon = zip(*points)
     elev.extend(self.GetTerrainElevation(lat, lon, do_interp))
     return elev
+
+  def ComputeNormalizedHaat(self, lat, lon):
+    """Computes normalized HAAT (Height Above Average Terrain).
+
+    Args:
+      lat, lon: point coordinates (in degrees).
+
+    Returns:
+      a tuple of
+        the HAAT for an antenna at height 0 above ground level.
+        the terrain altitude at given location
+    """
+    radial_angles = np.linspace(0, 360, 8., endpoint=False)
+    distances_km = np.linspace(3, 16, 50)
+    all_lat = [lat]
+    all_lon = [lon]
+    for bearing in radial_angles:
+      lats, lons, _ = vincenty.GeodesicPoints(lat, lon, distances_km, bearing)
+      all_lat.extend(lats)
+      all_lon.extend(lons)
+
+    all_lat = np.array(all_lat)
+    all_lon = np.array(all_lon)
+    altitudes = self.GetTerrainElevation(all_lat, all_lon)
+    return altitudes[0] - np.mean(altitudes[1:]), altitudes[0]
