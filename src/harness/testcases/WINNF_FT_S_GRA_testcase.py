@@ -126,6 +126,55 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[response_num]['response']['responseCode'], 102)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_4(self):
+    """cbsdId send by the CBSD is not its cbsdId but some other.
+
+    SAS rejects the request by sending responseCode 103 
+    """
+    # Load device_a [cert|key]
+    device_a_cert = os.path.join('certs', 'device_a.cert')
+    device_a_key = os.path.join('certs', 'device_a.key')
+
+    # Register the first device with certificates
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request, device_a_cert,
+                                      device_a_key)['registrationResponse'][0]
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id_a = response['cbsdId']
+    del request, response
+
+    # Load device_c [cert|key]
+    device_c_cert = os.path.join('certs', 'device_c.cert')
+    device_c_key = os.path.join('certs', 'device_c.key')
+
+    # Register the second device with certificates
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request, device_c_cert,
+                                      device_c_key)['registrationResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    cbsd_id_c = response['cbsdId']
+    del request, response
+
+    # Send grant request for device_a using device_c_cert and device_c_key
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id_a
+
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request, device_c_cert, device_c_key)['grantResponse'][0]
+    # Check grant Response
+    self.assertFalse('cbsdId' in response)
+    self.assertFalse('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
     """Invalid operationFrequencyRange.
 
