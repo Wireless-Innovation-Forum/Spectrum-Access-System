@@ -58,6 +58,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
  
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
 
@@ -374,7 +375,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('grantId' in response[1])
     self.assertEqual(response[1]['response']['responseCode'], 103)
 
- @winnforum_testcase
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_16(self):
     """Two grant requests for overlapping frequency range.
 
