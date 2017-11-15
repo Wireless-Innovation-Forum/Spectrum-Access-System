@@ -89,6 +89,56 @@ class GrantTestcaseUsingOldIds(sas_testcase.SasTestCase):
       self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINFF_FT_S_GRA_4(self):
+    """Successful CBSD grant request.
+        No incumbent present in the PAL frequency range requested by the CBSD.
+    """
+    # load the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # load PAL Database Record
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    # load PPA record
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+
+    #change device location to be inside PPA
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record)
+
+    pal_low_frequency = 3620000000.0
+    pal_high_frequency = 3630000000.0
+
+    #Make PPA and PAL records
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,[pal_record],\
+        pal_low_frequency,pal_high_frequency,device_a['userId'])
+
+    # Register the devices and assert the Response
+    cbsd_ids = self.assertRegistered([device_a])
+
+    #Add cbsd reference to PPA
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    # Inject PAL record record
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    # Inject PPA record
+    self._sas_admin.InjectZoneData({"record": ppa_record})
+
+    # Trigger daily activities and wait for it to be completed
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # grant request
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertValidResponseFormatForApprovedGrant(response)
+    self.assertEqual(response['channelType'], 'PAL')
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):
     """CBSD sends grant with missing cbsdId. The response should be
       responseCode = 102 or 105.
