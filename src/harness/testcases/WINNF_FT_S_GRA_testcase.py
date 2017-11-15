@@ -57,7 +57,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-
+ 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
@@ -375,3 +375,54 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('grantId' in response[1])
     self.assertEqual(response[1]['response']['responseCode'], 103)
 
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_16(self):
+    """Two grant requests for overlapping frequency range.
+
+    Returns 401 (GRANT_CONFLICT) for at least one request.
+    """
+    # Register a device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    cbsd_id = response['cbsdId']
+    del request, response
+
+    # Prepare grant requests with overlapping frequency range
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_id
+    grant_0['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3560000000.0,
+        'highFrequency': 3570000000.0
+    }
+    grant_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_id
+    grant_1['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3560000000.0,
+        'highFrequency': 3580000000.0
+    }
+    request = {'grantRequest': [grant_0, grant_1]}
+    # Send grant request and get response
+    response = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(response), 2)
+    self.assertEqual(response[0]['cbsdId'], cbsd_id)
+    self.assertEqual(response[1]['cbsdId'], cbsd_id)
+    self.assertTrue(response[0]['response']['responseCode'] == 401
+                    or response[1]['response']['responseCode'] == 401)
+    for resp in response:
+      if resp['response']['responseCode'] == 0:
+        # Check grantExpireTime with a correct format is included.
+        self.assertTrue('grantExpireTime' in resp)
+        grant_expire_time = datetime.strptime(
+            resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        self.assertLess(datetime.utcnow(), grant_expire_time)
+        # Check heartbeatInterval with a correct format is included.
+        self.assertTrue('heartbeatInterval' in resp)
+        self.assertIsInstance(resp['heartbeatInterval'], int)
+        self.assertTrue(resp['heartbeatInterval'] > 0)
