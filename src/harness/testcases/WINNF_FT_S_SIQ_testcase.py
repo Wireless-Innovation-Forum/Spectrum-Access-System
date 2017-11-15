@@ -206,10 +206,162 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['response']['responseCode'], 103)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_9(self):
+    """Multiple SIQ requests as claimed PPAs or as GAAs.
+
+    Response Code must be 0 for all CBSDs.
+    """
+
+    # Load 4 devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+
+    # First PPA with device_a and FR1 = 3550 - 3560
+    pal_low_frequency1 = 3550000000
+    pal_high_frequency1 = 3560000000
+    pal_record1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record1, pal_record1 = makePpaAndPalRecordsConsistent(
+        ppa_record1, [pal_record1], pal_low_frequency1, pal_high_frequency1,
+        device_a['userId'])
+
+    # Move device_a into the first PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record1)
+
+    # Second PPA with device_c and FR2 = 3600 - 3610
+    pal_low_frequency2 = 3600000000
+    pal_high_frequency2 = 3610000000
+    pal_record2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    ppa_record2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    ppa_record2, pal_record2 = makePpaAndPalRecordsConsistent(
+        ppa_record2, [pal_record2], pal_low_frequency2, pal_high_frequency2,
+        device_c['userId'])
+
+    # Move device_c into the second PPA zone
+    device_c['installationParam']['latitude'], device_c['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record2)
+
+    # Register 4 devices.
+    cbsd_ids = self.assertRegistered([device_a, device_c, device_e, device_f])
+
+    # Update PPA record with device_a's CBSD ID and Inject data
+    ppa_record1['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record1[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record1})
+    self.assertTrue(zone_id)
+
+    # Update PPA record with device_c's CBSD ID and Inject data
+    ppa_record2['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[1]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record2[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record2})
+    self.assertTrue(zone_id)
+
+    # Create Spectrum Inquiry requests
+    spectrum_inquiry_0 = {
+        'cbsdId': cbsd_ids[0],
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000,
+            'highFrequency': 3700000000
+        }]
+    }
+    spectrum_inquiry_1 = {
+        'cbsdId': cbsd_ids[1],
+        'inquiredSpectrum': [{
+            'lowFrequency': 3600000000,
+            'highFrequency': 3700000000
+        }]
+    }
+    spectrum_inquiry_2 = {
+        'cbsdId': cbsd_ids[2],
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000,
+            'highFrequency': 3700000000
+        }]
+    }
+    spectrum_inquiry_3 = {
+        'cbsdId': cbsd_ids[3],
+        'inquiredSpectrum': [{
+            'lowFrequency': 3550000000,
+            'highFrequency': 3700000000
+        }]
+    }
+    request = {
+        'spectrumInquiryRequest': [
+            spectrum_inquiry_0, spectrum_inquiry_1, spectrum_inquiry_2,
+            spectrum_inquiry_3
+        ]
+    }
+
+    # Check Spectrum Inquiry response
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+    # Response 0 and 1 contain at least 1 PAL channelType in availableChannel.
+    for resp_num in [0, 1]:
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
+      self.assertTrue(
+          any(channel['channelType'] == 'PAL'
+              for channel in response[resp_num]['availableChannel']))
+      self.assertTrue(
+          all(channel['ruleApplied'] == 'FCC_PART_96'
+              for channel in response[resp_num]['availableChannel']))
+    # Check response 0.
+    for channel in response[0]['availableChannel']:
+      if channel['channelType'] == 'PAL':
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] == pal_low_frequency1)
+        self.assertTrue(
+            channel['frequencyRange']['highFrequency'] == pal_high_frequency1)
+      else:
+        self.assertTrue(channel['channelType'] == 'GAA')
+        # Verify the low & high frequency in GAA.
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] >= pal_high_frequency1)
+        self.assertTrue(
+            (channel['frequencyRange']['highFrequency'] <= 3700000000))
+
+    # Check response 1.
+    for channel in response[1]['availableChannel']:
+      if channel['channelType'] == 'PAL':
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] == pal_low_frequency2)
+        self.assertTrue(
+            channel['frequencyRange']['highFrequency'] == pal_high_frequency2)
+      else:
+        self.assertTrue(channel['channelType'] == 'GAA')
+        # Verify the low & high frequency in GAA.
+        self.assertTrue(
+            channel['frequencyRange']['lowFrequency'] >= pal_high_frequency2)
+        self.assertTrue(
+            (channel['frequencyRange']['highFrequency'] <= 3700000000))
+
+    # Response 2 and 3
+    # If availableChannel is not null then all availableChannels should be GAA
+    for resp_num in [2, 3]:
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
+      if response[resp_num]['availableChannel']:
+        self.assertTrue(
+            all(channel['channelType'] == 'GAA'
+                for channel in response[resp_num]['availableChannel']))
+        self.assertTrue(
+            all(channel['ruleApplied'] == 'FCC_PART_96'
+                for channel in response[resp_num]['availableChannel']))
+
+  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_10(self):
     """Send Spectrum Inquiry with Array request with successful and unsuccessful responses.
-
-    The response codes will vary
+     The response codes will vary
     """
 
     # Register six devices
@@ -291,9 +443,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Check Spectrum Inquiry Response
     # response length check for 6 responses
     self.assertEqual(len(response), 6)
-	
+
     # the 1st object will be response code 0
-    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])    
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertTrue('availableChannel' in response[0])
     for available_channel in response[0]['availableChannel']:
       self.assertEqual(available_channel['ruleApplied'], 'FCC_PART_96')
@@ -317,7 +469,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # the 5th object will be response code 102
     self.assertEqual(response[4]['cbsdId'], cbsd_ids[4])
     self.assertFalse('availableChannel' in response[4])
-    self.assertEqual(response[4]['response']['responseCode'], 102)	
+    self.assertEqual(response[4]['response']['responseCode'], 102)
 
     # the 6th object will have no cbsdId
     self.assertFalse('cbsdId' in response[5])
