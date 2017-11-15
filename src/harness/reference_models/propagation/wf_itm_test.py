@@ -132,5 +132,21 @@ class TestWfItm(unittest.TestCase):
     self.assertAlmostEqual(d0, 55357.7, 1)
     self.assertAlmostEqual(d1, 19450.0, 1)
 
+  def test_haat(self):
+    # Twin Peaks
+    haat = wf_itm.ComputeHaat(
+        lat_cbsd=37.751458, lon_cbsd=-122.447831, height_cbsd=10)
+    self.assertAlmostEqual(haat, 259.81, 2)
+    haat = wf_itm.ComputeHaat(
+        lat_cbsd=37.751458, lon_cbsd=-122.447831, height_cbsd=284.69,
+        height_is_agl=False)
+    self.assertAlmostEqual(haat, 259.80, 2)
+
+    # Ocean - far away from the coast
+    haat  = wf_itm.ComputeHaat(
+        lat_cbsd=37.50, lon_cbsd=-122.999, height_cbsd=10)
+    self.assertEqual(haat, 10)
+
+
 if __name__ == '__main__':
   unittest.main()
