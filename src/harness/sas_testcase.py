@@ -60,6 +60,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
                        conditional_registration_data=None):
     for device in registration_request:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
     if conditional_registration_data:
       self._sas_admin.PreloadRegistrationData(conditional_registration_data)
 
