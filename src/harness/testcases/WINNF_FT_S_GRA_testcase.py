@@ -57,7 +57,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-
+ 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
@@ -629,4 +629,3 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertTrue('heartbeatInterval' in resp)
         self.assertIsInstance(resp['heartbeatInterval'], int)
         self.assertTrue(resp['heartbeatInterval'] > 0)
-
