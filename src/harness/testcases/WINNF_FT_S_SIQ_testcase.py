@@ -131,6 +131,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request, device_a_cert,
                                       device_a_key)['registrationResponse'][0]
@@ -147,6 +148,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_c]}
     response = self._sas.Registration(request, device_c_cert,
                                       device_c_key)['registrationResponse'][0]
