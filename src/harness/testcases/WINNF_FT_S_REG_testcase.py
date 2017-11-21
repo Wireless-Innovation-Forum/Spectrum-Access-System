@@ -16,9 +16,9 @@ from datetime import datetime
 import json
 import os
 import unittest
-
+import jwt
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, generateCpiRsaKeys
 
 
 class RegistrationTestcase(unittest.TestCase):
@@ -29,6 +29,38 @@ class RegistrationTestcase(unittest.TestCase):
 
   def tearDown(self):
     pass
+
+  def _convertRequestToRequestWithCpiSignature(self, private_key, cpi_id,
+                                               cpi_name, request,
+                                               jwt_algorithm='RS256'):
+    """Converts a regular registration request to contain cpiSignatureData
+       using the given JWT signature algorithm.
+
+    Args:
+      private_key: (string) valid PEM encoded string.
+      cpi_id: (string) valid cpiId.
+      cpi_name: (string) valid cpiName.
+      request: individual CBSD registration request (which is a dictionary).
+      jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
+    """
+    cpi_signed_data = {}
+    cpi_signed_data['fccId'] = request['fccId']
+    cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
+    cpi_signed_data['installationParam'] = request['installationParam']
+    del request['installationParam']
+    cpi_signed_data['professionalInstallerData'] = {}
+    cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+    cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
+    cpi_signed_data['professionalInstallerData'][
+        'installCertificationTime'] = datetime.utcnow().strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+    compact_jwt_message = jwt.encode(
+        cpi_signed_data, private_key, jwt_algorithm)
+    jwt_message = compact_jwt_message.split('.')
+    request['cpiSignatureData'] = {}
+    request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
+    request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
+    request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_1(self):
@@ -273,6 +305,48 @@ class RegistrationTestcase(unittest.TestCase):
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
       self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_3(self):
+    """Array Single-Step registration for CBSDs (Cat A and B).
+
+    The response should be SUCCESS.
+    """
+
+    # Load Devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Inject FCC ID and User ID
+    for device in [device_a, device_c, device_b]:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # (Generate CPI RSA keys and) Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    cpi_private_key, cpi_public_key = generateCpiRsaKeys()
+    self._sas_admin.InjectCpiUser({
+        'cpiId': cpi_id,
+        'cpiName': cpi_name,
+        'cpiPublicKey': cpi_public_key
+    })
+    # Convert device_b's registration request to embed cpiSignatureData
+    self._convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                                  cpi_name, device_b)
+
+    # Register the devices
+    devices = [device_a, device_c, device_b]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for x in range(0, 3):
+      self.assertTrue('cbsdId' in response[x])
+      self.assertEqual(response[x]['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_5(self):
