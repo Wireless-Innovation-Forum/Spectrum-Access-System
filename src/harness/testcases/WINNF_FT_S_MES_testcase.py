@@ -86,14 +86,15 @@ class MeasurementTestcase(unittest.TestCase):
         # For the third device build array of 10 element for measReport
         if cbsd_id == cbsd_ids[2]:
             meas_report = meas_report[:10]
-        # Delete rcvdPowerMeasReports for the 4th device
-        if cbsd_id == cbsd_ids[3]:
-            del spectrum_inquiry['measReport']['rcvdPowerMeasReports']
         # For the 6th device set measBandwidth to 15000000 Hz
         if cbsd_id == cbsd_ids[5]:
             for meas_num, meas in enumerate(meas_report):
                 meas_report[meas_num]['measBandwidth'] = 15000000
         spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report}
+
+        # Delete rcvdPowerMeasReports for the 4th device
+        if cbsd_id == cbsd_ids[3]:
+            del spectrum_inquiry['measReport']['rcvdPowerMeasReports']
         # Delete MeasReport for the 5th device
         if cbsd_id == cbsd_ids[4]:
             del spectrum_inquiry['measReport']
