@@ -80,7 +80,6 @@ class DeregistrationTestcase(unittest.TestCase):
     # valid cbsdIds, responseCode should be 103 for both cbsdIds
     self.assertEqual(len(response), 2)
     for x, resp in enumerate(response):
-      self.assertEqual(resp['cbsdId'], cbsd_ids[x])
       self.assertEqual(resp['response']['responseCode'], 103)
     del request, response
 
