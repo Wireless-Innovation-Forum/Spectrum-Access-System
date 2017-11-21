@@ -15,7 +15,6 @@
 from datetime import datetime
 import json
 import os
-import unittest
 
 import sas
 import sas_testcase
