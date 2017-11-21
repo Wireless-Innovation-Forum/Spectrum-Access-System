@@ -18,12 +18,13 @@ import json
 import logging
 import os
 import time
-import unittest
+
 import sas
+import sas_testcase
 from util import winnforum_testcase
 
 
-class HeartbeatTestcase(unittest.TestCase):
+class HeartbeatTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
