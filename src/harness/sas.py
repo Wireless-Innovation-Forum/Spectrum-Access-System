@@ -90,7 +90,8 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   body = response.getvalue()
   logging.debug('Response:\n' + body)
   assert http_code == 200, http_code
-  return json.loads(body)
+  if body:
+    return json.loads(body)
 
 
 def _RequestGet(url, ssl_cert, ssl_key):
@@ -309,6 +310,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
+  def InjectCpiUser(self, request):
+    _RequestPost('https://%s/admin/injectdata/cpi_user' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')

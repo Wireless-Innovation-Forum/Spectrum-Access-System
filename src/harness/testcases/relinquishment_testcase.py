@@ -452,7 +452,7 @@ class RelinquishmentTestcaseUsingOldIds(unittest.TestCase):
     response = self._sas.Relinquishment(request)['relinquishmentResponse']
     # Check the relinquishment response
     self.assertFalse('cbsdId' in response[0])
-    self.assertEqual(response[0]['grantId'], grant_id_2)
+    self.assertFalse('grantId' in response[0])
     self.assertIn(response[0]['response']['responseCode'], [103, 105])
     self.assertEqual(response[1]['cbsdId'], cbsd_id_2)
     self.assertFalse('grantId' in response[1])
@@ -461,7 +461,7 @@ class RelinquishmentTestcaseUsingOldIds(unittest.TestCase):
     self.assertFalse('grantId' in response[2])
     self.assertIn(response[2]['response']['responseCode'], [103, 105])
     self.assertEqual(response[3]['cbsdId'], cbsd_id_2)
-    self.assertEqual(response[3]['grantId'], grant_id_4)
+    self.assertFalse('grantId' in response[3])
     self.assertEqual(response[3]['response']['responseCode'], 103)
     self.assertEqual(response[4]['cbsdId'], cbsd_id_2)
     self.assertFalse('grantId' in response[4])
@@ -770,8 +770,8 @@ class RelinquishmentTestcaseUsingOldIds(unittest.TestCase):
     self.assertFalse('grantId' in response[0])
     self.assertEqual(response[0]['response']['responseCode'], 102)
     self.assertFalse('cbsdId' in response[1])
-    self.assertEqual(response[1]['grantId'], grant_id[1])
+    self.assertFalse('grantId' in response[1])
     self.assertIn(response[1]['response']['responseCode'], [102, 105])
     self.assertFalse('cbsdId' in response[2])
-    self.assertEqual(response[2]['grantId'], grant_id[2])
+    self.assertFalse('grantId' in response[2])
     self.assertIn(response[2]['response']['responseCode'], [102, 105])

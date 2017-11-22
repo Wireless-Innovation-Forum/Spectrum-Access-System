@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PROPAGATION_EHATA_ITS_EHATA_H
+#define PROPAGATION_EHATA_ITS_EHATA_H
+
 #ifdef _WIN32
 // Export the DLL functions as "C" and not C++
 #define DLLEXPORT extern "C" __declspec(dllexport)
@@ -112,3 +114,6 @@ float IsolatedRidgeCorrectionFactor(float d1_hzn__km, float d2_hzn__km, float h_
 #define TRACE__METHOD_17    0x00020000;
 #define TRACE__METHOD_18    0x00040000;
 #define TRACE__METHOD_19    0x00080000;
+
+
+#endif // PROPAGATION_EHATA_ITS_EHATA_H

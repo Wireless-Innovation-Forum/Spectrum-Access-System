@@ -56,6 +56,25 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+echo "\n\nGenerate 'certs for devices' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config openssl.cnf \
+    -out device_a.csr -keyout device_a.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_a"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
+    -out device_a.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config openssl.cnf \
+    -out device_c.csr -keyout device_c.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_c"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
+    -out device_c.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 echo "\n\nGenerate 'admin_client' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
