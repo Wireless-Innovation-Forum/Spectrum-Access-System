@@ -1,0 +1,77 @@
+[
+    {
+      "measFrequency": 3550000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3560000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3570000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3580000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3590000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3600000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3610000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3620000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3630000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3640000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3650000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3660000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3670000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3680000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    },
+    {
+      "measFrequency": 3690000000.0,
+      "measBandwidth": 10000000,
+      "measRcvdPower": -100
+    }
+]
