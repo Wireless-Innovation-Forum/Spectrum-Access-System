@@ -79,26 +79,24 @@ class MeasurementTestcase(unittest.TestCase):
         spectrum_inquiry['cbsdId'] = cbsd_id
         meas_report = json.load(
             open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
+        spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report}
         # Delete measRcvdPower for second devide
         if cbsd_id == cbsd_ids[1]:
             for meas_num, meas in enumerate(meas_report):
                 del meas_report[meas_num]['measRcvdPower']
         # For the third device build array of 10 element for measReport
         if cbsd_id == cbsd_ids[2]:
-            meas_report = meas_report[:10]
-        # For the 6th device set measBandwidth to 15000000 Hz
-        if cbsd_id == cbsd_ids[5]:
-            for meas_num, meas in enumerate(meas_report):
-                meas_report[meas_num]['measBandwidth'] = 15000000
-        spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report}
-
+            spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report[:10]}
         # Delete rcvdPowerMeasReports for the 4th device
         if cbsd_id == cbsd_ids[3]:
             del spectrum_inquiry['measReport']['rcvdPowerMeasReports']
         # Delete MeasReport for the 5th device
         if cbsd_id == cbsd_ids[4]:
             del spectrum_inquiry['measReport']
-
+        # For the 6th device set measBandwidth to 15000000 Hz
+        if cbsd_id == cbsd_ids[5]:
+            for meas_num, meas in enumerate(meas_report):
+                meas_report[meas_num]['measBandwidth'] = 15000000
         spectrum_inquiry['inquiredSpectrum'] = [{
             'lowFrequency': 3550000000.0,
             'highFrequency': 3560000000.0
@@ -108,9 +106,9 @@ class MeasurementTestcase(unittest.TestCase):
     request = {'spectrumInquiryRequest': spectrum_inquiries}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
     # Check Spectrum Inquiry response
-    self.assertTrue('cbsdId' in response[0])
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
-    for resp in response[1:5]
+    for resp in response[1:5]:
         self.assertEqual(resp['response']['responseCode'], 102)
     self.assertEqual(response[5]['response']['responseCode'], 103)
     
@@ -131,7 +129,7 @@ class MeasurementTestcase(unittest.TestCase):
     request = {'grantRequest': grant_request}
     response = self._sas.Grant(request)['grantResponse']
     # Check Spectrum Inquiry response
-    self.assertTrue('cbsdId' in response[0])
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertTrue('grantId' in response[0])
     self.assertEqual(response[0]['response']['responseCode'], 0)
     for resp in response[1:5]:
