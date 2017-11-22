@@ -90,7 +90,8 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
   body = response.getvalue()
   logging.debug('Response:\n' + body)
   assert http_code == 200, http_code
-  return json.loads(body)
+  if body:
+    return json.loads(body)
 
 
 def _RequestGet(url, ssl_cert, ssl_key):
