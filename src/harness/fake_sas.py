@@ -211,6 +211,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectFccId(self, request):
     pass
 
+  def InjectUserId(self, request):
+    pass
+
   def BlacklistByFccId(self, request):
     pass
 
@@ -290,6 +293,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
+                       '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
@@ -299,6 +303,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/sas_admin',
                        '/admin/injectdata/sas_impl',
                        '/admin/injectdata/esc_sensor',
+                       '/admin/injectdata/cpi_user',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
                        '/admin/trigger/daily_activities_immediately'):
