@@ -63,7 +63,6 @@ class MeasurementTestcase(unittest.TestCase):
     # Register devices
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)['registrationResponse']
-    print response
     # Check registration response
     self.assertEqual(len(response), 6)
     for resp in response:
@@ -130,13 +129,13 @@ class MeasurementTestcase(unittest.TestCase):
         if cbsd_id == cbsd_ids[1]:
             del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency']
         # Set measFrequency to 3540 MHZ for 3th device
-        if cbsd_id == cbsd_ids[2]:
+        elif cbsd_id == cbsd_ids[2]:
             heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000.0
         # Delete rcvdPowerMeasReports for 4th device
-        if cbsd_id == cbsd_ids[3]:
+        elif cbsd_id == cbsd_ids[3]:
             del heartbeat_request['measReport']['rcvdPowerMeasReports']
         # Delete measReport for devices 5 and 6
-        if cbsd_id in (cbsd_ids[4], cbsd_ids[5]):
+        elif cbsd_id in (cbsd_ids[4], cbsd_ids[5]):
             del heartbeat_request['measReport']
         heartbeat_requests.append(heartbeat_request)
 
