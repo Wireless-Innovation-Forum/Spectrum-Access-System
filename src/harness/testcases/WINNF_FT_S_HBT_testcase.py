@@ -308,9 +308,9 @@ class HeartbeatTestcase(unittest.TestCase):
     # Check the heartbeat response
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertTrue(response['response']['responseCode'] in (103, 500))
-    self.assertLessEqual(
-        datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
-        transmit_expire_time)
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLess(transmit_expire_time, datetime.utcnow())  
   
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_6(self):
