@@ -85,16 +85,16 @@ class MeasurementTestcase(unittest.TestCase):
             for meas_num, meas in enumerate(meas_report):
                 del meas_report[meas_num]['measRcvdPower']
         # For the third device build array of 10 element for measReport
-        if cbsd_id == cbsd_ids[2]:
+        elif cbsd_id == cbsd_ids[2]:
             spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report[:10]}
         # Delete rcvdPowerMeasReports for the 4th device
-        if cbsd_id == cbsd_ids[3]:
+        elif cbsd_id == cbsd_ids[3]:
             del spectrum_inquiry['measReport']['rcvdPowerMeasReports']
         # Delete MeasReport for the 5th device
-        if cbsd_id == cbsd_ids[4]:
+        elif cbsd_id == cbsd_ids[4]:
             del spectrum_inquiry['measReport']
         # For the 6th device set measBandwidth to 15000000 Hz
-        if cbsd_id == cbsd_ids[5]:
+        elif cbsd_id == cbsd_ids[5]:
             for meas_num, meas in enumerate(meas_report):
                 meas_report[meas_num]['measBandwidth'] = 15000000
         spectrum_inquiry['inquiredSpectrum'] = [{
@@ -114,16 +114,16 @@ class MeasurementTestcase(unittest.TestCase):
     
     # Create Grant Request for the six devices
     grant_request = []
-    for meas_num, meas_report in enumerate(spectrum_inquiries):
+    for spectrum_num, spectrum_inquiry in enumerate(spectrum_inquiries):
         grant_0 = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant_0['operationParam']['operationFrequencyRange'][
             'lowFrequency'] = 3550000000.0
         grant_0['operationParam']['operationFrequencyRange'][
             'highFrequency'] = 3560000000.0
-        grant_0['cbsdId'] = meas_report['cbsdId']
-        if 'measReport' in meas_report:
-            grant_0['measReport'] = meas_report['measReport']
+        grant_0['cbsdId'] = spectrum_inquiry['cbsdId']
+        if 'measReport' in spectrum_inquiry:
+            grant_0['measReport'] = spectrum_inquiry['measReport']
         grant_request.append(grant_0)
     # Send Grant Request
     request = {'grantRequest': grant_request}
