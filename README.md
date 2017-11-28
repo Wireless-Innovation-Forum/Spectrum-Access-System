@@ -66,6 +66,8 @@ may be installed as part of the SciPy packages.
 This Python library can be installed with <code>pip</code>. It provides
 libraries for processing geometrical objects and shapes in Python.
 
+* pyJWT (https://pypi.python.org/pypi/PyJWT)
+* cryptography (https://pypi.python.org/pypi/cryptography)
 * pykml (https://pythonhosted.org/pykml/installation.html)
 
 This Python library can be installed with <code>pip</code>. It provides
