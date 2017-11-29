@@ -16,13 +16,13 @@ from datetime import datetime
 import json
 import os
 import time
-import unittest
 
 import sas
+import sas_testcase
 from util import winnforum_testcase
 
 
-class RelinquishmentTestcase(unittest.TestCase):
+class RelinquishmentTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
