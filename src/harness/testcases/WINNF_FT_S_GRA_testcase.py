@@ -57,7 +57,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
- 
+
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
@@ -129,7 +129,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_GRA_4(self):
     """cbsdId send by the CBSD is not its cbsdId but some other.
 
-    SAS rejects the request by sending responseCode 103 
+     SAS rejects the request by sending responseCode 103
     """
     # Load device_a [cert|key]
     device_a_cert = os.path.join('certs', 'device_a.cert')
@@ -249,8 +249,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('grantId' in resp)
     self.assertEqual(response[0]['response']['responseCode'], 103)
-    self.assertTrue(response[1]['response']['responseCode'], 300)
-    self.assertTrue(response[2]['response']['responseCode'], 300)
+    self.assertEqual(response[1]['response']['responseCode'], 300)
+    self.assertEqual(response[2]['response']['responseCode'], 300)
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_8(self):
@@ -680,3 +680,4 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertTrue('heartbeatInterval' in resp)
         self.assertIsInstance(resp['heartbeatInterval'], int)
         self.assertTrue(resp['heartbeatInterval'] > 0)
+
