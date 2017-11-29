@@ -20,6 +20,10 @@ from collections import defaultdict
 import random
 from datetime import datetime
 import uuid
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 def winnforum_testcase(testcase):
@@ -125,3 +129,38 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
+
+
+def generateCpiRsaKeys():
+  """Generate a private/public RSA 2048 key pair.
+
+  Returns:
+    A tuple (private_key, public key) as PEM string encoded.
+  """
+  rsa_key = rsa.generate_private_key(
+      public_exponent=65537, key_size=2048, backend=default_backend())
+  rsa_private_key = rsa_key.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.TraditionalOpenSSL,
+      encryption_algorithm=serialization.NoEncryption())
+  rsa_public_key = rsa_key.public_key().public_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+  return rsa_private_key, rsa_public_key
+
+
+def generateCpiEcKeys():
+  """Generate a private/public EC SECP521R1 key pair.
+
+  Returns:
+    A tuple (private_key, public key) as PEM string encoded.
+  """
+  ec_key = ec.generate_private_key(ec.SECP521R1(), default_backend())
+  ec_private_key = ec_key.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.TraditionalOpenSSL,
+      encryption_algorithm=serialization.NoEncryption())
+  ec_public_key = ec_key.public_key().public_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+  return ec_private_key, ec_public_key

@@ -16,9 +16,10 @@ from datetime import datetime
 import json
 import os
 
+import jwt
 import sas
 import sas_testcase
-from util import winnforum_testcase
+from util import winnforum_testcase, generateCpiRsaKeys, generateCpiEcKeys
 
 
 class RegistrationTestcase(sas_testcase.SasTestCase):
@@ -29,6 +30,38 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+
+  def _convertRequestToRequestWithCpiSignature(self, private_key, cpi_id,
+                                               cpi_name, request,
+                                               jwt_algorithm='RS256'):
+    """Converts a regular registration request to contain cpiSignatureData
+       using the given JWT signature algorithm.
+
+    Args:
+      private_key: (string) valid PEM encoded string.
+      cpi_id: (string) valid cpiId.
+      cpi_name: (string) valid cpiName.
+      request: individual CBSD registration request (which is a dictionary).
+      jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
+    """
+    cpi_signed_data = {}
+    cpi_signed_data['fccId'] = request['fccId']
+    cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
+    cpi_signed_data['installationParam'] = request['installationParam']
+    del request['installationParam']
+    cpi_signed_data['professionalInstallerData'] = {}
+    cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+    cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
+    cpi_signed_data['professionalInstallerData'][
+        'installCertificationTime'] = datetime.utcnow().strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+    compact_jwt_message = jwt.encode(
+        cpi_signed_data, private_key, jwt_algorithm)
+    jwt_message = compact_jwt_message.split('.')
+    request['cpiSignatureData'] = {}
+    request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
+    request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
+    request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_1(self):
@@ -382,6 +415,88 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     for x in range(1, 4):
       self.assertEqual(
           response['registrationResponse'][x]['response']['responseCode'], 102)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_6(self):
+    """Pending registration in Array request (responseCode 200).
+
+    The response should be:
+    - responseCode 0 for CBSD 1.
+    - responseCode 200 for CBSDs 2, 3, 4 and 5.
+    """
+
+    # (Generate CPI EC keys and) Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    cpi_private_key, cpi_public_key = generateCpiEcKeys()
+    self._sas_admin.InjectCpiUser({
+        'cpiId': cpi_id,
+        'cpiName': cpi_name,
+        'cpiPublicKey': cpi_public_key
+    })
+
+    # Load CBSD 1: Cat A, Has all required parameters.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load CBSD 2: Cat A, missing 'indoorDeployment' in 'installationParam'.
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    del device_c['installationParam']['indoorDeployment']
+
+    # Load CBSD 3: Cat B, missing 'digitalSignature' in 'cpiSignatureData'.
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    # Convert request to embed cpiSignatureData
+    self._convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                                  cpi_name, device_b, 'ES256')
+    del device_b['cpiSignatureData']['digitalSignature']
+
+    # Load CBSD 4: Cat B, missing 'cpiId' in 'professionalInstallerData'.
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    # Convert request to embed cpiSignatureData (without cpiId)
+    self._convertRequestToRequestWithCpiSignature(cpi_private_key, '',
+                                                  cpi_name, device_d, 'ES256')
+
+    # Load CBSD 5: Cat B
+    # Missing 'antennaAzimuth' in 'installationParam', both in Conditionals and
+    # in the 'installationParam' signed by CPI.
+    device_h = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    del device_h['installationParam']['antennaAzimuth']
+    conditionals_h = {
+        'cbsdCategory': device_h['cbsdCategory'],
+        'fccId': device_h['fccId'],
+        'cbsdSerialNumber': device_h['cbsdSerialNumber'],
+        'airInterface': device_h['airInterface'],
+        'installationParam': device_h['installationParam'],
+        'measCapability': device_h['measCapability']
+    }
+    conditionals = {
+        'registrationData': [conditionals_h]
+    }
+    # Convert CBSD 5's request to embed cpiSignatureData
+    self._convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                                  cpi_name, device_h, 'ES256')
+
+    # Inject FCC ID and User ID for all devices
+    for device in [device_a, device_c, device_b, device_d, device_h]:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # CBSD 5 conditionals pre-loaded into SAS
+    self._sas_admin.PreloadRegistrationData(conditionals)
+
+    # Register devices
+    devices = [device_a, device_c, device_b, device_d, device_h]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    self.assertTrue('cbsdId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    for resp in response[1:]:
+      self.assertEqual(resp['response']['responseCode'], 200)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
