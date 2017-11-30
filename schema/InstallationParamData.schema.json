@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "Installation parameters provided for a CBSD",
   "type": "object",
-  "required": [ "latitude", "longitude", "height", "heightType","antennaAzimuth","antennaDowntilt","antennaGain","antennaBeamwidth","indoorDeployment"],
+  "required": [ "latitude", "longitude", "height", "heightType","antennaGain","indoorDeployment"],
   "properties": {
     "latitude": { "type": "number",
                   "description": "Latitude in WGS84 coordinates, provided in decimal degrees",
