@@ -385,6 +385,7 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
   def TriggerDailyActivitiesImmediately(self):
     """SAS admin interface to trigger daily activities immediately which will
     execute the following activities:
@@ -395,6 +396,7 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:
@@ -404,6 +406,17 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def InjectCpiUser(self, request):
+    """SAS admin interface to add a CPI User as if it came directly from the CPI database.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "cpiId": (string) valid cpiId to be injected into SAS under test
+        "cpiName": (string) valid name for cpi user to be injected into SAS under test
+        "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
+    """
+    pass
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
@@ -515,14 +528,4 @@ class SasTestcaseInterface(object):
     """
     pass
   
-  @abc.abstractmethod
-  def InjectCpiUser(self, request):
-    """SAS admin interface to add a CPI User as if it came directly from the CPI database.
 
-    Args:
-      request: A dictionary with the following key-value pairs:
-        "cpiId": (string) valid cpiId to be injected into SAS under test
-        "cpiName": (string) valid name for cpi user to be injected into SAS under test
-        "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
-    """
-    pass
