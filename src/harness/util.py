@@ -23,6 +23,7 @@ import uuid
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+import jwt
 
 
 def winnforum_testcase(testcase):
@@ -146,3 +147,36 @@ def generateCpiRsaKeys():
       encoding=serialization.Encoding.PEM,
       format=serialization.PublicFormat.SubjectPublicKeyInfo)
   return rsa_private_key, rsa_public_key
+
+
+def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
+                                            cpi_name, request,
+                                            jwt_algorithm='RS256'):
+  """Converts a regular registration request to contain cpiSignatureData
+     using the given JWT signature algorithm.
+
+  Args:
+    private_key: (string) valid PEM encoded string.
+    cpi_id: (string) valid cpiId.
+    cpi_name: (string) valid cpiName.
+    request: individual CBSD registration request (which is a dictionary).
+    jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
+  """
+  cpi_signed_data = {}
+  cpi_signed_data['fccId'] = request['fccId']
+  cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
+  cpi_signed_data['installationParam'] = request['installationParam']
+  del request['installationParam']
+  cpi_signed_data['professionalInstallerData'] = {}
+  cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+  cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
+  cpi_signed_data['professionalInstallerData'][
+      'installCertificationTime'] = datetime.utcnow().strftime(
+          '%Y-%m-%dT%H:%M:%SZ')
+  compact_jwt_message = jwt.encode(
+      cpi_signed_data, private_key, jwt_algorithm)
+  jwt_message = compact_jwt_message.split('.')
+  request['cpiSignatureData'] = {}
+  request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
+  request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
+  request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
