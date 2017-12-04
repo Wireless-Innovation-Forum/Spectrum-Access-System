@@ -66,7 +66,7 @@ def _RequestPost(url, request, ssl_cert, ssl_key):
       'Host: %s' % urlparse.urlparse(url).hostname,
       'content-type: application/json'
   ]
-  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.VERBOSE, False)  # Improve readability
   conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
   conn.setopt(conn.SSLCERT, ssl_cert)
@@ -112,7 +112,7 @@ def _RequestGet(url, ssl_cert, ssl_key):
       'Host: %s' % urlparse.urlparse(url).hostname,
       'content-type: application/json'
   ]
-  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.VERBOSE, False)  # Improve readability
   conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
   conn.setopt(conn.SSLCERT, ssl_cert)

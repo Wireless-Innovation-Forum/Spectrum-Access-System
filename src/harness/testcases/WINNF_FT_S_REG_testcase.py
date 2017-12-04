@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
 
 from datetime import datetime
 import json
+import logging
 import os
-
 import sas
 import sas_testcase
-from util import winnforum_testcase
+from util import winnforum_testcase, configurable_testcase, writeConfig, \
+  loadConfig
 
 
 class RegistrationTestcase(sas_testcase.SasTestCase):
@@ -454,3 +455,93 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     except AssertionError as e:
       # Allow HTTP status 404
       self.assertEqual(e.args[0], 404)
+
+  def generate_REG_11_default_config(self, filename):
+    """Generates the WinnForum configuration for REG.11."""
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+
+    # Device #1 is Category A.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+
+    # Device #2 is Category A with one conditional parameter missing.
+    self.assertEqual(device_c['cbsdCategory'], 'A')
+    del device_c['installationParam']['indoorDeployment']
+
+    # Device #3 is Category B.
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+
+    # Device #4 is Category B with one conditional missing and conditionals
+    # pre-loaded.
+    self.assertEqual(device_d['cbsdCategory'], 'B')
+    conditionals_d = {
+        'cbsdCategory': device_d['cbsdCategory'],
+        'fccId': device_d['fccId'],
+        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
+        'airInterface': device_d['airInterface'],
+        'installationParam': device_d['installationParam']
+    }
+    del conditionals_d['installationParam']['antennaBeamwidth']
+    conditionals = {'registrationData': [conditionals_d]}
+
+    # Create the actual config.
+    devices = [device_a, device_c, device_b, device_d]
+    config = {
+        'fccIds': [(d['fccId'], 47) for d in devices],
+        'userIds': [d['userId'] for d in devices],
+        'registrationRequests': devices,
+        'conditionalRegistrationData': conditionals,
+        'expectedResponseCodes': [(0,), (200,), (200,), (200,)]
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_REG_11_default_config)
+  def test_WINNF_FT_S_REG_11(self, config_filename):
+    """[Configurable] One-time registration."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(
+        len(config['registrationRequests']),
+        len(config['expectedResponseCodes']))
+
+    # Whitelist N1 FCC IDs.
+    for fcc_id, max_eirp_dbm_per_10_mhz in config['fccIds']:
+      self._sas_admin.InjectFccId({
+          'fccId': fcc_id,
+          'fccMaxEirp': max_eirp_dbm_per_10_mhz
+      })
+
+    # Whitelist N2 user IDs.
+    for user_id in config['userIds']:
+      self._sas_admin.InjectUserId({'userId': user_id})
+
+    # Pre-load conditional registration data for N3 CBSDs.
+    self._sas_admin.PreloadRegistrationData(
+        config['conditionalRegistrationData'])
+
+    # Register N4 CBSDs.
+    request = {'registrationRequest': config['registrationRequests']}
+    responses = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration responses.
+    self.assertEqual(len(responses), len(config['registrationRequests']))
+    for i in range(len(responses)):
+      response = responses[i]
+      expected_response_codes = config['expectedResponseCodes'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      if response['response']['responseCode'] == 0:  # SUCCESS
+        self.assertTrue('cbsdId' in response)
+      else:
+        self.assertFalse('cbsdId' in response)
