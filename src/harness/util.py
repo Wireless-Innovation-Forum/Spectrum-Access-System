@@ -65,7 +65,9 @@ def configurable_testcase(default_config_function):
       return _func
 
     # Create config directory for this function if it doesn't already exist.
-    config_dir = os.path.join('testcases', 'configs', testcase.func_name)
+    harness_dir = os.path.dirname(
+              os.path.abspath(inspect.getfile(inspect.currentframe())))
+    config_dir = os.path.join(harness_dir, 'testcases', 'configs', testcase.func_name)
     config_names = os.listdir(config_dir) if os.path.exists(config_dir) else []
 
     # No existing configs => generate default config.
