@@ -20,6 +20,10 @@ from collections import defaultdict
 import random
 from datetime import datetime
 import uuid
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+import jwt
 
 
 def winnforum_testcase(testcase):
@@ -125,3 +129,54 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
   return ppa_record, pal_records
+
+
+def generateCpiRsaKeys():
+  """Generate a private/public RSA 2048 key pair.
+
+  Returns:
+    A tuple (private_key, public key) as PEM string encoded.
+  """
+  rsa_key = rsa.generate_private_key(
+      public_exponent=65537, key_size=2048, backend=default_backend())
+  rsa_private_key = rsa_key.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.TraditionalOpenSSL,
+      encryption_algorithm=serialization.NoEncryption())
+  rsa_public_key = rsa_key.public_key().public_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+  return rsa_private_key, rsa_public_key
+
+
+def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
+                                            cpi_name, request,
+                                            jwt_algorithm='RS256'):
+  """Converts a regular registration request to contain cpiSignatureData
+     using the given JWT signature algorithm.
+
+  Args:
+    private_key: (string) valid PEM encoded string.
+    cpi_id: (string) valid cpiId.
+    cpi_name: (string) valid cpiName.
+    request: individual CBSD registration request (which is a dictionary).
+    jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
+  """
+  cpi_signed_data = {}
+  cpi_signed_data['fccId'] = request['fccId']
+  cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
+  cpi_signed_data['installationParam'] = request['installationParam']
+  del request['installationParam']
+  cpi_signed_data['professionalInstallerData'] = {}
+  cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+  cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
+  cpi_signed_data['professionalInstallerData'][
+      'installCertificationTime'] = datetime.utcnow().strftime(
+          '%Y-%m-%dT%H:%M:%SZ')
+  compact_jwt_message = jwt.encode(
+      cpi_signed_data, private_key, jwt_algorithm)
+  jwt_message = compact_jwt_message.split('.')
+  request['cpiSignatureData'] = {}
+  request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
+  request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
+  request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
