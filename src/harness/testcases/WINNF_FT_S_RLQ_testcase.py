@@ -297,13 +297,13 @@ class RelinquishmentTestcase(unittest.TestCase):
     self.assertEqual(len(response), 5)
     self.assertFalse('cbsdId' in response[0])
     self.assertFalse('grantId' in response[0])
-    self.assertIn(response[0]['response']['responseCode'], 103)
+    self.assertEqual(response[0]['response']['responseCode'], 103)
     self.assertEqual(response[1]['cbsdId'], cbsd_id_2)
     self.assertFalse('grantId' in response[1])
     self.assertEqual(response[1]['response']['responseCode'], 103)
     self.assertFalse('cbsdId' in response[2])
     self.assertFalse('grantId' in response[2])
-    self.assertIn(response[2]['response']['responseCode'], 103)
+    self.assertEqual(response[2]['response']['responseCode'], 103)
     self.assertEqual(response[3]['cbsdId'], cbsd_id_2)
     self.assertFalse('grantId' in response[3])
     self.assertEqual(response[3]['response']['responseCode'], 103)
@@ -366,7 +366,7 @@ class RelinquishmentTestcase(unittest.TestCase):
     # Save sas version
     version = self._sas._sas_version
     # Use higher than supported version
-    self._sas._sas_version = 'v1.3'
+    self._sas._sas_version = 'v5.0'
 
     # Relinquish the grants
     request = {'relinquishmentRequest': [
