@@ -39,17 +39,17 @@ class MeasurementTestcase(unittest.TestCase):
     # Load the devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_f = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    devices = [device_a, device_b, device_c, device_d, device_e, device_f]
+    device_g = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_i = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_i.json')))
+    devices = [device_a, device_c, device_e, device_f, device_g, device_i]
 
     for device in devices:
         device['measCapability'] = ['RECEIVED_POWER_WITH_GRANT']
