@@ -28,49 +28,87 @@
 #==================================================================================
 # DPA Move List Reference Model.
 # Based on WINNF-TS-0112, Version V1.3.0, 27 September 2017.
-# This version of the code only addresses 'co-channel' frequency range protection
-# in R2-SGN-24.
 
-# The main routine is 'move_list.findMoveList()'
+# The main routine is 'move_list.findMoveList()'.
 #==================================================================================
 
 import numpy as np
-from operator import itemgetter
+from operator import attrgetter
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
 from collections import namedtuple
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
-from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
+from reference_models.geo import terrain
+from reference_models.geo import vincenty
 from reference_models.antenna import antenna
 
-# Set constant parameters based on requirements in the WINNNF-TS-0112
-CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km) [R2-SGN-24]
-CAT_B_NBRHD_DIST = 200          # neighborhood distance for Cat-B CBSD (in km) [R2-SGN-24]
+# Initialize terrain driver
+terrainDriver = terrain.TerrainDriver()
+
+# Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
+CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km)
+CAT_B_NBRHD_DIST = 200          # neighborhood distance for Cat-B CBSD (in km)
 CAT_B_NBRHD_DIST_FOR_HT = 300   # neighborhood distance for Cat-B CBSD (in km) in
-                                # consideration of antenna height [R2-SGN-24]
+                                # consideration of antenna height
 CAT_B_LONG_HT = 200             # height of Cat_B CBSD (in meters) in consideration of
-                                # neighborhood distance Cat_B_NBRHD_DIST_FOR_HT [R2-SGN-24]
-PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection [R2-SGN-24]
+                                # neighborhood distance Cat_B_NBRHD_DIST_FOR_HT
+CAT_B_NBRHD_DIST_OOB = 25       # neighborhood distance for Cat-B CBSD
+                                # for out-of-band inland DPA (in km)
+PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection
 
-REF_INC_ANTENNA_HT = 50         # reference incumbent radar's antenna height (in meters) [R2-IPM-04]
-REF_INC_ANTENNA_ROT_STEP_SIZE = 1.5 # reference incumbent radar's antenna rotation step size beginning
-                                #  with the main beam boresight at true north (in degrees)
-                                # [R2-IPM-04]
-FREQ_PROP_MODEL = 3625.0        # frequency used in propagation model (in MHz) [R2-SGN-04]
+# Frequency used in propagation model (in MHz) [R2-SGN-04]
+FREQ_PROP_MODEL = 3625.0
 
-def haat(lat, lon, ht):
+# Reference incumbent radar's antenna height (in meters) [R2-IPM-04]
+REF_INC_ANTENNA_HT_COCH_OFFSHORE = 50   # co-channel offshore DPA
+REF_INC_ANTENNA_HT_COCH_INLAND = 10     # co-channel inland DPA
+REF_INC_ANTENNA_HT_OOB_INLAND = 5       # out-of-band inland DPA
 
-    """
-    Convert height above ground level (AGL) to height above average terrain (HAAT) height.
-    TO BE PROVIDED. Just return 'ht' for now.
-    """
+# Reference incumbent radar's antenna rotation step size beginning
+# with the main beam boresight at true north (in degrees) [R2-IPM-04]
+REF_INC_ANTENNA_ROT_STEP_SIZE = 1.5
 
-    return ht
+# Frequency range of co-channel offshore DPAs (Hz)
+LOW_FREQ_COCH_OFFSHORE = 3550000000
+HIGH_FREQ_COCH_OFFSHORE = 3650000000
+
+# Frequency range of co-channel inland DPAs (Hz)
+LOW_FREQ_COCH_INLAND = 3650000000
+HIGH_FREQ_COCH_INLAND = 3700000000
+
+# Upper frequency of out-of-band inland DPAs (Hz)
+HIGH_FREQ_OOB_INLAND = 3500000000
+
+# Out-of-band maximum conducted power (dBm/MHz) (FCC Part 96 Rules (96.41))
+OOB_POWER_WITHIN_10MHZ = -13
+OOB_POWER_OUTSIDE_10MHZ = -25
+OOB_POWER_BELOW_3530MHZ = -40
+
+# Define CBSD grant, i.e., a tuple with named fields of 'latitude', 'longitude', 'height',
+# 'indoorDeployment', 'antennaAzimuth', 'antennaGain', 'antennaBeamwidth', 'grantIndex',
+# 'maxEirp', 'lowFrequency', 'highFrequency'
+CBSDGrant = namedtuple('CBSDGrant',
+                       ['latitude', 'longitude', 'height', 'indoorDeployment',
+                        'antennaAzimuth', 'antennaGain', 'antennaBeamwidth',
+                        'grantIndex', 'maxEirp', 'lowFrequency', 'highFrequency'])
+
+# Define interference contribution, i.e., a tuple with named fields of
+# 'grantIndex', 'medianInterference', 'randomInterference', 'bearing_c_cbsd'
+InterferenceContribution = namedtuple('InterferenceContribution',
+                                      ['grantIndex', 'medianInterference',
+                                       'randomInterference', 'bearing_c_cbsd'])
+
+# Define protection constraint, i.e., a tuple with named fields of
+# 'latitude', 'longitude', 'lowFrequency', 'highFrequency'
+ProtectionConstraint = namedtuple('ProtectionConstraint',
+                                  ['latitude', 'longitude',
+                                   'lowFrequency', 'highFrequency'])
+
 
 def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constraint,
-                                 exclusion_zone):
+                                 exclusion_zone, dpa_type):
 
     """
     Identify the Nc CBSD grants in the neighborhood of protection constraint.
@@ -80,17 +118,29 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
         grant_request:  a list of grant requests
         grant_index:    an array of grant indices
         constraint:     protection constraint, a tuple with named fields of
-                        'latitude', 'longitude', 'low_frequency', 'high_frequency'
-        exclusion_zone: a list of locations used to form the exclusion zone
+                        'latitude', 'longitude', 'lowFrequency', 'highFrequency'
+        exclusion_zone: a polygon object or a list of locations.
+                        If it is a list of locations, each one being a tuple
+                        with fields 'latitude' and 'longitude'.
+                        Default value is 'None'.
+        dpa_type:       DPA type, i.e., 'co-channel offshore',
+                        'co-channel inland', or 'out-of-band inland'
 
     Returns:
-        grants_inside:  a list of grants, each one being a dictionary containing
-                        installation and grant information of all
+        grants_inside:  a list of grants, each one being a tuple with named fields including
+                        installation and grant information, of all
                         CBSDs inside the neighborhood of the protection constraint.
     """
 
+    # Initialize an empty list
     grants_inside = []
-    polygon_ex_zone = SPolygon(exclusion_zone)  # create polygon of the exclusion zone
+
+    # For co-channel offshore/inland DPAs, make sure exclusion zone is a polygon
+    if dpa_type != 'out-of-band inland':
+        if isinstance(exclusion_zone, SPolygon):
+            polygon_ex_zone = exclusion_zone
+        else:
+            polygon_ex_zone = SPolygon(exclusion_zone)
 
     # Loop over each CBSD grant
     for i in range(len(reg_request)):
@@ -100,115 +150,218 @@ def findGrantsInsideNeighborhood(reg_request, grant_request, grant_index, constr
         lat_cbsd = reg_request[i].get('installationParam', {}).get('latitude')
         lon_cbsd = reg_request[i].get('installationParam', {}).get('longitude')
         height_cbsd = reg_request[i].get('installationParam', {}).get('height')
-                                        # assume AGL height (in m)
+        height_type_cbsd = reg_request[i].get('installationParam', {}).get('heightType')
+        if height_type_cbsd == 'AMSL':
+            altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+            height_cbsd = height_cbsd - altitude_cbsd
+
         lat_c = constraint.latitude
         lon_c = constraint.longitude
         dist_km, bearing, _ = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd,
                                                                lat_c, lon_c)
-        flag_geo = False
+        cbsd_in_nbrhd = False
         if cbsd_cat == 'A':
-            point_cbsd = SPoint(lat_cbsd, lon_cbsd)  # create point
-            if dist_km <= CAT_A_NBRHD_DIST and polygon_ex_zone.contains(point_cbsd):
-                flag_geo = True
+            if dpa_type != 'out-of-band inland':
+                point_cbsd = SPoint(lat_cbsd, lon_cbsd)
+                if dist_km <= CAT_A_NBRHD_DIST and polygon_ex_zone.contains(point_cbsd):
+                    cbsd_in_nbrhd = True
         elif cbsd_cat == 'B':
-            if dist_km <= CAT_B_NBRHD_DIST:
-                flag_geo = True
-            elif (dist_km <= CAT_B_NBRHD_DIST_FOR_HT) and \
-                    (haat(lat_cbsd, lon_cbsd, height_cbsd) >= CAT_B_LONG_HT):
-                flag_geo = True
+            if dpa_type != 'out-of-band inland':
+                if dist_km <= CAT_B_NBRHD_DIST:
+                    cbsd_in_nbrhd = True
+                elif dist_km <= CAT_B_NBRHD_DIST_FOR_HT:
+                    height_cbsd_haat = wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd,
+                                                          height_is_agl=(height_type_cbsd != 'AMSL'))
+                    if height_cbsd_haat >= CAT_B_LONG_HT:
+                        cbsd_in_nbrhd = True
+            else:
+                if dist_km <= CAT_B_NBRHD_DIST_OOB:
+                    cbsd_in_nbrhd = True
         else:
             raise ValueError('Unknown category %s' % cbsd_cat)
 
         # Check frequency range
-        low_freq_cbsd = grant_request[i].get('operationParam', {}).\
+        low_freq_cbsd = grant_request[i].get('operationParam', {}). \
             get('operationFrequencyRange', {}).get('lowFrequency')
-        high_freq_cbsd = grant_request[i].get('operationParam', {}).\
+        high_freq_cbsd = grant_request[i].get('operationParam', {}). \
             get('operationFrequencyRange', {}).get('highFrequency')
-        low_freq_c = constraint.low_frequency
-        high_freq_c = constraint.high_frequency
-        overlapping_bw = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
-        flag_freq = (overlapping_bw > 0)
+        if dpa_type != 'out-of-band inland':
+            low_freq_c = constraint.lowFrequency
+            high_freq_c = constraint.highFrequency
+            overlapping_bw = min(high_freq_cbsd, high_freq_c) \
+                             - max(low_freq_cbsd, low_freq_c)
+            freq_check = (overlapping_bw > 0)
+        else:
+            freq_check = True
 
         # Return CBSD information if it is inside the neighborhood of protection constraint
-        if (flag_geo == True) and (flag_freq == True):
-            cbsd_grant = {
+        if cbsd_in_nbrhd and freq_check:
+            cbsd_grant = CBSDGrant(
                 # Get information from the registration request
-                'latitude': lat_cbsd,
-                'longitude': lon_cbsd,
-                'height': height_cbsd,
-                'indoorDeployment': reg_request[i].get('installationParam', {}).
-                    get('indoorDeployment'),
-                'antennaAzimuth': reg_request[i].get('installationParam', {}).
-                    get('antennaAzimuth'),
-                'antennaGain': reg_request[i].get('installationParam', {}).
-                    get('antennaGain'),
-                'antennaBeamwidth': reg_request[i].get('installationParam', {}).
-                    get('antennaBeamwidth'),
+                latitude=lat_cbsd,
+                longitude=lon_cbsd,
+                height=height_cbsd,
+                indoorDeployment=reg_request[i].get('installationParam',{}).get('indoorDeployment'),
+                antennaAzimuth=reg_request[i].get('installationParam',{}).get('antennaAzimuth'),
+                antennaGain=reg_request[i].get('installationParam',{}).get('antennaGain'),
+                antennaBeamwidth=reg_request[i].get('installationParam',{}).get('antennaBeamwidth'),
                 # Get information from the grant request
-                'grantIndex': grant_index[i],
-                'maxEirp': grant_request[i].get('operationParam', {}).get('maxEirp'),
-                'lowFrequency': low_freq_cbsd,
-                'highFrequency': high_freq_cbsd}
+                grantIndex=grant_index[i],
+                maxEirp=grant_request[i].get('operationParam',{}).get('maxEirp'),
+                lowFrequency=low_freq_cbsd,
+                highFrequency=high_freq_cbsd)
+
             grants_inside.append(cbsd_grant)
 
     return grants_inside
 
+def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
 
-def computeInterference(cbsd_grant, constraint, num_iteration):
+    """
+    Compute maximum conducted power of a CBSD grant to an out-of-band
+    protection constraint based on FCC Part 96 Rules (96.41)
+
+    Inputs:
+        low_freq_cbsd:  low frequency of CBSD grant channel (Hz)
+        low_freq_c:     low frequency of protection constraint (Hz)
+        high_freq_c:    high frequency of protection constraint (Hz)
+
+    Returns:
+        Maximum out-of-band conducted power (dBm)
+    """
+
+    # Compute overlapping bandwidths
+    overlap_bw_within_10MHz = min(low_freq_cbsd, high_freq_c) \
+                              - max(low_freq_cbsd-10000000.0, low_freq_c)
+    overlap_bw_outside_10MHz = min(low_freq_cbsd-10000000.0, high_freq_c) \
+                               - max(3530000000.0, low_freq_c)
+    overlap_bw_below_3530MHz = min(3530000000.0, high_freq_c) \
+                               - low_freq_c
+
+    # Compute total conducted power
+    power_within_10MHz_mW = 0
+    power_outside_10MHz_mW = 0
+    power_below_3530MHz_mW = 0
+    if overlap_bw_within_10MHz > 0:
+        power_within_10MHz = OOB_POWER_WITHIN_10MHZ \
+                             + 10 * np.log10(overlap_bw_within_10MHz / 1000000.0)
+        power_within_10MHz_mW = np.power(10.0, power_within_10MHz/10.0)
+    if overlap_bw_outside_10MHz > 0:
+        power_outside_10MHz = OOB_POWER_OUTSIDE_10MHZ \
+                              + 10 * np.log10(overlap_bw_outside_10MHz / 1000000.0)
+        power_outside_10MHz_mW = np.power(10.0, power_outside_10MHz/10.0)
+    if overlap_bw_below_3530MHz > 0:
+        power_below_3530MHz = OOB_POWER_BELOW_3530MHZ \
+                              + 10 * np.log10(overlap_bw_below_3530MHz / 1000000.0)
+        power_below_3530MHz_mW = np.power(10.0, power_below_3530MHz/10.0)
+
+    power_mW = power_within_10MHz_mW + power_outside_10MHz_mW + power_below_3530MHz_mW
+
+    return 10 * np.log10(power_mW)
+
+def computeInterference(cbsd_grant, constraint, h_inc_ant, num_iteration, dpa_type):
 
     """
     Calculate interference contribution of each grant in the neighborhood to
     the protection constraint c.
 
     Inputs:
-        cbsd_grant:     a dictionary containing installation and grant information of the CBSD
+        cbsd_grant:     a tuple with named fields including installation and
+                        grant information of the CBSD
         constraint: 	protection constraint, a tuple with named fields of
-                        'latitude', 'longitude', 'low_frequency', 'high_frequency'
+                        'latitude', 'longitude', 'lowFrequency', 'highFrequency'
+        h_inc_ant:      reference incumbent antenna height (in meters)
         num_iteration:  a number of Monte Carlo iterations
+        dpa_type:       DPA type, i.e., 'co-channel offshore',
+                        'co-channel inland', or 'out-of-band inland'
 
     Returns:
-        interference: 	a dictionary containing CBSD index, median interference contribution,
-                        K random interference contributions of the grant to the protection
-                        constraint c, and bearing from c to CBSD location.
+        interference: 	interference contribution, a tuple with named fields
+                        'grantIndex', 'medianInterference', 'randomInterference'
+                        (K random interference contributions of the grant to
+                        protection constraint c), and 'bearing_c_cbsd'
+                        (bearing from c to CBSD grant location).
     """
 
-    # Get CBSD grant information 	
-    grant_index = cbsd_grant.get('grantIndex')
-    lat_cbsd = cbsd_grant.get('latitude')
-    lon_cbsd = cbsd_grant.get('longitude')
-    h_cbsd = cbsd_grant.get('height')
-    indoor_cbsd = cbsd_grant.get('indoorDeployment')
-    ant_beamwidth_cbsd = cbsd_grant.get('antennaBeamwidth')
-    ant_az_cbsd = cbsd_grant.get('antennaAzimuth')
-    maxEirpPerMHz_cbsd = cbsd_grant.get('maxEirp')
-    low_freq_cbsd = cbsd_grant.get('lowFrequency')
-    high_freq_cbsd = cbsd_grant.get('highFrequency')
+    # Get CBSD grant information
+    grant_index = cbsd_grant.grantIndex
+    lat_cbsd = cbsd_grant.latitude
+    lon_cbsd = cbsd_grant.longitude
+    h_cbsd = cbsd_grant.height
+    indoor_cbsd = cbsd_grant.indoorDeployment
+    ant_beamwidth_cbsd = cbsd_grant.antennaBeamwidth
+    ant_gain_cbsd = cbsd_grant.antennaGain
+    ant_az_cbsd = cbsd_grant.antennaAzimuth
+    maxEirpPerMHz_cbsd = cbsd_grant.maxEirp
+    low_freq_cbsd = cbsd_grant.lowFrequency
+    high_freq_cbsd = cbsd_grant.highFrequency
 
     # Get protection constraint information (protection point and frequency range)
     lat_c = constraint.latitude
     lon_c = constraint.longitude
-    low_freq_c = constraint.low_frequency
-    high_freq_c = constraint.high_frequency
-    h_c = REF_INC_ANTENNA_HT
+    low_freq_c = constraint.lowFrequency
+    high_freq_c = constraint.highFrequency
 
     # Compute median and K random realizations of path loss/interference contribution
     # based on ITM model as defined in [R2-SGN-03] (in dB)
-    reliabilities = np.random.rand(num_iteration)    # get K random reliability values from an
-                                                     # uniform distribution over [0,1)
+    reliabilities = np.random.uniform(0.001, 0.999, num_iteration)  # get K random
+                # reliability values from an uniform distribution over [0.001,0.999)
     reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
                                             # a last value to reliabilities array
-    results = wf_itm.CalcItmPropagationLoss(lat_cbsd, lon_cbsd, h_cbsd, lat_c, lon_c, h_c,
+    results = wf_itm.CalcItmPropagationLoss(lat_cbsd, lon_cbsd, h_cbsd,
+                                            lat_c, lon_c, h_inc_ant,
                                             indoor_cbsd,
                                             reliability=reliabilities,
                                             freq_mhz=FREQ_PROP_MODEL)
     path_loss = np.array(results.db_loss)
 
-    # Compute CBSD EIRP inside the frequency range of protection constraint
-    eirpPerMHz_cbsd = antenna.GetStandardAntennaGains(results.incidence_angles.hor_cbsd,
-                                                      ant_az_cbsd, ant_beamwidth_cbsd,
-                                                      maxEirpPerMHz_cbsd)
-    eff_bandwidth = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
-    eirp_cbsd = eirpPerMHz_cbsd + 10 * np.log10(eff_bandwidth / 1000000.0)
+    # Compute EIRP of CBSD grant inside the frequency range of protection constraint
+    if dpa_type != 'out-of-band inland': # For co-channel offshore/inland DPAs
+
+        # CBSD co-channel bandwidth overlapping with
+        # frequency range of protection constraint
+        co_channel_bw = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
+
+        # Overlapping bandwidth between the first 10 MHz of CBSD grant adjacent-channel and
+        # the frequency range of protection constraint
+        adj_channel_bw = min(10000000.0, high_freq_c - low_freq_c - co_channel_bw)
+
+        if adj_channel_bw == 0:    # Consider only co-channel bandwidth
+            eirpPerMHz_cbsd = antenna.GetStandardAntennaGains(results.incidence_angles.hor_cbsd,
+                                                              ant_az_cbsd, ant_beamwidth_cbsd,
+                                                              maxEirpPerMHz_cbsd)
+            eirp_cbsd = eirpPerMHz_cbsd + 10 * np.log10(co_channel_bw / 1000000.0)
+
+        else:   # Consider both co-channel bandwidth and first 10 MHz adjacent-bandwidth
+            # Compute CBSD antenna gain in the direction of protection point
+            ant_gain = antenna.GetStandardAntennaGains(results.incidence_angles.hor_cbsd,
+                                                       ant_az_cbsd, ant_beamwidth_cbsd,
+                                                       ant_gain_cbsd)
+
+            # Compute conducted CBSD power within co-channel bandwidth
+            power_co_channel_bw = (maxEirpPerMHz_cbsd - ant_gain_cbsd) \
+                                   + 10 * np.log10(co_channel_bw / 1000000.0)
+
+            # Compute conducted CBSD power within adjacent-channel bandwidth
+            power_adj_channel_bw = OOB_POWER_WITHIN_10MHZ \
+                                   + 10 * np.log10(adj_channel_bw / 1000000.0)
+
+            # Compute total EIRP
+            power_cbsd_mW = np.power(10.0, power_co_channel_bw / 10.0)\
+                            + np.power(10.0, power_adj_channel_bw / 10.0)
+            eirp_cbsd = 10 * np.log10(power_cbsd_mW) + ant_gain
+
+    else:   # For out-of-band inland DPAs
+        # Compute CBSD antenna gain in the direction of protection point
+        ant_gain = antenna.GetStandardAntennaGains(results.incidence_angles.hor_cbsd,
+                                                   ant_az_cbsd, ant_beamwidth_cbsd,
+                                                   ant_gain_cbsd)
+
+        # Compute out-of-band conducted power
+        oob_power = ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c)
+
+        # Compute out-of-band EIRP
+        eirp_cbsd = oob_power + ant_gain
 
     # Calculate the interference contributions
     interf = eirp_cbsd - path_loss
@@ -216,25 +369,28 @@ def computeInterference(cbsd_grant, constraint, num_iteration):
     K_interf = interf[:-1]          # first 'K' interference
 
     # Store interference contributions
-    interference = {
-        'grantIndex': grant_index,
-        'medianInterference': median_interf,
-        'randomInterference': K_interf,
-        'bearing_c_cbsd': results.incidence_angles.hor_rx}
-
+    interference = InterferenceContribution(grantIndex=grant_index,
+                                            medianInterference=median_interf,
+                                            randomInterference=K_interf,
+                                            bearing_c_cbsd=results.incidence_angles.hor_rx)
     return interference
 
 
-def formInterferenceMatrix(cbsd_grant_list, constraint, num_iter):
+def formInterferenceMatrix(cbsd_grant_list, constraint, h_inc_ant, num_iter, dpa_type):
 
     """
     Form the matrix of interference contributions to protection constraint c.
 
     Inputs:
-        cbsd_grant_list:    a list of CBSD grants
+        cbsd_grant_list:    a list of CBSD grants, each one being a tuple with named fields 
+                            including installation and grant information, of all
+                            CBSDs inside the neighborhood of the protection constraint.
         constraint:         protection constraint, a tuple with named fields of
-                            'latitude', 'longitude', 'low_frequency', 'high_frequency'
+                            'latitude', 'longitude', 'lowFrequency', 'highFrequency'
+        h_inc_ant:          reference incumbent antenna height (in meters)
         num_iter:           number of random iterations
+        dpa_type:           DPA type, i.e., 'co-channel offshore',
+                            'co-channel inland', or 'out-of-band inland'
 
     Returns:
         I:                  a matrix of interference contributions to protection
@@ -247,16 +403,16 @@ def formInterferenceMatrix(cbsd_grant_list, constraint, num_iter):
     # Compute interference contributions of each grant to the protection constraint
     interf_list = []
     for cbsd_grant in cbsd_grant_list:
-        interf = computeInterference(cbsd_grant, constraint, num_iter)
+        interf = computeInterference(cbsd_grant, constraint, h_inc_ant, num_iter, dpa_type)
         interf_list.append(interf)
 
     # Sort grants by their median interference contribution, smallest to largest
-    interf_list.sort(key=itemgetter('medianInterference'))
+    interf_list.sort(key=attrgetter('medianInterference'))
 
     # Get indices, bearings, interference contributions of the sorted grants
-    sorted_grant_index = [i.get('grantIndex') for i in interf_list]
-    sorted_bearing = [i.get('bearing_c_cbsd') for i in interf_list]
-    I = np.array([i.get('randomInterference') for i in interf_list]).transpose()
+    sorted_grant_index = [interf.grantIndex for interf in interf_list]
+    sorted_bearing = [interf.bearing_c_cbsd for interf in interf_list]
+    I = np.array([interf.randomInterference for interf in interf_list]).transpose()
 
     return I, sorted_grant_index, sorted_bearing
 
@@ -265,13 +421,14 @@ def find_nc(I, bearings, t):
 
     """
     Return the index (nc) of the grant in the ordered list of grants such that
-    the 95th percentile of the interference from the first nc grants is below the
+    the protection percentile of the interference from the first nc grants is below the
     threshold for all azimuths of the receiver antenna.
 
     Inputs:
-        I:      2D array of interference contributions (dBm/10 MHz); columns
+        I:      2D array of interference contributions (dBm); columns
                 correspond to grants, and rows correspond to Monte Carlo iterations
-        t:      95th-percentile protection threshold (dBm/10 MHz)
+        bearings: a list of bearings from protection point to CBSDs
+        t:      protection percentile threshold (dBm)
 
     Returns:
         nc:     index nc that defines the move list to be {G_nc+1, G_nc+2, ..., G_Nc}
@@ -284,8 +441,7 @@ def find_nc(I, bearings, t):
     Nc = I.shape[1]
     nc = Nc
 
-    # Convert protection threshold, interference matrix, and antenna
-    # discrimination to linear units.
+    # Convert protection threshold and interference matrix to linear units.
     t_mW = np.power(10.0, t/10.0)
     I_mW = np.power(10.0, I/10.0)
 
@@ -295,26 +451,39 @@ def find_nc(I, bearings, t):
         dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi)
         IG = I_mW * 10**(dpa_gains/10.0)
 
-        # Compute the 95th percentile of the aggregate interference, and remove
+        # Compute the protection percentile of the aggregate interference, and remove
         # grants until the protection threshold is met or all grants are moved.
-        A95 = np.percentile(np.sum(IG[:, 0:nc], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+        agg_interf = np.percentile(np.sum(IG[:, 0:nc], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
 
-        while (A95 > t_mW):
-            nc = nc - 1
-            if nc == 0:
-                return 0
-            A95 = np.percentile(np.sum(IG[:, 0:nc], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+        if agg_interf <= t_mW:
+            continue
+
+        # Conduct binary search for nc.
+        hi = nc
+        lo = 0
+        while (hi - lo) > 1:
+            mid = (hi + lo) / 2
+            agg_interf = np.percentile(np.sum(IG[:, 0:mid], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+            if agg_interf > t_mW:
+                hi = mid
+            else:
+                lo = mid
+
+        nc = lo
+        if nc == 0:
+            return 0
 
     return nc
 
-
-def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
-                 registration_request, grant_request, exclusion_zone):
+def findMoveList(dpa_type, protection_points, low_freq, high_freq, threshold, num_iter,
+                 registration_request, grant_request, exclusion_zone=None):
 
     """
     Main routine to find CBSD indices on the move list.
 
     Inputs:
+        dpa_type:           DPA type, i.e., 'co-channel offshore',
+                            'co-channel inland', or 'out-of-band inland'
         protection_points:  a list of protection points, each one being a tuple with
                             named fields of 'latitude' and 'longitude'
         low_freq:           low frequency of protection constraint (Hz)
@@ -325,14 +494,40 @@ def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
                             a dictionary containing CBSD registration information
         grant_request:      a list of grant requests, each one being a dictionary
                             containing grant information
-        exclusion_zone:     a list of locations, each one being a tuple with fields
-                            'latitude' and 'longitude'
+        exclusion_zone:     a polygon object or a list of locations.
+                            If it is a list of locations, each one being a tuple
+                            with fields 'latitude' and 'longitude'.
+                            Default value is 'None'.
 
     Returns:
         result:             a Boolean array (same size as registration_request/
                             grant_request) with TRUE elements at indices having
                             grants on the move list
     """
+
+    # Check consistency of DPA type against frequency range.
+    # If correct, get reference incumbent antenna height above sea/ground level
+    if dpa_type == 'co-channel offshore':
+        if low_freq>=LOW_FREQ_COCH_OFFSHORE and high_freq<=HIGH_FREQ_COCH_OFFSHORE:
+            h_inc_ant = REF_INC_ANTENNA_HT_COCH_OFFSHORE
+        else:
+            raise ValueError('Inconsistency between DPA type %s and frequency range [%s,%s]'
+                             % (dpa_type, low_freq, high_freq))
+    elif dpa_type == 'co-channel inland':
+        if low_freq>=LOW_FREQ_COCH_INLAND and high_freq<=HIGH_FREQ_COCH_INLAND:
+            h_inc_ant = REF_INC_ANTENNA_HT_COCH_INLAND
+        else:
+            raise ValueError('Inconsistency between DPA type %s and frequency range [%s,%s]'
+                             % (dpa_type, low_freq, high_freq))
+    elif dpa_type == 'out-of-band inland':
+        if high_freq<=HIGH_FREQ_OOB_INLAND:
+            h_inc_ant = REF_INC_ANTENNA_HT_OOB_INLAND
+        else:
+            raise ValueError('Inconsistency between DPA type %s and frequency range [%s,%s]'
+                             % (dpa_type, low_freq, high_freq))
+    else:
+        raise ValueError('Unknown DPA type %s. Valid type: co-channel offshore, '
+                         'co-channel inland, out-of-band inland.' % dpa_type)
 
     # Index the grant requests in the same order in the registration_request and
     # grant_request lists [1, 2,..., N].
@@ -341,33 +536,28 @@ def findMoveList(protection_points, low_freq, high_freq, threshold, num_iter,
     # Loop over each protection point and find the move list
     M_temp = []
 
-    # Define protection constraint, i.e., a tuple with named fields of
-    # 'latitude', 'longitude', 'low_frequency', 'high_frequency'
-    ProtectionConstraint = namedtuple('ProtectionConstraint', ['latitude', 'longitude',
-                                                               'low_frequency', 'high_frequency'])
-
     for point in protection_points:
 
         Mc = []         # Initialize move list for current protection constraint c
 
         # Assign values to the protection constraint
         constraint = ProtectionConstraint(latitude=point.latitude,
-                                           longitude=point.longitude,
-                                           low_frequency=low_freq,
-                                           high_frequency=high_freq)
+                                          longitude=point.longitude,
+                                          lowFrequency=low_freq,
+                                          highFrequency=high_freq)
 
         # Identify Nc CBSD grants in the neighborhood of protection constraint c
         Nc_grants = findGrantsInsideNeighborhood(registration_request, grant_request,
-                                                 grant_index, constraint, exclusion_zone)
+                                                 grant_index, constraint, exclusion_zone, dpa_type)
 
         if len(Nc_grants):  # Found CBSDs in the neighborhood
 
             # Form the matrix of interference contributions
             I, sorted_grant_index, bearing = formInterferenceMatrix(Nc_grants, constraint,
-                                                                    num_iter)
+                                                                    h_inc_ant, num_iter, dpa_type)
 
             # Find the index (nc) of the grant in the ordered list of grants such that
-            # the 95th percentile of the interference from the first nc grants is below
+            # the protection percentile of the interference from the first nc grants is below
             # the threshold for all azimuths of the receiver antenna.
             nc = find_nc(I, bearing, threshold)
 
