@@ -25,25 +25,33 @@
 # statements of any third-party software that are legally bundled with
 # the code in compliance with the conditions of those licenses.
 
-#=============================================================================
-# Test move_list calculation.
-# Expected result is 'Move list output: [True, True, True, False, True, False]'
-#=============================================================================
+#================================================================================
+# Test move_list calculation for a co-channel offshore DPA.
+# Expected result is 'Move list output: [True, True, True, False, True, False]'.
+#================================================================================
 
 
 import json
 import os
 from pykml import parser
+from collections import namedtuple
+# from shapely.geometry import Polygon as SPolygon
 import move_list
 import time
-from collections import namedtuple
+
+# Define protection point, i.e., a tuple with named fields of
+# 'latitude', 'longitude'
+ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
 if __name__ == '__main__':
 
     # Inputs
     low_freq = 3600000000 	# low frequency of protection constraint (Hz)
     high_freq = 3610000000  # high frequency of protection constraint (Hz)
-    protection_thres = -144	# protection threshold (dBm/10 MHz)
+    dpa_type = 'co-channel offshore'    # DPA type, i.e., 'co-channel offshore',
+                                        # 'co-channel inland', or 'out-of-band inland'
+    protection_thres = -144	# protection threshold for co-channel offshore/inland DPAs
+                            # (dBm/10 MHz)
     num_iter = 2000			# number of Monte Carlo iterations
 
     # Data directory
@@ -74,7 +82,7 @@ if __name__ == '__main__':
         grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
         grant_request_list.append(grant_request)
 
-    # Get east-gulf coastal exclusion zones (enclosed coastal exclusion zones with U.S. border)
+    # Get east-gulf coastal exclusion zones (enclosed with U.S. border)
     filename = os.path.join(_BASE_DATA_DIR, 'protection_zones.kml')
     with open(filename, 'r') as kml_file:
         coastalZoneDoc = parser.parse(kml_file).getroot()
@@ -82,7 +90,8 @@ if __name__ == '__main__':
     exclusion_zone = []
     for pm in placemarks:
         name = pm.name.text
-        if (name == 'East-Gulf Combined Contour'):
+        if name == 'East-Gulf Combined Contour':
+            # Get lat_long
             line = pm.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
             coords = line.split(' ')
             lat_long = []
@@ -91,18 +100,21 @@ if __name__ == '__main__':
                     xy = c.strip().split(',')
                     lat_long.append([float(xy[1]), float(xy[0])])
                     exclusion_zone = lat_long
-					
-    # Populate protection points (a list of namedtuples with fields 'latitude' and 'longitude')
-    ProtectionPoints = namedtuple('ProtectionPoints', ['latitude', 'longitude'])
-    protection_points = {ProtectionPoints(latitude=36.9400, longitude=-75.9989),
-                         ProtectionPoints(latitude=37.7579, longitude=-75.4105),
-                         ProtectionPoints(latitude=36.1044, longitude=-73.3147),
-                         ProtectionPoints(latitude=36.1211, longitude=-75.5939)}
+            # Create an exclusion zone polygon object, if desired
+            # exclusion_zone = SPolygon(exclusion_zone)
+
+    # Populate protection points 
+    protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
+                         ProtectionPoint(latitude=37.7579, longitude=-75.4105),
+                         ProtectionPoint(latitude=36.1044, longitude=-73.3147),
+                         ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
 
     # Determine which CBSD grants are on the move list
     start_time = time.time()
-    res = move_list.findMoveList(protection_points, low_freq, high_freq, protection_thres, num_iter, reg_request_list,
+    res = move_list.findMoveList(dpa_type, protection_points, low_freq, high_freq,
+                                 protection_thres, num_iter, reg_request_list,
                                  grant_request_list, exclusion_zone)
+
     end_time = time.time()
     print 'Move list output: ' + str(res)
     print 'Computation time: ' + str(end_time - start_time)
