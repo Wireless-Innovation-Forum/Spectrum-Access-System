@@ -24,18 +24,10 @@ Python software and packages:
    
 ## Test Data
 
-To test the `move_list.findMoveList()` routine, one can use the example given in 
-the `move_list_example.py` file along with the test data stored in the `\test_data` 
-sub-folder. To run the example, use the command `python move_list_example.py'.
-
-## Release Notes
-
-   - Addresses co-channel frequency range protection only.
-   - Antenna heights in registration requests are assumed to be above ground level (AGL). 
-   Support of above mean sea level (AMSL) heights is to be provided.
-   - Determination of whether a Category B CBSD is in the neighborhood of a protection 
-   constraint does not currently convert antenna height to height above average 
-   terrain (HAAT). Conversion to HAAT is to be provided.
+To test the `move_list.findMoveList()` routine for a co-channel offshore DPA protection, 
+one can use the example given in the `move_list_example.py` file along with the test 
+data stored in the `\test_data` sub-folder. To run the example, use the command 
+`python move_list_example.py`.
 
 ## Copyrights and Disclaimers
 
