@@ -277,6 +277,10 @@ double qerfi( double q )
   double d2  = 0.189269;
   double d3  = 0.001308;
 
+  // *** WinnForum modification:
+  //  Avoid floating points error on the median value
+  // *** End winnForum modification:
+  if ( q == 0.5 ) return 0.;
   x = 0.5 - q;
   t = mymax(0.5 - fabs(x), 0.000001);
   t = sqrt(-2.0 * log(t));
