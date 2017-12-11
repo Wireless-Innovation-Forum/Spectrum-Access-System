@@ -269,15 +269,15 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' %
-                 self._base_url, request,
+                 self._base_url, None,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                 self._base_url, request,
+                 self._base_url, None,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 

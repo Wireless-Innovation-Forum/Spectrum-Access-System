@@ -68,7 +68,8 @@ class MeasurementTestcase(unittest.TestCase):
     for resp in response:
         self.assertTrue('cbsdId' in resp)
         self.assertEqual(resp['response']['responseCode'], 0)
-        self.assertFalse('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
+        if 'measReportConfig' in resp:
+            self.assertFalse('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
         cbsd_ids.append(resp['cbsdId'])
     del request, response
     # Request grant
@@ -91,7 +92,7 @@ class MeasurementTestcase(unittest.TestCase):
     del request, response
     
     # Trigger to request measurement report for all subsequent heartbeat request
-    self._sas_admin.TriggerMeasurementReportHeartbeat({'measReportConfig':[]})
+    self._sas_admin.TriggerMeasurementReportHeartbeat()
     
     # First heartbeat without measReport
     heartbeat_request = []
@@ -112,7 +113,7 @@ class MeasurementTestcase(unittest.TestCase):
                                              '%Y-%m-%dT%H:%M:%SZ')
         self.assertLess(datetime.utcnow(), transmit_expire_time)
         if response_num != len(response) - 1:
-            self.assertEqual(resp['measReportConfig'], 'RECEIVED_POWER_WITH_GRANT')
+            self.assertTrue('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
         else:
             self.assertFalse('measReportConfig' in resp)
     # Second heartbeat request with measReport
