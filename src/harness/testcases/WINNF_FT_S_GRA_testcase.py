@@ -200,7 +200,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response[1]['response']['responseCode'], 300)
     self.assertTrue(response[2]['response']['responseCode'], 300)
 
-    @winnforum_testcase
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_11(self):
     """Un-Supported CBSD maximum EIRP
 
@@ -229,18 +229,17 @@ class GrantTestcase(sas_testcase.SasTestCase):
     }
 
     # add eirpCapability=40 to only conditional forcbsdId 4
-    eirpCapability = {
-        "eirpCapability": 40
-    }
+    device_4['installationParam']['eirpCapability'] = 40
     conditionals_4 = {
         'cbsdCategory': device_4['cbsdCategory'],
         'fccId': device_4['fccId'],
         'cbsdSerialNumber': device_4['cbsdSerialNumber'],
         'airInterface': device_4['airInterface'],
-        'installationParam': [device_4['installationParam'], eirpCapability],
+        'installationParam': device_4['installationParam'],
         'measCapability': device_4['measCapability']
     }
-    
+
+        
     conditionals_5 = {
         'cbsdCategory': device_5['cbsdCategory'],
         'fccId': device_5['fccId'],
@@ -255,19 +254,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
     }
 
     # setup fccMaxEirp for all cbsdIds
-    fccMaxEirp = {
-         'fccMaxEirp': 30
-    }
-    self._sas_admin.InjectFccId({'fccId': [device_1['fccId'], fccMaxEirp]})
-    fccMaxEirp['fccMaxEirp'] = 20
-    self._sas_admin.InjectFccId({'fccId': [device_2['fccId'], fccMaxEirp]})
-    fccMaxEirp['fccMaxEirp'] = 40
-    self._sas_admin.InjectFccId({'fccId': [device_3['fccId'], fccMaxEirp]})
-    fccMaxEirp['fccMaxEirp'] = 47
-    self._sas_admin.InjectFccId({'fccId': [device_4['fccId'], fccMaxEirp]})
-    fccMaxEirp['fccMaxEirp'] = 30
-    self._sas_admin.InjectFccId({'fccId': [device_5['fccId'], fccMaxEirp]})
-
+    self._sas_admin.InjectFccId({'fccId': device_1['fccId'], 'fccMaxEirp': 30})
+    self._sas_admin.InjectFccId({'fccId': device_2['fccId'], 'fccMaxEirp': 20})
+    self._sas_admin.InjectFccId({'fccId': device_3['fccId'], 'fccMaxEirp': 40})
+    self._sas_admin.InjectFccId({'fccId': device_4['fccId'], 'fccMaxEirp': 47})
+    self._sas_admin.InjectFccId({'fccId': device_5['fccId'], 'fccMaxEirp': 30}}
+    
     self._sas_admin.InjectUserId({'userId': device_1['userId']})
     self._sas_admin.InjectUserId({'userId': device_2['userId']})
     self._sas_admin.InjectUserId({'userId': device_3['userId']})
@@ -392,7 +384,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Blacklist the third cbsdId
-    self._sas_admin.BlacklistByFccId([{'fccId': device_3['fccId']}])
+    self._sas_admin.BlacklistByFccId({'fccId': device_3['fccId']})
 
     # Prepare the grant requests
     grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
