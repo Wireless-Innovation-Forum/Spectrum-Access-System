@@ -39,17 +39,17 @@ class MeasurementTestcase(unittest.TestCase):
     # Load the devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_f = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    devices = [device_a, device_b, device_c, device_d, device_e, device_f]
+    device_g = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_i = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_i.json')))
+    devices = [device_a, device_c, device_e, device_f, device_g, device_i]
 
     for device in devices:
         # set meascapability for all devices to 'RECEIVED_POWER_WITHOUT_GRANT'
@@ -59,7 +59,7 @@ class MeasurementTestcase(unittest.TestCase):
         self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Trigger to request measurement report for spectrum Inquery and grant request
-    self._sas_admin.TriggerMeasurementReportRegistration({'measReportConfig': []})
+    self._sas_admin.TriggerMeasurementReportRegistration()
     cbsd_ids = []
     # Register devices
     request = {'registrationRequest': devices}
@@ -67,7 +67,7 @@ class MeasurementTestcase(unittest.TestCase):
     # Check registration response
     for resp in response:
         self.assertTrue('cbsdId' in resp)
-        self.assertEqual(resp['measReportConfig'], 'RECEIVED_POWER_WITHOUT_GRANT')
+        self.assertTrue('RECEIVED_POWER_WITHOUT_GRANT' in resp['measReportConfig'])
         self.assertEqual(resp['response']['responseCode'], 0)
         cbsd_ids.append(resp['cbsdId'])
 
