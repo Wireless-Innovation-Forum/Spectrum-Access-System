@@ -430,8 +430,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     The response should be 103.
     """
-
-    # Load Devices
+    
+    # Load Devices Data
     device_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_2 = json.load(
@@ -464,33 +464,27 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     device_12 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_12['cbsdSerialNumber'] = 'device_12_serial_number'
-
     device_13 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_13['cbsdSerialNumber'] = 'device_13_serial_number'
-    # Convert device_13's registration request to embed cpiSignatureData
-    convertRequestToRequestWithCpiSignature(cpi_private_key,cpi_id,
-                                             cpi_name, device_13)
     device_14 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_14['cbsdSerialNumber'] = 'device_14_serial_number'
-
     device_15 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_g.json')))
-    device_15['cbsdSerialNumber'] =  'device_15_serial_number'
-    
+    device_15['cbsdSerialNumber'] =  'device_15_serial_number'    
     device_16 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_16['cbsdSerialNumber'] =  'device_16_serial_number'
-
+    # Devices that contain all necessary Fcc and user data
     devices_with_administrative_data = [device_1, device_2, device_7, device_8,\
                                         device_9, device_15]
-    # Inject Fcc Id and User Id for the devices that present all administrative_data
+    # Inject Fcc Id and User Id for the devices that contain all Fcc and user data data
     for device in devices_with_administrative_data:
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
         self._sas_admin.InjectUserId({'userId': device['userId']})
-    # Inject Fcc Id with not default fcc max Eirp
-    self._sas_admin.InjectFccId({'fccId': device_16['fccId'],\
+    # Inject Fcc Id with not default Fcc max Eirp
+    self._sas_admin.InjectFccId({'fccId':'fccId_with_approved_eirp',\
                                   'fccMaxEirp': 25})   
     
     # (Generate CPI RSA keys and) Load CPI user info
@@ -534,11 +528,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         ]
     }
     self._sas_admin.PreloadRegistrationData(conditionals)
-    # Convert devices' registration request to embed cpiSignatureData
-    convertRequestToRequestWithCpiSignature(cpi_private_key,\
-                                'Incorrent_installer_id_1', cpi_name, device_12)
-    convertRequestToRequestWithCpiSignature(cpi_private_key,\
-                                cpi_id, cpi_name, device_13)
+
     # Remove conditionals from registration
     del device_12['cbsdCategory']
     del device_12['airInterface']
@@ -566,28 +556,31 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     device_8['installationParam']['longitude'] = -77.113755
     device_8['installationParam']['height'] = 4.0
     device_8['installationParam']['heightType'] = 'AGL'
-    device_8['installationParam']['indoorDeployment'] = False
-    device_9['installationParam']['eirpCapability'] = 31
-    
+    device_8['installationParam']['indoorDeployment'] = False  
+    device_9['installationParam']['eirpCapability'] = 31  
     device_10['installationParam']['indoorDeployment'] = True
     device_10['installationParam']['eirpCapability'] = 31
     # Convert device_10's registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
                                             cpi_name, device_10)
-    # Convert device_7's registration request to embed cpiSignatureData
+    # Convert device_11's registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
                                             cpi_name, device_11)
+    # Re-add installationParam to the device 11
     device_11['installationParam'] = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))['installationParam']
+    # Convert device_12's' registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key,\
+                                'Incorrent_installer_id_1', cpi_name, device_12)
+    # Convert device_13's' registration request to embed cpiSignatureData   
+    convertRequestToRequestWithCpiSignature(cpi_private_key,\
+                                cpi_id, cpi_name, device_13)
+    
     device_15['fccId'] =  'fccId_with_approved_eirp'
     device_15['installationParam']['eirpCapability'] = 26
     
     device_16['fccId'] =  'fccId_with_approved_eirp'
-    device_16['installationParam']['eirpCapability'] = 26
-    
-    device_15['installationParam']['eirpCapability'] = 31
-    device_16['installationParam']['eirpCapability'] = 31
-    
+    device_16['installationParam']['eirpCapability'] = 26   
     # Register devices
     devices = [device_1, device_2, device_3, device_4, device_5, device_6,\
                device_7, device_8, device_9, device_10, device_11, device_12,\
