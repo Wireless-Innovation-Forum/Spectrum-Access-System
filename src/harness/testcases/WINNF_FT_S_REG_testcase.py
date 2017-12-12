@@ -425,6 +425,186 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
           response['registrationResponse'][x]['response']['responseCode'], 102)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_REG_7(self):
+    """Invalid parameters in Array Registration Request
+
+    The response should be 103.
+    """
+
+    # Load Devices
+    device_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_4['cbsdSerialNumber'] = 'device_4_serial_number'
+    device_5 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_5['cbsdSerialNumber'] = 'device_5_serial_number'
+    device_6 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_6['cbsdSerialNumber'] = 'device_6_serial_number'
+    device_6['measCapability'] = ['invalid_measCapability']
+    device_7 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_8 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_8['cbsdSerialNumber'] =  'device_8_serial_number'
+    device_9 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_10 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_10['cbsdSerialNumber'] = 'device_10_serial_number'
+    device_11 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_11['cbsdSerialNumber'] = 'device_11_serial_number'
+    device_12 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_12['cbsdSerialNumber'] = 'device_12_serial_number'
+
+    device_13 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_13['cbsdSerialNumber'] = 'device_13_serial_number'
+    # Convert device_13's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key,cpi_id,
+                                             cpi_name, device_13)
+    device_14 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_14['cbsdSerialNumber'] = 'device_14_serial_number'
+
+    device_15 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_15['cbsdSerialNumber'] =  'device_15_serial_number'
+    
+    device_16 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_16['cbsdSerialNumber'] =  'device_16_serial_number'
+
+    devices_with_administrative_data = [device_1, device_2, device_7, device_8,\
+                                        device_9, device_15]
+    # Inject Fcc Id and User Id for the devices that present all administrative_data
+    for device in devices_with_administrative_data:
+        self._sas_admin.InjectFccId({'fccId': device['fccId']})
+        self._sas_admin.InjectUserId({'userId': device['userId']})
+    # Inject Fcc Id with not default fcc max Eirp
+    self._sas_admin.InjectFccId({'fccId': device_16['fccId'],\
+                                  'fccMaxEirp': 25})   
+    
+    # (Generate CPI RSA keys and) Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    cpi_private_key, cpi_public_key = generateCpiRsaKeys()
+    self._sas_admin.InjectCpiUser({
+        'cpiId': cpi_id,
+        'cpiName': cpi_name,
+        'cpiPublicKey': cpi_public_key
+    })
+    # Pre-load conditionals
+    conditionals_12 = {
+        'cbsdCategory': device_12['cbsdCategory'],
+        'fccId': device_12['fccId'],
+        'cbsdSerialNumber': device_12['cbsdSerialNumber'],
+        'airInterface': device_12['airInterface'],
+        'installationParam': device_12['installationParam'],
+        'measCapability': device_12['measCapability']
+    }
+    conditionals_13 = {
+        'cbsdCategory': device_13['cbsdCategory'],
+        'fccId': device_13['fccId'],
+        'cbsdSerialNumber': device_13['cbsdSerialNumber'],
+        'airInterface': device_13['airInterface'],
+        'installationParam': device_13['installationParam'],
+        'measCapability': device_13['measCapability']
+    }
+    conditionals_14 = {
+        'cbsdCategory': device_14['cbsdCategory'],
+        'fccId': device_14['fccId'],
+        'cbsdSerialNumber': device_14['cbsdSerialNumber'],
+        'airInterface': device_14['airInterface'],
+        'installationParam': device_14['installationParam'],
+        'measCapability': device_14['measCapability']
+    }
+
+    conditionals = {
+        'registrationData': [
+            conditionals_12, conditionals_13, conditionals_14
+        ]
+    }
+    self._sas_admin.PreloadRegistrationData(conditionals)
+    # Convert devices' registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key,\
+                                'Incorrent_installer_id_1', cpi_name, device_12)
+    convertRequestToRequestWithCpiSignature(cpi_private_key,\
+                                cpi_id, cpi_name, device_13)
+    # Remove conditionals from registration
+    del device_12['cbsdCategory']
+    del device_12['airInterface']
+    del device_12['measCapability']
+    del device_13['cbsdCategory']
+    del device_13['airInterface']
+    del device_13['measCapability']
+    del device_14['cbsdCategory']
+    del device_14['airInterface']
+    del device_14['installationParam']
+    del device_14['measCapability']
+    
+    # Modify the configuration of the devices according to the specfications
+    device_2['cbsdSerialNumber'] = \
+        'invalid_cbsd_serial_number_which_has_length_more_than_64_octets_'
+    device_3['fccId'] = 'fccId_not_injected_in_SAS'
+    device_4['userId'] = 'userId_not_injected_in_SAS'
+    device_5['installationParam']['latitude'] = 90.01
+    device_6['measCapability'] = ['invalid_measCapability']
+    device_7['installationParam']['eirpCapability'] = 48
+    # Convert device_7's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_7)
+    device_8['installationParam']['latitude'] = 38.882162
+    device_8['installationParam']['longitude'] = -77.113755
+    device_8['installationParam']['height'] = 4.0
+    device_8['installationParam']['heightType'] = 'AGL'
+    device_8['installationParam']['indoorDeployment'] = False
+    device_9['installationParam']['eirpCapability'] = 31
+    
+    device_10['installationParam']['indoorDeployment'] = True
+    device_10['installationParam']['eirpCapability'] = 31
+    # Convert device_10's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_10)
+    # Convert device_7's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_11)
+    device_11['installationParam'] = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))['installationParam']
+    device_15['fccId'] =  'fccId_with_approved_eirp'
+    device_15['installationParam']['eirpCapability'] = 26
+    
+    device_16['fccId'] =  'fccId_with_approved_eirp'
+    device_16['installationParam']['eirpCapability'] = 26
+    
+    device_15['installationParam']['eirpCapability'] = 31
+    device_16['installationParam']['eirpCapability'] = 31
+    
+    # Register devices
+    devices = [device_1, device_2, device_3, device_4, device_5, device_6,\
+               device_7, device_8, device_9, device_10, device_11, device_12,\
+               device_13, device_14, device_15, device_16 ]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)
+    # Check registration response
+   
+    self.assertEqual(
+          response['registrationResponse'][0]['response']['responseCode'], 0)
+    self.assertEqual(
+          response['registrationResponse'][12]['response']['responseCode'], 0)
+  for index in range(1, 12) + range(13, 16):
+    self.assertEqual(
+          response['registrationResponse'][index]['response']['responseCode'], 103)
+
+  @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
     """Blacklisted CBSD in Array Registration request (responseCode 101).
 
