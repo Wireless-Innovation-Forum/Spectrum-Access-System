@@ -258,7 +258,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectFccId({'fccId': device_2['fccId'], 'fccMaxEirp': 20})
     self._sas_admin.InjectFccId({'fccId': device_3['fccId'], 'fccMaxEirp': 40})
     self._sas_admin.InjectFccId({'fccId': device_4['fccId'], 'fccMaxEirp': 47})
-    self._sas_admin.InjectFccId({'fccId': device_5['fccId'], 'fccMaxEirp': 30}}
+    self._sas_admin.InjectFccId({'fccId': device_5['fccId'], 'fccMaxEirp': 30})
     
     self._sas_admin.InjectUserId({'userId': device_1['userId']})
     self._sas_admin.InjectUserId({'userId': device_2['userId']})
