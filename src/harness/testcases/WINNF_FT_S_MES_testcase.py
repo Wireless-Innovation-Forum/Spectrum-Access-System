@@ -57,7 +57,7 @@ class MeasurementTestcase(unittest.TestCase):
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
         self._sas_admin.InjectUserId({'userId': device['userId']})
 
-    device_f['measCapability'] = ['RECEIVED_POWER_WITHOUT_GRANT']
+    device_i['measCapability'] = ['RECEIVED_POWER_WITHOUT_GRANT']
     cbsd_ids = []
 
     # Register devices
