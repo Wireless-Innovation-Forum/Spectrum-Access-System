@@ -422,7 +422,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     The response should be:
     - responseCode 0 for CBSD 1.
-    - responseCode 200 for CBSDs 2, 3, 4 and 5.
+    - responseCode 200 for CBSDs 2 and 3.
     """
 
     # (Generate CPI EC keys and) Load CPI user info
@@ -444,52 +444,37 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     del device_c['installationParam']['indoorDeployment']
 
-    # Load CBSD 3: Cat B, missing 'digitalSignature' in 'cpiSignatureData'.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Convert request to embed cpiSignatureData
-    self._convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
-                                                  cpi_name, device_b, 'ES256')
-    del device_b['cpiSignatureData']['digitalSignature']
-
-    # Load CBSD 4: Cat B, missing 'cpiId' in 'professionalInstallerData'.
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    # Convert request to embed cpiSignatureData (without cpiId)
-    self._convertRequestToRequestWithCpiSignature(cpi_private_key, '',
-                                                  cpi_name, device_d, 'ES256')
-
-    # Load CBSD 5: Cat B
+    # Load CBSD 3: Cat B
     # Missing 'antennaAzimuth' in 'installationParam', both in Conditionals and
     # in the 'installationParam' signed by CPI.
-    device_h = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_h.json')))
-    del device_h['installationParam']['antennaAzimuth']
-    conditionals_h = {
-        'cbsdCategory': device_h['cbsdCategory'],
-        'fccId': device_h['fccId'],
-        'cbsdSerialNumber': device_h['cbsdSerialNumber'],
-        'airInterface': device_h['airInterface'],
-        'installationParam': device_h['installationParam'],
-        'measCapability': device_h['measCapability']
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    del device_b['installationParam']['antennaAzimuth']
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
     }
     conditionals = {
-        'registrationData': [conditionals_h]
+        'registrationData': [conditionals_b]
     }
-    # Convert CBSD 5's request to embed cpiSignatureData
+    # Convert CBSD 3's request to embed cpiSignatureData
     self._convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
-                                                  cpi_name, device_h, 'ES256')
+                                                  cpi_name, device_b, 'ES256')
 
     # Inject FCC ID and User ID for all devices
-    for device in [device_a, device_c, device_b, device_d, device_h]:
+    for device in [device_a, device_c, device_b]:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
-    # CBSD 5 conditionals pre-loaded into SAS
+    # CBSD 3 conditionals pre-loaded into SAS
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Register devices
-    devices = [device_a, device_c, device_b, device_d, device_h]
+    devices = [device_a, device_c, device_b]
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
