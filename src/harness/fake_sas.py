@@ -244,10 +244,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     pass
 
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     pass
 
   def TriggerPpaCreation(self, request, ssl_cert=None, ssl_key=None):

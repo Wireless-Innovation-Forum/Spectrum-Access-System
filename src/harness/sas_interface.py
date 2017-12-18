@@ -342,28 +342,20 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     registration request 
-  
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
+
     Note: The SAS should request a measurement report in the RegistrationResponse 
     (if status == 0)
     """
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
   
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
     """
