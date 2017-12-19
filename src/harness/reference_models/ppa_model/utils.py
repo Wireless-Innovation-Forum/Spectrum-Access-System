@@ -17,8 +17,8 @@ from area import area
 import geojson
 from shapely.geometry import shape
 from shapely.ops import cascaded_union
-from src.harness.util import getRandomLatLongInPolygon
-from src.geo.vincenty import to_dist_bear_vincenty
+from util import getRandomLatLongInPolygon
+from reference_models.geo.vincenty import GeodesicPoints
 from collections import defaultdict
 from datetime import datetime
 import random
@@ -32,8 +32,7 @@ def great_circle(**kwargs):
   longitude = kwargs.pop('longitude')
   distance = kwargs.pop('distance')  # In Km.
   azimuth = kwargs.pop('azimuth')
-  calc = np.vectorize(to_dist_bear_vincenty)
-  lat, lon, reverse = calc(latitude, longitude, distance, azimuth)
+  lat, lon, reverse = GeodesicPoints(latitude, longitude, distance, azimuth)
   return {"latitude": lat, "longitude": lon}
 
 

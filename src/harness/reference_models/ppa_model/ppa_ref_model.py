@@ -16,6 +16,7 @@ from concurrent.futures import ProcessPoolExecutor as Pool
 import multiprocessing
 from utils import *
 from compute import load_partials
+from reference_models.geo.vincenty import GeodesicPoint
 
 THRESHOLD = -96
 
@@ -36,14 +37,17 @@ def __compute_points_gain_prop(device):
   cnt = pool.map(cnt_partial, zip(antenna_gain, path_loss))
   # Smoothing Contour using Hamming Filter
   cnt = smooth(np.asarray(list(cnt)))
-
+  print len(cnt)
   # Generating lat, lon for Contours
-  contour_lat_lon = great_circle(latitude=install_param['latitude'],
-                                 longitude=install_param['longitude'],
-                                 distance=cnt, azimuth=range(0, 360))
-
-  polygon = geojson.Polygon([zip(contour_lat_lon['longitude'],
-                                 contour_lat_lon['latitude'])])
+  lat = []
+  lon = []
+  for c, az in zip(cnt, range(0, 360)):
+    l, lo, az = GeodesicPoint(install_param['latitude'],
+                                 install_param['longitude'],
+                                 c, float(az))
+    lat.append(l)
+    lon.append(lo)
+  polygon = geojson.Polygon([zip(lon,lat)])
   return polygon
 
 
@@ -75,3 +79,4 @@ def ppa_creation_model(device_filenames, pal_record_filenames,
   return convert_to_polygon(clip_ppa_census_tracts(pal_records,
                                                    contour_union)), \
          pal_records, devices
+
