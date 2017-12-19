@@ -542,10 +542,11 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     del device_14['measCapability']
     
     # Modify the configuration of the devices according to the specfications
-    device_2['cbsdSerialNumber'] = \
-        'invalid_cbsd_serial_number_which_has_length_more_than_64_octets_'
-    device_3['fccId'] = 'fccId_not_injected_in_SAS'
-    device_4['userId'] = 'userId_not_injected_in_SAS'
+    # invalid_cbsd serial number with length > 64 octets
+    device_2['cbsdSerialNumber'] = 's' * 65
+    # invalid_cbsd serial number with length > 20 octets
+    device_3['fccId'] = 'f' * 21
+    device_4['userId'] = 'invalid_userId_@'
     device_5['installationParam']['latitude'] = 90.01
     device_6['measCapability'] = ['invalid_measCapability']
     device_7['installationParam']['eirpCapability'] = 48
@@ -563,16 +564,19 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     # Convert device_10's registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
                                             cpi_name, device_10)
+    installation_param_device_11 = device_11['installationParam']
     # Convert device_11's registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
                                             cpi_name, device_11)
     # Re-add installationParam to the device 11
-    device_11['installationParam'] = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))['installationParam']
+    device_11['installationParam'] = installation_param_device_11
     # Convert device_12's' registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key,\
                                 'Incorrent_installer_id_1', cpi_name, device_12)
-    # Convert device_13's' registration request to embed cpiSignatureData   
+    device_13['installationParam']['latitude'] = 38.882162
+    device_13['installationParam']['longitude'] = -77.013055
+    device_13['installationParam']['height'] = 5.0
+    # Convert device_13's' registration request to embed cpiSignatureData    
     convertRequestToRequestWithCpiSignature(cpi_private_key,\
                                 cpi_id, cpi_name, device_13)
     
@@ -580,7 +584,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     device_15['installationParam']['eirpCapability'] = 26
     
     device_16['fccId'] =  'fccId_with_approved_eirp'
-    device_16['installationParam']['eirpCapability'] = 26   
+    device_16['installationParam']['eirpCapability'] = 26
+    convertRequestToRequestWithCpiSignature(cpi_private_key,\
+                                cpi_id, cpi_name, device_16)  
     # Register devices
     devices = [device_1, device_2, device_3, device_4, device_5, device_6,\
                device_7, device_8, device_9, device_10, device_11, device_12,\
