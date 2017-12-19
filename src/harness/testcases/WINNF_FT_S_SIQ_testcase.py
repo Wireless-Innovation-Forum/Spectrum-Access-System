@@ -36,7 +36,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
     # Load GWPZ Record
     gwpz = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record.json')))      
+        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))      
     # Load CBSD info
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
