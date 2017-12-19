@@ -129,6 +129,32 @@ def _RequestGet(url, ssl_cert, ssl_key):
   logging.debug('Response:\n' + body)
   return json.loads(body)
 
+def _DownloadFile(url, ssl_cert, ssl_key):
+  response = StringIO.StringIO()
+  conn = pycurl.Curl()
+  conn.setopt(conn.URL, url)
+  conn.setopt(conn.WRITEFUNCTION, response.write)
+  header = [
+      'Host: %s' % urlparse.urlparse(url).hostname,
+      'content-type: application/json'
+  ]
+  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+  conn.setopt(conn.SSLCERTTYPE, 'PEM')
+  conn.setopt(conn.SSLCERT, ssl_cert)
+  conn.setopt(conn.SSLKEY, ssl_key)
+  conn.setopt(conn.CAINFO, CA_CERT)
+  conn.setopt(conn.HTTPHEADER, header)
+  conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(CIPHERS))
+  logging.debug('Request to URL ' + url)
+  conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+  conn.perform()
+  assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+  conn.close()
+  body = response.getvalue()
+  logging.debug('Response:\n' + body)
+  return json.loads(body)
+
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -157,12 +183,15 @@ class SasImpl(sas_interface.SasInterface):
   def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+      return self._SasRequest('dump', None, ssl_cert, ssl_key)
+    
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _RequestGet('https://%s/%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name, request),
+    return _RequestGet('https://%s'%'/'.join(value for value in
+                        [self._base_url, self._sas_version, method_name, request] if value),
                         ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
                         ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
 
@@ -171,6 +200,11 @@ class SasImpl(sas_interface.SasInterface):
                         (self._base_url, self._sas_version, method_name), request,
                         ssl_cert if ssl_cert else self._GetDefaultCbsdSSLCertPath(),
                         ssl_key if ssl_key else self._GetDefaultCbsdSSLKeyPath())
+
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    return _DownloadFile('%s' % url,
+                 ssl_cert if ssl_cert else self._GetDefaultAdminSSLCertPath(),
+                 ssl_key if ssl_key else self._GetDefaultAdminSSLKeyPath())
 
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')
@@ -291,6 +325,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerFullActivityDump(self):
+      _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url, None,
+                   self._GetDefaultAdminSSLCertPath(),
+                   self._GetDefaultAdminSSLKeyPath())
 
   def TriggerPpaCreation(self, request):
     return _RequestPost('https://%s/admin/trigger/create_ppa' %

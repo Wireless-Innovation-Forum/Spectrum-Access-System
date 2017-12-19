@@ -196,6 +196,21 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    return {'files':[
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "cbsd" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "zone" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/assaneRed_FAD_1/schema/empty_activity_dump_file.json",
+              'checksum': None, 'size':0, 'version': "v1.0",'recordType': "coordination" }
+            ],
+            'generationDateTime': datetime.utcnow(),
+            'description':"Full activity dump files" }
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -254,12 +269,14 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
                                         uuid.uuid4().hex)
 
+  def TriggerFullActivityDump(self):
+    pass
+
   def TriggerDailyActivitiesImmediately(self):
     pass
 
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
-
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
@@ -306,6 +323,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/cpi_user',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
+                       '/admin/trigger/create_full_activity_dump'),
                        '/admin/trigger/daily_activities_immediately'):
       response = ''
     else:
@@ -323,6 +341,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == "v1.0/esc_sensor":
       response = FakeSas().GetEscSensorRecord(value)
+    elif self.path == '/v1.0/dump':
+      response = FakeSas().GetFullActivityDump()
     else:
       self.send_response(404)
       return
