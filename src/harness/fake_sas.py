@@ -317,7 +317,11 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/cpi_user',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
-                       '/admin/trigger/daily_activities_immediately'):
+                       '/admin/trigger/daily_activities_immediately',
+                       '/admin/trigger/load_dpas',
+                       '/admin/trigger/dpa_activation',
+                       '/admin/trigger/dpa_deactivation',
+                       '/admin/trigger/bulk_dpa_activation'):
       response = ''
     else:
       self.send_response(404)

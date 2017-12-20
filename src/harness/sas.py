@@ -315,23 +315,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                  self._base_url, request,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
-    
-    
-  def TriggerDailyActivitiesImmediately(self):
-    _RequestPost('https://%s/admin/trigger/load_dpas' %
-                 self._base_url, request,
-                 self._GetDefaultAdminSSLCertPath(),
-                 self._GetDefaultAdminSSLKeyPath())
-
-  def GetDailyActivitiesStatus(self):
-    _RequestPost('https://%s/admin/trigger/load_dpas' %
-                 self._base_url, request,
-                 self._GetDefaultAdminSSLCertPath(),
-                 self._GetDefaultAdminSSLKeyPath())
 
   def TriggerLoadDpas(self):  
     _RequestPost('https://%s/admin/trigger/load_dpas' %
-                 self._base_url, request,
+                 self._base_url, None,
                  self._GetDefaultAdminSSLCertPath(),
                  self._GetDefaultAdminSSLKeyPath())
 

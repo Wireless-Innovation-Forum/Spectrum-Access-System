@@ -70,11 +70,11 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertTrue('availableChannel' in response)
     self.assertEqual(response['response']['responseCode'], 0)
     # Verify the low & high frequency are same as requested
-    self.assertTrue(response['availableChannel'][0]['frequencyRange']\
-                    ['lowFrequency'] == frequency_range['lowFrequency'])
-    self.assertTrue(response['availableChannel'][0]['frequencyRange']\
-                    ['highFrequency'] == frequency_range['highFrequency'])
-    
+    self.assertEqual(response['availableChannel'][0]['frequencyRange']\
+                     ['lowFrequency'],  frequency_range['lowFrequency'])
+    self.assertEqual(response['availableChannel'][0]['frequencyRange']\
+                     ['highFrequency'], frequency_range['highFrequency'])
+
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
