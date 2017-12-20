@@ -40,7 +40,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerLoadDpas()
     # Trigger SAS to de-active all the DPAs 
     self._sas_admin.TriggerDpaActivation({'activate':False})
-    # trigger SAS to active one DPA on channel c
+    # Trigger SAS to active one DPA on channel c
     frequency_range = {
       'lowFrequency': 3620000000.0,
       'highFrequency': 3630000000.0
@@ -74,7 +74,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                     ['lowFrequency'] == frequency_range['lowFrequency'])
     self.assertTrue(response['availableChannel'][0]['frequencyRange']\
                     ['highFrequency'] == frequency_range['highFrequency'])
-    # check response
+    
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
