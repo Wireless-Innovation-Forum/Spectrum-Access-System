@@ -51,7 +51,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Load and register CBSD
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Cange device location to be inside DPA neighborhood
+    # Change device location to be inside DPA neighborhood
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
     cbsd_ids = self.assertRegistered([device_a]) 
