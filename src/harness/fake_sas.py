@@ -260,6 +260,17 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
+  def TriggerLoadDpas(self):  
+    pass
+
+  def TriggerBulkDpaActivation(self, request):
+    pass
+
+  def TriggerDpaActivation(self, request):
+    pass 
+
+  def TriggerDpaDeactivation(self, request):
+    pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   def _parseUrl(self, url):
