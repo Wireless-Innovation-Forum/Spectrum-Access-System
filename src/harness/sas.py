@@ -81,7 +81,8 @@ def _RequestPost(url, request, config):
       'Host: %s' % urlparse.urlparse(url).hostname,
       'content-type: application/json'
   ]
-  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.VERBOSE, 3  # Improve readability.
+              if logging.getLogger().isEnabledFor(logging.DEBUG) else False)
   conn.setopt(conn.SSLVERSION, config.ssl_version)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
   conn.setopt(conn.SSLCERT, config.client_cert)
@@ -126,7 +127,8 @@ def _RequestGet(url, config):
       'Host: %s' % urlparse.urlparse(url).hostname,
       'content-type: application/json'
   ]
-  conn.setopt(conn.VERBOSE, 3)
+  conn.setopt(conn.VERBOSE, 3  # Improve readability.
+              if logging.getLogger().isEnabledFor(logging.DEBUG) else False)
   conn.setopt(conn.SSLVERSION, config.ssl_version)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
   conn.setopt(conn.SSLCERT, config.client_cert)
@@ -276,7 +278,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def TriggerMeasurementReportHeartbeat(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                 self._base_url, N0ne, self._tls_config)
+                 self._base_url, None, self._tls_config)
 
   def InjectSasImplementationRecord(self, request):
     _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url,
