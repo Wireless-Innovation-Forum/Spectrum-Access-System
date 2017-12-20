@@ -270,13 +270,13 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url,
                  request, self._tls_config)
 
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' %
-                 self._base_url, request, self._tls_config)
+                 self._base_url, None, self._tls_config)
 
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                 self._base_url, request, self._tls_config)
+                 self._base_url, N0ne, self._tls_config)
 
   def InjectSasImplementationRecord(self, request):
     _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url,

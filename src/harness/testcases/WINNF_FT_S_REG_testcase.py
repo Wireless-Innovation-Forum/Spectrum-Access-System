@@ -15,10 +15,9 @@
 from datetime import datetime
 import json
 import os
-
 import sas
 import sas_testcase
-from util import winnforum_testcase
+from util import winnforum_testcase, generateCpiRsaKeys, convertRequestToRequestWithCpiSignature
 
 
 class RegistrationTestcase(sas_testcase.SasTestCase):
@@ -273,6 +272,48 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
       self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_3(self):
+    """Array Single-Step registration for CBSDs (Cat A and B).
+
+    The response should be SUCCESS.
+    """
+
+    # Load Devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Inject FCC ID and User ID
+    for device in [device_a, device_c, device_b]:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # (Generate CPI RSA keys and) Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    cpi_private_key, cpi_public_key = generateCpiRsaKeys()
+    self._sas_admin.InjectCpiUser({
+        'cpiId': cpi_id,
+        'cpiName': cpi_name,
+        'cpiPublicKey': cpi_public_key
+    })
+    # Convert device_b's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_b)
+
+    # Register the devices
+    devices = [device_a, device_c, device_b]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    for x in range(0, 3):
+      self.assertTrue('cbsdId' in response[x])
+      self.assertEqual(response[x]['response']['responseCode'], 0)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_5(self):
