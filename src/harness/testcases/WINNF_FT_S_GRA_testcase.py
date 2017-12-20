@@ -71,11 +71,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerLoadDpas()
     # Trigger SAS to de-active all the DPAs 
     self._sas_admin.TriggerDpaActivation({'activate':False})
-    # Trigger SAS to active one DPA on channel c
-    frequency_range = {
-      'lowFrequency': 3620000000.0,
-      'highFrequency': 3630000000.0
-    }
     # Load and register CBSD
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -83,21 +78,28 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
     cbsd_ids = self.assertRegistered([device_a]) 
-    
+    # Trigger SAS to active one DPA on channel c
+    frequency_range = {
+      'lowFrequency': 3620000000.0,
+      'highFrequency': 3630000000.0
+    }  
     self._sas_admin.TriggerDpaActivation({'frequencyRange':frequency_range,\
                                            'dpaId':'east_dpa4'})
-    time.sleep(300)
-
+    time.sleep(300) 
     # Send grant request with CBSD ID not exists in SAS
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = 'A non-exist cbsd id'
+    grant_0['cbsdId'] = cbsd_ids[0]
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response
-    self.assertFalse('cbsdId' in response)
-    self.assertFalse('grantId' in response)
-    self.assertEqual(response['response']['responseCode'], 103)
+    self.assertEqual('cbsdId' in cbsd_ids[0])
+    if(response['response']['responseCode'] == 0):
+        self.assertTrue('grantId' in response)
+        
+    else
+        self.assertEqual(response['response']['responseCode'], 400)
+    self.assertEqual(response['response']['responseCode'], 0)
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
