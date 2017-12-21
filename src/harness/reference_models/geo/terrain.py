@@ -26,7 +26,6 @@ Original data available at: https://nationalmap.gov/3DEP/.
 # The terrain tiles are stored in the directory referenced by:
 #     CONFIG.GetTerrainDir()
 
-import math
 import numpy as np
 import os
 import time
@@ -47,7 +46,7 @@ class TerrainDriver:
   """TerrainDriver class to retrieve elevation data.
 
   Keeps a LRU cache of most recent needed tiles.
-  For best performance its is best to:
+  For best performance it is best to:
    - group request in neighboring regions so that tiles eviction is reduced
    - set the cache_size to the appropriate value for the region size.
   One tile being 1x1 degrees typically covers around 110km x 90km in continental US.
@@ -267,7 +266,7 @@ class TerrainDriver:
     """
 
     if target_res_meter < 0:
-      target_res_meter = _RADIUS_EARTH_METERS * math.radians(target_res_arcsec/3600.)
+      target_res_meter = _RADIUS_EARTH_METERS * np.radians(target_res_arcsec/3600.)
 
     # Distance between end points (m)
     dist, _, _ = vincenty.GeodesicDistanceBearing(lat1, lon1, lat2, lon2)

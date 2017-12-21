@@ -32,8 +32,6 @@ For WinnForum use, only 3 classification are used:
 # from those files.
 # See the src/data/ directory for the scripts doing the regridding.
 
-import logging
-import math
 import numpy as np
 import os
 import time
@@ -69,7 +67,7 @@ class NlcdDriver:
 
   This driver works on 1-degrees unprojected NLCD tile database.
   Keeps a LRU cache of most recent needed tiles.
-  For best performance its is best to:
+  For best performance it is best to:
    - group request in neighboring regions so that tiles eviction is reduced
    - set the cache_size to the appropriate value for the region size.
 
