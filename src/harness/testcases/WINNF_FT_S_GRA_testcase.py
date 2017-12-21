@@ -82,7 +82,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
                                                             pal_low_frequency,
                                                             pal_high_frequency,
                                                             device_a['userId'])
-
     # Move the device into the PPA zone
     device_a['installationParam']['latitude'], device_a['installationParam'][
         'longitude'] = getRandomLatLongInPolygon(ppa_record)

@@ -304,6 +304,30 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
                  request, self._tls_config)
 
+  def TriggerLoadDpas(self):  
+    _RequestPost('https://%s/admin/trigger/load_dpas' %
+                 self._base_url, None,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerBulkDpaActivation(self, request):
+    _RequestPost('https://%s/admin/trigger/bulk_dpa_activation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
+  def TriggerDpaActivation(self, request):
+    _RequestPost('https://%s/admin/trigger/dpa_activation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath()) 
+
+  def TriggerDpaDeactivation(self, request):
+    _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
+
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
