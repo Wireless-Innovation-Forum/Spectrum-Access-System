@@ -355,7 +355,7 @@ class SasAdminInterface(object):
   def TriggerMeasurementReportHeartbeat(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
-  
+
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
     """
