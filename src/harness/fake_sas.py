@@ -47,8 +47,10 @@ A local test server could be run by using "python fake_sas.py".
 
 """
 
+import argparse
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
+import ConfigParser
 from datetime import datetime
 from datetime import timedelta
 import uuid
@@ -65,9 +67,13 @@ CA_CERT = 'certs/ca.cert'
 CIPHERS = [
     'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
     'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
+    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+]
+ECC_CERT_FILE = 'certs/server-ecc.cert'
+ECC_KEY_FILE = 'certs/server-ecc.key'
+ECC_CIPHERS = [
     'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
     'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-    'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 ]
 
 MISSING_PARAM = 102
@@ -262,8 +268,12 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
 
 class FakeSasHandler(BaseHTTPRequestHandler):
+  @classmethod
+  def SetVersion(cls, version):
+    cls.version = version
+
   def _parseUrl(self, url):
-    """Parse the Url into the path and value"""
+    """Parse the Url into the path and value."""
     splitted_url = url.split('/')[1:]
     # Returns path and value
     return '/'.join(splitted_url[0:2]), '/'.join(splitted_url[2:])
@@ -274,17 +284,17 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     length = int(self.headers.getheader('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
-    if self.path == '/v1.0/registration':
+    if self.path == '/%s/registration' % self.version:
       response = FakeSas().Registration(request)
-    elif self.path == '/v1.0/spectrumInquiry':
+    elif self.path == '/%s/spectrumInquiry' % self.version:
       response = FakeSas().SpectrumInquiry(request)
-    elif self.path == '/v1.0/grant':
+    elif self.path == '/%s/grant' % self.version:
       response = FakeSas().Grant(request)
-    elif self.path == '/v1.0/heartbeat':
+    elif self.path == '/%s/heartbeat' % self.version:
       response = FakeSas().Heartbeat(request)
-    elif self.path == '/v1.0/relinquishment':
+    elif self.path == '/%s/relinquishment' % self.version:
       response = FakeSas().Relinquishment(request)
-    elif self.path == '/v1.0/deregistration':
+    elif self.path == '/%s/deregistration' % self.version:
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
@@ -319,9 +329,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     """Handles GET requests."""
     path, value = self._parseUrl(self.path)
-    if path == "v1.0/sas_impl":
+    if path == '%s/sas_impl' % self.version:
      response = FakeSas().GetSasImplementationRecord(value)
-    elif path == "v1.0/esc_sensor":
+    elif path == '%s/esc_sensor' % self.version:
       response = FakeSas().GetEscSensorRecord(value)
     else:
       self.send_response(404)
@@ -331,17 +341,32 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
-if __name__ == '__main__':
+
+def RunFakeServer(version, is_ecc):
+  FakeSasHandler.SetVersion(version)
+  if is_ecc:
+    assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
   server.socket = ssl.wrap_socket(
       server.socket,
-      certfile=CERT_FILE,
-      keyfile=KEY_FILE,
+      certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
       ca_certs=CA_CERT,
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
-      ciphers=':'.join(CIPHERS),
+      ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
       server_side=True)
-
   print 'Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT
   server.serve_forever()
+
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      '--ecc', help='Use ECDSA certificate', action='store_true')
+  args = parser.parse_args()
+
+  config_parser = ConfigParser.RawConfigParser()
+  config_parser.read(['sas.cfg'])
+  version = config_parser.get('SasConfig', 'Version')
+  RunFakeServer(version, args.ecc)
