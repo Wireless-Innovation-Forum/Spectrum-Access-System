@@ -66,25 +66,41 @@ class GrantTestcase(sas_testcase.SasTestCase):
      grant responseCode = 0 and in heartbeat responseCode = 501(SUSPENDED_GRANT)
      or  grant responseCode = 400
     """
-    
+    #Fix PAl frequency
+    pal_low_frequency = 3600000000
+    pal_high_frequency = 3610000000
+    # Load the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load PAL and PPA
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_2.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
+
+    # Move the device into the PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record)
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])
+    # Update PPA record with device_a's CBSD ID and Inject data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
+    self.assertTrue(zone_id)
     # Trigger SAS to load DPAs
     self._sas_admin.TriggerLoadDpas()
     # Trigger SAS to de-active all the DPAs 
     self._sas_admin.TriggerDpaActivation({'activate':False})
-    # Load and register CBSD
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Change device location to be inside DPA neighborhood
-    device_a['installationParam']['latitude'] = 30.71570
-    device_a['installationParam']['longitude'] = -88.09350
-    cbsd_ids = self.assertRegistered([device_a]) 
     # Trigger SAS to active one DPA on channel c
-    frequency_range = {
-      'lowFrequency': 3620000000.0,
-      'highFrequency': 3630000000.0
-    }  
-    self._sas_admin.TriggerDpaActivation({'frequencyRange':frequency_range,\
-                                           'dpaId':'east_dpa4'})
+    self._sas_admin.TriggerDpaActivation(\
+        {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
+                           'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
     time.sleep(300) 
     # Send grant request with CBSD ID not exists in SAS
     grant_0 = json.load(
@@ -92,14 +108,31 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_0['cbsdId'] = cbsd_ids[0]
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
+    grant_id = response[0]['grantId']
     # Check grant response
     self.assertEqual('cbsdId' in cbsd_ids[0])
-    if(response['response']['responseCode'] == 0):
+    if response['response']['responseCode'] == 0 :
         self.assertTrue('grantId' in response)
-        
-    else
+        self.assertEqual(response[0]['channelType'], 'PAL')
+        heartbeat_request = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+        }
+        del request, response
+        # Send heartbeat request
+        request = {'heartbeatRequest': heartbeat_request}
+        response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+        # Check heartbeat response
+        response['response']['responseCode'] == 501
+        self.assertEqual(response['cbsdId'], cbsd_ids[0])        
+        self.assertEqual(response['grantId'], grant_ids[0])
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                                   '%Y-%m-%dT%H:%M:%SZ')
+        self.assertLess(datetime.utcnow(), transmit_expire_time)
+    else :
         self.assertEqual(response['response']['responseCode'], 400)
-    self.assertEqual(response['response']['responseCode'], 0)
+
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
