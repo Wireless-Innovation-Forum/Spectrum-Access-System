@@ -44,7 +44,7 @@ from reference_models.geo import CONFIG
 
 
 _TILE_DIM = 3600
-_TILES_KEYS = tiles.TILES
+_TILES_KEYS = tiles.NLCD_TILES
 
 
 def GetRegionType(code):
@@ -96,7 +96,7 @@ class NlcdDriver:
     # Keep a small tile cache, LRU fashion
     self._tile_cache = {}
     self._tile_lru = {}
-    self.stats = tiles.TileStats()
+    self.stats = tiles.TileStats('nlcd')
     self._lock = threading.Lock()
 
   def SetNlcdDirectory(self, nlcd_directory):

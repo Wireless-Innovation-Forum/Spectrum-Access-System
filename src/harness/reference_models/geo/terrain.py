@@ -41,7 +41,7 @@ _RADIUS_EARTH_METERS = 6378.e3 # Mean radius of the Earth in km
 _NUM_PIXEL_OVERLAP = 6 # Number of pixel overlap in tiles
 _TILE_BASE_DIM = 3600
 _TILE_DIM = _TILE_BASE_DIM + 2 * _NUM_PIXEL_OVERLAP # Dimension of a tile
-_TILES_KEYS = tiles.TILES
+_TILES_KEYS = tiles.NED_TILES
 
 class TerrainDriver:
   """TerrainDriver class to retrieve elevation data.
@@ -81,7 +81,7 @@ class TerrainDriver:
     # Keep a small tile cache, LRU fashion
     self._tile_cache = {}
     self._tile_lru = {}
-    self.stats = tiles.TileStats()
+    self.stats = tiles.TileStats('ned')
     self._lock = threading.Lock()
 
   def SetTerrainDirectory(self, terrain_directory):
