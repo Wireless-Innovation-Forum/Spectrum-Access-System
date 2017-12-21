@@ -37,11 +37,14 @@ import math
 import numpy as np
 import os
 import time
+import threading
 
+from reference_models.geo import tiles
 from reference_models.geo import CONFIG
 
 
 _TILE_DIM = 3600
+_TILES_KEYS = tiles.TILES
 
 
 def GetRegionType(code):
@@ -64,8 +67,11 @@ def GetRegionType(code):
 class NlcdDriver:
   """TerrainDriver class to retrieve land cover data.
 
-  Keeps a LRU cache of most recent needed tiles.
   This driver works on 1-degrees unprojected NLCD tile database.
+  Keeps a LRU cache of most recent needed tiles.
+  For best performance its is best to:
+   - group request in neighboring regions so that tiles eviction is reduced
+   - set the cache_size to the appropriate value for the region size.
 
   Typical usage:
     # Initialize driver
@@ -79,6 +85,10 @@ class NlcdDriver:
 
     # Get the region type of a zone defined by list of points
     region_type = driver.RegionNlcdVote(points)
+
+    # Manage driver statistics. Useful to understand/optimize cache usage/size
+    driver.stats.Report()  # simple statistic reporting
+    driver.stats.Reset()   # reset the statistic counter
   """
   def __init__(self, nlcd_directory=None, cache_size=8):
     self.SetNlcdDirectory(nlcd_directory)
@@ -86,6 +96,8 @@ class NlcdDriver:
     # Keep a small tile cache, LRU fashion
     self._tile_cache = {}
     self._tile_lru = {}
+    self.stats = tiles.TileStats()
+    self._lock = threading.Lock()
 
   def SetNlcdDirectory(self, nlcd_directory):
     """Configures the NLCD data directory."""
@@ -102,44 +114,57 @@ class NlcdDriver:
     """Updates the cache LRU."""
     self._tile_lru[key] = time.time()
 
-  def _CacheGridTile(self, ilat, ilon):
-    """Reads and cache a tile.
+  def GetTile(self, ilat, ilon):
+    """Returns a given tile as a 2D array, or None if unmanaged tile.
 
-    If the file does not exist or cannot be read, it initializes it to all zero.
+    For tiles not in the database, returns None.
+    If a tile in the database cannot be read, raises an exception.
 
     Input:
-      ilat, ilon: coordinate of NW corner (tile key).
+      ilat, ilon (int): coordinate of NW corner.
 
-    Returns:
-      The tiled cache if ok.
-      None if tile cannot be read (a zero tile is still created).
+    Raises:
+      IOError: if an expected tile cannot be read
     """
-    encoding = '%c%02d%c%03d' % (
-        'sn'[ilat >= 0], abs(ilat),
-        'we'[ilon >= 0], abs(ilon))
-
-    tile_name1 = 'nlcd_' + encoding + '_ref.int'
-    tile_name2 = 'nlcd_' + encoding + '.int'
-
-    tile_name = (tile_name1
-                 if os.path.isfile(os.path.join(self._nlcd_dir, tile_name1))
-                 else tile_name2)
     key = (ilat, ilon)
-    # Check cache size and evict oldest
-    if len(self._tile_cache) >= self.cache_size:
-      key_to_evict = min(self._tile_lru, key=self._tile_lru.get)
-      del self._tile_cache[key_to_evict]
-      del self._tile_lru[key_to_evict]
 
-    self._CacheLruUpdate(key)
-    try:
-      self._tile_cache[key] = np.fromfile(os.path.join(self._nlcd_dir, tile_name),
-                                          dtype=np.uint8).reshape(_TILE_DIM, _TILE_DIM)
+    with self._lock:
+      # Manage the cases of mem-loaded or unmanaged tiles.
+      try:
+        tile = self._tile_cache[key]
+        self._CacheLruUpdate(key)
+        return tile
+      except KeyError:
+        if key not in _TILES_KEYS:
+          return None
+
+      # Load a tile in memory and manage the cache
+      encoding = '%c%02d%c%03d' % (
+          'sn'[ilat >= 0], abs(ilat),
+          'we'[ilon >= 0], abs(ilon))
+
+      tile_name1 = 'nlcd_' + encoding + '_ref.int'
+      tile_name2 = 'nlcd_' + encoding + '.int'
+      tile_name = (tile_name1
+                   if os.path.isfile(os.path.join(self._nlcd_dir, tile_name1))
+                   else tile_name2)
+
+      try:
+        self._tile_cache[key] = np.fromfile(
+            os.path.join(self._nlcd_dir, tile_name),
+            dtype=np.uint8).reshape(_TILE_DIM, _TILE_DIM)
+      except IOError:
+        raise IOError('NLCD Tile (%d,%d) not found.' % (ilat, ilon))
+
+      # Check cache size and evict oldest
+      if len(self._tile_cache) > self.cache_size:
+        key_to_evict = min(self._tile_lru, key=self._tile_lru.get)
+        self._tile_cache.pop(key_to_evict)
+        self._tile_lru.pop(key_to_evict)
+      self._CacheLruUpdate(key)
+      self.stats.UpdateForTileLoad(ilat, ilon)
+
       return self._tile_cache[key]
-    except:
-      self._tile_cache[key] = np.zeros((_TILE_DIM, _TILE_DIM), dtype=np.uint8)
-      logging.warning('No NLCD tile %s. Setting NLCD to 0. ' % tile_name)
-      return None
 
   def GetLandCoverCodes(self, lat, lon):
     """Retrieves the NLCD value of one or several points.
@@ -147,21 +172,17 @@ class NlcdDriver:
     This function is vectorized for efficiency.
 
     Inputs:
-      lat,lon: coordinates of points to read (scalar or
-        iterable such as list or ndarray)
+      lat,lon (scalar or iterables such as list or ndarray): coordinates of
+        points to read (degrees).
 
     Returns:
-      the NLCD land cover code of that point,
-      or a ndarray of codes for the given points if inputs lat,lon are ndarray,
-      or a list of codes in other iterable cases.
+      the NLCD land cover code(s) as:
+        - a scalar if the input point is scalar.
+        - a ndarray of codes if the input lat/lon are iterables
     """
-    is_scalar = False
-    if np.isscalar(lat):
-      is_scalar = True
-      lat, lon = np.array([lat]), np.array([lon])
-    else:
-      lat = np.asarray(lat)
-      lon = np.asarray(lon)
+    is_scalar = np.isscalar(lat)
+    lat = np.atleast_1d(lat)
+    lon = np.atleast_1d(lon)
 
     ilat = np.ceil(lat - 0.5/3600.)
     ilon = np.floor(lon + 0.5/3600.)
@@ -173,14 +194,10 @@ class NlcdDriver:
     ilatlon = ilat + 1j*ilon
     unique_ilatlon = np.unique(ilatlon)
     for key in unique_ilatlon:
-      try:
-        tile_cache = self._tile_cache[(key.real, key.imag)]
-        self._CacheLruUpdate((key.real, key.imag))
-      except:
-        tile_cache = self._CacheGridTile(key.real, key.imag)
-        if tile_cache is None:
-          # Nothing to set, all values already at 0
-          continue
+      tile_cache = self.GetTile(key.real, key.imag)
+      if tile_cache is None:
+        # Nothing to set, all values already at 0
+        continue
       idx = np.where(ilatlon == key)[0]
       codes[idx] = tile_cache[iy[idx], ix[idx]]
 
@@ -188,9 +205,6 @@ class NlcdDriver:
       return codes[0]
     elif isinstance(lat, np.ndarray):
       return codes
-    else:
-      return list(codes)
-
 
   def RegionNlcdVote(self, points, out_forbid=True):
     """Vote on most common NLCD in a region.
@@ -198,7 +212,7 @@ class NlcdDriver:
     According to WinnForum spec R2-SGN-04.
 
     Inputs:
-      points: list of (lat,lon) tuple defining a region
+      points: list of (lat,lon) tuples defining a region
       out_forbid: If True (default), will raise an exception
                   if some points have land cover code 0 (meaning
                   they are out of bounds of the NLCD).
@@ -211,7 +225,7 @@ class NlcdDriver:
     """
     avg_code = 0
     lat, lon = zip(*points)
-    codes = self.GetLandCoverCodes(np.asarray(lat), np.asarray(lon))
+    codes = self.GetLandCoverCodes(lat, lon)
     codes22 = np.where(codes==22)[0]
     codes23 = np.where(codes==23)[0]
     codes24 = np.where(codes==24)[0]
