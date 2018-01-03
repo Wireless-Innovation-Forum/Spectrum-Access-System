@@ -127,6 +127,7 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
+cat cbsd_ca.cert root_ca.cert > WINNF_FT_S_SCS_10_ca.cert
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
 #   cat root_ca.cert > ca.cert
@@ -150,6 +151,65 @@ openssl ca -cert unknown_ca.cert -keyfile private/unknown_ca.key -in unknown_dev
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+
+# Generate certificates for test case WINNF.FT.S.SCS.6 - Unrecognized root of trust certificate presented during registration
+echo "\n\nGenerate 'unrecognized_device' certificate/key"
+openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
+    -extensions root_ca -config ../../../cert/openssl.cnf \
+    -out unrecognized_root_ca.cert -keyout private/unrecognized_root_ca.key \
+    -subj "/C=US/ST=CA/L=Somewhere/O=Generic Certification Organization/OU=www.example.org/CN=Generic RSA Root CA"
+
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out unrecognized_device.csr -keyout unrecognized_device.key \
+    -subj "/C=US/ST=CA/L=Somewhere/O=Generic Certification Organization/OU=www.example.org/CN=Unrecognized CBSD"
+openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca.key -in unrecognized_device.csr \
+    -out unrecognized_device.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
+#Using the same CSR that was created for normal operation
+echo "\n\nGenerate 'self_signed_client' certificate/key"
+openssl x509 -signkey client.key -in client.csr \
+    -out self_signed_client.cert \
+    -req -days 1185
+
+#Certificates for test case WINNF.FT.S.SCS.9 - Non-CBRS trust root signed certificate presented during registration
+echo "\n\nGenerate 'non_cbrs_root_ca' certificate/key"
+openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
+    -extensions root_ca -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_ca.cert -keyout private/non_cbrs_root_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Root CA-2"
+
+#Generate CBSD CA certificate signed by non_cbrs_root_ca
+echo "\n\nGenerate 'non_cbrs_signed_cbsd_ca' certificate/key"
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_cbsd_ca.csr -keyout private/non_cbrs_root_signed_cbsd_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA CBSD CA-2"
+openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in non_cbrs_root_signed_cbsd_ca.csr \
+    -policy policy_anything -extensions cbsd_ca_sign -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_cbsd_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+
+#Generate CBSD certifcate signed by a intermediate CBSD CA which is signed by a non-CBRS root CA
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out non_cbrs_signed_device.csr -keyout non_cbrs_signed_device.key \
+    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD unknown"
+openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_root_signed_cbsd_ca.key -in non_cbrs_signed_device.csr \
+    -out non_cbrs_signed_device.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Certificate for test case WINNF.FT.S.SCS.10 - Certificate of wrong type presented during registration
+#creating a CBSD certificate signed by SAS CA instead of CBSD CA. The previously created client is used.
+echo "\n\nGenerate 'server' certificate/key"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in client.csr \
+    -out sas_ca_signed_client.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private
