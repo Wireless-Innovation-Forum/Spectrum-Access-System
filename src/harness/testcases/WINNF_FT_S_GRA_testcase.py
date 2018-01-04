@@ -404,7 +404,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), 3)
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
-    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
+    
 
     # 1st and 2nd cbsdId responseCode should be 0
     self.assertEqual(response[0]['response']['responseCode'], 0)
