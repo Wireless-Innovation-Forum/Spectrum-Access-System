@@ -167,13 +167,12 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
-  def assertTlsHandshakeFailure(self, client_cert, client_key, alert_reason=None):
+  def assertTlsHandshakeFailure(self, client_cert, client_key):
     """
     Asserts TLS handshake failure with different client_cert and client_key
     Args:
       client_cert: optional client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the client_cert
-      alert_reason: reason message to be verify in tls alert message
     """
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
@@ -206,8 +205,6 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     except SSL.Error as e:
       #logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
       logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
-      if alert_reason is not None:
-        self.assertIn(alert_reason,e.message[0])
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:
       client_ssl.close()

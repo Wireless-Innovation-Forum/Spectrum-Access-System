@@ -72,7 +72,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     device_cert = os.path.join('certs', 'unrecognized_device.cert')
     device_key = os.path.join('certs', 'unrecognized_device.key')
-    self.assertTlsHandshakeFailure(device_cert, device_key, alert_reason='tlsv1 alert unknown ca')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_7(self):
