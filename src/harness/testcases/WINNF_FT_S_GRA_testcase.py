@@ -101,7 +101,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
                            'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
     time.sleep(300) 
-    # Send grant request with CBSD ID not exists in SAS
+    # Send grant request
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_ids[0]
@@ -109,7 +109,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     response = self._sas.Grant(request)['grantResponse'][0]
     grant_id = response[0]['grantId']
     # Check grant response
-    self.assertEqual('cbsdId' in cbsd_ids[0])
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
     if response['response']['responseCode'] == 0 :
         self.assertTrue('grantId' in response)
         self.assertEqual(response[0]['channelType'], 'PAL')
@@ -125,10 +125,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
         # Check heartbeat response
         response['response']['responseCode'] == 501
         self.assertEqual(response['cbsdId'], cbsd_ids[0])        
-        self.assertEqual(response['grantId'], grant_ids[0])
+        self.assertEqual(response['grantId'], grant_id)
         transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                    '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLess(datetime.utcnow(), transmit_expire_time)
+        self.assertLessEqual(transmit_expire_time, datetime.utcnow())
     else :
         self.assertEqual(response['response']['responseCode'], 400)
 
