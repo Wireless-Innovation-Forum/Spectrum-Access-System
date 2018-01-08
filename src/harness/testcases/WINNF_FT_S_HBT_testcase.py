@@ -766,10 +766,10 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     fss_e = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     self._sas_admin.InjectFss({'record': fss_e})   
-    # load and inject GWPZ data with Overlapping Frequency of CBSD 
+    # load and inject GWBL data with Overlapping Frequency of CBSD 
     gwpz_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))  
-    self._sas_admin.InjectWisp(gwpz_e)      
+        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))  
+    self._sas_admin.InjectWisp(gwbl_e)      
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
