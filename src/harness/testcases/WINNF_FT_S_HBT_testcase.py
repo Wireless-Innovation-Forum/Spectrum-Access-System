@@ -759,7 +759,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         })
     
     response = self._sas.Heartbeat({'heartbeatRequest': request})['heartbeatResponse']
-    
+    for resp in response:
+        self.assertEqual(resp['response']['responseCode'], 0)
     del request, response
     # STEP 2
     # load and inject FSS data with Overlapping Frequency of CBSD
