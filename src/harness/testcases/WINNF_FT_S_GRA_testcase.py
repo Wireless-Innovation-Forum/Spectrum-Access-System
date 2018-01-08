@@ -40,13 +40,13 @@
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
 
-from datetime import datetime
+from datetime import datetime,timedelta
 import json
 import os
 import sas
 import sas_testcase
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent
+  makePpaAndPalRecordsConsistent, writeConfig, loadConfig
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -57,6 +57,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+
+  @classmethod
+  def setUpClass(self):
+      self._sas_server = sas.GetServer()
+      self._sas_server.StartServer()
+
+  @classmethod
+  def tearDownClass(self):
+      self._sas_server.StopServer()
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
@@ -193,6 +202,232 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('cbsdId' in response)
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_5(self):
+    """SAS rejects GrantRequest if the CBSD already has a Grant from another SAS
+    """
+    # Load the Config file
+    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_5/default.config')
+    # Load device_a for the registration in SAS Test Harness
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load grant request for device_a in SAS Test Harness
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = device_a['userId']
+
+    # Create an activity dump of SAS Test Harness in local
+    dump_file = {}
+    end_time = datetime.now()
+    time_delta= datetime.timedelta(hours=-24)
+    start_time = end_time + time_delta
+    end_time = str(end_time.replace(microsecond=0).isoformat()) + 'Z'
+    start_time = str(start_time.replace(microsecond=0).isoformat()) + 'Z'
+    time_delta1 = datetime.timedelta(hours=24)
+    grant_expire = end_time + time_delta1
+    grant_expire = str(grant_expire.replace(microsecond=0).isoformat()) + 'Z'
+    dump_file['startTime'] = start_time
+    dump_file['endTime'] = end_time
+    dump_file['recordData'] = []
+    internal_data =  {
+         'id': 'device_a_id',
+        'registration': {
+              'fccId': device_a['fccId'],
+              'cbsdCategory': device_a['cbsdCategory'],
+             'callSign': device_a['callSign'],
+             'userId': device_a['userId'],
+            'airInterface': device_a['airInterface'],
+            'measCapability': device_a['measCapability'],
+            'installationParam': device_a['installationParam'],
+              'groupingParam': [
+                  {
+                        'groupId': 'exampleGroup',
+                        'groupType': 'INTERFERENCE_COORDINATION'
+                   } ]  },
+     'grants': [ {
+               'id': 'SAMPLE_ID_12345',
+               'operationParam': grant_0['operationParam'],
+                 'channelType': 'GAA',
+                'grantExpireTime': grant_expire,
+               'terminated': False} ] }
+    dump_file['recordData'].append(internal_data)
+    device_a_id = dump_file['recordData'][0]['id']
+
+    expected_path = '/activity_dump_file/%s' % device_a_id
+    # Setup the Server with response body and expected path from SAS Under Test
+    response = self._sas_server.setupServer({'responseBody': dump_file, 'expectedPath': expected_path})
+    activity_dump_file = {}
+    activity_dump_file['url'] = 'https://' + config['url'] + '/activity_dump_file/%s'% device_a_id
+    activity_dump_file['checksum'] = config['checksum']
+    activity_dump_file['size'] = config['size']
+    activity_dump_file['version'] = config['version']
+    full_activity_dump = {}
+    full_activity_dump['files'] = [activity_dump_file]
+    full_activity_dump['generationDateTime'] = end_time
+    full_activity_dump['description'] = 'Load SAS Test Harness with one cbsd registration and grant'
+    expected_path_dump = '/full_activity_dump_message/%s' % device_a_id
+    # Setup the Server with response body and expected path from SAS Under Test
+    response_dump = self._sas_server.setupServer({'responseBody': full_activity_dump, 'expectedPath': expected_path_dump})
+    # Notify the SAS UUT about the SAS Test Harness
+    self._sas_admin.InjectPeerSas({'certificateHash': 'certificateHash', 'url': 'https://' + config['url'] + '/full_activity_dump_message/%s' % device_a_id})
+
+    # Trigger SAS UUT to send the pull request to the SAS Test Harness for activity dump
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    # Get Path and Body from the response
+    path, body = response_dump
+    # Check the Path of the Pull Command
+    self.assertEqual(path, expected_path_dump)
+
+    # do the registration again for device_a in SAS UUT
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response of device_a in SAS UUT
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # do the registration for device_c in SAS UUT
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_c['userId']})
+    request = {'registrationRequest': [device_c]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    # Check registration response of device_c in SAS UUT
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+
+    # Send grant request for device_a in SAS UUT
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = device_a['userId']
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 401)
+    del request, response
+    # Send grant request for device_c in SAS UUT
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = device_c['userId']
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response of device_c in SAS UUT
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_6(self):
+    """SAS terminates Grant upon learning that the CBSD has a Grant from another SAS
+    The response should be:
+    - 500 for HeartBeat Response."""
+     # Load the Config file
+    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_6/default.config')
+    # Load device_a for the registration in SAS UUT
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request)['registrationResponse'][0]
+    cbsd_id = response['cbsdId']
+    # Check registration response of device_a in SAS UUT
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+    # Load grant request for device_a in SAS UUT
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = device_a['userId']
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    grant_id = response['grantId']
+    # Check grant response for device_a in SAS UUT
+    self.assertTrue('cbsdId' in response)
+    self.assertTrue('grantId' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    del request, response
+    # Load registration for device_a again in SAS Test Harness
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load grant for device_a again in SAS Test Harness
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = device_a['userId']
+    # Create an activity dump in SAS Test Harness in local
+    dump_file = {}
+    end_time = datetime.now()
+    time_delta = datetime.timedelta(hours=-24)
+    start_time = end_time + time_delta
+    end_time = str(end_time.replace(microsecond=0).isoformat()) + 'Z'
+    start_time = str(start_time.replace(microsecond=0).isoformat()) + 'Z'
+    time_delta1 = datetime.timedelta(hours=24)
+    grant_expire = end_time + time_delta1
+    grant_expire = str(grant_expire.replace(microsecond=0).isoformat()) + 'Z'
+    dump_file['startTime'] = start_time
+    dump_file['endTime'] = end_time
+    dump_file['recordData'] = []
+    internal_data = {
+        'id': 'device_a_id',
+        'registration': {
+            'fccId': device_a['fccId'],
+            'cbsdCategory': device_a['cbsdCategory'],
+            'callSign': device_a['callSign'],
+            'userId': device_a['userId'],
+            'airInterface': device_a['airInterface'],
+            'measCapability': device_a['measCapability'],
+            'installationParam': device_a['installationParam'],
+            'groupingParam': [
+                {
+                    'groupId': 'exampleGroup',
+                    'groupType': 'INTERFERENCE_COORDINATION'
+                }]},
+        'grants': [{
+            'id': 'SAMPLE_ID_12345',
+            'operationParam': grant_0['operationParam'],
+            'channelType': 'GAA',
+            'grantExpireTime': grant_expire,
+            'terminated': False}]}
+    dump_file['recordData'].append(internal_data)
+    device_a_id = dump_file['recordData'][0]['id']
+
+    expected_path = '/activity_dump_file/%s' % device_a_id
+    # Setup the Server with response body and expected path from SAS Under Test
+    response = self._sas_server.setupServer({'responseBody': dump_file, 'expectedPath': expected_path})
+    activity_dump_file = {}
+    activity_dump_file['url'] = 'https://' + config['url'] + '/activity_dump_file/%s'% device_a_id
+    activity_dump_file['checksum'] = config['checksum']
+    activity_dump_file['size'] = config['size']
+    activity_dump_file['version'] = config['version']
+    full_activity_dump = {}
+    full_activity_dump['files'] = [activity_dump_file]
+    full_activity_dump['generationDateTime'] = end_time
+    full_activity_dump['description'] = 'Load SAS Test Harness with one cbsd registration and grant'
+    expected_path_dump = '/full_activity_dump_message/%s' % device_a_id
+    # Setup the Server with response body and expected path from SAS Under Test
+    response_dump = self._sas_server.setupServer(
+        {'responseBody': full_activity_dump, 'expectedPath': expected_path_dump})
+    # Notify the SAS UUT about the SAS Test Harness
+    self._sas_admin.InjectPeerSas({'certificateHash': 'certificateHash',
+                                    'url': 'https://' + config['url'] + '/full_activity_dump_message/%s' % device_a_id})
+
+    # Trigger SAS UUT to send the pull request to the SAS Test Harness for activity dump
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    # Get Path and Body from the response
+    path, body = response_dump
+    # Check the Path of the Pull Command
+    self.assertEqual(path, expected_path_dump)
+    # Send the Heartbeat Request to the SAS UUT
+    request = {
+        'heartbeatRequest': [{
+            'cbsdId': cbsd_id,
+            'grantId': grant_id,
+            'operationState': 'GRANTED'
+        }]
+    }
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check the heartbeat response
+    self.assertEqual(response['response']['responseCode'], 500)
+
+
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_7(self):

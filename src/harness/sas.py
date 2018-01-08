@@ -304,9 +304,124 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
                  request, self._tls_config)
 
+  def TriggerCreateActivityDump(self, request):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
+                 request, self._tls_config)
+
+  def InjectPeerSas(self,request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+                 request, self._tls_config)
+
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
+
+def GetServer():
+  config_parser = ConfigParser.RawConfigParser()
+  config_parser.read(['sas.cfg'])
+  server_base_url = config_parser.get('HttpServer', 'BaseUrl')
+  server_port = int(config_parser.get('HttpServer', 'Port'))
+  return HttpServer({'baseUrl': server_base_url, 'port': server_port})
+
+class HttpServer(sas_interface.HttpServerInterface):
+  """Test Harness acting as a Http Server to receive Pull/GET and Push/POST
+   Requests from SAS Under Test
+  """
+  def __init__(self, server_details):
+    self._server_details = server_details
+    self._request_event = threading.Event()
+    self.parameters = {}
+    self.response = None
+
+  def _callbackHandler(self, response=None):
+    """Release wait initiated by _requestResponse when there is GET/POST Request from
+    SAS Under Test"""
+    self.response = response
+    self._request_event.set()
+
+  def _handleRequest(self, callbackHandler, getSetupParameters):
+    return lambda *args: HttpServerHandler(callbackHandler, getSetupParameters, *args)
+
+  def _getSetupParameters(self):
+    return self.parameters
+
+  def _requestResponse(self):
+    """Initiate wait till timeout to get the response from SAS Under Test and then
+    return the response as soon as _callbackHandler is called"""
+    logging.info("Waiting for the Response from SAS Under Test")
+    self._request_event.wait(20.0)
+    return self.response
+
+  def setupServer(self, parameters=None):
+    self.parameters = parameters
+    return self._requestResponse
+
+  def getBaseUrl(self):
+    return 'https://%s:%d' % (self._server_details['baseUrl'], self._server_details['port'])
+
+  def StartServer(self):
+    request_handler = self._handleRequest(self._callbackHandler, self._getSetupParameters)
+    self.server = HTTPServer((self._server_details['baseUrl'], self._server_details['port']),request_handler)
+    cert_file = 'server.cert'
+    key_file = 'server.key'
+    ca_cert = 'ca.cert'
+    ciphers = ['AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256']
+    self.server.socket = ssl.wrap_socket(
+      self.server.socket,
+      certfile=cert_file,
+      keyfile=key_file,
+      ca_certs=ca_cert,
+      cert_reqs=ssl.CERT_REQUIRED,
+      ssl_version=ssl.PROTOCOL_TLSv1_2,
+      ciphers=':'.join(ciphers),
+      server_side=True
+      )
+    logging.info('Started Test Harness Server at %s' % self.getBaseUrl())
+    # Start Server in a separate thread
+    server_start = threading.Thread(target=self.server.serve_forever)
+    server_start.daemon = True
+    server_start.start()
+
+  def StopServer(self):
+    logging.info('Stopped Test Harness Server')
+    self.server.shutdown()
+
+class HttpServerHandler(BaseHTTPRequestHandler):
+  def __init__(self, callbackHandler, getSetupParameters, *args):
+    self._parameters = getSetupParameters()
+    self._callbackHandler = callbackHandler
+    BaseHTTPRequestHandler.__init__(self, *args)
+
+  def do_GET(self):
+    """Handles Pull/GET Request and returns Path of the Request to callback Method"""
+    if self.path == self._parameters['expectedPath']:
+      self.send_response(200)
+      self.send_header('Content-type', 'application/json')
+      self.end_headers()
+      self.wfile.write(json.dumps(self._parameters['responseBody']))
+      self._callbackHandler(self.path)
+    else:
+      self.send_response(404)
+      self._callbackHandler()
+
+  def do_POST(self):
+    """Handles Push/POST Request and returns Request Body to callback Method"""
+    length = int(self.headers.getheader('content-length'))
+    if length > 0:
+      try:
+        request_body = json.loads(self.rfile.read(length))
+        if self.path == self._parameters['expectedPath']:
+          self.send_response(200)
+          self.send_header('Content-type', 'application/json')
+          self.end_headers()
+          self.wfile.write(json.dumps(self._parameters['responseBody']))
+          self._callbackHandler(self.path, request_body)
+          return
+        else:
+          self.send_response(404)
+      except ValueError:
+        self.send_response(422)
+    self._callbackHandler()
 
