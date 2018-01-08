@@ -540,7 +540,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'userIds': [d['userId'] for d in devices],
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
-        'expectedResponseCodes': [(0,), (200,), (200,), (200,)]
+        'expectedResponseCodes': [(0,), (200,), (103,), (103,)]
     }
     writeConfig(filename, config)
 
