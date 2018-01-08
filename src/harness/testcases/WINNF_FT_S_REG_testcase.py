@@ -16,10 +16,13 @@ from datetime import datetime
 import json
 import logging
 import os
+import jwt
+
 import sas
 import sas_testcase
+
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, generateCpiRsaKeys, convertRequestToRequestWithCpiSignature
+  loadConfig, generateCpiRsaKeys, generateCpiEcKeys, convertRequestToRequestWithCpiSignature
 
 
 class RegistrationTestcase(sas_testcase.SasTestCase):
@@ -323,18 +326,19 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     The response should be MISSING_PARAM 102.
     """
+    # (Generate CPI EC keys and) Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    cpi_private_key, cpi_public_key = generateCpiEcKeys()
+    self._sas_admin.InjectCpiUser({
+        'cpiId': cpi_id,
+        'cpiName': cpi_name,
+        'cpiPublicKey': cpi_public_key
+    })
 
-    # Load Devices
+    # Load CBSD 1
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-
-    # Pre-load conditionals
     conditionals_a = {
         'cbsdCategory': device_a['cbsdCategory'],
         'fccId': device_a['fccId'],
@@ -343,6 +347,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'installationParam': device_a['installationParam'],
         'measCapability': device_a['measCapability']
     }
+
+    # Load CBSD 2
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
@@ -351,6 +359,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'installationParam': device_c['installationParam'],
         'measCapability': device_c['measCapability']
     }
+
+    # Load CBSD 3
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
     conditionals_e = {
         'cbsdCategory': device_e['cbsdCategory'],
         'fccId': device_e['fccId'],
@@ -359,6 +371,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'installationParam': device_e['installationParam'],
         'measCapability': device_e['measCapability']
     }
+
+    # Load CBSD 4
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
     conditionals_f = {
         'cbsdCategory': device_f['cbsdCategory'],
         'fccId': device_f['fccId'],
@@ -367,43 +383,58 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'installationParam': device_f['installationParam'],
         'measCapability': device_f['measCapability']
     }
+
+    # Load CBSD 5
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
+    }
+    # Convert request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_b, 'ES256')
+    # Device 5 missing digitalSignature
+    del device_b['cpiSignatureData']['digitalSignature']
+
+    # Load CBSD 6: Cat B, missing 'cpiId' in 'professionalInstallerData'.
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    conditionals_d = {
+        'cbsdCategory': device_d['cbsdCategory'],
+        'fccId': device_d['fccId'],
+        'cbsdSerialNumber': device_d['cbsdSerialNumber'],
+        'airInterface': device_d['airInterface'],
+        'installationParam': device_d['installationParam'],
+        'measCapability': device_d['measCapability']
+    }
+    # Convert request to embed cpiSignatureData (without cpiId)
+    convertRequestToRequestWithCpiSignature(cpi_private_key, '',
+                                            cpi_name, device_d, 'ES256')
+
     conditionals = {
         'registrationData': [
-            conditionals_a, conditionals_c, conditionals_e, conditionals_f
+            conditionals_a, conditionals_c, conditionals_e, conditionals_f,
+            conditionals_b, conditionals_d
         ]
     }
 
-    # Inject FCC IDs
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_f['fccId']})
-
-    # Inject User IDs
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    self._sas_admin.InjectUserId({'userId': device_c['userId']})
-    self._sas_admin.InjectUserId({'userId': device_e['userId']})
-    self._sas_admin.InjectUserId({'userId': device_f['userId']})
-
+    # Inject FCC ID and User ID for all devices
+    for device in [device_a, device_c, device_e, device_f, device_b, device_d]:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
-    del device_a['cbsdCategory']
-    del device_a['airInterface']
-    del device_a['installationParam']
-    del device_a['measCapability']
-    del device_c['cbsdCategory']
-    del device_c['airInterface']
-    del device_c['installationParam']
-    del device_c['measCapability']
-    del device_e['cbsdCategory']
-    del device_e['airInterface']
-    del device_e['installationParam']
-    del device_e['measCapability']
-    del device_f['cbsdCategory']
-    del device_f['airInterface']
-    del device_f['installationParam']
-    del device_f['measCapability']
+    for device in [device_a, device_c, device_e, device_f]:
+      del device['cbsdCategory']
+      del device['airInterface']
+      del device['installationParam']
+      del device['measCapability']
 
     # Device 2 missing cbsdSerialNumber
     del device_c['cbsdSerialNumber']
@@ -415,16 +446,14 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     del device_f['userId']
 
     # Register devices
-    devices = [device_a, device_c, device_e, device_f]
+    devices = [device_a, device_c, device_e, device_f, device_b, device_d]
     request = {'registrationRequest': devices}
-    response = self._sas.Registration(request)
+    response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    self.assertTrue('cbsdId' in response['registrationResponse'][0])
-    self.assertEqual(
-        response['registrationResponse'][0]['response']['responseCode'], 0)
-    for x in range(1, 4):
-      self.assertEqual(
-          response['registrationResponse'][x]['response']['responseCode'], 102)
+    self.assertTrue('cbsdId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    for resp in response[1:]:
+      self.assertEqual(resp['response']['responseCode'], 102)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
