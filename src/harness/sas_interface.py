@@ -203,9 +203,20 @@ class SasAdminInterface(object):
     """SAS admin interface to inject fcc id information into SAS under test.
 
     Args:
+      request: A dictionary with the following key-value pairs:
+        "fccId": (string) valid fccId to be injected into SAS under test
+        "fccMaxEirp": (double) optional; default value of 47 dBm/10 MHz
+    """
+    pass
+
+  @abc.abstractmethod
+  def InjectUserId(self, request):
+    """SAS admin interface to whitelist a user ID in the SAS under test.
+
+    Args:
       request: A dictionary with a single key-value pair where the key is
-        "fccId" and the value is a string of valid fccId which is going to be
-        injected into SAS under test.
+        "userId" and the value is a string of valid userId to be whitelisted by
+        the SAS under test.
     """
     pass
 
@@ -331,28 +342,20 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     registration request 
-  
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
+
     Note: The SAS should request a measurement report in the RegistrationResponse 
     (if status == 0)
     """
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
-  
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
+
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
     """
@@ -374,6 +377,7 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
   def TriggerDailyActivitiesImmediately(self):
     """SAS admin interface to trigger daily activities immediately which will
     execute the following activities:
@@ -384,6 +388,7 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:
@@ -393,6 +398,17 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def InjectCpiUser(self, request):
+    """SAS admin interface to add a CPI User as if it came directly from the CPI database.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "cpiId": (string) valid cpiId to be injected into SAS under test
+        "cpiName": (string) valid name for cpi user to be injected into SAS under test
+        "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
+    """
+    pass
 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
@@ -503,7 +519,5 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-
-
-
+  
 
