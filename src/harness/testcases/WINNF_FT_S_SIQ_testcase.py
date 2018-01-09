@@ -39,7 +39,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Trigger SAS to load DPAs
     self._sas_admin.TriggerLoadDpas()
     # Trigger SAS to de-active all the DPAs 
-    self._sas_admin.TriggerDpaActivation({'activate':False})
+    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
     # Trigger SAS to active one DPA on channel c
     frequency_range = {
       'lowFrequency': 3620000000.0,
