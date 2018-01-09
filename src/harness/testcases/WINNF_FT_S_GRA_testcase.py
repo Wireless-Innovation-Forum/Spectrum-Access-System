@@ -59,6 +59,85 @@ class GrantTestcase(sas_testcase.SasTestCase):
     pass
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_1(self):
+    """Federal Incumbent present in the PAL frequency range requested by the CBSD
+     who is inside the DPA Neighborhood.
+     
+     grant responseCode = 0 and in heartbeat responseCode = 501(SUSPENDED_GRANT)
+     or  grant responseCode = 400
+    """
+    # Trigger SAS to load DPAs
+    self._sas_admin.TriggerLoadDpas()
+    # Trigger SAS to de-active all the DPAs 
+    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
+    #Fix PAl frequency
+    pal_low_frequency = 3600000000
+    pal_high_frequency = 3610000000
+    # Load the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load PAL and PPA
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_2.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
+    # Move the device into the PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record)
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])
+    # Update PPA record with device_a's CBSD ID and Inject data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
+    self.assertTrue(zone_id)
+    # Trigger SAS to active one DPA on channel c
+    self._sas_admin.TriggerDpaActivation(\
+        {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
+                           'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
+    # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
+    time.sleep(240) 
+    # Send grant request
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] \
+        = pal_low_frequency
+    grant_0['operationParam']['operationFrequencyRange']['highFrequency'] \
+        = pal_high_frequency     
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    if response['response']['responseCode'] == 400 :
+        return
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertTrue('grantId' in response)
+    grant_id = response[0]['grantId']
+    self.assertEqual(response[0]['channelType'], 'PAL')
+    heartbeat_request = {
+    'cbsdId': cbsd_ids[0],
+    'grantId': grant_id,
+    'operationState': 'GRANTED'
+    }
+    del request, response
+    # Send heartbeat request
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check heartbeat response
+    self.assertEqual(response['response']['responseCode'], 501)
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])        
+    self.assertEqual(response['grantId'], grant_id)
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
     """Grant request array with various required parameters missing.
 
