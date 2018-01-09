@@ -22,6 +22,7 @@ correctly set in the WinnForum/data/ folder for:
   - USGS 3DEP terrain altitude: in data/geo/ned/
   - NLCD land cover: in data/geo/nlcd/
 
+
 ### Other Location
 
 If not using these location, you should modify the geo/CONFIG.py file to specify
@@ -118,14 +119,19 @@ Configuration:
  - If the developer-toolkit package has been installed, you should now be able able to use *make* in the reference_models/propagation directory, as is done for linux. If any issue, you might need to specify the compiler (see below).
  
  - If the developer-toolkit package has not been selected, then you will need to manually call the python distutils commmand on each of the itm/ and ehata/ subdirectories:
-   `setup.py build_ext --inplace --compiler=mingw32` 
+
+```
+     python setup.py build_ext --inplace --compiler=mingw32
+```
+   
    The *--compiler* option may be unnecessary if there is no conflict with other compilers in your system.
    
 If during this process, you experience some issues with wrong compiler, or compilation errors, create the file `distutils.cfg` in your PYTHONPATH\Lib\distutils\ directory, holding the following content:
-    ```
+
+```
     [build]
     compiler=mingw32
-    ```
+```
 
 In case you are using a 64bit version of Python, the previous steps shall be moified to install and use the MinGW 64 bits instead, and compiler directives `compiler=mingw64`
 
@@ -134,7 +140,8 @@ In case you are using a 64bit version of Python, the previous steps shall be moi
 The configuration steps should be similar to the MinGW, except that the compiler directive to be used (if necessary) is `--compiler=msvc`.
 
 If issue with vcvarsall.bat not being found, try to set the following variables in your command terminal:
-    ```
+
+```
     set MSSDK=1 
     set DISTUTILS_USE_SDK=1
-    ```
+```
