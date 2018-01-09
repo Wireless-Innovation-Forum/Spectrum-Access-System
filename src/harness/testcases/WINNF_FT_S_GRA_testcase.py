@@ -118,8 +118,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         return
     self.assertEqual(response['response']['responseCode'], 0)
     self.assertTrue('grantId' in response)
-    grant_id = response[0]['grantId']
-    self.assertEqual(response[0]['channelType'], 'PAL')
+    grant_id = response['grantId']
+    self.assertEqual(response['channelType'], 'PAL')
     heartbeat_request = {
     'cbsdId': cbsd_ids[0],
     'grantId': grant_id,
