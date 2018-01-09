@@ -69,7 +69,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Trigger SAS to load DPAs
     self._sas_admin.TriggerLoadDpas()
     # Trigger SAS to de-active all the DPAs 
-    self._sas_admin.TriggerDpaActivation({'activate':False})
+    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
     #Fix PAl frequency
     pal_low_frequency = 3600000000
     pal_high_frequency = 3610000000
@@ -101,7 +101,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
                            'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
     # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
-    time.sleep(300) 
+    time.sleep(240) 
     # Send grant request
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
