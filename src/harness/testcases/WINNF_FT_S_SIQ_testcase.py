@@ -56,9 +56,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
     spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'] = gwpz['record']\
-        ['deploymentParam']['operationParam']['operationFrequencyRange']['lowFrequency']
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']
     spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = gwpz['record']\
-        ['deploymentParam']['operationParam']['operationFrequencyRange']['highFrequency']
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency']
 
     # Check : Check spectrum inquiry response
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
