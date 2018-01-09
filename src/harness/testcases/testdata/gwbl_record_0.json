@@ -2,8 +2,8 @@
 {
   "id": "incumbent/wisp/0",
   "type": "wisp",
-  "deploymentParam": 
-    {
+  "deploymentParam":
+  [{
       "installationParam": {
         "longitude": -99.7,
         "latitude": 39.1,
@@ -17,6 +17,6 @@
           "highFrequency": 3700000000.0
         }
       }
-    }
+    }]
 }
 }

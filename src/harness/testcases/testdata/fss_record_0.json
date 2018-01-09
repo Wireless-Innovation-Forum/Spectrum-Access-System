@@ -2,6 +2,7 @@
   "id": "incumbent/ibfs/0",
   "type": "FSS",
   "deploymentParam": 
+  [
     {
       "installationParam": {
         "latitude": 39.2291,
@@ -20,4 +21,5 @@
         }
       }
     }
+    ]
 }
