@@ -69,20 +69,20 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertTrue('availableChannel' in response)
     self.assertEqual(response['response']['responseCode'], 0)
-    # Verify available channels contains the requested range and don't have any conflict, missing or repeated channels
+    # Verify available channels contains the requested range and don't have any missing or repeated channels
     response['availableChannel'].sort(key=lambda ch: ch['frequencyRange']\
                                       ['lowFrequency'], reverse=True)
     for index, channel in  enumerate(response['availableChannel']):
         if index == (len(response['availableChannel']) - 1):
-            self.assertTrue(channel['frequencyRange']['highFrequency'] ==\
+            self.assertEqual(channel['frequencyRange']['highFrequency'],\
              frequency_range['highFrequency'])
         if index == 0:
-           self.assertTrue(channel['frequencyRange']['lowFrequency'] ==\
+           self.assertEqual(channel['frequencyRange']['lowFrequency'],\
              frequency_range['lowFrequency'])
         else:
-            self.assertTrue(response['availableChannel'][index - 1]\
-                            ['frequencyRange']['highFrequency'] ==\
-                            channel['frequencyRange']['lowFrequency'])
+            self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+                                 response['availableChannel'][index - 1]/
+                                 ['frequencyRange']['highFrequency'])
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
