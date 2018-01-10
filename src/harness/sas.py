@@ -20,9 +20,12 @@ import logging
 import StringIO
 import urlparse
 import os
-
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+import ssl
 import pycurl
 import sas_interface
+import httpserver_interface
+
 
 HTTP_TIMEOUT_SECS = 30
 
@@ -318,56 +321,56 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
 
-def GetServer():
-  config_parser = ConfigParser.RawConfigParser()
-  config_parser.read(['sas.cfg'])
-  server_base_url = config_parser.get('HttpServer', 'BaseUrl')
-  server_port = int(config_parser.get('HttpServer', 'Port'))
-  return HttpServer({'baseUrl': server_base_url, 'port': server_port})
 
-class HttpServer(sas_interface.HttpServerInterface):
-  """Test Harness acting as a Http Server to receive Pull/GET and Push/POST
+
+class HttpServer(httpserver_interface.HttpServerInterface):
+  """Test Harness acting as a Http Server to receive Pull/GET
    Requests from SAS Under Test
+   parameters: is the dict variable for different types of dump objects.
+   schema of parameters: { "full_activity" : dict to store full activity dump objects,
+   "cbsd_activity": dict to store cbsd activity dump objects,
+   "PPA_activity" : dict to store ppa activity dump objects,
+   "esc_activity" : dict to store esc activity dump objects
+   }
+   schema of full_activity {full activity dump object}
+   schema of cbsd_activity {"id": {cbsd activity dump object}}
+   schema of PPA_activity {"id": {ppa activity dump object}}
+   schema of esc_activity {"id": {esc activity dump object}}
+
   """
   def __init__(self, server_details):
     self._server_details = server_details
-    self._request_event = threading.Event()
     self.parameters = {}
-    self.response = None
 
-  def _callbackHandler(self, response=None):
-    """Release wait initiated by _requestResponse when there is GET/POST Request from
-    SAS Under Test"""
-    self.response = response
-    self._request_event.set()
 
-  def _handleRequest(self, callbackHandler, getSetupParameters):
-    return lambda *args: HttpServerHandler(callbackHandler, getSetupParameters, *args)
+  def _handleRequest(self, getSetupParameters):
+    return lambda *args: HttpServerHandler(getSetupParameters, *args)
 
   def _getSetupParameters(self):
     return self.parameters
 
-  def _requestResponse(self):
-    """Initiate wait till timeout to get the response from SAS Under Test and then
-    return the response as soon as _callbackHandler is called"""
-    logging.info("Waiting for the Response from SAS Under Test")
-    self._request_event.wait(20.0)
-    return self.response
 
-  def setupServer(self, parameters=None):
-    self.parameters = parameters
-    return self._requestResponse
+  def setupFullActivity(self, full_activity_dump=None):
+    self.parameters['full_activity'] = full_activity_dump
+
+  def setupCbsdActivity(self, unique_id, Cbsd_activity_dump = None):
+    self.parameters['cbsd_activity'][unique_id] = Cbsd_activity_dump
+
+  def setupPPAActivity(self, unique_id, PPA_activity_dump = None):
+    self.parameters['PPA_activity'][unique_id] = PPA_activity_dump
+
+  def setupEscActivity(self,unique_id, esc_activity_dump = None):
+    self.parameter['esc_activity'][unique_id] = esc_activity_dump
 
   def getBaseUrl(self):
     return 'https://%s:%d' % (self._server_details['baseUrl'], self._server_details['port'])
 
-  def StartServer(self):
-    request_handler = self._handleRequest(self._callbackHandler, self._getSetupParameters)
+  def StartServer(self, ca_cert):
+    request_handler = self._handleRequest(self._getSetupParameters)
     self.server = HTTPServer((self._server_details['baseUrl'], self._server_details['port']),request_handler)
     cert_file = 'server.cert'
     key_file = 'server.key'
-    ca_cert = 'ca.cert'
-    ciphers = ['AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256']
+    ciphers = ['AES128-GCM-SHA256', 'AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256', 'ECDHE-ECDSA-AES256-GCM-SHA384', 'ECDHE-RSA-AES128-GCM-SHA256']
     self.server.socket = ssl.wrap_socket(
       self.server.socket,
       certfile=cert_file,
@@ -379,49 +382,53 @@ class HttpServer(sas_interface.HttpServerInterface):
       server_side=True
       )
     logging.info('Started Test Harness Server at %s' % self.getBaseUrl())
-    # Start Server in a separate thread
-    server_start = threading.Thread(target=self.server.serve_forever)
-    server_start.daemon = True
-    server_start.start()
+    # Start Server
+    self.server.serve_forever()
 
   def StopServer(self):
     logging.info('Stopped Test Harness Server')
     self.server.shutdown()
 
 class HttpServerHandler(BaseHTTPRequestHandler):
-  def __init__(self, callbackHandler, getSetupParameters, *args):
+  def __init__(self, getSetupParameters, *args):
     self._parameters = getSetupParameters()
-    self._callbackHandler = callbackHandler
     BaseHTTPRequestHandler.__init__(self, *args)
 
   def do_GET(self):
     """Handles Pull/GET Request and returns Path of the Request to callback Method"""
-    if self.path == self._parameters['expectedPath']:
+    if "dump" in self.path:
       self.send_response(200)
       self.send_header('Content-type', 'application/json')
       self.end_headers()
-      self.wfile.write(json.dumps(self._parameters['responseBody']))
-      self._callbackHandler(self.path)
+      self.wfile.write(json.dumps(self._parameters['full_activity']))
+    elif "cbsd_activity" in self.path:
+      self.send_response(200)
+      self.send_header('Content-type', 'application/json')
+      self.end_headers()
+      id = self.path.split('/')[-1]
+      if id not in self._parameters['cbsd_activity']:
+        self.send_response(404)
+        return
+      self.wfile.write(json.dumps(self._parameters['cbsd_activity'][id]))
+    elif "ppa_activity" in self.path:
+      self.send_response(200)
+      self.send_header('Content-type', 'application/json')
+      self.end_headers()
+      id = self.path.split('/')[-1]
+      if id not in self._parameters['ppa_activity']:
+        self.send_response(404)
+        return
+      self.wfile.write(json.dumps(self._parameters['ppa_activity'][id]))
+    elif "esc_activity" in self.path:
+      self.send_response(200)
+      self.send_header('Content-type', 'application/json')
+      self.end_headers()
+      id = self.path.split('/')[-1]
+      if id not in self._parameters['esc_activity']:
+        self.send_response(404)
+        return
+      self.wfile.write(json.dumps(self._parameters['esc_activity'][id]))
     else:
       self.send_response(404)
-      self._callbackHandler()
 
-  def do_POST(self):
-    """Handles Push/POST Request and returns Request Body to callback Method"""
-    length = int(self.headers.getheader('content-length'))
-    if length > 0:
-      try:
-        request_body = json.loads(self.rfile.read(length))
-        if self.path == self._parameters['expectedPath']:
-          self.send_response(200)
-          self.send_header('Content-type', 'application/json')
-          self.end_headers()
-          self.wfile.write(json.dumps(self._parameters['responseBody']))
-          self._callbackHandler(self.path, request_body)
-          return
-        else:
-          self.send_response(404)
-      except ValueError:
-        self.send_response(422)
-    self._callbackHandler()
 

@@ -46,7 +46,7 @@ import os
 import sas
 import sas_testcase
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent, writeConfig, loadConfig
+  makePpaAndPalRecordsConsistent, writeConfig, loadConfig, configurable_testcase, startServer, stopServer
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -58,14 +58,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
 
-  @classmethod
-  def setUpClass(self):
-      self._sas_server = sas.GetServer()
-      self._sas_server.StartServer()
-
-  @classmethod
-  def tearDownClass(self):
-      self._sas_server.StopServer()
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
@@ -203,20 +195,58 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_GRA_5(self):
-    """SAS rejects GrantRequest if the CBSD already has a Grant from another SAS
-    """
+  def generate_GRA_5_default_config(self, filename):
     # Load the Config file
-    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_5/default.config')
+    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_5/extra.config')
     # Load device_a for the registration in SAS Test Harness
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-
     # Load grant request for device_a in SAS Test Harness
-    grant_0 = json.load(
+    grant_a_SAS_TH = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = device_a['userId']
+    grant_a_SAS_TH['cbsdId'] = device_a['userId']
+    # do the registration for device_c in SAS UUT
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Send grant request for device_a in SAS UUT
+    grant_a_SAS_UUT = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a_SAS_UUT['cbsdId'] = device_a['userId']
+    # Send grant request for device_c in SAS UUT
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c['cbsdId'] = device_c['userId']
+    url = config['sas_testharness_url']
+
+    config = {
+        'url': url,
+        'device_a': device_a,
+        'device_c': device_c,
+        'grant_a_SAS_TH': grant_a_SAS_TH,
+        'grant_a_SAS_UUT':grant_a_SAS_UUT,
+        'grant_c': grant_c,
+        'dump_config_cbsd': config['dump_config_cbsd'],
+        'certificateHash': config['certificateHash'],
+        'ca_cart': config['ca_cart']
+    }
+    writeConfig(filename, config)
+
+
+  @configurable_testcase(generate_GRA_5_default_config)
+  def test_WINNF_FT_S_GRA_5(self, config_filename):
+    """SAS rejects GrantRequest if the CBSD already has a Grant from another SAS
+    """
+    config = loadConfig(config_filename)
+    url = config['url']
+    ca_cart = config['ca_cart']
+    device_a = config['device_a']
+    device_c = config['device_c']
+    grant_a_SAS_TH = config['grant_a_SAS_TH']
+    grant_a_SAS_UUT = config['grant_a_SAS_UUT']
+    grant_c = config['grant_c']
+    dump_config_cbsd = config['dump_config_cbsd']
+    # Start the server
+    self._sas_server = startServer(url, ca_cart)
 
     # Create an activity dump of SAS Test Harness in local
     dump_file = {}
@@ -248,37 +278,32 @@ class GrantTestcase(sas_testcase.SasTestCase):
                    } ]  },
      'grants': [ {
                'id': 'SAMPLE_ID_12345',
-               'operationParam': grant_0['operationParam'],
+               'operationParam': grant_a_SAS_TH['operationParam'],
                  'channelType': 'GAA',
                 'grantExpireTime': grant_expire,
                'terminated': False} ] }
     dump_file['recordData'].append(internal_data)
     device_a_id = dump_file['recordData'][0]['id']
 
-    expected_path = '/activity_dump_file/%s' % device_a_id
     # Setup the Server with response body and expected path from SAS Under Test
-    response = self._sas_server.setupServer({'responseBody': dump_file, 'expectedPath': expected_path})
+    self._sas_server.setupCbsdActivity(device_a['userId'], dump_file)
     activity_dump_file = {}
-    activity_dump_file['url'] = 'https://' + config['url'] + '/activity_dump_file/%s'% device_a_id
-    activity_dump_file['checksum'] = config['checksum']
-    activity_dump_file['size'] = config['size']
-    activity_dump_file['version'] = config['version']
+    activity_dump_file['url'] = 'https://' + url + '/cbsd_activity/%s'% device_a_id
+    activity_dump_file['checksum'] = dump_config_cbsd['checksum']
+    activity_dump_file['size'] = dump_config_cbsd['size']
+    activity_dump_file['version'] = dump_config_cbsd['version']
     full_activity_dump = {}
     full_activity_dump['files'] = [activity_dump_file]
     full_activity_dump['generationDateTime'] = end_time
     full_activity_dump['description'] = 'Load SAS Test Harness with one cbsd registration and grant'
-    expected_path_dump = '/full_activity_dump_message/%s' % device_a_id
     # Setup the Server with response body and expected path from SAS Under Test
-    response_dump = self._sas_server.setupServer({'responseBody': full_activity_dump, 'expectedPath': expected_path_dump})
+    self._sas_server.setupFullActivity(full_activity_dump)
     # Notify the SAS UUT about the SAS Test Harness
-    self._sas_admin.InjectPeerSas({'certificateHash': 'certificateHash', 'url': 'https://' + config['url'] + '/full_activity_dump_message/%s' % device_a_id})
+    self._sas_admin.InjectPeerSas({'certificateHash': config['certificateHash'],
+                                    'url': 'https://' + url + '/dump'})
 
     # Trigger SAS UUT to send the pull request to the SAS Test Harness for activity dump
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-    # Get Path and Body from the response
-    path, body = response_dump
-    # Check the Path of the Pull Command
-    self.assertEqual(path, expected_path_dump)
 
     # do the registration again for device_a in SAS UUT
     request = {'registrationRequest': [device_a]}
@@ -288,8 +313,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # do the registration for device_c in SAS UUT
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
     request = {'registrationRequest': [device_c]}
@@ -298,33 +321,68 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
 
-    # Send grant request for device_a in SAS UUT
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = device_a['userId']
-    request = {'grantRequest': [grant_0]}
+    request = {'grantRequest': [grant_a_SAS_UUT]}
     response = self._sas.Grant(request)['grantResponse'][0]
     self.assertEqual(response['response']['responseCode'], 401)
     del request, response
     # Send grant request for device_c in SAS UUT
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = device_c['userId']
-    request = {'grantRequest': [grant_0]}
+    request = {'grantRequest': [grant_c]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response of device_c in SAS UUT
     self.assertEqual(response['response']['responseCode'], 0)
+    # shutdown the server
+    stopServer(self._sas_server)
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_GRA_6(self):
+
+
+  def generate_GRA_6_default_config(self, filename):
+    # Load the Config file
+    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_6/extra.config')
+    # Load device_a for the registration in SAS UUT
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load grant request for device_a in SAS UUT
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a['cbsdId'] = device_a['userId']
+    # do the registration for device_c in SAS UUT
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Send grant request for device_c in SAS UUT
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c['cbsdId'] = device_c['userId']
+    url = config['sas_testharness_url']
+
+    config = {
+        'url': url,
+        'device_a': device_a,
+        'device_c': device_c,
+        'grant_a': grant_a,
+        'grant_c': grant_c,
+        'dump_config_cbsd': config['dump_config_cbsd'],
+        'certificateHash': config['certificateHash'],
+        'ca_cart': config['ca_cart']
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_GRA_6_default_config)
+  def test_WINNF_FT_S_GRA_6(self, config_filename):
     """SAS terminates Grant upon learning that the CBSD has a Grant from another SAS
     The response should be:
     - 500 for HeartBeat Response."""
      # Load the Config file
-    config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_6/default.config')
+    config = loadConfig(config_filename)
+    url = config['url']
+    ca_cart = config['ca_cart']
+    device_a = config['device_a']
+    device_c = config['device_c']
+    grant_a = config['grant_a']
+    grant_c = config['grant_c']
+    dump_config_cbsd = config['dump_config_cbsd']
+    # Start the server
+    self._sas_server = startServer(url, ca_cart)
     # Load device_a for the registration in SAS UUT
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
@@ -333,11 +391,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check registration response of device_a in SAS UUT
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
-    # Load grant request for device_a in SAS UUT
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = device_a['userId']
-    request = {'grantRequest': [grant_0]}
+
+    request = {'grantRequest': [grant_a]}
     response = self._sas.Grant(request)['grantResponse'][0]
     grant_id = response['grantId']
     # Check grant response for device_a in SAS UUT
@@ -348,10 +403,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Load registration for device_a again in SAS Test Harness
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Load grant for device_a again in SAS Test Harness
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['cbsdId'] = device_a['userId']
     # Create an activity dump in SAS Test Harness in local
     dump_file = {}
     end_time = datetime.now()
@@ -382,39 +433,31 @@ class GrantTestcase(sas_testcase.SasTestCase):
                 }]},
         'grants': [{
             'id': 'SAMPLE_ID_12345',
-            'operationParam': grant_0['operationParam'],
+            'operationParam': grant_a['operationParam'],
             'channelType': 'GAA',
             'grantExpireTime': grant_expire,
             'terminated': False}]}
     dump_file['recordData'].append(internal_data)
     device_a_id = dump_file['recordData'][0]['id']
 
-    expected_path = '/activity_dump_file/%s' % device_a_id
     # Setup the Server with response body and expected path from SAS Under Test
-    response = self._sas_server.setupServer({'responseBody': dump_file, 'expectedPath': expected_path})
+    self._sas_server.setupCbsdActivity( device_a['userId'],dump_file)
     activity_dump_file = {}
-    activity_dump_file['url'] = 'https://' + config['url'] + '/activity_dump_file/%s'% device_a_id
-    activity_dump_file['checksum'] = config['checksum']
-    activity_dump_file['size'] = config['size']
-    activity_dump_file['version'] = config['version']
+    activity_dump_file['url'] = 'https://' + url + '/activity_dump_file/%s'% device_a_id
+    activity_dump_file['checksum'] = dump_config_cbsd['checksum']
+    activity_dump_file['size'] = dump_config_cbsd['size']
+    activity_dump_file['version'] = dump_config_cbsd['version']
     full_activity_dump = {}
     full_activity_dump['files'] = [activity_dump_file]
     full_activity_dump['generationDateTime'] = end_time
     full_activity_dump['description'] = 'Load SAS Test Harness with one cbsd registration and grant'
-    expected_path_dump = '/full_activity_dump_message/%s' % device_a_id
     # Setup the Server with response body and expected path from SAS Under Test
-    response_dump = self._sas_server.setupServer(
-        {'responseBody': full_activity_dump, 'expectedPath': expected_path_dump})
+    self._sas_server.setupFullActivity(full_activity_dump)
     # Notify the SAS UUT about the SAS Test Harness
-    self._sas_admin.InjectPeerSas({'certificateHash': 'certificateHash',
-                                    'url': 'https://' + config['url'] + '/full_activity_dump_message/%s' % device_a_id})
-
+    self._sas_admin.InjectPeerSas({'certificateHash': config['certificateHash'],
+                                   'url': 'https://' + url + '/dump'})
     # Trigger SAS UUT to send the pull request to the SAS Test Harness for activity dump
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-    # Get Path and Body from the response
-    path, body = response_dump
-    # Check the Path of the Pull Command
-    self.assertEqual(path, expected_path_dump)
     # Send the Heartbeat Request to the SAS UUT
     request = {
         'heartbeatRequest': [{
@@ -426,7 +469,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     # Check the heartbeat response
     self.assertEqual(response['response']['responseCode'], 500)
-
+    # shutdown the server
+    stopServer(self._sas_server)
 
 
   @winnforum_testcase
