@@ -83,7 +83,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
-    self.assertFalse('availableChannel' in response)
+    self.assertEqual(len(response['availableChannel']), 0)
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
