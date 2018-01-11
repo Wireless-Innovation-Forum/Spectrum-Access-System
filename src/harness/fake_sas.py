@@ -224,6 +224,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def BlacklistByFccId(self, request):
     pass
 
+  def BlacklistDPByFRN(self, request):
+    pass
+
   def BlacklistByFccIdAndSerialNumber(self, request):
     pass
 
