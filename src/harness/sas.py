@@ -21,11 +21,9 @@ import StringIO
 import urlparse
 import os
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-import ssl
 import pycurl
 import sas_interface
 import httpserver_interface
-
 
 HTTP_TIMEOUT_SECS = 30
 
@@ -290,6 +288,14 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
                  self._tls_config)
+ 
+  def TriggerCreateActivityDump(self, request):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
+                 request, self._tls_config)
+
+  def InjectPeerSas(self,request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+                 request, self._tls_config)
 
   def TriggerPpaCreation(self, request):
     return _RequestPost('https://%s/admin/trigger/create_ppa' % self._base_url,
@@ -307,20 +313,33 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
                  request, self._tls_config)
 
-  def TriggerCreateActivityDump(self, request):
-    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
-                 request, self._tls_config)
+  def TriggerLoadDpas(self):  
+    _RequestPost('https://%s/admin/trigger/load_dpas' %
+                 self._base_url, None, self._tls_config)
+    
+  def TriggerBulkDpaActivation(self, request):
+    _RequestPost('https://%s/admin/trigger/bulk_dpa_activation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath())
 
-  def InjectPeerSas(self,request):
-    _RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
-                 request, self._tls_config)
+  def TriggerDpaActivation(self, request):
+    _RequestPost('https://%s/admin/trigger/dpa_activation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath()) 
 
+  def TriggerDpaDeactivation(self, request):
+    _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
+                 self._base_url, request,
+                 self._GetDefaultAdminSSLCertPath(),
+                 self._GetDefaultAdminSSLKeyPath()) 
+    
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
-
 
 
 class HttpServer(httpserver_interface.HttpServerInterface):
