@@ -30,6 +30,44 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     pass
 
   @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_2(self):
+    """Response has no available channel
+    with responseCode = 0 successful 
+    """
+    # Load GWPZ Record
+    gwpz = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))      
+    # Load CBSD info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Change device location to be inside GWPZ
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz)
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])  
+    
+    # Inject GWPZ in SAS 
+    self._sas_admin.InjectWisp(gwpz)   
+    # Trigger daily activities
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()  
+     
+    # Create spectrumInquiry with the frequency range full overlaps with GWPZ frequency
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'] = gwpz['record']\
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']
+    spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = gwpz['record']\
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency']
+
+    # Check : Check spectrum inquiry response
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertFalse(response['availableChannel'])
+    self.assertEqual(response['response']['responseCode'], 0)
+    
+  @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
 
