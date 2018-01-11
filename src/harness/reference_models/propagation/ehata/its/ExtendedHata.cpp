@@ -1,4 +1,5 @@
 #include "stdio.h"
+#include "cmath"
 #include "ehata.h"
 
 // ******* WinnForum extension *******
@@ -8,6 +9,15 @@ bool _WinnForum_Extensions = true; // on by default
 void SetWinnForumExtensions(bool on)
 {
   _WinnForum_Extensions = on;
+}
+
+// Definition of the profile distance calculation routine - see ehata.h
+double GetDistanceInMeters(double pfl[])
+{
+  double distance_m = pfl[0] * pfl[1];
+  if (fabs(distance_m - round(distance_m)) < 1e-5)
+    distance_m = round(distance_m);
+  return distance_m;
 }
 
 // Debug print routine
@@ -106,7 +116,12 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
         if (interValues->h_b_eff__meter > 200.0) interValues->h_b_eff__meter = 200.0;
     }
     // ******* End WinnForum extension *******
-    interValues->d__km = pfl[0] * pfl[1] / 1000;
+    // ******* WinnForum change *******
+    //interValues->d__km = pfl[0] * pfl[1] / 1000;
+    interValues->d__km = GetDistanceInMeters(pfl) / 1000.;
+
+    // ******* End WinnForum change *******
+
     float plb_median__db;
     MedianBasicPropLoss(f__mhz, interValues->h_b_eff__meter, interValues->h_m_eff__meter, interValues->d__km, enviro_code, &plb_median__db, interValues);
 
