@@ -161,7 +161,7 @@ class TestWfHybrid(unittest.TestCase):
                                     reliability=-1, freq_mhz=3625.,
                                     region='SUBURBAN')
     self.assertAlmostEqual(avg_res.db_loss,
-                           10*np.log10(np.mean(10**(np.array(losses)/10.))),
+                           -10*np.log10(np.mean(10**(-np.array(losses)/10.))),
                            5)
 
   def test_indoor(self):
