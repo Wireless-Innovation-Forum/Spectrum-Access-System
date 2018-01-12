@@ -13,7 +13,9 @@
 #    limitations under the License.
 
 import security_testcase
-from util import winnforum_testcase
+from util import winnforum_testcase,countdown
+import os,time,json,sys,logging
+from OpenSSL import SSL,crypto
 
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
@@ -64,3 +66,49 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that a CBSD registration with this configuration succeed.
     """
     self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_6(self):
+    """Unrecognized root of trust certificate presented during registration.
+    Checks that SAS UUT response with fatal alert with unknown_ca.
+    """
+    device_cert = self.getCertFilename('unrecognized_device.cert')
+    device_key = self.getCertFilename('unrecognized_device.key')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_7(self):
+    """Corrupted certificate presented during registration.
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert = self.getCertFilename('corrupted_client.cert')
+    device_key = self.getCertFilename('corrupted_client.key')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_8(self):
+    """Self-signed certificate presented during registration.
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert = self.getCertFilename('self_signed_client.cert')
+    device_key = self.getCertFilename('client.key')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_9(self):
+    """Non-CBRS trust root signed certificate presented during registration.
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert = self.getCertFilename('non_cbrs_signed_device.cert')
+    device_key = self.getCertFilename('non_cbrs_signed_device.key')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_10(self):
+    """Certificate of wrong type presented during registration.
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert = self.getCertFilename('sas_ca_signed_client.cert')
+    device_key = self.getCertFilename('client.key')
+    self.assertTlsHandshakeFailure(device_cert, device_key)
+
