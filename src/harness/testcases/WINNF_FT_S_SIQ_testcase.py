@@ -596,5 +596,4 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
       self.assertEqual(response[resp_num]['response']['responseCode'], 0)
     # Third cbsd (blacklisted)
-    self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['response']['responseCode'], 101)
