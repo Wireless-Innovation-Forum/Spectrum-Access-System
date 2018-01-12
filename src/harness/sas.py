@@ -20,6 +20,7 @@ import logging
 import StringIO
 import urlparse
 import os
+import ssl
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import pycurl
 import sas_interface

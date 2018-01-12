@@ -40,9 +40,10 @@
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
 
-from datetime import datetime,timedelta
+from datetime import datetime
 import json
 import os
+import time
 import sas
 import sas_testcase
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
@@ -57,7 +58,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_1(self):
@@ -274,6 +274,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
+
   def generate_GRA_5_default_config(self, filename):
     # Load the Config file
     config = loadConfig('testcases/configs/test_WINNF_FT_S_GRA_5/extra.config')
@@ -450,7 +451,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """SAS terminates Grant upon learning that the CBSD has a Grant from another SAS
     The response should be:
     - 500 for HeartBeat Response."""
-     # Load the Config file
+    # Load the Config file
     config = loadConfig(config_filename)
     url = config['url']
     ca_cart = config['ca_cart']
@@ -522,7 +523,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Setup the Server with response body and expected path from SAS Under Test
     self._sas_server.setupCbsdActivity( device_a['userId'],dump_file)
     activity_dump_file = {}
-    activity_dump_file['url'] = 'https://' + url + '/activity_dump_file/%s'% device_a_id
+    activity_dump_file['url'] = 'https://' + url + '/cbsd_activity/%s'% device_a_id
     activity_dump_file['checksum'] = dump_config_cbsd['checksum']
     activity_dump_file['size'] = dump_config_cbsd['size']
     activity_dump_file['version'] = dump_config_cbsd['version']
