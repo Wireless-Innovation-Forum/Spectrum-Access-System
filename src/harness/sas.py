@@ -248,6 +248,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
                  self._base_url, request, self._tls_config)
 
+  def BlacklistSASByFQDN(self, request):
+    _RequestPost('https://%s/admin/injectdata/blacklist_sas_fqdn' % self._base_url,
+                 request, self._tls_config)
+
   def TriggerEscZone(self, request):
     _RequestPost('https://%s/admin/trigger/esc_detection' % self._base_url,
                  request, self._tls_config)
