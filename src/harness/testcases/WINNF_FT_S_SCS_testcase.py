@@ -72,8 +72,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Unrecognized root of trust certificate presented during registration.
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
-    device_cert = os.path.join('certs', 'unrecognized_device.cert')
-    device_key = os.path.join('certs', 'unrecognized_device.key')
+    device_cert = self.getCertFilename('unrecognized_device.cert')
+    device_key = self.getCertFilename('unrecognized_device.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
@@ -81,17 +81,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Corrupted certificate presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    with open(os.path.join('certs', 'client.cert')) as f:
-      data = "".join(f.read().split('-----END CERTIFICATE-----'))
-    def corrupt_signature(cert, offset):
-      temp = list(cert)
-      temp[len(cert) - offset] = chr(ord(temp[len(cert) - offset ]) + 1)
-      return ''.join(temp).strip() + '\n-----END CERTIFICATE-----\n'
-    with open(os.path.join('certs', 'corrupted_client.cert'),mode='w') as f:
-      f.write(corrupt_signature(data, 10))
-
-    device_cert = os.path.join('certs', 'corrupted_client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('corrupted_client.cert')
+    device_key = self.getCertFilename('corrupted_client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
@@ -99,8 +90,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Self-signed certificate presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = os.path.join('certs', 'self_signed_client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('self_signed_client.cert')
+    device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
@@ -108,8 +99,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Non-CBRS trust root signed certificate presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = os.path.join('certs', 'non_cbrs_signed_device.cert')
-    device_key = os.path.join('certs', 'non_cbrs_signed_device.key')
+    device_cert = self.getCertFilename('non_cbrs_signed_device.cert')
+    device_key = self.getCertFilename('non_cbrs_signed_device.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
@@ -117,8 +108,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Certificate of wrong type presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = os.path.join('certs', 'sas_ca_signed_client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('sas_ca_signed_client.cert')
+    device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase 
@@ -129,8 +120,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     #Blacklist certificate
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.BlacklistByFccIdAndSerialNumber({'fccId': device_a['fccId'],'CbsdSerialNumber': device_a['cbsdSerialNumber']})
-    device_cert = os.path.join('certs', 'device_a.cert')
-    device_key = os.path.join('certs', 'device_a.key')
+    device_cert = self.getCertFilename('device_a.cert')
+    device_key = self.getCertFilename('device_a.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
@@ -138,8 +129,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Expired certificate presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = os.path.join('certs', 'client_expired.cert')
-    device_key = os.path.join('certs', 'client_expired.key')
+    device_cert = self.getCertFilename('client_expired.cert')
+    device_key = self.getCertFilename('client_expired.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
 
@@ -151,8 +142,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
          AlertLevel = 2 (fatal) --> tlsv1 alert protocol version
          The SAS UUT immediately terminates the TLS session
     """
-    device_cert = os.path.join('certs', 'client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('client.cert')
+    device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key,ciphers='CAMELLIA128-SHA',\
                                      ssl_method=SSL.TLSv1_1_METHOD)
 
@@ -161,8 +152,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Invalid ciphersuite presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = os.path.join('certs', 'client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('client.cert')
+    device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key,ciphers='ECDHE-RSA-AES256-GCM-SHA384')
 
 
@@ -174,8 +165,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
 
-    device_a_cert = os.path.join('certs', 'client_inapplicable.cert')
-    device_a_key = os.path.join('certs', 'client.key')
+    device_a_cert = self.getCertFilename('client_inapplicable.cert')
+    device_a_key = self.getCertFilename('client.key')
     request = {'registrationRequest': [device_a]}
     response = self._sas.Registration(request,device_a_cert,device_a_key)['registrationResponse'][0]
 
@@ -189,18 +180,18 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     Certificate signed by a revoked CA presented during registration.
     """
-    device_cert = os.path.join('certs', 'client.cert')
-    device_key = os.path.join('certs', 'client.key')
-    ca_cert = os.path.join('certs', 'WINNF_FT_S_SCS_16_ca.cert')
+    device_cert = self.getCertFilename('client.cert')
+    device_key = self.getCertFilename('client.key')
+    ca_cert = self.getCertFilename('WINNF_FT_S_SCS_16_ca.cert')
     self.assertTlsHandshakeFailure(device_cert, device_key, ca_cert=ca_cert)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_17(self):
     """
-    Invalid certificate following an approved registration request
-	"""
-    device_cert = os.path.join('certs', 'short_lived_client.cert')
-    device_key = os.path.join('certs', 'short_lived_client.key')
+    Invalid certificate following an approved registration reques
+    """
+    device_cert = self.getCertFilename('short_lived_client.cert')
+    device_key = self.getCertFilename('short_lived_client.key')
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
                                    ['AES128-GCM-SHA256'],device_cert, device_key)
 
@@ -227,8 +218,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     Invalid certificate following an approved grant request
     """
-    device_cert = os.path.join('certs', 'short_lived_client.cert')
-    device_key = os.path.join('certs', 'short_lived_client.key')
+    device_cert = self.getCertFilename('short_lived_client.cert')
+    device_key = self.getCertFilename('short_lived_client.key')
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
                                    ['AES128-GCM-SHA256'], device_cert, device_key)
     logging.info("TLS Handshake is success")
@@ -258,8 +249,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     Invalid certificate following an approved heartbeat request
     """
-    device_cert = os.path.join('certs', 'short_lived_client.cert')
-    device_key = os.path.join('certs', 'short_lived_client.key')
+    device_cert = self.getCertFilename('short_lived_client.cert')
+    device_key = self.getCertFilename('short_lived_client.key')
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
                                    ['AES128-GCM-SHA256'], device_cert, device_key)
     logging.info("TLS Handshake is success")
@@ -295,7 +286,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
             Subject is consistent with the SAS UUT
             etc...
     """
-    device_cert = os.path.join('certs', 'client.cert')
-    device_key = os.path.join('certs', 'client.key')
+    device_cert = self.getCertFilename('client.cert')
+    device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url,['AES128-GCM-SHA256'],device_cert, device_key,True)
 

@@ -19,7 +19,7 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
               /  |  \          \                             
              /   |    \         \                            
             /    |      \        \                            
-  admin_client  server    \     client|device_[a|c]                
+  admin_client  server    \     client|device_[a|c]|corrupted_client                
                            sas_ca_signed_client
 
 
@@ -101,10 +101,10 @@ Required certificates are:
 
 * `client_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.
-  
+
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
-  
+ 
 * `[root_ca|cbsd_ca].crl`: CRL is generated for root_ca and cbsd_ca after revoke intermediate CA cbsd_ca
   `WINNF_FT_S_SCS_16_ca.cert`: CA trusted chain appended with CRL of root and intermediate CA
   Used on security test test_WINNF_FT_S_SCS_16

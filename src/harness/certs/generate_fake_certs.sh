@@ -11,6 +11,26 @@ touch index.txt
 echo 00 > root/crlnumber
 echo -n 'unique_subject = no' >> index.txt.attr
 
+function gen_corrupt_cert()
+{
+cp $1 $3
+cp $2 $4
+# cert file have first header line with 28 char: we want to change the 20th cert character
+   pos=48
+hex_byte=$(xxd -seek $((10#$pos)) -l 1 -ps $4 -)
+
+# increment this byte
+if [[ $hex_byte == "7a"  ||  $hex_byte == "5a" || $hex_byte == "39" ]]; then
+  corrupted_dec_byte=$(($((16#$hex_byte)) -1))
+elif [[ $hex_byte == "2f"  ||  $hex_byte == "2b" ]]; then
+  corrupted_dec_byte=65
+else
+  corrupted_dec_byte=$(($((16#$hex_byte)) +1))
+fi
+# write it back
+printf "%x: %02x" $pos $corrupted_dec_byte | xxd -r - $4
+}
+
 # Generate root and intermediate CA certificate/key.
 echo "\n\nGenerate 'root_ca' and 'root-ecc_ca' certificate/key"
 openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
@@ -73,6 +93,15 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out server.cert -outdir ./root \
     -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
+echo "\n\nGenerate 'server'--> server_a certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -out server_a.csr -keyout server_a.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=localhost"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server_a.csr \
+    -out server_a.cert -outdir ./root \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl ecparam -genkey -out  server-ecc.key -name secp521r1
 openssl req -new -nodes \
@@ -95,7 +124,6 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
 
 echo "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -168,6 +196,13 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -out unrecognized_device.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Certificates for test case WINN.FT.S.SCS.7 - corrupted certificate, based on dp_client.cert
+key="client.key"
+cert="client.cert"
+outcert1="corrupted_client.key"
+outcert2="corrupted_client.cert"
+gen_corrupt_cert $key $cert $outcert1 $outcert2
 
 #Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
 #Using the same CSR that was created for normal operation
@@ -260,7 +295,6 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in short_lived_clien
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384 -enddate $enddate_value
 
-
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
@@ -268,7 +302,6 @@ cat cbsd_ca.cert root_ca.cert > WINNF_FT_S_SCS_10_ca.cert
 
 echo "Appended crl and create new trusted chain that contains revoked CA"
 cat ca.cert root/crl/cbsd_ca.crl root/crl/root_ca.crl  > WINNF_FT_S_SCS_16_ca.cert
-
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private
