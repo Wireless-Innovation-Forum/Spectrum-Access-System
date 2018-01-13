@@ -19,9 +19,9 @@ import os
 import re
 import socket
 import urlparse
+import inspect
 
 from OpenSSL import SSL, crypto
-
 
 import sas
 import sas_testcase
@@ -67,7 +67,14 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     """Resets the SAS UUT to its initial state."""
     self._sas_admin.Reset()
 
-  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
+  def getCertFilename(self, cert_name):
+    """Returns the absolute path of the file corresponding to the given |cert_name|.
+    """
+    harness_dir = os.path.dirname(
+                  os.path.abspath(inspect.getfile(inspect.currentframe())))
+    return os.path.join(harness_dir, 'certs', cert_name)
+
+  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key,IsVerifyServercert=False):
     """Checks that the TLS handshake succeed with the given parameters.
 
     Attempts to establish a TLS session with the given |base_url|, using the
@@ -112,7 +119,6 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     ctx.set_verify(SSL.VERIFY_PEER, _VerifyCb)
 
     client_ssl = SSL.Connection(ctx, client)
-
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
 
@@ -122,7 +128,6 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     except SSL.Error as e:
       logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
       raise AssertionError('TLS handshake: failure: %s' % e.message)
-
     finally:
       client_ssl.close()
 
@@ -169,10 +174,11 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
   def assertTlsHandshakeFailure(self, client_cert, client_key):
     """
-    Asserts TLS handshake failure with different client_cert and client_key
+    Does a tls handshake with different client_cert and client_key
     Args:
       client_cert: optional client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the client_cert
+      alert_reason: reason message to be verify in tls alert message
     """
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
@@ -201,9 +207,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
-      self.fail(msg="TLS Handshake is success but expected:TLS handshake failure")
+      self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
-      #logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
       logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:

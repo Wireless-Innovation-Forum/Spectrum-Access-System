@@ -19,7 +19,7 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
               /  |  \          \                             
              /   |    \         \                            
             /    |      \        \                            
-  admin_client  server    \     client|device_[a|c]                
+  admin_client  server    \     client|device_[a|c]|corrupted_client                
                            sas_ca_signed_client
 
 

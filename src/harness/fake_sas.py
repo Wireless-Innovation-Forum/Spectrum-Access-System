@@ -266,6 +266,17 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
+  def TriggerLoadDpas(self):  
+    pass
+
+  def TriggerBulkDpaActivation(self, request):
+    pass
+
+  def TriggerDpaActivation(self, request):
+    pass 
+
+  def TriggerDpaDeactivation(self, request):
+    pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
@@ -316,7 +327,11 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/cpi_user',
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
-                       '/admin/trigger/daily_activities_immediately'):
+                       '/admin/trigger/daily_activities_immediately',
+                       '/admin/trigger/load_dpas',
+                       '/admin/trigger/dpa_activation',
+                       '/admin/trigger/dpa_deactivation',
+                       '/admin/trigger/bulk_dpa_activation'):
       response = ''
     else:
       self.send_response(404)
@@ -342,16 +357,19 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc):
+def RunFakeServer(version, is_ecc, ca_cert):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
+  if ca_cert is not None:
+      assert os.path.exists(os.path.join('certs',ca_cert)), "%s is not exist in certs path" %ca_cert
+
   server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
+      ca_certs=CA_CERT if not ca_cert else os.path.join('certs',ca_cert),
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
@@ -364,9 +382,11 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
+  parser.add_argument(
+      '--ca', help='Use CA certificate', dest='ca_cert', action='store')
   args = parser.parse_args()
 
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc)
+  RunFakeServer(version, args.ecc, args.ca_cert)

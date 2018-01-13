@@ -9,6 +9,26 @@ mkdir root
 touch index.txt
 echo -n 'unique_subject = no' >> index.txt.attr
 
+function gen_corrupt_cert()
+{
+cp $1 $3
+cp $2 $4
+# cert file have first header line with 28 char: we want to change the 20th cert character
+   pos=48
+hex_byte=$(xxd -seek $((10#$pos)) -l 1 -ps $4 -)
+
+# increment this byte
+if [[ $hex_byte == "7a"  ||  $hex_byte == "5a" || $hex_byte == "39" ]]; then
+  corrupted_dec_byte=$(($((16#$hex_byte)) -1))
+elif [[ $hex_byte == "2f"  ||  $hex_byte == "2b" ]]; then
+  corrupted_dec_byte=65
+else
+  corrupted_dec_byte=$(($((16#$hex_byte)) +1))
+fi
+# write it back
+printf "%x: %02x" $pos $corrupted_dec_byte | xxd -r - $4
+}
+
 # Generate root and intermediate CA certificate/key.
 echo "\n\nGenerate 'root_ca' and 'root-ecc_ca' certificate/key"
 openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
@@ -96,7 +116,7 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
 
 echo "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config openssl.cnf \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_a.csr -keyout device_a.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_a"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
@@ -105,7 +125,7 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config openssl.cnf \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_c.csr -keyout device_c.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_c"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
@@ -123,11 +143,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-
-# Generate trusted CA bundle.
-echo "\n\nGenerate 'ca' bundle"
-cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
-cat cbsd_ca.cert root_ca.cert > WINNF_FT_S_SCS_10_ca.cert
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
 #   cat root_ca.cert > ca.cert
@@ -167,6 +182,13 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -out unrecognized_device.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Certificates for test case WINN.FT.S.SCS.7 - corrupted certificate, based on dp_client.cert
+key="client.key"
+cert="client.cert"
+outcert1="corrupted_client.key"
+outcert2="corrupted_client.cert"
+gen_corrupt_cert $key $cert $outcert1 $outcert2
 
 #Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
 #Using the same CSR that was created for normal operation
@@ -210,6 +232,11 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in client.csr \
     -out sas_ca_signed_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Generate trusted CA bundle.
+echo "\n\nGenerate 'ca' bundle"
+cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
+cat cbsd_ca.cert root_ca.cert > WINNF_FT_S_SCS_10_ca.cert
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private

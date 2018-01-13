@@ -13,10 +13,8 @@
 #    limitations under the License.
 
 import security_testcase
-from util import winnforum_testcase,countdown
-import os,time,json,sys,logging
-from OpenSSL import SSL,crypto
-
+from util import winnforum_testcase
+import os
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -111,4 +109,3 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     device_cert = self.getCertFilename('sas_ca_signed_client.cert')
     device_key = self.getCertFilename('client.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
-
