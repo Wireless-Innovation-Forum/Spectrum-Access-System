@@ -128,7 +128,8 @@ keyUsage 						= critical, digitalSignature, cRLSign, keyCertSign
 ####################################################################
 #Not used yet
 [ crl_section ]
-URI.0 = http://crl3.digicert.com/WInnForumCA.crl 
+
+URI.0 = http://crl3.digicert.com/WInnForumCA.crl
 URI.1 = http://crl4.digicert.com/WInnForumCA.crl
 
 ####################################################################
@@ -156,6 +157,7 @@ policyIdentifier = 2.16.840.1.114412.2.1
 [ sas_ca ]
 
 subjectKeyIdentifier = hash
+#authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_SAS
@@ -331,6 +333,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
+
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -358,6 +361,17 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_OPERATOR
+
+[ oper_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_OPERATOR,ZONE
+
+
 
 [ cps ]
 
@@ -456,15 +470,6 @@ certificatePolicies=@cps,ROLE_CBSD
 #SERIAL
 #CATEGORY
 
-[ cbsd_req_inapplicable_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_CBSD,ZONE
-
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -550,4 +555,3 @@ tsa_name		= yes	# Must the TSA name be included in the reply?
 				# (optional, default: no)
 ess_cert_id_chain	= no	# Must the ESS cert id chain be included?
 				# (optional, default: no)
-######################################################################

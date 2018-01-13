@@ -23,15 +23,14 @@ import inspect
 
 from OpenSSL import SSL, crypto
 
-
 import sas
 import sas_testcase
-import json
+
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
   Upon destruction, restores the original ciphers and certificate.
-   """
+  """
 
   def __init__(self, sas, ciphers, client_cert, client_key):
     self.sas = sas
@@ -176,18 +175,15 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       ctx.set_verify(SSL.VERIFY_PEER, _ValidateSeverCertificateCb)
 
     client_ssl = SSL.Connection(ctx, client)
-
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
 
     try:
       client_ssl.do_handshake()
-      logging.info('TLS handshake: succeed')
+      logging.debug('TLS handshake: succeed')
     except SSL.Error as e:
-
       logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
       raise AssertionError('TLS handshake: failure: %s' % e.message)
-
     finally:
       client_ssl.close()
 

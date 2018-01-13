@@ -59,7 +59,6 @@ import ssl
 import os
 import sas_interface
 
-
 # Fake SAS server configurations.
 PORT = 9000
 CERT_FILE = 'certs/server.cert'
@@ -321,6 +320,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
+                       '/admin/injectdata/blacklist_dp_frn',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
                        '/admin/injectdata/cluster_list',
@@ -409,7 +409,6 @@ if __name__ == '__main__':
       '--verify_crl', help='Use revoke and CRL', dest='verify_crl',action='store_true'
                )
   args = parser.parse_args()
-
 
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
