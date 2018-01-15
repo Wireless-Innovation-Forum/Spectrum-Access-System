@@ -497,6 +497,15 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'cpiPublicKey': cpi_public_key
     })
     # Pre-load conditionals
+    conditionals_10 = {
+        'cbsdCategory': device_10['cbsdCategory'],
+        'fccId': device_10['fccId'],
+        'cbsdSerialNumber': device_10['cbsdSerialNumber'],
+        'airInterface': device_10['airInterface'],
+        'installationParam': device_10['installationParam'],
+        'measCapability': device_10['measCapability']
+    }
+    
     conditionals_12 = {
         'cbsdCategory': device_12['cbsdCategory'],
         'fccId': device_12['fccId'],
@@ -524,22 +533,22 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     conditionals = {
         'registrationData': [
-            conditionals_12, conditionals_13, conditionals_14
+            conditionals_10, conditionals_12, conditionals_13, conditionals_14
         ]
     }
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
+    del device_10['cbsdCategory']
+    del device_10['airInterface']
+    del device_10['installationParam']
+    del device_10['measCapability']
     del device_12['cbsdCategory']
     del device_12['airInterface']
     del device_12['measCapability']
     del device_13['cbsdCategory']
     del device_13['airInterface']
     del device_13['measCapability']
-    del device_14['cbsdCategory']
-    del device_14['airInterface']
-    del device_14['installationParam']
-    del device_14['measCapability']
     
     # Modify the configuration of the devices according to the specfications
     # invalid_cbsd serial number with length > 64 octets
@@ -558,9 +567,11 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     device_8['installationParam']['height'] = 4.0
     device_8['installationParam']['heightType'] = 'AGL'
     device_8['installationParam']['indoorDeployment'] = False  
-    device_9['installationParam']['eirpCapability'] = 31  
+    device_9['installationParam']['eirpCapability'] = 31
+    device_10['installationParam'] ={}
     device_10['installationParam']['indoorDeployment'] = True
     device_10['installationParam']['eirpCapability'] = 31
+    
     # Convert device_10's registration request to embed cpiSignatureData
     convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
                                             cpi_name, device_10)
