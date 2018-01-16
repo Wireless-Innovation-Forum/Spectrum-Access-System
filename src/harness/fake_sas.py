@@ -223,6 +223,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def BlacklistByFccId(self, request):
     pass
 
+  def BlacklistDPByFRN(self, request):
+    pass
+
   def BlacklistByFccIdAndSerialNumber(self, request):
     pass
 
@@ -317,6 +320,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
+                       '/admin/injectdata/blacklist_dp_frn',
                        '/admin/injectdata/blacklist_fcc_id_and_serial_number',
                        '/admin/injectdata/fss', '/admin/injectdata/wisp',
                        '/admin/injectdata/cluster_list',
@@ -357,16 +361,36 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc):
+def RunFakeServer(version, is_ecc, ca_cert,verify_crl):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-  server.socket = ssl.wrap_socket(
+
+  if ca_cert is not None:
+    assert os.path.exists(os.path.join('certs',ca_cert)), "%s is not exist in certs path" %ca_cert
+
+  if verify_crl:
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.options &= ssl.CERT_REQUIRED
+    ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
+    ssl_context.load_verify_locations(
+                        cafile=CA_CERT if not ca_cert else os.path.join('certs', ca_cert)
+                        )
+    ssl_context.load_cert_chain(
+                               certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+                               keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
+                                )
+    ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+    ssl_context.verify_mode = ssl.CERT_REQUIRED
+    server.socket = ssl_context.wrap_socket(server.socket,
+                                            server_side=True)
+  else:
+    server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
+      ca_certs=CA_CERT if not ca_cert else os.path.join('certs',ca_cert),
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
@@ -379,9 +403,14 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
+  parser.add_argument(
+      '--ca', help='Use CA certificate', dest='ca_cert', action='store')
+  parser.add_argument(
+      '--verify_crl', help='Use revoke and CRL', dest='verify_crl',action='store_true'
+               )
   args = parser.parse_args()
 
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc)
+  RunFakeServer(version, args.ecc, args.ca_cert, args.verify_crl)
