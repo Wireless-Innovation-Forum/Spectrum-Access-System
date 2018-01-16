@@ -227,9 +227,13 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
 
 #Certificate for test case WINNF.FT.S.SCS.10 - Certificate of wrong type presented during registration
 #creating a CBSD certificate signed by SAS CA instead of CBSD CA. The previously created client is used.
-echo "\n\nGenerate 'server' certificate/key"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in client.csr \
-    -out sas_ca_signed_client.cert -outdir ./root \
+echo "\n\nGenerate wrong type certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out server.csr -keyout  wrong_type_client.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD Example"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
+    -out wrong_type_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
