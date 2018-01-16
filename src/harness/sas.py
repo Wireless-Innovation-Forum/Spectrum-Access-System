@@ -228,6 +228,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
                         request, self._tls_config)
 
+  def InjectExZone(self, request):
+    return _RequestPost('https://%s/admin/injectdata/ex_zone' % self._base_url,
+                        request, self._tls_config)
+
   def InjectZoneData(self, request):
     return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
                         request, self._tls_config)
@@ -295,6 +299,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     _RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
                  self._base_url, None, self._tls_config)
+
+  def TriggerEnableNTIAExclusionZones(self):
+    _RequestPost('https://%s/admin/trigger/enforce_ntia_exz' %
+                 self._base_url, None, self._tls_config)
+    pass
 
   def GetDailyActivitiesStatus(self):
     return _RequestPost('https://%s/admin/get_daily_activities_status' %

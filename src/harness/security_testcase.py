@@ -19,6 +19,7 @@ import os
 import re
 import socket
 import urlparse
+import inspect
 
 from OpenSSL import SSL, crypto
 
@@ -65,6 +66,14 @@ class SecurityTestCase(sas_testcase.SasTestCase):
   def SasReset(self):
     """Resets the SAS UUT to its initial state."""
     self._sas_admin.Reset()
+
+  def getCertFilename(self, cert_name):
+    """Returns the absolute path of the file corresponding to the given |cert_name|.
+    """
+    harness_dir = os.path.dirname(
+                  os.path.abspath(inspect.getfile(inspect.currentframe())))
+    return os.path.join(harness_dir, 'certs', cert_name)
+
 
   def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
     """Checks that the TLS handshake succeed with the given parameters.

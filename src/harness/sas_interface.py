@@ -257,6 +257,31 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def InjectExZone(self, request):
+    """Inject PPA or NTIA zone information into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
+    """
+    pass
+
+
+  @abc.abstractmethod
+  def InjectZoneData(self, request):
+    """Inject PPA or NTIA zone information into SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "record" and the value is ZoneData object to be injected into 
+        SAS under test. For more information about ZoneData please see 
+        the SAS-SAS TS (WINNF-16-S-0096).
+    """
+    pass
+
+  @abc.abstractmethod
   def InjectZoneData(self, request):
     """Inject PPA or NTIA zone information into SAS under test.
 
@@ -387,6 +412,13 @@ class SasAdminInterface(object):
       3. Apply EIRP updates to devices
     """
     pass
+
+  @abc.abstractmethod
+  def TriggerEnableNTIAExclusionZones(self):
+    """SAS admin interface to trigger enforcement of the NTIA exclusion zones 
+    """
+    pass
+
 
   @abc.abstractmethod
   def GetDailyActivitiesStatus(self):

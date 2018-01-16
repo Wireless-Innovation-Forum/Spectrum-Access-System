@@ -229,6 +229,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def PreloadRegistrationData(self, request):
     pass
 
+  def InjectExZone(self, request, ssl_cert=None, ssl_key=None):
+    pass
+
   def InjectZoneData(self, request, ssl_cert=None, ssl_key=None):
     return request['record']['id']
 
@@ -261,6 +264,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
                                         uuid.uuid4().hex)
 
   def TriggerDailyActivitiesImmediately(self):
+    pass
+
+  def TriggerEnableNTIAExclusionZones(self):
     pass
 
   def GetDailyActivitiesStatus(self):
@@ -307,6 +313,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/%s/deregistration' % self.version:
       response = FakeSas().Deregistration(request)
+    elif self.path == '/admin/injectdata/ex_zone':
+      response = FakeSasAdmin().InjectExZone(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == 'admin/trigger/create_ppa':
@@ -328,6 +336,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
                        '/admin/trigger/daily_activities_immediately',
+                       '/admin/trigger/enforce_ntia_exz',
                        '/admin/trigger/load_dpas',
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
