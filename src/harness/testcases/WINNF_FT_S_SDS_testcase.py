@@ -65,11 +65,20 @@ class SasDomainproxySecurityTestcase(security_testcase.SecurityTestCase):
     """Certificate of wrong type presented during registration.
     Checks that SAS UUT response with fatal alert message.
     """
-    device_cert = self.getCertFilename('sas_ca_signed_dp_client.cert')
-    device_key = self.getCertFilename('dp_client.key')
-
-    self.assertTlsHandshakeFailure(device_cert, device_key)
-
+    device_cert = self.getCertFilename('wrong_type_client.cert')
+    device_key = self.getCertFilename('wrong_type_client.key')
+    try :
+      self.assertTlsHandshakeFailure(device_cert, device_key)
+    except AssertionError :
+      self.SasReset()
+      # Load Devices
+      device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      # Register the devices
+      devices = [device_a]
+      request = {'registrationRequest': devices}
+      response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
+      self.assertEqual(response[0]['response']['responseCode'], 104)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_11(self):
