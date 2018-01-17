@@ -160,7 +160,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertEqual(len(config['ppas']),
                          len(config['pals']))
         
-        # inject FCC IDs and User IDs     
+        # inject FCC IDs and User IDs of CBSDs   
         for device in config['registrationRequests']:
           self._sas_admin.InjectFccId({
               'fccId': device['fccId'],
