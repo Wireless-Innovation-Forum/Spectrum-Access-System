@@ -66,6 +66,8 @@ may be installed as part of the SciPy packages.
 This Python library can be installed with <code>pip</code>. It provides
 libraries for processing geometrical objects and shapes in Python.
 
+* pyJWT (https://pypi.python.org/pypi/PyJWT)
+* cryptography (https://pypi.python.org/pypi/cryptography)
 * pykml (https://pythonhosted.org/pykml/installation.html)
 
 This Python library can be installed with <code>pip</code>. It provides
@@ -99,3 +101,15 @@ that the package is installed successfully.
 
 * Security certificates, as described in
 <code>src/harness/testcases/testdata/certs/README.md</code>
+
+### Data
+
+Some of the required data is provided in folder data/. Scripts used to
+retrieve or generate these data are in src/data/.
+
+USGS NED Terrain and NLCD Land cover data are not provided as part of the
+data/ folder, but kept instead in a separate Git repository found at:
+ https://github.com/Wireless-Innovation-Forum/SAS-Data
+
+See the corresponding README.md for more details.
+

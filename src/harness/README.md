@@ -7,6 +7,8 @@ This folder contains code and testcases for SAS certification test as defined in
 
 *   Python 2.7.12 (https://www.python.org/downloads/release/python-2712/)
 *   PycURL 7.43.0 (http://pycurl.io), must have openSSL support
+*   pyJWT (https://pypi.python.org/pypi/PyJWT)
+*   cryptography (https://pypi.python.org/pypi/cryptography)
 *   jsonschema 2.6.0 (https://pypi.python.org/pypi/jsonschema)
 *   shapely (https://pypi.python.org/pypi/Shapely)
 *   validators (https://pypi.python.org/pypi/validators)
