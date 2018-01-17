@@ -19,7 +19,7 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
               /            /  |            \                             
             /             /   |             \                            
           /              /    |              \                            
-     dp_client   admin_client server        client|device_[a|c]
+     dp_client   admin_client server        client|device_[a|c]|dp_expired|wrong_type_dp_client
    corrupted_dp                
 
 
@@ -105,8 +105,8 @@ Required certificates are:
   `non_cbrs_root_signed_dp_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SDS_9.
 
-* `sas_ca_signed_dp_client.cert`: leaf DP certificate signed by SAS CA ('sas_ca') 
-  instead of DP CA ('dp_ca').
+* `wrong_type_dp_client.cert`: leaf DP certificate signed using server.csr
+  instead of dp_client.csr.
   Used on security test test_WINNF_FT_S_SDS_10.
 
 * `dp_expired.[cert|key]`: Domain Proxy expired certificate

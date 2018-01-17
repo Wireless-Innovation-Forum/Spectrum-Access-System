@@ -251,14 +251,10 @@ openssl ca -cert non_cbrs_root_signed_dp_ca.cert -keyfile private/non_cbrs_root_
 
 
 #Certificate for test case WINNF.FT.S.SDS.10 - Certificate of wrong type presented during registration
-#creating a DP certificate signed by SAS CA instead of DP CA. The previously created client is used.
-echo "\n\nGenerate wrong type certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out server.csr -keyout wrong_type_client.key \
-    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=DP unknown"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
-    -out wrong_type_client.cert -outdir ./root \
+#creating a DP certificate signed using server.csr. The previously created client is used.
+echo "\n\nGenerate wrong type certificate"
+openssl ca -cert dp_ca.cert -keyfile private/dp_ca.key -in server.csr \
+    -out wrong_type_dp_client.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -325,7 +321,6 @@ openssl ca -cert dp_ca.cert -keyfile private/dp_ca.key -in short_lived_dp_client
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert sas_ca.cert dp_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
-cat sas_ca.cert root_ca.cert > WINNF_FT_S_SDS_10_ca.cert
 
 echo "Appended crl and create new trusted chain that contains revoked CA"
 cat ca.cert root/crl/dp_ca.crl root/crl/root_ca.crl  > WINNF_FT_S_SDS_16_ca.cert
