@@ -226,12 +226,8 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #Certificate for test case WINNF.FT.S.SCS.10 - Certificate of wrong type presented during registration
-#creating a CBSD certificate signed by SAS CA instead of CBSD CA. The previously created client is used.
+#creating a CBSD certificate signed using server.csr. The previously created client is used.
 echo "\n\nGenerate wrong type certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out server.csr -keyout  wrong_type_client.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD Example"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
     -out wrong_type_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
@@ -240,7 +236,6 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
-cat cbsd_ca.cert root_ca.cert > WINNF_FT_S_SCS_10_ca.cert
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private

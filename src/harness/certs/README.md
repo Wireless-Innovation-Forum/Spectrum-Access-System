@@ -16,11 +16,11 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
                     /      \                                         |
                    /        \                                  unknown_device
               sas_ca        cbsd_ca                          
-              /  |  \          \                             
-             /   |    \         \                            
-            /    |      \        \                            
-  admin_client  server    \     client|device_[a|c]|corrupted_client                
-                           sas_ca_signed_client
+              /  |            \                             
+             /   |             \                            
+            /    |              \                            
+  admin_client  server         client|device_[a|c]|corrupted_client|wrong_type_client                
+                           
 
 
    unrecognized_ca              non_cbrs_root_ca
@@ -95,6 +95,5 @@ Required certificates are:
   `non_cbrs_root_signed_cbsd_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_9.
 
-* `sas_ca_signed_client.cert`: leaf CBSD certificate signed by SAS CA ('sas_ca') 
-  instead of CBSD CA ('cbsd_ca').
+* `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.

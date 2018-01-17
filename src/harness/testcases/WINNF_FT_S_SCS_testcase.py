@@ -108,16 +108,16 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     device_cert = self.getCertFilename('wrong_type_client.cert')
-    device_key = self.getCertFilename('wrong_type_client.key')
+    device_key = self.getCertFilename('server.key')
     try :
       self.assertTlsHandshakeFailure(device_cert, device_key)
     except AssertionError :
       self.SasReset()
-      # Load Devices
-      device_a = json.load(
+    # Load Devices
+    device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-      # Register the devices
-      devices = [device_a]
-      request = {'registrationRequest': devices}
-      response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
-      self.assertEqual(response[0]['response']['responseCode'], 104)
+    # Register the devices
+    devices = [device_a]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
+    self.assertEqual(response[0]['response']['responseCode'], 104)
