@@ -217,43 +217,40 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         esc_sensor_dump_data = []
         # STEP 5
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
-        # STEP 6 AND CHECK
-        self.assertGreaterEqual(3, len(response['files']))
-        self.assertLessEqual(2 + len(cbsd_ids), len(response['files']))
-        cbsd_dump_files = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'cbsd']
-        esc_sensor_dump_file = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'esc_sensor']
-        zone_dump_file = [dump_file for dump_file in response['files'] if dump_file['recordType'] ==  'zone']        
-        # Verify the record type
-        # Verify the response files with ActivityDumpFile.schema.json Object schema
+        # step 6 and check   
+
+        # download dump files and fill corresponding arrays
         for dump_file in response['files']:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                                dump_file[0])
             if dump_file['recordType'] ==  'cbsd':
-                cbsd_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])      
+                cbsd_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])   
             elif dump_file['recordType'] ==  'esc_sensor':
                 esc_sensor_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
             elif dump_file['recordType'] ==  'zone':
                 ppa_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
-           
+        
+        # verify the length of records equal to the inserted ones
         self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
         self.assertEqual(len(config['ppas']), len(ppa_dump_data))
         self.assertEqual(len(config['esc_sensors']), len(esc_sensor_dump_data))
         
-        # Verify the schema of record and  injected ppas exist in the dump files
+        # verify the schema of record and  the injected ppas exist in the dump files
         for index, ppa in enumerate(config['ppas']):
             ppa_record = [record for record in ppa_dump_data if record['id'].split("/")[-1] == ppa_ids[index]][0]
             
             self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)
             self.assertDictEqual(ppa, ppa_record)
             
-        # Verify the schema of record and  injected esc sensors exist in the dump files        
+        # verify the schema of record and  the injected esc sensors exist in the dump files        
         for esc in config['esc_sensors']:
             esc_record = [record for record in ppa_dump_data if record['id'] == esc['id']][0]
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
             self.assertDictEqual(esc, esc_record)
-        # Verify the retrieved files have correct schema
+            
+        # verify that retrieved cbsd dump files have correct schema
         for cbsd in cbsd_dump_data:
-            self.assertContainsRequiredFields("CbsdData.schema.json", record)
-    
-        # Verify all the previous activities on CBSDs and Grants exist in the dump files
+            self.assertContainsRequiredFields("CbsdData.schema.json", record)   
+            
+        # verify all the previous activities on CBSDs and Grants exist in the dump files
         self.assertCbsdRecord(config['registrationRequests'], grants, grant_responses, cbsd_dump_data)
