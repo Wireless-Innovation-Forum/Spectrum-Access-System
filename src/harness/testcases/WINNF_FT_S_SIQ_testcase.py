@@ -592,3 +592,46 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('availableChannel' in response[response_num])
       self.assertEqual(response[response_num]['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_13(self):
+    """Blacklisted CBSD in Array request.
+
+    The response for Inquiry #3 (blacklisted) should be code 101.
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    devices = [device_a, device_c, device_e]
+    cbsd_ids = self.assertRegistered(devices)
+
+    # Blacklist third cbsd
+    request = {'fccId': device_e['fccId']}
+    self._sas_admin.BlacklistByFccId(request)
+    del request
+
+    # Spectrum Inquiries: All parameters valid.
+    spectrum_inquiries = []
+    for i in range(len(devices)):
+      spectrum_inquiry = json.load(
+          open(
+              os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      spectrum_inquiry['cbsdId'] = cbsd_ids[i]
+      spectrum_inquiries.append(spectrum_inquiry)
+
+    request = {'spectrumInquiryRequest': spectrum_inquiries}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+
+    # Check Spectrum Inquiry Response
+    self.assertEqual(len(response), 3)
+    # First and second cbsd
+    for resp_num in range(2):
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
+    # Third cbsd (blacklisted)
+    self.assertEqual(response[2]['response']['responseCode'], 101)
