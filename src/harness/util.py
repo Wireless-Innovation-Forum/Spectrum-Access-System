@@ -277,4 +277,3 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
-
