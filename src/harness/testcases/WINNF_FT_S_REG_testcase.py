@@ -21,7 +21,6 @@ import jwt
 import sas
 import sas_testcase
 
-
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, generateCpiRsaKeys, generateCpiEcKeys, convertRequestToRequestWithCpiSignature
 
