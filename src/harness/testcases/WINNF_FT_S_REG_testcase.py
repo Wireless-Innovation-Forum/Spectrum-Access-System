@@ -616,3 +616,57 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         self.assertTrue('cbsdId' in response)
       else:
         self.assertFalse('cbsdId' in response)
+        
+  def generate_REG_13_default_config(self, filename):
+    """Generates the WinnForum configuration for REG.13."""
+
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Create the actual config.
+    devices = [device_a]
+    config = {
+        'fccIds': [(d['fccId'], 47) for d in devices],
+        'userIds': [d['userId'] for d in devices],
+        'registrationRequests': devices,
+        # Configure SAS version to a higher than supported version.
+        'sasVersion': 'v5.0'
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_REG_13_default_config)
+  def test_WINNF_FT_S_REG_13(self, config_filename):
+    """[Configurable] Unsupported SAS Protocol version."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(len(config['fccIds']), len(config['userIds']))
+    self.assertEqual(len(config['fccIds']), len(config['registrationRequests']))
+    # Use the (higher) SAS version set in the config file.
+    self._sas._sas_version  = config['sasVersion']
+
+    # Whitelist N1 FCC ID.
+    for fcc_id, max_eirp_dbm_per_10_mhz in config['fccIds']:
+      self._sas_admin.InjectFccId({
+          'fccId': fcc_id,
+          'fccMaxEirp': max_eirp_dbm_per_10_mhz
+      })
+
+    # Whitelist N1 user ID.
+    for user_id in config['userIds']:
+      self._sas_admin.InjectUserId({'userId': user_id})
+
+    # Register N1 CBSD.
+    request = {'registrationRequest': config['registrationRequests']}
+    try:
+      responses = self._sas.Registration(request)['registrationResponse']
+      # Check registration response.
+      self.assertEqual(len(responses), len(config['registrationRequests']))
+      for i in range(len(responses)):
+        response = responses[i]
+        logging.debug('Looking at response number %d', i)
+        self.assertEqual(response['response']['responseCode'], 100)
+    except AssertionError as e:
+      # Allow HTTP status 404
+      self.assertEqual(e.args[0], 404)
