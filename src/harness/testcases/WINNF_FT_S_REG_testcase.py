@@ -484,7 +484,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         self._sas_admin.InjectFccId({'fccId': device['fccId']})
         self._sas_admin.InjectUserId({'userId': device['userId']})
     # Inject Fcc Id with not default Fcc max Eirp
-    self._sas_admin.InjectFccId({'fccId':'fccId_with_approved_eirp',\
+    self._sas_admin.InjectFccId({'fccId':'fccId_approved_eirp',\
                                   'fccMaxEirp': 25})   
     
     # (Generate CPI RSA keys and) Load CPI user info
@@ -553,7 +553,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     # Modify the configuration of the devices according to the specfications
     # invalid_cbsd serial number with length > 64 octets
     device_2['cbsdSerialNumber'] = 's' * 65
-    # invalid_cbsd serial number with length > 20 octets
+    # invalid_fcc_id with length > 20 octets
     device_3['fccId'] = 'f' * 21
     device_4['userId'] = 'invalid_userId_@'
     device_5['installationParam']['latitude'] = 90.01
@@ -610,9 +610,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
           response['registrationResponse'][0]['response']['responseCode'], 0)
     self.assertEqual(
           response['registrationResponse'][12]['response']['responseCode'], 0)
-  for index in range(1, 12) + range(13, 16):
-    self.assertEqual(
-          response['registrationResponse'][index]['response']['responseCode'], 103)
+    for index in range(1, 12) + range(13, 16):
+        self.assertEqual(
+            response['registrationResponse'][index]['response']['responseCode'], 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
