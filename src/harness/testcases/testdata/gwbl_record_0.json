@@ -1,0 +1,22 @@
+{"record":
+{
+  "id": "incumbent/wisp/0",
+  "type": "wisp",
+  "deploymentParam":
+  [{
+      "installationParam": {
+        "longitude": -99.7,
+        "latitude": 39.1,
+        "antennaBeamwidth": 30,
+        "antennaAzimuth": 270,
+        "antennaDowntilt": -90
+      },
+      "operationParam": {
+        "operationFrequencyRange": {
+          "lowFrequency": 3650000000.0,
+          "highFrequency": 3700000000.0
+        }
+      }
+    }]
+}
+}
