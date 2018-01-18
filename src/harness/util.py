@@ -24,8 +24,10 @@ import random
 import uuid
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 import jwt
+
 from shapely.geometry import shape, Point, LineString
 
 
@@ -68,7 +70,9 @@ def configurable_testcase(default_config_function):
       return _func
 
     # Create config directory for this function if it doesn't already exist.
-    config_dir = os.path.join('testcases', 'configs', testcase.func_name)
+    harness_dir = os.path.dirname(
+              os.path.abspath(inspect.getfile(inspect.currentframe())))
+    config_dir = os.path.join(harness_dir, 'testcases', 'configs', testcase.func_name)
     config_names = os.listdir(config_dir) if os.path.exists(config_dir) else []
 
     # No existing configs => generate default config.
@@ -224,6 +228,23 @@ def generateCpiRsaKeys():
   return rsa_private_key, rsa_public_key
 
 
+def generateCpiEcKeys():
+  """Generate a private/public EC SECP521R1 key pair.
+
+  Returns:
+    A tuple (private_key, public key) as PEM string encoded.
+  """
+  ec_key = ec.generate_private_key(ec.SECP521R1(), default_backend())
+  ec_private_key = ec_key.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.TraditionalOpenSSL,
+      encryption_algorithm=serialization.NoEncryption())
+  ec_public_key = ec_key.public_key().public_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+  return ec_private_key, ec_public_key
+
+
 def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
                                             cpi_name, request,
                                             jwt_algorithm='RS256'):
@@ -243,7 +264,8 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   cpi_signed_data['installationParam'] = request['installationParam']
   del request['installationParam']
   cpi_signed_data['professionalInstallerData'] = {}
-  cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+  if cpi_id:
+    cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
   cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
   cpi_signed_data['professionalInstallerData'][
       'installCertificationTime'] = datetime.utcnow().strftime(

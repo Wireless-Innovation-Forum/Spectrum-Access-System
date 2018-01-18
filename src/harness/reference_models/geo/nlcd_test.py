@@ -105,11 +105,14 @@ class TestNlcd(unittest.TestCase):
   def test_outside_grid(self):
     # Outside database tiles
     code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.75, lon=-121.9999)
+        lat=37.75, lon=-124.2)
     self.assertEqual(code, 0.0)
-    code = self.nlcd_driver.GetLandCoverCodes(
-        lat=37.75, lon=-121.9998)
-    self.assertEqual(code, 0.0)
+
+  def test_missing_tile(self):
+    # Missing expected tiles shall raise an error
+    with self.assertRaises(IOError):
+      h = self.nlcd_driver.GetLandCoverCodes(
+          lat=37.75, lon=-121.9999)
 
   def test_region_vote(self):
     points = [(37.751113, -122.449722),  # Urban
@@ -146,7 +149,7 @@ class TestNlcd(unittest.TestCase):
     self.assertEqual(len(self.nlcd_driver._tile_lru), 2)
 
   def test_vote_undefd(self):
-    points = [(37.75, -121.9998)]
+    points = [(37.75, -124.2)]
     reg_type = self.nlcd_driver.RegionNlcdVote(points, out_forbid=False)
     self.assertEqual(reg_type, 'RURAL')
     with self.assertRaises(ValueError):
