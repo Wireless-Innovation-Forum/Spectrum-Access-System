@@ -22,7 +22,6 @@ import sas_interface
 import sas
 import signal
 import time
-from operator import itemgetter
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
   def setUp(self):
