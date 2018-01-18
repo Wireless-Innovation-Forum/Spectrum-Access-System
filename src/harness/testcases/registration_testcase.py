@@ -534,13 +534,8 @@ class RegistrationTestcaseUsingOldIds(unittest.TestCase):
     self.assertFalse('cbsdId' in response)
     self.assertEqual(response['response']['responseCode'], 200)
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_REG_14(self):
-    """Pending registration in Array request (responseCode 200)
-    The response should be FAILURE.
-    """
-
-    # Register the devices
+  def generate_REG_14_config(self, config_filename):
+    # Load device info
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_c = json.load(
@@ -570,30 +565,50 @@ class RegistrationTestcaseUsingOldIds(unittest.TestCase):
         'installationParam': device_d['installationParam']}
     del conditionals_d['installationParam']['antennaBeamwidth']
     conditionals = {'registrationData': [conditionals_d]}
-    self._sas_admin.PreloadRegistrationData(conditionals)
-
-    # Inject FCC ID's
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
 
     device_a['measCapability'] = []
     device_c['measCapability'] = []
     device_b['measCapability'] = []
     device_d['measCapability'] = []
 
+    config = {
+        'registrationRequest': [device_a, device_c, device_b, device_d],
+        'conditionalRegistrationData': conditionals,
+        'responseCodes': [0, 200, 200, 200]
+    }
+    with open(config_filename, 'w') as f:
+      f.write(json.dumps(config, indent=2, sort_keys=False))
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_14(self):
+    """Pending registration in Array request (responseCode 200)
+    The response should be FAILURE.
+    """
+    config_filename = os.path.join('testcases', 'config',
+                                   'WINNF_FT_S_REG_14.config')
+
+    if not os.path.isfile(config_filename):
+      self.generate_REG_14_config(config_filename)
+    with open(config_filename, 'r') as f:
+      config = json.loads(f.read())
+
+    for device in config['registrationRequest']:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+
+    self._sas_admin.PreloadRegistrationData(
+        config['conditionalRegistrationData'])
+
     # Register devices
-    devices = [device_a, device_c, device_b, device_d]
-    request = {'registrationRequest': devices}
+    request = {'registrationRequest': config['registrationRequest']}
     response = self._sas.Registration(request)
     # Check registration response
     self.assertTrue('cbsdId' in response['registrationResponse'][0])
     for resp in response['registrationResponse']:
-        self.assertFalse('measReportConfig' in resp)
-    self.assertEqual(response['registrationResponse'][0]['response']['responseCode'], 0)
-    for resp in response['registrationResponse'][1:]:
-        self.assertEqual(resp['response']['responseCode'], 200)
+      self.assertFalse('measReportConfig' in resp)
+
+    for resp, expected_code in zip(response['registrationResponse'],
+                                   config['responseCodes']):
+      self.assertEqual(resp['response']['responseCode'], expected_code)
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_15(self):
