@@ -48,6 +48,9 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             'installationParam': device_b['installationParam']
         }
         conditionals = {'registrationData': [conditionals_b]}
+        del device_b['cbsdCategory']
+        del device_b['airInterface']
+        del device_b['installationParam']
         devices = [device_a, device_b, device_c]
         # Grants
         grants = []
@@ -63,15 +66,17 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
         ppa_record = json.load(
           open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-        ppas[0], pals[0] = makePpaAndPalRecordsConsistent(ppa_record,
+        ppa, pal = makePpaAndPalRecordsConsistent(ppa_record,
                                                                 [pal_record],
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 device_a['userId'])
+        ppas.append(ppa)
+        pals.append(pal)
         # ESC senosrs
         esc_sensors = []
-        esc_sensors[0] = json.load(
-              open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+        esc_sensors.append(json.load(
+              open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
         config = {
             'registrationRequests': devices,
             'conditionalRegistrationData': conditionals,
@@ -81,12 +86,20 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             'esc_sensors' : esc_sensors
         }
         writeConfig(filename, config)
-    
-    def assertCbsdRecord(self, registration_request, grant_request, grant_response, recordData):
+    def assertEqualToDeviceParamOrIfExistWithDefault(self, attr_name, parent_attr_in_record,\
+                                          parent_attr_in_device, attr_defaule_value):
+        if attr_name in parent_attr_in_device:
+           self.assertEqual(parent_attr_in_device[attr_name],\
+             parent_attr_in_record[attr_name])
+        elif attr_name in parent_attr_in_record:
+            self.assertEqual(parent_attr_in_record[attr_name], attr_defaule_value)
+        
+    def assertCbsdRecord(self, registration_request, grant_request, grant_response, cbsd_dump_data):
         for index, device in enumerate(registration_request):
             record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
-            cbsd_record = [record['registration'] for record in recordData if record['id'] == record_id]
+            cbsd_record = [record['registration'] for record in cbsd_dump_data if record['id'] == record_id]
             self.assertEqual(1, len(cbsd_record))
+            # required parameters
             self.assertEqual(device['cbsdCategory'], cbsd_record[0]['cbsdCategory'])
             self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
             self.assertEqual(device['airInterface']['radioTechnology'],\
@@ -99,50 +112,68 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                              cbsd_record[0]['installationParam']['height'])
             self.assertEqual(device['installationParam']['heightType'], \
                              cbsd_record[0]['installationParam']['heightType'])
-            self.assertEqual(device['installationParam']['indoorDeployment'], \
-                             cbsd_record[0]['installationParam']['indoorDeployment'])
             self.assertEqual(device['installationParam']['antennaGain'], \
-                             cbsd_record[0]['installationParam']['antennaGain'])     
-            self.assertEqual(device['installationParam']['antennaAzimuth'], \
-                             cbsd_record[0]['installationParam']['antennaAzimuth'])        
-            self.assertEqual(device['installationParam']['antennaDowntilt'], \
-                             cbsd_record[0]['installationParam']['antennaDowntilt'])       
-            self.assertEqual(device['installationParam']['antennaBeamwidth'], \
-                             cbsd_record[0]['installationParam']['antennaBeamwidth'])    
-                         
+                             cbsd_record[0]['installationParam']['antennaGain'])
+             # parameters should exist in record if exist in device,\
+             # if exist only in record, its value should be equal to a default value          
+            self.assertEqualToDeviceParamOrIfExistWithDefault('indoorDeployment', \
+                device['installationParam'], cbsd_record[0]['installationParam'], False)
+            
+            self.assertEqualToDeviceParamOrIfExistWithDefault('antennaAzimuth', \
+                device['installationParam'], cbsd_record[0]['installationParam'], 0)
+            
+            self.assertEqualToDeviceParamOrIfExistWithDefault('antennaDowntilt', \
+                device['installationParam'], cbsd_record[0]['installationParam'], 0)
+            
+            self.assertEqualToDeviceParamOrIfExistWithDefault('antennaBeamwidth', \
+                device['installationParam'], cbsd_record[0]['installationParam'], 0)
+            # if callSign exist, it should have the same value as registered
+            if 'callSign' in cbsd_record[0]:
+                self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
+            max_eirp_by_MHz = 37;           
+            # if eirpCapacity in the record, it should be the same as device or in accepted limits
+            if 'eirpCapability' in cbsd_record[0]:
+                if 'eirpCapability' in device:
+                    self.assertEqual(device['eirpCapability'], cbsd_record[0]['eirpCapability'])
+                    max_eirp_by_MHz = cbsd_record[0]['eirpCapability'] - 10
+                else:
+                    self.assertLessEqual(cbsd_record[0]['eirpCapability'], 47)
+                    self.assertGreaterEqual(cbsd_record[0]['eirpCapability'], -127)
+            # antennaModel if exists in device should exist with same value in record              
+            if 'antennaModel' in device['installationParam'] \
+              and 'antennaModel' in cbsd_record[0]['installationParam']:
+                self.assertEqual(device['installationParam']['antennaModel'], \
+                                 cbsd_record[0]['installationParam']['antennaModel'])
+            else:
+                self.assertFalse('antennaModel' in cbsd_record[0]['installationParam'])
+            
+            # groupingParam if exists in device should exist with same value in record     
+            if 'groupingParam' in device:      
+                self.assertDictEqual(device['groupingParam'], \
+                                 cbsd_record[0]['groupingParam'])
+            else:
+                self.assertFalse('groupingParam' in cbsd_record[0])
+          
             # Get grants by cbsd_id
-            grants_of_cbsd = [cbsd['grants'] for cbsd in recordData if cbsd['id'] == record_id]
+            grants_of_cbsd = [cbsd['grants'] for cbsd in cbsd_dump_data if cbsd['id'] == record_id]
             self.assertEqual(1, len(grants_of_cbsd))
             self.assertTrue('id' in grants_of_cbsd[0])
             # Verify the Grant Of the Cbsd
             if grants_of_cbsd[0]['requestedOperationParam'] is not None :
-                self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
-                             grant_request[index]['operationParam']['maxEirp'])    
-                self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
-                                 ['lowFrequency'], grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
-                self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                                 ['operationFrequencyRange']['highFrequency'], grant_request[index]['operationParam']\
-                                 ['operationFrequencyRange']['highFrequency']) 
-                
-            self.assertEqual( grants_of_cbsd[0]['operationParam']['maxEirp'],\
-                             grant_request[index]['operationParam']['maxEirp'])    
-            self.assertEqual( grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['lowFrequency'],\
-                             grant_request[index]['operationParam']['operationFrequencyRange']['lowFrequency'])
-            self.assertEqual(grants_of_cbsd[0]['operationParam']['operationFrequencyRange']['highFrequency'],\
-                             grant_request[index]['operationParam']['operationFrequencyRange']['highFrequency'])
+                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                             max_eirp_by_MHz)
+                self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                             -137)
+                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                                 ['lowFrequency'], 3550000000)
+                self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                                 ['operationFrequencyRange']['highFrequency'], 3700000000)
+          
+            self.assertDictEqual( grants_of_cbsd[0]['operationParam'], \
+                                  grant_request[index]['operationParam'])
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
             self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-            self.assertEqual(False, grants_of_cbsd[0]['terminated']) 
-    
-    # generate default config:        
-        # generate default CBSDs and Grants data
-        # generate defaul PPAs 
-        # generate default Esc
-    
-    # compare two arrays
-    # compare CBSD Record with (CBSD & Grant) requests & responses
-    # compare PAL & PPA
-    # compare Esc sensor
+            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
     
     @configurable_testcase(generate_FAD_1_default_config)
     def test_WINNF_FT_S_FAD_1(self, config_filename):
@@ -152,7 +183,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 		SAS UUT approves the request and responds,
 		with correct content and format for both dump message and files 
           """
-        
+        # load config file
         config = loadConfig(config_filename)
         # Very light checking of the config file.
         self.assertEqual(len(config['registrationRequests']),
@@ -181,13 +212,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for index, response in enumerate(responses):
             self.assertEqual(response['response']['responseCode'], 0)
             grants[index]['cbsdId'] = response['cbsdId']
-        # send grants
+        # send grant request with N1 grants
         del responses
         grant_responses = self._sas.Grant({'grantRequest': grants})['grantResponse']
         # check grant response
         self.assertEqual(len(grant_responses), len(config['grants']))
-        for response in grant_responses:
-            self.assertEqual(response['response']['responseCode'], 0)       
+        for grant_response in grant_responses:
+            self.assertEqual(grant_response['response']['responseCode'], 0)       
         # inject N2 PPAs and PALs
         ppa_ids = []
         for index, ppa in enumerate(config['ppas']):
@@ -196,14 +227,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # inject N3 Esc sensor
         for esc_sensor in config['esc_sensors']:
             self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})   
-        # get dump message
-        # check message
-        
-        # for each file
-            # download & add to one of the array (CBSD, PPA, Esc)
-        
-        # foreach array compare it with the input data
-        # check that array contain all input not more with correct format and information
+            
         # STEP 3
         self._sas_admin.TriggerFullActivityDump()
         # STEP 4
@@ -211,14 +235,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # STEP 5
         # check dump message format
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
-        
+        # an array for each record type
         cbsd_dump_data = []
         ppa_dump_data = []
         esc_sensor_dump_data = []
         # STEP 5
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
+        
         # step 6 and check   
-
         # download dump files and fill corresponding arrays
         for dump_file in response['files']:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
@@ -235,14 +259,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertEqual(len(config['ppas']), len(ppa_dump_data))
         self.assertEqual(len(config['esc_sensors']), len(esc_sensor_dump_data))
         
-        # verify the schema of record and  the injected ppas exist in the dump files
+        # verify the schema of record and that the injected ppas exist in the dump files
         for index, ppa in enumerate(config['ppas']):
             ppa_record = [record for record in ppa_dump_data if record['id'].split("/")[-1] == ppa_ids[index]][0]
-            
+            del ppa_record['id']
             self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)
             self.assertDictEqual(ppa, ppa_record)
             
-        # verify the schema of record and  the injected esc sensors exist in the dump files        
+        # verify the schema of record and that the injected esc sensors exist in the dump files        
         for esc in config['esc_sensors']:
             esc_record = [record for record in ppa_dump_data if record['id'] == esc['id']][0]
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
