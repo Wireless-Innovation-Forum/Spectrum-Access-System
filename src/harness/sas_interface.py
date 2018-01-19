@@ -463,6 +463,15 @@ class SasAdminInterface(object):
         "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
     """   
     pass
+
+  @abc.abstractmethod
+  def TriggerFullActivityDump(self):
+    """SAS admin interface to trigger Generation Of Full Activity Dump
+
+    Note : SAS should not return until the full dump creation is complete
+    """
+    pass
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -570,14 +579,6 @@ class SasTestcaseInterface(object):
     Trigger the Daily Activities Immediately and will check for the status
     of activity every 10 seconds until it is completed.
     If the status is not changed within 2 hours it will throw an exception.
-    """
-    pass
-  
-  @abc.abstractmethod
-  def TriggerFullActivityDump(self):
-    """SAS admin interface to trigger Generation Of Full Activity Dump
-
-    Note : SAS should not return until the full dump creation is complete
     """
     pass
 

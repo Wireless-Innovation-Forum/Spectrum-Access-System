@@ -14,7 +14,8 @@
 import json
 import os
 import sas
-from  util import winnforum_testcase, makePpaAndPalRecordsConsistent
+from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
+ configurable_testcase, writeConfig, loadConfig
 import sas_testcase
 import hashlib
 from datetime import datetime, timedelta
@@ -39,7 +40,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             open(os.path.join('testcases', 'testdata', 'device_c.json')))
         # Device #2 is Category B
         # pre-loaded.
-        self.assertEqual(device_d['cbsdCategory'], 'B')
+        self.assertEqual(device_b['cbsdCategory'], 'B')
         conditionals_b = {
             'cbsdCategory': device_b['cbsdCategory'],
             'fccId': device_b['fccId'],
@@ -55,8 +56,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # Grants
         grants = []
         for index in range(len(devices)):
-            grants[index] = json.load(
-             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+            grants.append(json.load(
+             open(os.path.join('testcases', 'testdata', 'grant_0.json'))))
         # PPAs and PALs
         ppas = []
         pals = []

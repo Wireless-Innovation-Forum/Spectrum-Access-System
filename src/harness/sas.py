@@ -210,6 +210,7 @@ class SasImpl(sas_interface.SasInterface):
 
   def _GetDefaultSasSSLKeyPath(self):
     return os.path.join('certs', 'client.key')
+
   def _DownloadFile(self, url, ssl_cert, ssl_key):
     response = StringIO.StringIO()
     conn = pycurl.Curl()
@@ -355,8 +356,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     
   def TriggerFullActivityDump(self):
     _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % 
-      self._GetDefaultAdminSSLCertPath(),
-                   sself._base_url, request, self._tls_config)
+                   self._base_url, None, self._tls_config)
     
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
