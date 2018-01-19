@@ -1,7 +1,7 @@
 {"record":
 {
-  "id": "incumbent/wisp/0",
-  "type": "wisp",
+  "id": "incumbent/uls/0",
+  "type": "PART_90",
   "deploymentParam": [
     {
       "operationParam": {
