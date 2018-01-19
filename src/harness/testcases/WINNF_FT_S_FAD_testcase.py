@@ -166,9 +166,12 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                              -137)
                 self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
                                  ['lowFrequency'], 3550000000)
+                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']\
+                                     ['operationFrequencyRange']['lowFrequency'] % 5000000, 0)
                 self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
                                  ['operationFrequencyRange']['highFrequency'], 3700000000)
-          
+                self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                                 ['operationFrequencyRange']['highFrequency'] % 5000000, 0)     
             self.assertDictEqual( grants_of_cbsd[0]['operationParam'], \
                                   grant_request[index]['operationParam'])
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
