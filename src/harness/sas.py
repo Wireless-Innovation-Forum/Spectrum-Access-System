@@ -244,6 +244,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url,
                  request, self._tls_config)
 
+  def BlacklistDPByFRN(self, request):
+    _RequestPost('https://%s/admin/injectdata/blacklist_dp_frn' % self._base_url,
+                 request, self._tls_config)
+
   def BlacklistByFccIdAndSerialNumber(self, request):
     _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
                  self._base_url, request, self._tls_config)

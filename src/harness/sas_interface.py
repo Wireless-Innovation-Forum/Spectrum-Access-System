@@ -231,6 +231,17 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def BlacklistDPByFRN(self, request):
+    """Inject an FRN of DP which will be blacklisted by the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "frn" and the value is the FRN (string) to be blacklisted.
+    """
+    pass
+
+
+  @abc.abstractmethod
   def BlacklistByFccIdAndSerialNumber(self, request):
     """Inject an (FCC ID, serial number) pair which will be blacklisted by the
        SAS under test.

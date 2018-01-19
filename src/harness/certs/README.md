@@ -12,13 +12,27 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca                          unknown_ca
-                               /     \                              |
-                              /       \                       unknown_device
-                         sas_ca       cbsd_ca
-                         /    |          \
-                        /     |           \
-             admin_client  server   client|device_[a|c]
+                 |---------------root_ca                                                             
+                 |               /      \                               
+                 |              /        \                              
+               dp_ca       sas_ca        cbsd_ca                          
+              /            /  |            \                             
+            /             /   |             \                            
+          /              /    |              \                            
+     dp_client   admin_client server        client|device_[a|c]|dp_expired|wrong_type_dp_client
+   corrupted_dp                
+
+
+      unknown_ca     
+           |         
+     unknown_device  
+                      
+
+  unrecognized_ca              non_cbrs_root_ca
+        |                           |
+ unrecognized_dp           non_cbrs_root_signed_dp_ca
+                                    |
+                              non_cbrs_signed_dp
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -36,6 +50,8 @@ Required certificates are:
 
 * `cbsd_ca.cert`: intermediate CBSD certificate authority for all CBSD device,
   signed by `root_ca`.
+
+* `dp_ca.cert`: intermediate Domain Proxy certificate authority signed by `root_ca`.
 
 * `client.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
   Used in all tests not concerned with security-related features.
@@ -59,3 +75,50 @@ Required certificates are:
 * `unknown_device.[cert|key]`: leaf CBSD device certificate signed by
   `unknown_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_2.
+
+* `unrecognized_root_ca.cert`: root certificate authority to generate unrecognized device
+  Self signed.
+
+* `dp_client.[cert|key]`: Domain Proxy certificate signed by DP CA.
+  Used in all tests not concerned with security-related features.
+
+* `unrecognized_dp.[cert|key]`: Domain Proxy certificate signed by
+  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SDS_6.
+ 
+* `corrupted_dp.cert`: corrupted 'dp_client.cert' certificate. This is generated
+  during the execution of test_WINNF_FT_S_SDS_7
+  Used on security test test_WINNF_FT_S_SDS_7.
+
+* `self_signed_dp_client.cert`: self signed certificate of domain proxy client signed by dp_client.key
+  Used on security test test_WINNF_FT_S_SDS_8.
+
+* `non_cbrs_root_ca.cert`: a root certificate authority that is not approved as a CBRS root CA
+  Self signed.
+  Used on security test test_WINNF_FT_S_SDS_9.
+
+* `non_cbrs_root_signed_dp_ca.cert`: an intermediate DP certificate authority for domain proxy client,
+  signed by `non_cbrs_root_ca`.
+  Used on security test test_WINNF_FT_S_SDS_9.
+
+* `non_cbrs_signed_dp.[cert|key]`: leaf DP certificate signed by
+  `non_cbrs_root_signed_dp_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SDS_9.
+
+* `wrong_type_dp_client.cert`: leaf DP certificate signed using server.csr
+  instead of dp_client.csr.
+  Used on security test test_WINNF_FT_S_SDS_10.
+
+* `dp_expired.[cert|key]`: Domain Proxy expired certificate
+  Used on security test test_WINNF_FT_S_SDS_12.
+
+* `dp_client_inapplicable.[cert|key]`: leaf DP device inapplicable fields certificate
+  Used on security test test_WINNF_FT_S_SDS_15.
+
+* `[root_ca|dp_ca].crl`: CRL is generated for root_ca and dp_ca after revoke intermediate CA dp_ca
+  `WINNF_FT_S_SDS_16_ca.cert`: CA trusted chain appended with CRL of root and intermediate CA
+  Used on security test test_WINNF_FT_S_SDS_16
+ 
+* `short_lived_dp_client.[cert|key]`: leaf DP device will expire in short duration mentioned in generate_fake_certs.sh 
+  Used on security test test_WINNF_FT_S_SDS_17,test_WINNF_FT_S_SDS_18 and test_WINNF_FT_S_SDS_19 
+ 

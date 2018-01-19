@@ -20,6 +20,8 @@ import inspect
 import json
 import logging
 import os
+import sys
+import time
 import random
 import uuid
 from cryptography.hazmat.backends import default_backend
@@ -277,3 +279,13 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
+
+def countdown(t):
+  while t:
+    mins, secs = divmod(t, 60)
+    timeformat = '{:02d}:{:02d}'.format(mins, secs)
+    time.sleep(1)
+    sys.stdout.write("Waiting for client certificate to be invalidated [mm:ss] : %s   \r" % str(timeformat))
+    sys.stdout.flush()
+    t -= 1
