@@ -117,16 +117,20 @@ def GetEHataStandardDeviation(freq_mhz, is_urban):
 def _GetMedianToMeanOffsetDb(freq_mhz, is_urban):
   """Gets the Offset from median to mean for lognormal distribution.
 
+  Note that the offset is computed in order to have
+    (median_pathloss + offset) being the pathloss representation of the mean
+  signal level. This explains the minus applied to the offset.
+
   Inputs:
     freq_mhz:  the frequency in MHz. Used to compute the eHata stdev.
     is_urban:  if False, an extra 2dB is added to the stdev
 
   Returns:
-    the offset in dB to apply to the median
+    the offset in dB to apply to the median pathloss.
   """
   std = GetEHataStandardDeviation(freq_mhz, is_urban)
   offset = std**2 * math.log(10.) / 20.
-  return offset
+  return -offset
 
 
 # Defined namedtuple for nice output packing
