@@ -244,6 +244,9 @@ class TerrainDriver:
         # Use the elevation of the nearest point
         alt[idx] = tile_cache[iy[idx], ix[idx]]
 
+    if not do_interp:
+      alt[alt < -900] = 0.
+
     return alt[0] if is_scalar else alt
 
   def TerrainProfile(self, lat1, lon1, lat2, lon2,
