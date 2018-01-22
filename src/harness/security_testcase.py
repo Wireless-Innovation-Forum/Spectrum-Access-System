@@ -75,7 +75,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
                   os.path.abspath(inspect.getfile(inspect.currentframe())))
     return os.path.join(harness_dir, 'certs', cert_name)
 
-  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key,IsVerifyServercert=False):
+  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
     """Checks that the TLS handshake succeed with the given parameters.
 
     Attempts to establish a TLS session with the given |base_url|, using the
@@ -111,10 +111,91 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       return ok
     ctx.set_info_callback(_InfoCb)
 
-    if IsVerifyServercert:
-      default_values = json.load(
-                      open(os.path.join('testcases', 'configs', 'test_WINNF_FT_S_SCS_20', 'default.config')))
 
+    # only for potential debugging info...
+    def _VerifyCb(conn, cert, errnum, depth, ok):
+      certsubject = crypto.X509Name(cert.get_subject())
+      commonname = certsubject.commonName
+      logging.debug('TLS handshake verify: certificate: %s  -> %d', commonname, ok)
+      return ok
+    ctx.set_verify(SSL.VERIFY_PEER, _VerifyCb) 
+    
+
+    client_ssl = SSL.Connection(ctx, client)
+
+    client_ssl.set_connect_state()
+    client_ssl.set_tlsext_host_name(url.hostname)
+
+    try:
+      client_ssl.do_handshake()
+      logging.info('TLS handshake: succeed')
+    except SSL.Error as e:
+
+      logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
+      raise AssertionError('TLS handshake: failure: %s' % e.message)
+
+    finally:
+      client_ssl.close()
+
+    self.assertEqual(client_ssl.get_cipher_list(), ciphers)
+    self.assertEqual(client_ssl.get_protocol_version_name(), 'TLSv1.2')
+
+    # tricky part: exact logged message depends of the version of openssl...
+    cipher_check_regex = re.compile(r"change.cipher.spec", re.I)
+    finished_check_regex = re.compile(r"negotiation finished|finish_client_handshake", re.I)
+    def findIndexMatching(array, regex):
+      for i, x in enumerate(array):
+        if regex.search(x):
+          return i
+      return -1
+    cipher_check_idx = findIndexMatching(client_ssl_informations, cipher_check_regex)
+    finished_check_idx = findIndexMatching(client_ssl_informations, finished_check_regex)
+    self.assertTrue(cipher_check_idx > 0)
+    self.assertTrue(finished_check_idx > 0)
+    self.assertTrue(finished_check_idx > cipher_check_idx)
+
+
+
+  def assertVerifyServerCertificateSuceed(self, base_url, ciphers, client_cert, client_key):
+    """ Specific to SCS_20 testcase
+    Checks that the TLS handshake succeed with the given parameters.
+
+    Attempts to establish a TLS session with the given |base_url|, using the
+    given |ciphers| list and the given certificate key pair.
+    Checks that he SAS UUT response must satisfy all of the following conditions:
+    - The SAS UUT agrees to use a cipher specified in the |ciphers| list
+    - The SAS UUT agrees to use TLS Protocol Version 1.2
+    - Valid Finished message is returned by the SAS UUT immediately following
+      the ChangeCipherSpec message
+    """
+    url = urlparse.urlparse('https://' + base_url)
+    client = socket.socket()
+    client.connect((url.hostname, url.port or 443))
+    logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
+    logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
+                  url.port or 443)
+    logging.debug('TLS handshake: ciphers=%s', ':'.join(ciphers))
+    logging.debug('TLS handshake: privatekey_file=%s', client_key)
+    logging.debug('TLS handshake: certificate_file=%s', client_cert)
+    logging.debug('TLS handshake: certificate_chain_file=%s',
+                  self._sas._tls_config.ca_cert)
+
+    ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    ctx.set_cipher_list(':'.join(ciphers))
+    ctx.use_certificate_file(client_cert)
+    ctx.use_privatekey_file(client_key)
+    ctx.load_verify_locations(self._sas._tls_config.ca_cert)
+
+    client_ssl_informations = []
+    def _InfoCb(conn, where, ok):
+      client_ssl_informations.append(conn.get_state_string())
+      logging.debug('TLS handshake info: %d|%d %s', where, ok, conn.get_state_string())
+      return ok
+    ctx.set_info_callback(_InfoCb)
+
+    
+    default_values = json.load(
+                    open(os.path.join('testcases', 'configs', 'test_WINNF_FT_S_SCS_20', 'default.config')))
 
     def _ValidateSeverCertificateCb(conn, cert, errnum, depth, ok):
         certsubject = crypto.X509Name(cert.get_subject())
@@ -171,9 +252,9 @@ class SecurityTestCase(sas_testcase.SasTestCase):
           signature_alog_list = ["sha256WithRSAEncryption","sha384WithRSAEncryption","sha512WithRSAEncryption","ecdsa-with-Sha256","ecdsa-with-Sha384","ecdsa-with-Sha512"]
           self.assertIn(signature_alogo,signature_alog_list)
           logging.info("All fields in certificates are validated successfully")
-        return ok
-    if IsVerifyServercert:
-      ctx.set_verify(SSL.VERIFY_PEER, _ValidateSeverCertificateCb)
+        return ok 
+
+    ctx.set_verify(SSL.VERIFY_PEER, _ValidateSeverCertificateCb)
 
     client_ssl = SSL.Connection(ctx, client)
 
@@ -207,6 +288,11 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     self.assertTrue(cipher_check_idx > 0)
     self.assertTrue(finished_check_idx > 0)
     self.assertTrue(finished_check_idx > cipher_check_idx)
+ 
+  
+
+
+
 
   def doTestCipher(self, cipher, client_cert=None, client_key=None):
     """Does a cipher test as described in SCS/SDS/SSS tests 1 to 5 specification.
@@ -254,6 +340,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       ctx = SSL.Context(SSL.TLSv1_2_METHOD)
     if ciphers is not None:
        ctx.set_cipher_list(ciphers)
+
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
     if ca_cert is not None:
@@ -281,4 +368,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     finally:
       client_ssl.close()
+
+
+
+
 

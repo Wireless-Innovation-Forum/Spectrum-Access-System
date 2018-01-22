@@ -286,6 +286,8 @@ def countdown(t):
     mins, secs = divmod(t, 60)
     timeformat = '{:02d}:{:02d}'.format(mins, secs)
     time.sleep(1)
-    sys.stdout.write("Waiting for client certificate to be invalidated [mm:ss] : %s   \r" % str(timeformat))
     sys.stdout.flush()
     t -= 1
+
+
+

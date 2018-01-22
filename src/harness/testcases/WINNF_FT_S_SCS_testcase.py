@@ -17,6 +17,7 @@ from util import winnforum_testcase,countdown
 import os,time,json,sys,logging
 from OpenSSL import SSL,crypto
 
+import json
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -67,17 +68,19 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
 
-  @winnforum_testcase 
+  @winnforum_testcase
   def test_WINNF_FT_S_SCS_11(self):
     """Blacklisted Certificate presented during registration.
-    Checks that SAS UUT response with fatal alert message.
-    """
-    #Blacklist certificate
+	Checks that SAS UUT response with fatal alert message.
+	"""
+    # Blacklist certificate
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.BlacklistByFccIdAndSerialNumber({'fccId': device_a['fccId'],'CbsdSerialNumber': device_a['cbsdSerialNumber']})
+    self._sas_admin.BlacklistByFccIdAndSerialNumber(
+      {'fccId': device_a['fccId'], 'CbsdSerialNumber': device_a['cbsdSerialNumber']})
     device_cert = self.getCertFilename('device_a.cert')
     device_key = self.getCertFilename('device_a.key')
     self.assertTlsHandshakeFailure(device_cert, device_key)
+
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_12(self):
@@ -92,15 +95,11 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_13(self):
     """ Disallowed TLS method attempted during registration .
-        Checks that SAS UUT response with fatal alert message below
-        The SAS UUT sends a fatal alert message with the following parameters:
-         AlertLevel = 2 (fatal) --> tlsv1 alert protocol version
-         The SAS UUT immediately terminates the TLS session
+        Checks that SAS UUT response with fatal alert message.
     """
     device_cert = self.getCertFilename('client.cert')
     device_key = self.getCertFilename('client.key')
-    self.assertTlsHandshakeFailure(device_cert, device_key,ciphers='CAMELLIA128-SHA',\
-                                     ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailure(device_cert, device_key,ssl_method=SSL.TLSv1_1_METHOD)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_14(self):
@@ -116,6 +115,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   def test_WINNF_FT_S_SCS_15(self):
     """Certificate with inapplicable fields presented during registration. The response should be 104."""
     
+    
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
@@ -126,10 +126,12 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     response = self._sas.Registration(request,device_a_cert,device_a_key)['registrationResponse'][0]
 
     # Check registration response
-    self.assertTrue('cbsdId' in response)
+    
     self.assertEqual(response['response']['responseCode'], 104)
 
 
+    
+    
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_16(self):
     """
@@ -137,8 +139,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     device_cert = self.getCertFilename('client.cert')
     device_key = self.getCertFilename('client.key')
-    ca_cert = self.getCertFilename('WINNF_FT_S_SCS_16_ca.cert')
-    self.assertTlsHandshakeFailure(device_cert, device_key, ca_cert=ca_cert)
+    
+    self.assertTlsHandshakeFailure(device_cert, device_key)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_17(self):
@@ -243,5 +245,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     device_cert = self.getCertFilename('client.cert')
     device_key = self.getCertFilename('client.key')
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url,['AES128-GCM-SHA256'],device_cert, device_key,True)
+    self.assertVerifyServerCertificateSuceed(self._sas_admin._base_url,['AES128-GCM-SHA256'],device_cert, device_key)
+
+
+
+
 
