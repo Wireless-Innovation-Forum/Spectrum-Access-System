@@ -17,7 +17,7 @@ cp $2 $4
    pos=48
 hex_byte=$(xxd -seek $((10#$pos)) -l 1 -ps $4 -)
 
-# increment this byte
+# increment this byte by 1
 if [[ $hex_byte == "7a"  ||  $hex_byte == "5a" || $hex_byte == "39" ]]; then
   corrupted_dec_byte=$(($((16#$hex_byte)) -1))
 elif [[ $hex_byte == "2f"  ||  $hex_byte == "2b" ]]; then
@@ -184,11 +184,8 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificates for test case WINN.FT.S.SCS.7 - corrupted certificate, based on dp_client.cert
-key="client.key"
-cert="client.cert"
-outcert1="corrupted_client.key"
-outcert2="corrupted_client.cert"
-gen_corrupt_cert $key $cert $outcert1 $outcert2
+echo "\n\nGenerate 'corrupted_client' certificate/key"
+gen_corrupt_cert client.key client.cert corrupted_client.key corrupted_client.cert
 
 #Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
 #Using the same CSR that was created for normal operation
@@ -197,14 +194,11 @@ openssl x509 -signkey client.key -in client.csr \
     -out self_signed_client.cert \
     -req -days 1185
 
-#Certificates for test case WINNF.FT.S.SCS.9 - Non-CBRS trust root signed certificate presented during registration
-echo "\n\nGenerate 'non_cbrs_root_ca' certificate/key"
 openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
     -extensions root_ca -config ../../../cert/openssl.cnf \
     -out non_cbrs_root_ca.cert -keyout private/non_cbrs_root_ca.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Root CA-2"
 
-#Generate CBSD CA certificate signed by non_cbrs_root_ca
 echo "\n\nGenerate 'non_cbrs_signed_cbsd_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \

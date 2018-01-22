@@ -14,7 +14,7 @@
 
 import security_testcase
 from util import winnforum_testcase
-import os
+
 import json
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):

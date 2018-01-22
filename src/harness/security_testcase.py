@@ -74,7 +74,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
                   os.path.abspath(inspect.getfile(inspect.currentframe())))
     return os.path.join(harness_dir, 'certs', cert_name)
 
-  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key,IsVerifyServercert=False):
+  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
     """Checks that the TLS handshake succeed with the given parameters.
 
     Attempts to establish a TLS session with the given |base_url|, using the
@@ -178,7 +178,6 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     Args:
       client_cert: optional client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the client_cert
-      alert_reason: reason message to be verify in tls alert message
     """
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
