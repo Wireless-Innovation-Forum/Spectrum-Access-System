@@ -43,16 +43,29 @@ import time
 # 'latitude', 'longitude'
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
+# Define DPA protection specifications, i.e., a tuple with named fields of
+# 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
+# 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
+ProtectionSpecs = namedtuple('ProtectionSpecs', ['lowFreq', 'highFreq',
+    'antHeight', 'beamwidth', 'threshold'])
+
 if __name__ == '__main__':
 
-    # Inputs
-    low_freq = 3600000000 	# low frequency of protection constraint (Hz)
-    high_freq = 3610000000  # high frequency of protection constraint (Hz)
-    dpa_type = 'co-channel offshore'    # DPA type, i.e., 'co-channel offshore',
-                                        # 'co-channel inland', or 'out-of-band inland'
-    protection_thres = -144	# protection threshold for co-channel offshore/inland DPAs
-                            # (dBm/10 MHz)
-    num_iter = 2000			# number of Monte Carlo iterations
+    # Populate protection specifications
+    protection_specs = ProtectionSpecs(lowFreq=3600000000, highFreq=3610000000,
+                                       antHeight=50, beamwidth=3, threshold=-144)
+
+    # Populate protection points
+    protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
+                         ProtectionPoint(latitude=37.7579, longitude=-75.4105),
+                         ProtectionPoint(latitude=36.1044, longitude=-73.3147),
+                         ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
+
+    # Number of Monte Carlo iterations
+    num_iter = 2000
+
+    # Number of parallel processes to use
+    num_processes = 6
 
     # Data directory
     current_dir = os.getcwd()
@@ -103,17 +116,11 @@ if __name__ == '__main__':
             # Create an exclusion zone polygon object, if desired
             # exclusion_zone = SPolygon(exclusion_zone)
 
-    # Populate protection points 
-    protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
-                         ProtectionPoint(latitude=37.7579, longitude=-75.4105),
-                         ProtectionPoint(latitude=36.1044, longitude=-73.3147),
-                         ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
-
     # Determine which CBSD grants are on the move list
     start_time = time.time()
-    res = move_list.findMoveList(dpa_type, protection_points, low_freq, high_freq,
-                                 protection_thres, num_iter, reg_request_list,
-                                 grant_request_list, exclusion_zone)
+    res = move_list.findMoveList(protection_specs, protection_points,
+                                 reg_request_list, grant_request_list,
+                                 num_iter, num_processes, exclusion_zone)
 
     end_time = time.time()
     print 'Move list output: ' + str(res)
