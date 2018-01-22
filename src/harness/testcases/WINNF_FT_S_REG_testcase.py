@@ -507,28 +507,19 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }
     
     conditionals_12 = {
-        'cbsdCategory': device_12['cbsdCategory'],
         'fccId': device_12['fccId'],
         'cbsdSerialNumber': device_12['cbsdSerialNumber'],
-        'airInterface': device_12['airInterface'],
         'installationParam': device_12['installationParam'],
-        'measCapability': device_12['measCapability']
     }
     conditionals_13 = {
-        'cbsdCategory': device_13['cbsdCategory'],
         'fccId': device_13['fccId'],
         'cbsdSerialNumber': device_13['cbsdSerialNumber'],
-        'airInterface': device_13['airInterface'],
         'installationParam': device_13['installationParam'],
-        'measCapability': device_13['measCapability']
     }
     conditionals_14 = {
-        'cbsdCategory': device_14['cbsdCategory'],
         'fccId': device_14['fccId'],
         'cbsdSerialNumber': device_14['cbsdSerialNumber'],
-        'airInterface': device_14['airInterface'],
         'installationParam': device_14['installationParam'],
-        'measCapability': device_14['measCapability']
     }
 
     conditionals = {
@@ -539,17 +530,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
-    del device_10['cbsdCategory']
+    del device_10['installationParam']  
+    del device_10['cbsdCategory']  
     del device_10['airInterface']
-    del device_10['installationParam']
-    del device_10['measCapability']
-    del device_12['cbsdCategory']
-    del device_12['airInterface']
-    del device_12['measCapability']
-    del device_13['cbsdCategory']
-    del device_13['airInterface']
-    del device_13['measCapability']
-    
+    del device_10['measCapability'] 
     # Modify the configuration of the devices according to the specfications
     # invalid_cbsd serial number with length > 64 octets
     device_2['cbsdSerialNumber'] = 's' * 65
