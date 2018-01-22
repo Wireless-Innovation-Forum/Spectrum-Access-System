@@ -5,22 +5,15 @@ SAS reference implementation.
 
 ## Geo Data
 
-Note: The geo data used by propagation models are stored in Git LFS (Large File Storage)
+The geo data used by propagation models are stored in Git LFS (Large File Storage)
 on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/SAS-Data).
 
-This separate repository is integrated in the SAS main repository as a submodule in `data/geo`. If the subfolder geo/ is not present, you can integrate it
-with the command:
+### Integration
 
-```
-    # Get the actual data into a `geo` submodule
-    git submodule update --init
-```
-See then the `data/geo/README.md` for further instructions.
-
-
-### Process for extracting the NED and NLCD tiles from the zip storage
-
-Use the provided script: `extract_geo.py`.
+The process to plug the data into the environment is:
+ - Clone that repository.
+ - Unzip the files, by using the `extract_geo.py` script provided in that repository.
+ - Point your reference models to that repository, within the `reference_models/geo/CONFIG.py` file.
 
      
 ### Process for recreating NLCD tiles from scratch
