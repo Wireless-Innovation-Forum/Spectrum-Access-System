@@ -81,8 +81,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
-    pal_low_frequency = 3620000000.0
-    pal_high_frequency = 3630000000.0
+    pal_low_frequency = 3620000000
+    pal_high_frequency = 3630000000
     pal_user_id = "pal_user"
 
     # Make PPA and PAL records consistent
