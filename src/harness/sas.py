@@ -319,6 +319,14 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
                  self._base_url, request, self._tls_config) 
+
+  def TriggerCreateFullActivityDump(self, request):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
+                 request, self._tls_config)
+
+  def InjectPeerSas(self,request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+                 request, self._tls_config)
     
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
