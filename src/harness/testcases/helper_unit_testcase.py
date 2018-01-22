@@ -1,12 +1,15 @@
 import sas_testcase
 import unittest
-
-class HelperFunctionUnitTest(sas_testcase.SasTestCase):
+#===============================================================================
+# this class unit tests AssertChannelsContainFrequencyRange method with different
+# possible combinations for simplifying the tests we use frequencies in MHz units 
+#===============================================================================
+class AssertChannelsContainFrequencyRangeTest(sas_testcase.SasTestCase):
     
    def setUp(self):
     pass
 
-   def test_assertChannelsContainFrequencyRangeShouldSucceedWhenConflictChannelWihtEqualMin(self):
+   def test_shouldSucceedWhenConflictChannelWithEqualMin(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3555, 'highFrequency': 3570}}, 
                    {'frequencyRange' : {'lowFrequency': 3555, 'highFrequency': 3560}}, 
@@ -15,7 +18,7 @@ class HelperFunctionUnitTest(sas_testcase.SasTestCase):
       frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}      
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
       
-   def test_assertChannelsContainFrequencyRangeShouldSucceedWhenConflictChannel(self):
+   def test_shouldSucceedWhenConflictChannel(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3565, 'highFrequency': 3575}}, 
                    {'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3565}}]
@@ -23,7 +26,7 @@ class HelperFunctionUnitTest(sas_testcase.SasTestCase):
       frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}      
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
    
-   def test_assertChannelsContainFrequencyRangeShouldSucceedWhenMultiSequencialChannel(self):
+   def test_shouldSucceedWhenMultiSequencialChannel(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3560, 'highFrequency': 3565}},
                    {'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3565, 'highFrequency': 3580}}]
@@ -32,7 +35,7 @@ class HelperFunctionUnitTest(sas_testcase.SasTestCase):
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
     
    @unittest.expectedFailure
-   def test_assertChannelsContainFrequencyRangeShouldFaileWhenChannelLowerThanRange(self):
+   def test_shouldFailWhenChannelLowerThanRange(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3545, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3560, 'highFrequency': 3570}}, 
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3575}}]
@@ -41,7 +44,7 @@ class HelperFunctionUnitTest(sas_testcase.SasTestCase):
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
       
    @unittest.expectedFailure
-   def test_assertChannelsContainFrequencyRangeShouldFaileWhenChannelHigherThanRange(self):
+   def test_shouldFailWhenChannelHigherThanRange(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3560, 'highFrequency': 3570}}, 
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3580}}]
@@ -50,7 +53,7 @@ class HelperFunctionUnitTest(sas_testcase.SasTestCase):
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
 
    @unittest.expectedFailure
-   def test_assertChannelsContainFrequencyRangeShouldFaileWhenMissingChannel(self):
+   def test_shouldFailWhenMissingChannel(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3575}}, 
                    {'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3565}}]
