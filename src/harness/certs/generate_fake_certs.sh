@@ -41,6 +41,27 @@ openssl ca -cert root-ecc_ca.cert -keyfile private/root-ecc_ca.key -in sas-ecc_c
     -out sas-ecc_ca.cert -outdir ./root \
     -batch -notext -create_serial -utf8 -days 5475 -md sha384
 
+echo "\n\nGenerate 'dp' certificate/key"
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
+    -out dp_ca.csr -keyout private/dp_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA DP CA-1"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in dp_ca.csr \
+    -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
+    -out dp_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+
+## Generate client certificate/key for dp.
+echo "\n\nGenerate dp 'client' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out dp_client.csr -keyout dp_client.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=WInnForum DP Certificate/CN=12345:12345"
+openssl ca -cert dp_ca.cert -keyfile private/dp_ca.key -in dp_client.csr \
+    -out dp_client.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 echo "\n\nGenerate 'cbsd_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
@@ -126,7 +147,7 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
-cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
+cat cbsd_ca.cert sas_ca.cert dp_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
 #   cat root_ca.cert > ca.cert
