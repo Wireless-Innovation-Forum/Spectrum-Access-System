@@ -1,8 +1,8 @@
 # The WinnForum R2-SGN-24 DPA Protection Procedure Reference Implementation
 
 This folder contains Python code and test data for calculation of the DPA move-list 
-according to the R2-SGN-24 requirement in the WINNF-TS-0112 document, Version V1.3.0 
-(September 27, 2017) [1].
+according to the R2-SGN-24 requirement in the WINNF-TS-0112 document, Version V1.4.1-r2.0 
+(January 16, 2018) [1].
 
 ## Main Interface 
 
@@ -59,4 +59,4 @@ code in compliance with the conditions of those licenses.
 
 [1] WInnForum Standards, Requirements for Commercial Operation in the 
 U.S. 3550-3700 MHz Citizens Broadband Radio Service Band,  Working Document 
-WINNF-TS-0112, Version V1.3.0 (September 27, 2017).
+WINNF-TS-0112, Version V1.4.1-r2.0 (January 16, 2018).
