@@ -11,12 +11,12 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
 from datetime import datetime
-import time
 import json
 import logging
 import os
-import jwt
+import time
 
 import sas
 import sas_testcase
@@ -743,7 +743,106 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         self.assertTrue('cbsdId' in response)
       else:
         self.assertFalse('cbsdId' in response)
-        
+
+  def generate_REG_12_default_config(self, filename):
+    """Generates the WinnForum configuration for REG.12."""
+
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Device_a is Category A.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+
+    # Device_b is Category B with conditionals pre-loaded.
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']
+    }
+    conditionals = {'registrationData': [conditionals_b]}
+
+    # Create the actual config.
+    devices = [device_a, device_b]
+    blacklist_devices = [device_a]
+    reregister_devices = [device_a, device_b]
+    config = {
+        'fccIds': [(d['fccId'], 47) for d in devices],
+        'fccIdsBlacklist': [d['fccId'] for d in blacklist_devices],
+        'userIds': [d['userId'] for d in devices],
+        'registrationRequests': devices,
+        'reregistrationRequests': reregister_devices,
+        'conditionalRegistrationData': conditionals,
+        'expectedResponseCodes': [(101,), (0,)]
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_REG_12_default_config)
+  def test_WINNF_FT_S_REG_12(self, config_filename):
+    """[Configurable] Re-registration (including intervening blacklist)."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(
+        len(config['reregistrationRequests']),
+        len(config['expectedResponseCodes']))
+
+    # Whitelist N1 FCC IDs.
+    for fcc_id, max_eirp_dbm_per_10_mhz in config['fccIds']:
+      self._sas_admin.InjectFccId({
+          'fccId': fcc_id,
+          'fccMaxEirp': max_eirp_dbm_per_10_mhz
+      })
+
+    # Whitelist N2 user IDs.
+    for user_id in config['userIds']:
+      self._sas_admin.InjectUserId({'userId': user_id})
+
+    # Pre-load conditional registration data for N3 CBSDs.
+    self._sas_admin.PreloadRegistrationData(
+        config['conditionalRegistrationData'])
+
+    # Register N4 CBSDs.
+    request = {'registrationRequest': config['registrationRequests']}
+    responses = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration responses.
+    self.assertEqual(len(responses), len(config['registrationRequests']))
+    for i, response in enumerate(responses):
+      response = responses[i]
+      logging.debug('Looking at response number %d', i)
+      self.assertEqual(response['response']['responseCode'], 0)
+      self.assertTrue('cbsdId' in response)
+    del request, responses
+
+    # Blacklist N5 CBSD
+    for fcc_id in config['fccIdsBlacklist']:
+      self._sas_admin.BlacklistByFccId({'fccId': fcc_id})
+
+    # Re-register N6 CBSDs
+    request = {'registrationRequest': config['reregistrationRequests']}
+    responses = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration responses.
+    self.assertEqual(len(responses), len(config['reregistrationRequests']))
+    for i, response in enumerate(responses):
+      response = responses[i]
+      expected_response_codes = config['expectedResponseCodes'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      if response['response']['responseCode'] == 0:
+        self.assertTrue('cbsdId' in response)
+      else:
+        self.assertFalse('cbsdId' in response)
+
   def generate_REG_13_default_config(self, filename):
     """Generates the WinnForum configuration for REG.13."""
 
