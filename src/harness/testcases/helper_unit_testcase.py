@@ -34,30 +34,29 @@ class AssertChannelsContainFrequencyRangeTest(sas_testcase.SasTestCase):
       frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3580}      
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
     
-   @unittest.expectedFailure
    def test_shouldFailWhenChannelLowerThanRange(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3545, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3560, 'highFrequency': 3570}}, 
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3575}}]
        
-      frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}      
-      self.assertChannelsContainFrequencyRange(channels, frequency_range)
-      
-   @unittest.expectedFailure
+      frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}
+      with self.assertRaises(AssertionError):    
+        self.assertChannelsContainFrequencyRange(channels, frequency_range)
+
    def test_shouldFailWhenChannelHigherThanRange(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3560, 'highFrequency': 3570}}, 
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3580}}]
        
-      frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}     
-      self.assertChannelsContainFrequencyRange(channels, frequency_range)
+      frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}
+      with self.assertRaises(AssertionError):    
+          self.assertChannelsContainFrequencyRange(channels, frequency_range)
 
-   @unittest.expectedFailure
    def test_shouldFailWhenMissingChannel(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3575}}, 
                    {'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3565}}]
        
       frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}
-       
-      self.assertChannelsContainFrequencyRange(channels, frequency_range)
+      with self.assertRaises(AssertionError):
+          self.assertChannelsContainFrequencyRange(channels, frequency_range)
