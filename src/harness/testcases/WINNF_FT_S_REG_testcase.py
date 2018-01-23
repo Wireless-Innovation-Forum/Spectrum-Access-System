@@ -18,7 +18,6 @@ import logging
 import os
 import jwt
 
-import jwt
 import sas
 import sas_testcase
 
