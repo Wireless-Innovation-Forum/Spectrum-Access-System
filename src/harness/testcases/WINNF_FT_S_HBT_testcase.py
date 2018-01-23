@@ -709,21 +709,13 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     """
     # STEP 1
     # register three devices
-    # load  CBSD data
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json'))) 
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    request = {'registrationRequest': [device_a, device_c, device_e]}
-    response = self._sas.Registration(request)['registrationResponse']
-    cbsd_ids = []
-    for resp in response:
-      self.assertEqual(resp['response']['responseCode'], 0)
-      cbsd_ids.append(resp['cbsdId'])
-    del request, response
-
+    cbsd_ids = self.assertRegistered([device_a, device_c, device_e])
     # load and set Grants data
     grant_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
