@@ -57,7 +57,7 @@ class TestWfItm(unittest.TestCase):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
     lat2, lng2, height2 = 37.754406, -122.388342, 10.0
     reliabilities = [0.1, 0.5, 0.9]
-    expected_losses = [213.72, 214.30, 214.66]
+    expected_losses = [213.68, 214.26, 214.62]
 
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
@@ -86,7 +86,7 @@ class TestWfItm(unittest.TestCase):
     # Internal average
     avg_res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                             reliability=-1, freq_mhz=3625.)
-    self.assertAlmostEqual(avg_res.db_loss, 10*np.log10(np.mean(10**(np.array(results.db_loss)/10.))), 5)
+    self.assertAlmostEqual(avg_res.db_loss, -10*np.log10(np.mean(10**(-np.array(results.db_loss)/10.))), 5)
 
   def test_indoor(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
@@ -144,7 +144,7 @@ class TestWfItm(unittest.TestCase):
 
     # Ocean - far away from the coast
     haat  = wf_itm.ComputeHaat(
-        lat_cbsd=37.50, lon_cbsd=-122.999, height_cbsd=10)
+        lat_cbsd=37.50, lon_cbsd=-122.8, height_cbsd=10)
     self.assertEqual(haat, 10)
 
 

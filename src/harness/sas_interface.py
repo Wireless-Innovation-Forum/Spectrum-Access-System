@@ -342,28 +342,20 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportRegistration(self, request):
+  def TriggerMeasurementReportRegistration(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     registration request 
-  
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
+
     Note: The SAS should request a measurement report in the RegistrationResponse 
     (if status == 0)
     """
     pass
 
   @abc.abstractmethod
-  def TriggerMeasurementReportHeartbeat(self, request):
+  def TriggerMeasurementReportHeartbeat(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
-  
-    Args:
-      request: A dictionary with a single key-value pair where the key is
-        "measReportConfig" and the value is an array of string of permitted 
-        enumerations specified in WINNF-16-S-0016
+
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
     """
@@ -418,6 +410,42 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def TriggerLoadDpas(self):
+    """SAS admin interface to load all ESC-monitored DPAs and immediately activate all of them.
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerBulkDpaActivation(self, request):
+    """SAS admin interface to bulk DPA activation/deactivation
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "activate": (boolean) if True, activate all ESC-monitored DPAs on all channels
+            else deactivate all ESC-monitored DPAs on all channels
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerDpaActivation(self, request):
+    """SAS admin interface to activate specific DPA on specific channel
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "dpaId": (string) it represents the field "name" in the kml file of DPAs
+        "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
+
+    """
+    pass 
+
+  @abc.abstractmethod
+  def TriggerDpaDeactivation(self, request):
+    """SAS admin interface to deactivate specific DPA on specific channel
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "dpaId": (string) it represents the field "name" in the kml file of DPAs
+        "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
+    """   
+    pass
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
