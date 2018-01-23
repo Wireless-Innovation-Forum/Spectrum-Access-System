@@ -37,111 +37,57 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for EXZ.1."""
     # Load device info
     # Load Devices located outside 50 meters of exclusion zones
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a_exz.json')))
+    device_a_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_1['installationParam']['latitude'] = 40.31304
+    device_a_1['installationParam']['longitude'] =  -96.25122
+    device_a_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_2['installationParam']['latitude'] = 40.35491
+    device_a_2['installationParam']['longitude'] =  -96.4215
+    device_a_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_3['installationParam']['latitude'] = 40.40931
+    device_a_3['installationParam']['longitude'] =  -96.09191
+
     # Load Devices located within at least one exclusion zones
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b_exz.json')))
+    device_b_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b_1['installationParam']['latitude'] = 39.6945
+    device_b_1['installationParam']['longitude'] =  -96.427
+    device_b_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b_2['installationParam']['latitude'] = 39.66068
+    device_b_2['installationParam']['longitude'] =  -96.72912
+
     # Load Devices located within 50 meters of at least one exclusion zones
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c_exz.json')))
+    device_c_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_1['installationParam']['latitude'] = 39.96317
+    device_c_1['installationParam']['longitude'] =  -96.24692
+    device_c_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_2['installationParam']['latitude'] = 39.96488
+    device_c_2['installationParam']['longitude'] =  -96.27267
+    device_c_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_3['installationParam']['latitude'] = 39.96422
+    device_c_3['installationParam']['longitude'] =  -96.26649
    
-    # Prepare 3 grant requests.
-    # 1. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3625000000.0,
-        'highFrequency': 3635000000.0
-    }
-
-    # 2. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_1['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3625000000.0
-    grant_1['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3635000000.0
-
-    # 3. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_2['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3625000000.0
-    grant_2['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3635000000.0
+    #Load Exclusion Zones
+    exz_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'exz_record_0.json')))
+    exz_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'exz_record_1.json')))
 
     # Create the actual config.
-    devices = [device_a, device_b, device_c]
-    grants = [grant_0, grant_1, grant_2]
+    devices = [device_a_1, device_a_2, device_a_3, device_b_1, device_b_2, device_c_1, device_c_2, device_c_3]
+    ex_zones = [exz_record, exz_record_1]
     config = {
-        'fccIds': [(d['fccId'], 47) for d in devices],
-        'userIds': [d['userId'] for d in devices],
         'registrationRequests': devices,
-        'expectedResponseCodes': [(0,), (0,), (0,)],
-        'grantRequests' : grants,
-        'expectedGrantResponseCodes': [(0,), (400,), (400,)],
+        'exclusionZoneRecords' : ex_zones
     }
     writeConfig(filename, config)
-
-  def generate_EXZ_2_default_config(self, filename):
-    """Generates the WinnForum configuration for EXZ.1."""
-    # Load device info
-    # Load Devices located outside 50 meters of exclusion zones
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a_exz.json')))
-    # Load Devices located within at least one exclusion zones
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b_exz.json')))
-    # Load Devices located within 50 meters of at least one exclusion zones
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c_exz.json')))
-   
-    # Prepare 3 grant requests.
-    # 1. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3625000000.0,
-        'highFrequency': 3635000000.0
-    }
-
-    # 2. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_1['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3625000000.0
-    grant_1['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3635000000.0
-
-    # 3. With frequency range partially overlapping with the frequency 
-    #     range of the nearest exclusion zone.
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_2['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3625000000.0
-    grant_2['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3635000000.0
-
-    # Create the actual config.
-    devices = [device_a, device_b, device_c]
-    grants = [grant_0, grant_1, grant_2]
-    config = {
-        'fccIds': [(d['fccId'], 47) for d in devices],
-        'userIds': [d['userId'] for d in devices],
-        'registrationRequests': devices,
-        'expectedResponseCodes': [(0,), (0,), (0,)],
-        'grantRequests' : grants,
-        'expectedGrantResponseCodes': [(0,), (400,), (400,)],
-    }
-    writeConfig(filename, config)
-
-
 
   @configurable_testcase(generate_EXZ_1_default_config)
   def test_WINNF_FT_S_EXZ_1(self,config_filename):
@@ -152,87 +98,100 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     The responseCode = 400 for CBSDs located within 50meters of all Exclusion Zones 
     or inside Exclusion Zones. 
     """
-
-    #Load Exclusion Zones
-    exz_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'exz_record_0.json')))
-
-    # Inject EXZ database records
-    # TODO Need to figure out how to send freqRange
-    """
-    zone_id = self._sas_admin.InjectExZone({'record':exz_record}, \
-                     {'frequencyRange':{'lowFrequency': 3620000000.0,\
-                      'highFrequency': 3630000000.0}})
-    """
-    self._sas_admin.InjectExZone({'record': exz_record})
-
     config = loadConfig(config_filename)
     # Very light checking of the config file.
-    self.assertEqual(
-        len(config['registrationRequests']),
-        len(config['expectedResponseCodes']))
+    self.assertNotEqual(len(config['exclusionZoneRecords']) , 0, "Exclusion zone records are zero !!!")
 
-    # Inject FCC IDs.
-    for fcc_id in config['fccIds']:
-      self._sas_admin.InjectFccId({'fccId': fcc_id})
+    # Get exclusion zone records from config file.
+    exz_record = {'exclusionZone': config['exclusionZoneRecords']}
 
-    # Inject user IDs.
-    for user_id in config['userIds']:
-      self._sas_admin.InjectUserId({'userId': user_id})
-   
-    # Register N2, N3 and N4 CBSDs.
-    device_cert = self.getCertFilename('dp_client.cert')
-    device_key = self.getCertFilename('dp_client.key')
+    for i in range(len(exz_record)):
+       # Inject EXZ database records
+       self._sas_admin.InjectExclusionZone({'record': exz_record})
 
-    request = {'registrationRequest': config['registrationRequests']}
-    responses = self._sas.Registration(request, device_cert, device_key)['registrationResponse']
+    # Register the devices
+    cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
-    # Check registration responses.
-    self.assertEqual(len(responses), len(config['registrationRequests']))
-    cbsd_ids = []
-    for i in range(len(responses)):
-      response = responses[i]
-      expected_response_codes = config['expectedResponseCodes'][i]
-      logging.debug('Looking at response number %d', i)
-      logging.debug('Expecting to see response code in set %s in response: %s',
-                    expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
-      if response['response']['responseCode'] == 0:  # SUCCESS
-        self.assertTrue('cbsdId' in response)
-        cbsd_ids.append(response[i]['cbsdId'])
-      else:
-        self.assertFalse('cbsdId' in response)
-
-    # Trigger daily activities
+    # Execute CPAS and wait untill completion
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-
-    del request, response, responses
-
-    # Update CBSD Ids in Grant Req.
-    request = {'grantRequest': config['grantRequests']}
-    for i in range(len(request)):
-       request[i]['cbsdId'] =  cbsd_ids[i] 
-   
     
-    # Send grant request and get response
-    responses = self._sas.Grant(grantReq, device_cert,device_key)['grantResponse']
+    # Send multiple grant requests
+    grant_request = []
+    for cbsd_id in cbsd_ids:
+      grant = json.load(
+          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant['cbsdId'] = cbsd_id
+      #  Update frequency range to partially overlapping with the frequency 
+      #     range of the nearest exclusion zone.
+      grant['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3625000000.0
+      grant['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3635000000.0
+      grant_request.append(grant)
 
-    # Check grant response array
-    self.assertEqual(len(responses), len(config['grantRequests']))
-    for i in range(len(responses)):
-      response = responses[i]
-      expected_grant_response_codes = config['expectedGrantResponseCodes'][i]
-      logging.debug('Looking at response number %d', i)
-      logging.debug('Expecting to see response code in set %s in response: %s',
-                    expected_grant_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_grant_response_codes)
-      if response['response']['responseCode'] == 0:  # SUCCESS
-        self.assertTrue('grantId' in grantResponse)
-      else:
-        self.assertFalse('cbsdId' in grantResponse)
-   
+    request = {'grantRequest': grant_request}
+    response = self._sas.Grant(request)['grantResponse']
+    #validate the response
+    self.assertEqual(len(response), 8)
+
+    for response_num, resp in enumerate(response):
+       if resp['response']['responseCode'] == 0 :
+          self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+          self.assertTrue('grantId' in resp)
+          self.assertEqual(resp['response']['responseCode'], 0)
+       else:
+          self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+          self.assertFalse('grantId' in resp)
+          self.assertEqual(resp['response']['responseCode'], 400)
+
+  def generate_EXZ_2_default_config(self, filename):
+    """Generates the WinnForum configuration for EXZ.2."""
+    # Load device info
+    # Load Devices located outside 50 meters of exclusion zones
+    device_a_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_1['installationParam']['latitude'] = 40.31260
+    device_a_1['installationParam']['longitude'] =  -96.25100
+    device_a_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_2['installationParam']['latitude'] = 40.31304
+    device_a_2['installationParam']['longitude'] =  -96.25122
+    device_a_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a_3['installationParam']['latitude'] = 40.31358
+    device_a_3['installationParam']['longitude'] =  -96.25144
+
+    # Load Devices located within at least one exclusion zones
+    device_b_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b_1['installationParam']['latitude'] = 39.6920
+    device_b_1['installationParam']['longitude'] =  -96.400
+    device_b_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b_2['installationParam']['latitude'] = 39.6945
+    device_b_2['installationParam']['longitude'] =  -96.427
+
+    # Load Devices located within 50 meters of at least one exclusion zones
+    device_c_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_1['installationParam']['latitude'] = 39.96300
+    device_c_1['installationParam']['longitude'] =  -96.24656
+    device_c_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_2['installationParam']['latitude'] = 39.96317
+    device_c_2['installationParam']['longitude'] =  -96.24692
+    device_c_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c_3['installationParam']['latitude'] = 39.96330
+    device_c_3['installationParam']['longitude'] =  -96.24712
+ 
+    # Create the actual config.
+    devices = [device_a_1, device_a_2, device_a_3, device_b_1, device_b_2, device_c_1, device_c_2, device_c_3]
+    config = {
+        'registrationRequests': devices,
+    }
+    writeConfig(filename, config)
+
   @configurable_testcase(generate_EXZ_2_default_config)
   def test_WINNF_FT_S_EXZ_2(self,config_filename):
     """Exclusion Zones defined in NTIA TR 15-517
@@ -244,72 +203,40 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     """
 
     # Enforce NTIA Exlusion zones
-    self.TriggerEnableNTIAExclusionZones()
-
+    self._sas_admin.TriggerEnableNTIAExclusionZones()
     config = loadConfig(config_filename)
-    # Very light checking of the config file.
-    self.assertEqual(
-        len(config['registrationRequests']),
-        len(config['expectedResponseCodes']))
-
-    # Inject FCC IDs.
-    for fcc_id in config['fccIds']:
-      self._sas_admin.InjectFccId({'fccId': fcc_id})
-
-    # Inject user IDs.
-    for user_id in config['userIds']:
-      self._sas_admin.InjectUserId({'userId': user_id})
-   
-    # Register N2, N3 and N4 CBSDs.
-    device_cert = self.getCertFilename('dp_client.cert')
-    device_key = self.getCertFilename('dp_client.key')
-
-    request = {'registrationRequest': config['registrationRequests']}
-    responses = self._sas.Registration(request, device_cert, device_key)['registrationResponse']
-
-    # Check registration responses.
-    self.assertEqual(len(responses), len(config['registrationRequests']))
-    cbsd_ids = []
-    for i in range(len(responses)):
-      response = responses[i]
-      expected_response_codes = config['expectedResponseCodes'][i]
-      logging.debug('Looking at response number %d', i)
-      logging.debug('Expecting to see response code in set %s in response: %s',
-                    expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
-      if response['response']['responseCode'] == 0:  # SUCCESS
-        self.assertTrue('cbsdId' in response)
-        cbsd_ids.append(response[i]['cbsdId'])
-      else:
-        self.assertFalse('cbsdId' in response)
-
+    # Register the devices
+    cbsd_ids = self.assertRegistered(config['registrationRequests'])
     # Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    del request, response, responses
+    # Send multiple grant requests
+    grant_request = []
+    for cbsd_id in cbsd_ids:
+      grant = json.load(
+          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant['cbsdId'] = cbsd_id
+      #  Update frequency range to partially overlapping with the frequency 
+      #     range of the nearest exclusion zone.
+      grant['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3625000000.0
+      grant['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3635000000.0
+      grant_request.append(grant)
 
-    # Update CBSD Ids in Grant Req.
-    request = {'grantRequest': config['grantRequests']}
-    for i in range(len(request)):
-       request[i]['cbsdId'] =  cbsd_ids[i] 
-   
-    
-    # Send grant request and get response
-    responses = self._sas.Grant(grantReq, device_cert,device_key)['grantResponse']
+    request = {'grantRequest': grant_request}
+    response = self._sas.Grant(request)['grantResponse']
 
-    # Check grant response array
-    self.assertEqual(len(responses), len(config['grantRequests']))
-    for i in range(len(responses)):
-      response = responses[i]
-      expected_grant_response_codes = config['expectedGrantResponseCodes'][i]
-      logging.debug('Looking at response number %d', i)
-      logging.debug('Expecting to see response code in set %s in response: %s',
-                    expected_grant_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_grant_response_codes)
-      if response['response']['responseCode'] == 0:  # SUCCESS
-        self.assertTrue('grantId' in grantResponse)
-      else:
-        self.assertFalse('cbsdId' in grantResponse)
+    #validate the response
+    self.assertEqual(len(response), 8)
+
+    for response_num, resp in enumerate(response):
+       if resp['response']['responseCode'] == 0 :
+          self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+          self.assertTrue('grantId' in resp)
+          self.assertEqual(resp['response']['responseCode'], 0)
+       else:
+          self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+          self.assertFalse('grantId' in resp)
+          self.assertEqual(resp['response']['responseCode'], 400)
 
