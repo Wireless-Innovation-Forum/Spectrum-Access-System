@@ -319,6 +319,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS
+TEST = critical, ASN1:NULL
 
 [ cps ]
 
@@ -333,6 +334,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
+TEST = critical, ASN1:NULL
 
 [ cps ]
 
@@ -436,6 +438,7 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
+TEST = critical, ASN1:NULL
 #FCCID
 #CBSDID
 #SERIAL
@@ -454,6 +457,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
+TEST = critical, ASN1:NULL
 #FCCID
 #CBSDID
 #SERIAL
@@ -472,6 +476,7 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
+TEST = critical, ASN1:NULL
 #FCCID
 #CBSDID
 #SERIAL
@@ -490,6 +495,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_CBSD
+TEST = critical, ASN1:NULL
 #FCCID
 #CBSDID
 #SERIAL
