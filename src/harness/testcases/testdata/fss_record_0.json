@@ -16,8 +16,8 @@
       },
       "operationParam": {
         "operationFrequencyRange": {
-          "lowFrequency": 3650000000.0,
-          "highFrequency": 4200000000.0
+          "lowFrequency": 3650000000,
+          "highFrequency": 4200000000
         }
       }
     }
