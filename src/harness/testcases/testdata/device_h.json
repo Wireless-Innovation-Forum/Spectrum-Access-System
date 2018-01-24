@@ -4,6 +4,8 @@
   "cbsdSerialNumber": "test_serial_number_h",
   "callSign": "callsign_h",
   "cbsdCategory": "B",
+  "measCapability": [
+      ],
   "airInterface": {
     "radioTechnology": "E_UTRA"
   },
