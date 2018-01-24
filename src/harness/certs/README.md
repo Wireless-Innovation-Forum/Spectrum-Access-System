@@ -12,9 +12,9 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca                          unknown_ca
-                               /     \                              |
-                              /       \                       unknown_device
+                               root_ca                          
+                               /     \                            
+                              /       \                       
                          sas_ca       cbsd_ca
                          /    |          \
                         /     |           \
@@ -53,9 +53,3 @@ Required certificates are:
   used to verify the server chain and the client chain. Basically the
   concatenation of all intermediate certificate CA and root CA.
 
-* `unknown_ca.cert`: root certificate authority to generate unknown device
-  (valid device not managed by the SAS instance under test). Self signed.
-
-* `unknown_device.[cert|key]`: leaf CBSD device certificate signed by
-  `unknown_ca`, and corresponding trusted client certificates bundle.
-  Used on security test test_WINNF_FT_S_SCS_2.
