@@ -44,13 +44,13 @@ from enum import Enum
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 from reference_models.propagation import wf_itm
-from reference_models.geo import terrain
+# from reference_models.geo import terrain
 from reference_models.geo import vincenty
 from reference_models.antenna import antenna
 
 # Initialize terrain driver
-terrainDriver = terrain.TerrainDriver()
-# terrainDriver = wf_itm.TerrainDriver()
+# terrainDriver = terrain.TerrainDriver()
+terrainDriver = wf_itm.ConfigureTerrainDriver()
 
 # Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km)
