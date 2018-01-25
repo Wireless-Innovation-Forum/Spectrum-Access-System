@@ -284,19 +284,20 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   elif dist_km >= 1 and dist_km <= 80:  # Use best of E-Hata / ITM
     ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
                                         region_code)
-    if reliability == 0.5:
-      itm_loss_med = db_loss_itm
-    else:
-      itm_loss_med = wf_itm.CalcItmPropagationLoss(
-          lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
-          False, 0.5, freq_mhz, its_elev).db_loss
+    ehata_loss_mean = ehata_loss_med + offset_median_to_mean
 
-    if itm_loss_med >= ehata_loss_med:
+    if reliability == 0.5:
+      itm_loss_mean = wf_itm.CalcItmPropagationLoss(
+          lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
+          False, -1, freq_mhz, its_elev).db_lossdb_loss_itm
+    else:
+      itm_loss_mean = db_loss_itm
+
+    if itm_loss_mean >= ehata_loss_mean:
       return _BuildOutput(db_loss_itm, incidence_angles, internals,
                           HybridMode.ITM_DOMINANT, cbsd_indoor)
     else:
-      ehata_loss = ehata_loss_med + offset_median_to_mean
-      return _BuildOutput(ehata_loss, incidence_angles, internals,
+      return _BuildOutput(ehata_loss_mean, incidence_angles, internals,
                           HybridMode.EHATA_DOMINANT, cbsd_indoor)
 
   elif dist_km > 80:  # Use the ITM with correction from E-Hata @ 80km
@@ -312,9 +313,10 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     ehata_loss_80km = ehata.ExtendedHata(its_elev_80km, freq_mhz,
                                          height_cbsd, height_rx,
                                          region_code)
+    ehata_loss_80km += offset_median_to_mean
     itm_loss_80km = wf_itm.CalcItmPropagationLoss(
         lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
-        False, 0.5, freq_mhz, its_elev_80km).db_loss
+        False, -1, freq_mhz, its_elev_80km).db_loss
 
     J = max(ehata_loss_80km - itm_loss_80km, 0)
     db_loss = db_loss_itm + J
