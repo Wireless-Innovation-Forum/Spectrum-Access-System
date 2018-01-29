@@ -502,7 +502,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'fccId': device_10['fccId'],
         'cbsdSerialNumber': device_10['cbsdSerialNumber'],
         'airInterface': device_10['airInterface'],
-        'installationParam': device_10['installationParam'],
         'measCapability': device_10['measCapability']
     }
     
@@ -530,7 +529,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self._sas_admin.PreloadRegistrationData(conditionals)
 
     # Remove conditionals from registration
-    del device_10['installationParam']  
     del device_10['cbsdCategory']  
     del device_10['airInterface']
     del device_10['measCapability'] 
@@ -552,7 +550,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     device_8['installationParam']['heightType'] = 'AGL'
     device_8['installationParam']['indoorDeployment'] = False  
     device_9['installationParam']['eirpCapability'] = 31
-    device_10['installationParam'] ={}
     device_10['installationParam']['indoorDeployment'] = True
     device_10['installationParam']['eirpCapability'] = 31
     
@@ -575,10 +572,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     convertRequestToRequestWithCpiSignature(cpi_private_key,\
                                 cpi_id, cpi_name, device_13)
     
-    device_15['fccId'] =  'fccId_with_approved_eirp'
+    device_15['fccId'] =  'fccId_approved_eirp'
     device_15['installationParam']['eirpCapability'] = 26
     
-    device_16['fccId'] =  'fccId_with_approved_eirp'
+    device_16['fccId'] =  'fccId_approved_eirp'
     device_16['installationParam']['eirpCapability'] = 26
     convertRequestToRequestWithCpiSignature(cpi_private_key,\
                                 cpi_id, cpi_name, device_16)  
