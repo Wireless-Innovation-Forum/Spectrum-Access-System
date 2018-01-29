@@ -127,7 +127,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     }
     del request, response
     # Send heartbeat request
-    request = {'heartbeatRequest': heartbeat_request}
+    request = {'heartbeatRequest': [heartbeat_request]}
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     # Check heartbeat response
     self.assertEqual(response['response']['responseCode'], 501)
