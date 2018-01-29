@@ -497,13 +497,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'cpiPublicKey': cpi_public_key
     })
     # Pre-load conditionals
-    conditionals_10 = {
-        'cbsdCategory': device_10['cbsdCategory'],
-        'fccId': device_10['fccId'],
-        'cbsdSerialNumber': device_10['cbsdSerialNumber'],
-        'airInterface': device_10['airInterface'],
-        'measCapability': device_10['measCapability']
-    }
     
     conditionals_12 = {
         'fccId': device_12['fccId'],
@@ -523,15 +516,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     conditionals = {
         'registrationData': [
-            conditionals_10, conditionals_12, conditionals_13, conditionals_14
+            conditionals_12, conditionals_13, conditionals_14
         ]
     }
     self._sas_admin.PreloadRegistrationData(conditionals)
-
-    # Remove conditionals from registration
-    del device_10['cbsdCategory']  
-    del device_10['airInterface']
-    del device_10['measCapability'] 
     # Modify the configuration of the devices according to the specfications
     # invalid_cbsd serial number with length > 64 octets
     device_2['cbsdSerialNumber'] = 's' * 65
