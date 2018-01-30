@@ -72,6 +72,41 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+# Generate fake server certificate/key for server_a.
+echo "\n\nGenerate 'server' certificate/key for server_a"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -out server_a.csr -keyout server_a.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=localhost"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server_a.csr \
+    -out server_a.cert -outdir ./root \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+
+# Generate fake server certificate/key for server_b.
+echo "\n\nGenerate 'server' certificate/key for server_b"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -out server_b.csr -keyout server_b.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=localhost"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server_b.csr \
+    -out server_b.cert -outdir ./root \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Generate fake server certificate/key for server_c.
+echo "\n\nGenerate 'server' certificate/key for server_c"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -out server_c.csr -keyout server_c.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=localhost"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server_c.csr \
+    -out server_c.cert -outdir ./root \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#######################
 openssl ecparam -genkey -out  server-ecc.key -name secp521r1
 openssl req -new -nodes \
     -reqexts sas_req -config ../../../cert/openssl.cnf \
