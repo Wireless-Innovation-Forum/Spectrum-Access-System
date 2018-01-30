@@ -1,0 +1,45 @@
+{
+		"test_user_id_e": {
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_4567",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_e_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_e",
+					"cbsdCategory": "A",
+					"fccId": "test_fcc_id_e",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 39.0119,
+						"longitude": -98.4842
+					},
+					"measCapability": [],
+					"userId": "test_user_id_e"
+				}
+			}],
+			"startTime": "calculated at runtime"
+		}
+}

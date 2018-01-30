@@ -48,7 +48,7 @@ class ConstraintTestcase(sas_testcase.SasTestCase):
                                      cert_file=item['cert_file'],key_file=item['key_file'])
         self.sasTHInstances[item['name']] = sasTHServer
 
-  def configureFADForEachSASTH(self,configDir):
+  def configureFADForEachSASTH(self,iterationNumber):
      '''
      This method used to configure FAD record for each SAS-TH that includes CBSDactivity based on configuration files
      and start SAS-TH Http Server instance with configurable host_name and port and ready to serve for Pull Dump request from
@@ -72,10 +72,12 @@ class ConstraintTestcase(sas_testcase.SasTestCase):
        grant_expire = datetime.now().today() + time_delta1
        grant_expire = str(grant_expire.replace(microsecond=0).isoformat()) + 'Z'
        return (start_time,end_time,grant_expire)
-
+    
+     configDir = 'configs/test_WINNF_FT_S_MCP_1' 
      for sasTHName,sasTHInstance in sorted(self.sasTHInstances.items()):
         startTime,endTime,grant_expire = getTimeStamp()
         # load dumpfile which starts with SAS-TH name to identify easily specfic CBSD dump record associated with corresponding SAS-TH
+        sasTHName = sasTHName + '-' + iterationNumber
         dumpfiles = [dumpfile for dumpfile in os.listdir(configDir)
                          if dumpfile.startswith(sasTHName)]
         full_activity_dump = {}
