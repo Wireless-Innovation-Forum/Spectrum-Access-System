@@ -464,3 +464,42 @@ class TestComponentError(Exception):
   message to help with analysis of repeated failures.
   """
   pass
+
+def getFUGPoints(ppa):
+  """This function returns FUG points list
+  Args:
+    ppa: (dictionary) A dictionary containing PPA/GWPZ Record.
+  Returns:
+    An array of tuple (lat, lng).
+  """
+  fug_points = []
+  ppa_polygon = shape(ppa['zone']['features'][0]['geometry'])
+  min_lng, min_lat, max_lng, max_lat = ppa_polygon.bounds
+  upper_boundary_lng = max_lng + 2.0 / 3600
+  lower_boundary_lng = min_lng - 2.0 / 3600
+  upper_boundary_lat = max_lat + 2.0 / 3600
+  lower_boundary_lat = min_lat - 2.0 / 3600
+  while(upper_boundary_lat >= lower_boundary_lat):
+    while(upper_boundary_lng >= lower_boundary_lng):
+      pointLat = upper_boundary_lat
+      pointLng = upper_boundary_lng
+      if Point([pointLng, pointLat]).within(ppa_polygon):
+        fug_points.append((pointLat, pointLng))    
+      upper_boundary_lng = upper_boundary_lng - 2.0 / 3600
+    upper_boundary_lat = upper_boundary_lat - 2.0 / 3600
+    upper_boundary_lng = max_lng + 2.0 / 3600
+  return fug_points
+
+def getChannels(lowFrequency, highFrequency):
+  """This function returns protected channels list"""
+  protection_channels = []
+  startFrequency = 3550
+  channel = 0
+  while channel < 30:
+    if ((startFrequency+channel*5 <lowFrequency/1000000 and startFrequency+ (channel+1)*5>lowFrequency/1000000)
+            or (startFrequency+channel*5 >=lowFrequency/1000000 and startFrequency+ (channel+1)*5<=highFrequency/1000000)
+            or (startFrequency+channel*5 <highFrequency/1000000 and startFrequency+ (channel+1)*5>highFrequency/1000000)) :
+        protection_channels.append(channel + 1)
+    channel = channel + 1
+  return protection_channels
+
