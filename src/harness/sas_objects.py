@@ -130,7 +130,7 @@ class Cbsd:
         :rtype: bool
         """
         for grant_id, grant_request in self.grant_objects.items():
-            if grant_request.get_grant_request()['operationState'] == "GRANTED":
+            if grant_request.get_grant_authorized_in_last_heartbeat():
                 return True
         return False
 
