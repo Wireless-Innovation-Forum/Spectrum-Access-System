@@ -139,6 +139,20 @@ _PropagResult = namedtuple('_PropagResult',
 _IncidenceAngles = namedtuple('_IncidenceAngles',
                               ['hor_cbsd', 'ver_cbsd', 'hor_rx', 'ver_rx'])
 
+# The switch mode between ITM and E-Hata:
+#  0: use the target reliability pathloss
+#  1: use the median (legacy mode)
+#  2: use the mean
+switch_mode = 0
+def SetSwitchMode(mode):
+  """Sets the Hybrid Switching mode among:
+    0: switch on the taregt pathloss
+    1: do the switch based on median pathloss (legacy mode)
+    2: do the switch based on mean pathloss
+  """
+  global switch_mode
+  switch_mode = mode
+
 
 # Main entry point of the Hybrid model
 def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
@@ -197,11 +211,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   Raises:
     Exception if input parameters invalid or out of range.
   """
-  # TODO: Apply quantile in eHata prediction for values not equal to 0.5.
-  #       Not critical since the expected use is only for mean value (ie reliability=-1)
-  #       which is properly managed. For now raise an exception if reliability value
-  #       different of -1 or 0.5
-
   # Sanity checks on input parameters
   if height_cbsd < 1 or height_rx < 1:
     raise Exception('End-point height less than 1m.')
@@ -255,9 +264,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                         HybridMode.ITM_RURAL, cbsd_indoor)
 
   # The eHata offset to apply (in case the mean is requested)
-  offset_median_to_mean = 0.
-  if reliability == -1:
-    offset_median_to_mean = _GetMedianToMeanOffsetDb(freq_mhz, region == 'URBAN')
+  offset_median_to_mean = _GetMedianToMeanOffsetDb(freq_mhz, region == 'URBAN')
 
   # Now process the different cases
   dist_km = internals['dist_km']
@@ -277,28 +284,64 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     # TODO: validate the following approach with WinnForum participants:
     # Weight the offset as well from 0 (100m) to 1.0 (1km).
-    db_loss += alpha * offset_median_to_mean
+    if reliability == -1:
+      db_loss += alpha * offset_median_to_mean
     return _BuildOutput(db_loss, incidence_angles, internals,
                         HybridMode.EHATA_FSL_INTERP, cbsd_indoor)
 
   elif dist_km >= 1 and dist_km <= 80:  # Use best of E-Hata / ITM
     ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
                                         region_code)
-    ehata_loss_mean = ehata_loss_med + offset_median_to_mean
 
-    if reliability == 0.5:
-      itm_loss_mean = wf_itm.CalcItmPropagationLoss(
-          lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
-          False, -1, freq_mhz, its_elev).db_lossdb_loss_itm
-    else:
-      itm_loss_mean = db_loss_itm
+    if switch_mode == 0:
+      # Make the switch using the target mode (median or average)
+      ehata_loss = ehata_loss_med
+      if reliability == -1:
+        ehata_loss += offset_median_to_mean
 
-    if itm_loss_mean >= ehata_loss_mean:
-      return _BuildOutput(db_loss_itm, incidence_angles, internals,
-                          HybridMode.ITM_DOMINANT, cbsd_indoor)
-    else:
-      return _BuildOutput(ehata_loss_mean, incidence_angles, internals,
-                          HybridMode.EHATA_DOMINANT, cbsd_indoor)
+      if db_loss_itm >= ehata_loss:
+        return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                            HybridMode.ITM_DOMINANT, cbsd_indoor)
+      else:
+        return _BuildOutput(ehata_loss, incidence_angles, internals,
+                            HybridMode.EHATA_DOMINANT, cbsd_indoor)
+
+    elif switch_mode == 1:
+      # Switch based on median values comparison (legacy mode)
+      if reliability == -1:
+        itm_loss_med = wf_itm.CalcItmPropagationLoss(
+            lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
+            False, 0.5, freq_mhz, its_elev).db_loss
+      else:
+        itm_loss_med = db_loss_itm
+
+      if itm_loss_med >= ehata_loss_med:
+        return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                            HybridMode.ITM_DOMINANT, cbsd_indoor)
+      else:
+        ehata_loss = ehata_loss_med
+        if reliability == -1:
+          ehata_loss = ehata_loss_med + offset_median_to_mean
+        return _BuildOutput(ehata_loss, incidence_angles, internals,
+                            HybridMode.EHATA_DOMINANT, cbsd_indoor)
+
+    elif switch_mode == 2:
+      # Switch based on mean value comparison
+      if reliability == -1:
+        itm_loss_mean = db_loss_itm
+      else:
+        itm_loss_mean = wf_itm.CalcItmPropagationLoss(
+            lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
+            False, -1, freq_mhz, its_elev).db_loss
+
+      ehata_loss_mean = ehata_loss_med + offset_median_to_mean
+      if itm_loss_mean >= ehata_loss_mean:
+        return _BuildOutput(db_loss_itm, incidence_angles, internals,
+                            HybridMode.ITM_DOMINANT, cbsd_indoor)
+      else:
+        ehata_loss = ehata_loss_mean if reliability == -1 else ehata_loss_med
+        return _BuildOutput(ehata_loss, incidence_angles, internals,
+                            HybridMode.EHATA_DOMINANT, cbsd_indoor)
 
   elif dist_km > 80:  # Use the ITM with correction from E-Hata @ 80km
     # Calculate the ITM median and eHata median losses at 80km
@@ -313,10 +356,27 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     ehata_loss_80km = ehata.ExtendedHata(its_elev_80km, freq_mhz,
                                          height_cbsd, height_rx,
                                          region_code)
-    ehata_loss_80km += offset_median_to_mean
-    itm_loss_80km = wf_itm.CalcItmPropagationLoss(
-        lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
-        False, -1, freq_mhz, its_elev_80km).db_loss
+    if switch_mode == 0:
+      # Offset based on target pathloss
+      if reliability == -1:
+        ehata_loss_80km += offset_median_to_mean
+
+      itm_loss_80km = wf_itm.CalcItmPropagationLoss(
+          lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
+          False, reliability, freq_mhz, its_elev_80km).db_loss
+
+    elif switch_mode == 1:
+      # Offset based on median pathloss
+      itm_loss_80km = wf_itm.CalcItmPropagationLoss(
+          lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
+          False, 0.5, freq_mhz, its_elev_80km).db_loss
+
+    elif switch_mode == 2:
+      # Offset based on mean pathloss
+      ehata_loss_80km += offset_median_to_mean
+      itm_loss_80km = wf_itm.CalcItmPropagationLoss(
+          lat_cbsd, lon_cbsd, height_cbsd, lat_80km, lon_80km, height_rx,
+          False, -1, freq_mhz, its_elev_80km).db_loss
 
     J = max(ehata_loss_80km - itm_loss_80km, 0)
     db_loss = db_loss_itm + J
