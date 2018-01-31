@@ -278,3 +278,46 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
+
+def addIdsToRequests(ids, requests, id_field_name):
+  """Adds CBSD IDs or Grant IDs to any given request.
+
+  Args:
+    ids: (list) a list of valid cbsdIds or grantIds.
+    requests: (list) list of requests, can contain empty dictionaries.
+             - If the id_field_name does not exist in the request, its added.
+             - If the id_field_name has 'REMOVE', the param is removed.
+             - If the id_field_name has an integer value (index), the value
+               of the given 'ids'[index] is filled in.
+    id_field_name: (string) 'cbsd_id' or 'grant_id'.
+  """
+  for id_, req in zip(ids, requests):
+    if id_field_name not in req:
+      assert len(ids) == len(requests)  # Not valid otherwise
+      req[id_field_name] = id_
+    elif req[id_field_name] == 'REMOVE':
+      del req[id_field_name]
+    elif isinstance(req[id_field_name], int):
+      req[id_field_name] = ids[req[id_field_name]]
+    # Else use the value that was provided in the config directly.
+
+
+def addCbsdIdsToRequests(cbsd_ids, requests):
+  """Adds CBSD IDs to the given request.
+
+  Args:
+    cbsd_ids: (list) list of cbsdIds to be inserted into requests.
+    requests: (list) list of requests, containing dictionaries.
+  """
+  addIdsToRequests(cbsd_ids, requests, 'cbsdId')
+
+
+def addGrantIdsToRequests(grant_ids, requests):
+  """Adds Grant IDs to the given request.
+
+  Args:
+    grant_ids: (list) list of grantIds to be inserted into requests.
+    requests: (list) list of requests, containing dictionaries.
+  """
+  addIdsToRequests(grant_ids, requests, 'grantId')

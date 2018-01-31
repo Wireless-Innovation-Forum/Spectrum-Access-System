@@ -21,7 +21,9 @@ import time
 
 import sas
 import sas_testcase
-from util import winnforum_testcase
+
+from util import winnforum_testcase, configurable_testcase, writeConfig, \
+  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests
 
 
 class HeartbeatTestcase(sas_testcase.SasTestCase):
@@ -371,7 +373,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       transmit_expire_time = datetime.strptime(
           response[response_num]['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
       self.assertLess(transmit_expire_time, datetime.utcnow())
-      
+
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_5(self):
     """CBSD heartbeat request after grant is terminated.
@@ -453,8 +455,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 500))
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLess(transmit_expire_time, datetime.utcnow())  
-  
+    self.assertLess(transmit_expire_time, datetime.utcnow())
+
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_6(self):
     """Heartbeat Request from CBSD immediately after CBSD's grant is expired.
@@ -710,7 +712,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # STEP 1
     # register three devices
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json'))) 
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     device_e = json.load(
@@ -744,25 +746,25 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # First Heartbeat
     request = []
     for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
-        request.append({
-            'cbsdId': cbsd_id,
-            'grantId': grant_id,
-            'operationState': 'GRANTED'
-        })
-    
+      request.append({
+          'cbsdId': cbsd_id,
+          'grantId': grant_id,
+          'operationState': 'GRANTED'
+      })
+
     response = self._sas.Heartbeat({'heartbeatRequest': request})['heartbeatResponse']
     for resp in response:
-        self.assertEqual(resp['response']['responseCode'], 0)
+      self.assertEqual(resp['response']['responseCode'], 0)
     del request, response
     # STEP 2
     # load and inject FSS data with Overlapping Frequency of CBSD
     fss_e = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
-    self._sas_admin.InjectFss({'record': fss_e})   
-    # load and inject GWBL data with Overlapping Frequency of CBSD 
+    self._sas_admin.InjectFss({'record': fss_e})
+    # load and inject GWBL data with Overlapping Frequency of CBSD
     gwbl_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))  
-    self._sas_admin.InjectWisp(gwbl_e)      
+        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    self._sas_admin.InjectWisp(gwbl_e)
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -770,28 +772,190 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     request = []
     for cbsd_id, grant_id in\
      zip(cbsd_ids, grant_ids):
-        request.append({
-            'cbsdId': cbsd_id,
-            'grantId': grant_id,
-            'operationState': 'GRANTED'
-        })
+      request.append({
+          'cbsdId': cbsd_id,
+          'grantId': grant_id,
+          'operationState': 'GRANTED'
+      })
     response = self._sas.Heartbeat({'heartbeatRequest': request})['heartbeatResponse']
     del request
     # CHECK
     # Check first two CBSDs with a successful HB response
     for response_num, resp in enumerate(response[:2]):
-        self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
-        self.assertEqual(resp['grantId'], grant_ids[response_num])
-        self.assertEqual(resp['response']['responseCode'], 0)
-        transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],\
-                                                 '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLessEqual((transmit_expire_time - \
-                              datetime.utcnow()).total_seconds(), 240)
-        self.assertLessEqual(datetime.utcnow(), transmit_expire_time)
-        self.assertLessEqual(transmit_expire_time, grant_expire_times[response_num])
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertEqual(resp['grantId'], grant_ids[response_num])
+      self.assertEqual(resp['response']['responseCode'], 0)
+      transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],\
+                                               '%Y-%m-%dT%H:%M:%SZ')
+      self.assertLessEqual((transmit_expire_time - \
+                            datetime.utcnow()).total_seconds(), 240)
+      self.assertLessEqual(datetime.utcnow(), transmit_expire_time)
+      self.assertLessEqual(transmit_expire_time, grant_expire_times[response_num])
     # Check the third  CBSD with unsuccessful HB response of code 500
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
     self.assertEqual(response[2]['response']['responseCode'], 500)
     self.assertLessEqual(datetime.strptime(
         response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.utcnow())
+
+  def generate_HBT_10_default_config(self, filename):
+    """Generates the WinnForum configuration for HBT.10."""
+
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Load grant.json
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    heartbeat_a = {'operationState': 'GRANTED'}
+    heartbeat_c = {'grantId': 'REMOVE', 'operationState': 'GRANTED'}
+    heartbeat_b = {'operationState': 'GRANTED', 'grantRenew': True}
+
+    # Device a and device_c are Cat A.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_c['cbsdCategory'], 'A')
+
+    # Device_b is Category B with conditionals pre-loaded.
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']
+    }
+    conditionals = {'registrationData': [conditionals_b]}
+    del device_b['installationParam']
+
+    # Create the actual config.
+    devices = [device_a, device_c, device_b]
+    blacklist_devices = [device_a]
+    grant_requests = [grant_a, grant_c, grant_b]
+    heartbeat_requests = [heartbeat_a, heartbeat_c, heartbeat_b]
+    config = {
+        'fccIdsBlacklist': [d['fccId'] for d in blacklist_devices],
+        'conditionalRegistrationData': conditionals,
+        'registrationRequest': devices,
+        'grantRequest': grant_requests,
+        'heartbeatRequest': heartbeat_requests,
+        # First request has a blacklisted CBSD => BLACKLISTED
+        # Second request is missing Grant ID => MISSING_PARAM
+        # Third request has all valid params => SUCCESS
+        'expectedResponseCodes': [(101,), (102,), (0,)]
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_HBT_10_default_config)
+  def test_WINNF_FT_S_HBT_10(self, config_filename):
+    """[Configurable] Heartbeat with optional intervening grant termination
+       or blacklist."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(
+        len(config['registrationRequest']), len(config['grantRequest']))
+    self.assertEqual(
+        len(config['grantRequest']), len(config['heartbeatRequest']))
+    self.assertEqual(
+        len(config['heartbeatRequest']),
+        len(config['expectedResponseCodes']))
+
+    # Whitelist FCC IDs.
+    for device in config['registrationRequest']:
+      self._sas_admin.InjectFccId({
+          'fccId': device['fccId'],
+          'fccMaxEirp': 47
+      })
+
+    # Whitelist user IDs.
+    for device in config['registrationRequest']:
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # Register devices
+    cbsd_ids = self.assertRegistered(config['registrationRequest'],
+                                     config['conditionalRegistrationData'])
+    # Request grant
+    grant_request = config['grantRequest']
+    addCbsdIdsToRequests(cbsd_ids, grant_request)
+    request = {'grantRequest': grant_request}
+
+    # Check grant response
+    response = self._sas.Grant(request)['grantResponse']
+    self.assertEqual(len(response), len(grant_request))
+    grant_ids = []
+    grant_expire_times = []
+    for _, resp in enumerate(response):
+      self.assertEqual(resp['response']['responseCode'], 0)
+      grant_ids.append(resp['grantId'])
+      grant_expire_times.append(
+          datetime.strptime(resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'))
+    del request, response
+
+    # Blacklist N2 CBSDs
+    for fcc_id in config['fccIdsBlacklist']:
+      self._sas_admin.BlacklistByFccId({'fccId': fcc_id})
+    blacklisted_cbsd_ids = []
+    for cbsd_id, request in zip(cbsd_ids, config['registrationRequest']):
+      if request['fccId'] in config['fccIdsBlacklist']:
+        blacklisted_cbsd_ids.append(cbsd_id)
+
+    # First Heartbeat Request
+    heartbeat_request = config['heartbeatRequest']
+    addCbsdIdsToRequests(cbsd_ids, heartbeat_request)
+    addGrantIdsToRequests(grant_ids, heartbeat_request)
+    request = {'heartbeatRequest': heartbeat_request}
+    responses = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(responses), len(heartbeat_request))
+
+    # Check heartbeat response
+    self.assertEqual(len(responses), len(config['expectedResponseCodes']))
+    for i, response in enumerate(responses):
+      expected_response_codes = config['expectedResponseCodes'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      # Check if the request contains CBSD ID
+      if 'cbsdId' in heartbeat_request[i]:
+        # Check if CBSD ID is valid
+        if (heartbeat_request[i]['cbsdId'] in cbsd_ids) and (
+            heartbeat_request[i]['cbsdId'] not in blacklisted_cbsd_ids):
+          self.assertEqual(response['cbsdId'], heartbeat_request[i]['cbsdId'])
+          # Check if the request contains Grant ID
+          if 'grantId' in heartbeat_request[i]:
+            # Check if Grant ID is valid
+            if heartbeat_request[i]['grantId'] in grant_ids:
+              cbsd_index = cbsd_ids.index(heartbeat_request[i]['cbsdId'])
+              grant_index = grant_ids.index(heartbeat_request[i]['grantId'])
+              # Check if CBSD ID is paired with the corresponding Grant ID.
+              if cbsd_index == grant_index:
+                self.assertEqual(response['grantId'],
+                                 heartbeat_request[i]['grantId'])
+
+      if response['response']['responseCode'] == 0:
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                                 '%Y-%m-%dT%H:%M:%SZ')
+        self.assertLess(datetime.utcnow(), transmit_expire_time)
+        self.assertLessEqual(
+            (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+        self.assertLessEqual(transmit_expire_time, grant_expire_times[i])
+        if ('grantRenew' in heartbeat_request[i]) and (
+            heartbeat_request[i]['grantRenew']):
+          grant_expire_time = datetime.strptime(response['grantExpireTime'],
+                                                '%Y-%m-%dT%H:%M:%SZ')
+          self.assertLess(datetime.utcnow(), grant_expire_time)
+      else:
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                                 '%Y-%m-%dT%H:%M:%SZ')
+        self.assertLessEqual(transmit_expire_time, datetime.utcnow())
