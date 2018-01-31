@@ -310,8 +310,9 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertDictEqual(esc, esc_record)
             
         # verify that retrieved cbsd dump files have correct schema
-        for cbsd in cbsd_dump_data:
-            self.assertContainsRequiredFields("CbsdData.schema.json", record)   
+        for cbsd_record in cbsd_dump_data:
+            self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
+            AssertFalse("cbsdInfo" in cbsd_record)
             
         # verify all the previous activities on CBSDs and Grants exist in the dump files
         self.assertCbsdRecord(config['registrationRequests'], grants, grant_responses, cbsd_dump_data, config['conditionalRegistrationData'])
