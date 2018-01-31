@@ -129,7 +129,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                              max_eirp_by_MHz)
                 self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
                              -137)
-                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
                                  ['lowFrequency'], 3550000000)
                 self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']\
                                      ['operationFrequencyRange']['lowFrequency'] % 5000000, 0)
@@ -141,7 +141,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                   grant_request[index]['operationParam'])
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
             self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
-            self.assertEqual(False, grants_of_cbsd[0]['terminated'])
+            self.assertFalse(grants_of_cbsd[0]['terminated'])
     
     def generate_FAD_1_default_config(self, filename):
         """Generates the WinnForum configuration for FAD.1"""
@@ -215,8 +215,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # Very light checking of the config file.
         self.assertEqual(len(config['registrationRequests']),
                          len(config['grantRequests']))
-        self.assertEqual(len(config['ppas']),
-                         len(config['pals']))
         
         # inject FCC IDs and User IDs of CBSDs   
         for device in config['registrationRequests']:
@@ -246,10 +244,12 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertEqual(len(grant_responses), len(config['grantRequests']))
         for grant_response in grant_responses:
             self.assertEqual(grant_response['response']['responseCode'], 0)       
-        # inject N2 PPAs and PALs
-        ppa_ids = []
-        for index, ppa in enumerate(config['ppas']):
-            self._sas_admin.InjectPalDatabaseRecord(config['pals'][index])
+        # inject PALs and N2 PPAs
+        ppa_ids = []       
+        for pal in config[pals]:
+            self._sas_admin.InjectPalDatabaseRecord(pal)
+                       
+        for ppa in config['ppas']:
             ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
         # inject N3 Esc sensor
         for esc_sensor in config['escSensors']:
