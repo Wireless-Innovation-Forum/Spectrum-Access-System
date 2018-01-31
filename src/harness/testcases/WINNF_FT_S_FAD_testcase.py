@@ -266,8 +266,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         cbsd_dump_data = []
         ppa_dump_data = []
         esc_sensor_dump_data = []
-        # STEP 5
-        self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         
         # step 6 and check   
         # download dump files and fill corresponding arrays
@@ -280,6 +278,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 esc_sensor_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
             elif dump_file['recordType'] ==  'zone':
                 ppa_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
+            else:
+                self.assertEqual('CoordinationEvent ', dump_file['recordType'])
         
         # verify the length of records equal to the inserted ones
         self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
