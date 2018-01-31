@@ -26,6 +26,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
+
 import jwt
 
 from shapely.geometry import shape, Point, LineString
@@ -229,12 +230,12 @@ def generateCpiRsaKeys():
 
 
 def generateCpiEcKeys():
-  """Generate a private/public EC SECP521R1 key pair.
+  """Generate a private/public EC SECP256R1 key pair.
 
   Returns:
     A tuple (private_key, public key) as PEM string encoded.
   """
-  ec_key = ec.generate_private_key(ec.SECP521R1(), default_backend())
+  ec_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
   ec_private_key = ec_key.private_bytes(
       encoding=serialization.Encoding.PEM,
       format=serialization.PrivateFormat.TraditionalOpenSSL,

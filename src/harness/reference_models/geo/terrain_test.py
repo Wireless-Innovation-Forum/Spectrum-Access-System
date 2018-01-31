@@ -61,8 +61,14 @@ class TestTerrain(unittest.TestCase):
   def test_outside_grid(self):
     # Outside database tiles
     h = self.terrain_driver.GetTerrainElevation(
-        lat=37.75, lon=-121.9999, do_interp=False)
+        lat=37.75, lon=-124.0001, do_interp=False)
     self.assertEqual(h, 0.0)
+
+  def test_missing_tile(self):
+    # Missing expected tiles shall raise an error
+    with self.assertRaises(IOError):
+      h = self.terrain_driver.GetTerrainElevation(
+          lat=37.75, lon=-121.9999, do_interp=False)
 
   def test_interpolation(self):
     # Interpolation test
@@ -139,7 +145,7 @@ class TestTerrain(unittest.TestCase):
     self.assertAlmostEqual(h0, 274.69, 2)
     # Ocean - far away from the coast
     haat, h0 = self.terrain_driver.ComputeNormalizedHaat(
-        lat=37.50, lon=-122.999)
+        lat=37.50, lon=-122.7)
     self.assertEqual(haat, 0.0)
     self.assertEqual(h0, 0.0)
 

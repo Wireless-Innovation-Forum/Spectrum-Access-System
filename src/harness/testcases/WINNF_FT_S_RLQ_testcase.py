@@ -55,15 +55,15 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3600000000.0,
-        'highFrequency': 3610000000.0
+        'lowFrequency': 3600000000,
+        'highFrequency': 3610000000
     }
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3610000000.0,
-        'highFrequency': 3620000000.0
+        'lowFrequency': 3610000000,
+        'highFrequency': 3620000000
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Check grant response
@@ -147,22 +147,22 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3600000000.0,
-        'highFrequency': 3610000000.0
+        'lowFrequency': 3600000000,
+        'highFrequency': 3610000000
     }
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3610000000.0,
-        'highFrequency': 3620000000.0
+        'lowFrequency': 3610000000,
+        'highFrequency': 3620000000
     }
     grant_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_2['cbsdId'] = cbsd_id
     grant_2['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3620000000.0,
-        'highFrequency': 3630000000.0
+        'lowFrequency': 3620000000,
+        'highFrequency': 3630000000
     }
     request = {'grantRequest': [grant_0, grant_1, grant_2]}
     # Check grant response
@@ -416,22 +416,22 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3600000000.0,
-        'highFrequency': 3610000000.0
+        'lowFrequency': 3600000000,
+        'highFrequency': 3610000000
     }
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3610000000.0,
-        'highFrequency': 3620000000.0
+        'lowFrequency': 3610000000,
+        'highFrequency': 3620000000
     }
     grant_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_2['cbsdId'] = cbsd_id
     grant_2['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3620000000.0,
-        'highFrequency': 3630000000.0
+        'lowFrequency': 3620000000,
+        'highFrequency': 3630000000
     }
     request = {'grantRequest': [grant_0, grant_1, grant_2]}
     # Check grant response
