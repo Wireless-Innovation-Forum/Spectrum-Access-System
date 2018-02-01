@@ -12,13 +12,13 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca ---------                
-                               /     \          \                 
-                              /       \          \            
-                         sas_ca       cbsd_ca   proxy_ca
-                         /    |          \              \
-                        /     |           \              \
-             admin_client  server  client|device_[a|c]   domain_proxy
+                               root_ca                          unknown_ca
+                               /     \                              |
+                              /       \                       unknown_device
+                         sas_ca       cbsd_ca
+                         /    |          \
+                        /     |           \
+             admin_client  server   client|device_[a|c]
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
