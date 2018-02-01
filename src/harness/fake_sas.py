@@ -253,9 +253,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
-  def InjectCpiUser(self, request):
-    pass
-
   def TriggerMeasurementReportRegistration(self):
     pass
 
@@ -342,7 +339,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
-                       '/admin/injectdata/ex_zone'):
+                       '/admin/injectdata/exclusion_zone'):
       response = ''
     else:
       self.send_response(404)

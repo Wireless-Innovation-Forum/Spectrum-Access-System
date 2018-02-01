@@ -19,7 +19,6 @@ import os
 import re
 import socket
 import urlparse
-import inspect
 
 from OpenSSL import SSL, crypto
 
