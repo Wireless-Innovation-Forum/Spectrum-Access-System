@@ -10,7 +10,7 @@
       "files": {
         "type": "array",
         "description": "Array of one or more objects corresponding to files comprising the full activity dump.",
-		"items":{"$ref": "file:ActivityDumpFile.schema.json"},
+		"items":{"$ref": "file:\\schema\ActivityDumpFile.schema.json"},
 		"maxItems" : 101
       },
       "generationDateTime": {
