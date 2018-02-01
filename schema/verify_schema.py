@@ -98,6 +98,8 @@ errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordWithoutRequested
 
 errors += testJsonSchema('zoneData.schema.json', 'zoneDataOfPpaExample.json')
 
+errors += testJsonSchema('FullActivityDump.schema.json', 'FullActivityDumpExample.json')
+
 if errors == 0:
   print 'PASS'
 else:
