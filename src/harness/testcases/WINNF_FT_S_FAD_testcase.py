@@ -29,7 +29,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     def tearDown(self):
         pass
     
-    def assertEqualToIfExistDeviceParamOrPreloadedCondtional(self, attr_name, parent_attr_in_record,\
+    def assertEqualToIfExistDeviceOrPreloadedCondtionalParam(self, attr_name, parent_attr_in_record,\
                  parent_attr_in_preloaded_condtional, parent_attr_in_device):
         attr_value = parent_attr_in_device[attr_name] if attr_name in parent_attr_in_device\
          else (parent_attr_in_preloaded_condtional[attr_name] if attr_name in \
@@ -38,6 +38,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(attr_value, parent_attr_in_record[attr_name])
         else :
             self.assertFalse(attr_name in cbsd_record[0])
+    
+    def assertEqualToDeviceOrPreloadedCondtionalParam(self, attr_name, parent_attr_in_record,\
+                 parent_attr_in_preloaded_condtional, parent_attr_in_device):
+        attr_value = parent_attr_in_device[attr_name] if attr_name in parent_attr_in_device\
+         else parent_attr_in_preloaded_condtional[attr_name]      
+        self.assertEqual(attr_value, parent_attr_in_record[attr_name])        
+        
     
     def assertCbsdRecord(self, registration_request, grant_request, grant_response, cbsd_dump_data, reg_conditional_data):
         for index, device in enumerate(registration_request):
@@ -53,54 +60,53 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             cbsd_record = [record['registration'] for record in cbsd_dump_data if record['id'] == record_id]
             self.assertEqual(1, len(cbsd_record))
             # required parameters
-            cbsd_category = device['cbsdCategory'] if 'cbsdCategory' in device else\
-             reg_conditional_device_data['cbsdCategory']          
-            self.assertEqual(cbsd_category, cbsd_record[0]['cbsdCategory'])
             self.assertEqual(device['fccId'], cbsd_record[0]['fccId'])
-            
+                        
             air_interface = device['airInterface'] if 'airInterface' in device else\
              reg_conditional_device_data['airInterface']        
             self.assertDictEqual(air_interface, cbsd_record[0]['airInterface'])
             
-            meas_capability = device['meas_capability'] if 'meas_capability' in device else\
-             reg_conditional_device_data['meas_capability']        
-            self.assertEqual(meas_capability, cbsd_record[0]['assertEqual'])
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('cbsdCategory', \
+             device, reg_conditional_device_data, cbsd_record[0])
+                
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('meas_capability', \
+             device, reg_conditional_device_data, cbsd_record[0])
             
-            latitude = device['installationParam']['latitude'] if ['latitude'] in device['installationParam'] else\
-             reg_conditional_device_data['installationParam']['latitude']
-            self.assertEqual(latitude, cbsd_record[0]['installationParam']['latitude'])
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('latitude', \
+             device['installationParam'], reg_conditional_device_data\
+             ['installationParam'], cbsd_record[0]['installationParam'])
             
-            longitude = device['installationParam']['longitude'] if ['longitude'] in device['installationParam'] else\
-             reg_conditional_device_data['installationParam']['longitude']           
-            self.assertEqual(longitude, cbsd_record[0]['installationParam']['longitude'])
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('longitude', \
+             device['installationParam'], reg_conditional_device_data\
+             ['installationParam'], cbsd_record[0]['installationParam'])
             
-            height = device['installationParam']['height'] if ['height'] in device['installationParam'] else\
-             reg_conditional_device_data['installationParam']['height']           
-            self.assertEqual(height, cbsd_record[0]['installationParam']['height'])
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('height', \
+             device['installationParam'], reg_conditional_device_data\
+             ['installationParam'], cbsd_record[0]['installationParam'])
+
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('heightType', \
+             device['installationParam'], reg_conditional_device_data\
+             ['installationParam'], cbsd_record[0]['installationParam'])
             
-            height_type = device['installationParam']['heightType'] if ['heightType'] in device['installationParam'] else\
-             reg_conditional_device_data['installationParam']['heightType']           
-            self.assertEqual(height_type, cbsd_record[0]['installationParam']['heightType'])
-                    
-            antenna_gain = device['installationParam']['antennaGain'] if ['antennaGain'] in device['installationParam'] else\
-             reg_conditional_device_data['installationParam']['heightType']           
-            self.assertEqual(antenna_gain, cbsd_record[0]['installationParam']['antennaGain'])
-             # parameters should exist in record if exist in device,\
-             # if exist only in record, its value should be equal to a default valu           
-            self.assertEqualToIfExistDeviceParamOrPreloadedCondtional('indoorDeployment', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('antennaGain', \
+             device['installationParam'], reg_conditional_device_data\
+             ['installationParam'], cbsd_record[0]['installationParam'])                   
+            
+             # parameters should exist in record if exist in device,\        
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('indoorDeployment', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
             
-            self.assertEqualToIfExistDeviceParamOrPreloadedCondtional('antennaAzimuth', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaAzimuth', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
-            self.assertEqualToIfExistDeviceParamOrPreloadedCondtional('antennaDowntilt', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaDowntilt', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
-            self.assertEqualToIfExistDeviceParamOrPreloadedCondtional('antennaBeamwidth', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaBeamwidth', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
@@ -118,7 +124,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     self.assertGreaterEqual(cbsd_record[0]['eirpCapability'], -127)
             # antennaModel if exists in device should exist with same value in record    
             
-            self.assertEqualToIfExistDeviceParamOrPreloadedCondtional('antennaModel', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaModel', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
