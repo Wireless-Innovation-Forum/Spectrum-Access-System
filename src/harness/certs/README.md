@@ -12,9 +12,9 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca ---------                unknown_ca
-                               /     \          \                   |
-                              /       \          \             unknown_device
+                               root_ca ---------                
+                               /     \          \                 
+                              /       \          \            
                          sas_ca       cbsd_ca   proxy_ca
                          /    |          \              \
                         /     |           \              \

@@ -154,22 +154,6 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 #   cat cbsd_ca.cert >> admin_client.cert
 #   cat sas_ca.cert >>  server.cert
 
-# Generate specific old security SCS_2 certificate/key.
-echo "\n\nGenerate 'unknown_device' certificate/key"
-openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
-    -extensions root_ca -config ../../../cert/openssl.cnf \
-    -out unknown_ca.cert -keyout private/unknown_ca.key \
-    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Root CA-2"
-
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out unknown_device.csr -keyout unknown_device.key \
-    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD unknown"
-openssl ca -cert unknown_ca.cert -keyfile private/unknown_ca.key -in unknown_device.csr \
-    -out unknown_device.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private
