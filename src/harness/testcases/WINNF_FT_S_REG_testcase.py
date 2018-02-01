@@ -582,7 +582,48 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['response']['responseCode'], 0)
     for resp in response[1:]:
       self.assertEqual(resp['response']['responseCode'], 102)
+      
+  @winnforum_testcase
+  def test_WINNF_FT_S_REG_8(self):
+    """Invalid REG-Conditional parameters in Array Registration Request (responseCode 103)
+    The response should be SUCCESS for the first CBSD,
+    FAILURE 103 for the second and third CBSDs.
+    """
 
+    # Load devices
+    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    # Inject FCC IDs
+    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_3['fccId']})
+
+    # Inject User IDs
+    self._sas_admin.InjectUserId({'userId': device_1['userId']})
+    self._sas_admin.InjectUserId({'userId': device_2['userId']})
+    self._sas_admin.InjectUserId({'userId': device_3['userId']})
+
+    # Device 2 out-of-range or the wrong type azimuth
+    device_2['installationParam']['antennaAzimuth'] = -1
+
+    # Device 3 out-of-range, or the wrong Type value for latitude.
+    device_3['installationParam']['latitude'] = 91.0
+
+    # Register the devices
+    request = {'registrationRequest': [device_1, device_2, device_3]}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    # valid cbsdId and responseCode 0 for 1st cbsd
+    self.assertTrue('cbsdId' in response[0])
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+
+    # responseCode 103 for 2nd and 3rd cbsd
+    self.assertEqual(response[1]['response']['responseCode'], 103)
+    self.assertEqual(response[2]['response']['responseCode'], 103)
+      
   @winnforum_testcase
   def test_WINNF_FT_S_REG_6(self):
     """Pending registration in Array request (responseCode 200).
