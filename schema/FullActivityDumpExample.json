@@ -8,5 +8,5 @@
 		 {"url": "https://raw.githubusercontent.com/Wireless-Innovation-Forum/Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
 		  "checksum": "da39a3ee5e6b4b0d3255bfef95601890afd80709", "size":19, "version": "v1.2","recordType": "coordination" }
 		],
-"generationDateTime": "2018-02-01T01:01:01Z"),
+"generationDateTime": "2018-02-01T01:01:01Z",
 "description":"Full activity dump files" }
