@@ -241,6 +241,15 @@ class SasAdminInterface(object):
         "serialNumber": (string) blacklisted serial number
     """
     pass
+  @abc.abstractmethod
+  def BlacklistSASByFQDN(self, request):
+    """Inject an FQDN of SAS which will be blacklisted by the SAS under test.
+
+    Args:
+      request: A dictionary with a single key-value pair where the key is
+        "fqdn" and the value is the FQDN (string) to be blacklisted.
+    """
+    pass
 
   @abc.abstractmethod
   def PreloadRegistrationData(self, request):
