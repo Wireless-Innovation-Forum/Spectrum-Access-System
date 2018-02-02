@@ -57,7 +57,7 @@ class TestWfItm(unittest.TestCase):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
     lat2, lng2, height2 = 37.754406, -122.388342, 10.0
     reliabilities = [0.1, 0.5, 0.9]
-    expected_losses = [213.72, 214.30, 214.66]
+    expected_losses = [213.68, 214.26, 214.62]
 
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,

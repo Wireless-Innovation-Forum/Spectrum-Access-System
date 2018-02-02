@@ -101,3 +101,15 @@ that the package is installed successfully.
 
 * Security certificates, as described in
 <code>src/harness/testcases/testdata/certs/README.md</code>
+
+### Data
+
+Some of the required data is provided in folder data/. Scripts used to
+retrieve or generate these data are in src/data/.
+
+USGS NED Terrain and NLCD Land cover data are not provided as part of the
+data/ folder, but kept instead in a separate Git repository found at:
+ https://github.com/Wireless-Innovation-Forum/SAS-Data
+
+See the corresponding README.md for more details.
+

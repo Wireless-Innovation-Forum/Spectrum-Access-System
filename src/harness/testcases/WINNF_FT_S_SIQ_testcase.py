@@ -18,7 +18,7 @@ import sas
 import sas_testcase
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent
-
+import time
 
 class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
@@ -28,7 +28,88 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+    
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_2(self):
+    """Response has no available channel
+    with responseCode = 0 successful 
+    """
+    # Load GWPZ Record
+    gwpz = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))      
+    # Load CBSD info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Change device location to be inside GWPZ
+    device_a['installationParam']['latitude'], \
+    device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz)
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])  
+    
+    # Inject GWPZ in SAS 
+    self._sas_admin.InjectWisp(gwpz)   
+    # Trigger daily activities
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()  
+     
+    # Create spectrumInquiry with the frequency range full overlaps with GWPZ frequency
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'] = gwpz['record']\
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']
+    spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = gwpz['record']\
+        ['deploymentParam'][0]['operationParam']['operationFrequencyRange']['highFrequency']
 
+    # Check : Check spectrum inquiry response
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertFalse(response['availableChannel'])
+    self.assertEqual(response['response']['responseCode'], 0)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_4(self):
+    """Tests related to DPA activated for some channels
+    
+    SAS sending responseCode = 0 successful response
+    and including all channels within frequency range FR.
+    """
+    # Trigger SAS to load DPAs
+    self._sas_admin.TriggerLoadDpas()
+    # Trigger SAS to de-active all the DPAs 
+    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
+    # Trigger SAS to active one DPA on channel c
+    frequency_range = {
+      'lowFrequency': 3620000000.0,
+      'highFrequency': 3630000000.0
+    }
+    self._sas_admin.TriggerDpaActivation({'frequencyRange':frequency_range,\
+                                           'dpaId':'east_dpa4'})
+    time.sleep(300)
+    # Load and register CBSD
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Change device location to be inside DPA neighborhood
+    device_a['installationParam']['latitude'] = 30.71570
+    device_a['installationParam']['longitude'] = -88.09350
+    cbsd_ids = self.assertRegistered([device_a]) 
+    # Create and send spectrumInquiry with the same frequency range as DPA Channel
+    spectrum_inquiry_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_0['cbsdId'] = cbsd_ids[0]
+    spectrum_inquiry_0['inquiredSpectrum'][0]['lowFrequency'] = \
+                frequency_range['lowFrequency']
+    spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = \
+                frequency_range['highFrequency']
+    request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0] 
+    # Check spectrum inquiry response
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertTrue('availableChannel' in response)
+    self.assertEqual(response['response']['responseCode'], 0)
+    # Verify available channels contains the requested range and don't have any missing or repeated channels
+    self.assertChannelsContainFrequencyRange(response['availableChannel'])
+    
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
@@ -43,8 +124,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
-    pal_low_frequency = 3620000000.0
-    pal_high_frequency = 3630000000.0
+    pal_low_frequency = 3620000000
+    pal_high_frequency = 3630000000
     pal_user_id = "pal_user"
 
     # Make PPA and PAL records consistent
@@ -83,7 +164,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
     response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
-    self.assertFalse('availableChannel' in response)
+    self.assertEqual(len(response['availableChannel']), 0)
     self.assertEqual(response['response']['responseCode'], 0)
 
   @winnforum_testcase
@@ -554,3 +635,46 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('availableChannel' in response[response_num])
       self.assertEqual(response[response_num]['response']['responseCode'], 300)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SIQ_13(self):
+    """Blacklisted CBSD in Array request.
+
+    The response for Inquiry #3 (blacklisted) should be code 101.
+    """
+    # Register the devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    devices = [device_a, device_c, device_e]
+    cbsd_ids = self.assertRegistered(devices)
+
+    # Blacklist third cbsd
+    request = {'fccId': device_e['fccId']}
+    self._sas_admin.BlacklistByFccId(request)
+    del request
+
+    # Spectrum Inquiries: All parameters valid.
+    spectrum_inquiries = []
+    for i in range(len(devices)):
+      spectrum_inquiry = json.load(
+          open(
+              os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+      spectrum_inquiry['cbsdId'] = cbsd_ids[i]
+      spectrum_inquiries.append(spectrum_inquiry)
+
+    request = {'spectrumInquiryRequest': spectrum_inquiries}
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse']
+
+    # Check Spectrum Inquiry Response
+    self.assertEqual(len(response), 3)
+    # First and second cbsd
+    for resp_num in range(2):
+      self.assertEqual(response[resp_num]['cbsdId'], cbsd_ids[resp_num])
+      self.assertEqual(response[resp_num]['response']['responseCode'], 0)
+    # Third cbsd (blacklisted)
+    self.assertEqual(response[2]['response']['responseCode'], 101)

@@ -355,7 +355,7 @@ class SasAdminInterface(object):
   def TriggerMeasurementReportHeartbeat(self):
     """SAS admin interface to trigger measurement report request for all subsequent
     heartbeat request 
-  
+
     Note: The SAS should request a measurement report in the HeartbeatResponse 
     (if status == 0)
     """
@@ -408,6 +408,43 @@ class SasAdminInterface(object):
         "cpiName": (string) valid name for cpi user to be injected into SAS under test
         "cpiPublicKey": (string) public key value for cpi user to be injected into SAS under test
     """
+    pass
+
+  @abc.abstractmethod
+  def TriggerLoadDpas(self):
+    """SAS admin interface to load all ESC-monitored DPAs and immediately activate all of them.
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerBulkDpaActivation(self, request):
+    """SAS admin interface to bulk DPA activation/deactivation
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "activate": (boolean) if True, activate all ESC-monitored DPAs on all channels
+            else deactivate all ESC-monitored DPAs on all channels
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerDpaActivation(self, request):
+    """SAS admin interface to activate specific DPA on specific channel
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "dpaId": (string) it represents the field "name" in the kml file of DPAs
+        "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
+
+    """
+    pass 
+
+  @abc.abstractmethod
+  def TriggerDpaDeactivation(self, request):
+    """SAS admin interface to deactivate specific DPA on specific channel
+     Args:
+      request: A dictionary with the following key-value pairs:
+        "dpaId": (string) it represents the field "name" in the kml file of DPAs
+        "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
+    """   
     pass
 
 class SasTestcaseInterface(object):

@@ -25,6 +25,10 @@ from reference_models.propagation import wf_itm
 
 import entities
 
+# Configure here the path to terrain directory
+# (if not specified in your CONFIG.py file)
+#wf_itm.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
+
 # Find all the FSS protection points from a given FSS license info
 def GetAllFssFromLicenseInfo(fss_license_info):
   """Get all Fss protection points from a FSS license record.

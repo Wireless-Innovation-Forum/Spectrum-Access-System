@@ -8,7 +8,7 @@ float FindQuantile(const int &nn, float *a, const int &ir)
     bool goto10 = true;
 
     m = 0;
-    n = nn;
+    n = nn - 1; // *** WinnForum modification from: n = nn; **
     k = MIN(MAX(0, ir), n);
     while (!done)
     {
