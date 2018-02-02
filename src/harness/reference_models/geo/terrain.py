@@ -93,8 +93,8 @@ class TerrainDriver:
   def SetFlatEarthMode(self, do_flat=False):
     """Sets the driver in flat-earth mode.
 
-    This is an option to always return zero altitude, to be used for testing
-    and debugging. Not to be used in normal operations.
+    This is an option to always return 10m constant altitude, to be used for
+    testing and debugging. Not to be used in normal operations.
 
     Inputs:
       do_flat (bool): if True, the driver always return altitude 0 everywhere.
@@ -187,7 +187,8 @@ class TerrainDriver:
     alt = np.zeros(len(lat))
 
     if self.do_flat:
-      return alt[0] if is_scalar else alt
+      # Use a 10 meter altitude, as value 0m means the 'sea' in some models
+      return alt[0]+10 if is_scalar else alt+10
 
     # Find the coordinates of the lat/lon in the tile file,
     # in floating point units.
