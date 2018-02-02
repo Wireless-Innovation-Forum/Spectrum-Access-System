@@ -33,6 +33,7 @@ from shapely.geometry import shape, Point, LineString
 
 
 def _log_testcase_header(name, doc):
+  logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
 
