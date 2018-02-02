@@ -123,32 +123,36 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+# Generate Domain Proxy certificate/key.
+echo "\n\nGenerate 'proxy_ca' certificate/key"
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
+    -out proxy_ca.csr -keyout private/proxy_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in proxy_ca.csr \
+    -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
+    -out proxy_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+echo "\n\nGenerate 'domain_proxy' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out domain_proxy.csr -keyout domain_proxy.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
+    -out domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
-cat cbsd_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
+cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
 #   cat root_ca.cert > ca.cert
 #   cat cbsd_ca.cert >> client.cert
 #   cat cbsd_ca.cert >> admin_client.cert
 #   cat sas_ca.cert >>  server.cert
-
-# Generate specific old security SCS_2 certificate/key.
-echo "\n\nGenerate 'unknown_device' certificate/key"
-openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
-    -extensions root_ca -config ../../../cert/openssl.cnf \
-    -out unknown_ca.cert -keyout private/unknown_ca.key \
-    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Root CA-2"
-
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out unknown_device.csr -keyout unknown_device.key \
-    -subj "/C=US/ST=CA/L=Somewhere/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD unknown"
-openssl ca -cert unknown_ca.cert -keyfile private/unknown_ca.key -in unknown_device.csr \
-    -out unknown_device.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 
 # cleanup: remove all files not directly used by the testcases.

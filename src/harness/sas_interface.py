@@ -446,6 +446,7 @@ class SasAdminInterface(object):
         "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
     """   
     pass
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
