@@ -126,6 +126,30 @@ def load_files(device_filenames, pal_record_filenames,
   return devices, pal_records
 
 
+def load_files2_byList(device_list, pal_record_list,
+               pal_user_id, low_frequency, high_frequency):
+  pal_records = []
+  devices = []
+
+  for pal_record in pal_record_list:
+    pal_record = make_pal_consistent(pal_record, pal_user_id,
+                                     low_frequency, high_frequency)
+    pal_records.append(pal_record)
+
+  for device in device_list:
+    if device['userId'] == pal_user_id:
+      # Randomly Select the Pal Record
+      pal_record = random.choice(pal_records)
+      # Move the Device into Random Census Tract Location
+      census_tracts = get_census_tracts(pal_record['license']['licenseAreaIdentifier'])
+      device['installationParam']['latitude'], \
+      device['installationParam']['longitude'] = getRandomLatLongInPolygon(census_tracts)
+      devices.append(device)
+
+  return devices, pal_records
+
+
+
 def get_census_tracts(fips_code):
   for filename in glob.glob(os.path.join('census_tracts', '*.json')):
     census_tract = json.load(

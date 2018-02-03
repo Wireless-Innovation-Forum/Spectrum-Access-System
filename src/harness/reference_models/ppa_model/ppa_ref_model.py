@@ -29,24 +29,36 @@ def __compute_points_gain_prop(device):
   prop_partial, cnt_partial = load_partials(install_param, THRESHOLD)
   # Compute all the Points in 0-359 every 200m upto 40km
   points = pool.map(great_circle_partial, range(0, 360))
+  # points = map(great_circle_partial, range(0, 360))
   # Compute the Gain for all Direction
   antenna_gain = pool.map(antenna_gain_partial, range(0, 360))
+  # antenna_gain = map(antenna_gain_partial, range(0, 360))
   # Compute the Path Loss
   path_loss = pool.map(prop_partial, enumerate(points))
+  # path_loss = map(prop_partial, enumerate(points))
   # Compute the Contour based on Gain and Path Loss Comparing with Threshold
   cnt = pool.map(cnt_partial, zip(antenna_gain, path_loss))
+  # cnt = map(cnt_partial, zip(antenna_gain, path_loss))
   # Smoothing Contour using Hamming Filter
   cnt = smooth(np.asarray(list(cnt)))
   print len(cnt)
   # Generating lat, lon for Contours
+  # contour_lat_lon = great_circle(latitude=install_param['latitude'],
+  #                                longitude=install_param['longitude'],
+  #                                distance=cnt, azimuth=range(0, 360))
+  # contour_lat_lon = {'latitude': [], 'longitude': []}
   lat = []
   lon = []
   for c, az in zip(cnt, range(0, 360)):
-    l, lo, az = GeodesicPoint(install_param['latitude'],
+      l, lo, az = GeodesicPoint(install_param['latitude'],
                                  install_param['longitude'],
                                  c, float(az))
-    lat.append(l)
-    lon.append(lo)
+      lat.append(l)
+      lon.append(lo)
+      # contour_lat_lon['latitude'].append(list(each_lat_lon['latitude']))
+      # contour_lat_lon['longitude'].append(list(each_lat_lon['longitude']))
+  # print contour_lat_lon
+
   polygon = geojson.Polygon([zip(lon,lat)])
   return polygon
 
@@ -73,6 +85,7 @@ def ppa_creation_model(device_filenames, pal_record_filenames,
   pool = Pool(multiprocessing.cpu_count())
   polygon_device = \
     pool.map(__compute_points_gain_prop, devices)
+  # polygon_device = map(__compute_points_gain_prop, devices)
   polygons = map(convert_shape, polygon_device)
   contour_union = cascaded_union(polygons)
 
@@ -80,3 +93,44 @@ def ppa_creation_model(device_filenames, pal_record_filenames,
                                                    contour_union)), \
          pal_records, devices
 
+
+def ppa_creation_model_byList(device_list, pal_record_list,
+                       pal_user_id, pal_low_frequency, pal_high_frequency):
+  """Create a PPA Polygon based on the PAL Records and Device Information
+  Args:
+    device_list: (List) A list containing device json objects.
+    pal_record_list: (List) A list containing pal record json objects.
+    pal_user_id: (String) Pal User Id to be used in all Pal Records.
+    pal_low_frequency: (Number) Pal Primary Low Frequency to be assigned
+    to all Pal Records.
+    pal_high_frequency: (Number) Pal Primary High Frequency to be assigned
+    to all Pal Records.
+  Returns:
+     A Tuple containing PPA Polygon in GeoJSON, a List of
+     Consistent PAL Record and Device List
+   Note: Device Records must contain eirpCapability in installationParam Object
+   and Pal Records must contain fipsCode
+  """
+  devices, pal_records = load_files2_byList(device_list, pal_record_list,
+                                   pal_user_id, pal_low_frequency, pal_high_frequency)
+  pool = Pool(multiprocessing.cpu_count())
+  polygon_device = \
+    pool.map(__compute_points_gain_prop, devices)
+  # polygon_device = map(__compute_points_gain_prop, devices)
+  polygons = map(convert_shape, polygon_device)
+  contour_union = cascaded_union(polygons)
+
+  return convert_to_polygon(clip_ppa_census_tracts(pal_records,
+                                                   contour_union)), \
+         pal_records, devices
+
+
+
+devices_list = ['device_a.json']
+pal_record_list = ['pal_record_0.json']
+pal_user_id = 'test_user_id_a'
+pal_low_frequency = 3550000000
+pal_high_frequency = 3650000000
+result = ppa_creation_model(devices_list, pal_record_list, pal_user_id,pal_low_frequency, pal_high_frequency)
+
+print (result)

@@ -36,9 +36,13 @@ def __prop_model_rel(cbsd_lat, cbsd_lon,cbsd_height, cbsd_indoor, points):
   latitude, longitude = points
   code = driver.GetLandCoverCodes(latitude, longitude)
   region_type = nlcd.GetRegionType(code)
+  # reliability = np.arange(0.01, 1.00, 0.01)
   db_loss_namedtuple = CalcHybridPropagationLoss(cbsd_lat, cbsd_lon, cbsd_height, latitude, longitude, RX_HEIGHT, cbsd_indoor=cbsd_indoor, reliability = -1, region = region_type)
+  # print db_loss_namedtuple
   db_loss = db_loss_namedtuple.db_loss
+  # print db_loss
   prop = 10.0 ** (db_loss / 10.0)
+  # return 10 * log10(sum(prop) / float(len(prop)))
   return 10 * log10(float(prop))
 
 
