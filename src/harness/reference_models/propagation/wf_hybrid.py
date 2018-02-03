@@ -143,7 +143,7 @@ _IncidenceAngles = namedtuple('_IncidenceAngles',
 #  0: use the target reliability pathloss
 #  1: use the median (legacy mode)
 #  2: use the mean
-switch_mode = 0
+switch_mode = 1
 def SetSwitchMode(mode):
   """Sets the Hybrid Switching mode among:
     0: switch on the taregt pathloss
