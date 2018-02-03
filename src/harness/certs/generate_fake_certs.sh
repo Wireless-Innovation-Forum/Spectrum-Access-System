@@ -17,7 +17,9 @@ cp $2 $4
    pos=48
 hex_byte=$(xxd -seek $((10#$pos)) -l 1 -ps $4 -)
 
-# increment this byte by 1
+#Modifying the byte value. If the byte character is 'z' or 'Z' or '9', then it is decremented by 1 to 'y' or 'Y' or '8' respectively.
+#If the value is '+' or '/' then we set it to 'A', else the current character value is incremented by 1. 
+#This takes care of all the 64 characters of Base64 encoding. 
 if [[ $hex_byte == "7a"  ||  $hex_byte == "5a" || $hex_byte == "39" ]]; then
   corrupted_dec_byte=$(($((16#$hex_byte)) -1))
 elif [[ $hex_byte == "2f"  ||  $hex_byte == "2b" ]]; then

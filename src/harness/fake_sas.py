@@ -382,8 +382,6 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
-  parser.add_argument(
-      '--ca', help='Use CA certificate', dest='ca_cert', action='store')
   args = parser.parse_args()
 
   config_parser = ConfigParser.RawConfigParser()

@@ -76,8 +76,7 @@ Required certificates are:
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_6.
 
-* `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed. This is generated
-  during the execution of test_WINNF_FT_S_SCS_7
+* `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SCS_7.
 
 * `self_signed_client.cert`: self signed certificate of client (CBSD) signed by client.key

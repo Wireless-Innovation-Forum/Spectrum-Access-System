@@ -113,11 +113,11 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertTlsHandshakeFailure(device_cert, device_key)
     except AssertionError :
       self.SasReset()
-    # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Register the devices
-    devices = [device_a]
-    request = {'registrationRequest': devices}
-    response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
-    self.assertEqual(response[0]['response']['responseCode'], 104)
+      # Load Devices
+      device_a = json.load(
+          open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      # Register the devices
+      devices = [device_a]
+      request = {'registrationRequest': devices}
+      response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
+      self.assertEqual(response[0]['response']['responseCode'], 104)
