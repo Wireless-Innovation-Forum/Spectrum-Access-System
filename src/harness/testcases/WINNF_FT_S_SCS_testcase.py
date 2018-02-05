@@ -68,18 +68,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_SCS_11(self):
-    """Blacklisted Certificate presented during registration.
-	Checks that SAS UUT response with fatal alert message.
-	"""
-    # Blacklist certificate
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    self._sas_admin.BlacklistByFccIdAndSerialNumber(
-      {'fccId': device_a['fccId'], 'CbsdSerialNumber': device_a['cbsdSerialNumber']})
-    device_cert = self.getCertFilename('device_a.cert')
-    device_key = self.getCertFilename('device_a.key')
-    self.assertTlsHandshakeFailure(device_cert, device_key)
 
 
   @winnforum_testcase
@@ -115,6 +103,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   def test_WINNF_FT_S_SCS_15(self):
     """Certificate with inapplicable fields presented during registration. The response should be 104."""
     
+    self.SasReset() 
     
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
@@ -129,7 +118,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     
     self.assertEqual(response['response']['responseCode'], 104)
 
-
     
     
   @winnforum_testcase
@@ -142,100 +130,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     
     self.assertTlsHandshakeFailure(device_cert, device_key)
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_SCS_17(self):
-    """
-    Invalid certificate following an approved registration reques
-    """
-    device_cert = self.getCertFilename('short_lived_client.cert')
-    device_key = self.getCertFilename('short_lived_client.key')
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
-                                   ['AES128-GCM-SHA256'],device_cert, device_key)
-
-    logging.info("TLS Handshake is success")
-
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
-      self.assertRegistered([device_a])
-
-    logging.info("device_a is in Registered State")
-    config = json.load(
-        open(os.path.join('testcases','configs','test_WINNF_FT_S_SCS_17','default.config')))
-    logging.info("Wait timer configured to invalidate the certificate:%s" %config['wait_timer'])
-
-    countdown(config['wait_timer'])
-
-    logging.info("re-establish TLS Session")
-    self.assertTlsHandshakeFailure(device_cert, device_key)
-
 
   @winnforum_testcase
-  def test_WINNF_FT_S_SCS_18(self):
-    """
-    Invalid certificate following an approved grant request
-    """
-    device_cert = self.getCertFilename('short_lived_client.cert')
-    device_key = self.getCertFilename('short_lived_client.key')
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
-                                   ['AES128-GCM-SHA256'], device_cert, device_key)
-    logging.info("TLS Handshake is success")
-
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
-      cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
-
-    logging.info("device_a is in Granted State")
-
-
-    config = json.load(
-      open(os.path.join('testcases', 'configs', 'test_WINNF_FT_S_SCS_18', 'default.config')))
-    logging.info("Wait timer configured to invalidate the certificate:%s secs" % config['wait_timer'])
-
-    countdown(config['wait_timer'])
-    logging.info("re-establish TLS Session")
-    self.assertTlsHandshakeFailure(device_cert, device_key)
-
-  @winnforum_testcase
-  def test_WINNF_FT_S_SCS_19(self):
-
-    """
-    Invalid certificate following an approved heartbeat request
-    """
-    device_cert = self.getCertFilename('short_lived_client.cert')
-    device_key = self.getCertFilename('short_lived_client.key')
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, \
-                                   ['AES128-GCM-SHA256'], device_cert, device_key)
-    logging.info("TLS Handshake is success")
-
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-
-
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
-      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
-      operation_states = [('GRANTED')]
-      transfer_expiry_timers = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
-
-    logging.info("device_a is in HeartBeat Successful State")
-
-    config = json.load(
-      open(os.path.join('testcases', 'configs', 'test_WINNF_FT_S_SCS_19', 'default.config')))
-    logging.info("Wait timer configured to invalidate the certificate:%s secs" % config['wait_timer'])
-
-    countdown(config['wait_timer'])
-    logging.info("re-establish TLS Session")
-    self.assertTlsHandshakeFailure(device_cert, device_key)
-
   def test_WINNF_FT_S_SCS_20(self):
     """ SAS Certificate Validation
           The SAS UUT provided certificate has the following valid parameters:

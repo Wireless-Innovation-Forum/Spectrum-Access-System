@@ -286,7 +286,6 @@ def countdown(t):
     mins, secs = divmod(t, 60)
     timeformat = '{:02d}:{:02d}'.format(mins, secs)
     time.sleep(1)
-    sys.stdout.flush()
     t -= 1
 
 
