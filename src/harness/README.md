@@ -22,6 +22,8 @@ This folder contains code and testcases for SAS certification test as defined in
     *   **./sas.py**: Implementation of all needed interfaces.
     *   **./fake_sas.py**: A fake SAS implementation, and a HTTP server which
         runs with the fake implementation.
+    *   **./fakedatabase/exclusion_zone_db.json**: Snapshot data of exclusion zone returned by fake database service.	
+    *   **./fake_db_server.py**: A HTTP server which runs the fake database implemnetation.
 *   **./testcases**: Test cases, grouped by section in the test specification.
 *   **./testcases/testdata**: Data used in test cases.
 
