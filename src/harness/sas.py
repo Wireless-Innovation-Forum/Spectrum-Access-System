@@ -109,7 +109,7 @@ def _Request(url, request, config):
   except pycurl.error as e:
     # e contains a tuple (libcurl_error_code, string_description).
     # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    raise AssertionError(e.args[0])
+    raise AssertionError(e.args[0], e.args[1])
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
