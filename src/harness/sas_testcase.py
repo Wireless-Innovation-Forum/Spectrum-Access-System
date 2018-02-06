@@ -141,22 +141,9 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
       time.sleep(10)
     signal.alarm(0)
     
-  def assertChannelsContainFrequencyRange(self, available_channels, frequency_range):
-    channels = []
-    # fill channels with the ranges which are not entirely included in any other range.
-    for ch in available_channels:
-        if not any((c['frequencyRange']['lowFrequency'] <= ch['frequencyRange']['lowFrequency']\
-           and c['frequencyRange']['highFrequency'] >= ch['frequencyRange']['highFrequency'])\
-           and (ch['frequencyRange']['lowFrequency'] != c['frequencyRange']['lowFrequency']\
-               or ch['frequencyRange']['highFrequency'] != c['frequencyRange']['highFrequency']) for c in available_channels):
-            channels.append(ch)
-    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], \
-                                  ch['frequencyRange']['highFrequency']), reverse = False)
-
+  def assertChannelsContainFrequencyRange(self, channels, frequency_range):
+    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency']), reverse = False)
     for index, channel in  enumerate(channels):
-        if index == (len(channels) - 1):
-            self.assertEqual(channel['frequencyRange']['highFrequency'],\
-             frequency_range['highFrequency'])
         if index == 0:
            self.assertEqual(channel['frequencyRange']['lowFrequency'],\
              frequency_range['lowFrequency'])
@@ -164,3 +151,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
             self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
                                  channels[index - 1]\
                                  ['frequencyRange']['highFrequency'])
+            
+    channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
+    self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
+             frequency_range['highFrequency'])
