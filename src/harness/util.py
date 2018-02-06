@@ -21,6 +21,7 @@ import json
 import logging
 import os
 import random
+import sys
 import uuid
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -33,6 +34,11 @@ from shapely.geometry import shape, Point, LineString
 
 
 def _log_testcase_header(name, doc):
+  handler = logging.StreamHandler(sys.stdout)
+  handler.setFormatter(
+    logging.Formatter(
+      '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
+  logging.getLogger().addHandler(handler)
   logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
