@@ -279,3 +279,124 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
+def getPPinPPA(boundarysPoints, ARCSEC):
+    import numpy as np
+    from shapely import geometry
+    
+    poly = geometry.Polygon([[lon,lat] for lon,lat in boundarysPoints])
+    arcsec = ARCSEC/3600.0
+    maxlat = -90 
+    minlat = 90
+    maxlon = -180
+    minlon = 180
+       
+    for point in boundarysPoints:
+        if point[1] > maxlat:
+            maxlat = point[1]
+        if point[1] < minlat:
+            minlat = point[1]         
+        if point[0] > maxlon:
+            maxlon = point[0]
+        if point[0] < minlon:
+            minlon = point[0]
+    
+    iLat = np.floor(minlat)
+    iLon = np.floor(minlon)
+    nL = np.floor((minlat - iLat)/arcsec)
+    nH = np.ceil((maxlat - iLat)/arcsec)
+    mL = np.floor((minlon - iLon)/arcsec)
+    mH = np.ceil((maxlon - iLon)/arcsec)
+        
+    latgrid = np.arange(iLat + nL*arcsec, iLat + nH *arcsec, arcsec)
+    longrid = np.arange(iLon + mL * arcsec, iLon + mH *arcsec, arcsec)
+    
+    if len(latgrid) > 0 and len(latgrid)>0:
+        ppa = []
+
+        for lat in latgrid:
+            for lon in longrid:
+                ppa_check_point = Point(lon, lat)
+                if ppa_check_point.within(poly):
+                        ppa.extend([[lon, lat]])
+
+        if (len(ppa) == 1):
+            return 0, ppa[0][0], ppa[0][1]
+        else:
+            return -1, -1, -1
+    else:
+        return -1, -1, -1
+
+def QueryPropagationAntennaModel(requestJson):
+    import os
+    from reference_models.propagation import wf_itm
+    from reference_models.propagation import wf_hybrid
+    from reference_models.antenna import antenna
+    from reference_models.geo import vincenty
+    from reference_models.geo import nlcd
+    TERRAIN_TEST_DIR = os.path.join(os.path.dirname(__file__), 'reference_models', 'geo', 'testdata', 'ned')
+    NLCD_TEST_DIR = os.path.join(os.path.dirname(__file__), 'reference_models', 'geo', 'testdata', 'nlcd')
+    ITU_TEST_DIR = os.path.join(os.path.dirname(__file__), 'reference_models', 'geo', 'testdata', 'itu')
+    wf_itm.ConfigureTerrainDriver(terrain_dir=TERRAIN_TEST_DIR)
+    wf_itm.ConfigureItuDrivers(itu_dir=ITU_TEST_DIR)
+    wf_hybrid.ConfigureTerrainDriver(terrain_dir=TERRAIN_TEST_DIR)
+    wf_hybrid.wf_itm.ConfigureItuDrivers(itu_dir=ITU_TEST_DIR)
+    nlcd_driver = nlcd.NlcdDriver(NLCD_TEST_DIR)
+
+    request = json.loads(requestJson)
+    reliabilityLevel = request['reliabilityLevel']
+    if reliabilityLevel not in [-1, 0.05, 0.95]:
+        response = 404
+        return response
+    Tx = request['cbsd']
+    if ('fss' in request) and ('ppa' in request):
+        response = 404
+        return response
+    elif 'ppa' in request:
+        Rx ={}
+        Rx['height'] = 1.5
+        isfss = False
+        coordinates = [];
+        ppa = request['ppa']
+        boundarysPoints = ppa['geometry']['coordinates']
+        ARCSEC = 2
+        res, lat, lon = getPPinPPA(boundarysPoints, ARCSEC)
+        if res== 0:
+            Rx['latitude'] = lat
+            Rx['longitude']= lon
+        else:
+            response = 404
+            return response
+
+    elif 'fss' in request:
+        isfss = True
+        Rx = request['fss']
+    else:
+        response = 404
+        return response
+    
+# ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
+# The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
+    Result = {}
+    
+    d, az, rev_az = vincenty.GeodesicDistanceBearing(Tx['latitude'], Tx['longitude'], Rx['latitude'], Rx['longitude'])
+
+    gainTxRx = antenna.GetStandardAntennaGains(az, ant_azimuth=Tx['antennaAzimuth'], ant_beamwidth=Tx['antennaBeamwidth'], ant_gain=Tx['antennaGain'])
+    Result['txAntennaGainDbi'] = gainTxRx   
+
+    if isfss:
+        PathLoss = wf_itm.CalcItmPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=reliabilityLevel, freq_mhz=3625.)
+        Result['pathlossDb'] = PathLoss.db_loss
+      
+    else:
+        regionVal = nlcd_driver.GetLandCoverCodes(Tx['latitude'], Tx['longitude'])
+        PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)
+        Result['pathlossDb'] = PathLoss.db_loss
+ 
+    if 'rxAntennaGainRequired' in Rx.keys():
+        hor_dirs = rev_az
+        ver_dirs = 0
+        gainRxTx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, Rx['antennaAzimuth'], 10, Rx['antennaGain'])
+        Result['rxAntennaGainDbi'] = gainTxRx
+ 
+    return Result

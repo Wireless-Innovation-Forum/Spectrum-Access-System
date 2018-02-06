@@ -1,0 +1,23 @@
+{
+    "reliabilityLevel": 0.95, 
+    "fss": {
+        "rxAntennaGainRequired": true, 
+        "antennaAzimuth": 179, 
+        "antennaElevation": 6, 
+        "antennaGain": 16, 
+        "longitude": -119.691111, 
+        "antennaDowntilt": 10, 
+        "latitude": 48.146944, 
+        "height": 32.61
+    }, 
+    "cbsd": {
+        "antennaAzimuth": 115, 
+        "heightType": "AGL", 
+        "longitude": -105.845, 
+        "height": 56.1, 
+        "indoorDeployment": false, 
+        "antennaBeamwidth": 65, 
+        "latitude": 43.19, 
+        "antennaGain": 16
+    }
+}
