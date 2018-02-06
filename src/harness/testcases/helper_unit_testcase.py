@@ -18,6 +18,14 @@ class AssertChannelsContainFrequencyRangeTest(sas_testcase.SasTestCase):
       frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3575}      
       self.assertChannelsContainFrequencyRange(channels, frequency_range)
       
+   def test_shouldSucceedWhenOneChannelContainsAnother(self):
+      channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3565}},
+                   {'frequencyRange' : {'lowFrequency': 3565, 'highFrequency': 3580}}, 
+                   {'frequencyRange' : {'lowFrequency': 3570, 'highFrequency': 3575}}]
+      
+      frequency_range = { 'lowFrequency': 3550, 'highFrequency': 3580}      
+      self.assertChannelsContainFrequencyRange(channels, frequency_range)     
+      
    def test_shouldSucceedWhenConflictChannel(self):
       channels = [{'frequencyRange' : {'lowFrequency': 3550, 'highFrequency': 3560}},
                    {'frequencyRange' : {'lowFrequency': 3565, 'highFrequency': 3575}}, 
