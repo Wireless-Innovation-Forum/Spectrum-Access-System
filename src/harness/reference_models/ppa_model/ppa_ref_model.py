@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2016-2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ census_tract_driver = census_tract.CensusTractDriver()
 nlcd_driver = nlcd.NlcdDriver()
 
 
-def _CalculatePropLossForEachPointAndContour(install_param, antenna_gain, latitude, longitude):
+def _CalculateDbLossForEachPointAndGetContour(install_param, antenna_gain, latitude, longitude):
   db_loss = np.zeros(len(latitude), dtype=np.float64)
   for index, lat_lon in enumerate(zip(latitude, longitude)):
     lat, lon = lat_lon
@@ -72,13 +72,13 @@ def _GetPolygon(device):
                                                  install_param['antennaGain'])
   # Compute the Path Loss, and contour based on Gain and Path Loss Comparing with Threshold
   # Smoothing Contour using Hamming Filter
-  contour_pts = _HammingFilter([_CalculatePropLossForEachPointAndContour(install_param, gain, lat, lon)
+  contour_pts = _HammingFilter([_CalculateDbLossForEachPointAndGetContour(install_param, gain, lat, lon)
                                 for lat, lon, gain in zip(latitude, longitude, antenna_gain)])
 
   # Generating lat, lon for Contour
   contour_lat, contour_lon, _ = [vincenty.GeodesicPoint(install_param['latitude'],
                                                         install_param['longitude'], cn, az)
-                                 for cn, az in zip(contour_pts, range(0, 360))]
+                                 for cn, az in zip(contour_pts, np.arange(0, 360))]
   return geometry.shape(zip(contour_lon, contour_lat)).buffer(0)
 
 
