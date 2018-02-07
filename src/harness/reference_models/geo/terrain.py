@@ -187,7 +187,7 @@ class TerrainDriver:
     alt = np.zeros(len(lat))
 
     if self.do_flat:
-      return alt[0] if is_scalar else alt
+      return alt[0]+10 if is_scalar else alt+10
 
     # Find the coordinates of the lat/lon in the tile file,
     # in floating point units.

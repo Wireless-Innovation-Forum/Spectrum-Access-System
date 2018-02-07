@@ -32,8 +32,14 @@ void PreprocessTerrainPath(float *pfl, float h_b__meter, float h_m__meter, Inter
 void FindAverageGroundHeight(float *pfl, InterValues *interValues)
 {
     int np = int(pfl[0]);
-    float xi = pfl[1] * 0.001;      // step size of the profile points, in km
-    float d__km = np * xi;          // path distance, in km
+    // ******* WinnForum change *******
+    // Old code:
+    //float xi = pfl[1] * 0.001;      // step size of the profile points, in km
+    //float d__km = np * xi;          // path distance, in km
+    // New code:
+    float xi = pfl[1] / 1000.;      // step size of the profile points, in km
+    float d__km = GetDistanceInMeters(pfl) / 1000.;
+    // ******* End WinnForum change *******
 
     int i_start, i_end;
     float sum = 0.0;
@@ -132,8 +138,14 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
 void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
 {
     int np = int(pfl[0]);
-    float xi = pfl[1] * 0.001;      // step size of the profile points, in km
-    float d__km = np * xi;          // path distance, in km
+    // ******* WinnForum change *******
+    // Old code:
+    //float xi = pfl[1] * 0.001;      // step size of the profile points, in km
+    //float d__km = np * xi;          // path distance, in km
+    // New code:
+    float xi = pfl[1] / 1000.;      // step size of the profile points, in km    
+    float d__km = GetDistanceInMeters(pfl) / 1000.;
+    // ******* End WinnForum change *******
 
     int i_start, i_end;
 
@@ -156,7 +168,14 @@ void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
     }
 
     // create a copy of the 10 km path at the mobile, or the whole path (if less than 10 km)
-    float pfl_segment[400];
+    // ******* WinnForum change *******
+    // The following code may crash the application if using a step <= 25m
+    // Old code:
+    //float pfl_segment[400];
+    // New code:
+    float *pfl_segment = new float[i_end - i_start + 2];
+    // ******* End WinnForum change *******
+    
     for (int i = i_start; i <= i_end; i++)
         pfl_segment[i - i_start] = pfl[i];
 
@@ -179,6 +198,9 @@ void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
         interValues->pfl90__meter = interValues->pfl90__meter * factor;
         interValues->deltah__meter = interValues->deltah__meter * factor;
     }
+    // ******* WinnForum change *******
+    delete[] pfl_segment;
+    // ******* End winnForum change *******    
 }
 
 /*
@@ -197,9 +219,15 @@ void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
 */
 void MobileTerrainSlope(float *pfl, InterValues *interValues)
 {
-    int np = int(pfl[0]);           // number of points
+    // ******* WinnForum change *******
+    // Old code:
+    //int np = int(pfl[0]);           // number of points
+    //float xi = pfl[1];              // step size of the profile points, in meter
+    //float d__meter = np * xi;
+    // New code:
     float xi = pfl[1];              // step size of the profile points, in meter
-    float d__meter = np * xi;
+    float d__meter = GetDistanceInMeters(pfl);
+    // ******* End WinnForum change *******
 
     // find the mean slope of the terrain in the vicinity of the mobile station
     interValues->slope_max = -1.0e+31;
@@ -208,7 +236,13 @@ void MobileTerrainSlope(float *pfl, InterValues *interValues)
     float slope;
     
     float x1, x2;
-    float pfl_segment[400] = { 0 };
+    // ******* WinnForum change *******
+    // The following code may crash the application if using a step <= 25m
+    // Old code:
+    //float pfl_segment[400] = { 0 };
+    // New code:
+    float *pfl_segment = new float[int(10000/xi) + 4]();
+    // ******* End WinnForum change *******
 
     x1 = 0.0;
     x2 = 5000.0;
@@ -253,6 +287,9 @@ void MobileTerrainSlope(float *pfl, InterValues *interValues)
             interValues->trace_code = interValues->trace_code | TRACE__METHOD_07;
         }
     }
+    // ******* WinnForum change *******
+    delete[] pfl_segment;
+    // ******* End winnForum change *******    
 }
 
 /*
@@ -345,8 +382,13 @@ float AverageTerrainHeight(float *pfl)
 void SingleHorizonTest(float *pfl, float h_m__meter, float h_b__meter, InterValues *interValues)
 {
     int np = int(pfl[0]);           // number of points
-    float xi = pfl[1];              // step size of the profile points, in meter
-    float d__meter = np * xi;
+    // ******* WinnForum change *******
+    // Old code:
+    //float xi = pfl[1];              // step size of the profile points, in meter
+    //float d__meter = np * xi;
+    // New code:
+    float d__meter = GetDistanceInMeters(pfl);
+    // ******* End WinnForum change *******
 
     float h_gnd__meter = AverageTerrainHeight(pfl);
 
