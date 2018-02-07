@@ -63,9 +63,9 @@ def _GetPolygon(device):
   latitude, longitude, _ = zip(*[vincenty.GeodesicPoints(install_param['latitude'],
                                                          install_param['longitude'],
                                                          distance, azimuth)
-                                 for azimuth in np.arange(0, 10)])
+                                 for azimuth in np.arange(0, 360)])
   # Compute the Gain for all Direction
-  antenna_gain = antenna.GetStandardAntennaGains(np.arange(0, 10),
+  antenna_gain = antenna.GetStandardAntennaGains(np.arange(0, 360),
                                                  install_param['antennaAzimuth']
                                                  if 'antennaAzimuth' in install_param.keys() else None,
                                                  install_param['antennaBeamwidth'],
