@@ -82,12 +82,24 @@ class TerrainDriver:
     self._tile_lru = {}
     self.stats = tiles.TileStats('ned')
     self._lock = threading.Lock()
+    self.do_flat = False
 
   def SetTerrainDirectory(self, terrain_directory):
     """Configures the terrain data directory."""
     self._terrain_dir = terrain_directory
     if self._terrain_dir is None:
       self._terrain_dir = CONFIG.GetTerrainDir()
+
+  def SetFlatEarthMode(self, do_flat=False):
+    """Sets the driver in flat-earth mode.
+
+    This is an option to always return zero altitude, to be used for testing
+    and debugging. Not to be used in normal operations.
+
+    Inputs:
+      do_flat (bool): if True, the driver always return altitude 0 everywhere.
+    """
+    self.do_flat = do_flat
 
   def SetCacheSize(self, cache_size):
     """Configures the cache size."""
@@ -174,6 +186,9 @@ class TerrainDriver:
     ilon = np.floor(lon)
     alt = np.zeros(len(lat))
 
+    if self.do_flat:
+      return alt[0] if is_scalar else alt
+
     # Find the coordinates of the lat/lon in the tile file,
     # in floating point units.
     float_x = _NUM_PIXEL_OVERLAP + _TILE_BASE_DIM * (lon - ilon)
@@ -229,10 +244,10 @@ class TerrainDriver:
         # Use the elevation of the nearest point
         alt[idx] = tile_cache[iy[idx], ix[idx]]
 
-    if is_scalar:
-      return alt[0]
-    else:
-      return alt
+    if not do_interp:
+      alt[alt < -900] = 0.
+
+    return alt[0] if is_scalar else alt
 
   def TerrainProfile(self, lat1, lon1, lat2, lon2,
                      target_res_meter=-1,
@@ -272,7 +287,7 @@ class TerrainDriver:
     dist, _, _ = vincenty.GeodesicDistanceBearing(lat1, lon1, lat2, lon2)
     dist *= 1000.
 
-    num_points = int(dist/target_res_meter) + 1
+    num_points = np.ceil(dist/float(target_res_meter)) + 1
     if max_points > 0 and num_points > max_points:
       num_points = max_points
     if num_points < 2:
