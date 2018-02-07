@@ -27,15 +27,6 @@ import os
 import glob
 
 
-def great_circle(**kwargs):
-  latitude = kwargs.pop('latitude')
-  longitude = kwargs.pop('longitude')
-  distance = kwargs.pop('distance')  # In Km.
-  azimuth = kwargs.pop('azimuth')
-  lat, lon, reverse = GeodesicPoints(latitude, longitude, distance, azimuth)
-  return {"latitude": lat, "longitude": lon}
-
-
 def check_hole(ppa):
   if hasattr(ppa, 'interiors'):
     if ppa.interiors:
@@ -45,18 +36,6 @@ def check_hole(ppa):
       if area_hole < 500000.0:
         return cascaded_union([ppa, shape(polygon)])
   return ppa
-
-
-def convert_shape(polygon):
-  ppa = shape(polygon).buffer(0)
-  return ppa
-
-
-def smooth(x, window_len=15):
-  s = np.r_[x[-(window_len / 2):], x, x[0:window_len / 2]]
-  w = np.hamming(window_len)
-  y = np.convolve(w / w.sum(), s, mode='valid')
-  return y
 
 
 def convert_to_polygon(contour_union):

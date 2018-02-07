@@ -12,7 +12,12 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from multiprocessing import Pool, cpu_count
+
+import geojson
 import numpy as np
+from shapely.geometry import shape
+from shapely.ops import cascaded_union
 from reference_models.antenna.antenna import GetStandardAntennaGains
 from reference_models.geo import vincenty
 from reference_models.propagation.wf_hybrid import CalcHybridPropagationLoss
@@ -21,7 +26,7 @@ THRESHOLD = -96
 RX_HEIGHT = 6
 
 
-def _CalculatePropLossForEachPoint(install_param, latitude, longitude):
+def _CalculatePropLossForEachPointAndCnt(install_param, antenna_gain, latitude, longitude):
   db_loss = np.zeros(len(latitude), dtype=np.float64)
   for index, lat_lon in enumerate(zip(latitude, longitude)):
     lat, lon = lat_lon
@@ -37,7 +42,8 @@ def _CalculatePropLossForEachPoint(install_param, latitude, longitude):
                                                region="RURAL").db_loss
 
   prop = 10.0 ** (db_loss / 10.0)
-  return prop
+  index_cond, _ = np.where(install_param['eirpCapability'] - prop + antenna_gain > THRESHOLD)
+  return index_cond.shape[0] / 5
 
 
 def _HammingFilter(x, window_len=15):
@@ -45,11 +51,6 @@ def _HammingFilter(x, window_len=15):
   w = np.hamming(window_len)
   y = np.convolve(w / w.sum(), s, mode='valid')
   return y
-
-
-def _ComputeCnt(antenna_gain, path_loss):
-
-  pass
 
 
 def _GetPolygon(device):
@@ -68,27 +69,21 @@ def _GetPolygon(device):
                                          install_param['antennaBeamwidth'],
                                          install_param['antennaGain'])
   # Compute the Path Loss
-  path_loss = [_CalculatePropLossForEachPoint(install_param, lat, lon)
-               for lat, lon in zip(latitude, longitude)]
+  cnt = [_CalculatePropLossForEachPointAndCnt(install_param, gain, lat, lon)
+         for lat, lon, gain in zip(latitude, longitude, antenna_gain)]
   # Compute the Contour based on Gain and Path Loss Comparing with Threshold
-  cnt = _ComputeCnt(antenna_gain, path_loss)
   # Smoothing Contour using Hamming Filter
-  # smooth_cnt = _HammingFilter(cnt)
+  smooth_cnt = _HammingFilter(cnt)
 
-  # # Generating lat, lon for Contours
-  # lat = []
-  # lon = []
-  # for c, az in zip(cnt, range(0, 360)):
-  #   l, lo, az = GeodesicPoint(install_param['latitude'],
-  #                             install_param['longitude'],
-  #                             c, float(az))
-  #   lat.append(l)
-  #   lon.append(lo)
-  # polygon = geojson.Polygon([zip(lon, lat)])
-  # return polygon
+  # Generating lat, lon for Contours
+  cnt_lat, cnt_lon, _ = [vincenty.GeodesicPoint(install_param['latitude'],
+                                                install_param['longitude'], cn, az)
+                         for cn, az in zip(smooth_cnt, range(0, 360))]
+  polygon = geojson.Polygon([zip(cnt_lat, cnt_lon)])
+  return shape(polygon).buffer(0)
 
 
-def PpaCreationModel(devices):
+def PpaCreationModel(devices, pal_records):
   """Create a PPA Polygon based on the PAL Records and Device Information
   Args:
     devices: (List) A list containing device information.
@@ -98,12 +93,11 @@ def PpaCreationModel(devices):
    Note: Device Records must contain eirpCapability in installationParam Object
    and Pal Records must contain fipsCode
   """
-  # pool = Pool(multiprocessing.cpu_count())
-  # polygon_device = \
-  #   pool.map(_GetPolygon, devices)
-  [_GetPolygon(d) for d in devices]
-  # polygons = map(convert_shape, polygon_device)
-  # contour_union = cascaded_union(polygons)
-  #
-  # return convert_to_polygon(clip_ppa_census_tracts(pal_records,
+  pool = Pool(cpu_count())
+  polygon_device = pool.map(_GetPolygon, devices)
+  #TODO: Add Area Check for Holes and Census Tract Clipping
+  # Create Union of all the CBSD Contours and Check for hole
+  #contour_union = cascaded_union(polygon_device)
+
+  #return convert_to_polygon(clip_ppa_census_tracts(pal_records,
   #                                                 contour_union))
