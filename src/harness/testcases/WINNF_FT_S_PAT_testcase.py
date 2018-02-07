@@ -121,7 +121,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                                 self.assertTrue(sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1)
                                 self.assertTrue(sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
                             if 'rxAntennaGainDbi' in refResponse:
-                                self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+                                self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
                         except AssertionError as e:
                             # Allow HTTP status 404
                             self.assertEqual(e.args[0], 404)

@@ -389,7 +389,7 @@ def QueryPropagationAntennaModel(requestJson):
         Result['pathlossDb'] = PathLoss.db_loss
       
     else:
-        regionVal = nlcd_driver.GetLandCoverCodes(Tx['latitude'], Tx['longitude'])
+        regionVal = nlcd_driver.GetLandCoverCodes(Rx['latitude'], Rx['longitude'])
         PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)
         Result['pathlossDb'] = PathLoss.db_loss
  
