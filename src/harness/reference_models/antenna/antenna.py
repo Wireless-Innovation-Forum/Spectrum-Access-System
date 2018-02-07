@@ -88,7 +88,7 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth=None, ant_beamwidth=None, ant_
     hor_dirs:       Ray directions in horizontal plane (degrees).
                     Either a scalar or an iterable.
     ant_azimut:     Antenna azimuth (degrees).
-    ant_beamwidth:  Antenna 3dB curoff beamwidth (degrees).
+    ant_beamwidth:  Antenna 3dB cutoff beamwidth (degrees).
                     If None, then antenna is isotropic (default).
     ant_gain:       Antenna gain (dBi).
 
