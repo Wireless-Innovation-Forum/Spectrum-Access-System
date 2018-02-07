@@ -69,63 +69,6 @@ def convert_to_polygon(contour_union):
   return ppa_geojson
 
 
-def make_pal_consistent(pal_record, pal_user_id, low_frequency, high_frequency):
-  previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
-  next_year_date = datetime.now().replace(year=datetime.now().year + 1)
-  pal_fips_code = pal_record['fipsCode']
-  pal_census_year = pal_record['censusYear']
-  del pal_record['fipsCode'], pal_record['censusYear']
-  pal_record = defaultdict(lambda: defaultdict(dict), pal_record)
-  pal_record['palId'] = '/'.join(['pal', '%s-%d' %
-                                  ('{:02d}'.format(previous_year_date.month),
-                                   previous_year_date.year),
-                                  str(pal_fips_code), '1'])
-  pal_record['userId'] = pal_user_id
-  # Make the date consistent in Pal Record for Registration and License
-  pal_record['registrationInformation']['registrationDate'] = \
-    previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-  # Change License Information in Pal
-  pal_record['license']['licenseAreaIdentifier'] = str(pal_fips_code)
-  pal_record['license']['licenseAreaExtent'] = \
-    'zone/census_tract/census/%d/%d' % (pal_census_year, pal_fips_code)
-  pal_record['license']['licenseDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  pal_record['license']['licenseExpiration'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  pal_record['license']['licenseFrequencyChannelId'] = '1'
-  # Change Frequency Information in Pal
-  pal_record['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
-  pal_record['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
-  # Converting from defaultdict to dict
-  return json.loads(json.dumps(pal_record))
-
-
-def load_files(device_filenames, pal_record_filenames,
-               pal_user_id, low_frequency, high_frequency):
-  pal_records = []
-  devices = []
-
-  for pal_record_filename in pal_record_filenames:
-    pal_record = json.load(
-      open(os.path.join('..', '..', 'testcases', 'testdata', pal_record_filename)))
-    pal_record = make_pal_consistent(pal_record, pal_user_id,
-                                     low_frequency, high_frequency)
-    pal_records.append(pal_record)
-
-  for device_filename in device_filenames:
-    device = json.load(
-      open(os.path.join('..', '..', 'testcases', 'testdata', device_filename)))
-    if device['userId'] == pal_user_id:
-      # Randomly Select the Pal Record
-      pal_record = random.choice(pal_records)
-      # Move the Device into Random Census Tract Location
-      census_tracts = get_census_tracts(pal_record['license']['licenseAreaIdentifier'])
-      device['installationParam']['latitude'], \
-      device['installationParam']['longitude'] = getRandomLatLongInPolygon(census_tracts)
-      devices.append(device)
-
-  return devices, pal_records
-
-
 def get_census_tracts(fips_code):
   for filename in glob.glob(os.path.join('census_tracts', '*.json')):
     census_tract = json.load(
