@@ -30,9 +30,9 @@ census_tract_driver = census_tract.CensusTractDriver()
 nlcd_driver = nlcd.NlcdDriver()
 
 
-def _CalculateDbLossForEachPointAndGetContour(install_param, antenna_gain, latitude, longitude):
-  db_loss = np.zeros(len(latitude), dtype=np.float64)
-  for index, lat_lon in enumerate(zip(latitude, longitude)):
+def _CalculateDbLossForEachPointAndGetContour(install_param, antenna_gain, latitudes, longitudes):
+  db_loss = np.zeros(len(latitudes), dtype=np.float64)
+  for index, lat_lon in enumerate(zip(latitudes, longitudes)):
     lat, lon = lat_lon
     code = nlcd_driver.GetLandCoverCodes(lat, lon)
     region_type = nlcd.GetRegionType(code)
@@ -41,11 +41,11 @@ def _CalculateDbLossForEachPointAndGetContour(install_param, antenna_gain, latit
                                                          install_param['height'],
                                                          lat, lon, RX_HEIGHT,
                                                          install_param['indoorDeployment'],
+                                                         reliability=0.5,
                                                          region=region_type).db_loss
 
-  db_loss = 10.0 ** (db_loss / 10.0)
   index_cond, _ = np.where(install_param['eirpCapability'] - db_loss + antenna_gain > THRESHOLD_PER_10MHZ)
-  return index_cond.shape[0] / 5
+  return index_cond.shape[0] / 5.
 
 
 def _HammingFilter(x, window_len=15):
@@ -60,7 +60,7 @@ def _GetPolygon(device):
   # Get all the Function Partials
   # Compute all the Points in 0-359 every 200m upto 40km
   distance = np.arange(0.2, 40.2, 0.2)
-  latitude, longitude, _ = zip(*[vincenty.GeodesicPoints(install_param['latitude'],
+  latitudes, longitudes, _ = zip(*[vincenty.GeodesicPoints(install_param['latitude'],
                                                          install_param['longitude'],
                                                          distance, azimuth)
                                  for azimuth in np.arange(0, 360)])
@@ -73,13 +73,13 @@ def _GetPolygon(device):
   # Compute the Path Loss, and contour based on Gain and Path Loss Comparing with Threshold
   # Smoothing Contour using Hamming Filter
   contour_pts = _HammingFilter([_CalculateDbLossForEachPointAndGetContour(install_param, gain, lat, lon)
-                                for lat, lon, gain in zip(latitude, longitude, antenna_gain)])
+                                for lat, lon, gain in zip(latitudes, longitudes, antenna_gain)])
 
   # Generating lat, lon for Contour
-  contour_lat, contour_lon, _ = [vincenty.GeodesicPoint(install_param['latitude'],
+  contour_lats, contour_lons, _ = [vincenty.GeodesicPoint(install_param['latitude'],
                                                         install_param['longitude'], cn, az)
                                  for cn, az in zip(contour_pts, np.arange(0, 360))]
-  return geometry.shape(zip(contour_lon, contour_lat)).buffer(0)
+  return geometry.shape(zip(contour_lons, contour_lats)).buffer(0)
 
 
 def _ClipPpaByCensusTract(contour_union, pal_records):
