@@ -16,11 +16,11 @@ from multiprocessing import Pool, cpu_count
 
 import geojson
 import numpy as np
+from reference_models.antenna.antenna import GetStandardAntennaGains
+from reference_models.geo import census_tract, utils, vincenty, nlcd
+from reference_models.propagation.wf_hybrid import CalcHybridPropagationLoss
 from shapely.geometry import shape
 from shapely.ops import cascaded_union
-from reference_models.antenna.antenna import GetStandardAntennaGains
-from reference_models.geo import vincenty
-from reference_models.propagation.wf_hybrid import CalcHybridPropagationLoss
 
 THRESHOLD = -96
 RX_HEIGHT = 6
@@ -30,16 +30,15 @@ def _CalculatePropLossForEachPointAndCnt(install_param, antenna_gain, latitude, 
   db_loss = np.zeros(len(latitude), dtype=np.float64)
   for index, lat_lon in enumerate(zip(latitude, longitude)):
     lat, lon = lat_lon
-    # driver = nlcd.NlcdDriver(cache_size=8)
-    # code = driver.GetLandCoverCodes(lat, lon)
-    # region_type = nlcd.GetRegionType(code)
-    # TODO: Remove Default Region Type
+    driver = nlcd.NlcdDriver(cache_size=8)
+    code = driver.GetLandCoverCodes(lat, lon)
+    region_type = nlcd.GetRegionType(code)
     db_loss[index] = CalcHybridPropagationLoss(install_param['latitude'],
                                                install_param['longitude'],
                                                install_param['height'],
                                                lat, lon, RX_HEIGHT,
                                                install_param['indoorDeployment'],
-                                               region="RURAL").db_loss
+                                               region=region_type).db_loss
 
   prop = 10.0 ** (db_loss / 10.0)
   index_cond, _ = np.where(install_param['eirpCapability'] - prop + antenna_gain > THRESHOLD)
@@ -68,19 +67,51 @@ def _GetPolygon(device):
                                          if 'antennaAzimuth' in install_param.keys() else None,
                                          install_param['antennaBeamwidth'],
                                          install_param['antennaGain'])
-  # Compute the Path Loss
-  cnt = [_CalculatePropLossForEachPointAndCnt(install_param, gain, lat, lon)
-         for lat, lon, gain in zip(latitude, longitude, antenna_gain)]
-  # Compute the Contour based on Gain and Path Loss Comparing with Threshold
+  # Compute the Path Loss, and contour based on Gain and Path Loss Comparing with Threshold
   # Smoothing Contour using Hamming Filter
-  smooth_cnt = _HammingFilter(cnt)
+  cnt = _HammingFilter([_CalculatePropLossForEachPointAndCnt(install_param, gain, lat, lon)
+                        for lat, lon, gain in zip(latitude, longitude, antenna_gain)])
 
-  # Generating lat, lon for Contours
+  # Generating lat, lon for Contour
   cnt_lat, cnt_lon, _ = [vincenty.GeodesicPoint(install_param['latitude'],
                                                 install_param['longitude'], cn, az)
-                         for cn, az in zip(smooth_cnt, range(0, 360))]
+                         for cn, az in zip(cnt, range(0, 360))]
+  # Converting Lat, Lon to GeoJSON and then to Shapely Geometry
+  # TODO: Directly convert Lat, Lon Points to Shapely Polygon
   polygon = geojson.Polygon([zip(cnt_lat, cnt_lon)])
   return shape(polygon).buffer(0)
+
+
+census_tract_driver = census_tract.CensusTractDriver()
+
+
+def ConfigureCensusTractDriver(census_tract_dir=None):
+  """Configure the Census Tract driver.
+
+  Inputs:
+    census_tract_dir: if specified, changes the census tract default directory.
+  """
+  if census_tract_dir is not None:
+    census_tract_driver.SetCensusTractDirectory(census_tract_dir)
+
+
+def _ClipPpaByCensusTract(contour_union, pal_records):
+  # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry
+  census_tracts_for_pal = [shape(census_tract_driver.GetCensusTract(pal['license']
+                                                                    ['licenseAreaIdentifier'])
+                                 ['features'][0]['geometry']).buffer(0) for pal in pal_records]
+  census_tracts_union = cascaded_union(census_tracts_for_pal)
+  return contour_union.intersection(census_tracts_union)
+
+
+def ConvertToGeoJson(ppa_polygon):
+  if ppa_polygon.type == 'MultiPolygon':
+    ppa_geojson = geojson.FeatureCollection(
+      [geojson.Feature(geometry=polygon for polygon in ppa_polygon)])
+  else:
+    ppa_geojson = geojson.FeatureCollection(
+      [geojson.Feature(geometry=ppa_polygon)])
+  return ppa_geojson
 
 
 def PpaCreationModel(devices, pal_records):
@@ -90,14 +121,11 @@ def PpaCreationModel(devices, pal_records):
     pal_records: (List) A list containing pal records.
   Returns:
      A GeoJSON Dictionary of PPA Polygon
-   Note: Device Records must contain eirpCapability in installationParam Object
-   and Pal Records must contain fipsCode
   """
+  # TODO: Add Validation for Inputs
   pool = Pool(cpu_count())
-  polygon_device = pool.map(_GetPolygon, devices)
-  #TODO: Add Area Check for Holes and Census Tract Clipping
+  device_polygon = pool.map(_GetPolygon, devices)
   # Create Union of all the CBSD Contours and Check for hole
-  #contour_union = cascaded_union(polygon_device)
-
-  #return convert_to_polygon(clip_ppa_census_tracts(pal_records,
-  #                                                 contour_union))
+  contour_union = cascaded_union(device_polygon)
+  ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
+  return ConvertToGeoJson(utils.PolyWithoutSmallHoles(ppa_polygon))
