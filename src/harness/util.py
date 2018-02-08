@@ -283,19 +283,21 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
 
+  This function uses the following logic:
+   - If the ID field is missing in request[i], it is filled with ids[i].
+     - Note: len(ids) == len(requests) is required in this case.
+   - If the ID field in request[i] is equal to 'REMOVE', the field is deleted.
+   - If the ID field in request[i] is an integer k, it is replaced with ids[k].
+
   Args:
-    ids: (list) a list of valid cbsdIds or grantIds.
+    ids: (list) a list of valid CBSD IDs or Grant IDs.
     requests: (list) list of requests, can contain empty dictionaries.
-             - If the id_field_name does not exist in the request, its added.
-             - If the id_field_name has 'REMOVE', the param is removed.
-             - If the id_field_name has an integer value (index), the value
-               of the given 'ids'[index] is filled in.
-    id_field_name: (string) 'cbsd_id' or 'grant_id'.
+    id_field_name: (string) 'cbsdId' or 'grantId'.
   """
-  for id_, req in zip(ids, requests):
+  for index, req in enumerate(requests):
     if id_field_name not in req:
       assert len(ids) == len(requests)  # Not valid otherwise
-      req[id_field_name] = id_
+      req[id_field_name] = ids[index]
     elif req[id_field_name] == 'REMOVE':
       del req[id_field_name]
     elif isinstance(req[id_field_name], int):
@@ -304,20 +306,21 @@ def addIdsToRequests(ids, requests, id_field_name):
 
 
 def addCbsdIdsToRequests(cbsd_ids, requests):
-  """Adds CBSD IDs to the given request.
+  """Adds CBSD IDs to a given request. See addIdsToRequests() for more info.
 
   Args:
-    cbsd_ids: (list) list of cbsdIds to be inserted into requests.
+    cbsd_ids: (list) list of CBSD IDs to be inserted into the request.
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(cbsd_ids, requests, 'cbsdId')
 
 
 def addGrantIdsToRequests(grant_ids, requests):
-  """Adds Grant IDs to the given request.
+  """Adds Grant IDs to a given request. See addIdsToRequests() for more info.
 
   Args:
-    grant_ids: (list) list of grantIds to be inserted into requests.
+    grant_ids: (list) list of Grant IDs to be inserted into the request.
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
