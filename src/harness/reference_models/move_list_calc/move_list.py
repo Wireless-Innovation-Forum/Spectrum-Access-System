@@ -27,7 +27,7 @@
 
 #==================================================================================
 # DPA Move List Reference Model.
-# Based on WINNF-TS-0112, Version V1.4.1-r2.0, 16 January 2018.
+# Based on WINNF-TS-0112, Version V1.4.1, 16 January 2018.
 
 # The main routine is 'move_list.findMoveList()'.
 #==================================================================================
@@ -50,7 +50,7 @@ from reference_models.antenna import antenna
 
 # Initialize terrain driver
 # terrainDriver = terrain.TerrainDriver()
-terrainDriver = wf_itm.ConfigureTerrainDriver()
+terrainDriver = wf_itm.terrainDriver
 
 # Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km)
@@ -101,6 +101,25 @@ class DpaType(Enum):
     CO_CHANNEL = 1
     OUT_OF_BAND = 2
 
+
+# A Cache for storing the height-above-average-terrain computed for neighborhood
+# determination.
+HaatCache = {}
+def GetHaat(lat_cbsd, lon_cbsd, height_cbsd, height_is_agl):
+    
+    global HaatCache
+    
+    # Simple technique (non-LRU) to prevent the cache size from increasing forever
+    if len(HaatCache) > 1e7:
+       HaatCache = {}  # Simply restart from scratch
+
+    key = (lat_cbsd, lon_cbsd, height_cbsd, height_is_agl)
+    if key not in HaatCache:
+       HaatCache[key] = wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd, height_is_agl)
+
+    return HaatCache[key]
+
+
 def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, constraint,
                                  exclusion_zone, dpa_type):
 
@@ -113,7 +132,7 @@ def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, cons
         grant_index:    an array of grant indices
         constraint:     protection constraint of type ProtectionConstraint
         exclusion_zone: a polygon object or a list of locations.
-                        If it is a list of locations, each one being a tuple
+                        If it is a list of locations, each one is a tuple
                         with fields 'latitude' and 'longitude'.
                         Default value is 'None'.
         dpa_type:       an enum member of class DpaType
@@ -169,8 +188,8 @@ def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, cons
                 if dist_km <= CAT_B_NBRHD_DIST:
                     cbsd_in_nbrhd = True
                 elif dist_km <= CAT_B_NBRHD_DIST_FOR_HT:
-                    height_cbsd_haat = wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd,
-                                                          height_is_agl=(height_type_cbsd != 'AMSL'))
+                    height_cbsd_haat = GetHaat(lat_cbsd, lon_cbsd, height_cbsd,
+                                               height_is_agl=(height_type_cbsd != 'AMSL'))
                     if height_cbsd_haat >= CAT_B_LONG_HT:
                         cbsd_in_nbrhd = True
             else:
@@ -214,6 +233,7 @@ def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, cons
 
     return grants_inside
 
+
 def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
 
     """
@@ -256,6 +276,7 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
     power_mW = power_within_10MHz_mW + power_outside_10MHz_mW + power_below_3530MHz_mW
 
     return 10 * np.log10(power_mW)
+
 
 def computeInterference(cbsd_grant, constraint, h_inc_ant, num_iteration, dpa_type):
 
@@ -532,12 +553,12 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     Main routine to find CBSD indices on the move list.
 
     Inputs:
-        protection_specs:   a list of protection specifications, a named tuple with
-                            fields of 'lowFreq' (in Hz), 'highFreq' (in Hz),
-                            'antHeight' (in meter), 'beamwidth' (in degree),
+        protection_specs:   protection specifications, an object with attributes
+                            'lowFreq' (in Hz), 'highFreq' (in Hz),
+                            'antHeight' (in meters), 'beamwidth' (in degrees),
                             'threshold' (in dBm/10MHz)
-        protection_points:  a list of protection points, each one being a tuple with
-                            named fields of 'latitude' and 'longitude'
+        protection_points:  a list of protection points, each one being an object
+                            providing attributes 'latitude' and 'longitude'
         registration_requests: a list of CBSD registration requests, each one being
                             a dictionary containing CBSD registration information
         grant_requests:     a list of grant requests, each one being a dictionary
@@ -545,11 +566,11 @@ def findMoveList(protection_specs, protection_points, registration_requests,
         num_iter:           number of Monte Carlo iterations
         num_processes:      number of parallel processes to use
         exclusion_zone:     a polygon object or a list of locations.
-                            If it is a list of locations, each one being a tuple
+                            If it is a list of locations, each one is a tuple
                             with fields 'latitude' and 'longitude'.
                             Default value is 'None'.
     Returns:
-        result:             a Boolean array (same size as registration_requests/
+        result:             a Boolean list (same size as registration_requests/
                             grant_requests) with TRUE elements at indices having
                             grants on the move list
     """
@@ -580,7 +601,8 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     pool.join()
 
     # Find the unique CBSD indices in the M_c list of lists.
-    M = np.unique(reduce(iadd, M_c))
+    M = set().union(*M_c)
+    M = np.array(list(M))
 
     # Set to TRUE the elements of the output Boolean array that have grant_index in
     # the move list.
