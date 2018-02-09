@@ -12,15 +12,13 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                    root_ca                                     unknown_ca
-                    /      \                                         |
-                   /        \                                  unknown_device
-              sas_ca        cbsd_ca                          
-              /  |            \                             
-             /   |             \                            
-            /    |              \                            
-  admin_client  server         client|device_[a|c]                
-                           
+                               root_ca ---------                
+                               /     \          \                 
+                              /       \          \            
+                         sas_ca       cbsd_ca   proxy_ca
+                         /    |          \              \
+                        /     |           \              \
+             admin_client  server  client|device_[a|c]   domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -51,30 +49,19 @@ Required certificates are:
 * `admin_client.[cert|key]`: leaf certificate signed by `sas_ca`.
   Used to authenticate the test harness when connecting to the SAS testing API.
 
+* `proxy_ca.cert`: intermediate Domain Proxy certificate authority for
+  all Domain Proxy Operator, signed by `root_ca`.
+
+* `domain_proxy.[cert|key]`: leaf Domain Proxy Operator certificate signed by
+  `proxy_ca`.
+  Used to authenticate a Domain proxy Operator connecting to a SAS server.
+
 * `ca.cert`: trusted certificates chain bundle. Contains all certificate CA
   used to verify the server chain and the client chain. Basically the
   concatenation of all intermediate certificate CA and root CA.
-
-* `unknown_ca.cert`: root certificate authority to generate unknown device
-  (valid device not managed by the SAS instance under test). Self signed.
-
-* `unknown_device.[cert|key]`: leaf CBSD device certificate signed by
-  `unknown_ca`, and corresponding trusted client certificates bundle.
-  Used on security test test_WINNF_FT_S_SCS_2.
-
-* `unrecognized_root_ca.cert`: root certificate authority to generate unrecognized device
-  Self signed.
 
 * `client_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.
 
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
- 
-* `[root_ca|cbsd_ca].crl`: CRL is generated for root_ca and cbsd_ca after revoke intermediate CA cbsd_ca
-  `WINNF_FT_S_SCS_16_ca.cert`: CA trusted chain appended with CRL of root and intermediate CA
-  Used on security test test_WINNF_FT_S_SCS_16
- 
-* `short_lived_client.[cert|key]`: leaf CBSD device will expire in short duration mentioned in generate_fake_certs.sh 
-  Used on security test test_WINNF_FT_S_SCS_17,test_WINNF_FT_S_SCS_18 and test_WINNF_FT_S_SCS_19 
-  
