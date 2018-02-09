@@ -12,10 +12,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import security_testcase
 from util import winnforum_testcase
-
 import json
+import os
+import security_testcase
+
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -121,3 +122,5 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       request = {'registrationRequest': devices}
       response = self._sas.Registration(request,device_cert, device_key)['registrationResponse']
       self.assertEqual(response[0]['response']['responseCode'], 104)
+
+
