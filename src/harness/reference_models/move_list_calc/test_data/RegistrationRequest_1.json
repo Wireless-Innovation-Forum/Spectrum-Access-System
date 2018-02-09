@@ -15,7 +15,8 @@
   "installationParam": {
     "latitude": 36.7666,
     "longitude": -76.1267,
-    "height": 6,
+    "heightType": "AMSL",
+    "height": 8.69,
     "indoorDeployment": false,
     "antennaAzimuth": 90,
     "antennaDowntilt": 3,
