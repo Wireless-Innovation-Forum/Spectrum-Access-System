@@ -55,26 +55,26 @@ class SasTestHarness(sas_test_harness_interface.HttpServerInterface,threading.Th
     self.daemon = True
 
   def run(self):
-    self.startServer()
+    self.start_server()
 
   def shutdown(self):
-    self.stopServer()
+    self.stop_server()
 
-  def setupFullActivity(self, full_activity_dump=None):
+  def setup_full_activity(self, full_activity_dump=None):
     self.parameters['fullActivity'] = full_activity_dump
 
-  def setupCbsdActivity(self, unique_id, Cbsd_activity_dump = None):
+  def setup_cbsd_activity(self, unique_id, Cbsd_activity_dump = None):
     self.parameters['cbsdActivity'][unique_id] = Cbsd_activity_dump
 
-  def setupPpaActivity(self, unique_id, PPA_activity_dump = None):
+  def setup_ppa_activity(self, unique_id, PPA_activity_dump = None):
     self.parameters['ppaActivity'][unique_id] = PPA_activity_dump
 
-  def setupEscActivity(self,unique_id, esc_activity_dump = None):
+  def setup_esc_activity(self,unique_id, esc_activity_dump = None):
     self.parameters['escActivity'][unique_id] = esc_activity_dump
 
-  def startServer(self):
+  def start_server(self):
     request_handler = SasTestHarnessHandler()
-    request_handler.setupParameters(self.parameters)
+    request_handler.setup_parameters(self.parameters)
     self.server = HTTPServer(self.url,request_handler)
     self.server.socket = ssl.wrap_socket(
       self.server.socket,
@@ -91,7 +91,7 @@ class SasTestHarness(sas_test_harness_interface.HttpServerInterface,threading.Th
     logging.info('Started Test Harness Server:%s at %s' %(self.name,self.url))
 
 
-  def stopServer(self):
+  def stop_server(self):
     self.server.shutdown()
     logging.info('Stopped Test Harness Server:%s' %(self.name))
 
@@ -101,7 +101,7 @@ class SasTestHarnessHandler(BaseHTTPRequestHandler):
   def __init__(self):
     pass
 
-  def setupParameters(self, parameters):
+  def setup_parameters(self, parameters):
     self._parameters = parameters
 
   def do_GET(self):

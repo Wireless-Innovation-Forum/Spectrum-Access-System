@@ -1,0 +1,36 @@
+{
+    "type":"FeatureCollection",
+    "features":[
+        {
+            "type":"Feature",
+            "properties": {
+                "id": "dpaId_0",
+                "informer": "escId_0",
+                "ownerId": "ownerId_0",
+                "clutter": "suburban",
+                "operation" : [
+                    {
+                        "frequencyRange": {
+                            "lowFrequency": 3650000000,
+                            "highFrequency": 3660000000
+                        },
+                        "status" : {
+                            "state": "active",
+                            "activationTime": "2015-01-01T01:01:01Z",
+                            "deactivationTime": "2015-01-01T01:01:01Z",
+                            "interferenceLevel" : -96
+                        }
+                    }
+                ],
+                "description": "description",
+                "initiationTime": "2015-01-01T01:01:01Z",
+                "terminationTime": "2015-01-01T01:01:01Z"
+            },
+            "geometry" : {
+                "type" : "Polygon",
+                "coordinates" : [[[-90.3548611111111,39.2851388888889],[-92.3548611111111,38.6851388888889],[-93.7548611111111,38.6851388888889],[-94.7548611111111,39.2851388888889],[-95.3548611111111,39.2851388888889]]]
+            }
+        }
+   ]
+}
+
