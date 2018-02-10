@@ -1,0 +1,253 @@
+[[{
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_6",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_f_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_f",
+					"cbsdCategory": "A",
+					"fccId": "test_fcc_id_f",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 37.6751,
+						"longitude": -101.9366
+					},
+					"measCapability": [],
+					"userId": "test_user_id_f"
+				}
+			}],
+			"startTime": "calculated at runtime"
+},{
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_7",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_g_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_g",
+					"cbsdCategory": "B",
+					"fccId": "test_fcc_id_g",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 37.9572,
+						"longitude": -100.5853
+					},
+					"measCapability": [],
+					"userId": "test_user_id_g"
+				}
+			}],
+			"startTime": "calculated at runtime"
+},{
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_8",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_h_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_h",
+					"cbsdCategory": "A",
+					"fccId": "test_fcc_id_h",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 37.9831,
+						"longitude": -99.3658
+					},
+					"measCapability": [],
+					"userId": "test_user_id_h"
+				}
+			}],
+			"startTime": "calculated at runtime"
+},{
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_9",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_i_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_i",
+					"cbsdCategory": "A",
+					"fccId": "test_fcc_id_i",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 38.6512,
+						"longitude": -102.8924
+					},
+					"measCapability": [],
+					"userId": "test_user_id_i"
+				}
+			}],
+			"startTime": "calculated at runtime"
+},{
+			"endTime": "calculated at runtime",
+			"recordData": [{
+				"grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_ID_10",
+					"operationParam": {
+						"maxEirp": 20,
+						"operationFrequencyRange": {
+							"highFrequency": 3630000000.0,
+							"lowFrequency": 3620000000.0
+						}
+					},
+					"terminated": false
+				}],
+				"id": "device_j_id",
+				"registration": {
+					"airInterface": {
+						"radioTechnology": "E_UTRA"
+					},
+					"callSign": "callsign_j",
+					"cbsdCategory": "A",
+					"fccId": "test_fcc_id_j",
+					"groupingParam": [{
+						"groupId": "exampleGroup",
+						"groupType": "INTERFERENCE_COORDINATION"
+					}],
+					"installationParam": {
+						"antennaBeamwidth": 30,
+						"antennaGain": 16,
+						"height": 9.3,
+						"heightType": "AGL",
+						"indoorDeployment": true,
+						"latitude": 39.6818,
+						"longitude": -102.6397
+					},
+					"measCapability": [],
+					"userId": "test_user_id_e"
+				}
+			}],
+			"startTime": "calculated at runtime"
+}],[{
+                "name": "PPA Zone 0",
+                "creator": "admin_0",
+                "usage": "PPA",
+                "terminated": false,
+                "zone": {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "properties": {},
+                            "geometry": {
+                                "type": "Polygon",
+                                "coordinates": [
+                                    [
+                                        [
+                                            -102.50312,
+                                            38.39166
+                                        ],
+                                        [
+                                            -103.12675,
+                                            38.01312
+                                        ],
+                                        [
+                                            -103.01963,
+                                            37.58606
+                                        ],
+                                        [
+                                            -101.77762,
+                                            37.43051
+                                        ],
+                                        [
+                                            -101.64786,
+                                            37.94662
+                                        ]
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+}
+],[]]

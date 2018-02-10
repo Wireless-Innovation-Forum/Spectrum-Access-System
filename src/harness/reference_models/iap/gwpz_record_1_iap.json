@@ -1,0 +1,43 @@
+{
+	"record": {
+		"id": "incumbent/uls/0",
+		"type": "PART_90",
+		"deploymentParam": [{
+			"operationParam": {
+				"operationFrequencyRange": {
+					"lowFrequency": 3650000000.0,
+					"highFrequency": 3700000000.0
+				}
+			}
+		}]
+	},
+	"zone": {
+		"type": "FeatureCollection",
+		"features": [{
+			"type": "Feature",
+			"properties": {},
+			"geometry": {
+				"type": "Polygon",
+				"coordinates": [
+					[
+						[-101.398,
+							38.989
+						],
+						[-101.387,
+							38.672
+						],
+						[-100.326,
+							38.406
+						],
+						[-99.936,
+							39.172
+						],
+						[-100.585,
+							39.329
+						]
+					]
+				]
+			}
+		}]
+	}
+}
