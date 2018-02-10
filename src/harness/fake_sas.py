@@ -357,19 +357,17 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc, ca_cert):
+def RunFakeServer(version, is_ecc):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-  if ca_cert is not None:
-      assert os.path.exists(os.path.join('certs',ca_cert)), "%s is not exist in certs path" %ca_cert
 
   server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT if not ca_cert else os.path.join('certs',ca_cert),
+      ca_certs=CA_CERT ,
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
@@ -387,4 +385,6 @@ if __name__ == '__main__':
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc, args.ca_cert)
+  RunFakeServer(version, args.ecc)
+
+
