@@ -359,11 +359,11 @@ def QueryPropagationAntennaModel(requestJson):
         coordinates = [];
         ppa = request['ppa']
         boundarysPoints = ppa['geometry']['coordinates']
-        point = []
+        boundarypoints = []
         for BP in boundarysPoints:
-            point.append([BP[1], BP[0]])
+            boundarypoints.append([BP[1], BP[0]])
         
-        regionVal = nlcd_driver.RegionNlcdVote(point)
+        regionVal = nlcd_driver.RegionNlcdVote(boundarypoints)
         ARCSEC = 2
         res, lat, lon = getPPinPPA(boundarysPoints, ARCSEC)
         if res== 0:
