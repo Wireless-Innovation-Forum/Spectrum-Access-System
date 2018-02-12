@@ -101,12 +101,15 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     from os import listdir
     from os.path import isfile, join
     testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'pat_testcases')
-    testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
-    testfiles = [f for f in testfiles if f.endswith('.json')]
+    if os.path.exists(testcasedir):
+        testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
+        testfiles = [f for f in testfiles if f.endswith('.json')]
     
-    if not testfiles:
-        self.generate_FT_S_PAT_default_config()
-        testfiles = ['default_ppa.json', 'default_fss.json']
+        if not testfiles:
+            self.generate_FT_S_PAT_default_config()
+            testfiles = ['default_ppa.json', 'default_fss.json']
+    else:
+        os.makedirs(testcasedir)
         
     for testfile in testfiles:
         if testfile.endswith('.json'):

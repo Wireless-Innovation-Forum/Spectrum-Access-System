@@ -359,6 +359,11 @@ def QueryPropagationAntennaModel(requestJson):
         coordinates = [];
         ppa = request['ppa']
         boundarysPoints = ppa['geometry']['coordinates']
+        point = []
+        for BP in boundarysPoints:
+            point.append([BP[1], BP[0]])
+        
+        regionVal = nlcd_driver.RegionNlcdVote(point)
         ARCSEC = 2
         res, lat, lon = getPPinPPA(boundarysPoints, ARCSEC)
         if res== 0:
@@ -389,7 +394,7 @@ def QueryPropagationAntennaModel(requestJson):
         Result['pathlossDb'] = PathLoss.db_loss
       
     else:
-        regionVal = nlcd_driver.GetLandCoverCodes(Rx['latitude'], Rx['longitude'])
+        
         PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)
         Result['pathlossDb'] = PathLoss.db_loss
  
