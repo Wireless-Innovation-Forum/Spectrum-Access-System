@@ -302,7 +302,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     heartbeat_b = {'operationState': 'GRANTED'}
 
     # Deregistration requests (where testcode will fill in cbsdId)
-    deregister_a = {}
+    # device_a's CBSD ID will be the same test string.
+    deregister_a = {'cbsdId': 'Test-Invalid-cbsd-string'}
     # device_c's CBSD ID will be removed due to the 'REMOVE' keyword.
     deregister_c = {'cbsdId': 'REMOVE'}
     deregister_b = {}
@@ -322,6 +323,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     }
     conditionals = {'registrationData': [conditionals_b]}
     del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
 
     # Create the actual config.
     devices = [device_a, device_c, device_b]
@@ -334,10 +337,10 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
         'grantRequest': grant_requests,
         'heartbeatRequest': heartbeat_requests,
         'deregistrationRequest': deregistration_requests,
-        # First request, all valid params => SUCCESS
+        # First request has an invalid CBSD ID => INVALID_VALUE
         # Second request is missing CBSD ID => MISSING_PARAM
         # Third request, all valid params => SUCCESS
-        'expectedResponseCodes': [(0,), (102,), (0,)]
+        'expectedResponseCodes': [(103,), (102,), (0,)]
     }
     writeConfig(filename, config)
 
@@ -347,9 +350,12 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertEqual(
+        len(config['registrationRequest']), len(config['grantRequest']))
     self.assertTrue(
-        len(config['registrationRequest']) == len(config['grantRequest']) ==
-        len(config['heartbeatRequest']) == len(config['deregistrationRequest']))
+        len(config['grantRequest']), len(config['heartbeatRequest']))
+    self.assertTrue(
+        len(config['heartbeatRequest']), len(config['deregistrationRequest']))
     self.assertEqual(
         len(config['deregistrationRequest']),
         len(config['expectedResponseCodes']))
@@ -386,34 +392,41 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     degregister_request = config['deregistrationRequest']
     addCbsdIdsToRequests(cbsd_ids, degregister_request)
     request = {'deregistrationRequest': degregister_request}
-    responses = self._sas.Deregistration(request)['deregistrationResponse']
+    responses_1 = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
-    self.assertEqual(len(responses), len(config['expectedResponseCodes']))
-    for i, response in enumerate(responses):
+    self.assertEqual(len(responses_1), len(config['expectedResponseCodes']))
+    for i, response in enumerate(responses_1):
       expected_response_codes = config['expectedResponseCodes'][i]
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
       self.assertIn(response['response']['responseCode'],
                     expected_response_codes)
-      if response['response']['responseCode'] == 0:
-        self.assertTrue('cbsdId' in response)
-        self.assertEqual(response['cbsdId'],
-                         degregister_request[i]['cbsdId'])
-      else:
-        self.assertFalse('cbsdId' in response)
+      # "If the corresponding request contained a valid cbsdId, the
+      # response shall contain the same cbsdId."
+      if 'cbsdId' in degregister_request[i]:
+        if degregister_request[i]['cbsdId'] in cbsd_ids:
+          self.assertEqual(response['cbsdId'], degregister_request[i]['cbsdId'])
+        else:
+          self.assertFalse('cbsdId' in response)
 
     # Step 6: Send the Deregistration request from Step 5 again
     request = {'deregistrationRequest': degregister_request}
-    responses = self._sas.Deregistration(request)['deregistrationResponse']
+    responses_2 = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
-    self.assertEqual(len(responses), len(degregister_request))
-    for i, response in enumerate(responses):
-      # Expecting responseCode 103 and INVALID_VALUE for CBSD ID.
-      logging.debug('Looking at response number %d, response: %s', i, response)
-      self.assertEqual(response['response']['responseCode'], 103)
-      self.assertFalse('cbsdId' in response)
-    del request, responses
+    self.assertEqual(len(responses_2), len(degregister_request))
+    self.assertEqual(len(responses_2), len(responses_1))
+    # If the corresponding responseCode in the previous Deregistration Response
+    # Message was 102, the responseCode shall be 102.
+    for i, (response1, response2) in enumerate((zip(responses_1, responses_2))):
+      logging.debug('Looking at response number %d, response: %s', i, response2)
+      if response1['response']['responseCode'] == 102:
+        self.assertEqual(response2['response']['responseCode'], 102)
+      else:
+        # Otherwise, the responseCode shall be INVALID_VALUE or DEREGISTER.
+        self.assertTrue(response2['response']['responseCode'] in [103, 105])
+      self.assertFalse('cbsdId' in response2)
+    del request, responses_2
 
     # Step 7: Send registration request from Step 2
     cbsd_ids = self.assertRegistered(config['registrationRequest'],
@@ -424,9 +437,10 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     addCbsdIdsToRequests(cbsd_ids, heartbeat_requests)
     request = {'heartbeatRequest': heartbeat_requests}
     responses = self._sas.Heartbeat(request)['heartbeatResponse']
-    self.assertEqual(len(responses), len(heartbeat_request))
+    self.assertEqual(len(responses), len(heartbeat_requests))
     # Check heartbeat response
     for i, response in enumerate(responses):
       logging.debug('Looking at response number %d', i)
       logging.debug('Actual response: %s', response)
       self.assertTrue(response['response']['responseCode'] in [103, 500])
+
