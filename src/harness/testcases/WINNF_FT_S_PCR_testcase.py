@@ -45,10 +45,66 @@ import json
 import os
 import sas
 import sas_testcase
+import ConfigParser
 from reference_models.ppa_model.ppa_ref_model import ppa_creation_model_byList
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
+from util import configurable_testcase, writeConfig, loadConfig
 from sas import _RequestGet
 from shapely.geometry import Polygon
+
+
+def IsSubString(SubStrList, Str):
+  '''''
+     SubStrList=['json']
+     Str='device_a.json'
+     IsSubString(SubStrList,Str)#return True (or False)
+     '''
+  flag = True
+  for substr in SubStrList:
+    if not (substr in Str):
+      flag = False
+  return flag
+
+
+def GetFileList(FindPath, FlagStr=[]):
+  '''''
+     get the file name
+     FlagStr=['json'] # the file name should contains these string
+     FileList=GetFileList(FindPath,FlagStr)
+     '''
+  FileList = []
+  FileNames = os.listdir(FindPath)
+  if (len(FileNames) > 0):
+    for fn in FileNames:
+      if (len(FlagStr) > 0):
+        if (IsSubString(FlagStr, fn)):
+          FileList.append(fn)
+      else:
+        FileList.append(fn)
+
+  if (len(FileList) > 0):
+    FileList.sort()
+  return FileList
+
+def loadMultipleCbsds(self, number):
+  key = ['device']
+  path = 'testcases/testdata/'
+  device_list = GetFileList(path, key)
+  devices = []
+  for device in device_list:
+    device_data = json.load(
+      open(os.path.join('testcases', 'testdata', device)))
+    devices.append(device_data)
+    number -= number
+    if number == 0:
+      return devices
+
+
+def GetSasUnderTestUrl():
+  config_parser = ConfigParser.RawConfigParser()
+  config_parser.read(['sas.cfg'])
+  sas_uut = config_parser.get('SasConfig', 'BaseUrl')
+  return sas_uut
+
 
 class PPACreationTestcase(sas_testcase.SasTestCase):
 
@@ -59,8 +115,7 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
 
-
-  def generate_PCR_1_default_config(self, filename):
+  def generate_PCR_1_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -77,26 +132,17 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
-    url = 'sas_testUUT_url will be provided in the future'
+    url = GetSasUnderTestUrl()
 
     config = {
         'url': url,
-        'device_a': device_a,
-        'device_b': device_b,
+        'devices': devices,
         'pal_record': pal_record
     }
     writeConfig(filename, config)
@@ -106,48 +152,38 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     # Load the Config file
     config = loadConfig(config_filename)
     url = config['url']
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'],device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
-    self.assertEqual(response['response']['responseCode'], 0)
-    self.assertNotEqual(response['ppaId'], None)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertTrue(isinstance(ppaId, basestring))
     # Step 4: Triggers the SAS UUT to generate the Full Activity Dump
     self._sas_admin.TriggerCreateActivityDump()
     # Step 5: SAS Test Harness uses the SAS-SAS protocol to retrieve the PPA zone
-
     full_activity_dump = _RequestGet('https://%s' %
                 (url + '/dump'))
+    activity_dump_files = full_activity_dump['files']
     self.polygon_dump = _RequestGet('https://%s' %
-                (full_activity_dump['url']))
+                (activity_dump_files['url'] + '/dump'))
     # Step 6: Using PPA Creation Reference Model to calculate the maximum PPA
-    devices_list = [device_a, device_b]
     pal_record_list = [pal_record]
     pal_low_frequency = pal_record['channelAssign']['primaryAssignmen']['lowFrequency']
     pal_high_frequency = pal_record['channelAssign']['primaryAssignmen']['highFrequency']
-    polygon_result = ppa_creation_model_byList(devices_list, pal_record_list, pal_record['userId'], pal_low_frequency, pal_high_frequency)
+    polygon_result = ppa_creation_model_byList(devices, pal_record_list, pal_record['userId'], pal_low_frequency, pal_high_frequency)
     polygon = polygon_result['features'][0]['geometry']['coordinates'][0]
     polygon = Polygon([tuple(i) for i in polygon])
     polygon_dump = Polygon([tuple(i) for i in self.polygon_dump])
@@ -156,7 +192,7 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
 
 
 
-  def generate_PCR_2_default_config(self, filename):
+  def generate_PCR_2_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -173,26 +209,17 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
-    url = 'sas_testUUT_url will be provided in the future'
+    url = GetSasUnderTestUrl()
 
     config = {
       'url': url,
-      'device_a': device_a,
-      'device_b': device_b,
+      'devices': devices,
       'pal_record': pal_record
     }
     writeConfig(filename, config)
@@ -202,47 +229,39 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     # Load the Config file
     config = loadConfig(config_filename)
     url = config['url']
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record into SAS UUT
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
-    self.assertEqual(response['response']['responseCode'], 0)
-    self.assertNotEqual(response['ppaId'], None)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertTrue(isinstance(ppaId, basestring))
     # Step 4: Triggers the SAS UUT to generate the Full Activity Dump
     self._sas_admin.TriggerCreateActivityDump()
     # Step 5: SAS Test Harness uses the SAS-SAS protocol to retrieve the PPA zone
     full_activity_dump = _RequestGet('https://%s' %
                                      (url + '/dump'))
+    activity_dump_files = full_activity_dump['files']
     self.polygon_dump = _RequestGet('https://%s' %
-                                    (full_activity_dump['url']))
+                                    (activity_dump_files['url'] + '/dump'))
+
     # Step 6: Using PPA Creation Reference Model to calculate the maximum PPA
-    devices_list = [device_a, device_b]
     pal_record_list = [pal_record]
     pal_low_frequency = pal_record['channelAssign']['primaryAssignmen']['lowFrequency']
     pal_high_frequency = pal_record['channelAssign']['primaryAssignmen']['highFrequency']
-    polygon_result = ppa_creation_model_byList(devices_list, pal_record_list, pal_record['userId'], pal_low_frequency,
+    polygon_result = ppa_creation_model_byList(devices, pal_record_list, pal_record['userId'], pal_low_frequency,
                                          pal_high_frequency)
     polygon = polygon_result['features'][0]['geometry']['coordinates'][0]
     polygon = Polygon([tuple(i) for i in polygon])
@@ -251,7 +270,7 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     self.assertGreaterEqual(polygon_overlap.area, polygon.area * 0.9)
 
 
-  def generate_PCR_3_default_config(self, filename):
+  def generate_PCR_3_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -268,27 +287,18 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
-    url = 'sas_testUUT_url will be provided in the future'
+    url = GetSasUnderTestUrl()
 
     config = {
-      'url': url,
-      'device_a': device_a,
-      'device_b': device_b,
-      'pal_record': pal_record
+        'url': url,
+        'devices': devices,
+        'pal_record': pal_record
     }
     writeConfig(filename, config)
 
@@ -297,46 +307,40 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     # Load the Config file
     config = loadConfig(config_filename)
     url = config['url']
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record in SAS UUT
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UU
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
     # execute the pre-request PCR.1
     self.test_WINNF_FT_S_PCR_1('testcases/configs/test_WINNF_FT_S_PCR_1/default.config')
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds, self.polygon_dump)
-    self.assertEqual(response['response']['responseCode'], 0)
-    self.assertNotEqual(response['ppaId'], None)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertTrue(isinstance(ppaId, basestring))
     # Step 4: Triggers the SAS UUT to generate the Full Activity Dump
     self._sas_admin.TriggerCreateActivityDump()
     # Step 5: SAS Test Harness uses the SAS-SAS protocol to retrieve the PPA zone
-    full_activity_dump = _RequestGet('https://%s' %(url + '/dump'))
-    polygon_dump = _RequestGet('https://%s' %(full_activity_dump['url']))
+    full_activity_dump = _RequestGet('https://%s' %
+                                     (url + '/dump'))
+    activity_dump_files = full_activity_dump['files']
+    polygon_dump = _RequestGet('https://%s' %
+                                    (activity_dump_files['url'] + '/dump'))
     polygon_PPA_SAS_UUT = Polygon([tuple(i) for i in polygon_dump])
     polygon_PPA_provided = Polygon([tuple(i) for i in self.polygon_dump])
     self.assertTrue(polygon_PPA_provided.equals(polygon_PPA_SAS_UUT))
 
-  def generate_PCR_4_default_config(self, filename):
+  def generate_PCR_4_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -353,24 +357,14 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
-
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
     config = {
-      'device_a': device_a,
-      'device_b': device_b,
+      'devices': devices,
       'pal_record': pal_record
     }
     writeConfig(filename, config)
@@ -379,36 +373,28 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_PCR_4(self, config_filename):
     # Load the Config file
     config = loadConfig(config_filename)
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record in SAS UUT
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
-    self.assertEqual(response['response']['responseCode'], 103)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertFalse(isinstance(ppaId, basestring))
 
 
-  def generate_PCR_5_default_config(self, filename):
+  def generate_PCR_5_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -425,23 +411,14 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
     config = {
-      'device_a': device_a,
-      'device_b': device_b,
+      'devices': devices,
       'pal_record': pal_record
     }
     writeConfig(filename, config)
@@ -450,35 +427,27 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_PCR_5(self, config_filename):
     # Load the Config file
     config = loadConfig(config_filename)
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record SAS UUT
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
-    self.assertEqual(response['response']['responseCode'], 103)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertFalse(isinstance(ppaId, basestring))
 
-  def generate_PCR_6_default_config(self, filename):
+  def generate_PCR_6_default_config(self, filename, number):
     # Step 1: Load PAL Database Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -495,23 +464,14 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Step 2: Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Step 2: Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
 
     config = {
-      'device_a': device_a,
-      'device_b': device_b,
+      'devices': devices,
       'pal_record': pal_record
     }
     writeConfig(filename, config)
@@ -520,37 +480,29 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_PCR_6(self, config_filename):
     # Load the Config file
     config = loadConfig(config_filename)
-    device_a = config['device_a']
+    devices = config['devices']
     pal_record = config['pal_record']
-    device_b = config['device_b']
 
     # Step 1: Inject PAL record SAS UUT
     self._sas_admin.InjectPalDatabaseRecord(pal_record)
-    # Step 2: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 2: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 2: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 3: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
     # execute the pre-request PCR.1
     self.test_WINNF_FT_S_PCR_1('testcases/configs/test_WINNF_FT_S_PCR_1/default.config')
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds, self.polygon_dump)
-    self.assertEqual(response['response']['responseCode'], 103)
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertFalse(isinstance(ppaId, basestring))
 
-  def generate_PCR_7_default_config(self, filename):
+  def generate_PCR_7_default_config(self, filename, number):
     # Step1: Load PAL Record
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
@@ -567,19 +519,17 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     pal_record['userId'] = "pal_user"
     pal_record['palId'] = "pal/10-2017/123456789/A"
 
-    # Load the device_a in DP Test Harness
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 39.0119
-    device_a['installationParam']['longitude'] = -98.4842
-    device_a['userId'] = pal_record['licensee']
+    # Step 2: Load N devices
+    devices = loadMultipleCbsds(number)
 
-    # Load the device_b in DP Test Harness
-    device_b = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 39.139836
-    device_b['installationParam']['longitude'] = -97.770094
-    device_b['userId'] = pal_record['licensee']
+    for device in devices:
+      device['userId'] = pal_record['licensee']
+
+    config = {
+      'devices': devices,
+      'pal_record': pal_record
+    }
+    writeConfig(filename, config)
 
     # Inject a PPA Zone Definition for a PPA using the PAL record
     current_time = datetime.now()
@@ -589,7 +539,7 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     start_time = str(start_time.replace(microsecond=0).isoformat()) + 'Z'
     ppaInfo = {}
     ppaInfo['palId'] = pal_record['palId']
-    ppaInfo['cbsdReferenceId'] = [device_a['cbsdSerialNumber'],device_b['cbsdSerialNumber']]
+    ppaInfo['cbsdReferenceId'] = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     ppaInfo['ppaBeginDate'] = start_time
     ppaInfo['ppaExpirationDate'] = end_time
     ppa_zone = json.load(open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
@@ -597,8 +547,7 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
 
 
     config = {
-      'device_a': device_a,
-      'device_b': device_b,
+      'devices': devices,
       'pal_record': pal_record,
       'ppa_zone': ppa_zone
     }
@@ -608,9 +557,8 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_PCR_7(self, config_filename):
     # Load the Config file
     config = loadConfig(config_filename)
-    device_a = config['device_a']
     pal_record = config['pal_record']
-    device_b = config['device_b']
+    devices = config['devices']
     ppa_zone = config['ppa_zone']
 
     # Step 1: Inject PAL record SAS UUT
@@ -620,35 +568,20 @@ class PPACreationTestcase(sas_testcase.SasTestCase):
     ppa_zone['zoo'] = self.polygon_dump
     # Step 2: Inject a PPA Zone Definition for a PPA
     self._sas_admin.InjectZoneData(ppa_zone)
-    # Step 3: register device_a in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    request = {'registrationRequest': [device_a]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_a in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
-    # Step 3: register device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
-    request = {'registrationRequest': [device_b]}
-    response = self._sas.Registration(request)['registrationResponse'][0]
-    # Check registration response of device_b in SAS UUT
-    self.assertEqual(response['response']['responseCode'], 0)
-    del request, response
+    # Step 3: register devices in SAS UUT
+    for device in devices:
+      self._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+      request = {'registrationRequest': [device]}
+      response = self._sas.Registration(request)['registrationResponse'][0]
+      # Check registration response of device_a in SAS UUT
+      self.assertEqual(response['response']['responseCode'], 0)
+      del request, response
     # Step 4: Triggers SAS UUT to create a PPA boundary
-    cbsdIds = [device_a['cbsdSerialNumber'], device_b['cbsdSerialNumber']]
+    cbsdIds = [device['fccId'] + device['cbsdSerialNumber'] for device in devices]
     palIds = [pal_record['palId']]
-    response = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
-    self.assertEqual(response['response']['responseCode'], 103)
-
-
-
-
-
-
-
-
+    ppaId = self._sas_admin.TriggerPpaCreation(cbsdIds, palIds)
+    self.assertFalse(isinstance(ppaId, basestring))
 
 
 
