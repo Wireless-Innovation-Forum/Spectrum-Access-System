@@ -446,6 +446,7 @@ class SasAdminInterface(object):
         "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
     """   
     pass
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -555,8 +556,9 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-    
-  @abc.abstractmethod
+
+
+    @abc.abstractmethod
   def TriggerCreateFullActivityDump(self):
     """
     Trigger SAS to create a full activity dump

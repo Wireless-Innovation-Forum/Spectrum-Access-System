@@ -4,14 +4,14 @@ import os
 import sys
 import sas
 import sas_testcase
-from sas_test_harness import SasTestHarness, GetSasTestHarnessUrl
+from sas_test_harness import SasTestHarnessServer, GetSasTestHarnessUrl
 from util import configurable_testcase, writeConfig, loadConfig
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
-    self._sas_server = SasTestHarness()
+    self._sas_server = SasTestHarnessServer()
 
   def tearDown(self):
     if hasattr(self, '_sas_server'):
@@ -105,8 +105,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     activity_dump_ppa = {}
     activity_dump_ppa['url'] = 'https://' + sas_th_url + '/ppa_activity/%s' % ppa_a['name']
-    activity_dump_ppa['checksum'] = sys.getsizeof(ppa_a)
-    activity_dump_ppa['size'] = "For the future calculating"
+    activity_dump_ppa['checksum'] = "For the future calculating"
+    activity_dump_ppa['size'] = sys.getsizeof(ppa_a)
     activity_dump_ppa['version'] = "v1.2"
 
     activity_dump_esc = {}
@@ -133,16 +133,14 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Step 2: Load grant request for device_a
     grant_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_a['cbsdId'] = device_a['userId']
     grant_a['operationParam']['maxEirp'] = 20
-    # Load the device_b with registration to SAS UUT
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Load grant request for device_b to SAS UUT
-    grant_b = json.load(
+    # Load the device_e with registration to SAS UUT
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    # Load grant request for device_e to SAS UUT
+    grant_e = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b['cbsdId'] = device_b['userId']
-    grant_b['operationParam']['maxEirp'] = 20
+    grant_e['operationParam']['maxEirp'] = 20
     # Load one ppa in SAS Test Harness
     ppa_a = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
@@ -156,26 +154,25 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_c['cbsdId'] = device_c['userId']
     grant_c['operationParam']['maxEirp'] = 20
-    # Load device_d within the PPA to SAS UUT
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_d['installationParam']['latitude'] = 38.7790
-    device_d['installationParam']['longitude'] = -97.2263
-    # Load grant request for device_d to SAS UUT
-    grant_d = json.load(
+    # Load device_f within the PPA to SAS UUT
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_f['installationParam']['latitude'] = 38.7790
+    device_f['installationParam']['longitude'] = -97.2263
+    # Load grant request for device_f to SAS UUT
+    grant_f = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_d['cbsdId'] = device_d['userId']
-    grant_d['operationParam']['maxEirp'] = 20
+    grant_f['operationParam']['maxEirp'] = 20
     url = GetSasTestHarnessUrl()
     config = {  'url' : url,
                 'device_a': device_a,
-                'device_b': device_b,
+                'device_e': device_e,
                 'device_c': device_c,
-                'device_d': device_d,
+                'device_f': device_f,
                 'grant_a': grant_a,
-                'grant_b': grant_b,
+                'grant_e': grant_e,
                 'grant_c': grant_c,
-                'grant_d': grant_d,
+                'grant_f': grant_f,
                 'ppa_a': ppa_a,
                 'esc_sensor': esc_sensor,
                 'certificateHash': "will provide in the future"
@@ -188,74 +185,70 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     sas_th_url = config['url']
     device_a = config['device_a']
-    device_b = config['device_b']
+    device_e = config['device_e']
     device_c = config['device_c']
-    device_d = config['device_d']
+    device_f = config['device_f']
     grant_a = config['grant_a']
-    grant_b = config['grant_b']
+    grant_e = config['grant_e']
     grant_c = config['grant_c']
-    grant_d = config['grant_d']
+    grant_f = config['grant_f']
     ppa_a = config['ppa_a']
     esc_sensor = config['esc_sensor']
     # Start the server
     self._sas_server.startServer()
 
-    # Step 3: Whitelist the FCCID and UserID for the device_b in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_b['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_b['userId']})
+    # Step 3: Whitelist the FCCID and UserID for CBSD C2 = device_e in SAS UUT
+    self._sas_admin.InjectFccId({'fccId': device_e['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_e['userId']})
+    # Whitelist the FCCID and UserID for CBSD C4 = device_f in SAS UUT
+    self._sas_admin.InjectFccId({'fccId': device_f['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_f['userId']})
 
-    # Step 4: load the device_b with registration to SAS UUT
-    request = {'registrationRequest': [device_b]}
+    # Step 4: Send a valid Registration Request for CBSD (C2 = device_e) to the SAS UUT. 
+    request = {'registrationRequest': [device_e]}
     response = self._sas.Registration(request)['registrationResponse'][0]
-    cbsd_id_b = response['cbsdId']
-    # Check registration response of device_b
+    # Check registration response of CBSD C2 = device_e
     self.assertEqual(response['response']['responseCode'], 0)
+    grant_e['cbsdId'] = response['cbsdId']
     del request, response
-    # Step 5: Load the device_b with grant to SAS UUT
-    request = {'grantRequest': [grant_b]}
+    # Step 5: Send a valid Grant Request Message for CBSD (C2 = device_e) to the SAS UUT.
+    request = {'grantRequest': [grant_e]}
     response = self._sas.Grant(request)['grantResponse'][0]
-    grant_id_b = response['grantId']
-    # Check grant response of device_b
+    grant_id_e = response['grantId']
+    # Check grant response of CBSD C2 = device_e
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
-    # Whitelist the FCCID and UserID for the device_d in SAS UUT
-    self._sas_admin.InjectFccId({'fccId': device_d['fccId']})
-    self._sas_admin.InjectUserId({'userId': device_d['userId']})
-    # Step 8: Load the device_d with registration to SAS UUT
-    request = {'registrationRequest': [device_d]}
+    # Step 8: Send a valid Registration Request for CBSD (C4 = device_f) to the SAS UUT
+    request = {'registrationRequest': [device_f]}
     response = self._sas.Registration(request)['registrationResponse'][0]
-    cbsd_id_d = response['cbsdId']
-    # Check registration response of device_d of SAS UUT
+    # Check registration response of device_f of SAS UUT
     self.assertEqual(response['response']['responseCode'], 0)
+    grant_f['cbsdId'] = response['cbsdId']
     del request, response
-    # Step 9: Load the device_d with grant to SAS UUT
-    request = {'grantRequest': [grant_d]}
+    # Step 9: Send a valid Grant Request for CBSD (C4 = device_f) to SAS UUT
+    request = {'grantRequest': [grant_f]}
     response = self._sas.Grant(request)['grantResponse'][0]
-    grant_id_d = response['grantId']
+    grant_id_f = response['grantId']
     # Check grant response of device_d to SAS UUT
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
-    # Step 10: Send the Heatbeat request for the device_b to SAS UUT
+    # Step 10: Send the Heatbeat request for the Grant G2 and G4 of CBSD C2 and C4 (device_e and device_f) to SAS UUT
     request = {
       'heartbeatRequest': [{
-        'cbsdId': cbsd_id_b,
-        'grantId': grant_id_b,
+        'cbsdId':  grant_e['cbsdId'],
+        'grantId': grant_id_e,
         'operationState': 'GRANTED'
-      }]
+      },
+        {
+          'cbsdId':  grant_f['cbsdId'],
+          'grantId': grant_id_f,
+          'operationState': 'GRANTED'
+        }
+      ]
     }
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     self.assertEqual(response['response']['responseCode'], 0)
     del request, response
-    # Step 10: Send the Heatbeat request for the device_d to SAS UUT
-    request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_id_d,
-        'grantId': grant_id_d,
-        'operationState': 'GRANTED'
-      }]
-    }
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    self.assertEqual(response['response']['responseCode'], 0)
     # Create an activity dump in SAS Test Harness in local
     self.generate_FAD_2_activity_dump( sas_th_url, device_a, grant_a, device_c, grant_c, ppa_a, esc_sensor)
     # Start server
@@ -267,24 +260,20 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Step 12: Trigger SAS UUT to send the pull request to the SAS Test Harness for activity dump
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 13: Send the Heatbeat request again for the device_b to SAS UUT
+    # Step 13: Send the Heatbeat request again for the device_b, device_d to SAS UUT
     request = {
       'heartbeatRequest': [{
-        'cbsdId': cbsd_id_b,
-        'grantId': grant_id_b,
+        'cbsdId':  grant_e['cbsdId'],
+        'grantId': grant_id_e,
         'operationState': 'GRANTED'
-      }]
+      },
+        {
+          'cbsdId':  grant_f['cbsdId'],
+          'grantId': grant_id_f,
+          'operationState': 'GRANTED'
+        }
+      ]
     }
+
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    self.assertEqual(response['response']['responseCode'] in (103, 500))
-    del request, response
-    # Step 13: Send the Heatbeat request again for the device_d to SAS UUT
-    request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_id_d,
-        'grantId': grant_id_d,
-        'operationState': 'GRANTED'
-      }]
-    }
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    self.assertEqual(response['response']['responseCode'] in (103, 500))
+    self.assertTrue(response['response']['responseCode'] in (103, 500))
