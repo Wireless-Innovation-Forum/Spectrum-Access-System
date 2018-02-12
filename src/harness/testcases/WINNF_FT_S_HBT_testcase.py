@@ -820,8 +820,10 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         'operationState': 'AUTHORIZED'
     }]
     request = {'heartbeatRequest': heartbeat_request}
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), 1)
+
     # Check the heartbeat response.
-    self.assertEqual(response['cbsdId'], cbsd_ids[0])
-    self.assertEqual(response['grantId'], grant_ids[0])
-    self.assertEqual(response['response']['responseCode'], 502)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[0]['grantId'], grant_ids[0])
+    self.assertEqual(response[0]['response']['responseCode'], 502)
