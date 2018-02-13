@@ -142,7 +142,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     signal.alarm(0)
     
   def assertChannelsContainFrequencyRange(self, channels, frequency_range):
-    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency']), reverse = False)
+    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], ch['frequencyRange']['highFrequency']), reverse = False)
     for index, channel in  enumerate(channels):
         if index == 0:
            self.assertEqual(channel['frequencyRange']['lowFrequency'],\
