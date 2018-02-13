@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -11,56 +11,43 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+
+from datetime import datetime
 import json
 import os
-import sas
+import shutil
 import urllib
 
-
-class Grant:
-
+class Grant():
     """
-    A Grant object has the following methods
-     __init__
-          Parameters: grant ID, grant request
-    Retrieve  grant ID,
-    Retrieve  grant request
-    Retrieve operation params
-    Construct heartbeat request
-    Update was authorized in last heartbeat? state
-    Retrieve was authorized in last heartbeat
+        Holds the Grant related parameters
     """
+    GRANTED, AUTHORIZED, OUT_OF_SYNC, TERMINATED, SUSPENDED = range(0, 5)
 
-    def __init__(self, g_id, g_request):
-        self.grant_id = g_id
-        self.grant_request = g_request
-        self.grant_authorized_in_last_heartbeat = False
-
-    def get_grant_id(self):
+    def __init__(self, grant_id, grant_request):
         """
+        Args:
+           grant_id: grant id of the request
+           grant_request: A dictionary with a single key-value pair where the key is
+                            "grantRequest" and the value is grant request parameters
 
-        :rtype: grant_id
         """
+        self.grant_id = grant_id
+        self.grant_request = grant_request
+        self.state = Grant.GRANTED
+
+    def getGrantId(self):
         return self.grant_id
 
-    def get_grant_request(self):
-        """
-
-        :rtype: grant_request
-        """
+    def getGrantRequest(self):
         return self.grant_request
 
-    def get_request_operation_param(self):
-        """
-
-        :rtype: operationParam
-        """
+    def getRequestOperationParam(self):
         return self.grant_request['grantRequest'][0]['operationParam']
 
-    def construct_heartbeat_request(self):
+    def constructHeartbeatRequest(self):
         """
-
-        :rtype: heartbeat_request
+            This function constructs heartbeat request for the grant object
         """
         heartbeat_request = {
             'heartbeatRequest': [{
@@ -71,283 +58,330 @@ class Grant:
         }
         return heartbeat_request
 
-    def update_grant_authorized_in_last_heartbeat(self, is_authorized):
-        self.grant_authorized_in_last_heartbeat = is_authorized
+    def getState(self):
+        return self.state
 
-    def get_grant_authorized_in_last_heartbeat(self):
+    def setState(self, state):
+        self.state = state
+
+    def isGrantAuthorizedInLastHeartbeat(self):
         """
-
-        :rtype: grant_authorized_in_last_heartbeat
+            This function checks if the grant request was authorized in last heartbeat
         """
-        return self.grant_authorized_in_last_heartbeat
+        if(Grant.AUTHORIZED == self.state):
+            return True
+        else:
+            return False
+
+    def isGrantActive(self):
+        """
+            This function check if the grant request is in Granted or Authorized state
+        """
+        if((Grant.AUTHORIZED == self.state) or (Grant.GRANTED == self.state)):
+            return True
+        else:
+            return False
 
 
-class Cbsd:
-
+class Cbsd():
     """
-    A CBSD object has the following methods
-        __init__
-            Parameters: CBSD ID, successful registration request, grant ID, successful grant request
-        Retrieve   CBSD ID,
-        Retrieve successful registration request,
-        Retrieve grant request, successful
-            Parameter: grant request
-        Does this CBSD have at least one active grant?
-        Construct heartbeat request for all active grants
-        Return operating params for all grants which are authorized to transmit
+        Holds the Cbsd related parameters
     """
-    def __init__(self, c_id, reg_request, g_id, grant_requests):
-        self.cbsd_id = c_id
+    def __init__(self, cbsd_id, registration_request, grant_ids, grant_requests):
+        """
+        Args:
+            cbsd_id:  cbsd id of the device extracted from the registration response
+            registration_request: A dictionary with a single key-value pair where the key is
+            "registrationRequest" and the value is a registration request content
+            grant_ids: list of grant ids
+            grant_requests: A list of dictionary with a single key-value pair where the key is
+                "grantRequest" and the value is a list of individual CBSD grant
+                requests (each of which is itself a dictionary).
+        """
+        assert (len(grant_requests) == len(grant_ids))
+        self.cbsd_id = cbsd_id
         self.grant_objects = {}
-        for index, grantRequest in enumerate(grant_requests):
-            self.grant_objects[g_id[index]] = Grant(g_id[index], grantRequest)
-        self.successful_registration_request = reg_request
+        index = 0
+        for grant_request in grant_requests:
+            self.grant_objects[grant_ids[index]] = Grant(
+                grant_ids[index], grant_request)
+            index = index + 1
+        self.registration_request = registration_request
 
-    def get_cbsd_id(self):
-        """
-
-        :rtype: cbsd_id
-        """
+    def getCbsdId(self):
         return self.cbsd_id
 
-    def get_grant_request(self, grant_id):
-        """
-
-        :rtype: grant_objects
-        """
+    def getGrantObject(self, grant_id):
         return self.grant_objects[grant_id]
 
-    def get_registration_request(self):
-        """
+    def getRegistrationRequest(self):
+        return self.registration_request
 
-        :rtype: successful_registration_request
-        """
-        return self.successful_registration_request
+    def doesCbsdHasActiveGrant(self):
+        for grant_object in self.grant_objects.values():
+            return grant_object.isGrantActive()
 
-    def cbsd_id_has_atleast_one_grant(self):
+    def constructHeartbeatRequestForAllActiveGrants(self):
         """
-
-        :rtype: bool
-        """
-        for grant_id, grant_request in self.grant_objects.items():
-            if grant_request.get_grant_authorized_in_last_heartbeat():
-                return True
-        return False
-
-    def construct_heartbeat_request_for_all_active_grant(self):
-        """
-
-        :rtype: heartbeat_requests
+        construct list of heartbeat requests of all active grants
         """
         heartbeat_requests = []
-        for grant_id, grant_object in self.grant_objects.items():
-            heartbeat_request = grant_object.construct_heartbeat_request()
-            heartbeat_requests.append(heartbeat_request)
+        for grant_object in self.grant_objects.values():
+            if(grant_object.isGrantActive()):
+                heartbeat_request = grant_object.constructHeartbeatRequest()
+                heartbeat_requests.append(heartbeat_request)
         return heartbeat_requests
 
-    def get_all_operation_params_of_grant_request(self):
+    def getOperationParamsOfAllAuthorizedGrants(self):
         """
-
-        :rtype: operation_params
+        Returns the list of operation params of all authorized grants
         """
         operation_params = []
-        for grant_id, grant_object in self.grant_objects.items():
-            if True == grant_object.get_grant_authorized_in_last_heartbeat():
-                operation_param = grant_object.get_request_operation_param()
+        for grant_object in self.grant_objects.values():
+            if(grant_object.isGrantAuthorizedInLastHeartbeat()):
+                operation_param = grant_object.getRequestOperationParam()
                 operation_params.append(operation_param)
         return operation_params
 
 
-class DomainProxy:
-
+class DomainProxy():
     """
-    A DP object has the following methods
-        __init__
-                Parameters: certificate, N registration requests, N grant requests
-                Send N registration requests, expect success for all
-                Send N grant requests, allow failure
-
-        Retrieve CBSD object with CBSD ID = C
-        Heartbeat all CBSDs/Grants (and update internal state)
-        Heartbeat/relinquish/grant/heartbeat request for all CBSDs (and update internal state)
-            Heartbeat on all active grants (allow all failures)
-            If any HBs contain suggested operating params, relinquish the corresponding grant
-            For all grants in the previous step, request a new grant with the suggested operating parameters
-                            (allow failure)
-            Heartbeat all active grants (allow all failures)
-        Retrieve all CBSD objects with at least one grant which is authorized to transmit
+        Holds the domain proxy related parameters
     """
 
-    def __init__(self, certificate, key, registration_requests, grant_requests):
-        # checking for the number of registration requests matches number of grant requests
-        if len(registration_requests) != len(grant_requests):
-            return
-        self.dp_certificate = certificate
-        self.dp_key = key
+    def __init__(self, ssl_cert, ssl_key, testcase):
+        """
+        Args:
+            ssl_cert: Path to SSL cert file
+            ssl_key: Path to SSL key file
+            testcase: test case object from the caller
+        """
+        self.ssl_cert = ssl_cert
+        self.ssl_key = ssl_key
         self.cbsd_objects = {}
-        cbsd_id = []
-        self.sas_admin = sas.GetTestingSas()
-        for registerRequest in registration_requests[:]:
-            response = self.sas_admin.Registration(registerRequest, self.dp_certificate, self.dp_key)\
-                                                                  ['registrationResponse'][0]
-            cbsd_id.append(response['cbsdId'])
-            self.sas_admin.assertEqual(response['response']['responseCode'], 0)
-        # here the registrationRequest & grant request has 1to1 mapping
-        # The variable index used as subscript of registration request while looping through
-        #   the grant requests since they are 1to1 mapped
-        # Make one CBSD object per successful grant request
-        for index, grant_request in enumerate(grant_requests[:]):
-            grant_request['cbsdId'] = cbsd_id[index]
-            response = self.sas_admin.Grant(grant_request,self.dp_certificate,self.dp_key)['grantResponse'][0]
-            if response['response']['responseCode'] == "0":
-                cbsdobject = Cbsd(cbsd_id[index],registration_requests[index],response['grantId'],grant_request)
-                self.cbsd_objects.update({response['cbsdId'],cbsdobject})
+        self.testcase = testcase
 
-    def get_cbsd_object(self,cbsd_id):
+    def initialize(self, registration_requests, grant_requests):
         """
+        Args
+            registration_requests:  A list of dictionary with a single key-value pair
+                where the key is"registrationRequest" and the value is a list of
+                individual CBSD registration  requests (each of which is itself a dictionary).
+            grant_requests: A list of dictionary with a single key-value pair
+                where the key is"grantRequest" and the value is a list of
+                individual CBSD grant requests (each of which is itself a dictionary).
+                There should be exactly one grant request per registration request.
+        """
+        #Checking if the number of registration requests matches number of grant requests
+        #There should be exactly one grant request per registration request.
+        assert (len(grant_requests) == len(registration_requests))
+        cbsd_ids = self.testcase.assertRegistered(registration_requests)
 
-        :rtype: cbsd_objects
-        """
+        #Make one CBSD object per successful grant request
+        for index, grant_request in enumerate(grant_requests):
+            grant_request["grantRequest"][0]["cbsdId"] = cbsd_ids[index]
+            grant_response = self.testcase._sas.Grant(grant_request, self.ssl_cert, self.ssl_key)[
+                'grantResponse'][0]
+            if grant_response['response']['responseCode'] == 0:
+                cbsdobject = Cbsd(cbsd_ids[index], registration_requests[index],
+                                  [grant_response['grantId']], [grant_request])
+                self.cbsd_objects.update(
+                    {grant_response['cbsdId']: cbsdobject})
+
+    def getCbsdObjectById(self, cbsd_id):
         return self.cbsd_objects[cbsd_id]
 
-    def heartbeat_request_for_all_grants(self):
-        for cbsdId, cbsdObjectItem in self.cbsd_objects.items():
-            for grantId, grantObject in cbsdObjectItem.Grant_Objects.items():
-                heartbeatRequests = cbsdObjectItem.construct_heartbeat_request_for_all_active_grant()
-                hbResponses = self.sas_admin.Heartbeat(heartbeatRequests,self.dp_certificate,self.dp_key) \
-                                ['heartbeatResponse'][0]
-                for hbReponse in hbResponses:
-                    grantobject = cbsdObjectItem.Grant_Objects[hbReponse['grantId']]
-                    if hbReponse['response']['responseCode'] == "0":
-                        grantobject.update_grant_authorized_in_last_heartbeat(True)
-                    else:
-                        grantobject.update_grant_authorized_in_last_heartbeat(False)
-
-    def heartbeat_request_for_all_grant_and_update_grants(self):
-        for cbsd_id, cbsd_object_item in self.cbsd_objects.items():
-            for grant_id, grant_object in cbsd_object_item.grant_objects.items():
-                relinquish_hb_responses = {}
-                # Heartbeat on all active grants
-                heartbeat_requests = cbsd_object_item.construct_heartbeat_request_for_all_active_grant()
-                hb_responses = self.sas_admin.Heartbeat(heartbeat_requests,
-                                                        self.dp_certificate, self.dp_key)['heartbeatResponse'][0]
-                for hb_reponse in hb_responses:
-                    grantobject = cbsd_object_item.grant_objects[hb_reponse['grantId']]
-                    if hb_reponse['response']['responseCode'] == "0":
-                        grantobject.update_grant_authorized_in_last_heartbeat(True)
-                    else:
-                        grantobject.update_grant_authorized_in_last_heartbeat(False)
-                        #    If any HBs contain suggested operating params, relinquish the corresponding grant
-                        if 'operationParam' in hb_reponse:
-                            relinquish_request = {
-                                'relinquishmentRequest': [{
-                                    'cbsdId': hb_reponse['cbsdId'],
-                                    'grantId': hb_reponse['grantId']
-                                }]
-                            }
-                            self.sas_admin.Relinquishment(relinquish_request, self.dp_certificate, self.dp_key)
-                            relinquish_hb_responses.update({hb_reponse['cbsdId']: hb_reponse})
-                            del cbsd_object_item.grant_objects[grant_id]
-                #For all grants in the previous step, request a new grant with the
-                # suggested operating parameters (allow failure)
-                for cbsdId, hbresponse in relinquish_hb_responses.items():
-                        grant_0 = json.load(
-                            open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-                        grant_0['cbsdId'] = cbsdId
-                        grant_0['operationParam']['maxEirp'] = hbresponse['operationParam']['maxEirp']
-                        grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] = \
-                            hbresponse['operationParam']['operationFrequencyRange']['lowFrequency']
-                        grant_0['operationParam']['operationFrequencyRange']['highFrequency'] = \
-                            hbresponse['operationParam']['operationFrequencyRange']['highFrequency']
-                        temp_grant_request = {'grantRequest': [grant_0]}
-                        response = self.sas_admin.Grant(temp_grant_request,self.dp_certificate,self.dp_key)['grantResponse'][0]
-                        self.cbsd_objects.grant_objects.update({response['grantId']: temp_grant_request})
-                        if response['response']['responseCode'] == "0":
-                            #Heartbeat all active grants
-                            self.heartbeat_request_for_all_grants()
-
-    def get_all_cbsd_object_with_atleast_one_grant(self):
+    def heartbeatRequestForAllGrants(self):
         """
+            This function performs heartbeat request for all grants
+        """
+        for cbsd_object_item in self.cbsd_objects.values():
+            heartbeat_requests = cbsd_object_item.constructHeartbeatRequestForAllActiveGrants()
+            for heartbeat_request in heartbeat_requests:
+                heartbeat_response = self.testcase._sas.Heartbeat(
+                    heartbeat_request, self.ssl_cert, self.ssl_key)['heartbeatResponse'][0]
+                grant_object = cbsd_object_item.grant_objects[heartbeat_response['grantId']]
+                if heartbeat_response['response']['responseCode'] == 0:
+                    transmit_expire_time = datetime.strptime(heartbeat_response['transmitExpireTime'],
+                                                             '%Y-%m-%dT%H:%M:%SZ')
+                    self.testcase.assertLess(datetime.utcnow(), transmit_expire_time)
+                    self.testcase.assertLessEqual(
+                        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+                    grant_object.setState(Grant.AUTHORIZED)
+                else:
+                    self.mapResponseCodeToGrantState(
+                        heartbeat_response['response']['responseCode'], grant_object)
 
-        :rtype: cbsd_objects
+    def mapResponseCodeToGrantState(self, heartbeat_response_code, grant_object):
+        """
+            This function maps the heartbeat response code to the grant state
+        """
+        if (heartbeat_response_code == 502):
+            grant_object.setState(Grant.OUT_OF_SYNC)
+        elif (heartbeat_response_code == 500):
+            grant_object.setState(Grant.TERMINATED)
+        elif (heartbeat_response_code == 501):
+            grant_object.setState(Grant.SUSPENDED)
+        else:
+            assert(not "Invalid grant response code")
+
+
+    def performHeartbeatAndUpdateGrants(self):
+        """
+            This function construct heartbeat request for all active grants and updates the grants
+        """
+        for cbsd_object_item in self.cbsd_objects.values():
+            heartbeat_responses_with_operation_parameters = {}
+
+            #Heartbeat on all active grants
+            heartbeat_requests = cbsd_object_item.constructHeartbeatRequestForAllActiveGrants()
+            for heartbeat_request in heartbeat_requests:
+                heartbeat_response = self.testcase._sas.Heartbeat(
+                    heartbeat_request, self.ssl_cert, self.ssl_key)['heartbeatResponse'][0]
+                grant_object = cbsd_object_item.grant_objects[heartbeat_response['grantId']]
+                if heartbeat_response['response']['responseCode'] == 0:
+                    transmit_expire_time = datetime.strptime(heartbeat_response['transmitExpireTime'],
+                                                             '%Y-%m-%dT%H:%M:%SZ')
+                    self.testcase.assertLess(datetime.utcnow(), transmit_expire_time)
+                    self.testcase.assertLessEqual(
+                        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+                    grant_object.setState(Grant.AUTHORIZED)
+                else:
+                    self.mapResponseCodeToGrantState(
+                        heartbeat_response['response']['responseCode'], grant_object)
+
+                    #If any heartbeats contain suggested operating params,
+                    #relinquish the corresponding grant
+                    if 'operationParam' in heartbeat_response:
+                        relinquish_request = {
+                            'relinquishmentRequest': [{
+                                'cbsdId': grant_object.getGrantRequest()['cbsdId'],
+                                'grantId': grant_object.getGrantRequest()['grantId']
+                            }]
+                        }
+                        self.testcase._sas.Relinquishment(
+                            relinquish_request, self.ssl_cert, self.ssl_key)
+                        heartbeat_responses_with_operation_parameters.update(
+                            {heartbeat_response['cbsdId']: heartbeat_response})
+                        del cbsd_object_item.grant_objects[heartbeat_response['grant_id']]
+
+            #For all grants in the previous step, request a new grant with the
+            #suggested operation parameters
+            for cbsd_id, heartbeatResponse in heartbeat_responses_with_operation_parameters.items():
+                grant_0 = json.load(
+                    open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+                grant_0['cbsdId'] = cbsd_id
+                grant_0['operationParam']['maxEirp'] = heartbeatResponse['operationParam']['maxEirp']
+                grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] = \
+                    heartbeatResponse['operationParam']['operationFrequencyRange']['lowFrequency']
+                grant_0['operationParam']['operationFrequencyRange']['highFrequency'] = \
+                    heartbeatResponse['operationParam']['operationFrequencyRange']['highFrequency']
+                request = {'grantRequest': [grant_0]}
+                response = self.testcase._sas.Grant(request , self.ssl_cert, self.ssl_key)[
+                    'grantResponse'][0]
+                self.cbsd_objects.grant_objects.update(
+                    {response['grantId']: request })
+                if response['response']['responseCode'] == "0":
+                    #Heartbeat all active grants
+                    self.heartbeatRequestForAllGrants()
+
+    def getCbsdsWithAtLeastOneAuthorizedGrant(self):
+        """
+        returns:
+            cbsd_objects: list of cbsd objects
         """
         cbsd_objects = []
-        for cbsd_id, cbsd_object in self.cbsd_objects.items():
-            for grantId, grant_object in cbsd_object.grant_objects.items():
-                if grant_object.get_grant_authorized_in_last_heartbeat():
+        for cbsd_object in self.cbsd_objects.values():
+            for grant_object in cbsd_object.grant_objects.values():
+                if(grant_object.getState() == Grant.AUTHORIZED):
                     cbsd_objects.append(cbsd_object)
         return cbsd_objects
 
-
-class FullActivityDump:
+class FullActivityDump():
     """
-    A FAD  object has the following methods
-        __init__:
-            Parameters
-                SAS certificate (to present when pulling)
-                URL for SAS UUT/Test Harness
-        initiate_full_activity_dump:
-            Pulls FAD and all related files from SAS UUT
-            Does light checking of response
-            Logs all file data
-            Aggregate CBSD objects into a single internal data structure
-            On deletion, the downloaded files are deleted from disk.
-
+        Holds the full activity dump related parameters
     """
-    cbsd_dump_data = []
-    ppa_dump_data = []
-    esc_sensor_dump_data = []
+    cbsd_records = []
+    ppa_records = []
+    esc_records = []
 
-    def __init__(self, certificate, key, url):
-        self.certificate = certificate
-        self.key = key
+    def __init__(self, ssl_cert, ssl_key, url, testcase):
+        """
+            ssl_cert: Path to SSL cert file
+            ssl_key: Path to SSL key file
+            url: url of the full activity dump record
+            testcase: test case object from the caller
+        """
+        self.ssl_cert = ssl_cert
+        self.ssl_key = ssl_key
         self.url = url
-        self.sas_admin = sas.GetTestingSas()
-        self.folder_name = "./FadContent/"
+        self.testcase = testcase
+        self.folder_name = os.getcwd()+"/fad_content"
 
-    def initiate_full_activity_dump(self):
-        os.mkdir(self.folder_name)
-        self.folder_name = "./FadContent/" + urllib.urlencode(self.url[8])
-        # if the folder exist it will be removed
-        os.removedirs(self.folder_name)
-        os.mkdir(self.folder_name)
-        response = self.sas_admin._SasRequest("GET", self.url, self.certificate, self.key)
+    def initiateFullActivityDump(self):
+        """
+        This function performs full activity dump operation
+        """
+        if not os.path.exists(self.folder_name):
+            try:
+                os.mkdir(self.folder_name, 0755)
+            except:
+                raise OSError(
+                    "Can't create destination directory (%s)!" % self.folder_name)
+        self.folder_name = self.folder_name + "/"+urllib.quote_plus(self.url)
+        try:
+            # if the folder exist it will be removed
+            os.system("rm -rf  " + self.folder_name)
+            os.mkdir(self.folder_name, 0755)
+        except:
+            raise OSError("Can't create destination directory (%s)!" %
+                          self.folder_name)
+
+        response = self.testcase._sas.GetUrl(self.url, self.ssl_cert, self.ssl_key)
+        record = ""
         for dump_file in response['files']:
-            self.sas_admin.assertContainsRequiredFields("ActivityDumpFile.schema.json", dump_file[0])
+            #self.testcase.assertContainsRequiredFields("ActivityDumpFile.schema.json", dump_file)
             if dump_file['recordType'] == 'cbsd':
-                url = dump_file['url']
-                lastpart = url.rsplit('/', 1)
-                cbsd_file_content = self.sas_admin.DownloadFile(dump_file['url'])['recordData']
-                filename = urllib.urlencode(lastpart)+"cbsd" + ".txt"
-                file_obj = open(filename, "a+")
-                file_obj.write(cbsd_file_content)
-                self.cbsd_dump_data.append(cbsd_file_content)
-
+                record = self.downloadFileAndAppendRecord(
+                    dump_file, dump_file['recordType'])
+                #self.testcase.assertContainsRequiredFields("CbsdData.schema.json", record)
+                self.cbsd_records.append(record)
             elif dump_file['recordType'] == 'esc_sensor':
-                url = dump_file['url']
-                lastpart = url.rsplit('/', 1)
-                esc_file_content = self.sas_admin.DownloadFile(dump_file['url'])['recordData']
-                filename = urllib.urlencode(lastpart)+"escSensor" + ".txt"
-                file_obj = open(filename, "a+")
-                file_obj.write(esc_file_content)
-                self.cbsd_dump_data.append(esc_file_content)
-
+                record = self.downloadFileAndAppendRecord(
+                    dump_file, dump_file['recordType'])
+                #self.testcase.assertContainsRequiredFields("EscSensorRecord.schema.json", record)
+                self.esc_records.append(record)
             elif dump_file['recordType'] == 'zone':
-                url = dump_file['url']
-                lastpart = url.rsplit('/', 1)
-                self.ppa_dump_data.append(self.sas_admin.DownloadFile(dump_file['url'])['recordData'])
-                zone_file_content = self.sas_admin.DownloadFile(dump_file['url'])['recordData']
-                filename = urllib.urlencode(lastpart)+"zone" + ".txt"
-                file_obj = open(filename, "a+")
-                file_obj.write(zone_file_content)
-                self.cbsd_dump_data.append(zone_file_content)
+                record = self.downloadFileAndAppendRecord(
+                    dump_file, dump_file['recordType'])
+                #self.testcase.assertContainsRequiredFields("zone.schema.json",record)
+                self.ppa_records.append(record)
 
-    def get_cbsds(self):
+    def downloadFileAndAppendRecord(self, dump_file, record_type):
         """
+        Args
+            dump_file: json object received from peer SAS
+            record_type: type of the record
+        returns
+            record fetched from peer SAS
+        """
+        url = dump_file['url']
+        lastpart = url.rsplit('/', 1)
+        record_dump = self.testcase._sas.DownloadFile(dump_file['url'])['recordData']
+        filename = urllib.quote_plus(lastpart[1]) + record_type + ".json"
+        file_obj = open(self.folder_name + "/" + filename, "a+")
+        file_obj.write(str(record_dump))
+        file_obj.close()
+        return record_dump
 
-        :rtype: cbsd_dump_data
-        """
-        return self.cbsd_dump_data
+    def getCbsdRecords(self):
+        return self.cbsd_records
+
+    def getEscSensorRecords(self):
+        return self.esc_records
+
+    def getPpaRecords(self):
+        return self.ppa_records
 
     def __del__(self):
-        os.removedirs(self.folder_name)
+        shutil.rmtree(self.folder_name, ignore_errors=False, onerror=None)
