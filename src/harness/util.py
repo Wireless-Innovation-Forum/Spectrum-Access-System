@@ -392,16 +392,14 @@ def QueryPropagationAntennaModel(requestJson):
     if isfss:
         PathLoss = wf_itm.CalcItmPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=reliabilityLevel, freq_mhz=3625.)
         Result['pathlossDb'] = PathLoss.db_loss
-      
+        if 'rxAntennaGainRequired' in Rx.keys():
+            hor_dirs = rev_az
+            ver_dirs = PathLoss.incidence_angles.ver_rx
+            gainRxTx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, Rx['antennaAzimuth'], Rx['antennaDowntilt'], Rx['antennaGain'])
+            Result['rxAntennaGainDbi'] = gainRxTx        
     else:
         
-        PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)
+        PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)       
         Result['pathlossDb'] = PathLoss.db_loss
- 
-    if 'rxAntennaGainRequired' in Rx.keys():
-        hor_dirs = rev_az
-        ver_dirs = 0
-        gainRxTx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, Rx['antennaAzimuth'], 10, Rx['antennaGain'])
-        Result['rxAntennaGainDbi'] = gainTxRx
- 
+
     return Result
