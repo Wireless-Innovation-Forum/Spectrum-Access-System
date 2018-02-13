@@ -577,12 +577,15 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
    
     self.assertEqual(
           response['registrationResponse'][0]['response']['responseCode'], 0)
+    self.assertLessEqual(len(response['registrationResponse'][0]['cbsdId']), 256)   
     self.assertEqual(
           response['registrationResponse'][12]['response']['responseCode'], 0)
+    self.assertTrue( 'cbsdId' in response['registrationResponse'][12])
+    self.assertLessEqual(len(response['registrationResponse'][12]['cbsdId']), 256)   
     for index in range(1, 12) + range(13, 16):
         self.assertEqual(
             response['registrationResponse'][index]['response']['responseCode'], 103)
-
+        self.assertFalse( 'cbsdId' in response['registrationResponse'][index])
   @winnforum_testcase
   def test_WINNF_FT_S_REG_9(self):
     """Blacklisted CBSD in Array Registration request (responseCode 101).
