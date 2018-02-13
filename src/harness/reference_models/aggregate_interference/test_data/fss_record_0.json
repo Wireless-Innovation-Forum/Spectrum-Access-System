@@ -1,13 +1,13 @@
-[{
-  "id": "incumbent/ibfs/1",
+{
+  "id": "incumbent/ibfs/0",
   "type": "FSS",
-  "deploymentParam":
+  "deploymentParam": 
   [
     {
       "installationParam": {
-        "latitude": 38.39166,
-        "longitude":  -102.50312,
-        "height": 8.6,
+        "latitude": 39.2291,
+        "longitude":  -100.1,
+        "height": 7.6,
         "heightType": "AGL",
         "antennaGain": 16,
         "antennaBeamwidth": 30,
@@ -16,12 +16,11 @@
       },
       "operationParam": {
         "operationFrequencyRange": {
-          "lowFrequency": 3600000000,
-          "highFrequency": 4000000000
+          "lowFrequency": 3650000000,
+          "highFrequency": 4200000000
         }
-      },
+      },      
       "ttc_flag":true
     }
     ]
-}]
-
+}

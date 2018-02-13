@@ -32,11 +32,10 @@ pre_iap_headRooms = {'MgPpa': -2, 'MgGwpz': -2, 'MgCochannel': -2, 'MgBlocking':
 x = json.load(open(os.path.join('gwpz_record_1_iap.json')))
 y = json.load(open(os.path.join('fss_record_1_iap.json')))
 protection_entities = [y,x]
-f =  json.load(open(os.path.join('sas_uut_fad_cbsd_1.json')))
-sas_uut_fad_object = [f] 
-
-m =  json.load(open(os.path.join('sas_th_1_fad.json')))
-n = json.load(open(os.path.join('sas_th_2_fad.json')))
+f =  json.load(open(os.path.join('sas_uut_fad_2.json')))
+sas_uut_fad_object = [f]
+m =  json.load(open(os.path.join('sas_th_2_fad.json')))
+n = json.load(open(os.path.join('sas_th_1.json')))
 sas_th_fad_objects = [m,n]
 
 iap_output = iap.performIAP(protection_thresholds, pre_iap_headRooms, protection_entities,sas_uut_fad_object, sas_th_fad_objects)
