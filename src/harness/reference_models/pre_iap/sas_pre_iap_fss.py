@@ -24,17 +24,22 @@ import math
 from reference_models.antenna import antenna
 from reference_models.antenna import fss_pointing
 from reference_models.examples import entities
-from reference_models.geo import vincenty
+from reference_models.geo import terrain,vincenty
 from reference_models.propagation import wf_itm
 
+# One Mega Herts
+ONE_MHZ = 1000000.0
 
+# Reference Channel bandwidth for FSS OOBE calculation
 REF_BW = 5000000.0
-ONE_MHZ = 1.0
+
+# Frequency used in propagation model (in MHz) [R2-SGN-04]
+FREQ_PROP_MODEL = 3625.0
 # Find all the FSS protection points from a given FSS license info
 def GetAllFssFromLicenseInfo(fss_license_info):
   """Get all Fss protection points from a FSS license record.
 
-  Inputs:
+  Args:
     fss_license_info:  A |FssLicenseInfo| holding the license record.
 
   Returns:
@@ -58,35 +63,40 @@ def GetAllFssFromLicenseInfo(fss_license_info):
 
   return fss_entities
 
-def getNeighbouringCbsds(all_cbsds, base_fss):
+def getNeighbouringCbsds(all_cbsds, fss_record):
     """
     Get the list of all cbsds that lie within 40 km of FSS
     
-    Inputs:
+    Args:
     List of all CBSDs
     Fss entity
 
-    Outputs:
+    Returns:
     List of CBSDs lying within 40 km
     """
     
     neighbouring_cbsds = []
     for cbsd in all_cbsds:
         distance_km, _, _ = vincenty.GeodesicDistanceBearing(
-            base_fss.latitude, base_fss.longitude,
+            fss_record['deploymentParam'][0]['installationParam']['latitude'],
+            fss_record['deploymentParam'][0]['installationParam']['longitude'],
             cbsd['registrationRequest']['installationParam']['latitude'],
             cbsd['registrationRequest']['installationParam']['longitude'])
         if distance_km <= 40:
             neighbouring_cbsds.append(cbsd)
     return neighbouring_cbsds
 
-
-def performPurge(cbsds,base_fss,margin_oobe):
+def performPurge(cbsds, fss_entities, margin_oobe):
     """
-    Purging the grants 
+    Purging the grants
+
+    Args:
+     List of neighbouring CBSDs
+     List of fss entities
+     OOBE_margin 
     """
   
-    calculateOobeInterference(cbsds, base_fss)
+    calculateOobeInterference(cbsds, fss_entities)
     # Sorting CBSD based on its interference value
     sfss = sorted(cbsds, key=lambda cbsd: cbsd['interference_value'])
     # Reference interference value
@@ -107,13 +117,14 @@ def performPurge(cbsds,base_fss,margin_oobe):
     else:
         # for each cbsd
         for index, cbsd in enumerate(pfss):
-            grants = cbsd['grantRequests']
             # Get the grant that was used for the OOBE interference calculation, which is the grant with highest highFrequency.
             grant_with_max_high_freq = \
             max(cbsd['grantRequests'],
                 key=lambda x: x['operationParam']['operationFrequencyRange']['highFrequency'])
             # Get all the grants that share the same emission mask as the one that was used for OOBE calculation
+            
             if grant_with_max_high_freq['operationParam']['operationFrequencyRange']['highFrequency'] > 3690000000:
+                # Adding the -13 emission mask grants to the purge list
                 grants_to_purge = [grant_request for grant_request in cbsd['grantRequests'] \
                  if grant_request['operationParam']['operationFrequencyRange']['highFrequency'] > 3690000000]
             else:
@@ -127,84 +138,126 @@ def performPurge(cbsds,base_fss,margin_oobe):
                 pfss.remove(cbsd)
             else:
                 sfss.append(cbsd)
-        #performPurge(sfss, base_fss,margin_oobe)
-
+        performPurge(sfss, fss_entities, margin_oobe)
        
-def calculateOobeInterference(cbsds, base_fss):
+def calculateOobeInterference(cbsds, fss_entities):
     """
-    Calculate the required variables
-    :param cbsds: List of neighbouring CBSDs
-    :param base_fss: FSS entity
+    Calculate the required interference values
+
+    Args:
+     cbsds: List of neighbouring CBSDs
+     fss_entities: List of fss pointings
+
+    Returns:
+     value of interference in dBm
     """
 
     # Get values of MCBSD,GCBSD,GFSS and LCBSD for each CBSD within 40 km of fss
+    base_fss = fss_entities[0]
     for cbsd in cbsds:
         grant_with_max_high_freq = \
             max(cbsd['grantRequests'],
                 key=lambda x: x['operationParam']['operationFrequencyRange']['highFrequency'])
-        lcbsd, incidence_angle = getMeanPathLossFromCbsdToFss(cbsd, base_fss)
-        antenna_gain = cbsd['registrationRequest']['installationParam']['antennaGain']
-        mcbsd = getMcbsdValue(grant_with_max_high_freq, antenna_gain)
-        max_eirp = grant_with_max_high_freq['operationParam']['maxEirp']
-        gcbsd = getAntennaGainTowardsFss(incidence_angle, cbsd, max_eirp)
-        gfss = getAntennaGainFssReceiver(base_fss, incidence_angle)
+        lcbsd, incidence_angles = getMeanPathLossFromCbsdToFss(cbsd, base_fss)
+        max_cbsd_antenna_gain = cbsd['registrationRequest']['installationParam']['antennaGain']
+        mcbsd = getMcbsdValue(grant_with_max_high_freq, max_cbsd_antenna_gain)
+        gcbsd = getAntennaGainTowardsFss(incidence_angles, cbsd)
+        gfss = getAntennaGainFssReceiver(fss_entities, incidence_angles)
         agg_interference_value = mcbsd + gcbsd - lcbsd + gfss
         cbsd['interference_value'] = agg_interference_value
         
-
-
-def getMcbsdValue(grant_request, antenna_gain):
+def getMcbsdValue(grant_request, max_cbsd_antenna_gain):
     """
     Get max-eirp value from the grant_request
+    Args:
+     Grant Request with maximum high frequency
+     Maximum CBSD antenna gain
     """
-    return grant_request['operationParam']['maxEirp'] + antenna_gain
+    return grant_request['operationParam']['maxEirp'] - max_cbsd_antenna_gain
 
-
-def getAntennaGainTowardsFss(incidence_angle, cbsd, max_eirp):
+def getAntennaGainTowardsFss(incidence_angles, cbsd):
     """
     Get antenna gain of CBSD in direction of FSS protection point
+    Args:
+     Incidence Angles
+     CBSD object
+     Maximum EIRP
     """
     cbsd_antenna_gain = antenna.GetStandardAntennaGains(
-        incidence_angle.hor_cbsd, cbsd['registrationRequest']['installationParam']['antennaAzimuth'],
+        incidence_angles.hor_cbsd, cbsd['registrationRequest']['installationParam']['antennaAzimuth'],
         cbsd['registrationRequest']['installationParam']['antennaBeamwidth'],
-        max_eirp)
+        cbsd['registrationRequest']['installationParam']['antennaGain'])
     return cbsd_antenna_gain
-
 
 def getMeanPathLossFromCbsdToFss(cbsd, fss):
     """
     Get mean path loss from CBSD to fss protection in linear scale
+    Args:
+     CBSD object
+     FSS entity
     """
-    db_loss, incidence_angle, _ = wf_itm.CalcItmPropagationLoss(
-        cbsd['registrationRequest']['installationParam']['latitude'],
-        cbsd['registrationRequest']['installationParam']['longitude'],
-        cbsd['registrationRequest']['installationParam']['height'],
+    cbsd_latitude = cbsd['registrationRequest']['installationParam']['latitude']
+    cbsd_longitude = cbsd['registrationRequest']['installationParam']['longitude']
+    cbsd_height = cbsd['registrationRequest']['installationParam']['height']
+    cbsd_height_type = cbsd['registrationRequest']['installationParam']['heightType']
+    cbsd_indoor_dep = cbsd['registrationRequest']['installationParam']['indoorDeployment']
+    if cbsd_height_type == 'AMSL':
+        cbsd_height_agl = convertAmslToAgl(cbsd_latitude, cbsd_longitude, cbsd_height)
+    else:
+        cbsd_height_agl = cbsd_height
+    db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(
+        cbsd_latitude,
+        cbsd_longitude,
+        cbsd_height_agl,
         fss.latitude,
         fss.longitude,
-        fss.height_agl)
-    return db_loss, incidence_angle
+        fss.height_agl,
+        cbsd_indoor_dep,
+        reliability=-1,
+        freq_mhz=FREQ_PROP_MODEL)
 
+    return db_loss, incidence_angles
 
-def getAntennaGainFssReceiver(fss_entity, incidence_angle):
+def convertAmslToAgl(latitude, longitude, height_amsl):
+    """
+    Convert AMSL height to AGL height
+  
+    Args:
+     Latitude
+     Longitude
+     AMSL height
+
+    Returns: AGL height
+
+    """        
+    altitude_cbsd = terrainDriver.GetTerrainElevation(latitude, longitude)
+    return height_amsl - altitude_cbsd
+
+def getAntennaGainFssReceiver(fss_entities, incidence_angles):
     """
     Get antenna gain of fss receiver
+    Args:
+     List of FSS entities
+     Incidence Angles
     """
-    fss_ant_gain = antenna.GetFssAntennaGains(
-         incidence_angle.hor_rx, incidence_angle.ver_rx,
-         fss_entity.pointing_azimuth,
-         fss_entity.pointing_elevation,
-         fss_entity.max_gain_dbi)
-    return fss_ant_gain
-
-
+    fss_ant_gain = []
+    for fss_pointing in fss_entities:
+        fss_ant_gain.append(antenna.GetFssAntennaGains(
+             incidence_angles.hor_rx, incidence_angles.ver_rx,
+             fss_pointing.pointing_azimuth,
+             fss_pointing.pointing_elevation,
+             fss_pointing.max_gain_dbi))
+    return max(fss_ant_gain)
 
 def fssPurgeModel(sas_uut_fad, sas_harness_fads, fss_record, margin_oobe):    
     """
     Entry point function to execute FSS purge list model
     perform  fss purge on the fad_record for fss entity
-    :param sas_uut_fad : UUT FAD object
-    :param sas_harness_fad: TH FAD object
-    :param fss_record: One FSS entity
+    Args:
+     sas_uut_fad : UUT FAD object
+     sas_harness_fad: TH FAD object
+     fss_record: One FSS entity
+     margin_oobe: OOBE margin value
     """
     if fss_record['deploymentParam'][0]['ttc_flag']:
        cbsds = []
@@ -212,6 +265,7 @@ def fssPurgeModel(sas_uut_fad, sas_harness_fads, fss_record, margin_oobe):
        for fad in sas_harness_fads:
            cbsds.extend(fad.getCbsds())
 
+       cbsds = getNeighbouringCbsds(cbsds, fss_record)
        #Get fss info 
        fss_info = entities.FssLicenseInfo(latitude=fss_record['deploymentParam'][0]['installationParam']['latitude'],
                                    longitude=fss_record['deploymentParam'][0]['installationParam']['longitude'],
@@ -224,6 +278,7 @@ def fssPurgeModel(sas_uut_fad, sas_harness_fads, fss_record, margin_oobe):
                                    azimuth_east_limit=132.6,
                                    azimuth_west_limit=241.2)
        fss_entities = GetAllFssFromLicenseInfo(fss_info)
-       base_fss = fss_entities[0]
-       cbsds = getNeighbouringCbsds(cbsds, base_fss)
-       performPurge(cbsds, base_fss,margin_oobe)
+       performPurge(cbsds, fss_entities, margin_oobe)
+       # Removing the interference_value parameter added to cbsd objects
+       for cbsd in cbsds:
+           cbsd.pop('interference_value',None)
