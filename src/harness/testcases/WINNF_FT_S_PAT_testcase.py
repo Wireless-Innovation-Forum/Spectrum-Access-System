@@ -63,9 +63,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
       pass
 
-  def generate_FT_S_PAT_default_config(self):
-
-    testcasedir = os.path.join('testcases', 'testdata', 'pat_testcases')
+  def generate_FT_S_PAT_default_config(self, testcasedir):
 
 # Load Devices
     device_a = json.load(
@@ -101,15 +99,24 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     from os import listdir
     from os.path import isfile, join
     testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'pat_testcases')
+    print os.path.exists(testcasedir)
     if os.path.exists(testcasedir):
         testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
         testfiles = [f for f in testfiles if f.endswith('.json')]
-    
         if not testfiles:
-            self.generate_FT_S_PAT_default_config()
+            testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'config', 'test_WINNF_FT_S_PAT_1')
+            self.generate_FT_S_PAT_default_config(testcasedir)
             testfiles = ['default_ppa.json', 'default_fss.json']
     else:
-        os.makedirs(testcasedir)
+        testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'config', 'test_WINNF_FT_S_PAT_1')
+        if not os.path.exists(testcasedir):
+            os.makedirs(testcasedir)
+        
+        testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
+        testfiles = [f for f in testfiles if f.endswith('.json')]
+        if not testfiles:
+            self.generate_FT_S_PAT_default_config(testcasedir)
+            testfiles = ['default_ppa.json', 'default_fss.json']
         
     for testfile in testfiles:
         if testfile.endswith('.json'):
