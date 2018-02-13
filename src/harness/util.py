@@ -113,16 +113,25 @@ def configurable_testcase(default_config_function):
   return internal_configurable_testcase
 
 
-def loadDB(db_filename):
-  """Loads a fake database file."""
-  with open(db_filename, 'r') as f:
-    return json.loads(f.read())
 
+
+def loadDB(db_filename):  
+  """Loads a fake database file."""  
+  with open(db_filename, 'r') as f:  
+    return json.loads(f.read())  
+  
 
 def loadConfig(config_filename):
   """Loads a configuration file."""
   with open(config_filename, 'r') as f:
     return json.loads(f.read())
+
+
+def writeDB(db_filename, data):
+  """Writes a fake databse file."""
+  with open(db_filename, 'w') as f:
+    f.write(
+        json.dumps(data, indent=2, sort_keys=False, separators=(',', ': ')))
 
 
 def writeConfig(config_filename, config):

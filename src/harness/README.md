@@ -22,8 +22,7 @@ This folder contains code and testcases for SAS certification test as defined in
     *   **./sas.py**: Implementation of all needed interfaces.
     *   **./fake_sas.py**: A fake SAS implementation, and a HTTP server which
         runs with the fake implementation.
-    *   **./fakedatabase/exclusion_zone_db.json**: Snapshot data of exclusion zone returned by fake database service.	
-    *   **./fake_db_server.py**: A HTTP server which runs the fake database implemnetation.
+    *   **./fake_db_server.py**: A HTTP server which runs the fake database implementation.
 *   **./testcases**: Test cases, grouped by section in the test specification.
 *   **./testcases/testdata**: Data used in test cases.
 
@@ -31,4 +30,4 @@ This folder contains code and testcases for SAS certification test as defined in
 
 A self-signed CA is used to generate all certs/keys in this folder, using RSA.
 To support ECDSA ciphers in the fake SAS server (fake_sas.py) or PycURL client
-(sas.py), generate a new certificate using EC cryptography.
+(sas.py), generate a new certificate using EC cryptography. 

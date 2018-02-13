@@ -471,6 +471,10 @@ class SasAdminInterface(object):
         "certificateHash": the sha1 fingerprint of the certificate
         "url": base URL of the peer SAS.
     """
+
+  @abc.abstractmethod
+  def InjectDatabaseUrl(self, request):
+    """Injecting database url"""
     pass
   
   @abc.abstractmethod
