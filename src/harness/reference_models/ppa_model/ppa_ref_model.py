@@ -20,7 +20,7 @@ import numpy as np
 from concurrent import futures
 from reference_models.geo import census_tract, utils, vincenty, nlcd
 from reference_models.propagation import wf_hybrid
-from reference_modesl.antenna import antenna
+from reference_models.antenna import antenna
 from shapely import geometry, ops
 
 THRESHOLD_PER_10MHZ = -96
