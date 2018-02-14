@@ -16,11 +16,13 @@ from datetime import datetime
 import json
 import logging
 import os
+from os import listdir
+from os.path import isfile, join
 import sas
 import sas_testcase
 
-from util import winnforum_testcase, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, QueryPropagationAntennaModel
-
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, QueryPropagationAntennaModel
+  
 def cbsddata(device):
     installationParam = device['installationParam']
     if 'antennaAzimuth' not in installationParam:
@@ -58,35 +60,40 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
-    #self._sas_admin.Reset()
+    self._sas_admin.Reset()
 
   def tearDown(self):
       pass
 
-  def generate_FT_S_PAT_default_config(self, testcasedir):
-
-# Load Devices
+  def generate_FT_S_PAT_default_config(self, filename):
+    """Generates the WinnForum configuration for PAT.1."""
+    
+    # Load Devices
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-   
+    open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
     # load FSS
     fss_record_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_0['rxAntennaGainRequired'] = True
     reliabilityLevel = -1
-    with open(os.path.join(testcasedir, 'default_fss.json'), "w") as outfile:
-        json.dump( {'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)}, outfile, indent=4, separators=(',', ': '))
-       
+    queries = {}
+    queries[0]= {'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)}
+
     # Load PPA
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_3.json')))
      
     reliabilityLevel = -1
-    with open(os.path.join(testcasedir, 'default_ppa.json'), "w") as outfile:
-        json.dump({'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]}, outfile, indent=4, separators=(',', ': '))
+    queries[1] = {'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]}
+
+    # save file
+    with open(filename, "w") as outfile:
+        json.dump(queries, outfile, indent=4, separators=(',', ': '))
       
-  @winnforum_testcase
-  def test_WINNF_FT_S_PAT_1(self):
+      
+  @configurable_testcase(generate_FT_S_PAT_default_config)
+  def test_WINNF_FT_S_PAT_1(self, config_filename):
     """Query with CBSD and FSS/PPA
    
     If (rxAntennaGainRequired = True)
@@ -95,43 +102,23 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     If (rxAntennaGainRequired = False or omitted)
     The response should have the pathlossDb, txAntennaGainDbi
     """
- 
-    from os import listdir
-    from os.path import isfile, join
-    testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'pat_testcases')
-    print os.path.exists(testcasedir)
-    if os.path.exists(testcasedir):
-        testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
-        testfiles = [f for f in testfiles if f.endswith('.json')]
-        if not testfiles:
-            testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'config', 'test_WINNF_FT_S_PAT_1')
-            self.generate_FT_S_PAT_default_config(testcasedir)
-            testfiles = ['default_ppa.json', 'default_fss.json']
-    else:
-        testcasedir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'testdata', 'config', 'test_WINNF_FT_S_PAT_1')
-        if not os.path.exists(testcasedir):
-            os.makedirs(testcasedir)
-        
-        testfiles = [f for f in listdir(testcasedir) if isfile(join(testcasedir, f))]
-        testfiles = [f for f in testfiles if f.endswith('.json')]
-        if not testfiles:
-            self.generate_FT_S_PAT_default_config(testcasedir)
-            testfiles = ['default_ppa.json', 'default_fss.json']
-        
-    for testfile in testfiles:
-        if testfile.endswith('.json'):
-                    with open(os.path.join(testcasedir, testfile), 'r') as myfile:
-                        testjson=myfile.read().replace('\n', '')
-                        refResponse = QueryPropagationAntennaModel(testjson)
+    
+    propagationAntennaModel = QueryPropagationAntennaModel()
 
-                        try:
-                            sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(testjson)
-                            # Check response
-                            if 'pathlossDb' in refResponse:
-                                self.assertTrue(sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1)
-                                self.assertTrue(sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-                            if 'rxAntennaGainDbi' in refResponse:
-                                self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
-                        except AssertionError as e:
-                            # Allow HTTP status 404
-                            self.assertEqual(e.args[0], 404)
+    config = loadConfig(config_filename)
+    for configItem in  config:
+       testjson= json.dumps(config[configItem])
+
+       refResponse = propagationAntennaModel.computePropagationAntennaModel(testjson)
+
+       try:
+           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(testjson)
+           # Check response
+           if 'pathlossDb' in refResponse:
+               self.assertTrue(sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1)
+               self.assertTrue(sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+           if 'rxAntennaGainDbi' in refResponse:
+               self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+       except AssertionError as e:
+           # Allow HTTP status 404
+           self.assertEqual(e.args[0], 404)

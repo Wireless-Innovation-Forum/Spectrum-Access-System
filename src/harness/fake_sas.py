@@ -53,6 +53,7 @@ from BaseHTTPServer import HTTPServer
 import ConfigParser
 from datetime import datetime
 from datetime import timedelta
+from util import QueryPropagationAntennaModel
 import uuid
 import json
 import ssl
@@ -211,6 +212,7 @@ class FakeSas(sas_interface.SasInterface):
 
 class FakeSasAdmin(sas_interface.SasAdminInterface):
   """Implementation of SAS Admin for Fake SAS."""
+  propagationAntennaModel = QueryPropagationAntennaModel()
   def Reset(self):
     pass
 
@@ -264,10 +266,8 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
 	  
-  def QueryPropagationAndAntennaModel(self, request, ssl_cert=None, ssl_key=None):
-    from util import QueryPropagationAntennaModel
-     
-    return QueryPropagationAntennaModel(request)
+  def QueryPropagationAndAntennaModel(self, request):
+    return self.propagationAntennaModel.computePropagationAntennaModel(request)
 	
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
