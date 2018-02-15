@@ -150,10 +150,10 @@ def getRandomLatLongInPolygon(ppa):
     return getRandomLatLongInPolygon(ppa)
 
 
-def makePpaPalRecordsConsistent(pal_records, low_frequency,
-                                   high_frequency, user_id, ppa_record=None,
-                                   fcc_channel_id="1"):
-  """Make PPA and PAL object consistent with the inputs
+def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
+                             user_id, fcc_channel_id="1",
+                             previous_year_date=None, next_year_date=None):
+  """Make Pal object consistent with the inputs
 
     Args:
       pal_records: (list) A list of PAL Records in the form of dictionary
@@ -161,21 +161,20 @@ def makePpaPalRecordsConsistent(pal_records, low_frequency,
       low_frequency: (number) The Primary Low Frequency for PAL.
       high_frequency: (number) The Primary High Frequency for PAL.
       user_id: (string) The userId from the CBSD.
-      ppa_record: (dictionary) A dictionary containing PPA Record.
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
-
+      previous_year_date: (string) Pal license start date, generally set as one year
+      before the current date
+      next_year_date: (string) Pal license expiration date, generally set as more than
+      one year after the current date
     Returns:
       A list containing individual pal records in the form of dictionary
-      (If the ppa record is None)
-      or
-      A tuple containing a ppa record which itself is a dictionary and pal records 
-      list which contains individual pal records in the form of dictionary.
     Note: The PAL Dictionary must contain censusYear(number) and 
           fipsCode(number)
   """
-
-  previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
-  next_year_date = datetime.now().replace(year=datetime.now().year + 1)
+  previous_year_date = datetime.now().replace(year=datetime.now().year - 1) \
+    if previous_year_date is None else previous_year_date
+  next_year_date = datetime.now().replace(year=datetime.now().year + 1) \
+    if next_year_date is None else next_year_date
 
   for index, pal_rec in enumerate(pal_records):
     pal_fips_code = pal_rec['fipsCode']
@@ -206,9 +205,34 @@ def makePpaPalRecordsConsistent(pal_records, low_frequency,
     # Converting from defaultdict to dict
     pal_records[index] = json.loads(json.dumps(pal_rec))
 
-  if ppa_record is None:
-    return pal_records
+  return pal_records
 
+
+def makePpaAndPalRecordsConsistent(pal_records, ppa_record, low_frequency,
+                                   high_frequency, user_id,
+                                   fcc_channel_id="1"):
+  """Make PPA and PAL object consistent with the inputs
+
+    Args:
+      pal_records: (list) A list of PAL Records in the form of dictionary
+      which has to be associated with the PPA.
+      ppa_record: (dictionary) A dictionary containing PPA Record.
+      low_frequency: (number) The Primary Low Frequency for PAL.
+      high_frequency: (number) The Primary High Frequency for PAL.
+      user_id: (string) The userId from the CBSD.
+      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
+
+    Returns:
+      A tuple containing a ppa record which itself is a dictionary and pal records 
+      list which contains individual pal records in the form of dictionary.
+    Note: The PAL Dictionary must contain censusYear(number) and 
+          fipsCode(number)
+  """
+  previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
+  next_year_date = datetime.now().replace(year=datetime.now().year + 1)
+
+  pal_records = makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
+                                        user_id, fcc_channel_id)
   # Add Pal Ids into the Ppa Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
@@ -222,6 +246,7 @@ def makePpaPalRecordsConsistent(pal_records, low_frequency,
   ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
+
   return ppa_record, pal_records
 
 
