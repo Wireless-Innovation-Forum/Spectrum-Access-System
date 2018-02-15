@@ -474,9 +474,9 @@ class SasAdminInterface(object):
 
   @abc.abstractmethod
   def InjectDatabaseUrl(self, request):
-    """Injecting database url"""
+    """Inject the FCC Database URL into SAS."""
     pass
-  
+
   @abc.abstractmethod
   def QueryPropagationAndAntennaModel(self, request):
     """SAS admin interface to query propagation and antenna gains for CBSD and FSS  or Provided PPA Contour

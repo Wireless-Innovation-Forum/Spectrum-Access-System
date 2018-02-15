@@ -112,14 +112,31 @@ def configurable_testcase(default_config_function):
 
   return internal_configurable_testcase
 
+def getOverlappingFrequency(low_frequency, high_frequency):
+  """Generate the frequency range(between 3550MHz and 3700MHz) partially or fully overlapping with the given frequency range. 
+  Args:
+    low_frequency: lower end of the given frequency interval
+    high_frequency: higher end of the given frequency interval
+  Returns:
+    low_frequency_new: lower end of the partially or fully overlapping frequency interval
+    high_frequency_new: higher end of the partially or fully overlapping frequency interval  
+  """
 
+  low_frequency_new = random.randint(3550000000, high_frequency-1)
+  #Aligning to the lower 5MHz of CBRS band
+  low_frequency_new -= low_frequency_new % 5000000
 
+  if (low_frequency_new < low_frequency) :
+    high_frequency_new = random.randint(low_frequency, 3700000000)
+    #Aligning to the higher 5MHz of CBRS band
+    high_frequency_new += 5000000 -(high_frequency_new % 5000000)
+  else :
+    high_frequency_new = random.randint(low_frequency_new+1, 3700000000)
+    #Aligning to the higher 5MHz of CBRS band
+    high_frequency_new += 5000000 -(high_frequency_new % 5000000)
+ 
+  return low_frequency_new,high_frequency_new
 
-def loadDB(db_filename):  
-  """Loads a fake database file."""  
-  with open(db_filename, 'r') as f:  
-    return json.loads(f.read())  
-  
 
 def loadConfig(config_filename):
   """Loads a configuration file."""
