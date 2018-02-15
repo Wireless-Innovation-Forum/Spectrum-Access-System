@@ -34,21 +34,21 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
   def generate_FDB_1_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.1"""
-    # Load device info
+    #Load device info
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Send grant request
+    #Send grant request
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
+    #Frequency range 'F2' to modify the exclusion zone database
     frequency_f2_exz = { 'lowFrequency' : 3680000000,
                         'highFrequency' : 3690000000 
                        }
+    #Dictionary containing database information  
     fake_fcc_db = { 'name': 'Fake_FCC_DB',
-                    'url': 'http://localhost:9090/fakedatabse/exclusionZone',
+                    'url': 'http://localhost:9090/fakedatabase/exclusionZone',
                     'databaseFile': 'fakedatabase/exclusion_zone_db.json'
                   }
-
     #Reading the Exclusion zone sample record 
     data = json.load(
       open(os.path.join('testcases', 'testdata', 'exz_record_0.json')))
@@ -64,7 +64,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] =  data['zone']['features'][0]['properties']['freqrange']['lowFrequency']
     grant_0['operationParam']['operationFrequencyRange']['highFrequency'] = data['zone']['features'][0]['properties']['freqrange']['highFrequency']
 
-    # Create the actual config.
+    #Create the actual config.
     config = {
         'registrationRequest': [device_a],
         'grantRequest': [grant_0],
@@ -79,17 +79,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """ Exclusion Zone Database Update"""
     config = loadConfig(config_filename)
 
-    # Create fake database server
+    #Create fake database server
     self._fake_database_server = FakeDatabaseTestHarness( \
       config['fake_fcc_db']['url'], config['fake_fcc_db']['databaseFile'] )
-
     #Start fake database server
     self._fake_database_server.start()
 
-    # Inject FCC ID and User Id of the device into UUT.    
+    #Inject FCC ID and User Id of the device into UUT.    
     fcc_id = (config['registrationRequest'][0]['fccId'], 47) 
     user_id = config['registrationRequest'][0]['userId']
-
     self._sas_admin.InjectFccId({
       'fccId': fcc_id[0],
       'fccMaxEirp': fcc_id[1]
@@ -113,8 +111,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }]
     }
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    
-    # Check the heartbeat response code is 500(TERMINATED_GRANT) or 501 (SUSPENDED_GRANT) 
+    #Check the heartbeat response code is 500(TERMINATED_GRANT) or 501 (SUSPENDED_GRANT) 
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertEqual(response['grantId'], grant_ids[0])
     self.assertIn(response['response']['responseCode'], [500, 501])
@@ -132,12 +129,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       # Check the relinquishment response
       self.assertEqual(response['cbsdId'], cbsd_ids[0])
       self.assertEqual(response['grantId'], grant_ids[0])
-      self.assertIn(response['response']['responseCode'], 0)
+      self.assertIn(response['response']['responseCode'], [400])
 
-    # Request grant with frequency range which partially or fully overlaps with Exclusion zone protected frequency range
+    #Request grant with frequency range which partially or fully overlaps with \
+    #Exclusion zone protected frequency range 'F1'
     config['grantRequest'][0]['cbsdId'] = cbsd_ids[0]
-
-    #Get an overlapping frequency range for the Exclusion zone Frequency (F1)
+    #Get an overlapping frequency range for the Exclusion zone Frequency range(F1)
     freq_range = getOverlappingFrequency(\
       config['grantRequest'][0]['operationParam']['operationFrequencyRange']['lowFrequency'], \
       config['grantRequest'][0]['operationParam']['operationFrequencyRange']['highFrequency'] ) 
@@ -148,26 +145,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config['grantRequest'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = freq_range[0]
     config['grantRequest'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = freq_range[1]
     request = {'grantRequest': config['grantRequest']}
-
-    # Check grant response should be 400 (INTERFERENCE).
+    #Check grant response should be 400 (INTERFERENCE).
     response = self._sas.Grant(request)['grantResponse'][0]
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertIn(response['response']['responseCode'], [400])
     del request, response
 
-    # Load modified exclusion zone database(change frequency of protected zone)
+    #Load modified exclusion zone database(change frequency of protected zone 'F2')
     #Reading the fake database file.
     with open(config['fake_fcc_db']['databaseFile'], 'r') as f:  
       data =  json.loads(f.read())
     data['zone']['features'][0]['properties']['freqrange']['lowFrequency'] = config['Exz_Frequency_F2']['lowFrequency']
     data['zone']['features'][0]['properties']['freqrange']['highFrequency'] = config['Exz_Frequency_F2']['highFrequency']
- 
     writeDB(config['fake_fcc_db']['databaseFile'], data)    
 
-    # Trigger daily activities
+    #Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Request grant with frequency range which partially or fully overlaps with Exclusion zone protected frequency range
+    #Request grant with frequency range which partially or fully overlaps with \
+    #Exclusion zone protected frequency range(F2)
     freq_range = getOverlappingFrequency( \
       data['zone']['features'][0]['properties']['freqrange']['lowFrequency'], \
       data['zone']['features'][0]['properties']['freqrange']['highFrequency'] )
@@ -178,8 +174,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config['grantRequest'][0]['operationParam']['operationFrequencyRange']['lowFrequency'] = freq_range[0]
     config['grantRequest'][0]['operationParam']['operationFrequencyRange']['highFrequency'] = freq_range[1]
     request = {'grantRequest': config['grantRequest']}
-
-    # Check grant response should be 400 (INTERFERENCE).
+    #Check grant response should be 400 (INTERFERENCE).
     response = self._sas.Grant(request)['grantResponse'][0]
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertIn(response['response']['responseCode'],[400])

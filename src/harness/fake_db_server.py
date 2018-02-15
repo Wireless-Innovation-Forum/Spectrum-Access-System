@@ -22,10 +22,9 @@ import json
 import threading
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
-
 class FakeDatabaseTestHarness(threading.Thread):
-  
-  def __init__(self, url = None, database_file = None, path = None, host_name = None, port = None):
+
+  def __init__(self, url = None, database_file = None):
     """Test Harness acting as a Http Server to receive Pull/GET
     Requests from SAS Under Test
     parameters: is the dict variable for database.
@@ -34,7 +33,7 @@ class FakeDatabaseTestHarness(threading.Thread):
     "url": actual url   
     "database_file" : actual database file
     "port" : port number at which fake database server will run
-    "host_name":  
+    "host_name": entity hosting the fake database server
     """
     super(FakeDatabaseTestHarness, self).__init__()
     self.parameters = {
@@ -45,26 +44,23 @@ class FakeDatabaseTestHarness(threading.Thread):
         "port" : int( (url.split('/')[2]).split(':')[1] )
     }
     self.daemon = True
-
+  
   def run(self):
-   self.startServer()
+    self.startServer()
 
   def startServer(self):
-    request_handler = FakeDatabaseTestHarnessHandler()
-    request_handler.setupParameters(self.parameters)
-
-    self.server = HTTPServer( (request_handler._parameters['host_name'],request_handler._parameters['port'] ), request_handler )
+    #Setting the parameters for handler class
+    FakeDatabaseTestHarnessHandler._parameters = self.parameters 
+    self.server = HTTPServer( \
+      (self.parameters['host_name'], self.parameters['port'] ), \
+      FakeDatabaseTestHarnessHandler )
     self.server.serve_forever()
     logging.info('Started Test Harness Server')
+    
 
-class FakeDatabaseTestHarnessHandler(BaseHTTPRequestHandler):
-
-  def __init__(self):
-    #pass
-    super(FakeDatabaseTestHarnessHandler, self).__init__()
-
-  def setupParameters(self, parameters):
-    self._parameters = parameters
+class FakeDatabaseTestHarnessHandler(BaseHTTPRequestHandler, FakeDatabaseTestHarness):
+  
+  _parameters = None
 
   def do_POST(self):
     """Handles POST requests"""
@@ -72,14 +68,11 @@ class FakeDatabaseTestHarnessHandler(BaseHTTPRequestHandler):
 
   def do_GET(self):
     """Handles GET requests"""
-    print self.path    
     if self.path == self._parameters['path']:
       data = json.load(open(self._parameters['database_file']))
-      return self.wfile.write(data)     
+      self.wfile.write(json.dumps(data))         
     else:
       self.wfile.write("\n DB NOT FOUND \n")
       self.send_response(404)
       return
-        
-    self.wfile.write("\n\n")
-    self.send_response(200)
+    self.send_response(200)      
