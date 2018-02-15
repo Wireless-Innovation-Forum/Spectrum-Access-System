@@ -191,12 +191,15 @@ class SecurityTestCase(sas_testcase.SasTestCase):
                   url.port or 443)
     logging.debug('TLS handshake: privatekey_file=%s', client_key)
     logging.debug('TLS handshake: certificate_file=%s', client_cert)
-    if (ssl_method is not None) :
+    if ssl_method is not None:
       ctx = SSL.Context(ssl_method)
     else:
       ctx = SSL.Context(SSL.TLSv1_2_METHOD)
     if ciphers is not None:
-       ctx.set_cipher_list(ciphers)
+      ctx.set_cipher_list(ciphers)
+    else:
+      # cipher 'AES128-GCM-SHA256' will be added by default if cipher arg is passed as None
+      ctx.set_cipher_list(self._sas._tls_config.ciphers[0])
 
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)

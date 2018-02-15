@@ -73,7 +73,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     
     config = { 
         'clientCert': self.getCertFilename("client_expired.cert"),
-        'clientKey':self.getCertFilename("client_expired.key")
+        'clientKey': self.getCertFilename("client_expired.key")
     }
     writeConfig(filename, config)
   
@@ -84,8 +84,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['client_cert_path'],
-                                   client_key=config['client_key_path'])
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_13(self):
@@ -123,8 +123,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     
     # load device certs and device_a from config file
-    device_a_cert = config['client_cert_path']
-    device_a_key = config['client_key_path']
+    device_a_cert = config['clientCert']
+    device_a_key = config['clientKey']
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
     
     # Inject fccId and userId
