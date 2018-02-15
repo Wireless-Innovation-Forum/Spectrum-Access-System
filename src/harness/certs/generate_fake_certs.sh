@@ -222,7 +222,7 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
 echo "\n\nGenerate wrong type certificate/key"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
     -out wrong_type_client.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions wrong_cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Generate trusted CA bundle.

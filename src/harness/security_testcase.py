@@ -205,12 +205,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     client_ssl.set_tlsext_host_name(url.hostname)
     try:
       client_ssl.do_handshake()
-      logging.debug('TLS handshake: succeed')
+      logging.info('TLS handshake: succeed')
       self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
       logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:
       client_ssl.close()
-
-
