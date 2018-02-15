@@ -352,9 +352,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     # Very light checking of the config file.
     self.assertEqual(
         len(config['registrationRequest']), len(config['grantRequest']))
-    self.assertTrue(
+    self.assertEqual(
         len(config['grantRequest']), len(config['heartbeatRequest']))
-    self.assertTrue(
+    self.assertEqual(
         len(config['heartbeatRequest']), len(config['deregistrationRequest']))
     self.assertEqual(
         len(config['deregistrationRequest']),
@@ -389,9 +389,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     del request, responses
 
     # Step 5: First deregistration request
-    degregister_request = config['deregistrationRequest']
-    addCbsdIdsToRequests(cbsd_ids, degregister_request)
-    request = {'deregistrationRequest': degregister_request}
+    deregister_request = config['deregistrationRequest']
+    addCbsdIdsToRequests(cbsd_ids, deregister_request)
+    request = {'deregistrationRequest': deregister_request}
     responses_1 = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
     self.assertEqual(len(responses_1), len(config['expectedResponseCodes']))
@@ -404,17 +404,17 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
                     expected_response_codes)
       # "If the corresponding request contained a valid cbsdId, the
       # response shall contain the same cbsdId."
-      if 'cbsdId' in degregister_request[i]:
-        if degregister_request[i]['cbsdId'] in cbsd_ids:
-          self.assertEqual(response['cbsdId'], degregister_request[i]['cbsdId'])
+      if 'cbsdId' in deregister_request[i]:
+        if deregister_request[i]['cbsdId'] in cbsd_ids:
+          self.assertEqual(response['cbsdId'], deregister_request[i]['cbsdId'])
         else:
           self.assertFalse('cbsdId' in response)
 
     # Step 6: Send the Deregistration request from Step 5 again
-    request = {'deregistrationRequest': degregister_request}
+    request = {'deregistrationRequest': deregister_request}
     responses_2 = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
-    self.assertEqual(len(responses_2), len(degregister_request))
+    self.assertEqual(len(responses_2), len(deregister_request))
     self.assertEqual(len(responses_2), len(responses_1))
     # If the corresponding responseCode in the previous Deregistration Response
     # Message was 102, the responseCode shall be 102.
