@@ -150,12 +150,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Generates the WinnForum configuration for SCS_10. """
     # Create the actual config for client cert/key path
 
-    # Load Devices
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-
-    # Create the actual config.
-    devices = [device_a]
     config = {
       'clientCert': self.getCertFilename("wrong_type_client.cert"),
       'clientKey': self.getCertFilename("server.key")
