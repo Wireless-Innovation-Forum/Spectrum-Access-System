@@ -12,7 +12,7 @@
   "properties": {
     "url": {
       "type": "string",
-      "description": "The retrieval URL at which the peer can retrieve the activit dump file."
+      "description": "The retrieval URL at which the peer can retrieve the activity dump file."
     },
     "checksum": {
       "type": "string",

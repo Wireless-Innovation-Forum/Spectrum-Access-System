@@ -29,21 +29,21 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     def tearDown(self):
         pass
     
-    def assertEqualToIfExistDeviceOrPreloadedCondtionalParam(self, attr_name, parent_attr_in_record,\
-                 parent_attr_in_preloaded_condtional, parent_attr_in_device):
-        attr_value = parent_attr_in_device[attr_name] if attr_name in parent_attr_in_device\
-         else (parent_attr_in_preloaded_condtional[attr_name] if attr_name in \
-              parent_attr_in_preloaded_condtional else None)
+    def assertEqualToIfExistDeviceOrPreloadedCondtionalParam(self, attr_name, record,\
+                 preloaded_condtionals, registration_request):
+        attr_value = registration_request[attr_name] if attr_name in registration_request\
+         else (preloaded_condtionals[attr_name] if attr_name in \
+              preloaded_condtionals else None)
         if attr_value != None: 
-            self.assertEqual(attr_value, parent_attr_in_record[attr_name])
+            self.assertEqual(attr_value, record[attr_name])
         else :
-            self.assertFalse(attr_name in cbsd_record[0])
+            self.assertFalse(attr_name in record)
     
-    def assertEqualToDeviceOrPreloadedCondtionalParam(self, attr_name, parent_attr_in_record,\
-                 parent_attr_in_preloaded_condtional, parent_attr_in_device):
-        attr_value = parent_attr_in_device[attr_name] if attr_name in parent_attr_in_device\
-         else parent_attr_in_preloaded_condtional[attr_name]      
-        self.assertEqual(attr_value, parent_attr_in_record[attr_name])        
+    def assertEqualToDeviceOrPreloadedCondtionalParam(self, attr_name, record,\
+                 preloaded_condtionals, registration_request):
+        attr_value = registration_request[attr_name] if attr_name in registration_request\
+         else preloaded_condtionals[attr_name]      
+        self.assertEqual(attr_value, record[attr_name])        
         
     
     def assertCbsdRecord(self, registration_request, grant_request, grant_response, cbsd_dump_data, reg_conditional_data):
@@ -122,8 +122,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 else:
                     self.assertLessEqual(cbsd_record[0]['eirpCapability'], 47)
                     self.assertGreaterEqual(cbsd_record[0]['eirpCapability'], -127)
-            # antennaModel if exists in device should exist with same value in record    
-            
+            # antennaModel if exists in device should exist with same value in record                
             self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaModel', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
@@ -304,9 +303,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         
         # verify the schema of record and that the injected ppas exist in the dump files
         for index, ppa in enumerate(config['ppas']):
+            for ppa_record in ppa_dump_data:
+                self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)
+                ppa_record['id'].split("/")[0] == ppa_ids[index]][0]
+                ppa_record['id'].split("/")[1] == ppa_ids[index]][0] self._sas.admin
+                            
             ppa_record = [record for record in ppa_dump_data if record['id'].split("/")[-1] == ppa_ids[index]][0]
             del ppa_record['id']
-            self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)
             self.assertDictEqual(ppa, ppa_record)
             
         # verify the schema of record and that the injected esc sensors exist in the dump files        
@@ -318,7 +321,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # verify that retrieved cbsd dump files have correct schema
         for cbsd_record in cbsd_dump_data:
             self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
-            AssertFalse("cbsdInfo" in cbsd_record)
+            self.assertFalse("cbsdInfo" in cbsd_record)
             
         # verify all the previous activities on CBSDs and Grants exist in the dump files
         self.assertCbsdRecord(config['registrationRequests'], grants, grant_responses, cbsd_dump_data, config['conditionalRegistrationData'])
