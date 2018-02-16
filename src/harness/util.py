@@ -152,29 +152,28 @@ def getRandomLatLongInPolygon(ppa):
 
 def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
                              user_id, fcc_channel_id="1",
-                             previous_year_date=None, next_year_date=None):
+                             start_date=None, end_date=None):
   """Make Pal object consistent with the inputs
 
     Args:
-      pal_records: (list) A list of PAL Records in the form of dictionary
-      which has to be associated with the PPA.
-      low_frequency: (number) The Primary Low Frequency for PAL.
-      high_frequency: (number) The Primary High Frequency for PAL.
-      user_id: (string) The userId from the CBSD.
+      pal_records: (list) A list of PAL Records in the form of dictionary.
+      low_frequency: (number) The Primary Low Frequency in Hz for PAL.
+      high_frequency: (number) The Primary High Frequency in Hz for PAL.
+      user_id: (string) The userId to put in PAL Records.
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
-      previous_year_date: (string) Pal license start date, generally set as one year
+      start_date: (string) PAL license start date, generally set as one year
       before the current date
-      next_year_date: (string) Pal license expiration date, generally set as more than
+      end_date: (string) PAL license expiration date, generally set as more than
       one year after the current date
     Returns:
-      A list containing individual pal records in the form of dictionary
+      A list containing individual PAL records in the form of dictionary
     Note: The PAL Dictionary must contain censusYear(number) and 
           fipsCode(number)
   """
-  previous_year_date = datetime.now().replace(year=datetime.now().year - 1) \
-    if previous_year_date is None else previous_year_date
-  next_year_date = datetime.now().replace(year=datetime.now().year + 1) \
-    if next_year_date is None else next_year_date
+  start_date = datetime.now().replace(year=datetime.now().year - 1) \
+    if start_date is None else start_date
+  end_date = datetime.now().replace(year=datetime.now().year + 1) \
+    if end_date is None else end_date
 
   for index, pal_rec in enumerate(pal_records):
     pal_fips_code = pal_rec['fipsCode']
@@ -184,20 +183,20 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
     # Change the FIPS Code and Registration Date-Year in Pal Id
     pal_rec['palId'] = '/'.join(['pal', '%s-%d' %
-                                 ('{:02d}'.format(previous_year_date.month),
-                                  previous_year_date.year),
+                                 ('{:02d}'.format(start_date.month),
+                                  start_date.year),
                                  str(pal_fips_code), fcc_channel_id])
     pal_rec['userId'] = user_id
     # Make the date consistent in Pal Record for Registration and License
     pal_rec['registrationInformation']['registrationDate'] = \
-      previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+      start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     # Change License Information in Pal
     pal_rec['license']['licenseAreaIdentifier'] = str(pal_fips_code)
     pal_rec['license']['licenseAreaExtent'] = \
       'zone/census_tract/census/%d/%d' % (pal_census_year, pal_fips_code)
-    pal_rec['license']['licenseDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    pal_rec['license']['licenseExpiration'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+    pal_rec['license']['licenseDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+    pal_rec['license']['licenseExpiration'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
     # Change Frequency Information in Pal
     pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
@@ -217,23 +216,23 @@ def makePpaAndPalRecordsConsistent(pal_records, ppa_record, low_frequency,
       pal_records: (list) A list of PAL Records in the form of dictionary
       which has to be associated with the PPA.
       ppa_record: (dictionary) A dictionary containing PPA Record.
-      low_frequency: (number) The Primary Low Frequency for PAL.
-      high_frequency: (number) The Primary High Frequency for PAL.
+      low_frequency: (number) The Primary Low Frequency in Hz for PAL.
+      high_frequency: (number) The Primary High Frequency in Hz for PAL.
       user_id: (string) The userId from the CBSD.
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
 
     Returns:
-      A tuple containing a ppa record which itself is a dictionary and pal records 
-      list which contains individual pal records in the form of dictionary.
+      A tuple containing PPA record which itself is a dictionary and PAL records 
+      list which contains individual PAL records in the form of dictionary.
     Note: The PAL Dictionary must contain censusYear(number) and 
           fipsCode(number)
   """
-  previous_year_date = datetime.now().replace(year=datetime.now().year - 1)
-  next_year_date = datetime.now().replace(year=datetime.now().year + 1)
+  start_date = datetime.now().replace(year=datetime.now().year - 1)
+  end_date = datetime.now().replace(year=datetime.now().year + 1)
 
   pal_records = makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
                                         user_id, fcc_channel_id)
-  # Add Pal Ids into the Ppa Record
+  # Add PAL Ids into the PPA Record
   ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
 
   ppa_record['ppaInfo']['palId'] = [pal['palId'] for pal in pal_records]
@@ -241,9 +240,9 @@ def makePpaAndPalRecordsConsistent(pal_records, ppa_record, low_frequency,
                                             ppa_record['ppaInfo']['palId'][0],
                                             uuid.uuid4().hex)
 
-  # Make the date consistent in Ppa Record
-  ppa_record['ppaInfo']['ppaBeginDate'] = previous_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  ppa_record['ppaInfo']['ppaExpirationDate'] = next_year_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  # Make the date consistent in PPA Record
+  ppa_record['ppaInfo']['ppaBeginDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+  ppa_record['ppaInfo']['ppaExpirationDate'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
   # Converting from defaultdict to dict
   ppa_record = json.loads(json.dumps(ppa_record))
 
