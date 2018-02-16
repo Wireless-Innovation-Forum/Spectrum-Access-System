@@ -55,7 +55,8 @@ def GetTestingSas():
   config_parser.read(['sas.cfg'])
   base_url = config_parser.get('SasConfig', 'BaseUrl')
   version = config_parser.get('SasConfig', 'Version')
-  return SasImpl(base_url, version), SasAdminImpl(base_url)
+  admin = config_parser.get('SasConfig', 'Admin')
+  return SasImpl(base_url, version,admin), SasAdminImpl(base_url)
 
 def _RequestPost(url, request, config):
   """Sends HTTPS POST request.
@@ -148,10 +149,11 @@ def _RequestGet(url, config):
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, base_url, sas_version):
+  def __init__(self, base_url, sas_version, sas_admin):
     self._base_url = base_url
     self._sas_version = sas_version
     self._tls_config = TlsConfig()
+    self._sas_admin = sas_admin
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('registration', request, ssl_cert, ssl_key)
