@@ -207,15 +207,15 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
   return pal_records
 
 
-def makePpaAndPalRecordsConsistent(pal_records, ppa_record, low_frequency,
+def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
                                    high_frequency, user_id,
                                    fcc_channel_id="1"):
   """Make PPA and PAL object consistent with the inputs
 
     Args:
+      ppa_record: (dictionary) A dictionary containing PPA Record.
       pal_records: (list) A list of PAL Records in the form of dictionary
       which has to be associated with the PPA.
-      ppa_record: (dictionary) A dictionary containing PPA Record.
       low_frequency: (number) The Primary Low Frequency in Hz for PAL.
       high_frequency: (number) The Primary High Frequency in Hz for PAL.
       user_id: (string) The userId from the CBSD.
