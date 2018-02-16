@@ -119,18 +119,18 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     
     Checks that SAS UUT response with tls connection succedded and response should be 104.    
     """
-    self.SasReset()
     config = loadConfig(config_filename)
     
-    # load device certs and device_a from config file
+    # Load the keys/certs and check that TLS handshake is valid
     device_a_cert = config['clientCert']
     device_a_key = config['clientKey']
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_a_cert, device_a_key)
+   
+    # Load device and inject fccId and userId
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    
-    # Inject fccId and userId
+    self.SasReset() 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
-    self.assertTlsHandshakeFailure(client_cert=device_a_cert,client_key=device_a_key)
     
     # Send registration Request with certs(inapplicable fields) to SAS UUT 
     request = {'registrationRequest': [device_a]}
