@@ -19,6 +19,7 @@ import os
 import re
 import socket
 import urlparse
+import inspect
 
 from OpenSSL import SSL, crypto
 
@@ -65,6 +66,13 @@ class SecurityTestCase(sas_testcase.SasTestCase):
   def SasReset(self):
     """Resets the SAS UUT to its initial state."""
     self._sas_admin.Reset()
+
+  def getCertFilename(self, cert_name):
+    """Returns the absolute path of the file corresponding to the given |cert_name|.
+    """
+    harness_dir = os.path.dirname(
+                  os.path.abspath(inspect.getfile(inspect.currentframe())))
+    return os.path.join(harness_dir, 'certs', cert_name)
 
   def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
     """Checks that the TLS handshake succeed with the given parameters.
@@ -164,3 +172,43 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
+  def assertTlsHandshakeFailure(self, client_cert, client_key):
+    """
+    Does a tls handshake with different client_cert and client_key
+    Args:
+      client_cert: optional client certificate file in PEM format to use.
+      client_key: associated key file in PEM format to use with the client_cert
+    """
+
+    url = urlparse.urlparse('https://' + self._sas_admin._base_url)
+    client = socket.socket()
+    client.connect((url.hostname, url.port or 443))
+    logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
+    logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
+                  url.port or 443)
+    logging.debug('TLS handshake: privatekey_file=%s', client_key)
+    logging.debug('TLS handshake: certificate_file=%s', client_cert)
+
+    ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    ctx.use_certificate_file(client_cert)
+    ctx.use_privatekey_file(client_key)
+
+    client_ssl_informations = []
+    def _InfoCb(conn, where, ok):
+      client_ssl_informations.append(conn.get_state_string())
+      logging.debug('TLS handshake info: %d|%d %s', where, ok, conn.get_state_string())
+      return ok
+    ctx.set_info_callback(_InfoCb)
+
+    client_ssl = SSL.Connection(ctx, client)
+    client_ssl.set_connect_state()
+    client_ssl.set_tlsext_host_name(url.hostname)
+    try:
+      client_ssl.do_handshake()
+      logging.info('TLS handshake: succeed')
+      self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
+    except SSL.Error as e:
+      logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
+      self.assertEquals(client_ssl.get_peer_finished(), None)
+    finally:
+      client_ssl.close()
