@@ -38,6 +38,10 @@ def geodesic_iterative(lat1, lon1, lat2, lon2, num_points):
 
 class TestVincenty(unittest.TestCase):
 
+  def test_distbear_whensamepoints(self):
+    self.assertEqual(vincenty.GeodesicDistanceBearing(38, -80, 38, -80),
+                     (0, 0, 0))
+
   def test_distbear(self):
     random.seed(69)
     for _ in range(1000):

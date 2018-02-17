@@ -50,6 +50,8 @@ def GeodesicDistanceBearing(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
   Returns:
     a tuple of distance (km), initial bearing (deg), and back bearing (deg).
   """
+  if lat1 == lat2 and lon1 == lon2:
+    return 0., 0., 0.
 
   a = 6378.1370        # semi-major axis (km), WGS84
   f = 1./298.257223563 # flattening of the ellipsoid, WGS84

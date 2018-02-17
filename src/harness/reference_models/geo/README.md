@@ -16,4 +16,11 @@ the CONFIG.py file to point to upper level folders:
  - data/geo/nlcd/
  - data/itu/ 
  
- Modify the CONFIG.py file if using other locations.
+Modify the CONFIG.py file if using other locations.
+
+You can use the top level `reference_models/test_config.py` script to validate
+the integrity of your geo databases and proper setup:
+
+```
+    python test_config.py
+```

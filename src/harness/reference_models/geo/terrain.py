@@ -26,12 +26,12 @@ Original data available at: https://nationalmap.gov/3DEP/.
 # The terrain tiles are stored in the directory referenced by:
 #     CONFIG.GetTerrainDir()
 
-import logging
-import math
 import numpy as np
 import os
 import time
+import threading
 
+from reference_models.geo import tiles
 from reference_models.geo import vincenty
 from reference_models.geo import CONFIG
 
@@ -40,16 +40,25 @@ _RADIUS_EARTH_METERS = 6378.e3 # Mean radius of the Earth in km
 _NUM_PIXEL_OVERLAP = 6 # Number of pixel overlap in tiles
 _TILE_BASE_DIM = 3600
 _TILE_DIM = _TILE_BASE_DIM + 2 * _NUM_PIXEL_OVERLAP # Dimension of a tile
-
+_TILES_KEYS = tiles.NED_TILES
 
 class TerrainDriver:
   """TerrainDriver class to retrieve elevation data.
 
   Keeps a LRU cache of most recent needed tiles.
+  For best performance it is best to:
+   - group request in neighboring regions so that tiles eviction is reduced
+   - set the cache_size to the appropriate value for the region size.
+  One tile being 1x1 degrees typically covers around 110km x 90km in continental US.
+
+  Attributes:
+    cache_size (int): maximum number of tiles cached in memory.
+      Memory usage is about 50MB per tile.
+    stats (|tile.TileStats|): a tile statistic counter.
 
   Typical usage:
     # Initialize driver
-    driver = TerrainDriver(cache_size=4)
+    driver = TerrainDriver(cache_size=8)
 
     # Get the altitude in one or several locations
     altitudes = driver.GetTerrainElevation(lat, lon, do_interp=True)
@@ -57,19 +66,40 @@ class TerrainDriver:
     # Get profile between 2 location with target resolution 30m
     its_profile = driver.TerrainProfile(lat1, lon1, lat2, lon2,
                                         target_res_meters=30, max_points=1501)
+
+    # Compute the HAAT(Height above average terrain) for a given point
+    haat = driver.ComputeNormalizedHaat(lat, lon)
+
+    # Manage driver statistics. Useful to understand/optimize cache usage/size
+    driver.stats.Report()  # simple statistic reporting
+    driver.stats.Reset()   # reset the statistic counter
   """
-  def __init__(self, terrain_directory=None, cache_size=4):
+  def __init__(self, terrain_directory=None, cache_size=8):
     self.SetTerrainDirectory(terrain_directory)
     self.SetCacheSize(cache_size)
     # Keep a small tile cache, LRU fashion
     self._tile_cache = {}
     self._tile_lru = {}
+    self.stats = tiles.TileStats('ned')
+    self._lock = threading.Lock()
+    self.do_flat = False
 
   def SetTerrainDirectory(self, terrain_directory):
     """Configures the terrain data directory."""
     self._terrain_dir = terrain_directory
     if self._terrain_dir is None:
       self._terrain_dir = CONFIG.GetTerrainDir()
+
+  def SetFlatEarthMode(self, do_flat=False):
+    """Sets the driver in flat-earth mode.
+
+    This is an option to always return zero altitude, to be used for testing
+    and debugging. Not to be used in normal operations.
+
+    Inputs:
+      do_flat (bool): if True, the driver always return altitude 0 everywhere.
+    """
+    self.do_flat = do_flat
 
   def SetCacheSize(self, cache_size):
     """Configures the cache size."""
@@ -80,134 +110,84 @@ class TerrainDriver:
     """Updates the cache LRU."""
     self._tile_lru[key] = time.time()
 
-  def _CacheGridTile(self, ilat, ilon):
-    """Reads and cache a tile.
+  def GetTile(self, ilat, ilon):
+    """Returns a given tile as a 2D array, or None if unmanaged tile.
 
-    If the file does not exist or cannot be read, it initializes it to all zero.
-
-    Input:
-      ilat, ilon: coordinate of NW corner (tile key).
-
-    Returns:
-      The tiled cache if ok.
-      None if tile cannot be read (a zero tile is still created).
-    """
-    encoding = '%c%02d%c%03d' % (
-        'sn'[ilat >= 0], abs(ilat),
-        'we'[ilon >= 0], abs(ilon))
-
-    tile_name1 = 'usgs_ned_1_' + encoding + '_gridfloat_std.flt'
-    tile_name2 = 'float' + encoding + '_1_std.flt'
-
-    tile_name = (tile_name1
-                 if os.path.isfile(os.path.join(self._terrain_dir, tile_name1))
-                 else tile_name2)
-
-    key = (ilat, ilon)
-    # Check cache size and evict oldest
-    if len(self._tile_cache) >= self.cache_size:
-      key_to_evict = min(self._tile_lru, key=self._tile_lru.get)
-      del self._tile_cache[key_to_evict]
-      del self._tile_lru[key_to_evict]
-
-    self._CacheLruUpdate(key)
-    try:
-      self._tile_cache[key] = np.fromfile(os.path.join(self._terrain_dir, tile_name),
-                                          dtype=np.float32).reshape(_TILE_DIM, _TILE_DIM)
-      return self._tile_cache[key]
-    except:
-      self._tile_cache[key] = np.zeros((_TILE_DIM, _TILE_DIM))
-      logging.warning('No terrain file %s. Setting elevations to 0. ' % tile_name)
-      return None
-
-  def _GetTerrainElevationPoint(self, lat, lon, do_interp=True):
-    """Retrieves the elevation of a given lat/lon.
+    This routine manages the tile cache.
+    For tiles not in the database, returns None.
+    If a tile in the database cannot be read, raises an exception.
 
     Inputs:
-      lat,lon: coordinated of point to read.
-      do_interp: if True, the elevation is bilinearly interpolated.
+      ilat, ilon (int): integer coordinates of NW corner.
 
-    Returns:
-      the elevation of the given point.
+    Raises:
+      IOError: if an expected tile cannot be read
     """
-    ilat = math.ceil(lat)
-    ilon = math.floor(lon)
-    try:
-      tile_cache = self._tile_cache[(ilat, ilon)]
-      self._CacheLruUpdate((ilat, ilon))
-    except:
-      tile_cache = self._CacheGridTile(ilat, ilon)
-      if tile_cache is None:
-        return 0.0
+    key = (ilat, ilon)
 
-    # Find the coordinates of this lat/lon in the tile file,
-    # in floating point units.
-    float_x = _NUM_PIXEL_OVERLAP + _TILE_BASE_DIM * (lon - ilon)
-    float_y = _NUM_PIXEL_OVERLAP + _TILE_BASE_DIM * (ilat - lat)
+    with self._lock:
+      # Manage the cases of mem-loaded or unmanaged tiles.
+      try:
+        tile = self._tile_cache[key]
+        self._CacheLruUpdate(key)
+        return tile
+      except KeyError:
+        if key not in _TILES_KEYS:
+          return None
 
-    if do_interp:
-      # Compensate for the half-pixel offset of the center from the edge.
-      float_x -= 0.5
-      float_y -= 0.5
-      # Bilinear interpolation
-      xm = int(math.floor(float_x))
-      xp = xm + 1
-      ym = int(math.floor(float_y))
-      yp = ym + 1
+      # Load a tile in memory and manage the cache.
+      encoding = '%c%02d%c%03d' % (
+          'sn'[ilat >= 0], abs(ilat),
+          'we'[ilon >= 0], abs(ilon))
 
-      # Calculate the areas used for weighting
-      alpha_x, alpha_y = (float_x-xm), (float_y-ym)
-      area_xm_ym = alpha_x * alpha_y
-      area_xm_yp = alpha_x * (1-alpha_y)
-      area_xp_yp = (1-alpha_x) * (1-alpha_y)
-      area_xp_ym = (1-alpha_x) * alpha_y
+      tile_name1 = 'usgs_ned_1_' + encoding + '_gridfloat_std.flt'
+      tile_name2 = 'float' + encoding + '_1_std.flt'
+      tile_name = (tile_name1
+                   if os.path.isfile(os.path.join(self._terrain_dir, tile_name1))
+                   else tile_name2)
 
-      # Fix 'invalid values' (normally -999) which occurs in area
-      # without data, and usually at sea
-      # Note: Best would be to preprocess data tiles
-      ymxm = tile_cache[ym, xm]
-      ymxp = tile_cache[ym, xp]
-      ypxm = tile_cache[yp, xm]
-      ypxp = tile_cache[yp, xp]
-      if ymxm < -900: ymxm = 0.
-      if ymxp < -900: ymxp = 0.
-      if ypxm < -900: ypxm = 0.
-      if ypxp < -900: ypxp = 0.
+      try:
+        self._tile_cache[key] = np.fromfile(
+            os.path.join(self._terrain_dir, tile_name),
+            dtype=np.float32).reshape(_TILE_DIM, _TILE_DIM)
+      except IOError:
+        raise IOError('NED Tile (%d,%d) not found.' % (ilat, ilon))
 
-      # Weight each of the four grid points by the opposite area
-      return (area_xm_ym * ypxp + area_xm_yp * ymxp
-              + area_xp_yp * ymxm + area_xp_ym * ypxm)
+      # Check cache size and evict oldest
+      if len(self._tile_cache) > self.cache_size:
+        key_to_evict = min(self._tile_lru, key=self._tile_lru.get)
+        self._tile_cache.pop(key_to_evict)
+        self._tile_lru.pop(key_to_evict)
+      self._CacheLruUpdate(key)
+      self.stats.UpdateForTileLoad(ilat, ilon)
 
-    else:
-      # Return the elevation of the nearest point
-      ix = int(float_x)
-      iy = int(float_y)
-      val = tile_cache[iy, ix]
-      return val if val > -900 else 0.0
+      return self._tile_cache[key]
 
   def GetTerrainElevation(self, lat, lon, do_interp=True):
-    """Retrieves the elevation of one or several points.
+    """Retrieves the elevation for one or several points.
 
     This function is vectorized for efficiency.
 
     Inputs:
-      lat, lon: coordinates of points to read (scalar or
-        iterable such as list or ndarray)
-      do_interp: if True, the elevation is bilinearly interpolated.
+      lat, lon (scalar or iterables such as list or ndarray): coordinates of
+        points to read (degrees).
+      do_interp (bool): if True, the elevation is bilinearly interpolated.
 
     Returns:
-      an elevation if the input point is unique
-      a ndarray of elevations of the given points, if the input lat/lon are ndarray
-      a list of elevations in other iterable cases.
+      the terrain elevation(s) as:
+        - a scalar if the input point is scalar.
+        - a ndarray of elevations, if the input lat/lon are iterables.
     """
-    if np.isscalar(lat):
-      return self._GetTerrainElevationPoint(lat, lon, do_interp)
+    is_scalar = np.isscalar(lat)
+    lat = np.atleast_1d(lat)
+    lon = np.atleast_1d(lon)
 
-    lat = np.asarray(lat)
-    lon = np.asarray(lon)
     ilat = np.ceil(lat)
     ilon = np.floor(lon)
     alt = np.zeros(len(lat))
+
+    if self.do_flat:
+      return alt[0]+10 if is_scalar else alt+10
 
     # Find the coordinates of the lat/lon in the tile file,
     # in floating point units.
@@ -241,14 +221,10 @@ class TerrainDriver:
     ilatlon = ilat + 1j*ilon
     unique_ilatlon = np.unique(ilatlon)
     for key in unique_ilatlon:
-      try:
-        tile_cache = self._tile_cache[(key.real, key.imag)]
-        self._CacheLruUpdate((key.real, key.imag))
-      except:
-        tile_cache = self._CacheGridTile(key.real, key.imag)
-        if tile_cache is None:
-          # Nothing to set, all values already at 0
-          continue
+      tile_cache = self.GetTile(key.real, key.imag)
+      if tile_cache is None:
+        # Nothing to set, all values already at 0
+        continue
 
       idx = np.where(ilatlon == key)[0]
       if do_interp:
@@ -268,11 +244,10 @@ class TerrainDriver:
         # Use the elevation of the nearest point
         alt[idx] = tile_cache[iy[idx], ix[idx]]
 
-    if isinstance(lat, np.ndarray):
-      return alt
-    else:
-      return list(alt)
+    if not do_interp:
+      alt[alt < -900] = 0.
 
+    return alt[0] if is_scalar else alt
 
   def TerrainProfile(self, lat1, lon1, lat2, lon2,
                      target_res_meter=-1,
@@ -288,13 +263,15 @@ class TerrainDriver:
     (in which case it is converted to an equivalent resolution at equator).
 
     Inputs:
-      lat1, lon1: coordinates of starting point (in degrees)
-      lat2, lon2: coordinates of final point (in degrees)
-      target_res_meter: target resolution between points (in meters). Default -1
-      target_res_arcsec: target resolution between 2 point (in arcsec). Default 1
-      do_interp: if True (default), use bilinear interpolation on terrain data
+      lat1, lon1: coordinates of starting point (in degrees).
+      lat2, lon2: coordinates of final point (in degrees).
+      target_res_meter: target resolution between points (in meters).
+        If unspecified, uses 'target_res_arcsec' instead.
+      target_res_arcsec: target resolution between 2 point (in arcsec).
+        Only used if 'target_res_meter' unspecified.
+      do_interp: if True (default), use bilinear interpolation on terrain data.
       max_points: if positive, resolution extended if number of points is beyond
-                  this number
+                  this number.
 
     Returns:
       an elevation profile in the ITS format as an array:
@@ -304,13 +281,13 @@ class TerrainDriver:
     """
 
     if target_res_meter < 0:
-      target_res_meter = _RADIUS_EARTH_METERS * math.radians(target_res_arcsec/3600.)
+      target_res_meter = _RADIUS_EARTH_METERS * np.radians(target_res_arcsec/3600.)
 
     # Distance between end points (m)
     dist, _, _ = vincenty.GeodesicDistanceBearing(lat1, lon1, lat2, lon2)
     dist *= 1000.
 
-    num_points = int(dist/target_res_meter) + 1
+    num_points = np.ceil(dist/float(target_res_meter)) + 1
     if max_points > 0 and num_points > max_points:
       num_points = max_points
     if num_points < 2:

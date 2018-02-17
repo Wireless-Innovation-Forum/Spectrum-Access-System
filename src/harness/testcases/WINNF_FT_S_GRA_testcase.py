@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import json
 import os
 import sas
 import sas_testcase
+import time
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent
 
@@ -57,6 +58,85 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_1(self):
+    """Federal Incumbent present in the PAL frequency range requested by the CBSD
+     who is inside the DPA Neighborhood.
+     
+     grant responseCode = 0 and in heartbeat responseCode = 501(SUSPENDED_GRANT)
+     or  grant responseCode = 400
+    """
+    # Trigger SAS to load DPAs
+    self._sas_admin.TriggerLoadDpas()
+    # Trigger SAS to de-active all the DPAs 
+    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
+    #Fix PAl frequency
+    pal_low_frequency = 3600000000
+    pal_high_frequency = 3610000000
+    # Load the device
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load PAL and PPA
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_2.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
+                                                            [pal_record],
+                                                            pal_low_frequency,
+                                                            pal_high_frequency,
+                                                            device_a['userId'])
+    # Move the device into the PPA zone
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa_record)
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])
+    # Update PPA record with device_a's CBSD ID and Inject data
+    ppa_record['ppaInfo']['cbsdReferenceId'] = [cbsd_ids[0]]
+    self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
+    self.assertTrue(zone_id)
+    # Trigger SAS to active one DPA on channel c
+    self._sas_admin.TriggerDpaActivation(\
+        {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
+                           'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
+    # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
+    time.sleep(240) 
+    # Send grant request
+    grant_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] \
+        = pal_low_frequency
+    grant_0['operationParam']['operationFrequencyRange']['highFrequency'] \
+        = pal_high_frequency     
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    # Check grant response
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    if response['response']['responseCode'] == 400 :
+        return
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertTrue('grantId' in response)
+    grant_id = response['grantId']
+    self.assertEqual(response['channelType'], 'PAL')
+    heartbeat_request = {
+    'cbsdId': cbsd_ids[0],
+    'grantId': grant_id,
+    'operationState': 'GRANTED'
+    }
+    del request, response
+    # Send heartbeat request
+    request = {'heartbeatRequest': [heartbeat_request]}
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    # Check heartbeat response
+    self.assertEqual(response['response']['responseCode'], 501)
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])        
+    self.assertEqual(response['grantId'], grant_id)
+    transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+    self.assertLessEqual(transmit_expire_time, datetime.utcnow())
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
@@ -235,8 +315,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000.0,
-        'highFrequency': 3550000000.0
+        'lowFrequency': 3650000000,
+        'highFrequency': 3550000000
     }
 
     # 2. With frequency range completely outside the CBRS band.
@@ -244,18 +324,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3350000000.0
+        'lowFrequency'] = 3350000000
     grant_1['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3450000000.0
+        'highFrequency'] = 3450000000
 
     # 3. With frequency range partially overlapping with the CBRS band.
     grant_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_2['cbsdId'] = cbsd_ids[2]
     grant_2['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3450000000.0
+        'lowFrequency'] = 3450000000
     grant_2['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3650000000.0
+        'highFrequency'] = 3650000000
 
     request = {'grantRequest': [grant_0, grant_1, grant_2]}
     # Send grant request and get response
@@ -591,6 +671,224 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[2]['response']['responseCode'], 0)
 
   @winnforum_testcase
+  def test_WINNF_FT_S_GRA_11(self):
+    """Un-Supported CBSD maximum EIRP
+
+    The response should be:
+    - 103 (INVALID_VALUE) for all initial grant requests
+    - 0 for all 2nd grant requests
+    """
+
+    # Register five devices
+    # devices 1,2 category A
+    # devices 3-5 category B
+    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_4 = json.load(open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_5 = json.load(open(os.path.join('testcases', 'testdata', 'device_h.json')))
+
+    # Pre-load conditionals for cbsdIDs 3,4,5 (cbsdCategory B)
+    conditionals_3 = {
+        'cbsdCategory': device_3['cbsdCategory'],
+        'fccId': device_3['fccId'],
+        'cbsdSerialNumber': device_3['cbsdSerialNumber'],
+        'airInterface': device_3['airInterface'],
+        'installationParam': device_3['installationParam'],
+        'measCapability': device_3['measCapability']
+    }
+
+    # add eirpCapability=40 to only conditional forcbsdId 4
+    device_4['installationParam']['eirpCapability'] = 40
+    conditionals_4 = {
+        'cbsdCategory': device_4['cbsdCategory'],
+        'fccId': device_4['fccId'],
+        'cbsdSerialNumber': device_4['cbsdSerialNumber'],
+        'airInterface': device_4['airInterface'],
+        'installationParam': device_4['installationParam'],
+        'measCapability': device_4['measCapability']
+    }
+
+        
+    conditionals_5 = {
+        'cbsdCategory': device_5['cbsdCategory'],
+        'fccId': device_5['fccId'],
+        'cbsdSerialNumber': device_5['cbsdSerialNumber'],
+        'airInterface': device_5['airInterface'],
+        'installationParam': device_5['installationParam'],
+        'measCapability': device_5['measCapability']
+    }
+
+    conditionals = {
+        'registrationData': [conditionals_3, conditionals_4, conditionals_5]
+    }
+
+    # setup fccMaxEirp for all cbsdIds
+    self._sas_admin.InjectFccId({'fccId': device_1['fccId'], 'fccMaxEirp': 30})
+    self._sas_admin.InjectFccId({'fccId': device_2['fccId'], 'fccMaxEirp': 20})
+    self._sas_admin.InjectFccId({'fccId': device_3['fccId'], 'fccMaxEirp': 40})
+    self._sas_admin.InjectFccId({'fccId': device_4['fccId'], 'fccMaxEirp': 47})
+    self._sas_admin.InjectFccId({'fccId': device_5['fccId'], 'fccMaxEirp': 30})
+    
+    self._sas_admin.InjectUserId({'userId': device_1['userId']})
+    self._sas_admin.InjectUserId({'userId': device_2['userId']})
+    self._sas_admin.InjectUserId({'userId': device_3['userId']})
+    self._sas_admin.InjectUserId({'userId': device_4['userId']})
+    self._sas_admin.InjectUserId({'userId': device_5['userId']})
+
+    self._sas_admin.PreloadRegistrationData(conditionals)
+ 
+    # Remove conditionals from registration for cbsdId 3,5
+    del device_3['cbsdCategory']
+    del device_3['airInterface']
+    del device_3['installationParam']
+    del device_3['measCapability']
+    del device_4['cbsdCategory']
+    del device_4['airInterface']
+    del device_4['installationParam']
+    del device_4['measCapability']
+    del device_5['cbsdCategory']
+    del device_5['airInterface']
+    del device_5['installationParam']
+    del device_5['measCapability']
+
+    # set eirpCapability = 20 for cbsdId 1
+    device_1['installationParam']['eirpCapability'] = 20
+    
+    # send registration requests
+    devices = [device_1, device_2, device_3, device_4, device_5]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    cbsd_ids = []
+    self.assertEqual(len(response), 5)
+    for x in range(0, 5):
+      cbsd_ids.append(response[x]['cbsdId'])
+      self.assertEqual(response[x]['response']['responseCode'], 0)
+    del request, response
+
+    # Prepare 5 grant requests with various un-supported maxEirp values
+    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[0]
+    grant_1['operationParam']['maxEirp'] = 11
+    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[1]
+    grant_2['operationParam']['maxEirp'] = 11
+    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3['cbsdId'] = cbsd_ids[2]
+    grant_3['operationParam']['maxEirp'] = 31
+    grant_4 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4['cbsdId'] = cbsd_ids[3]
+    grant_4['operationParam']['maxEirp'] = 31
+    grant_5 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_5['cbsdId'] = cbsd_ids[4]
+    grant_5['operationParam']['maxEirp'] = 21
+
+    # Send the grant requests
+    request = {'grantRequest': [grant_1, grant_2, grant_3, grant_4, grant_5]}
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check the grant responses
+    # No grantIds, responseCode should be 103
+    self.assertEqual(len(response), 5)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertFalse('grantId' in resp)
+      self.assertEqual(resp['response']['responseCode'], 103)
+    del request, response
+
+    # Prepare 5 grant requests with various supported maxEirp values
+    grant_1['operationParam']['maxEirp'] = 10
+    grant_2['operationParam']['maxEirp'] = 10
+    grant_3['operationParam']['maxEirp'] = 20
+    grant_4['operationParam']['maxEirp'] = 30
+    grant_5['operationParam']['maxEirp'] = 20
+
+    # Send the grant requests
+    request = {'grantRequest': [grant_1, grant_2, grant_3, grant_4, grant_5]}
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check the grant responses
+    # response should have valid cbsdIds, grantIds, responseCode 0
+    self.assertEqual(len(response), 5)
+    for response_num, resp in enumerate(response):
+      self.assertEqual(resp['cbsdId'], cbsd_ids[response_num])
+      self.assertTrue('grantId' in resp)
+      self.assertEqual(resp['response']['responseCode'], 0)
+    del request, response
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_GRA_12(self):
+    """Blacklisted CBSD in Array Request (responseCode 101)
+
+    The response should be:
+    - responseCode 0 for the first and second cbsdIds
+    - responseCode 101 for the third cbsdId
+    """
+
+    # Register three devices
+    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_3['fccId']})
+
+    self._sas_admin.InjectUserId({'userId': device_1['userId']})
+    self._sas_admin.InjectUserId({'userId': device_2['userId']})
+    self._sas_admin.InjectUserId({'userId': device_3['userId']})
+
+    # send registration requests
+    devices = [device_1, device_2, device_3]
+    request = {'registrationRequest': devices}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check registration response
+    cbsd_ids = []
+    self.assertEqual(len(response), 3)
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
+    # Blacklist the third cbsdId
+    self._sas_admin.BlacklistByFccId({'fccId': device_3['fccId']})
+
+    # Prepare the grant requests
+    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1['cbsdId'] = cbsd_ids[0]
+    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2['cbsdId'] = cbsd_ids[1]
+    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3['cbsdId'] = cbsd_ids[2]
+
+    # Send the grant requests
+    request = {'grantRequest': [grant_1, grant_2, grant_3]}
+    response = self._sas.Grant(request)['grantResponse']
+
+    # Check the grant responses
+    #
+    # Each cbsdId should be valid
+    self.assertEqual(len(response), 3)
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
+    
+
+    # 1st and 2nd cbsdId responseCode should be 0
+    self.assertEqual(response[0]['response']['responseCode'], 0)
+    self.assertEqual(response[1]['response']['responseCode'], 0)
+
+    # 1st and 2nd cbsdId should have channelType set to GAA
+    self.assertEqual(response[0]['channelType'], 'GAA')
+    self.assertEqual(response[1]['channelType'], 'GAA')
+
+    # 3rd cbsdId responseCode should be 101
+    self.assertEqual(response[2]['response']['responseCode'], 101)
+    del request, response
+    
+  @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
 
@@ -629,8 +927,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000.0,
-        'highFrequency': 3550000000.0
+        'lowFrequency': 3650000000,
+        'highFrequency': 3550000000
     }
 
     request = {'grantRequest': [grant_0, grant_1]}
@@ -668,15 +966,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3560000000.0,
-        'highFrequency': 3570000000.0
+        'lowFrequency': 3560000000,
+        'highFrequency': 3570000000
     }
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3560000000.0,
-        'highFrequency': 3580000000.0
+        'lowFrequency': 3560000000,
+        'highFrequency': 3580000000
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant request and get response

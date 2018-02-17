@@ -164,6 +164,26 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.cs
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
     
 
+# Generate Domain Proxy certificate/key.
+echo "\n\nGenerate 'proxy_ca' certificate/key"
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
+    -out proxy_ca.csr -keyout private/proxy_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in proxy_ca.csr \
+    -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
+    -out proxy_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+echo "\n\nGenerate 'domain_proxy' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out domain_proxy.csr -keyout domain_proxy.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
+    -out domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 
 # Generate certificates for test case WINNF.FT.S.SCS.6 - Unrecognized root of trust certificate presented during registration
 echo "\n\nGenerate 'unrecognized_device' certificate/key"
@@ -234,7 +254,6 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 #   cat cbsd_ca.cert >> client.cert
 #   cat cbsd_ca.cert >> admin_client.cert
 #   cat sas_ca.cert >>  server.cert
-
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf private

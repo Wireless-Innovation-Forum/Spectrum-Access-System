@@ -35,6 +35,17 @@
 extern bool _WinnForum_Extensions; // default is ON
 void SetWinnForumExtensions(bool on);
 
+// Function to get the distance in meters from a profile:
+//  the `pfl` profile store the number of points and the step between
+//  points. The total profile distance is given by N*step, but can lead to a
+//  very small loss of precision because of floating point issues. This can
+//  create mismatch depending on compilers, given that the eHata model has
+//  specific logic based on threshold on specific integer values (10km, etc..).
+//  One solution is to reset the distance used in calculation to proper integer
+//  values when detected as very close to an integer value.
+//  This function does exactly that.
+float GetDistanceInMeters(float pfl[]);
+
 // ******* End WinnForum extension *******
 
 struct InterValues
