@@ -32,24 +32,24 @@ census_tract_driver = census_tract.CensusTractDriver()
 nlcd_driver = nlcd.NlcdDriver()
 
 
-def _CalculateDbLossForEachPointAndGetContour(install_param, antenna_gain, latitudes, longitudes):
+def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, antenna_gain,
+                                              cbsd_region_type, latitudes, longitudes):
   db_loss = np.zeros(len(latitudes), dtype=np.float64)
   for index, lat_lon in enumerate(zip(latitudes, longitudes)):
     lat, lon = lat_lon
-    code = nlcd_driver.GetLandCoverCodes(lat, lon)
-    region_type = nlcd.GetRegionType(code)
     db_loss[index] = wf_hybrid.CalcHybridPropagationLoss(install_param['latitude'],
                                                          install_param['longitude'],
                                                          install_param['height'],
                                                          lat, lon, RX_HEIGHT,
                                                          install_param['indoorDeployment'],
                                                          reliability=0.5,
-                                                         region=region_type).db_loss
-  index_cond, = np.where(install_param['eirpCapability'] + antenna_gain - db_loss > THRESHOLD_PER_10MHZ)
-  return index_cond.shape[0] / 5.
+                                                         region=cbsd_region_type).db_loss
+  index_cond, = np.where(eirp_capability + antenna_gain - db_loss > THRESHOLD_PER_10MHZ)
+  return index_cond.shape[0] * 0.2
 
 
 def _HammingFilter(x, window_len=15):
+  """Process a full radial at a given azimuth for all distance ranges"""
   s = np.r_[x[-(window_len / 2):], x, x[0:window_len / 2]]
   w = np.hamming(window_len)
   y = np.convolve(w / w.sum(), s, mode='valid')
@@ -57,37 +57,50 @@ def _HammingFilter(x, window_len=15):
 
 
 def _GetPolygon(device):
+  """Returns the PPA contour for a single CBSD device, as a shapely polygon."""
   install_param = device['installationParam']
-  if not 'eirpCapability' in install_param.keys():
-    install_param['eirpCapability'] = MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A \
-      if device['cbsdCategory'] == 'A' else MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B
+  eirp_capability = install_param.get('eirpCapability',
+                                      MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A
+                                      if device['cbsdCategory'] == 'A' else
+                                      MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B)
 
-  # Get all the Function Partials
   # Compute all the Points in 0-359 every 200m upto 40km
-  distance = np.arange(0.2, 40.2, 0.2)
+  distances = np.arange(0.2, 40.1, 0.2)
   azimuths = np.arange(0.0, 360.0)
   latitudes, longitudes, _ = zip(*[vincenty.GeodesicPoints(install_param['latitude'],
                                                            install_param['longitude'],
-                                                           distance, azimuth)
+                                                           distances, azimuth)
                                    for azimuth in azimuths])
   # Compute the Gain for all Direction
-  antenna_gain = antenna.GetStandardAntennaGains(azimuths,
-                                                 install_param['antennaAzimuth']
-                                                 if 'antennaAzimuth' in install_param.keys() else None,
-                                                 install_param['antennaBeamwidth'],
-                                                 install_param['antennaGain'])
+  antenna_gains = antenna.GetStandardAntennaGains(azimuths,
+                                                  install_param['antennaAzimuth']
+                                                  if 'antennaAzimuth' in install_param.keys() else None,
+                                                  install_param['antennaBeamwidth'],
+                                                  install_param['antennaGain'])
+  # Get the Nlcd Region Type for Cbsd
+  cbsd_region_code = nlcd_driver.GetLandCoverCodes(install_param['latitude'],
+                                                   install_param['longitude'])
+  cbsd_region_type = nlcd.GetRegionType(cbsd_region_code)
   # Compute the Path Loss, and contour based on Gain and Path Loss Comparing with Threshold
   # Smoothing Contour using Hamming Filter
-  contour_pts = _HammingFilter([_CalculateDbLossForEachPointAndGetContour(install_param, gain, lat, lon)
-                                for lat, lon, gain in zip(latitudes, longitudes, antenna_gain)])
+  contour_dists_km = _HammingFilter([_CalculateDbLossForEachPointAndGetContour(install_param,
+                                                                               eirp_capability, gain,
+                                                                               cbsd_region_type,
+                                                                               radial_lats, radial_lons)
+                                     for radial_lats, radial_lons, gain in zip(latitudes,
+                                                                               longitudes,
+                                                                               antenna_gains)])
   # Generating lat, lon for Contour
   contour_lats, contour_lons, _ = zip(*[vincenty.GeodesicPoint(install_param['latitude'],
-                                                               install_param['longitude'], cn, az)
-                                        for cn, az in zip(contour_pts, azimuths)])
+                                                               install_param['longitude'], dist, az)
+                                        for dist, az in zip(contour_dists_km, azimuths)])
   return geometry.Polygon(zip(contour_lons, contour_lats)).buffer(0)
 
 
 def _ClipPpaByCensusTract(contour_union, pal_records):
+  """ Clip a PPA 'contour_union' zone (shapely.MultiPolygon) 
+  with the census tracts defined by a sequence of 'pal_records'."""
+
   # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry
   census_tracts_for_pal = [geometry.shape(census_tract_driver.GetCensusTract(pal['license']
                                                                              ['licenseAreaIdentifier'])
@@ -97,6 +110,7 @@ def _ClipPpaByCensusTract(contour_union, pal_records):
 
 
 def _ConvertToGeoJson(ppa_polygon):
+  """Converts a shapely Polygon or MultiPolygon into a GeoJSON feature collection"""
   if ppa_polygon.type == 'MultiPolygon':
     ppa_geojson = geojson.FeatureCollection(
       [geojson.Feature(geometry=[polygon for polygon in ppa_polygon])])
@@ -122,7 +136,7 @@ def ConfigureNlcdDriver(nlcd_dir=None, cache_size=None):
   Inputs:
     nlcd_dir: if specified, changes the NLCD Data default directory.
     cache_size:  if specified, change the NLCD tile cache size.
-  Note: The memory usage is about cache_size * 50MB.
+  Note: The memory usage is about cache_size * 12MB.
 
   """
   if nlcd_dir is not None:
