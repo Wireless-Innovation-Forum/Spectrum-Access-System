@@ -22,6 +22,7 @@ import sas
 import sas_testcase
 import socket
 import urlparse
+import inspect
 from OpenSSL import SSL, crypto
 
 class CiphersOverload(object):
@@ -113,6 +114,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       commonname = certsubject.commonName
       logging.debug('TLS handshake verify: certificate: %s  -> %d', commonname, ok)
       return ok
+    ctx.set_verify(SSL.VERIFY_PEER, _VerifyCb)
 
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
@@ -168,15 +170,14 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
-  def assertTlsHandshakeFailure(self, client_cert=None, client_key=None, ca_cert=None, ciphers=None, ssl_method=None):
+  def assertTlsHandshakeFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """
     Checks that the TLS handshake failure by varying the given parameters
     Args:
       client_cert: optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
       client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.
-      ca_cert: optional ca cert
+        given |client_cert|. If 'None' the default CBSD key file will be used.  
       ciphers: optional cipher method
       ssl_method: optional ssl_method
     """
@@ -203,10 +204,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
-    if ca_cert is not None:
-      self._sas._tls_config.ca_cert = ca_cert
-      ctx.load_verify_locations(self._sas._tls_config.ca_cert)
-
+    
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
       client_ssl_informations.append(conn.get_state_string())
