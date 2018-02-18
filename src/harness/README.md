@@ -11,7 +11,6 @@ This folder contains code and testcases for SAS certification test as defined in
 *   cryptography (https://pypi.python.org/pypi/cryptography)
 *   jsonschema 2.6.0 (https://pypi.python.org/pypi/jsonschema)
 *   shapely (https://pypi.python.org/pypi/Shapely)
-*   geojson (https://pypi.python.org/pypi/geojson)
 
 ## Code location
 
