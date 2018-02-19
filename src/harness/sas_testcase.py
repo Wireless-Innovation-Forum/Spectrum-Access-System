@@ -24,7 +24,6 @@ import sas
 import signal
 import time
 
-
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -156,3 +155,18 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
       time.sleep(10)
     signal.alarm(0)
+    
+  def assertChannelsContainFrequencyRange(self, channels, frequency_range):
+    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], ch['frequencyRange']['highFrequency']), reverse = False)
+    for index, channel in  enumerate(channels):
+        if index == 0:
+           self.assertEqual(channel['frequencyRange']['lowFrequency'],\
+             frequency_range['lowFrequency'])
+        else:
+            self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+                                 channels[index - 1]\
+                                 ['frequencyRange']['highFrequency'])
+            
+    channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
+    self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
+             frequency_range['highFrequency'])

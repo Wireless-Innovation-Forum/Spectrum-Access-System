@@ -90,9 +90,6 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
   dist_km = npts * xi         # path distance, in km
   elev_cbsd = its_elev[2]
 
-  if height_cbsd < 20:
-    height_cbsd = 20.
-
   if dist_km < 3.0:
     eff_height = height_cbsd
 

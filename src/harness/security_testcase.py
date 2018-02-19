@@ -23,6 +23,7 @@ import sas_testcase
 import socket
 import urlparse
 import inspect
+
 from OpenSSL import SSL, crypto
 
 class CiphersOverload(object):
