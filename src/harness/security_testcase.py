@@ -13,19 +13,18 @@
 #    limitations under the License.
 """Specialized implementation of SasTestCase for all SCS/SDS/SSS testcases."""
 
+import inspect
 import json
 import logging
 import os
 import re
+import sas
+import sas_testcase
 import socket
 import urlparse
 import inspect
 
 from OpenSSL import SSL, crypto
-
-import sas
-import sas_testcase
-
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -172,13 +171,19 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
-  def assertTlsHandshakeFailure(self, client_cert, client_key):
+  def assertTlsHandshakeFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """
-    Does a tls handshake with different client_cert and client_key
+    Checks that the TLS handshake failure by varying the given parameters
     Args:
       client_cert: optional client certificate file in PEM format to use.
-      client_key: associated key file in PEM format to use with the client_cert
+        If 'None' the default CBSD certificate will be used.
+      client_key: associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' the default CBSD key file will be used.  
+      ciphers: optional cipher method
+      ssl_method: optional ssl_method
     """
+    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
+    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
     client = socket.socket()
@@ -188,11 +193,19 @@ class SecurityTestCase(sas_testcase.SasTestCase):
                   url.port or 443)
     logging.debug('TLS handshake: privatekey_file=%s', client_key)
     logging.debug('TLS handshake: certificate_file=%s', client_cert)
+    if ssl_method is not None:
+      ctx = SSL.Context(ssl_method)
+    else:
+      ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    if ciphers is not None:
+      ctx.set_cipher_list(ciphers)
+    else:
+      # cipher 'AES128-GCM-SHA256' will be added by default if cipher arg is passed as None
+      ctx.set_cipher_list(self._sas._tls_config.ciphers[0])
 
-    ctx = SSL.Context(SSL.TLSv1_2_METHOD)
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
-
+    
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
       client_ssl_informations.append(conn.get_state_string())
@@ -203,9 +216,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
+    
     try:
       client_ssl.do_handshake()
-      logging.info('TLS handshake: succeed')
+      logging.debug('TLS handshake: succeed')
       self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
       logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))

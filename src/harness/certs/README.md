@@ -18,8 +18,8 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
                          sas_ca       cbsd_ca   					   proxy_ca
                          /    |          \              	  			 	\
                         /     |           \              	  				 \
-             admin_client  server  client|device_[a|c]|corrupted_client|wrong_type_client   	domain_proxy
-				   	
+             admin_client  server  client|device_[a|c]|corrupted_client|wrong_type_client|   	domain_proxy
+				   	               client_expired|client_inapplicable 
    unrecognized_ca              non_cbrs_root_ca
          |                           |
   unrecognized_device        non_cbrs_root_signed_cbsd_ca
@@ -68,21 +68,34 @@ Required certificates are:
 
 * `unrecognized_root_ca.cert`: root certificate authority to generate unrecognized device
   Self signed.
+  
 * `unrecognized_device.[cert|key]`: leaf CBSD device certificate signed by
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_6.
+  
 * `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SCS_7.
+  
 * `self_signed_client.cert`: self signed certificate of client (CBSD) signed by client.key
   Used on security test test_WINNF_FT_S_SCS_8.
+  
 * `non_cbrs_root_ca.cert`: a root certificate authority that is not approved as a CBRS root CA
   Self signed.
   Used on security test test_WINNF_FT_S_SCS_9.
+  
 * `non_cbrs_root_signed_cbsd_ca.cert`: an intermediate CBSD certificate authority for CBSD devices,
   signed by `non_cbrs_root_ca`.
   Used on security test test_WINNF_FT_S_SCS_9.
+  
 * `non_cbrs_signed_device.[cert|key]`: leaf CBSD certificate signed by
   `non_cbrs_root_signed_cbsd_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_9.
+  
 * `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.
+  
+* `client_expired.[cert|key]`: leaf CBSD device expired certificate
+  Used on security test test_WINNF_FT_S_SCS_12.
+
+* `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
+  Used on security test test_WINNF_FT_S_SCS_15.

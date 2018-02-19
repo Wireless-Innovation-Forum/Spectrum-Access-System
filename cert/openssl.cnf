@@ -462,6 +462,16 @@ TEST = critical, ASN1:NULL
 #FCCID
 #SERIAL
 
+[ cbsd_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD,ZONE
+TEST = critical, ASN1:NULL
+
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1

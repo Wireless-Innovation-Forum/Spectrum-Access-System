@@ -20,6 +20,8 @@ import inspect
 import json
 import logging
 import os
+import sys
+import time
 import random
 import sys
 import uuid
@@ -316,7 +318,6 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
-
 
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.

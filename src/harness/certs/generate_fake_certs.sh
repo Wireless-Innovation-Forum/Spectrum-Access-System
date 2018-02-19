@@ -245,6 +245,24 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
     -policy policy_anything -extensions wrong_cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+#Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
+echo "\n\nGenerate 'client_expired' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out client_expired.csr -keyout client_expired.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD Example"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client_expired.csr \
+    -out client_expired.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
+
+#Certificate for test case WINNF.FT.S.SCS.15 - inapplicable fields certificate presented during registration
+echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SCS.15' certificate/key"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
+    -out client_inapplicable.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
