@@ -17,7 +17,7 @@ import json
 import os
 import sas
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig
+  loadConfig, makePpaAndPalRecordsConsistent 
 
 
 class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
@@ -51,15 +51,9 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
         grant_request_4 = json.load(
           open(os.path.join('testcases', 'testdata', 'grant_3.json')))
      
-        # Load Conditional Data 
-        cbsd_conditional_device_1 = {
-           'cbsdCategory': device_1['cbsdCategory'],
-           'fccId': device_1['fccId'],
-           'cbsdSerialNumber': device_1['cbsdSerialNumber'],
-           'airInterface': device_1['airInterface'],
-           'installationParam': device_1['installationParam'],
-           'measCapability': device_1['measCapability']
-         }
+        #device_b is Category B
+        # Load Conditional Data
+        self.assertEqual(device_2['cbsdCategory'], 'B') 
         cbsd_conditional_device_2 = {
            'cbsdCategory': device_2['cbsdCategory'],
            'fccId': device_2['fccId'],
@@ -68,17 +62,14 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
            'installationParam': device_2['installationParam'],
            'measCapability': device_2['measCapability']
         }
+        
+        conditionals_iter_1 = {'registrationData': [cbsd_conditional_device_2]}
         # Remove conditionals from registration
-        del device_1['cbsdCategory']
-        del device_1['airInterface']
-        del device_1['installationParam']
-        del device_1['measCapability']
         del device_2['cbsdCategory']
         del device_2['airInterface']
         del device_2['installationParam']
         del device_2['measCapability']
        
-        conditionals_iter_1 = {'registrationData': [cbsd_conditional_device_1, cbsd_conditional_device_2]}
         # Load GWPZ Record
         gwpz_record_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
@@ -96,7 +87,16 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
           open(os.path.join('testcases', 'testdata', 'ppa_record_0.json'))) 
         pal_record_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-        
+
+        pal_low_frequency = 3550000000.0
+        pal_high_frequency = 3560000000.0        
+
+        ppa_record_1, pal_record_1 = makePpaAndPalRecordsConsistent(ppa_record_1,
+                                                   [pal_record_1],
+                                                   pal_low_frequency,
+                                                   pal_high_frequency,
+                                                   device_1['userId'])
+
         # Load DPA record
         dpa_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'dpa_0.json')))
@@ -105,16 +105,28 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
         dpa_3 = json.load(
           open(os.path.join('testcases', 'testdata', 'dpa_2.json')))
 
-        # Registration configuration for iteration 1
-        cbsd_records_iter_1 = {'registrationRequests': [device_1, device_2],
-                               'grantRequests': [grant_request_1, grant_request_2],
-                               'conditionalRequests': conditionals_iter_1
-                               }
-        cbsd_records_iter_2 = {'registrationRequests': [device_3, device_4],
+        # Registration and grant records for multiple iterations
+        cbsd_records_iter_1_domain_proxy_0 = {'registrationRequests': [device_1, device_2],
+                                              'grantRequests': [grant_request_1, grant_request_2],
+                                              'conditionalRegistrationData': conditionals_iter_1
+                                             }
+        cbsd_records_iter_1_domain_proxy_1 = {'registrationRequests': [device_3, device_4],
+                                              'grantRequests': [grant_request_3, grant_request_4]}
+ 
+        cbsd_records_iter_2_domain_proxy_0 = {'registrationRequests': [device_1, device_2],
+                                              'grantRequests': [grant_request_1, grant_request_2],
+                                              'conditionalRegistrationData': conditionals_iter_1
+                                             }
+        cbsd_records_iter_2_domain_proxy_1 = {'registrationRequests': [device_3, device_4],
                                'grantRequests': [grant_request_3, grant_request_4]}
-        pal_and_ppa_record_1 = {'PAL': pal_record_1, 'PPA': ppa_record_1}
-        protected_entities_iter_1 = {'PalAndPpa': [pal_and_ppa_record_1], 'ESC': [esc_record_1]}
-        protected_entities_iter_2 = {'GWPZ': [gwpz_record_1], 'FSS': [fss_record_1]}
+        
+        #protected entities records for multiple iterations
+        protected_entities_iter_1 = {'palRecords': [pal_record_1],
+                                     'ppaRecords': [ppa_record_1], 
+                                     'escRecords': [esc_record_1]}
+
+        protected_entities_iter_2 = {'gwpzRecords': [gwpz_record_1], 
+                                     'fssRecords': [fss_record_1]}
 
         # SAS Test Harness FAD records
         # This section parameters are subjected to change based 
@@ -131,20 +143,31 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
           open(os.path.join('testcases', 'testdata', 'cbsd_4.json')))
         sas_th_cbsd_5 = json.load(
           open(os.path.join('testcases', 'testdata', 'cbsd_5.json')))
-        sas_th_0_cbsd_iter_0 = [sas_th_cbsd_0]
-        sas_th_0_cbsd_iter_1 = [sas_th_cbsd_1]
-        sas_th_0_cbsd_iter_2 = [sas_th_cbsd_2]
-        sas_th_1_cbsd_iter_0 = [sas_th_cbsd_3]
-        sas_th_1_cbsd_iter_1 = [sas_th_cbsd_4]
-        sas_th_1_cbsd_iter_2 = [sas_th_cbsd_5]
-    
+        
+        sas_th_0_iteration_0_data = {'cbsdRecords':[sas_th_cbsd_0],
+                                      'escRecords': [esc_record_1],
+                                      'ppaRecords':[ppa_record_1] }
+        
+        sas_th_0_iteration_1_data = {'cbsdRecords':[sas_th_cbsd_1],
+                                      'escRecords': [esc_record_1],
+                                      'ppaRecords':[ppa_record_1] }
+        
+        sas_th_1_iteration_0_data = {'cbsdRecords':[sas_th_cbsd_0],
+                                      'escRecords': [esc_record_1],
+                                      'ppaRecords':[ppa_record_1] }
+        
+        sas_th_1_iteration_1_data = {'cbsdRecords':[sas_th_cbsd_1],
+                                      'escRecords': [esc_record_1],
+                                      'ppaRecords':[ppa_record_1] }
+ 
+          
         sas_harness_0 = {
                     'name': 'SAS-TH-1',
                     'url': 'localhost:9001',
                     'certFile': 'server_a.cert',
                     'keyFile': 'server_a.key',
                     'certificateHash': 'will be provided in future',
-                    'cbsdRecord': [sas_th_0_cbsd_iter_0, sas_th_0_cbsd_iter_1, sas_th_0_cbsd_iter_2],
+                    'sasThIterationData': [sas_th_0_iteration_0_data,sas_th_0_iteration_1_data],
                     'fileServePath': 'sas_harness_2/'
                 }
         sas_harness_1 = {
@@ -153,30 +176,29 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
                     'certFile': 'server_b.cert',
                     'keyFile': 'server_b.key',
                     'certificateHash': 'will be provided in future',
-                    'cbsdRecord': [sas_th_1_cbsd_iter_0, sas_th_1_cbsd_iter_1, sas_th_1_cbsd_iter_2],
+                    'sasThIterationData': [sas_th_1_iteration_0_data,sas_th_1_iteration_1_data],
                     'fileServePath': 'sas_harness_1/'
                 }
         # Create the actual config.
         iter1_config = {
-            'cbsdRecords': cbsd_records_iter_1,
+            'cbsdRequests': [cbsd_records_iter_1_domain_proxy_0,cbsd_records_iter_1_domain_proxy_1],
             'protectedEntities': protected_entities_iter_1,
-            'dpaActiveList': [dpa_1, dpa_2],
-            'dpaDeactiveList': [],
-            'deltaIap': 2
+            'dpaActivationList': [dpa_1, dpa_2],
+            'dpaDeactivationList': [],
            }
         iter2_config = {
-            'cbsdRecords': cbsd_records_iter_2,
+            'cbsdRequests': [cbsd_records_iter_2_domain_proxy_0,cbsd_records_iter_2_domain_proxy_1],
             'protectedEntities': protected_entities_iter_2,
-            'dpaActiveList': [dpa_3],
-            'dpaDeactiveList': [dpa_1],
-            'deltaIap': 2
+            'dpaActivationList': [dpa_3],
+            'dpaDeactivationList': [dpa_1],
            }
 
         config = {
             'iterationData': [iter1_config, iter2_config],
-            'sasHarnesses': [sas_harness_0, sas_harness_1],
+            'sasHarnessesConfigs': [sas_harness_0, sas_harness_1],
             'domainProxyConfig': [{'cert': 'dp_1_client.cert', 'key': 'dp_1_client.key'},
-                         {'cert': 'dp_2_client.cert', 'key': 'dp_2_client.key'}]
+                         {'cert': 'dp_2_client.cert', 'key': 'dp_2_client.key'}],
+            'deltaIap': 2
              }
         writeConfig(filename, config)
 
