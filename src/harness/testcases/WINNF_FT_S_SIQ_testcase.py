@@ -108,7 +108,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertTrue('availableChannel' in response)
     self.assertEqual(response['response']['responseCode'], 0)
     # Verify available channels contains the requested range and don't have any missing or repeated channels
-    self.assertChannelsContainFrequencyRange(response['availableChannel'])
+    self.assertChannelsContainFrequencyRange(response['availableChannel'], frequency_range)
     
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):

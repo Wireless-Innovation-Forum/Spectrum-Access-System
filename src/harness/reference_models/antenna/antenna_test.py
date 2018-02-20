@@ -48,11 +48,19 @@ class TestAntenna(unittest.TestCase):
   def test_standard_gain(self):
     # Isotropic antenna
     gains = antenna.GetStandardAntennaGains([0, 90, 180, 270],
-                                           0, None, 5)
+                                            0, None, 5)
     self.assertEqual(np.max(np.abs(
         gains - 5 * np.ones(4))), 0)
     gains = antenna.GetStandardAntennaGains([0, 90, 180, 270],
-                                           None, 90, 5)
+                                            None, 90, 5)
+    self.assertEqual(np.max(np.abs(
+        gains - 5 * np.ones(4))), 0)
+    gains = antenna.GetStandardAntennaGains([0, 90, 180, 270],
+                                            0, 0, 5)
+    self.assertEqual(np.max(np.abs(
+        gains - 5 * np.ones(4))), 0)
+    gains = antenna.GetStandardAntennaGains([0, 90, 180, 270],
+                                            0, 360, 5)
     self.assertEqual(np.max(np.abs(
         gains - 5 * np.ones(4))), 0)
 
