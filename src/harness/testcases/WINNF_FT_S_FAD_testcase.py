@@ -285,12 +285,19 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for dump_file in response['files']:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                                dump_file[0])
+            downloaded_file = None
+            if dump_file['recordType'] != 'CoordinationEvent ':                
+                downloaded_file = self._sas.DownloadFile(dump_file['url'])
+                datetime.strptime(downloaded_file['startTime'],\
+                                                     '%Y-%m-%dT%H:%M:%SZ')
+                datetime.strptime(downloaded_file['endTime'],\
+                                                     '%Y-%m-%dT%H:%M:%SZ')
             if dump_file['recordType'] ==  'cbsd':
-                cbsd_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])   
+                cbsd_dump_data.append(downloaded_file['recordData'])   
             elif dump_file['recordType'] ==  'esc_sensor':
-                esc_sensor_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
+                esc_sensor_dump_data.append(downloaded_file['recordData'])
             elif dump_file['recordType'] ==  'zone':
-                ppa_dump_data.append(self._sas.DownloadFile(dump_file['url'])['recordData'])
+                ppa_dump_data.append(downloaded_file['recordData'])
             else:
                 self.assertEqual('CoordinationEvent ', dump_file['recordType'])
         
