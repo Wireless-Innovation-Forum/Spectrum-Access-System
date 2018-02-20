@@ -93,6 +93,25 @@ JSON schema validation support.
 This Python library can be installed with <code>pip</code>. It provides
 support for the OpenSSL library for Python.
 
+* crypto (http://chrissimpkins.github.io/crypto) & https://pypi.python.org/pypi/crypto
+
+This Python library can be installed with <code>pip</code>. It provides
+support for the crypto library for Python.
+
+* asn1 (https://pypi.python.org/pypi/asn1/2.1.0)
+
+This Python library can be installed with <code>pip</code>. It provides
+support for the asn1 library for Python.
+
+* future (https://pypi.python.org/pypi/future)
+
+This Python library can be installed with <code>pip</code>. It provides
+the missing compatibility layer between Python 2 and Python 3 & asn1 relies on future library
+
+* pycrypto (https://pypi.python.org/pypi/pycrypto)
+
+This Python library can be installed with <code>pip</code>. It provides
+support for the python cryptography toolkit library for Python.
 
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,
