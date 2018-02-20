@@ -300,24 +300,36 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
         self.assertEqual(len(config['ppas']), len(ppa_dump_data))
         self.assertEqual(len(config['escSensors']), len(esc_sensor_dump_data))
-        
-        # verify the schema of record and that the injected ppas exist in the dump files
-        for index, ppa in enumerate(config['ppas']):
-            for ppa_record in ppa_dump_data:
-                self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)
-                ppa_record['id'].split("/")[0] == ppa_ids[index]][0]
-                ppa_record['id'].split("/")[1] == ppa_ids[index]][0] self._sas.admin
-                            
-            ppa_record = [record for record in ppa_dump_data if record['id'].split("/")[-1] == ppa_ids[index]][0]
+        # verify the schema of record and first two parts of PPA record Id  
+        for ppa_record in ppa_dump_data:
+            self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)              
+            self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
+            self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
             del ppa_record['id']
-            self.assertDictEqual(ppa, ppa_record)
+        # verify that the injected ppas exist in the dump files
+        for index, ppa in enumerate(config['ppas']):
+            del ppa['id']
+            exist_in_dump = False
+            for ppa_record in ppa_dump_data:
+                shared_items = set(ppa_record.items()) & set(ppa.items())               
+                if  len(shared_items) == len(ppa):
+                     exist_in_dump = True
+            self.assertTrue(exist_in_dump)
             
-        # verify the schema of record and that the injected esc sensors exist in the dump files        
-        for esc in config['escSensors']:
-            esc_record = [record for record in ppa_dump_data if record['id'] == esc['id']][0]
+        # verify the schema of record 
+        for esc_record in esc_sensor_dump_data:                    
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
-            self.assertDictEqual(esc, esc_record)
-            
+            del esc_record['id'] 
+        # verify that all the injected Esc sensors exist in the dump files                 
+        for esc in config['escSensors']:
+            exist_in_dump = False
+            del esc['id'] 
+            for esc_record in esc_sensor_dump_data:
+                self.assertDictEqual(esc, esc_record)
+                shared_items = set(esc_record.items()) & set(esc.items())               
+                if  len(shared_items) == len(esc):
+                    exist_in_dump = True
+            self.assertTrue(exist_in_dump)
         # verify that retrieved cbsd dump files have correct schema
         for cbsd_record in cbsd_dump_data:
             self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
