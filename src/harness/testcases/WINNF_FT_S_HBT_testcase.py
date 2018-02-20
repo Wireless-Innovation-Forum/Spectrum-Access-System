@@ -836,6 +836,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     }
     conditionals = {'registrationData': [conditionals_b]}
     del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
 
     # Create the actual config.
     devices = [device_a, device_c, device_b]
