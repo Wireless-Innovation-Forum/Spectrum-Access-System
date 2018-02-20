@@ -1,5 +1,5 @@
 {
-  "cbsdId": "sas1/cbsd1",
+  "cbsdId": "sas1/cbsd4",
   "operationParam": {
     "maxEirp": 37,
     "operationFrequencyRange": { "lowFrequency": 3600000000, "highFrequency": 3610000000 }
