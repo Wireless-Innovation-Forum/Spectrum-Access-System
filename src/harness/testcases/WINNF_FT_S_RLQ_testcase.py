@@ -495,6 +495,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     }
     conditionals = {'registrationData': [conditionals_b]}
     del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
 
     # Relinquishment requests (filled in during test execution):
     # device_a and device_b will use the correct CBSD ID and Grant ID
