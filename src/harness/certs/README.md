@@ -12,19 +12,24 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca ------------------------------------------------------                
-                               /     \          					     \                 
-                              /       \          					      \            
-                         sas_ca       cbsd_ca   					   proxy_ca
-                         /    |          \              	  			 	\
-                        /     |           \              	  				 \
-             admin_client  server  client|device_[a|c]|corrupted_client|wrong_type_client|   	domain_proxy
-				   	               client_expired|client_inapplicable 
-   unrecognized_ca              non_cbrs_root_ca
-         |                           |
-  unrecognized_device        non_cbrs_root_signed_cbsd_ca
-                                     |
-                             non_cbrs_signed_device
+                   root_ca --------------------------------------
+                   /     \          			         \                 
+                  /       \          			          \            
+             sas_ca       cbsd_ca   			       proxy_ca
+             /    |          \              	  	            \
+            /     |           \              	  	             \
+ admin_client  server  client|device_[a|c]|corrupted_client      domain_proxy
+			wrong_type_client|client_expired         corrupted_domain_proxy
+                        client_inapplicable                      wrong_type_domain_proxy
+                                                                 domain_proxy_expired
+                                                                 domain_proxy_inapplicable
+
+
+   unrecognized_ca       non_cbrs_root_ca----------------------
+         |                      |                              \
+  unrecognized_device   non_cbrs_root_signed_cbsd_ca  non_cbrs_root_signed_oper_ca 
+                                |                               |
+                        non_cbrs_signed_device         non_cbrs_signed_domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -99,3 +104,16 @@ Required certificates are:
 
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
+
+* `corrupted_domain_proxy.cert`: corrupted 'domain_proxy.cert' certificate where the 20th character have been changed.
+  Used on security test test_WINNF_FT_S_SDS_7.
+
+* `wrong_type_domain_proxy.cert`: domain_proxy certificate signed using server.csr 
+  Used on security test test_WINNF_FT_S_SDS_10.
+  
+* `domain_proxy_expired.[cert|key]`: domain_proxy device expired certificate
+  Used on security test test_WINNF_FT_S_SDS_12.
+
+* `domain_proxy_inapplicable.[cert|key]`: domain_proxy device inapplicable fields certificate
+  Used on security test test_WINNF_FT_S_SDS_15.
+

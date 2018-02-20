@@ -17,8 +17,8 @@ cp $2 $4
    pos=48
 hex_byte=$(xxd -seek $((10#$pos)) -l 1 -ps $4 -)
 #Modifying the byte value. If the byte character is 'z' or 'Z' or '9', then it is decremented by 1 to 'y' or 'Y' or '8' respectively.
-#If the value is '+' or '/' then we set it to 'A', else the current character value is incremented by 1. 
-#This takes care of all the 64 characters of Base64 encoding. 
+#If the value is '+' or '/' then we set it to 'A', else the current character value is incremented by 1.
+#This takes care of all the 64 characters of Base64 encoding.  
 if [[ $hex_byte == "7a"  ||  $hex_byte == "5a" || $hex_byte == "39" ]]; then
   corrupted_dec_byte=$(($((16#$hex_byte)) -1))
 elif [[ $hex_byte == "2f"  ||  $hex_byte == "2b" ]]; then
@@ -142,27 +142,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
     -out admin_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
-    
-# Generate Domain Proxy certificate/key.
-echo "\n\nGenerate 'proxy_ca' certificate/key"
-openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
-    -out proxy_ca.csr -keyout private/proxy_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA"
-openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in proxy_ca.csr \
-    -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
-    -out proxy_ca.cert -outdir ./root \
-    -batch -notext -create_serial -utf8 -days 5475 -md sha384
-echo "\n\nGenerate 'domain_proxy' certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out domain_proxy.csr -keyout domain_proxy.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a"
-openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
-    -out domain_proxy.cert -outdir ./root \
-    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-    
 
 # Generate Domain Proxy certificate/key.
 echo "\n\nGenerate 'proxy_ca' certificate/key"
@@ -183,7 +162,6 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.cs
     -out domain_proxy.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
 
 # Generate certificates for test case WINNF.FT.S.SCS.6 - Unrecognized root of trust certificate presented during registration
 echo "\n\nGenerate 'unrecognized_device' certificate/key"
@@ -201,7 +179,7 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Certificates for test case WINN.FT.S.SCS.7 - corrupted certificate, based on dp_client.cert
+# Certificates for test case WINNF.FT.S.SCS.7 - corrupted certificate, based on client.cert
 echo "\n\nGenerate 'corrupted_client' certificate/key"
 gen_corrupt_cert client.key client.cert corrupted_client.key corrupted_client.cert
 
@@ -212,6 +190,7 @@ openssl x509 -signkey client.key -in client.csr \
     -out self_signed_client.cert \
     -req -days 1185
 
+#Certificate for test case WINNF.FT.S.SCS.9 - Non-CBRS trust root signed certificate presented during registration
 openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
     -extensions root_ca -config ../../../cert/openssl.cnf \
     -out non_cbrs_root_ca.cert -keyout private/non_cbrs_root_ca.key \
@@ -238,7 +217,7 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #Certificate for test case WINNF.FT.S.SCS.10 - Certificate of wrong type presented during registration
-#creating a CBSD certificate signed using server.csr. The previously created client is used.
+#Creating a wrong type certificate by reusing the server.csr and having it signed by cbsd_ca.
 echo "\n\nGenerate wrong type certificate/key"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
     -out wrong_type_client.cert -outdir ./root \
@@ -256,12 +235,85 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client_expired.cs
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
-#Certificate for test case WINNF.FT.S.SCS.15 - inapplicable fields certificate presented during registration
+#Certificate for test case WINNF.FT.S.SCS.15 - Certificate with inapplicable fields presented during registration
 echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SCS.15' certificate/key"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out client_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Generate certificates for test case WINNF.FT.S.SDS.6 - Unrecognized root of trust certificate presented during registration
+echo "\n\nGenerate 'unrecognized_domain_proxy' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out unrecognized_domain_proxy.csr -keyout unrecognized_domain_proxy.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Unrecognized Domain Proxy"
+openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca.key -in unrecognized_domain_proxy.csr \
+    -out unrecognized_domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Certificates for test case WINN.FT.S.SDS.7 - corrupted certificate, based on domain_proxy.cert
+echo "\n\nGenerate 'corrupted_domain_proxy' certificate/key"
+gen_corrupt_cert domain_proxy.key domain_proxy.cert corrupted_domain_proxy.key corrupted_domain_proxy.cert
+
+#Certificate for test case WINNF.FT.S.SDS.8 - Self-signed certificate presented during registration
+#Using the same CSR that was created for normal operation
+echo "\n\nGenerate 'self_signed_domain_proxy' certificate/key"
+openssl x509 -signkey domain_proxy.key -in domain_proxy.csr \
+    -out self_signed_domain_proxy.cert \
+    -req -days 1185
+
+#Certificate for test case WINNF.FT.S.SDS.9 - Non-CBRS trust root signed certificate presented during registration
+echo "\n\nGenerate non_cbrs_root_signed_oper_ca.csr certificate/key"
+
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts oper_ca -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_oper_ca.csr -keyout private/non_cbrs_root_signed_oper_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA-2"
+
+openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in non_cbrs_root_signed_oper_ca.csr \
+    -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_oper_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+
+#Generate a Domain Proxy certifcate signed by an intermediate Domain Proxy CA which is signed by a non-CBRS root CA
+echo "\n\nGenerate domain_proxy certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out non_cbrs_signed_domain_proxy.csr -keyout non_cbrs_signed_domain_proxy.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Domain Proxy Unknown"
+openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_root_signed_oper_ca.key -in non_cbrs_signed_domain_proxy.csr \
+    -out non_cbrs_signed_domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Certificate for test case WINNF.FT.S.SDS.10 - Certificate of wrong type presented during registration
+# Creating a wrong type certificate by reusing the server.csr and having it signed by proxy_ca.
+echo "\n\nGenerate wrong type certificate/key"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in server.csr \
+    -out wrong_type_domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions wrong_oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Certificate for test case WINNF.FT.S.SDS.12 - Expired certificate presented during registration
+echo "\n\nGenerate 'domain_proxy_expired' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out domain_proxy_expired.csr -keyout domain_proxy_expired.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Domain Proxy - Expired"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy_expired.csr \
+    -out domain_proxy_expired.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
+
+#Certificate for test case WINNF.FT.S.SDS.15 -Certificate with inapplicable fields presented during registration
+echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SDS.15' certificate"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
+    -out domain_proxy_inapplicable.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_inapplicable_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
