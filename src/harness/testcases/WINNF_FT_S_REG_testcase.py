@@ -577,6 +577,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
    
     self.assertEqual(
           response['registrationResponse'][0]['response']['responseCode'], 0)
+    self.assertGreater(len(response['registrationResponse'][0]['cbsdId']), 0)
+    self.assertLessEqual(len(response['registrationResponse'][0]['cbsdId']), 256)
     self.assertEqual(
           response['registrationResponse'][12]['response']['responseCode'], 0)
     for index in range(1, 12) + range(13, 16):
