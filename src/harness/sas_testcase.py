@@ -23,6 +23,8 @@ import sas
 import signal
 import time
 
+import util
+
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -32,13 +34,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     pass
 
   def assertContainsRequiredFields(self, schema_filename, response):
-    schema_filename = os.path.join('..', '..', 'schema', schema_filename)
-    schema = json.load(open(schema_filename))
-    Draft4Validator.check_schema(schema)
-    schema_dir = os.path.dirname(os.path.realpath(schema_filename))
-    resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
-    # Raises ValidationError when incorrect response
-    validate(response, schema, resolver=resolver)
+    util.assertContainsRequiredFields(schema_filename, response)
 
   def assertValidResponseFormatForApprovedGrant(self, grant_response):
     # Check required string fields

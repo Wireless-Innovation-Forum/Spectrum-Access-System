@@ -18,6 +18,7 @@ from datetime import datetime
 from functools import wraps
 import inspect
 import json
+from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import random
@@ -246,6 +247,16 @@ def makePpaAndPalRecordsConsistent(pal_records, ppa_record, low_frequency,
   ppa_record = json.loads(json.dumps(ppa_record))
 
   return ppa_record, pal_records
+
+
+def assertContainsRequiredFields(schema_filename, response):
+  schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+  schema = json.load(open(schema_filename))
+  Draft4Validator.check_schema(schema)
+  schema_dir = os.path.dirname(os.path.realpath(schema_filename))
+  resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
+  # Raises ValidationError when incorrect response
+  validate(response, schema, resolver=resolver)
 
 
 def generateCpiRsaKeys():
