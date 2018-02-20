@@ -141,3 +141,24 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
       time.sleep(10)
     signal.alarm(0)
+    
+  def TriggerFullActivityDumpAndWaitUntilComplete(self):
+    self._sas_admin.TriggerFullActivityDump()
+    request_time = datetime.utcnow()
+    
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(Exception('Full Activity Dump Check Timeout')))
+    dump_message = self._sas.GetFullActivityDump()
+    dump_time = datetime.strptime(dump_message['generationDateTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+    # Timeout after 2 hours if it's not completed
+    signal.alarm(7200)
+    # Check the Status of Daily Activities every 10 seconds
+    while request_time > dump_time:
+      time.sleep(10)
+      dump_message = self._sas.GetFullActivityDump()
+      dump_time = datetime.strptime(dump_message['generationDateTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+    signal.alarm(0)
+    return dump_message

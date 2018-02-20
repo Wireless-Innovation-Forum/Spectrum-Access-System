@@ -271,9 +271,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})   
             
         # STEP 3
-        self._sas_admin.TriggerFullActivityDump()
-        # STEP 4
-        response = self._sas.GetFullActivityDump()
+        response = self.TriggerFullActivityDumpAndWaitUntilComplete()
         # STEP 5
         # check dump message format
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
