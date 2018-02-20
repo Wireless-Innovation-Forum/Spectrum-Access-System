@@ -562,7 +562,10 @@ def findMoveList(protection_specs, protection_points, registration_requests,
         registration_requests: a list of CBSD registration requests, each one being
                             a dictionary containing CBSD registration information
         grant_requests:     a list of grant requests, each one being a dictionary
-                            containing grant information
+                            containing grant information; there is a one-to-one
+                            mapping between items in registration_requests and
+                            grant_requests; a CBSD with more than one grant will
+                            have corresponding duplicate items in registration_requests
         num_iter:           number of Monte Carlo iterations
         num_processes:      number of parallel processes to use
         exclusion_zone:     a polygon object or a list of locations.
