@@ -11,7 +11,7 @@
     "vendor": "Equipment Maker C"
   },
   "cbsdSerialNumber": "4321dcba_1",
-  "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
+  "measCapability": [],
   "installationParam": {
     "latitude": 36.7666,
     "longitude": -76.1267,
