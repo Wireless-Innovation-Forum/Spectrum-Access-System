@@ -12,7 +12,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-
+import multiprocessing
+from collections import namedtuple
 import geojson
 import logging
 import multiprocessing
@@ -33,9 +34,13 @@ MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B = 47.
 census_tract_driver = census_tract.CensusTractDriver()
 nlcd_driver = nlcd.NlcdDriver()
 
+_PpaPolygon = namedtuple('_PpaPolygon', ['geojson', 'shapely'])
+
 
 def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, antenna_gain,
                                               cbsd_region_type, latitudes, longitudes):
+  """Returns Vertex Point Distance for each azimuth with signal strength greater 
+  than or equal to Threshold"""
   db_loss = np.zeros(len(latitudes), dtype=np.float64)
   for index, lat_lon in enumerate(zip(latitudes, longitudes)):
     lat, lon = lat_lon
@@ -46,7 +51,9 @@ def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, an
                                                          install_param['indoorDeployment'],
                                                          reliability=0.5,
                                                          region=cbsd_region_type).db_loss
-  index_cond, = np.where(eirp_capability + antenna_gain - db_loss > THRESHOLD_PER_10MHZ)
+
+  index_cond, = np.where(
+    (eirp_capability - install_param['antennaGain'] + antenna_gain) - db_loss >= THRESHOLD_PER_10MHZ)
   return index_cond.shape[0] * 0.2
 
 
@@ -76,7 +83,8 @@ def _GetPolygon(device):
   # Compute the Gain for all Direction
   antenna_gains = antenna.GetStandardAntennaGains(azimuths,
                                                   install_param['antennaAzimuth']
-                                                  if 'antennaAzimuth' in install_param.keys() else None,
+                                                  if 'antennaAzimuth' in install_param.keys()
+                                                  else None,
                                                   install_param['antennaBeamwidth'],
                                                   install_param['antennaGain'])
   # Get the Nlcd Region Type for Cbsd
@@ -153,7 +161,7 @@ def PpaCreationModel(devices, pal_records):
     devices: (List) A list containing device information.
     pal_records: (List) A list containing pal records.
   Returns:
-     A GeoJSON Dictionary of PPA Polygon
+    A Named Tuple of PPA Polygon in shapely and geojson format
   """
   # Validation for Inputs
   for device in devices:
@@ -169,4 +177,6 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
-  return _ConvertToGeoJson(utils.PolyWithoutSmallHoles(ppa_polygon))
+  ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
+  return _PpaPolygon(geojson=_ConvertToGeoJson(ppa_without_small_holes),
+                     shapely=ppa_without_small_holes)
