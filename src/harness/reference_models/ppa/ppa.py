@@ -13,9 +13,9 @@
 #    limitations under the License.
 
 
-import multiprocessing
-
 import geojson
+import logging
+import multiprocessing
 import numpy as np
 from concurrent import futures
 from reference_models.antenna import antenna
@@ -23,6 +23,8 @@ from reference_models.geo import census_tract, vincenty, nlcd
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
 from shapely import geometry, ops
+
+import util
 
 THRESHOLD_PER_10MHZ = -96
 RX_HEIGHT = 1.5
@@ -153,7 +155,13 @@ def PpaCreationModel(devices, pal_records):
   Returns:
      A GeoJSON Dictionary of PPA Polygon
   """
-  # TODO: Add Validation for Inputs
+  # Validation for Inputs
+  for device in devices:
+    logging.info('Validating device', device)
+    util.assertContainsRequiredFields("RegistrationRequest.schema.json", device)
+  for pal_rec in pal_records:
+    logging.info('Validating pal_rec', pal_rec)
+    util.assertContainsRequiredFields("PalRecord.schema.json", pal_rec)
   pool = futures.ProcessPoolExecutor(multiprocessing.cpu_count())
   # Create Contour for each CBSD
   device_polygon = list(pool.map(_GetPolygon, devices))
