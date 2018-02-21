@@ -319,14 +319,6 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented during registration
-# Creating a wrong type certificate by reusing the client.csr and having it signed by sas_ca.
-echo "\n\nGenerate wrong type certificate/key"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in client.csr \
-    -out wrong_type_sas.cert -outdir ./root \
-    -policy policy_anything -extensions wrong_sas_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
 #Certificate for test case WINNF.FT.S.SSS.12 - Expired certificate presented during registration
 echo "\n\nGenerate 'sas_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -337,13 +329,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_expired.csr \
     -out sas_expired.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
-
-#Certificate for test case WINNF.FT.S.SSS.15 -Certificate with inapplicable fields presented during registration
-echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SSS.15' certificate"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
-    -out sas_inapplicable.cert -outdir ./root \
-    -policy policy_anything -extensions sas_req_inapplicable_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
