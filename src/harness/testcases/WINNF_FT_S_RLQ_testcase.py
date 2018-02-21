@@ -553,9 +553,14 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices and get grants
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-        config['registrationRequest'], config['grantRequest'],
-        config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequest'], config['grantRequest'],
+          config['conditionalRegistrationData'])
+    else:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequest'], config['grantRequest'])
 
     # First relinquishment
     relinquishment_request = config['relinquishmentRequestFirst']
