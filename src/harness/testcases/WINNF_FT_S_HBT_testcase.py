@@ -884,8 +884,13 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices
-    cbsd_ids = self.assertRegistered(config['registrationRequest'],
-                                     config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      cbsd_ids = self.assertRegistered(config['registrationRequest'],
+                                       config['conditionalRegistrationData'])
+    else:
+      cbsd_ids = self.assertRegistered(config['registrationRequest'])
+
     # Request grant
     grant_request = config['grantRequest']
     addCbsdIdsToRequests(cbsd_ids, grant_request)
