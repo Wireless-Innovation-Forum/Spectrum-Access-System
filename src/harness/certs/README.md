@@ -25,11 +25,11 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
                                                                  domain_proxy_inapplicable
 
 
-   unrecognized_ca       non_cbrs_root_ca----------------------
-         |                      |                              \
-  unrecognized_device   non_cbrs_root_signed_cbsd_ca  non_cbrs_root_signed_oper_ca 
-                                |                               |
-                        non_cbrs_signed_device         non_cbrs_signed_domain_proxy
+   unrecognized_root_ca       non_cbrs_root_ca----------------------
+         |                           |                              \
+  unrecognized_device        non_cbrs_root_signed_cbsd_ca  non_cbrs_root_signed_oper_ca 
+unrecognized_domain_proxy            |                               |
+                             non_cbrs_signed_device         non_cbrs_signed_domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -77,7 +77,11 @@ Required certificates are:
 * `unrecognized_device.[cert|key]`: leaf CBSD device certificate signed by
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_6.
-  
+
+* `unrecognized_domain_proxy.[cert|key]`: leaf Domain Proxy certificate signed by
+  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SDS_6.
+
 * `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SCS_7.
   
