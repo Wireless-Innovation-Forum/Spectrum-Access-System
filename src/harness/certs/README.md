@@ -112,7 +112,7 @@ Required certificates are:
 * `corrupted_sas.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SSS_7.
   
-* `self_signed_client.cert`: self signed certificate of SAS signed by sas.key
+* `self_signed_sas.cert`: self signed certificate of SAS signed by sas.key
   Used on security test test_WINNF_FT_S_SSS_8.
   
 * `non_cbrs_root_signed_sas_ca.cert`: an intermediate SAS certificate authority for SAS,
