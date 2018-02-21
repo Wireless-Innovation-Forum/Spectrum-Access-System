@@ -286,7 +286,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                                dump_file[0])
             downloaded_file = None
-            if dump_file['recordType'] != 'CoordinationEvent ':                
+            if dump_file['recordType'] != 'CoordinationEvent':                
                 downloaded_file = self._sas.DownloadFile(dump_file['url'])
                 datetime.strptime(downloaded_file['startTime'],\
                                                      '%Y-%m-%dT%H:%M:%SZ')
@@ -299,7 +299,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             elif dump_file['recordType'] ==  'zone':
                 ppa_dump_data.append(downloaded_file['recordData'])
             else:
-                self.assertEqual('CoordinationEvent ', dump_file['recordType'])
+                self.assertEqual('CoordinationEvent', dump_file['recordType'])
         
         # verify the length of records equal to the inserted ones
         self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
@@ -309,7 +309,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for ppa_record in ppa_dump_data:
             self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)              
             self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
-            self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
+            self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin)
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
         for index, ppa in enumerate(config['ppas']):
@@ -321,9 +321,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                      exist_in_dump = True
             self.assertTrue(exist_in_dump)
             
-        # verify the schema of record 
+        # verify the schema of record and two first parts of esc sensor record  Id
         for esc_record in esc_sensor_dump_data:                    
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
+            self.assertEqual(esc_record['id'].split("/")[0], 'esc_sensor')
+            self.assertEqual(esc_record['id'].split("/")[1], self._sas._sas_admin)
             del esc_record['id'] 
         # verify that all the injected Esc sensors exist in the dump files                 
         for esc in config['escSensors']:
