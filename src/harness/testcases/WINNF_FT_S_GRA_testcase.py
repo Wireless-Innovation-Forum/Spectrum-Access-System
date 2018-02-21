@@ -42,12 +42,14 @@
 
 from datetime import datetime
 import json
+import logging
 import os
 import sas
 import sas_testcase
 import time
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent
+  makePpaAndPalRecordsConsistent, configurable_testcase, writeConfig, \
+  loadConfig, addCbsdIdsToRequests
 
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -63,14 +65,14 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_GRA_1(self):
     """Federal Incumbent present in the PAL frequency range requested by the CBSD
      who is inside the DPA Neighborhood.
-     
+
      grant responseCode = 0 and in heartbeat responseCode = 501(SUSPENDED_GRANT)
      or  grant responseCode = 400
     """
     # Trigger SAS to load DPAs
     self._sas_admin.TriggerLoadDpas()
-    # Trigger SAS to de-active all the DPAs 
-    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
+    # Trigger SAS to de-active all the DPAs
+    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
     #Fix PAl frequency
     pal_low_frequency = 3600000000
     pal_high_frequency = 3610000000
@@ -99,10 +101,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(zone_id)
     # Trigger SAS to active one DPA on channel c
     self._sas_admin.TriggerDpaActivation(\
-        {'frequencyRange':{'lowFrequency': pal_low_frequency ,\
-                           'highFrequency':pal_high_frequency },'dpaId':'east_dpa4'})
+        {'frequencyRange': {'lowFrequency': pal_low_frequency ,\
+                           'highFrequency': pal_high_frequency },'dpaId': 'east_dpa4'})
     # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
-    time.sleep(240) 
+    time.sleep(240)
     # Send grant request
     grant_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
@@ -110,13 +112,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] \
         = pal_low_frequency
     grant_0['operationParam']['operationFrequencyRange']['highFrequency'] \
-        = pal_high_frequency     
+        = pal_high_frequency
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check grant response
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     if response['response']['responseCode'] == 400 :
-        return
+      return
     self.assertEqual(response['response']['responseCode'], 0)
     self.assertTrue('grantId' in response)
     grant_id = response['grantId']
@@ -132,7 +134,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     # Check heartbeat response
     self.assertEqual(response['response']['responseCode'], 501)
-    self.assertEqual(response['cbsdId'], cbsd_ids[0])        
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertEqual(response['grantId'], grant_id)
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
@@ -709,7 +711,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'measCapability': device_4['measCapability']
     }
 
-        
+
     conditionals_5 = {
         'cbsdCategory': device_5['cbsdCategory'],
         'fccId': device_5['fccId'],
@@ -729,7 +731,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectFccId({'fccId': device_3['fccId'], 'fccMaxEirp': 40})
     self._sas_admin.InjectFccId({'fccId': device_4['fccId'], 'fccMaxEirp': 47})
     self._sas_admin.InjectFccId({'fccId': device_5['fccId'], 'fccMaxEirp': 30})
-    
+
     self._sas_admin.InjectUserId({'userId': device_1['userId']})
     self._sas_admin.InjectUserId({'userId': device_2['userId']})
     self._sas_admin.InjectUserId({'userId': device_3['userId']})
@@ -737,7 +739,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectUserId({'userId': device_5['userId']})
 
     self._sas_admin.PreloadRegistrationData(conditionals)
- 
+
     # Remove conditionals from registration for cbsdId 3,5
     del device_3['cbsdCategory']
     del device_3['airInterface']
@@ -754,7 +756,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # set eirpCapability = 20 for cbsdId 1
     device_1['installationParam']['eirpCapability'] = 20
-    
+
     # send registration requests
     devices = [device_1, device_2, device_3, device_4, device_5]
     request = {'registrationRequest': devices}
@@ -874,7 +876,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), 3)
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[1]['cbsdId'], cbsd_ids[1])
-    
+
 
     # 1st and 2nd cbsdId responseCode should be 0
     self.assertEqual(response[0]['response']['responseCode'], 0)
@@ -887,7 +889,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # 3rd cbsdId responseCode should be 101
     self.assertEqual(response[2]['response']['responseCode'], 101)
     del request, response
-    
+
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_15(self):
     """Two grant requests: 1. Missing maxEirp and 2. Invalid frequency range.
@@ -997,3 +999,217 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertIsInstance(resp['heartbeatInterval'], int)
         self.assertTrue(resp['heartbeatInterval'] > 0)
 
+  def generate_GRA_17_default_config(self, filename):
+    """Generates the WinnForum configuration for GRA.17."""
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_f = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # device_a, device_c, device_e and device_f are Category A.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_c['cbsdCategory'], 'A')
+    self.assertEqual(device_e['cbsdCategory'], 'A')
+    self.assertEqual(device_f['cbsdCategory'], 'A')
+
+    # Device_b is Category B with conditionals pre-loaded.
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']
+    }
+    conditionals = {'registrationData': [conditionals_b]}
+    del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+
+    # Prepare grant requests.
+    # All valid parameters, will have device_a CBSD ID
+    grant_0 = {
+        'cbsdId': 0,
+        'operationParam': {
+            'maxEirp': 10,
+            'operationFrequencyRange': {
+                'lowFrequency': 3550000000,
+                'highFrequency': 3560000000
+            }
+        }
+    }
+    # CBSD ID will be removed (device_b)
+    grant_1 = {
+        'cbsdId': 'REMOVE',
+        'operationParam': {
+            'maxEirp': 10,
+            'operationFrequencyRange': {
+                'lowFrequency': 3620000000,
+                'highFrequency': 3630000000
+            }
+        }
+    }
+    # LowFrequency > HighFrequency, will have device_c CBSD ID
+    grant_2 = {
+        'cbsdId': 2,
+        'operationParam': {
+            'maxEirp': 10,
+            'operationFrequencyRange': {
+                'lowFrequency': 3640000000,
+                'highFrequency': 3630000000
+            }
+        }
+    }
+    # Partially outside CBRS band, will have device_e CBSD ID
+    grant_3 = {
+        'cbsdId': 3,
+        'operationParam': {
+            'maxEirp': 10,
+            'operationFrequencyRange': {
+                'lowFrequency': 3450000000,
+                'highFrequency': 3600000000
+            }
+        }
+    }
+    # CBSD not part of claimed PPA, but in the PPA zone; requests PAL channel
+    # will have device_f CBSD ID
+    grant_4 = {
+        'cbsdId': 4,
+        'operationParam': {
+            'maxEirp': 10,
+            'operationFrequencyRange': {
+                'lowFrequency': 3550000000,
+                'highFrequency': 3560000000
+            }
+        }
+    }
+    # Create the actual config.
+    devices = [device_a, device_b, device_c, device_e, device_f]
+    grant_requests = [grant_0, grant_1, grant_2, grant_3, grant_4,]
+    # Devices inside and part of the claimed PPA.
+    # Contains the index of devices in the devices list.
+    # Eg: 0 means devices[0] which is device_a
+    ppa_cluster_list = [0]
+    # Devices in the zone, but not part of PPA.
+    # Contains the index of devices in the devices list.
+    # Eg: 4 means devices[4] which is device_f
+    devices_in_ppa_zone = [4]
+    pal_low_frequency = 3550000000
+    pal_high_frequency = 3560000000
+    pal_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record, pal_record = makePpaAndPalRecordsConsistent(
+        ppa_record, [pal_record], pal_low_frequency, pal_high_frequency,
+        devices[ppa_cluster_list[0]]['userId'])
+    # Move devices in ppa_cluster_list and devices_in_ppa_zone
+    # into the PPA zone
+    for device_index in ppa_cluster_list:
+      devices[device_index]['installationParam']['latitude'], devices[
+          device_index]['installationParam'][
+              'longitude'] = getRandomLatLongInPolygon(ppa_record)
+    for device_index in devices_in_ppa_zone:
+      devices[device_index]['installationParam']['latitude'], devices[
+          device_index]['installationParam'][
+              'longitude'] = getRandomLatLongInPolygon(ppa_record)
+
+    config = {
+        'registrationRequest': devices,
+        'conditionalRegistrationData': conditionals,
+        'ppa': {
+            'ppaRecord': ppa_record,
+            'palRecords': pal_record,
+            # Indexing the same way as CBSD IDs.
+            'ppaClusterList': ppa_cluster_list
+        },
+        'grantRequest': grant_requests,
+        'expectedResponseCodes': [
+            (0,),  # all valid params => SUCCESS
+            (102,),  # missing CBSD ID => MISSING_PARAM
+            (103,),  # LowFrequency > HighFrequency => INVALID_VALUE
+            (300,),  # partially overlapping CBRS band => UNSUPPORTED_SPECTRUM
+            (400,),  # CBSD inside (but not part of) claimed PPA => INTERFERENCE
+        ]
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_GRA_17_default_config)
+  def test_WINNF_FT_S_GRA_17(self, config_filename):
+    """[Configurable] Array grant request."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(
+        len(config['registrationRequest']),
+        len(config['grantRequest']))
+    self.assertEqual(
+        len(config['grantRequest']),
+        len(config['expectedResponseCodes']))
+
+    # Whitelist FCC IDs.
+    for device in config['registrationRequest']:
+      self._sas_admin.InjectFccId({
+          'fccId': device['fccId'],
+          'fccMaxEirp': 47
+      })
+
+    # Whitelist user IDs.
+    for device in config['registrationRequest']:
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # Pre-load conditional registration data for N3 CBSDs.
+    if 'conditionalRegistrationData' in config:
+      if config['conditionalRegistrationData']:
+        self._sas_admin.PreloadRegistrationData(
+            config['conditionalRegistrationData'])
+
+    # Inject PAL database record
+    for pal_record in config['ppa']['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+
+    # Register devices
+    cbsd_ids = self.assertRegistered(config['registrationRequest'])
+
+    # Update PPA record with device's CBSD ID and Inject zone data
+    for device_index in config['ppa']['ppaClusterList']:
+      config['ppa']['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
+          cbsd_ids[device_index]
+      ]
+    zone_id = self._sas_admin.InjectZoneData({
+        'record': config['ppa']['ppaRecord']
+    })
+    self.assertTrue(zone_id)
+
+    # Send Grant request
+    grant_request = config['grantRequest']
+    addCbsdIdsToRequests(cbsd_ids, grant_request)
+    request = {'grantRequest': grant_request}
+    responses = self._sas.Grant(request)['grantResponse']
+    # Check grant response
+    self.assertEqual(len(responses), len(config['expectedResponseCodes']))
+    for i, response in enumerate(responses):
+      expected_response_codes = config['expectedResponseCodes'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      # If the corresponding request contained a valid cbsdId, the
+      # response shall contain the same cbsdId.
+      if 'cbsdId' in grant_request[i]:
+        if grant_request[i]['cbsdId'] in cbsd_ids:
+          self.assertEqual(response['cbsdId'], grant_request[i]['cbsdId'])
+          # If response is SUCCESS, verify the response contains a
+          # valid Grant ID.
+          if response['response']['responseCode'] == 0:
+            self.assertTrue('grantId' in response)
+          else:
+            self.assertFalse('grantId' in response)
