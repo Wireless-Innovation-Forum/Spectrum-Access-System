@@ -12,24 +12,19 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                  -------------root_ca ------------------------------------------------------                
-                 /                   \          					     \                 
-                /                     \          					      \            
-          sas_ca--------              cbsd_ca   					   proxy_ca
-          /    \        \                \              	  			 	\
-         /      \        \                \              	  				 \
-   admin_client  server  sas     client|device_[a|c]|corrupted_client|wrong_type_client|   	domain_proxy
-		          |          client_expired|client_inapplicable
-                   corrupted_sas
-                   sas_expired
-
-
- 
-unrecognized_ca                   non_cbrs_root_ca-------------------------
-         |                           |                                     \
-unrecognized_device|              non_cbrs_root_signed_cbsd_ca       non_cbrs_root_signed_sas_ca
-unrecognized_sas                     |                                     |
-                                  non_cbrs_signed_device             non_cbrs_root_signed_sas
+                               root_ca ------------------------------------------------------                
+                               /     \          					     \                 
+                              /       \          					      \            
+                         sas_ca       cbsd_ca   					   proxy_ca
+                         /    |          \              	  			 	\
+                        /     |           \              	  				 \
+             admin_client  server  client|device_[a|c]|corrupted_client|wrong_type_client|   	domain_proxy
+				   	               client_expired|client_inapplicable 
+   unrecognized_ca              non_cbrs_root_ca
+         |                           |
+  unrecognized_device        non_cbrs_root_signed_cbsd_ca
+                                     |
+                             non_cbrs_signed_device
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -104,25 +99,3 @@ Required certificates are:
 
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
-
-* `unrecognized_sas.[cert|key]`: leaf SAS certificate signed by
-  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
-  Used on security test test_WINNF_FT_S_SSS_6.
-  
-* `corrupted_sas.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
-  Used on security test test_WINNF_FT_S_SSS_7.
-  
-* `self_signed_sas.cert`: self signed certificate of SAS signed by sas.key
-  Used on security test test_WINNF_FT_S_SSS_8.
-  
-* `non_cbrs_root_signed_sas_ca.cert`: an intermediate SAS certificate authority for SAS,
-  signed by `non_cbrs_root_ca`.
-  Used on security test test_WINNF_FT_S_SSS_9.
-  
-* `non_cbrs_signed_sas.[cert|key]`: leaf SAS certificate signed by
-  `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
-  Used on security test test_WINNF_FT_S_SSS_9.
-
-* `sas_expired.[cert|key]`: leaf SAS expired certificate
-  Used on security test test_WINNF_FT_S_SSS_12.
-
