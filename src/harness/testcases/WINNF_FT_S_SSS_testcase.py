@@ -12,6 +12,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import os
+import json
+import security_testcase
 from OpenSSL import SSL
 import security_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
