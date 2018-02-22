@@ -1100,8 +1100,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': user_id})
 
     # Pre-load conditional registration data for N3 CBSDs.
-    self._sas_admin.PreloadRegistrationData(
-        config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
 
     # Register N4 CBSDs.
     request = {'registrationRequest': config['registrationRequests']}
@@ -1185,8 +1187,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': user_id})
 
     # Pre-load conditional registration data for N3 CBSDs.
-    self._sas_admin.PreloadRegistrationData(
-        config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
 
     # Register N4 CBSDs.
     request = {'registrationRequest': config['registrationRequests']}
