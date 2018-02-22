@@ -22,19 +22,17 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import sys
-import time
 import random
-import sys
 import uuid
+import jwt
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import jwt
-from sas import HttpServer
-from shapely.geometry import shape, Point, LineString
 
+from shapely.geometry import shape, Point, LineString
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -330,19 +328,6 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
-def getServer(url):
-  server_base_url = url.split(":")[0]
-  server_port = int(url.split(":")[-1])
-  return HttpServer({'baseUrl': server_base_url, 'port': server_port})
-
-def startServer(url, cert):
-  sas_server = getServer(url)
-  sas_server.StartServer(cert)
-  return sas_server
-
-def stopServer(sas_server):
-  sas_server.StopServer()
-
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
 
@@ -386,3 +371,22 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+def getCertFilename(cert_name):
+  """Returns the absolute path of the file corresponding to the given |cert_name|.
+  """
+  harness_dir = os.path.dirname(os.path.abspath
+                                (inspect.getfile(inspect.currentframe())))
+  return os.path.join(harness_dir, 'certs', cert_name)
+
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: certificate file
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate, "rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint
