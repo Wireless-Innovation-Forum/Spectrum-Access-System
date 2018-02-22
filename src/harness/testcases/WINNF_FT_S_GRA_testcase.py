@@ -1168,8 +1168,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Pre-load conditional registration data for N3 CBSDs.
     if ('conditionalRegistrationData' in config) and (
         config['conditionalRegistrationData']):
-        self._sas_admin.PreloadRegistrationData(
-            config['conditionalRegistrationData'])
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
 
     # Inject PAL database record
     for pal_record in config['ppa']['palRecords']:
