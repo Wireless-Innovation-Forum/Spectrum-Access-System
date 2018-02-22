@@ -495,6 +495,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     }
     conditionals = {'registrationData': [conditionals_b]}
     del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
 
     # Relinquishment requests (filled in during test execution):
     # device_a and device_b will use the correct CBSD ID and Grant ID
@@ -510,14 +512,14 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     # The CBSD ID from the 0th device (i.e. device_a) in the registration
     # request and the Grant ID from the 0th grant request (corresponding to the
     # 0th CBSD) will be used in this relinquishment request.
-    relinquishment_request1 = [{'cbsdId': 0, 'grantId': 0}]
-    relinquishment_request2 = [relinquish_a, relinquish_c, relinquish_b]
+    relinquishment_requests1 = [{'cbsdId': 0, 'grantId': 0}]
+    relinquishment_requests2 = [relinquish_a, relinquish_c, relinquish_b]
     config = {
-        'registrationRequest': devices,
+        'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
-        'grantRequest': grant_requests,
-        'relinquishmentRequestFirst': relinquishment_request1,
-        'relinquishmentRequestSecond': relinquishment_request2,
+        'grantRequests': grant_requests,
+        'relinquishmentRequestsFirst': relinquishment_requests1,
+        'relinquishmentRequestsSecond': relinquishment_requests2,
         'expectedResponseCodesFirst': [(0,)],
         # First request is a "re-relinquishment" => INVALID_VALUE for Grant ID
         # Second request is missing Grant ID => MISSING_PARAM
@@ -533,35 +535,35 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     # Very light checking of the config file.
     self.assertEqual(
-        len(config['relinquishmentRequestFirst']),
+        len(config['relinquishmentRequestsFirst']),
         len(config['expectedResponseCodesFirst']))
     self.assertEqual(
-        len(config['relinquishmentRequestSecond']),
+        len(config['relinquishmentRequestsSecond']),
         len(config['expectedResponseCodesSecond']))
 
     # Whitelist FCC IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectFccId({
           'fccId': device['fccId'],
           'fccMaxEirp': 47
       })
 
     # Whitelist user IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices and get grants
     if ('conditionalRegistrationData' in config) and (
         config['conditionalRegistrationData']):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequest'], config['grantRequest'],
+          config['registrationRequests'], config['grantRequests'],
           config['conditionalRegistrationData'])
     else:
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequest'], config['grantRequest'])
+          config['registrationRequests'], config['grantRequests'])
 
     # First relinquishment
-    relinquishment_request = config['relinquishmentRequestFirst']
+    relinquishment_request = config['relinquishmentRequestsFirst']
     addCbsdIdsToRequests(cbsd_ids, relinquishment_request)
     addGrantIdsToRequests(grant_ids, relinquishment_request)
     request = {'relinquishmentRequest': relinquishment_request}
@@ -592,7 +594,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, responses
 
     # Second relinquishment
-    relinquishment_request = config['relinquishmentRequestSecond']
+    relinquishment_request = config['relinquishmentRequestsSecond']
     addCbsdIdsToRequests(cbsd_ids, relinquishment_request)
     addGrantIdsToRequests(grant_ids, relinquishment_request)
     request = {'relinquishmentRequest': relinquishment_request}
@@ -616,3 +618,4 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
                 'grantId'] not in relinquished_grant_ids:
               self.assertEqual(response['grantId'],
                                relinquishment_request[i]['grantId'])
+
