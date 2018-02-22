@@ -1166,8 +1166,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Pre-load conditional registration data for N3 CBSDs.
-    if 'conditionalRegistrationData' in config:
-      if config['conditionalRegistrationData']:
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
         self._sas_admin.PreloadRegistrationData(
             config['conditionalRegistrationData'])
 
