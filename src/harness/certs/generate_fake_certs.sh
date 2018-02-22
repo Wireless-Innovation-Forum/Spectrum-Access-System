@@ -102,6 +102,16 @@ openssl ca -cert sas-ecc_ca.cert -keyfile private/sas-ecc_ca.key -in server-ecc.
     -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+# Generate sas server certificate/key.
+echo "\n\nGenerate 'sas server' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out sas.csr -keyout sas.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS-1"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
+    -out sas.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Generate normal operation client certificate/key.
 echo "\n\nGenerate 'client' certificate/key"
@@ -314,6 +324,62 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.cs
     -policy policy_anything -extensions oper_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+# Generate certificates for test case WINNF.FT.S.SSS.6 - Unrecognized root of trust certificate presented during registration
+echo "\n\nGenerate 'unrecognized_sas' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out unrecognized_sas.csr -keyout unrecognized_sas.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Unrecognized SAS"
+openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca.key -in unrecognized_sas.csr \
+    -out unrecognized_sas.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+# Certificates for test case WINN.FT.S.SSS.7 - corrupted certificate, based on sas.cert
+echo "\n\nGenerate 'corrupted_sas' certificate/key"
+gen_corrupt_cert sas.key sas.cert corrupted_sas.key corrupted_sas.cert
+
+#Certificate for test case WINNF.FT.S.SSS.8 - Self-signed certificate presented during registration
+#Using the same CSR that was created for normal operation
+echo "\n\nGenerate 'self_signed_sas' certificate/key"
+openssl x509 -signkey sas.key -in sas.csr \
+    -out self_signed_sas.cert \
+    -req -days 1185
+
+#Certificate for test case WINNF.FT.S.SSS.9 - Non-CBRS trust root signed certificate presented during registration
+echo "\n\nGenerate non_cbrs_root_signed_sas_ca.csr certificate/key"
+
+openssl req -new -newkey rsa:4096 -nodes \
+    -reqexts sas_ca -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_sas_ca.csr -keyout private/non_cbrs_root_signed_sas_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA SAS CA-2"
+
+openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in non_cbrs_root_signed_sas_ca.csr \
+    -policy policy_anything -extensions sas_ca_sign -config ../../../cert/openssl.cnf \
+    -out non_cbrs_root_signed_sas_ca.cert -outdir ./root \
+    -batch -notext -create_serial -utf8 -days 5475 -md sha384
+
+#Generate a SAS certifcate signed by an intermediate SAS CA which is signed by a non-CBRS root CA
+echo "\n\nGenerate sas certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out non_cbrs_signed_sas.csr -keyout non_cbrs_signed_sas.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS Unknown"
+openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root_signed_sas_ca.key -in non_cbrs_signed_sas.csr \
+    -out non_cbrs_signed_sas.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Certificate for test case WINNF.FT.S.SSS.12 - Expired certificate presented during registration
+echo "\n\nGenerate 'sas_expired' certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out sas_expired.csr -keyout sas_expired.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS - Expired"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_expired.csr \
+    -out sas_expired.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"

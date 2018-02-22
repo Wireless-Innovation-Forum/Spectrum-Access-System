@@ -12,24 +12,24 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                   root_ca --------------------------------------
-                   /     \          			         \                 
-                  /       \          			          \            
-             sas_ca       cbsd_ca   			       proxy_ca
-             /    |          \              	  	            \
-            /     |           \              	  	             \
- admin_client  server  client|device_[a|c]|corrupted_client      domain_proxy
-			wrong_type_client|client_expired         corrupted_domain_proxy
-                        client_inapplicable                      wrong_type_domain_proxy
-                                                                 domain_proxy_expired
-                                                                 domain_proxy_inapplicable
+                  -------------root_ca --------------------------------------                
+                 /                   \         				     \                 
+                /                     \         			      \            
+          sas_ca--------              cbsd_ca   			   proxy_ca
+          /    \        \                \              	  		\
+         /      \        \                \              	  		 \
+   admin_client  server  sas     client|device_[a|c]|corrupted_client        domain_proxy
+		          |       wrong_type_client|client_expired           corrupted_domain_proxy
+                   corrupted_sas  client_inapplicable                        wrong_type_domain_proxy
+                   sas_expired                                               domain_proxy_expired
+                                                                             domain_proxy_inapplicable
 
-
-   unrecognized_root_ca       non_cbrs_root_ca----------------------
-         |                           |                              \
-  unrecognized_device        non_cbrs_root_signed_cbsd_ca  non_cbrs_root_signed_oper_ca 
-unrecognized_domain_proxy            |                               |
-                             non_cbrs_signed_device         non_cbrs_signed_domain_proxy
+ 
+unrecognized_ca             non_cbrs_root_ca----------------------------------------------
+         |                     |                                 \	                  \
+unrecognized_device|        non_cbrs_root_signed_cbsd_ca   non_cbrs_root_signed_sas_ca  non_cbrs_root_signed_oper_ca
+unrecognized_sas               |                                  |                        |
+unrecognized_domain_proxy   non_cbrs_signed_device         non_cbrs_root_signed_sas     non_cbrs_signed_domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -120,4 +120,25 @@ Required certificates are:
 
 * `domain_proxy_inapplicable.[cert|key]`: domain_proxy device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SDS_15.
+
+* `unrecognized_sas.[cert|key]`: leaf SAS certificate signed by
+  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SSS_6.
+  
+* `corrupted_sas.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
+  Used on security test test_WINNF_FT_S_SSS_7.
+  
+* `self_signed_sas.cert`: self signed certificate of SAS signed by sas.key
+  Used on security test test_WINNF_FT_S_SSS_8.
+  
+* `non_cbrs_root_signed_sas_ca.cert`: an intermediate SAS certificate authority for SAS,
+  signed by `non_cbrs_root_ca`.
+  Used on security test test_WINNF_FT_S_SSS_9.
+  
+* `non_cbrs_signed_sas.[cert|key]`: leaf SAS certificate signed by
+  `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SSS_9.
+
+* `sas_expired.[cert|key]`: leaf SAS expired certificate
+  Used on security test test_WINNF_FT_S_SSS_12.
 

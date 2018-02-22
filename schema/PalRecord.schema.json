@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "PAL record parameters from WINNF-TS-0245 Version V1.0.0",
+  "type": "object",
+  "required": [
+    "palId",
+    "userId",
+    "registrationInformation",
+    "license",
+    "licenseStatus",
+    "channelAssignment"
+  ],
+  "properties": {
+    "palId": {
+      "type": "string",
+      "description": "PAL-ID of this PAL database record. Format: pal/$MO-$YEAR/$FIPS/$CHANNEL"
+    },
+    "licensee": {
+      "type": "string",
+      "description": "Human-readable name of the PAL licensee"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User Identifier (UR-ID) of the PAL licensee. This is used by CBSDs requesting PAL spectrum grants from SAS to identify which PAL licensee they are operated by"
+    },
+    "registrationInformation": {
+      "$ref": "#/registrationInfo"
+    },
+    "license": {
+      "$ref": "#/licenseInfo"
+    },
+    "licenseStatus": {
+      "enum": [
+        "VALID",
+        "RESCINDED",
+        "EXPIRED"
+      ],
+      "description": "License status"
+    },
+    "channelAssignment": {
+      "$ref": "#/channelAssignment"
+    }
+  },
+  "registrationInfo": {
+    "type": "object",
+    "description": "Information regarding the license described in a PAL database record",
+    "properties": {
+      "frn": {
+        "type": "string",
+        "description": "FRN of the license"
+      },
+      "registrationDate": {
+        "type": "string",
+        "description": "Date of licensee FCC registration in UTC using the format YYYY-MM-DDThh:mm:ssZ as defined by RFC-3339"
+      },
+      "licenseConditions": {
+        "type": "string",
+        "description": "Human-readable string or reference annotating the certification"
+      },
+      "callSign": {
+        "type": "string",
+        "description": "call sign of the licensee (as assigned by FCC)"
+      }
+    }
+  },
+  "licenseInfo": {
+    "type": "object",
+    "description": "Information regarding the license described in a PAL database record",
+    "properties": {
+      "licenseId": {
+        "type": "string",
+        "description": "FCC-issued license ID"
+      },
+      "licenseDate": {
+        "type": "string",
+        "description": "Start date of the license period in UTC using the format YYYY-MM-DDThh:mm:ssZ as defined by RFC-3339"
+      },
+      "licenseExpiration": {
+        "type": "string",
+        "description": "Expiration date of the license period in UTC using the format YYYY-MM-DDThh:mm:ssZ as defined by RFC-3339"
+      },
+      "licenseAreaIdentifier": {
+        "type": "string",
+        "description": "Human-readable string or reference denoting the license area (e.g. FIPS census tract code)"
+      },
+      "licenseAreaExtent": {
+        "type": "string",
+        "description": "Reference to a record in a geographical database represented as a SAS-SAS Zone record providing the extents of the license area. (e.g. “zone/census_tract/census/$YEAR/$FIPS”)"
+      },
+      "licenseFrequencyChannelId": {
+        "type": "string",
+        "description": "FCC-supplied identifier for the frequency channel for the PAL"
+      }
+    }
+  },
+  "channelAssignment": {
+    "type": "object",
+    "description": "",
+    "required": [
+      "primaryAssignment"
+    ],
+    "properties": {
+      "primaryAssignment": {
+        "$ref": "file:FrequencyRange.schema.json"
+      },
+      "secondaryAssignment": {
+        "$ref": "file:FrequencyRange.schema.json"
+      }
+    }
+  }
+}

@@ -21,7 +21,6 @@ from collections import namedtuple
 import numpy as np
 
 from reference_models.geo import vincenty
-from reference_models.antenna import fss_pointing
 
 # CBSD devices
 Cbsd = namedtuple('Cbsd',
