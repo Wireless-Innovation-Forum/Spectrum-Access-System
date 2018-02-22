@@ -118,7 +118,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), 2)
     for resp in response:
       self.assertEqual(resp['cbsdId'], cbsd_id)
-      self.assertTrue(resp['response']['responseCode'] == 103)
+      self.assertTrue(resp['response']['responseCode'] in [103, 500])
       # No need to check transmitExpireTime since this is the first heartbeat.
 
   @winnforum_testcase
