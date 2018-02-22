@@ -43,7 +43,7 @@ def _log_testcase_header(name, doc):
       logging.Formatter(
         '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+  logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
 
