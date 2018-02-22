@@ -47,6 +47,7 @@ import json
 import os
 import sas
 import sas_testcase
+import time
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent, writeConfig, loadConfig, configurable_testcase
 
@@ -129,7 +130,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     }
     del request, response
     # Send heartbeat request
-    request = {'heartbeatRequest': heartbeat_request}
+    request = {'heartbeatRequest': [heartbeat_request]}
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
     # Check heartbeat response
     self.assertEqual(response['response']['responseCode'], 501)
@@ -582,8 +583,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000.0,
-        'highFrequency': 3550000000.0
+        'lowFrequency': 3650000000,
+        'highFrequency': 3550000000
     }
 
     # 2. With frequency range completely outside the CBRS band.
@@ -591,18 +592,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3350000000.0
+        'lowFrequency'] = 3350000000
     grant_1['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3450000000.0
+        'highFrequency'] = 3450000000
 
     # 3. With frequency range partially overlapping with the CBRS band.
     grant_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_2['cbsdId'] = cbsd_ids[2]
     grant_2['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3450000000.0
+        'lowFrequency'] = 3450000000
     grant_2['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3650000000.0
+        'highFrequency'] = 3650000000
 
     request = {'grantRequest': [grant_0, grant_1, grant_2]}
     # Send grant request and get response
@@ -1194,8 +1195,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000.0,
-        'highFrequency': 3550000000.0
+        'lowFrequency': 3650000000,
+        'highFrequency': 3550000000
     }
 
     request = {'grantRequest': [grant_0, grant_1]}
@@ -1233,15 +1234,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3560000000.0,
-        'highFrequency': 3570000000.0
+        'lowFrequency': 3560000000,
+        'highFrequency': 3570000000
     }
     grant_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3560000000.0,
-        'highFrequency': 3580000000.0
+        'lowFrequency': 3560000000,
+        'highFrequency': 3580000000
     }
     request = {'grantRequest': [grant_0, grant_1]}
     # Send grant request and get response

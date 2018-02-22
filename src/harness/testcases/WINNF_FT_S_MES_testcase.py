@@ -97,8 +97,8 @@ class MeasurementTestcase(unittest.TestCase):
             for meas_num, meas in enumerate(meas_report):
                 meas_report[meas_num]['measBandwidth'] = 15000000
         spectrum_inquiry['inquiredSpectrum'] = [{
-            'lowFrequency': 3550000000.0,
-            'highFrequency': 3560000000.0
+            'lowFrequency': 3550000000,
+            'highFrequency': 3560000000
         }]
         spectrum_inquiries.append(spectrum_inquiry)
     # Send Spectrum Inquiry request
@@ -117,9 +117,9 @@ class MeasurementTestcase(unittest.TestCase):
         grant_0 = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant_0['operationParam']['operationFrequencyRange'][
-            'lowFrequency'] = 3550000000.0
+            'lowFrequency'] = 3550000000
         grant_0['operationParam']['operationFrequencyRange'][
-            'highFrequency'] = 3560000000.0
+            'highFrequency'] = 3560000000
         grant_0['cbsdId'] = spectrum_inquiry['cbsdId']
         if 'measReport' in spectrum_inquiry:
             grant_0['measReport'] = spectrum_inquiry['measReport']
@@ -237,7 +237,7 @@ class MeasurementTestcase(unittest.TestCase):
             del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency']
         # Set measFrequency to 3540 MHZ for 3th device
         elif cbsd_id == cbsd_ids[2]:
-            heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000.0
+            heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000
         # Delete rcvdPowerMeasReports for 4th device
         elif cbsd_id == cbsd_ids[3]:
             del heartbeat_request['measReport']['rcvdPowerMeasReports']
