@@ -35,6 +35,9 @@ float FineRollingHillyTerrainCorectionFactor(InterValues *interValues, float h_m
         return -K_h;
     else if (h_m_gnd__meter < interValues->pfl10__meter && h_m_gnd__meter >= interValues->pfl50__meter)
         return K_h * (h_m_gnd__meter - interValues->pfl50__meter) / (interValues->pfl10__meter - interValues->pfl50__meter);
-    else
-        return -K_h * (h_m_gnd__meter - interValues->pfl90__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);
+    else {
+      // ** Winnforum fix - this condition is wrong and breaks the continuity **
+      //return -K_h * (h_m_gnd__meter - interValues->pfl90__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);
+      return -K_h * (interValues->pfl50__meter - h_m_gnd__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);      
+    }
 }

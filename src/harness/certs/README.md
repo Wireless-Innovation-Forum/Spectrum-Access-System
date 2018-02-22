@@ -12,13 +12,24 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                               root_ca                          
-                               /     \                            
-                              /       \                       
-                         sas_ca       cbsd_ca
-                         /    |          \
-                        /     |           \
-             admin_client  server   client|device_[a|c]
+                  -------------root_ca ------------------------------------------------------                
+                 /                   \          					     \                 
+                /                     \          					      \            
+          sas_ca--------              cbsd_ca   					   proxy_ca
+          /    \        \                \              	  			 	\
+         /      \        \                \              	  				 \
+   admin_client  server  sas     client|device_[a|c]|corrupted_client|wrong_type_client|   	domain_proxy
+		          |          client_expired|client_inapplicable
+                   corrupted_sas
+                   sas_expired
+
+
+ 
+unrecognized_ca                   non_cbrs_root_ca-------------------------
+         |                           |                                     \
+unrecognized_device|              non_cbrs_root_signed_cbsd_ca       non_cbrs_root_signed_sas_ca
+unrecognized_sas                     |                                     |
+                                  non_cbrs_signed_device             non_cbrs_root_signed_sas
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -49,7 +60,69 @@ Required certificates are:
 * `admin_client.[cert|key]`: leaf certificate signed by `sas_ca`.
   Used to authenticate the test harness when connecting to the SAS testing API.
 
+* `proxy_ca.cert`: intermediate Domain Proxy certificate authority for
+  all Domain Proxy Operator, signed by `root_ca`.
+
+* `domain_proxy.[cert|key]`: leaf Domain Proxy Operator certificate signed by
+  `proxy_ca`.
+  Used to authenticate a Domain proxy Operator connecting to a SAS server.
+
 * `ca.cert`: trusted certificates chain bundle. Contains all certificate CA
   used to verify the server chain and the client chain. Basically the
   concatenation of all intermediate certificate CA and root CA.
+
+* `unrecognized_root_ca.cert`: root certificate authority to generate unrecognized device
+  Self signed.
+  
+* `unrecognized_device.[cert|key]`: leaf CBSD device certificate signed by
+  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SCS_6.
+  
+* `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed.
+  Used on security test test_WINNF_FT_S_SCS_7.
+  
+* `self_signed_client.cert`: self signed certificate of client (CBSD) signed by client.key
+  Used on security test test_WINNF_FT_S_SCS_8.
+  
+* `non_cbrs_root_ca.cert`: a root certificate authority that is not approved as a CBRS root CA
+  Self signed.
+  Used on security test test_WINNF_FT_S_SCS_9.
+  
+* `non_cbrs_root_signed_cbsd_ca.cert`: an intermediate CBSD certificate authority for CBSD devices,
+  signed by `non_cbrs_root_ca`.
+  Used on security test test_WINNF_FT_S_SCS_9.
+  
+* `non_cbrs_signed_device.[cert|key]`: leaf CBSD certificate signed by
+  `non_cbrs_root_signed_cbsd_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SCS_9.
+  
+* `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
+  Used on security test test_WINNF_FT_S_SCS_10.
+  
+* `client_expired.[cert|key]`: leaf CBSD device expired certificate
+  Used on security test test_WINNF_FT_S_SCS_12.
+
+* `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
+  Used on security test test_WINNF_FT_S_SCS_15.
+
+* `unrecognized_sas.[cert|key]`: leaf SAS certificate signed by
+  `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SSS_6.
+  
+* `corrupted_sas.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
+  Used on security test test_WINNF_FT_S_SSS_7.
+  
+* `self_signed_sas.cert`: self signed certificate of SAS signed by sas.key
+  Used on security test test_WINNF_FT_S_SSS_8.
+  
+* `non_cbrs_root_signed_sas_ca.cert`: an intermediate SAS certificate authority for SAS,
+  signed by `non_cbrs_root_ca`.
+  Used on security test test_WINNF_FT_S_SSS_9.
+  
+* `non_cbrs_signed_sas.[cert|key]`: leaf SAS certificate signed by
+  `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
+  Used on security test test_WINNF_FT_S_SSS_9.
+
+* `sas_expired.[cert|key]`: leaf SAS expired certificate
+  Used on security test test_WINNF_FT_S_SSS_12.
 

@@ -795,3 +795,35 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[2]['response']['responseCode'], 500)
     self.assertLessEqual(datetime.strptime(
         response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.utcnow())
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_HBT_11(self):
+    """Out of sync Grant state between the CBSD and the SAS.
+
+    Returns response code 502 (UNSYNC_OP_PARAM).
+    """
+    # Load a device.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load grant.json
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Register the device and get a grant
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+
+    # Send a Heartbeat request.
+    heartbeat_request = [{
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'AUTHORIZED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), 1)
+
+    # Check the heartbeat response.
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[0]['grantId'], grant_ids[0])
+    self.assertEqual(response[0]['response']['responseCode'], 502)
