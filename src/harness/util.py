@@ -43,7 +43,7 @@ def _log_testcase_header(name, doc):
       logging.Formatter(
         '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+  logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
 
@@ -64,6 +64,8 @@ def configurable_testcase(default_config_function):
   """Decorator to make a test case configurable."""
 
   def internal_configurable_testcase(testcase):
+
+    _log_testcase_header(testcase.__name__, testcase.__doc__)
 
     def wrapper_function(func, name, config, generate_default_func):
       @wraps(func)
