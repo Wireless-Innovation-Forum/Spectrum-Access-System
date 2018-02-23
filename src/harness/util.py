@@ -21,7 +21,6 @@ import json
 import logging
 import os
 import random
-import sys
 import uuid
 import numpy as np
 from shapely import geometry
@@ -41,11 +40,6 @@ from shapely.geometry import shape, Point, LineString
 
 
 def _log_testcase_header(name, doc):
-  handler = logging.StreamHandler(sys.stdout)
-  handler.setFormatter(
-    logging.Formatter(
-      '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
-  logging.getLogger().addHandler(handler)
   logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
@@ -293,7 +287,7 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
-class QueryPropagationAntennaModel:
+class PropagationAntennaModelQuery:
     nlcd_driver = nlcd.NlcdDriver()
        
     def getPPinPPA(self, boundarysPoints, ARCSEC):   
@@ -318,72 +312,70 @@ class QueryPropagationAntennaModel:
                 for lon in longrid:
                     ppa_check_point = Point(lon, lat)
                     if ppa_check_point.within(poly):
-                            ppa.extend([[lat, lon]])
+                            ppa.append([lat, lon])
     
             if (len(ppa) == 1):
+                print ppa
                 return 0, ppa[0][0], ppa[0][1]
             else:
                 return -1, -1, -1
         else:
             return -1, -1, -1
     
-    def computePropagationAntennaModel(self, requestJson):
-        request = json.loads(requestJson)
-        reliabilityLevel = request['reliabilityLevel']
-        if reliabilityLevel not in [-1, 0.05, 0.95]:
-            response = 404
+    def computePropagationAntennaModel(self, request):
+        reliability_level = request['reliabilityLevel']
+        if reliability_level not in [-1, 0.05, 0.95]:
+            response = 400
             return response
-        Tx = request['cbsd']
+        tx = request['cbsd']
         if ('fss' in request) and ('ppa' in request):
-            response = 404
+            response = 400
             return response
         elif 'ppa' in request:
-            Rx ={}
-            Rx['height'] = 1.5
+            rx ={}
+            rx['height'] = 1.5
             isfss = False
             coordinates = [];
             ppa = request['ppa']
-            boundarypoints = []
-            for BP in ppa['geometry']['coordinates']:
-                boundarypoints.append([BP[1], BP[0]])
-            regionVal = self.nlcd_driver.RegionNlcdVote(boundarypoints)
-    
+
             ARCSEC = 2
             res, lat, lon = self.getPPinPPA(ppa['geometry']['coordinates'], ARCSEC)
             if res== 0:
-                Rx['latitude'] = lat
-                Rx['longitude']= lon
+                rx['latitude'] = lat
+                rx['longitude']= lon
             else:
-                response = 404
+                response = 400
                 return response
+            
+            region_val = self.nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
     
         elif 'fss' in request:
             isfss = True
-            Rx = request['fss']
+            rx = request['fss']
         else:
-            response = 404
+            response = 400
             return response
         
     # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
     # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
-        Result = {}
+        result = {}
         
         if isfss:
-            PathLoss = wf_itm.CalcItmPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=reliabilityLevel, freq_mhz=3625.)
-            Result['pathlossDb'] = PathLoss.db_loss
-            gainTxRx = antenna.GetStandardAntennaGains(PathLoss.incidence_angles.hor_cbsd, ant_azimuth=Tx['antennaAzimuth'], ant_beamwidth=Tx['antennaBeamwidth'], ant_gain=Tx['antennaGain'])
-            Result['txAntennaGainDbi'] = gainTxRx 
-            if 'rxAntennaGainRequired' in Rx:
-                hor_dirs = PathLoss.incidence_angles.hor_rx
-                ver_dirs = PathLoss.incidence_angles.ver_rx
-                gainRxTx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, Rx['antennaAzimuth'], Rx['antennaDowntilt'], Rx['antennaGain'])
-                Result['rxAntennaGainDbi'] = gainRxTx           
+            path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
+            result['pathlossDb'] = path_loss.db_loss
+            gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+            result['txAntennaGainDbi'] = gain_tx_rx 
+            if 'rxAntennaGainRequired' in rx:
+                hor_dirs = path_loss.incidence_angles.hor_rx
+                ver_dirs = path_loss.incidence_angles.ver_rx
+                gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], rx['antennaElevation'], rx['antennaGain'])
+                result['rxAntennaGainDbi'] = gain_rx_tx           
         else:
             
-            PathLoss = wf_hybrid.CalcHybridPropagationLoss(Tx['latitude'], Tx['longitude'], Tx['height'], Rx['latitude'], Rx['longitude'], Rx['height'], reliability=-1, freq_mhz=3625., region=regionVal)
-            Result['pathlossDb'] = PathLoss.db_loss
-            gainTxRx = antenna.GetStandardAntennaGains(PathLoss.incidence_angles.hor_cbsd, ant_azimuth=Tx['antennaAzimuth'], ant_beamwidth=Tx['antennaBeamwidth'], ant_gain=Tx['antennaGain'])
-            Result['txAntennaGainDbi'] = gainTxRx 
+            path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=-1, freq_mhz=3625., region=region_val)
+            result['pathlossDb'] = path_loss.db_loss
+            gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+            result['txAntennaGainDbi'] = gain_tx_rx 
             
     
-        return Result
+        return result

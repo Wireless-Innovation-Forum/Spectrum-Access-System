@@ -21,7 +21,7 @@ from os.path import isfile, join
 import sas
 import sas_testcase
 
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, QueryPropagationAntennaModel
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, PropagationAntennaModelQuery
   
 def cbsddata(device):
     installationParam = device['installationParam']
@@ -39,20 +39,22 @@ def cbsddata(device):
               'cbsdCategory': device['cbsdCategory']}
     return cbsd
 
-def fssdata(fss_record, rxAntennaGainRequired=None):
+def fssdata(fss_record, rx_antenna_gain_required=None):
     deploymentParam = fss_record['deploymentParam'][0]
     installationParam = deploymentParam['installationParam']
     if 'antennaAzimuth' not in installationParam:
-        installationParam['antennaAzimuth'] = ''
+        installationParam['antennaAzimuth'] = None
         
     fss = {'latitude': installationParam['latitude'],
              'longitude': installationParam['longitude'],
               'height': installationParam['height'],
               'antennaAzimuth': installationParam['antennaAzimuth'],
               'antennaGain': installationParam['antennaGain'],
-              'antennaDowntilt': installationParam['antennaDowntilt']}
-    if rxAntennaGainRequired is not None:
-        fss['rxAntennaGainRequired'] = rxAntennaGainRequired
+              'antennaElevation': installationParam['antennaDowntilt']}
+    if rx_antenna_gain_required is not None:
+        fss['rx_antenna_gain_required'] = rx_antenna_gain_required
+    else:
+        fss['rx_antenna_gain_required'] = False
     return fss
 
 
@@ -60,7 +62,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
-    self._sas_admin.Reset()
+    #self._sas_admin.Reset()
 
   def tearDown(self):
       pass
@@ -76,21 +78,18 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     fss_record_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_0['rxAntennaGainRequired'] = True
-    reliabilityLevel = -1
-    queries = {}
-    queries[0]= {'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)}
+    reliability_level = -1
+    config = {}
+    config[0]= {'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)}
 
     # Load PPA
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_3.json')))
      
-    reliabilityLevel = -1
-    queries[1] = {'reliabilityLevel': reliabilityLevel, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]}
+    reliability_level = -1
+    config[1] = {'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]}
 
-    # save file
-    with open(filename, "w") as outfile:
-        json.dump(queries, outfile, indent=4, separators=(',', ': '))
-      
+    writeConfig(filename, config)
       
   @configurable_testcase(generate_FT_S_PAT_default_config)
   def test_WINNF_FT_S_PAT_1(self, config_filename):
@@ -103,16 +102,16 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     The response should have the pathlossDb, txAntennaGainDbi
     """
     
-    propagationAntennaModel = QueryPropagationAntennaModel()
+    propagationAntennaModel = PropagationAntennaModelQuery()
 
     config = loadConfig(config_filename)
     for configItem in  config:
-       testjson= json.dumps(config[configItem])
+       request= config[configItem]
 
-       refResponse = propagationAntennaModel.computePropagationAntennaModel(testjson)
+       refResponse = propagationAntennaModel.computePropagationAntennaModel(request)
 
        try:
-           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(testjson)
+           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
            # Check response
            if 'pathlossDb' in refResponse:
                self.assertTrue(sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1)
@@ -121,4 +120,4 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
        except AssertionError as e:
            # Allow HTTP status 404
-           self.assertEqual(e.args[0], 404)
+           self.assertEqual(e.args[0], 400)
