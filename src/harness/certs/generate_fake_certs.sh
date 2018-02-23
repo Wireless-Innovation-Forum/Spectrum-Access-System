@@ -217,11 +217,11 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #Certificate for test case WINNF.FT.S.SCS.10 - Certificate of wrong type presented during registration
-#Creating a wrong type certificate by reusing the server.csr and having it signed by cbsd_ca.
+# Creating a wrong type certificate by reusing the server.csr and creating a server certificate.
 echo "\n\nGenerate wrong type certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in server.csr \
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out wrong_type_client.cert -outdir ./root \
-    -policy policy_anything -extensions wrong_cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
@@ -289,11 +289,11 @@ openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_roo
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SDS.10 - Certificate of wrong type presented during registration
-# Creating a wrong type certificate by reusing the server.csr and having it signed by proxy_ca.
+# Creating a wrong type certificate by reusing the server.csr and creating a server certificate.
 echo "\n\nGenerate wrong type certificate/key"
-openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in server.csr \
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out wrong_type_domain_proxy.cert -outdir ./root \
-    -policy policy_anything -extensions wrong_oper_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #Certificate for test case WINNF.FT.S.SDS.12 - Expired certificate presented during registration
