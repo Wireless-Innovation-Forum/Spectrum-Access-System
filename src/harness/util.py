@@ -18,30 +18,30 @@ from datetime import datetime
 from functools import wraps
 import inspect
 import json
+from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import sys
-import time
 import random
-import sys
 import uuid
+import jwt
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import jwt
 
 from shapely.geometry import shape, Point, LineString
 
-
 def _log_testcase_header(name, doc):
-  handler = logging.StreamHandler(sys.stdout)
-  handler.setFormatter(
-    logging.Formatter(
-      '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
-  logging.getLogger().addHandler(handler)
-  logging.getLogger().setLevel(logging.INFO)
+  if not len(logging.getLogger().handlers):
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(
+      logging.Formatter(
+        '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
 
@@ -205,7 +205,6 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
     # Converting from defaultdict to dict
     pal_records[index] = json.loads(json.dumps(pal_rec))
-
   return pal_records
 
 
@@ -249,6 +248,16 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   ppa_record = json.loads(json.dumps(ppa_record))
 
   return ppa_record, pal_records
+
+
+def assertContainsRequiredFields(schema_filename, response):
+  schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+  schema = json.load(open(schema_filename))
+  Draft4Validator.check_schema(schema)
+  schema_dir = os.path.dirname(os.path.realpath(schema_filename))
+  resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
+  # Raises ValidationError when incorrect response
+  validate(response, schema, resolver=resolver)
 
 
 def generateCpiRsaKeys():
@@ -362,3 +371,22 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+def getCertFilename(cert_name):
+  """Returns the absolute path of the file corresponding to the given |cert_name|.
+  """
+  harness_dir = os.path.dirname(os.path.abspath
+                                (inspect.getfile(inspect.currentframe())))
+  return os.path.join(harness_dir, 'certs', cert_name)
+
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: certificate file
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate, "rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint
