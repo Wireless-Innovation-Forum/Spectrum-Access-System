@@ -63,6 +63,8 @@ def configurable_testcase(default_config_function):
 
   def internal_configurable_testcase(testcase):
 
+    _log_testcase_header(testcase.__name__, testcase.__doc__)
+
     def wrapper_function(func, name, config, generate_default_func):
       @wraps(func)
       def _func(*a):
@@ -327,6 +329,7 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
 
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.

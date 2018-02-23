@@ -24,8 +24,8 @@ import os
 _BASE_DATA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  '..', '..', '..', '..', 'data'))
-
 ITU_DIR = os.path.join(_BASE_DATA_DIR, 'itu')
+CENSUS_TRACTS_DIR = os.path.join(_BASE_DATA_DIR, 'census_tracts')
 TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'ned')
 LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
 
@@ -44,3 +44,6 @@ def GetTerrainDir():
 
 def GetLandCoverDir():
   return LANDCOVER_DIR
+
+def GetCensusTractsDir():
+  return CENSUS_TRACTS_DIR
