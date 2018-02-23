@@ -18,6 +18,7 @@ from datetime import datetime
 from functools import wraps
 import inspect
 import json
+from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import sys
@@ -36,12 +37,13 @@ from shapely.geometry import shape, Point, LineString
 
 
 def _log_testcase_header(name, doc):
-  handler = logging.StreamHandler(sys.stdout)
-  handler.setFormatter(
-    logging.Formatter(
-      '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
-  logging.getLogger().addHandler(handler)
-  logging.getLogger().setLevel(logging.INFO)
+  if not len(logging.getLogger().handlers):
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(
+      logging.Formatter(
+        '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
   logging.info(doc)
 
@@ -62,6 +64,8 @@ def configurable_testcase(default_config_function):
   """Decorator to make a test case configurable."""
 
   def internal_configurable_testcase(testcase):
+
+    _log_testcase_header(testcase.__name__, testcase.__doc__)
 
     def wrapper_function(func, name, config, generate_default_func):
       @wraps(func)
@@ -205,7 +209,6 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
     # Converting from defaultdict to dict
     pal_records[index] = json.loads(json.dumps(pal_rec))
-
   return pal_records
 
 
@@ -249,6 +252,16 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
   ppa_record = json.loads(json.dumps(ppa_record))
 
   return ppa_record, pal_records
+
+
+def assertContainsRequiredFields(schema_filename, response):
+  schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+  schema = json.load(open(schema_filename))
+  Draft4Validator.check_schema(schema)
+  schema_dir = os.path.dirname(os.path.realpath(schema_filename))
+  resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
+  # Raises ValidationError when incorrect response
+  validate(response, schema, resolver=resolver)
 
 
 def generateCpiRsaKeys():
@@ -318,6 +331,7 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
 
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.

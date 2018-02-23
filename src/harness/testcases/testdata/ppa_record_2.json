@@ -3,6 +3,9 @@
   "creator": "admin_0",
   "usage": "PPA",
   "terminated": false,
+  "ppaInfo": {
+    "ppaRegionType": "RURAL"
+  },
   "zone": {
     "type": "FeatureCollection",
     "features": [

@@ -12,14 +12,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from datetime import datetime
 import json
+import logging
 import os
-import time
 
 import sas
 import sas_testcase
-from util import winnforum_testcase
+from util import winnforum_testcase, configurable_testcase, writeConfig, \
+  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests
 
 
 class RelinquishmentTestcase(sas_testcase.SasTestCase):
@@ -118,7 +118,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), 2)
     for resp in response:
       self.assertEqual(resp['cbsdId'], cbsd_id)
-      self.assertTrue(resp['response']['responseCode'] == 103)
+      self.assertTrue(resp['response']['responseCode'] in [103, 500])
       # No need to check transmitExpireTime since this is the first heartbeat.
 
   @winnforum_testcase
@@ -376,20 +376,20 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     ]}
 
     try:
-        response = self._sas.Relinquishment(request)['relinquishmentResponse']
+      response = self._sas.Relinquishment(request)['relinquishmentResponse']
 
-        # Check relinquishment response
-        self.assertEqual(len(response), 3)
-        for resp_number, resp in enumerate(response):
-          self.assertEqual(resp['cbsdId'], cbsd_id)
-          self.assertEqual(resp['grantId'], grant_id[resp_number])
-          self.assertEqual(resp['response']['responseCode'], 100)
+      # Check relinquishment response
+      self.assertEqual(len(response), 3)
+      for resp_number, resp in enumerate(response):
+        self.assertEqual(resp['cbsdId'], cbsd_id)
+        self.assertEqual(resp['grantId'], grant_id[resp_number])
+        self.assertEqual(resp['response']['responseCode'], 100)
     except AssertionError as e:
-        # Allow HTTP status 404
-        self.assertEqual(e.args[0], 404)
+      # Allow HTTP status 404
+      self.assertEqual(e.args[0], 404)
     finally:
-        # Put sas version back
-        self._sas._sas_version = version
+      # Put sas version back
+      self._sas._sas_version = version
 
   @winnforum_testcase
   def test_WINNF_FT_S_RLQ_5(self):
@@ -460,4 +460,162 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self.assertFalse('cbsdId' in response[response_num])
       self.assertFalse('grantId' in response[response_num])
       self.assertEqual(response[response_num]['response']['responseCode'], 102)
+
+  def generate_RLQ_6_default_config(self, filename):
+    """Generates the WinnForum configuration for RLQ.6."""
+
+    # Load device info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Load grant.json
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Device_a and device_c are Category A.
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_c['cbsdCategory'], 'A')
+
+    # Device_b is Category B with conditionals pre-loaded.
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam']
+    }
+    conditionals = {'registrationData': [conditionals_b]}
+    del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+
+    # Relinquishment requests (filled in during test execution):
+    # device_a and device_b will use the correct CBSD ID and Grant ID
+    relinquish_a = {}
+    relinquish_b = {}
+    # device_c's CBSD ID will be filled in but Grant ID param will be removed
+    # due to the 'REMOVE' keyword.
+    relinquish_c = {'grantId': 'REMOVE'}
+
+    # Create the actual config.
+    devices = [device_a, device_c, device_b]
+    grant_requests = [grant_a, grant_c, grant_b]
+    # The CBSD ID from the 0th device (i.e. device_a) in the registration
+    # request and the Grant ID from the 0th grant request (corresponding to the
+    # 0th CBSD) will be used in this relinquishment request.
+    relinquishment_requests1 = [{'cbsdId': 0, 'grantId': 0}]
+    relinquishment_requests2 = [relinquish_a, relinquish_c, relinquish_b]
+    config = {
+        'registrationRequests': devices,
+        'conditionalRegistrationData': conditionals,
+        'grantRequests': grant_requests,
+        'relinquishmentRequestsFirst': relinquishment_requests1,
+        'relinquishmentRequestsSecond': relinquishment_requests2,
+        'expectedResponseCodesFirst': [(0,)],
+        # First request is a "re-relinquishment" => INVALID_VALUE for Grant ID
+        # Second request is missing Grant ID => MISSING_PARAM
+        # Third request is first relinquishment, all valid params => SUCCESS
+        'expectedResponseCodesSecond': [(103,), (102,), (0,)]
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_RLQ_6_default_config)
+  def test_WINNF_FT_S_RLQ_6(self, config_filename):
+    """[Configurable] Multiple Relinquishments."""
+
+    config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertEqual(
+        len(config['relinquishmentRequestsFirst']),
+        len(config['expectedResponseCodesFirst']))
+    self.assertEqual(
+        len(config['relinquishmentRequestsSecond']),
+        len(config['expectedResponseCodesSecond']))
+
+    # Whitelist FCC IDs.
+    for device in config['registrationRequests']:
+      self._sas_admin.InjectFccId({
+          'fccId': device['fccId'],
+          'fccMaxEirp': 47
+      })
+
+    # Whitelist user IDs.
+    for device in config['registrationRequests']:
+      self._sas_admin.InjectUserId({'userId': device['userId']})
+
+    # Register devices and get grants
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], config['grantRequests'],
+          config['conditionalRegistrationData'])
+    else:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], config['grantRequests'])
+
+    # First relinquishment
+    relinquishment_request = config['relinquishmentRequestsFirst']
+    addCbsdIdsToRequests(cbsd_ids, relinquishment_request)
+    addGrantIdsToRequests(grant_ids, relinquishment_request)
+    request = {'relinquishmentRequest': relinquishment_request}
+
+    responses = self._sas.Relinquishment(request)['relinquishmentResponse']
+    # Check relinquishment response
+    self.assertEqual(len(responses), len(config['expectedResponseCodesFirst']))
+    relinquished_grant_ids = []
+    for i, response in enumerate(responses):
+      expected_response_codes = config['expectedResponseCodesFirst'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      # "If the corresponding request contained a valid cbsdId and grantId, the
+      # response shall contain the same grantId."
+      if 'cbsdId' and 'grantId' in relinquishment_request[i]:
+        if (relinquishment_request[i]['cbsdId'] in cbsd_ids) and (
+            relinquishment_request[i]['grantId'] in grant_ids):
+          cbsd_index = cbsd_ids.index(relinquishment_request[i]['cbsdId'])
+          grant_index = grant_ids.index(relinquishment_request[i]['grantId'])
+          # Check if CBSD ID is paired with the corresponding Grant ID.
+          if cbsd_index == grant_index:
+            self.assertEqual(response['grantId'],
+                             relinquishment_request[i]['grantId'])
+            relinquished_grant_ids.append(response['grantId'])
+    del request, responses
+
+    # Second relinquishment
+    relinquishment_request = config['relinquishmentRequestsSecond']
+    addCbsdIdsToRequests(cbsd_ids, relinquishment_request)
+    addGrantIdsToRequests(grant_ids, relinquishment_request)
+    request = {'relinquishmentRequest': relinquishment_request}
+    responses = self._sas.Relinquishment(request)['relinquishmentResponse']
+    # Check relinquishment response
+    self.assertEqual(len(responses), len(config['expectedResponseCodesSecond']))
+    for i, response in enumerate(responses):
+      expected_response_codes = config['expectedResponseCodesSecond'][i]
+      logging.debug('Looking at response number %d', i)
+      logging.debug('Expecting to see response code in set %s in response: %s',
+                    expected_response_codes, response)
+      self.assertIn(response['response']['responseCode'],
+                    expected_response_codes)
+      if 'cbsdId' and 'grantId' in relinquishment_request[i]:
+        if (relinquishment_request[i]['cbsdId'] in cbsd_ids) and (
+            relinquishment_request[i]['grantId'] in grant_ids):
+          cbsd_index = cbsd_ids.index(relinquishment_request[i]['cbsdId'])
+          grant_index = grant_ids.index(relinquishment_request[i]['grantId'])
+          if cbsd_index == grant_index:
+            if relinquishment_request[i][
+                'grantId'] not in relinquished_grant_ids:
+              self.assertEqual(response['grantId'],
+                               relinquishment_request[i]['grantId'])
 
