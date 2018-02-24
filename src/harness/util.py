@@ -22,8 +22,7 @@ import logging
 import os
 import random
 import uuid
-import numpy as np
-from shapely import geometry
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -33,12 +32,15 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.geo import nlcd
+from reference_models.ppa.utils import ComputePPAProtectionPoints
 
 import jwt
 
 from shapely.geometry import shape, Point, LineString
 
 
+nlcd_driver = nlcd.NlcdDriver()
+    
 def _log_testcase_header(name, doc):
   logging.getLogger().setLevel(logging.INFO)
   logging.info('Running WinnForum test case %s:', name)
@@ -286,96 +288,61 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+     
+def computePropagationAntennaModel(request):
+    reliability_level = request['reliabilityLevel']
+    if reliability_level not in [-1, 0.05, 0.95]:
+        response = 400
+        return response
+    tx = request['cbsd']
+    if ('fss' in request) and ('ppa' in request):
+        response = 400
+        return response
+    elif 'ppa' in request:
+        rx ={}
+        rx['height'] = 1.5
+        isfss = False
+        coordinates = [];
+        ppa = request['ppa']
 
-class PropagationAntennaModelQuery:
-    nlcd_driver = nlcd.NlcdDriver()
-       
-    def getPPinPPA(self, boundarysPoints, ARCSEC):   
-        poly = geometry.Polygon([[lon,lat] for lon,lat in boundarysPoints])
-        arcsec = ARCSEC/3600.0
-        minlon, minlat, maxlon, maxlat = poly.bounds
-        
-        iLat = np.floor(minlat)
-        iLon = np.floor(minlon)
-        nL = np.floor((minlat - iLat)/arcsec)
-        nH = np.ceil((maxlat - iLat)/arcsec)
-        mL = np.floor((minlon - iLon)/arcsec)
-        mH = np.ceil((maxlon - iLon)/arcsec)
-            
-        latgrid = np.arange(iLat + nL*arcsec, iLat + nH*arcsec, arcsec)
-        longrid = np.arange(iLon + mL*arcsec, iLon + mH*arcsec, arcsec)
-        
-        if len(latgrid) > 0 and len(latgrid)>0:
-            ppa = []
-    
-            for lat in latgrid:
-                for lon in longrid:
-                    ppa_check_point = Point(lon, lat)
-                    if ppa_check_point.within(poly):
-                            ppa.append([lat, lon])
-    
-            if (len(ppa) == 1):
-                print ppa
-                return 0, ppa[0][0], ppa[0][1]
-            else:
-                return -1, -1, -1
+        ARCSEC = 2
+        ppa_points = ComputePPAProtectionPoints(ppa['geometry']['coordinates'], ARCSEC)
+        if len(ppa_points) == 1:
+            rx['latitude'] = ppa_points[0][0]
+            rx['longitude']= ppa_points[0][1]
         else:
-            return -1, -1, -1
-    
-    def computePropagationAntennaModel(self, request):
-        reliability_level = request['reliabilityLevel']
-        if reliability_level not in [-1, 0.05, 0.95]:
             response = 400
             return response
-        tx = request['cbsd']
-        if ('fss' in request) and ('ppa' in request):
-            response = 400
-            return response
-        elif 'ppa' in request:
-            rx ={}
-            rx['height'] = 1.5
-            isfss = False
-            coordinates = [];
-            ppa = request['ppa']
+        
+        region_val = nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
 
-            ARCSEC = 2
-            res, lat, lon = self.getPPinPPA(ppa['geometry']['coordinates'], ARCSEC)
-            if res== 0:
-                rx['latitude'] = lat
-                rx['longitude']= lon
-            else:
-                response = 400
-                return response
-            
-            region_val = self.nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
+    elif 'fss' in request:
+        isfss = True
+        rx = request['fss']
+    else:
+        response = 400
+        return response
     
-        elif 'fss' in request:
-            isfss = True
-            rx = request['fss']
-        else:
-            response = 400
-            return response
+# ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
+# The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
+    result = {}
+    
+    if isfss:
+        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
+        result['pathlossDb'] = path_loss.db_loss
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        result['txAntennaGainDbi'] = gain_tx_rx 
+        if 'rxAntennaGainRequired' in rx:
+            hor_dirs = path_loss.incidence_angles.hor_rx
+            ver_dirs = path_loss.incidence_angles.ver_rx
+            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], rx['antennaElevation'], rx['antennaGain'])
+            result['rxAntennaGainDbi'] = gain_rx_tx           
+    else:
         
-    # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
-    # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
-        result = {}
+        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=-1, freq_mhz=3625., region=region_val)
+        result['pathlossDb'] = path_loss.db_loss
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        result['txAntennaGainDbi'] = gain_tx_rx 
         
-        if isfss:
-            path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
-            result['pathlossDb'] = path_loss.db_loss
-            gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-            result['txAntennaGainDbi'] = gain_tx_rx 
-            if 'rxAntennaGainRequired' in rx:
-                hor_dirs = path_loss.incidence_angles.hor_rx
-                ver_dirs = path_loss.incidence_angles.ver_rx
-                gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], rx['antennaElevation'], rx['antennaGain'])
-                result['rxAntennaGainDbi'] = gain_rx_tx           
-        else:
-            
-            path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=-1, freq_mhz=3625., region=region_val)
-            result['pathlossDb'] = path_loss.db_loss
-            gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-            result['txAntennaGainDbi'] = gain_tx_rx 
-            
     
         return result

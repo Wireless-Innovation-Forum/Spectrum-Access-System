@@ -21,13 +21,17 @@ from os.path import isfile, join
 import sas
 import sas_testcase
 
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, PropagationAntennaModelQuery
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, computePropagationAntennaModel
   
 def cbsddata(device):
     installationParam = device['installationParam']
     if 'antennaAzimuth' not in installationParam:
         installationParam['antennaAzimuth'] = None
-        
+    if 'antennaBeamwidth' not in installationParam:
+        installationParam['antennaBeamwidth'] = None
+    if 'antennaGain' not in installationParam:
+        installationParam['antennaGain'] = 0
+                
     cbsd = {'latitude': installationParam['latitude'],
              'longitude': installationParam['longitude'],
               'height': installationParam['height'],
@@ -50,7 +54,7 @@ def fssdata(fss_record, rx_antenna_gain_required=None):
               'height': installationParam['height'],
               'antennaAzimuth': installationParam['antennaAzimuth'],
               'antennaGain': installationParam['antennaGain'],
-              'antennaElevation': installationParam['antennaDowntilt']}
+              'antennaElevation': -installationParam['antennaDowntilt']}
     if rx_antenna_gain_required is not None:
         fss['rx_antenna_gain_required'] = rx_antenna_gain_required
     else:
@@ -62,7 +66,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
-    #self._sas_admin.Reset()
+    self._sas_admin.Reset()
 
   def tearDown(self):
       pass
@@ -102,22 +106,28 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     The response should have the pathlossDb, txAntennaGainDbi
     """
     
-    propagationAntennaModel = PropagationAntennaModelQuery()
-
     config = loadConfig(config_filename)
+    num_tests = len(config)
+    test_pass_threshold = 1.00
+    passed_tests = 0.0
     for configItem in  config:
        request= config[configItem]
 
-       refResponse = propagationAntennaModel.computePropagationAntennaModel(request)
+       refResponse = computePropagationAntennaModel(request)
 
        try:
            sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
            # Check response
-           if 'pathlossDb' in refResponse:
-               self.assertTrue(sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1)
-               self.assertTrue(sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-           if 'rxAntennaGainDbi' in refResponse:
-               self.assertTrue(sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+           this_test = False
+           if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
+               this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+                   
+               if 'rxAntennaGainDbi' in refResponse:
+                   this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+           passed_tests += this_test*1.0
        except AssertionError as e:
-           # Allow HTTP status 404
-           self.assertEqual(e.args[0], 400)
+           # Allow HTTP status 400
+           if (refResponse == 400) and (e.args[0] == 400):
+               passed_tests += 1.0
+
+    self.assertTrue(passed_tests > num_tests * test_pass_threshold)
