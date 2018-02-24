@@ -300,3 +300,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
 
+  def InjectPeerSas(self,request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' %
+                  self._base_url, request, self._tls_config)
+

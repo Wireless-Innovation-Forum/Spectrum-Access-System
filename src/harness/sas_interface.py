@@ -447,6 +447,16 @@ class SasAdminInterface(object):
     """   
     pass
 
+  @abc.abstractmethod
+  def InjectPeerSas(self, request):
+    """
+        SAS admin interface to whitelist a peer SAS in SAS under test 
+    Args:
+        request: A dictionary with two key-value pair,
+        "certificateHash" : (string) it represents the sha1 fingerprint of the certificate
+        "url": Base URL of the peer SAS
+    """
+    pass 
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -556,5 +566,4 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-  
 
