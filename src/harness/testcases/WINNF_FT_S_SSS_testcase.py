@@ -21,6 +21,7 @@ getCertificateFingerprint
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
 SAS_TH_URL = "https://localhost:5000/v1.2"
+
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
 
