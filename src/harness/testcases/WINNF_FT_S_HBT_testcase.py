@@ -796,6 +796,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertLessEqual(datetime.strptime(
         response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.utcnow())
 
+  @winnforum_testcase
   def test_WINNF_FT_S_HBT_11(self):
     """Out of sync Grant state between the CBSD and the SAS.
 
