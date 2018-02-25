@@ -22,19 +22,17 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import sys
-import time
 import random
-import sys
 import uuid
+import jwt
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import jwt
 
 from shapely.geometry import shape, Point, LineString
-
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -376,3 +374,22 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+def getCertFilename(cert_name):
+  """Returns the absolute path of the file corresponding to the given |cert_name|.
+  """
+  harness_dir = os.path.dirname(os.path.abspath
+                                (inspect.getfile(inspect.currentframe())))
+  return os.path.join(harness_dir, 'certs', cert_name)
+
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: certificate file
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate, "rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint

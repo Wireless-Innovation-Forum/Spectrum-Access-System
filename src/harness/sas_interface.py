@@ -556,5 +556,20 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
+
+
+    @abc.abstractmethod
+  def TriggerCreateFullActivityDump(self):
+    """
+    Trigger SAS to create a full activity dump
+    """
+    pass
+
+  def InjectPeerSas(self, request):
+    """
+        Inject peer SAS
+    """
+    pass
+
   
 
