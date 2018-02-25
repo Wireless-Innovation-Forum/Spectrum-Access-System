@@ -1,0 +1,26 @@
+{
+  "fccId": "321cba_1",
+  "cbsdCategory": "A",
+  "callSign": "KPPP",
+  "userId": "John Doe",
+  "airInterface": {
+    "radioTechnology": "E_UTRA",
+    "supportedSpec": "LTE-Rel10"
+  },
+  "cbsdInfo": {
+    "vendor": "Equipment Maker C"
+  },
+  "cbsdSerialNumber": "4321dcba_1",
+  "measCapability": [],
+  "installationParam": {
+    "latitude": 36.7666,
+    "longitude": -76.1267,
+    "heightType": "AMSL",
+    "height": 8.69,
+    "indoorDeployment": false,
+    "antennaAzimuth": 90,
+    "antennaDowntilt": 3,
+    "antennaGain": 16,
+    "antennaBeamwidth": 30
+  }
+}
