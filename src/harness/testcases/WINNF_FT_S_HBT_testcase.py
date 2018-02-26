@@ -1103,3 +1103,4 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['grantId'], grant_id)
+
