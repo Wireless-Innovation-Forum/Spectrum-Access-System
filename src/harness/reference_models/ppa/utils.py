@@ -24,3 +24,6 @@ def ComputePPAProtectionPoints(boundary_points, resolution_arcsec):
         return [[pt.x, pt.y] for pt in ppa_points]
     elif ppa_points.geom_type == 'Point':
         return [[ppa_points.x, ppa_points.y]] 
+    else:
+        return []
+
