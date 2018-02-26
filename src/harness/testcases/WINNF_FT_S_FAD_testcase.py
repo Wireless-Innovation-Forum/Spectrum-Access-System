@@ -213,7 +213,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             'conditionalRegistrationData': conditionals,
             'grantRequests': grants,
             'ppas': ppas,
-            'pals': pals,
+            'palRecords ': pals,
             'escSensors' : esc_sensors
         }
         writeConfig(filename, config)
@@ -262,7 +262,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(grant_response['response']['responseCode'], 0)       
         # inject PALs and N2 PPAs
         ppa_ids = []       
-        for pal in config['pals']:
+        for pal in config['palRecords']:
             self._sas_admin.InjectPalDatabaseRecord(pal)
                        
         for ppa in config['ppas']:
