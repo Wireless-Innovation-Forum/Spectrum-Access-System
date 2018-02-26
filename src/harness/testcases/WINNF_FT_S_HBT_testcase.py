@@ -836,6 +836,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     }
     conditionals = {'registrationData': [conditionals_b]}
     del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
 
     # Create the actual config.
     devices = [device_a, device_c, device_b]
@@ -845,9 +847,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     config = {
         'fccIdsBlacklist': [d['fccId'] for d in blacklist_devices],
         'conditionalRegistrationData': conditionals,
-        'registrationRequest': devices,
-        'grantRequest': grant_requests,
-        'heartbeatRequest': heartbeat_requests,
+        'registrationRequests': devices,
+        'grantRequests': grant_requests,
+        'heartbeatRequests': heartbeat_requests,
         # First request has a blacklisted CBSD => BLACKLISTED
         # Second request is missing Grant ID => MISSING_PARAM
         # Third request has all valid params => SUCCESS
@@ -863,29 +865,40 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     # Very light checking of the config file.
     self.assertEqual(
-        len(config['registrationRequest']), len(config['grantRequest']))
+        len(config['registrationRequests']), len(config['grantRequests']))
     self.assertEqual(
-        len(config['grantRequest']), len(config['heartbeatRequest']))
+        len(config['grantRequests']), len(config['heartbeatRequests']))
     self.assertEqual(
-        len(config['heartbeatRequest']),
+        len(config['heartbeatRequests']),
         len(config['expectedResponseCodes']))
 
     # Whitelist FCC IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectFccId({
           'fccId': device['fccId'],
           'fccMaxEirp': 47
       })
 
     # Whitelist user IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices
-    cbsd_ids = self.assertRegistered(config['registrationRequest'],
-                                     config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
+    request = {'registrationRequest': config['registrationRequests']}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
+
     # Request grant
-    grant_request = config['grantRequest']
+    grant_request = config['grantRequests']
     addCbsdIdsToRequests(cbsd_ids, grant_request)
     request = {'grantRequest': grant_request}
 
@@ -905,12 +918,12 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     for fcc_id in config['fccIdsBlacklist']:
       self._sas_admin.BlacklistByFccId({'fccId': fcc_id})
     blacklisted_cbsd_ids = []
-    for cbsd_id, request in zip(cbsd_ids, config['registrationRequest']):
+    for cbsd_id, request in zip(cbsd_ids, config['registrationRequests']):
       if request['fccId'] in config['fccIdsBlacklist']:
         blacklisted_cbsd_ids.append(cbsd_id)
 
     # First Heartbeat Request
-    heartbeat_request = config['heartbeatRequest']
+    heartbeat_request = config['heartbeatRequests']
     addCbsdIdsToRequests(cbsd_ids, heartbeat_request)
     addGrantIdsToRequests(grant_ids, heartbeat_request)
     request = {'heartbeatRequest': heartbeat_request}
@@ -959,3 +972,134 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_HBT_11(self):
+    """Out of sync Grant state between the CBSD and the SAS.
+
+    Returns response code 502 (UNSYNC_OP_PARAM).
+    """
+    # Load a device.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load grant.json
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Register the device and get a grant
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+
+    # Send a Heartbeat request.
+    heartbeat_request = [{
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_ids[0],
+        'operationState': 'AUTHORIZED'
+    }]
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), 1)
+
+    # Check the heartbeat response.
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[0]['grantId'], grant_ids[0])
+    self.assertEqual(response[0]['response']['responseCode'], 502)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_HBT_12(self):
+    """The grant is SUSPENDED or TERMINATED in the heartbeat response.
+
+     Heartbeat Response Code for Step 7 and 8, should  be:
+     - 500(TERMINATED_GRANT) or 501(SUSPENDED_GRANT)
+    """
+    # Load DPAs and ensure all DPAs are inactive
+    self._sas_admin.TriggerLoadDpas()
+    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
+
+    # Load a device.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # CBSD located in DPA 6 neighborhood
+    device_a['installationParam']['latitude'] = 36.7115375795
+    device_a['installationParam']['longitude'] = -76.0162751808
+
+    # Register device
+    cbsd_ids = self.assertRegistered([device_a])
+
+    # Step 3: Send grant request and check grant response
+    grant_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0['cbsdId'] = cbsd_ids[0]
+    grant_0['operationParam']['operationFrequencyRange'][
+        'lowFrequency'] = 3550000000
+    grant_0['operationParam']['operationFrequencyRange'][
+        'highFrequency'] = 3560000000
+    grant_0['operationParam']['maxEirp'] = 20
+    request = {'grantRequest': [grant_0]}
+    response = self._sas.Grant(request)['grantResponse'][0]
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertTrue('grantId' in response)
+    grant_expire_time = datetime.strptime(response['grantExpireTime'],
+                                          '%Y-%m-%dT%H:%M:%SZ')
+    grant_id = response['grantId']
+    heartbeat_request = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+    }
+    del request, response
+
+    # Step 4: Send heartbeat request and check heartbeat response
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
+    self.assertEqual(response['response']['responseCode'], 0)
+    self.assertEqual(response['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response['grantId'], grant_id)
+    del request, response
+
+    # Step 5: Activate DPA on channel 3550 - 3560 MHz
+    self._sas_admin.TriggerDpaActivation({
+        'frequencyRange': {
+            'lowFrequency': 3550000000,
+            'highFrequency': 3560000000
+        },
+        'dpaId': 'east_dpa6',
+    })
+
+    # Step 6: Sleep 240 seconds
+    time.sleep(240)
+
+    # Step 7
+    heartbeat_request = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+    }
+    # Send heartbeat request and Check heartbeat response
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    self.assertEqual(len(response), 1)
+    self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[0]['grantId'], grant_id)
+    if response['response']['responseCode'] == 500:
+      return
+
+    # Sleep 240 seconds
+    time.sleep(240)
+    self.assertLess(datetime.utcnow(), grant_expire_time)
+
+    # Step 8 - Heartbeat request with operationState = GRANTED
+    heartbeat_request = {
+        'cbsdId': cbsd_ids[0],
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+    }
+    request = {'heartbeatRequest': heartbeat_request}
+    response = self._sas.Heartbeat(request)['heartbeatResponse']
+    # Check heartbeat response
+    self.assertEqual(len(response), 1)
+    self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
+    self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
+    self.assertEqual(response[0]['grantId'], grant_id)
