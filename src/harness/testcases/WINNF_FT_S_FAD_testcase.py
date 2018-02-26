@@ -309,7 +309,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for ppa_record in ppa_dump_data:
             self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)              
             self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
-            self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin)
+            self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin_id)
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
         for index, ppa in enumerate(config['ppas']):
@@ -325,7 +325,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for esc_record in esc_sensor_dump_data:                    
             self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
             self.assertEqual(esc_record['id'].split("/")[0], 'esc_sensor')
-            self.assertEqual(esc_record['id'].split("/")[1], self._sas._sas_admin)
+            self.assertEqual(esc_record['id'].split("/")[1], self._sas._sas_admin_id)
             del esc_record['id'] 
         # verify that all the injected Esc sensors exist in the dump files                 
         for esc in config['escSensors']:
