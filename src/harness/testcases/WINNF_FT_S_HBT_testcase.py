@@ -1104,3 +1104,4 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['grantId'], grant_id)
 
+

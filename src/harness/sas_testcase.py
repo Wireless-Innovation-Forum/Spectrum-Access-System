@@ -17,11 +17,14 @@ import json
 from jsonschema import validate, Draft4Validator, RefResolver
 from datetime import datetime
 import os
+import logging
 import unittest
 import sas_interface
 import sas
 import signal
 import time
+
+import util
 
 class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
   def setUp(self):
@@ -32,13 +35,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     pass
 
   def assertContainsRequiredFields(self, schema_filename, response):
-    schema_filename = os.path.join('..', '..', 'schema', schema_filename)
-    schema = json.load(open(schema_filename))
-    Draft4Validator.check_schema(schema)
-    schema_dir = os.path.dirname(os.path.realpath(schema_filename))
-    resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
-    # Raises ValidationError when incorrect response
-    validate(response, schema, resolver=resolver)
+    util.assertContainsRequiredFields(schema_filename, response)
 
   def assertValidResponseFormatForApprovedGrant(self, grant_response):
     # Check required string fields
@@ -63,8 +60,12 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     if conditional_registration_data:
       self._sas_admin.PreloadRegistrationData(conditional_registration_data)
 
+    # Pass the correct client cert and key in Registration request
+    ssl_cert = self._sas._tls_config.client_cert
+    ssl_key = self._sas._tls_config.client_key
+
     request = {'registrationRequest': registration_request}
-    response = self._sas.Registration(request)['registrationResponse']
+    response = self._sas.Registration(request,ssl_cert=ssl_cert,ssl_key=ssl_key)['registrationResponse']
 
     # Check the registration response; collect CBSD IDs
     cbsd_ids = []
@@ -85,9 +86,14 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     for cbsd_id, grant_req in zip(cbsd_ids, grant_request):
       grant_req['cbsdId'] = cbsd_id
 
+
+    # Pass the correct client cert and key in Grant request
+    ssl_cert = self._sas._tls_config.client_cert
+    ssl_key = self._sas._tls_config.client_key
+
     grant_ids = []
     request = {'grantRequest': grant_request}
-    grant_response = self._sas.Grant(request)['grantResponse']
+    grant_response = self._sas.Grant(request,ssl_cert=ssl_cert,ssl_key=ssl_key)['grantResponse']
 
     # Check the grant response
     for cbsd_id, grant_resp in zip(cbsd_ids, grant_response):
@@ -112,8 +118,13 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
         'operationState': operation_state
       })
 
+
+    # Pass the correct client cert and key in HeartBeat request
+    ssl_cert = self._sas._tls_config.client_cert
+    ssl_key = self._sas._tls_config.client_key
+
     heartbeat_response = self._sas.Heartbeat({
-      'heartbeatRequest': heartbeat_requests})['heartbeatResponse']
+      'heartbeatRequest': heartbeat_requests},ssl_cert=ssl_cert, ssl_key=ssl_key)['heartbeatResponse']
 
     for index, response in enumerate(heartbeat_response):
       # Check the heartbeat response
@@ -142,12 +153,8 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     signal.alarm(0)
     
   def assertChannelsContainFrequencyRange(self, channels, frequency_range):
-    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], \
-                                  ch['frequencyRange']['highFrequency']), reverse = False)
+    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], ch['frequencyRange']['highFrequency']), reverse = False)
     for index, channel in  enumerate(channels):
-        if index == (len(channels) - 1):
-            self.assertEqual(channel['frequencyRange']['highFrequency'],\
-             frequency_range['highFrequency'])
         if index == 0:
            self.assertEqual(channel['frequencyRange']['lowFrequency'],\
              frequency_range['lowFrequency'])
@@ -155,3 +162,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
             self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
                                  channels[index - 1]\
                                  ['frequencyRange']['highFrequency'])
+            
+    channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
+    self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
+             frequency_range['highFrequency'])
