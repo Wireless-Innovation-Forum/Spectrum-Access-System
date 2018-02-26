@@ -167,7 +167,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
              frequency_range['highFrequency'])
    
-  def TriggerFullActivityDumpAndWaitUntilComplete(self):
+  def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     self._sas_admin.TriggerFullActivityDump()
     request_time = datetime.utcnow()
     signal.signal(signal.SIGALRM,
@@ -177,7 +177,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     signal.alarm(7200)
     # Check generation date of full activity dump 
     while True:
-	  dump_message = self._sas.GetFullActivityDump()
+	  dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
 	  dump_time = datetime.strptime(dump_message['generationDateTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
 	  time.sleep(10)

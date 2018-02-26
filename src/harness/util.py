@@ -30,9 +30,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-
 import jwt
-
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from shapely.geometry import shape, Point, LineString
 
 
@@ -394,3 +393,22 @@ def compareDict(first_dict, second_dict):
     second_dict: second dictionary to be compared.
   """
   return _orderAttributes(first_dict) ==  _orderAttributes(second_dict)
+
+def getCertFilename(cert_name):
+  """Returns the absolute path of the file corresponding to the given |cert_name|.
+  """
+  harness_dir = os.path.dirname(os.path.abspath
+                                (inspect.getfile(inspect.currentframe())))
+  return os.path.join(harness_dir, 'certs', cert_name)
+
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: certificate file
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate, "rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint

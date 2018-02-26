@@ -307,6 +307,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
   def TriggerDpaDeactivation(self, request):
     pass
+
+  def InjectPeerSas(self, request):
+	pass
+
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
   def SetVersion(cls, version):
@@ -363,7 +367,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
-                       '/admin/trigger/create_full_activity_dump'):
+                       '/admin/trigger/create_full_activity_dump',
+                       '/admin/injectdata/peer_sas'):
       response = ''
     else:
       self.send_response(404)

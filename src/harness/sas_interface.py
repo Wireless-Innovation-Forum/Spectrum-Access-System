@@ -472,6 +472,16 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def InjectPeerSas(self, request):
+	"""SAS admin interface to Inject Peer Sas
+	Args:
+      request: A dictionary with the following key-value pairs:
+	  "certificateHash": hash of the certificate of the peer SAS
+	  "url": the url of the peer SAS implementation that the SAS UUT will use to send requests
+    """
+	pass
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 

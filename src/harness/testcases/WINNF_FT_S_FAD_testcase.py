@@ -15,7 +15,8 @@ import json
 import os
 import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
- configurable_testcase, writeConfig, loadConfig, compareDict
+ configurable_testcase, writeConfig, loadConfig, compareDict, getCertFilename,\
+ getCertificateFingerprint
 import sas_testcase
 import hashlib
 from datetime import datetime, timedelta
@@ -208,13 +209,22 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         esc_sensors = []
         esc_sensors.append(json.load(
               open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
-        config = {
+
+		# SAS Harness Test
+		sas_harness_config = {
+			'sasTHName': 'SAS-TH-2',
+			'url': 'https://localhost:9003/v1.2',
+			'serverCert': getCertFilename("server.cert"),
+			'serverKey': getCertFilename("server.key")}
+		
+		config = {
             'registrationRequests': devices,
             'conditionalRegistrationData': conditionals,
             'grantRequests': grants,
             'ppas': ppas,
             'palRecords ': pals,
-            'escSensors' : esc_sensors
+            'escSensors' : esc_sensors,
+			'sasHarness' : sas_harness_config
         }
         writeConfig(filename, config)
     
@@ -269,10 +279,15 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
         # inject N3 Esc sensor
         for esc_sensor in config['escSensors']:
-            self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})   
-            
-        # STEP 3
-        response = self.TriggerFullActivityDumpAndWaitUntilComplete()
+            self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
+		# STEP 3
+		# Notify the SAS UUT about the SAS Test Harness
+		sas_th_config = config['sasHarness']		
+		certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
+		self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': sas_th_config['url']})
+
+        response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
         # STEP 5
         # check dump message format
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
@@ -288,7 +303,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                                dump_file[0])
             downloaded_file = None
             if dump_file['recordType'] != 'CoordinationEvent':                
-                downloaded_file = self._sas.DownloadFile(dump_file['url'])
+                downloaded_file = self._sas.DownloadFile(dump_file['url'],\
+				    sas_th_config['serverCert'], sas_th_config['serverKey'])
                 datetime.strptime(downloaded_file['startTime'],\
                                                      '%Y-%m-%dT%H:%M:%SZ')
                 datetime.strptime(downloaded_file['endTime'],\
