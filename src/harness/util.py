@@ -234,7 +234,7 @@ def generateCpiEcKeys():
   Returns:
     A tuple (private_key, public key) as PEM string encoded.
   """
-  ec_key = ec.generate_private_key(ec.SECP521R1(), default_backend())
+  ec_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
   ec_private_key = ec_key.private_bytes(
       encoding=serialization.Encoding.PEM,
       format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -277,3 +277,11 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
+  def orderAttributes(obj):
+    if isinstance(obj, dict):
+        return sorted((k, ordered(v)) for k, v in obj.items())
+    if isinstance(obj, list):
+        return sorted(ordered(x) for x in obj)
+    else:
+        return obj
