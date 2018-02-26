@@ -15,7 +15,7 @@ import json
 import os
 import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
- configurable_testcase, writeConfig, loadConfig
+ configurable_testcase, writeConfig, loadConfig, compareDict
 import sas_testcase
 import hashlib
 from datetime import datetime, timedelta
@@ -53,7 +53,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
             reg_conditional_device_data = {}
             if any(reg_conditional_device_data_list):
-                reg_conditional_device_data = reg_conditional_device_data_list[0]
+				self.assertEqual(reg_conditional_device_data_list, 1)
+				reg_conditional_device_data = reg_conditional_device_data_list[0]
             if 'installationParam' not in reg_conditional_device_data:
                 reg_conditional_device_data['installationParam'] = None
             record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
@@ -312,13 +313,13 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin_id)
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
+		# TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
         for index, ppa in enumerate(config['ppas']):
             del ppa['id']
             exist_in_dump = False
-            for ppa_record in ppa_dump_data:
-                shared_items = set(ppa_record.items()) & set(ppa.items())               
-                if  len(shared_items) == len(ppa):
-                     exist_in_dump = True
+            for ppa_record in ppa_dump_data:			           
+                if compareDict(ppa_record, ppa):
+					exist_in_dump = True
             self.assertTrue(exist_in_dump)
             
         # verify the schema of record and two first parts of esc sensor record  Id
@@ -332,10 +333,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             exist_in_dump = False
             del esc['id'] 
             for esc_record in esc_sensor_dump_data:
-                self.assertDictEqual(esc, esc_record)
-                shared_items = set(esc_record.items()) & set(esc.items())               
-                if  len(shared_items) == len(esc):
-                    exist_in_dump = True
+                if compareDict(ppa_record, ppa):
+					exist_in_dump = True
             self.assertTrue(exist_in_dump)
         # verify that retrieved cbsd dump files have correct schema
         for cbsd_record in cbsd_dump_data:
