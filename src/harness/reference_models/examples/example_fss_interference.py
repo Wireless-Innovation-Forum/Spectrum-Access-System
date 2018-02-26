@@ -19,17 +19,18 @@ import numpy as np
 import sys
 
 from reference_models.antenna import antenna
-from reference_models.antenna import fss_pointing
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
 
 import entities
+import fss_pointing
 
 # Configure here the path to terrain directory
 # (if not specified in your CONFIG.py file)
 #wf_itm.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
 
-# Find all the FSS protection points from a given FSS license info
+# Find all the FSS protection points from a given FSS license info.
+# Note that in production, one may have the exact pointing of each FSS.
 def GetAllFssFromLicenseInfo(fss_license_info):
   """Get all Fss protection points from a FSS license record.
 

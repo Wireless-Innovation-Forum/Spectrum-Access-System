@@ -88,6 +88,8 @@ errors += testJsonSchema('HeartbeatResponse.schema.json', 'HeartbeatResponseExam
 
 errors += testJsonSchema('MeasReport.schema.json', 'MeasReportExample.json')
 
+errors += testJsonSchema('PalRecord.schema.json', 'PalRecordExample.json')
+
 errors += testJsonSchema('InstallationParamData.schema.json', 'InstallationParamDataExample.json')
 
 errors += testJsonSchema('CbsdRecordData.schema.json', 'CbsdRecordDataExample.json')

@@ -396,11 +396,12 @@ def RunFakeServer(version, is_ecc):
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
+
   server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
+      ca_certs=CA_CERT ,
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
@@ -419,3 +420,5 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
   RunFakeServer(version, args.ecc)
+
+

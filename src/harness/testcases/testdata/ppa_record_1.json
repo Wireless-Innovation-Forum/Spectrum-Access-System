@@ -3,6 +3,9 @@
   "creator": "admin_0",
   "terminated": false,
   "usage": "PPA",
+  "ppaInfo": {
+    "ppaRegionType": "SUBURBAN"
+  },
   "zone": {
     "type": "FeatureCollection",
     "features": [
