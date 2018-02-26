@@ -377,10 +377,20 @@ def addGrantIdsToRequests(grant_ids, requests):
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
 
-def orderAttributes(obj):
+def _orderAttributes(obj):
     if isinstance(obj, dict):
-        return sorted((k, ordered(v)) for k, v in obj.items())
+        return sorted((k, _orderAttributes(v)) for k, v in obj.items())
     if isinstance(obj, list):
-        return sorted(ordered(x) for x in obj)
+        return sorted(_orderAttributes(x) for x in obj)
     else:
         return obj
+
+# Test the Compare Dict function which is used in FAD.1 to compare PPA record and Esc records in dump file with injected object
+def compareDict(first_dict, second_dict):
+  """ deep Comparision of two Dictionarys
+
+  Args:
+    first_dict: first dictionary to be compared.
+    second_dict: second dictionary to be compared.
+  """
+  return _orderAttributes(first_dict) ==  _orderAttributes(second_dict)
