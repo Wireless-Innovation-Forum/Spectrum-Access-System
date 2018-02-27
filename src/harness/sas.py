@@ -155,6 +155,9 @@ class SasImpl(sas_interface.SasInterface):
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('dump', None, ssl_cert, ssl_key)
+
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestGet('https://%s/%s/%s/%s' %
                        (self._base_url, self._sas_version, method_name, request),
@@ -169,6 +172,11 @@ class SasImpl(sas_interface.SasInterface):
                             ssl_cert or self._GetDefaultCbsdSSLCertPath(),
                             ssl_key or self._GetDefaultCbsdSSLKeyPath()))
 
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    return self._DownloadFile('%s' % url,
+                 self._tls_config.WithClientCertificate(ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
+                 ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath()))
+    
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')
 
@@ -180,6 +188,32 @@ class SasImpl(sas_interface.SasInterface):
 
   def _GetDefaultSasSSLKeyPath(self):
     return os.path.join('certs', 'client.key')
+
+  def _DownloadFile(self, url, config):
+    response = StringIO.StringIO()
+    conn = pycurl.Curl()
+    conn.setopt(conn.URL, url)
+    conn.setopt(conn.WRITEFUNCTION, response.write)
+    header = [
+          'Host: %s' % urlparse.urlparse(url).hostname,
+          'content-type: application/json'
+    ]
+    conn.setopt(conn.VERBOSE, 3)
+    conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+    conn.setopt(conn.SSLCERTTYPE, 'PEM')
+    conn.setopt(conn.SSLCERT, config.client_cert)
+    conn.setopt(conn.SSLKEY, config.client_key)
+    conn.setopt(conn.CAINFO, config.ca_cert)
+    conn.setopt(conn.HTTPHEADER, header)
+    conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
+    logging.debug('Request to URL ' + url)
+    conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+    conn.perform()
+    assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+    conn.close()
+    body = response.getvalue()
+    logging.debug('Response:\n' + body)
+    return json.loads(body)
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -297,10 +331,18 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
                  self._base_url, request, self._tls_config) 
-    
+
+  def TriggerFullActivityDump(self):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % 
+                   self._base_url, None, self._tls_config)  
+
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
+
+  def InjectPeerSas(self,request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' %
+                  self._base_url, request, self._tls_config)
 

@@ -187,6 +187,23 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Full Activity Dump  interface Requests a Pull Command 
+      to get Full Activity Dump Message
+    Returns:
+     the message as an "FullActivityDump" object specified in WINNF-16-S-0096
+    """
+    pass
+
+  @abc.abstractmethod
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Get data from json files after generate the
+     Full Activity Dump Message
+    Returns:
+     the message as an "json data" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -447,6 +464,27 @@ class SasAdminInterface(object):
     """   
     pass
 
+  @abc.abstractmethod
+  def TriggerFullActivityDump(self):
+    """SAS admin interface to trigger Generation Of Full Activity Dump
+
+    Note : SAS should not return until the full dump creation is complete
+    """
+    pass
+  @abc.abstractmethod
+  def InjectPeerSas(self, request):
+    """
+        SAS admin interface to whitelist a peer SAS in SAS under test 
+    Args:
+        request: A dictionary with two key-value pair,
+                 First dictionary  - Key is "certificateHash" 
+                                     with a string of certificate
+                                     hash as its Value
+                 Second dictionary - Key is "url" with URL of 
+                                     the peer SAS
+    """
+    pass 
+
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -556,5 +594,3 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-  
-

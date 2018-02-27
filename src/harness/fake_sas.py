@@ -202,12 +202,35 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    response = json.loads(json.dumps({'files':[
+             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709",'size':19, 'version': "v1.2",'recordType': "cbsd" },
+             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "zone" },
+             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "esc_sensor" },        
+             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "coordination" }
+            ],
+            'generationDateTime': datetime.utcnow().strftime(
+                                      '%Y-%m-%dT%H:%M:%SZ'),
+            'description':"Full activity dump files" }))
+    return response;
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Get data from json files after generate the
+     Full Activity Dump Message
+    Returns:
+     the message as an "json data" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class FakeSasAdmin(sas_interface.SasAdminInterface):
   """Implementation of SAS Admin for Fake SAS."""
@@ -250,6 +273,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
+  def InjectPeerSas(self, request):
+    return {'resposne':100}
+
   def TriggerMeasurementReportRegistration(self):
     pass
 
@@ -261,6 +287,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
                                         uuid.uuid4().hex)
 
   def TriggerDailyActivitiesImmediately(self):
+    pass
+
+  def TriggerFullActivityDump(self) :
     pass
 
   def GetDailyActivitiesStatus(self):
@@ -313,6 +342,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
+    elif self.path == '/%s/dump/None' % self.version :
+      response = FakeSas().GetFullActivityDump()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
@@ -331,7 +362,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/load_dpas',
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
-                       '/admin/trigger/bulk_dpa_activation'):
+                       '/admin/trigger/bulk_dpa_activation',
+                       '/admin/injectdata/peer_sas',
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
@@ -348,6 +381,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == '%s/esc_sensor' % self.version:
       response = FakeSas().GetEscSensorRecord(value)
+#   elif self.path == '%s' % self.version :
+#     response = FakeSas().GetFullActivityDump(value)
     else:
       self.send_response(404)
       return
