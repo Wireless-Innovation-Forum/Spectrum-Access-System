@@ -131,12 +131,15 @@ def writeConfig(config_filename, config):
 
 
 def getRandomLatLongInPolygon(ppa):
-  """Generate the Random Latitude and Longitude inside the PPA Polygon
+  """Generates a random point inside the PPA Polygon.
+
+  Note: since the generated point is NOT uniformly distributed within the PPA,
+  do not rely on this function if you want a purely uniform distribution.
+
   Args:
     ppa: (dictionary) A dictionary containing PPA Record.
   Returns:
-    A tuple in the form of latitude and longitude which itself is
-    a number.
+    A tuple (lat, lon) with the point coordinates.
   """
 
   try:
@@ -255,7 +258,9 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
 
 
 def assertContainsRequiredFields(schema_filename, response):
-  schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+  schema_dir = os.path.join(os.path.dirname(os.path.abspath(
+      inspect.getfile(inspect.currentframe()))), '..', '..', 'schema')
+  schema_filename = os.path.join(schema_dir, schema_filename)
   schema = json.load(open(schema_filename))
   Draft4Validator.check_schema(schema)
   schema_dir = os.path.dirname(os.path.realpath(schema_filename))
@@ -376,4 +381,21 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+
+def filterChannelsByFrequencyRange(channels, freq_range):
+  """Returns channels within given frequency range.
+
+  Args:
+    channels: list of available channels.
+    freq_range: dict of frequency range.
+  """
+
+  return [
+      channel for channel in channels
+      if
+      freq_range['lowFrequency'] <= channel['frequencyRange']['lowFrequency']
+      and
+      channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
+  ]
 
