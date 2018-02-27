@@ -93,6 +93,9 @@ JSON schema validation support.
 This Python library can be installed with <code>pip</code>. It provides
 support for the OpenSSL library for Python.
 
+*   geojson (https://pypi.python.org/pypi/geojson)
+This Python library can be installed with <code>pip</code>. It provides
+functions for encoding and decoding GeoJSON formatted data.
 
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,
