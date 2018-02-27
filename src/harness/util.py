@@ -376,3 +376,19 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+def filterChannelsByFrequencyRange(channels, freq_range):
+  """Returns channels within given frequency range.
+
+  Args:
+    channels: list of available channels.
+    freq_range: dict of frequency range.
+  """
+
+  return [
+      channel for channel in channels
+      if
+      freq_range['lowFrequency'] <= channel['frequencyRange']['lowFrequency']
+      and
+      channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
+  ]
