@@ -22,6 +22,7 @@ import sas
 import sas_testcase
 
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, computePropagationAntennaModel
+from test.test_deque import fail
   
 def cbsddata(device):
     installationParam = device['installationParam']
@@ -127,7 +128,8 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
            passed_tests += this_test*1.0
        except AssertionError as e:
            # Allow HTTP status 400
-           if (refResponse == 400) and (e.args[0] == 400):
-               passed_tests += 1.0
+           self.assertEqual(e.args[0], refResponse)
+           passed_tests += 1.0
 
-    self.assertTrue(passed_tests > num_tests * test_pass_threshold)
+
+    self.assertTrue(passed_tests >= num_tests * test_pass_threshold)

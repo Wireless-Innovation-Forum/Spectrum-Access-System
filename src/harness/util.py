@@ -32,14 +32,12 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.geo import nlcd
-from reference_models.ppa.utils import ComputePPAProtectionPoints
-
+from reference_models.geo.utils import GridPolygon
+ 
 import jwt
 
 from shapely.geometry import shape, Point, LineString
-
-
-nlcd_driver = nlcd.NlcdDriver()
+nlcd_driver = ppa.nlcd_driver
     
 def _log_testcase_header(name, doc):
   logging.getLogger().setLevel(logging.INFO)
@@ -306,7 +304,7 @@ def computePropagationAntennaModel(request):
         ppa = request['ppa']
 
         ARCSEC = 2
-        ppa_points = ComputePPAProtectionPoints(ppa['geometry']['coordinates'], ARCSEC)
+        ppa_points = GridPolygon(ppa['geometry']['coordinates'], ARCSEC)
         if len(ppa_points) == 1:
             rx['latitude'] = ppa_points[0][0]
             rx['longitude']= ppa_points[0][1]
@@ -323,26 +321,33 @@ def computePropagationAntennaModel(request):
         response = 400
         return response
     
-# ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
-# The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
+    # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
+    # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
     result = {}
     
     if isfss:
-        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
+        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], \
+                                                   rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
         result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], \
+                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
         result['txAntennaGainDbi'] = gain_tx_rx 
         if 'rxAntennaGainRequired' in rx:
             hor_dirs = path_loss.incidence_angles.hor_rx
             ver_dirs = path_loss.incidence_angles.ver_rx
-            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], rx['antennaElevation'], rx['antennaGain'])
+            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], \
+                                                    rx['antennaElevation'], rx['antennaGain'])
             result['rxAntennaGainDbi'] = gain_rx_tx           
     else:
         
-        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], rx['latitude'], rx['longitude'], rx['height'], reliability=-1, freq_mhz=3625., region=region_val)
+        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], \
+                                                        rx['latitude'], rx['longitude'], rx['height'], \
+                                                        reliability=-1, freq_mhz=3625., region=region_val)
         result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], \
+                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
         result['txAntennaGainDbi'] = gain_tx_rx 
         
     
         return result
+    
