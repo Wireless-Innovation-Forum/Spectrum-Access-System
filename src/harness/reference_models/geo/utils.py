@@ -114,7 +114,7 @@ def GeometryArea(geo, merge_geometries=False):
     # Multi geometries
     if merge_geometries:
       geo = ops.unary_union(geo)
-      # Test if dissoved into a simple geometry
+      # Test if dissolved into a simple geometry.
       try:
         iter(geo)
       except TypeError:
