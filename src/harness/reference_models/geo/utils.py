@@ -26,16 +26,21 @@ WGS_POLAR_RADIUS_KM2 = 6356.753
 def GeoJsonToShapelyGeometry(geo):
   """Returns a |shapely| geometry from a GeoJSON geometry.
 
-  Note that geometry Collections are merged.
+  The structure of the GeoJSON is kept and both Geometry collections
+  and MultiPolygons are kept as is. To dissolve them, use the
+  `shapely.ops.unary_union()` routine.
+
   Args:
     geo: a dict representing a GeoJSON geometry.
   """
   if 'geometries' in geo:
-    return sgeo.GeometryCollection([GeoJsonToShapelyGeometry(g) for g in geo['geometries']])
+    return sgeo.GeometryCollection([GeoJsonToShapelyGeometry(g)
+                                    for g in geo['geometries']])
   geo = sgeo.shape(geo)
   if isinstance(geo, sgeo.Polygon) or isinstance(geo, sgeo.MultiPolygon):
     geo = geo.buffer(0)
   return geo
+
 
 def _RingArea(latitudes, longitudes):
   """Returns the approximate area of a ring on earth surface (m^2).
@@ -70,7 +75,7 @@ def _RingArea(latitudes, longitudes):
   return np.abs(area)
 
 
-def GeometryArea(geo):
+def GeometryArea(geo, merge_geometries=False):
   """Returns the approximate area of a geometry on earth (in km2).
 
   This uses the approximate formula on spheroid derived from:
@@ -85,12 +90,16 @@ def GeometryArea(geo):
       - a shapely geometry (Polygon, MultiPolygon, etc..)
       - a GeoJSON geometry (dict), representing either a basic geometry or
         a GeometryCollection.
+    merge_geometries (bool): If True, then multi geometries will be unioned to
+     dissolve intersection prior to the area calculation.
 
   Returns:
     (float) The approximate area within the geometry (in square kilometers).
   """
   if isinstance(geo, dict):
     geo = GeoJsonToShapelyGeometry(geo)
+    if merge_geometries:
+      geo = ops.unary_union(geo)
     return GeometryArea(geo)
   elif (isinstance(geo, sgeo.Point) or
         isinstance(geo, sgeo.LineString) or
@@ -103,6 +112,13 @@ def GeometryArea(geo):
                   for interior in geo.interiors))
   else:
     # Multi geometries
+    if merge_geometries:
+      geo = ops.unary_union(geo)
+      # Test if dissoved into a simple geometry
+      try:
+        iter(geo)
+      except TypeError:
+        return GeometryArea(geo)
     return sum(GeometryArea(simple_shape) for simple_shape in geo)
 
 

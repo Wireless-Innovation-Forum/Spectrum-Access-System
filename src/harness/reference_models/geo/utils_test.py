@@ -64,12 +64,15 @@ class TestUtils(unittest.TestCase):
     area = utils.GeometryArea(ppa['zone']['features'][0]['geometry'])
     self.assertAlmostEqual(area, expected_area, 2)
 
-  def test_area_geojson_geocollection(self):
+  def test_area_geojson_geocollection_and_merge(self):
     expected_area = 3535
+    expected_real_area = expected_area * 2/3.
     with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
       multigeo = geojson.load(fd)
     area = utils.GeometryArea(multigeo)
     self.assertAlmostEqual(area, expected_area, 0)
+    area = utils.GeometryArea(multigeo, merge_geometries=True)
+    self.assertAlmostEqual(area, expected_real_area, 0)
 
   def test_degenerate_shapes(self):
     # Test all degenerate shapes (points, lines) have area zero
