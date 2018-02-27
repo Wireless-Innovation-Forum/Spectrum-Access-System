@@ -16,10 +16,26 @@
 """
 
 import shapely.geometry as sgeo
+from shapely import ops
 import numpy as np
 
 WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 WGS_POLAR_RADIUS_KM2 = 6356.753
+
+
+def GeoJsonToShapelyGeometry(geo):
+  """Returns a |shapely| geometry from a GeoJSON geometry.
+
+  Note that geometry Collections are merged.
+  Args:
+    geo: a dict representing a GeoJSON geometry.
+  """
+  if 'geometries' in geo:
+    return sgeo.GeometryCollection([GeoJsonToShapelyGeometry(g) for g in geo['geometries']])
+  geo = sgeo.shape(geo)
+  if isinstance(geo, sgeo.Polygon) or isinstance(geo, sgeo.MultiPolygon):
+    geo = geo.buffer(0)
+  return geo
 
 def _RingArea(latitudes, longitudes):
   """Returns the approximate area of a ring on earth surface (m^2).
@@ -54,8 +70,8 @@ def _RingArea(latitudes, longitudes):
   return np.abs(area)
 
 
-def GeometryArea(geo, do_ring_interior=False):
-  """Returns the approximate area of a |shapely| geometry on earth (in km2).
+def GeometryArea(geo):
+  """Returns the approximate area of a geometry on earth (in km2).
 
   This uses the approximate formula on spheroid derived from:
     Robert. G. Chamberlain and William H. Duquette
@@ -65,26 +81,26 @@ def GeometryArea(geo, do_ring_interior=False):
   ellipsoid.
 
   Args:
-    geo: A shapely geometry (Polygon, MultiPolygon, etc..) defined in WGS84 or
-      NAD83 (lon, lat) coordinates (degrees).
-    do_ring_interior (bool): If True, compute the area inside LinearRing,
-      otherwise considers a LinearRing as a ine with area zero (shapely convention).
+    geo: A geometry defined in WGS84 or NAD83 coordinates (degrees) either:
+      - a shapely geometry (Polygon, MultiPolygon, etc..)
+      - a GeoJSON geometry (dict), representing either a basic geometry or
+        a GeometryCollection.
 
   Returns:
-    (float) The approximate area within the ring (in square kilometers).
+    (float) The approximate area within the geometry (in square kilometers).
   """
-  # Lines and points have null area
-  if isinstance(geo, sgeo.LinearRing):
-    if do_ring_interior:
-      return _RingArea(geo.xy[1], geo.xy[0])
-    else:
-      return 0.
+  if isinstance(geo, dict):
+    geo = GeoJsonToShapelyGeometry(geo)
+    return GeometryArea(geo)
   elif (isinstance(geo, sgeo.Point) or
-        isinstance(geo, sgeo.LineString)):
+        isinstance(geo, sgeo.LineString) or
+        isinstance(geo, sgeo.LinearRing)):
+        # Lines, rings and points have null area
     return 0.
   elif isinstance(geo, sgeo.Polygon):
-    return GeometryArea(geo.exterior, True) - sum(GeometryArea(interior, True)
-                                                  for interior in geo.interiors)
+    return (_RingArea(geo.exterior.xy[1], geo.exterior.xy[0])
+            - sum(_RingArea(interior.xy[1], interior.xy[0])
+                  for interior in geo.interiors))
   else:
     # Multi geometries
     return sum(GeometryArea(simple_shape) for simple_shape in geo)
@@ -104,7 +120,7 @@ def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
   if isinstance(poly, sgeo.Polygon):
     interiors = [interior
                  for interior in poly.interiors
-                 if GeometryArea(interior, do_ring_interior=True) > min_hole_area_km2]
+                 if GeometryArea(sgeo.Polygon(interior)) > min_hole_area_km2]
     if len(interiors) == len(poly.interiors):
       return poly
     else:

@@ -44,11 +44,32 @@ class TestUtils(unittest.TestCase):
   def test_area_missouri(self):
     # The real Missouri area is 180530 km2. Make sure we are within 0.25%
     official_area = 180530
-    with open(os.path.join(TEST_DIR, 'missouri.json')) as fd:
+    with open(os.path.join(TEST_DIR, 'missouri.json'), 'r') as fd:
       missouri = geojson.load(fd)
-      poly = sgeo.Polygon(missouri['geometries'][0]['coordinates'][0][0])
-      area = utils.GeometryArea(poly)
-      self.assertTrue(np.abs(area - official_area) < 0.0025 * official_area)
+    poly = sgeo.Polygon(missouri['geometries'][0]['coordinates'][0][0])
+    area = utils.GeometryArea(poly)
+    self.assertTrue(np.abs(area - official_area) < 0.0025 * official_area)
+
+  def test_area_geojson_missouri(self):
+    official_area = 180530
+    with open(os.path.join(TEST_DIR, 'missouri.json'), 'r') as fd:
+      missouri = geojson.load(fd)
+    area = utils.GeometryArea(missouri)
+    self.assertTrue(np.abs(area - official_area) < 0.0025 * official_area)
+
+  def test_area_geojson_ppa(self):
+    expected_area = 130.98
+    with open(os.path.join(TEST_DIR, 'ppa_record_0.json'), 'r') as fd:
+      ppa = geojson.load(fd)
+    area = utils.GeometryArea(ppa['zone']['features'][0]['geometry'])
+    self.assertAlmostEqual(area, expected_area, 2)
+
+  def test_area_geojson_geocollection(self):
+    expected_area = 3535
+    with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
+      multigeo = geojson.load(fd)
+    area = utils.GeometryArea(multigeo)
+    self.assertAlmostEqual(area, expected_area, 0)
 
   def test_degenerate_shapes(self):
     # Test all degenerate shapes (points, lines) have area zero
@@ -58,8 +79,6 @@ class TestUtils(unittest.TestCase):
     self.assertEqual(utils.GeometryArea(points), 0)
     self.assertEqual(utils.GeometryArea(line), 0)
     self.assertEqual(utils.GeometryArea(ring), 0)
-    # test special closed ring mode
-    self.assertAlmostEqual(utils.GeometryArea(ring, True), 24700, 0)
 
   def test_remove_small_holes(self):
     # Test all degenerate shapes (points, lines) have area zero
