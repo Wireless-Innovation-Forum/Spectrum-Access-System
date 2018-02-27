@@ -20,7 +20,7 @@ import sas_testcase
 from reference_models.geo import vincenty
 from sas_test_harness import SasTestHarnessServer
 from util import configurable_testcase, writeConfig, loadConfig, getCertFilename,\
-    getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
+    getCertificateFingerprint, makePpaAndPalRecordsConsistent
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   """ This class contains all FAD related tests mentioned in SAS TS  """
