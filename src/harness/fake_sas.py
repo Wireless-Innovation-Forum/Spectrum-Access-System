@@ -250,6 +250,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
+
+  def InjectPeerSas(self, request):
+    pass
+
   def TriggerMeasurementReportRegistration(self):
     pass
 
@@ -331,7 +335,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/load_dpas',
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
-                       '/admin/trigger/bulk_dpa_activation'):
+                       '/admin/trigger/bulk_dpa_activation',
+                       '/admin/injectdata/peer_sas'):
       response = ''
     else:
       self.send_response(404)

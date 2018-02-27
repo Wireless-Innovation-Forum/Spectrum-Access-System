@@ -453,8 +453,8 @@ class SasAdminInterface(object):
         SAS admin interface to whitelist a peer SAS in SAS under test 
     Args:
         request: A dictionary with two key-value pair,
-        "certificateHash" : (string) it represents the sha1 fingerprint of the certificate
-        "url": Base URL of the peer SAS
+            "certificateHash" : (string) The sha1 fingerprint of the certificate
+            "url": Base URL of the peer SAS
     """
     pass 
 class SasTestcaseInterface(object):
