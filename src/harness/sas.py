@@ -172,8 +172,8 @@ class SasImpl(sas_interface.SasInterface):
     
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return self._DownloadFile('%s' % url,
-                 ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
-                 ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath())
+                 self._tls_config.WithClientCertificate(ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
+                 ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath()))
     
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')
@@ -187,7 +187,7 @@ class SasImpl(sas_interface.SasInterface):
   def _GetDefaultSasSSLKeyPath(self):
     return os.path.join('certs', 'client.key')
 
-  def _DownloadFile(self, url, ssl_cert, ssl_key):
+  def _DownloadFile(self, url, config):
     response = StringIO.StringIO()
     conn = pycurl.Curl()
     conn.setopt(conn.URL, url)
@@ -199,8 +199,8 @@ class SasImpl(sas_interface.SasInterface):
     conn.setopt(conn.VERBOSE, 3)
     conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
     conn.setopt(conn.SSLCERTTYPE, 'PEM')
-    conn.setopt(conn.SSLCERT, ssl_cert)
-    conn.setopt(conn.SSLKEY, ssl_key)
+    conn.setopt(conn.SSLCERT, config.client_cert)
+    conn.setopt(conn.SSLKEY, config.client_key)
     conn.setopt(conn.CAINFO, config.ca_cert)
     conn.setopt(conn.HTTPHEADER, header)
     conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
@@ -339,3 +339,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
+
+  def InjectPeerSas(self, request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+                 request, self._tls_config)

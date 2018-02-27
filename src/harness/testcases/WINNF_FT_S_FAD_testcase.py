@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
  getCertificateFingerprint
 import sas_testcase
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
@@ -210,14 +210,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         esc_sensors.append(json.load(
               open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
 
-		# SAS Harness Test
-		sas_harness_config = {
+        # SAS Harness Test
+        sas_harness_config = {
 			'sasTHName': 'SAS-TH-2',
 			'url': 'https://localhost:9003/v1.2',
 			'serverCert': getCertFilename("server.cert"),
 			'serverKey': getCertFilename("server.key")}
 		
-		config = {
+        config = {
             'registrationRequests': devices,
             'conditionalRegistrationData': conditionals,
             'grantRequests': grants,
@@ -280,15 +280,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # inject N3 Esc sensor
         for esc_sensor in config['escSensors']:
             self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
-		# STEP 3
-		# Notify the SAS UUT about the SAS Test Harness
-		sas_th_config = config['sasHarness']		
-		certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
-		self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+        # step 7
+        # Notify the SAS UUT about the SAS Test Harness
+        sas_th_config = config['sasHarness']		
+        certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
+        self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': sas_th_config['url']})
 
         response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
-        # STEP 5
         # check dump message format
         self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
         # an array for each record type
@@ -296,7 +295,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         ppa_dump_data = []
         esc_sensor_dump_data = []
         
-        # step 6 and check   
+        # step 8 and check   
         # download dump files and fill corresponding arrays
         for dump_file in response['files']:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",

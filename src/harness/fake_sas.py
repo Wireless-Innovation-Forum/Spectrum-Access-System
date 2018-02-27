@@ -344,9 +344,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().GetFullActivityDump(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
-    elif self.path == 'admin/trigger/create_ppa':
+    elif self.path == '/admin/trigger/create_ppa':
       response = FakeSasAdmin().TriggerPpaCreation(request)
-    elif self.path == 'admin/get_daily_activities_status':
+    elif self.path == '/admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
