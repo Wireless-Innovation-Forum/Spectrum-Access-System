@@ -510,15 +510,6 @@ TEST = critical, ASN1:NULL
 
 policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
-
-[ wrong_cbsd_req_sign ]
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS
-TEST = critical, ASN1:NULL
 ####################################################################
  
 [ cbsd_oem_req ]
