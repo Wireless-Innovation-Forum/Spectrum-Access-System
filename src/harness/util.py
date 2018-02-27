@@ -376,3 +376,15 @@ def addGrantIdsToRequests(grant_ids, requests):
     requests: (list) list of requests, containing dictionaries.
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
+
+def countdown(t_seconds):
+  """
+    count down timer for t_seconds
+  """
+  while t_seconds:
+    mins, secs = divmod(t_seconds, 60)
+    timeformat = '{:02d}:{:02d}'.format(mins, secs)
+    time.sleep(1)
+    sys.stdout.write("Wait timer [mm:ss] : %s   \r" % str(timeformat))
+    sys.stdout.flush()
+    t_seconds -= 1
