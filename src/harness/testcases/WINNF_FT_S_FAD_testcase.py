@@ -17,6 +17,7 @@ import json
 import os
 import sas
 import sas_testcase
+from reference_models.geo import vincenty
 from sas_test_harness import SasTestHarnessServer
 from util import configurable_testcase, writeConfig, loadConfig, getCertFilename,\
     getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
@@ -27,31 +28,37 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
-    self._sas_server = None
 
   def tearDown(self):
-    if hasattr(self, '_sas_server'):
-      self._sas_server.shutdown()
+    pass
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
     # Create the actual config for FAD_2
 
-    # Step 1: Load the esc sensor in SAS Test Harness
-    esc_sensor = json.load(open(os.path.join('testcases', 'testdata', 'esc_sensor_record_1.json')))
+    # Load the esc sensor in SAS Test Harness
+    esc_sensor = json.load(open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
 
-    # Step 2: Load the device_a with registration in SAS Test Harness
-    device_a = json.load(
+    # Load the device_c1 with registration in SAS Test Harness
+    device_c1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Step 2: Load grant request for device_a
-    grant_a = json.load(
+
+    # Get a latitude and longitude within 40 kms from ESC.
+    latitude, longitude, _ = vincenty.GeodesicPoint(esc_sensor['installationParam']['latitude'],
+                                                    esc_sensor['installationParam']['longitude'],
+                                                    15,
+                                                    30)  # distance of 15 kms from ESC at 30 degrees
+    device_c1['installationParam']['latitude'] = latitude
+    device_c1['installationParam']['longitude'] = longitude
+
+    # Load grant request for device_c1
+    grant_g1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_a['operationParam']['maxEirp'] = 20
+    grant_g1['operationParam']['maxEirp'] = 20
 
     # Load one ppa in SAS Test Harness
     pal_record_a = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
     ppa_record_a = json.load(
@@ -61,58 +68,93 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 'test_user_1')
-    # Load device_c within the PPA in SAS Test Harness
-    device_c = json.load(
+
+    # Load device_c3 within the PPA in SAS Test Harness
+    device_c3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    latitude, longitude = getRandomLatLongInPolygon(ppa_record_a)
-    device_c['installationParam']['latitude'] = round(latitude, 6)
-    device_c['installationParam']['longitude'] = round(longitude, 6)
+    device_c3['installationParam']['latitude'] = 38.822321
+    device_c3['installationParam']['longitude'] = -97.283932
 
-    # Load grant request for device_c in SAS Test Harness
-    grant_c = json.load(
+    # Load grant request for device_c3 in SAS Test Harness
+    grant_g3 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c['cbsdId'] = device_c['userId']
-    grant_c['operationParam']['maxEirp'] = 20
+    grant_g3['cbsdId'] = device_c3['userId']
+    grant_g3['operationParam']['maxEirp'] = 20
 
-    # Load the device_e with registration to SAS UUT
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    # Load grant request for device_e to SAS UUT
-    grant_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_e['operationParam']['maxEirp'] = 30
-
-    # Load device_f within the PPA to SAS UUT
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_f['installationParam']['latitude'] = 38.7790
-    device_f['installationParam']['longitude'] = -97.2263
-
-    # Load grant request for device_f to SAS UUT
-    grant_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_f['operationParam']['maxEirp'] = 20
-
-    sas_harness_dump_records = {
-        'cbsdRecords': [device_a, device_c],
-        'grantRecords': [[grant_a], [grant_c]],
-        'ppaRecords': [ppa_record_a],
-        'escSensorRecords': [esc_sensor]
+    # Update grant_G3 frequency to overlap with PPA zone frequency for C3 device
+    grant_g3['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3550000000,
+        'highFrequency': 3555000000
     }
+
+    # Load the device_c2 with registration to SAS UUT
+    device_c2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    # Load grant request for device_c2 to SAS UUT
+    grant_g2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2['operationParam']['maxEirp'] = 30
+
+    # Get a latitude and longitude within 40 kms from ESC.
+    latitude, longitude, _ = vincenty.GeodesicPoint(esc_sensor['installationParam']['latitude'],
+                                         esc_sensor['installationParam']['longitude'], 20,
+                                         30)  # distance of 20 kms from ESC at 30 degrees
+
+    device_c2['installationParam']['latitude'] = latitude
+    device_c2['installationParam']['longitude'] = longitude
+
+    # Load the device_c4 with registration to SAS UUT.
+    device_c4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+
+    #Placing this device within the PPA
+    device_c4['installationParam']['latitude'] = 38.7790
+    device_c4['installationParam']['longitude'] = -97.2263
+
+    # Load grant request for device_c4 to SAS UUT
+    grant_g4 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g4['operationParam']['maxEirp'] = 20
+
+    #Update grant_G4 frequency to overlap with PPA zone frequency for C4 device
+    grant_g4['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3555000000,
+        'highFrequency': 3560000000
+    }
+
+    cbsd_records = [device_c1, device_c3]
+    grant_record_list = [[grant_g1], [grant_g3]]
+    ppa_records = [ppa_record_a]
+    cbsdIds_reference_id_list = [['cbsdId-1', 'cbsdId-2']]
+
+    # SAS test harness configuration
     sas_harness_config = {
-        'sasTHName': 'SAS-TH-1',
-        'url': 'https://localhost:9002/v1.2',
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'sasVersion': 'v1.2',
         'serverCert': getCertFilename("server.cert"),
         'serverKey': getCertFilename("server.key"),
-        'fileServePath': 'data/'
+        'fileServePath': '/home/cbrsdev/FAD2/data'
+    }
+
+    # Generate FAD Records for each record type like cbsd,zone and esc_sensor
+    cbsd_fad_records = SasTestHarnessServer.generateCbsdRecords(cbsd_records, grant_record_list)
+    ppa_fad_record = SasTestHarnessServer.generatePpaRecords(ppa_records, cbsdIds_reference_id_list)
+    esc_fad_record = [esc_sensor]
+
+    sas_harness_dump_records = {
+        'cbsdRecords': cbsd_fad_records,
+        'ppaRecord': ppa_fad_record,
+        'escSensorRecord': esc_fad_record
     }
     config = {
-        'registrationRequestC2': device_e,
-        'registrationRequestC4': device_f,
-        'grantRequestC2': grant_e,
-        'grantRequestC4': grant_f,
-        'sasHarness': sas_harness_config,
-        'sasHarnessDumpRecords': sas_harness_dump_records
+        'registrationRequestC2': device_c2,
+        'registrationRequestC4': device_c4,
+        'grantRequestG2': grant_g2,
+        'grantRequestG4': grant_g4,
+        'sasTestHarnessConfig': sas_harness_config,
+        'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
     }
     writeConfig(filename, config)
 
@@ -127,22 +169,36 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     """
     config = loadConfig(config_filename)
-    sas_th_config = config['sasHarness']
+    sas_test_harness_config = config['sasTestHarnessConfig']
     device_c2 = config['registrationRequestC2']
     device_c4 = config['registrationRequestC4']
-    grant_c2 = config['grantRequestC2']
-    grant_c4 = config['grantRequestC4']
-    sas_th_dump_records = config['sasHarnessDumpRecords']
-    # Initialize SAS-TH Server instance to dump FAD records
-    self._sas_server = SasTestHarnessServer(sas_th_config['sasTHName'],
-                                            sas_th_config['url'],
-                                            sas_th_config['fileServePath'],
-                                            sas_th_config['serverCert'],
-                                            sas_th_config['serverKey'])
-    # Start the server
-    self._sas_server.start()
+    grant_g2 = config['grantRequestG2']
+    grant_g4 = config['grantRequestG4']
+    sas_test_harness_dump_records_config = config['sasTestHarnessConfigDumpRecords']
+    sas_test_harness_dump_records = [sas_test_harness_dump_records_config['cbsdRecords'],
+                                     sas_test_harness_dump_records_config['ppaRecord'],
+                                     sas_test_harness_dump_records_config['escSensorRecord']]
 
-    # Step 3: Whitelist the FCCID and UserID for CBSD C2 in SAS UUT
+    sas_harness_base_url = "https://" + sas_test_harness_config['hostName'] + ':' + \
+                      str(sas_test_harness_config['port']) + '/' + \
+                      sas_test_harness_config['sasVersion']
+
+    # Initialize SAS Test Harness Server instance to dump FAD records
+    sas_test_harness = SasTestHarnessServer(sas_test_harness_config['sasTestHarnessName'],
+                                            sas_test_harness_config['hostName'],
+                                            sas_test_harness_config['port'],
+                                            sas_test_harness_config['sasVersion'],
+                                            sas_test_harness_config['fileServePath'],
+                                            sas_test_harness_config['serverCert'],
+                                            sas_test_harness_config['serverKey'])
+
+    SasTestHarnessServer.writeFadRecords(sas_harness_base_url,
+                                         sas_test_harness_config['fileServePath'],
+                                         sas_test_harness_dump_records)
+    # Start the server
+    sas_test_harness.start()
+
+    # Whitelist the FCCID and UserID for CBSD C2 in SAS UUT
     self._sas_admin.InjectFccId({'fccId': device_c2['fccId']})
     self._sas_admin.InjectUserId({'userId': device_c2['userId']})
 
@@ -150,44 +206,42 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectFccId({'fccId': device_c4['fccId']})
     self._sas_admin.InjectUserId({'userId': device_c4['userId']})
 
-    # Step 4: Send a valid Registration Request for CBSD (C2) to the SAS UUT
+    # Whitelist the FCCID and UserID of the devices loaded to SAS-test_harness in SAS UUT
+    for cbsdRecord in sas_test_harness_dump_records_config['cbsdRecords']:
+      self._sas_admin.InjectFccId({'fccId': cbsdRecord['registration']['fccId']})
+      self._sas_admin.InjectUserId({'userId': cbsdRecord['registration']['userId']})
+
+    # Send a valid Registration Request for CBSD (C2) to the SAS UUT
     # Check registration response of SAS UUT
-    # Step 5: Send a valid Grant Request Message for CBSD (G2) to the SAS UUT
+    # Send a valid Grant Request Message for CBSD (G2) to the SAS UUT
     # Check grant response of G2 from SAS UUT
 
-    cbsd_ids_c2, grant_ids_c2 = self.assertRegisteredAndGranted([device_c2], [grant_c2])
+    cbsd_ids_c2, grant_ids_c2 = self.assertRegisteredAndGranted([device_c2], [grant_g2])
 
-    # Step 8: Send a valid Registration Request for CBSD (C4) to the SAS UUT
+    # Send a valid Registration Request for CBSD (C4) to the SAS UUT
     # Check registration response  of SAS UUT
-    # Step 9: Send a valid Grant Request for CBSD (G4) to SAS UUT
+    # Send a valid Grant Request for CBSD (G4) to SAS UUT
     # Check grant response of G4 from SAS UUT
 
-    cbsd_ids_c4, grant_ids_c4 = self.assertRegisteredAndGranted([device_c4], [grant_c4])
+    cbsd_ids_c4, grant_ids_c4 = self.assertRegisteredAndGranted([device_c4], [grant_g4])
 
-    # Step 10: Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
+    # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
     #                                    to SAS UUT
-    transfer_expiry_timers = self.assertHeartbeatsSuccessful(
+    transmit_expire_times = self.assertHeartbeatsSuccessful(
         list([cbsd_ids_c2, cbsd_ids_c4]),
         list([grant_ids_c2, grant_ids_c4]),
         list([[('GRANTED')], [('GRANTED')]])
     )
 
-    # Create an activity dump in SAS Test Harness in local
-    self._sas_server.generateFadRecords(sas_th_dump_records['cbsdRecords'],
-                                        sas_th_dump_records['grantRecords'],
-                                        sas_th_dump_records['ppaRecords'],
-                                        sas_th_dump_records['escSensorRecords'])
-
-    # Step 11: Notify the SAS UUT about the SAS Test Harness
-    certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
-
+    # Notify the SAS UUT about the SAS Test Harness
+    certificate_hash = getCertificateFingerprint(sas_test_harness_config['serverCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': sas_th_config['url'] + '/dump'})
+                                   'url': sas_harness_base_url})
 
-    # Step 12: Trigger CPAS in the SAS UUT and wait until complete.
+    # Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 13: Send the Heartbeat request again for the G2 and G4 to SAS UUT
+    # Send the Heartbeat request again for the G2 and G4 to SAS UUT
     request = {
         'heartbeatRequest': [
             {
@@ -201,5 +255,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                 'operationState': 'GRANTED'
             }
         ]}
-    response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
-    self.assertTrue(response['response']['responseCode'] in (103, 500))
+    responses = self._sas.Heartbeat(request)['heartbeatResponse']
+    for response in responses:
+      self.assertTrue(response['response']['responseCode'] in (103, 500))
+
+    sas_test_harness.shutdown()
+    del sas_test_harness
