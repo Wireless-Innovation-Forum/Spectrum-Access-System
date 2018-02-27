@@ -1103,34 +1103,35 @@ class GrantTestcase(sas_testcase.SasTestCase):
     devices_in_ppa_zone = [4]
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
-    pal_record = json.load(
+    pal_record_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record = json.load(
+    ppa_record_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    ppa_record, pal_record = makePpaAndPalRecordsConsistent(
-        ppa_record, [pal_record], pal_low_frequency, pal_high_frequency,
+    ppa_record_1, pal_record_1 = makePpaAndPalRecordsConsistent(
+        ppa_record_1, [pal_record_1], pal_low_frequency, pal_high_frequency,
         devices[ppa_cluster_list[0]]['userId'])
     # Move devices in ppa_cluster_list and devices_in_ppa_zone
     # into the PPA zone
     for device_index in ppa_cluster_list:
       devices[device_index]['installationParam']['latitude'], devices[
           device_index]['installationParam'][
-              'longitude'] = getRandomLatLongInPolygon(ppa_record)
+              'longitude'] = getRandomLatLongInPolygon(ppa_record_1)
     for device_index in devices_in_ppa_zone:
       devices[device_index]['installationParam']['latitude'], devices[
           device_index]['installationParam'][
-              'longitude'] = getRandomLatLongInPolygon(ppa_record)
+              'longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     config = {
-        'registrationRequest': devices,
+        'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
-        'ppa': {
-            'ppaRecord': ppa_record,
-            'palRecords': pal_record,
+        # List of PAL records for all PPAs
+        'palRecords': [pal_record_1],
+        'ppas': [{
+            'ppaRecord': ppa_record_1,
             # Indexing the same way as CBSD IDs.
             'ppaClusterList': ppa_cluster_list
-        },
-        'grantRequest': grant_requests,
+        }],
+        'grantRequests': grant_requests,
         'expectedResponseCodes': [
             (0,),  # all valid params => SUCCESS
             (102,),  # missing CBSD ID => MISSING_PARAM
@@ -1148,21 +1149,25 @@ class GrantTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     # Very light checking of the config file.
     self.assertEqual(
-        len(config['registrationRequest']),
-        len(config['grantRequest']))
+        len(config['registrationRequests']),
+        len(config['grantRequests']))
     self.assertEqual(
-        len(config['grantRequest']),
+        len(config['grantRequests']),
         len(config['expectedResponseCodes']))
+    if ('ppas' in config) and (config['ppas']):
+      for ppa in config['ppas']:
+        self.assertTrue('ppaRecord' in ppa)
+        self.assertTrue('ppaClusterList' in ppa)
 
     # Whitelist FCC IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectFccId({
           'fccId': device['fccId'],
           'fccMaxEirp': 47
       })
 
     # Whitelist user IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Pre-load conditional registration data for N3 CBSDs.
@@ -1172,24 +1177,36 @@ class GrantTestcase(sas_testcase.SasTestCase):
           config['conditionalRegistrationData'])
 
     # Inject PAL database record
-    for pal_record in config['ppa']['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+    if ('palRecords' in config) and (config['palRecords']):
+      for pal_record in config['palRecords']:
+        self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
     # Register devices
-    cbsd_ids = self.assertRegistered(config['registrationRequest'])
+    request = {'registrationRequest': config['registrationRequests']}
+    response = self._sas.Registration(request)['registrationResponse']
+    # Check registration response
+    cbsd_ids = []
+    for resp in response:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      cbsd_ids.append(resp['cbsdId'])
+    del request, response
 
-    # Update PPA record with device's CBSD ID and Inject zone data
-    for device_index in config['ppa']['ppaClusterList']:
-      config['ppa']['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
-          cbsd_ids[device_index]
-      ]
-    zone_id = self._sas_admin.InjectZoneData({
-        'record': config['ppa']['ppaRecord']
-    })
-    self.assertTrue(zone_id)
+    # Update PPA records with devices' CBSD ID and Inject zone data
+    if ('ppas' in config) and (config['ppas']):
+      for ppa in config['ppas']:
+        for device_index in ppa['ppaClusterList']:
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
+              cbsd_ids[device_index]
+          ]
+        zone_id = self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']})
+        self.assertTrue(zone_id)
+
+    # Trigger daily activities
+    if ('ppas' in config) and (config['ppas']):
+      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Send Grant request
-    grant_request = config['grantRequest']
+    grant_request = config['grantRequests']
     addCbsdIdsToRequests(cbsd_ids, grant_request)
     request = {'grantRequest': grant_request}
     responses = self._sas.Grant(request)['grantResponse']
