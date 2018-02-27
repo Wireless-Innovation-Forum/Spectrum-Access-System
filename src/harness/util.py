@@ -388,3 +388,19 @@ def getCertificateFingerprint(certificate):
   cert = load_certificate(FILETYPE_PEM, certificate_string)
   sha1_fingerprint = cert.digest("sha1")
   return sha1_fingerprint
+
+def filterChannelsByFrequencyRange(channels, freq_range):
+  """Returns channels within given frequency range.
+
+  Args:
+    channels: list of available channels.
+    freq_range: dict of frequency range.
+  """
+
+  return [
+      channel for channel in channels
+      if
+      freq_range['lowFrequency'] <= channel['frequencyRange']['lowFrequency']
+      and
+      channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
+  ]
