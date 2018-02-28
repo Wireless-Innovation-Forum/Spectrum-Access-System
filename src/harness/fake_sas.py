@@ -341,7 +341,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == '/%s/deregistration' % self.version:
       response = FakeSas().Deregistration(request)
     elif self.path == '/%s/dump' % self.version:
-      response = FakeSas().GetFullActivityDump(request)
+      response = FakeSas().GetFullActivityDump(self.version)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == '/admin/trigger/create_ppa':
