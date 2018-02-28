@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Utility routines.
+"""Utility geometry routines.
 """
 
 import shapely.geometry as sgeo
@@ -40,6 +40,48 @@ def GeoJsonToShapelyGeometry(geo):
   if isinstance(geo, sgeo.Polygon) or isinstance(geo, sgeo.MultiPolygon):
     geo = geo.buffer(0)
   return geo
+
+
+def GridPolygon(poly, res_arcsec):
+  """Grids a polygon or multi-polygon.
+
+  This performs regular gridding of a polygon in PlateCarree (equirectangular)
+  projection (ie with fixed step in degrees in lat/lon space).
+  Points falling in the boundary of polygon will be included.
+
+  Args:
+    poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either
+      as a `shapely` or GeoJSON dict geometries.
+    res_arcsec: The resolution (in arcsec) used for regular gridding.
+
+  Returns:
+    A list of (lon, lat) defining the grid points.
+  """
+  if isinstance(poly, dict):
+    poly = GeoJsonToShapelyGeometry(poly)
+    return GridPolygon(poly, res_arcsec)
+
+  if isinstance(poly, sgeo.MultiPolygon):
+    # Optional block: for MultiPolygons, we process per polygon
+    # to avoid inefficiencies if polygons largely disjoint.
+    pts = ops.unary_union(
+        [sgeo.asMultiPoint(GridPolygon(p, res_arcsec))
+         for p in poly])
+    return [(p.x, p.y) for p in pts]
+
+  res = res_arcsec / 3600.
+  bounds = poly.bounds
+  lng_min = np.floor(bounds[0] / res) * res
+  lat_min = np.floor(bounds[1] / res) * res
+  lng_max = np.ceil(bounds[2] / res) * res + res/2
+  lat_max = np.ceil(bounds[3] / res) * res + res/2
+  mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res,
+                                lat_min:lat_max:res]
+  points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
+  pts = poly.intersection(sgeo.asMultiPoint(points))
+  if isinstance(pts, sgeo.Point):
+    return [(pts.x, pts.y)]
+  return [(p.x, p.y) for p in pts]
 
 
 def _RingArea(latitudes, longitudes):
