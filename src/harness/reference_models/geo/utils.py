@@ -73,8 +73,8 @@ def GridPolygon(poly, res_arcsec):
   bounds = poly.bounds
   lng_min = np.floor(bounds[0] / res) * res
   lat_min = np.floor(bounds[1] / res) * res
-  lng_max = np.ceil(bounds[2] / res + 1) * res
-  lat_max = np.ceil(bounds[3] / res + 1) * res
+  lng_max = np.ceil(bounds[2] / res) * res + res/2
+  lat_max = np.ceil(bounds[3] / res) * res + res/2
   mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res,
                                 lat_min:lat_max:res]
   points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
