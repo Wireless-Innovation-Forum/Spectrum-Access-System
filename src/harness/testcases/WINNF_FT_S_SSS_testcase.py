@@ -24,7 +24,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_6"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("unrecognized_sas.cert"),
@@ -38,16 +38,18 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TH_URL })
+
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
   def generate_SSS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_7"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("corrupted_sas.cert"),
@@ -61,6 +63,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
@@ -70,7 +73,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_8"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("self_signed_sas.cert"),
@@ -84,6 +87,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
@@ -93,7 +97,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_9"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("non_cbrs_signed_sas.cert"),
@@ -107,6 +111,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
@@ -116,7 +121,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.12"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas_expired.cert"),
@@ -130,6 +135,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
@@ -139,7 +145,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_13_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.13"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas.cert"),
@@ -153,6 +159,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
         Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
+
     # Load the configuration
     config = loadConfig(config_filename)
 
@@ -166,7 +174,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_14_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.14"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas.cert"),
@@ -180,6 +188,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
         Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
+
     # Load the configuration
     config = loadConfig(config_filename)
 
@@ -187,7 +197,6 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TH_URL })
-
     self.assertTlsHandshakeFailure(config['sasCert'],
                                    config['sasKey'],
                                    ciphers='ECDHE-RSA-AES256-GCM-SHA384')
