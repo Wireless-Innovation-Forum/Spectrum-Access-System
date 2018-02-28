@@ -23,7 +23,7 @@ WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 WGS_POLAR_RADIUS_KM2 = 6356.753
 
 
-def GeoJsonToShapelyGeometry(geo):
+def GeoJsonToShapelyGeometry(geometry):
   """Returns a |shapely| geometry from a GeoJSON geometry.
 
   The structure of the GeoJSON is kept and both Geometry collections
@@ -31,15 +31,21 @@ def GeoJsonToShapelyGeometry(geo):
   `shapely.ops.unary_union()` routine.
 
   Args:
-    geo: a dict representing a GeoJSON geometry.
+    geometry: a dict representing a GeoJSON geometry.
+
+  Raises:
+    ValueError: If invalid GeoJSON geometry is passed.
   """
-  if 'geometries' in geo:
+  if not isinstance(geometry, dict) or 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+
+  if 'geometries' in geometry:
     return sgeo.GeometryCollection([GeoJsonToShapelyGeometry(g)
-                                    for g in geo['geometries']])
-  geo = sgeo.shape(geo)
-  if isinstance(geo, sgeo.Polygon) or isinstance(geo, sgeo.MultiPolygon):
-    geo = geo.buffer(0)
-  return geo
+                                    for g in geometry['geometries']])
+  geometry = sgeo.shape(geometry)
+  if isinstance(geometry, sgeo.Polygon) or isinstance(geometry, sgeo.MultiPolygon):
+    geometry = geometry.buffer(0)
+  return geometry
 
 
 def GridPolygon(poly, res_arcsec):
@@ -51,7 +57,7 @@ def GridPolygon(poly, res_arcsec):
 
   Args:
     poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either
-      as a `shapely` or GeoJSON dict geometries.
+      as a `shapely` or GeoJSON dict geometry.
     res_arcsec: The resolution (in arcsec) used for regular gridding.
 
   Returns:
@@ -117,7 +123,7 @@ def _RingArea(latitudes, longitudes):
   return np.abs(area)
 
 
-def GeometryArea(geo, merge_geometries=False):
+def GeometryArea(geometry, merge_geometries=False):
   """Returns the approximate area of a geometry on earth (in km2).
 
   This uses the approximate formula on spheroid derived from:
@@ -128,7 +134,7 @@ def GeometryArea(geo, merge_geometries=False):
   ellipsoid.
 
   Args:
-    geo: A geometry defined in WGS84 or NAD83 coordinates (degrees) either:
+    geometry: A geometry defined in WGS84 or NAD83 coordinates (degrees) either:
       - a shapely geometry (Polygon, MultiPolygon, etc..)
       - a GeoJSON geometry (dict), representing either a basic geometry or
         a GeometryCollection.
@@ -138,30 +144,30 @@ def GeometryArea(geo, merge_geometries=False):
   Returns:
     (float) The approximate area within the geometry (in square kilometers).
   """
-  if isinstance(geo, dict):
-    geo = GeoJsonToShapelyGeometry(geo)
+  if isinstance(geometry, dict):
+    geometry = GeoJsonToShapelyGeometry(geometry)
     if merge_geometries:
-      geo = ops.unary_union(geo)
-    return GeometryArea(geo)
-  elif (isinstance(geo, sgeo.Point) or
-        isinstance(geo, sgeo.LineString) or
-        isinstance(geo, sgeo.LinearRing)):
+      geometry = ops.unary_union(geometry)
+    return GeometryArea(geometry)
+  elif (isinstance(geometry, sgeo.Point) or
+        isinstance(geometry, sgeo.LineString) or
+        isinstance(geometry, sgeo.LinearRing)):
         # Lines, rings and points have null area
     return 0.
-  elif isinstance(geo, sgeo.Polygon):
-    return (_RingArea(geo.exterior.xy[1], geo.exterior.xy[0])
+  elif isinstance(geometry, sgeo.Polygon):
+    return (_RingArea(geometry.exterior.xy[1], geometry.exterior.xy[0])
             - sum(_RingArea(interior.xy[1], interior.xy[0])
-                  for interior in geo.interiors))
+                  for interior in geometry.interiors))
   else:
     # Multi geometries
     if merge_geometries:
-      geo = ops.unary_union(geo)
+      geometry = ops.unary_union(geometry)
       # Test if dissolved into a simple geometry.
       try:
-        iter(geo)
+        iter(geometry)
       except TypeError:
-        return GeometryArea(geo)
-    return sum(GeometryArea(simple_shape) for simple_shape in geo)
+        return GeometryArea(geometry)
+    return sum(GeometryArea(simple_shape) for simple_shape in geometry)
 
 
 def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
