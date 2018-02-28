@@ -15,7 +15,7 @@ import json
 import os
 import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
- configurable_testcase, writeConfig, loadConfig, compareDict, getCertFilename,\
+ configurable_testcase, writeConfig, loadConfig, compareDict,\
  getCertificateFingerprint
 import sas_testcase
 import hashlib
@@ -74,41 +74,41 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqualToDeviceOrPreloadedConditionalParam('meas_capability', \
              device, reg_conditional_device_data, cbsd_record[0])
             
-            self.assertEqualToDeviceOrPreloadedConditionalParam('latitude', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('latitude', \
              device['installationParam'], reg_conditional_device_data\
              ['installationParam'], cbsd_record[0]['installationParam'])
             
-            self.assertEqualToDeviceOrPreloadedConditionalParam('longitude', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('longitude', \
              device['installationParam'], reg_conditional_device_data\
              ['installationParam'], cbsd_record[0]['installationParam'])
             
-            self.assertEqualToDeviceOrPreloadedConditionalParam('height', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('height', \
              device['installationParam'], reg_conditional_device_data\
              ['installationParam'], cbsd_record[0]['installationParam'])
 
-            self.assertEqualToDeviceOrPreloadedConditionalParam('heightType', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('heightType', \
              device['installationParam'], reg_conditional_device_data\
              ['installationParam'], cbsd_record[0]['installationParam'])
             
-            self.assertEqualToDeviceOrPreloadedConditionalParam('antennaGain', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('antennaGain', \
              device['installationParam'], reg_conditional_device_data\
              ['installationParam'], cbsd_record[0]['installationParam'])                   
             
              # parameters should exist in record if exist in device,\        
-            self.assertEqualToIfExistDeviceOrPreloadedConditionalParam('indoorDeployment', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('indoorDeployment', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
             
-            self.assertEqualToIfExistDeviceOrPreloadedConditionalParam('antennaAzimuth', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaAzimuth', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
-            self.assertEqualToIfExistDeviceOrPreloadedConditionalParam('antennaDowntilt', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaDowntilt', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
-            self.assertEqualToIfExistDeviceOrPreloadedConditionalParam('antennaBeamwidth', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaBeamwidth', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
@@ -125,7 +125,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                     self.assertLessEqual(cbsd_record[0]['eirpCapability'], 47)
                     self.assertGreaterEqual(cbsd_record[0]['eirpCapability'], -127)
             # antennaModel if exists in device should exist with same value in record                
-            self.assertEqualToIfExistDeviceOrPreloadedConditionalParam('antennaModel', \
+            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaModel', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             
@@ -210,19 +210,19 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         esc_sensors.append(json.load(
               open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
 
-        # SAS Harness Test
+        # SAS Test Harness 
         sas_harness_config = {
-			'sasTHName': 'SAS-TH-2',
+			'sasTestHarnessName': 'SAS-TH-2',
 			'url': 'https://localhost:9003/v1.2',
-			'serverCert': getCertFilename("server.cert"),
-			'serverKey': getCertFilename("server.key")}
-		
+			'serverCert': os.path.join('certs', "server.cert"),
+			'serverKey': os.path.join('certs', "server.key")
+			}	
         config = {
             'registrationRequests': devices,
             'conditionalRegistrationData': conditionals,
             'grantRequests': grants,
             'ppas': ppas,
-            'palRecords ': pals,
+            'palRecords': pals,
             'escSensors' : esc_sensors,
 			'sasHarness' : sas_harness_config
         }

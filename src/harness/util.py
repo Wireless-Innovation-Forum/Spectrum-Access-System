@@ -384,22 +384,15 @@ def _orderAttributes(obj):
     else:
         return obj
 
-# Test the Compare Dict function which is used in FAD.1 to compare PPA record and Esc records in dump file with injected object
 def compareDict(first_dict, second_dict):
-  """ deep Comparision of two Dictionarys
+  """ Deep comparison of two dictionaries
 
   Args:
     first_dict: first dictionary to be compared.
     second_dict: second dictionary to be compared.
+ Returns: boolean set to true if the dictionaries are equal and false otherwise.
   """
-  return _orderAttributes(first_dict) ==  _orderAttributes(second_dict)
-
-def getCertFilename(cert_name):
-  """Returns the absolute path of the file corresponding to the given |cert_name|.
-  """
-  harness_dir = os.path.dirname(os.path.abspath
-                                (inspect.getfile(inspect.currentframe())))
-  return os.path.join(harness_dir, 'certs', cert_name)
+  return _orderAttributes(first_dict) == _orderAttributes(second_dict)
 
 def getCertificateFingerprint(certificate):
   """ Get SHA1 hash of the input certificate.

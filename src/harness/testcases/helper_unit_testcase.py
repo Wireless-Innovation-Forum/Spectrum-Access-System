@@ -1,6 +1,6 @@
 import sas_testcase
 import unittest
-from util  import compareDict
+from util import compareDict
 #===============================================================================
 # this class unit tests AssertChannelsContainFrequencyRange method with different
 # possible combinations for simplifying the tests we use frequencies in MHz units 
@@ -79,7 +79,6 @@ class AssertChannelsContainFrequencyRangeTest(sas_testcase.SasTestCase):
           self.assertChannelsContainFrequencyRange(channels, frequency_range)
 
 # Test the Compare Dict function in util which is used in FAD.1 test to compare PPA record and Esc records in dump file with injected object
-
 class AssertPpaComparison(sas_testcase.SasTestCase):
     
    def setUp(self):
