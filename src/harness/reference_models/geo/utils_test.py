@@ -119,6 +119,15 @@ class TestUtils(unittest.TestCase):
     pts = utils.GridPolygon(poly, res_arcsec=1800.)
     self.assertSetEqual(set(pts), exp_pts)
 
+  def test_grid_simple_with_hole(self):
+    poly = sgeo.Polygon([(1.9, 3.9), (3.1, 3.9), (3.1, 4.4),
+                         (2.5, 4.5), (2.4, 5.1), (1.9, 5.1)],
+                        [[(1.95, 3.95), (2.05, 3.95), (2.05, 4.4)]])
+    exp_pts = {(2.5, 4.0), (3.0, 4.0),
+               (2.0, 4.5), (2.5, 4.5), (2.0, 5.0)}
+    pts = utils.GridPolygon(poly, res_arcsec=1800.)
+    self.assertSetEqual(set(pts), exp_pts)
+
   def test_grid_complex(self):
     with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
       json_geo = geojson.load(fd)
