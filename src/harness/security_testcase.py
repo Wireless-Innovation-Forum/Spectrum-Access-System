@@ -25,6 +25,7 @@ import urlparse
 import inspect
 
 from OpenSSL import SSL, crypto
+from util import getCertificateFingerprint
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -147,8 +148,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     self.assertTrue(finished_check_idx > 0)
     self.assertTrue(finished_check_idx > cipher_check_idx)
 
-  def doTestCipher(self, cipher, client_cert=None, client_key=None):
-    """Does a cipher test as described in SCS/SDS/SSS tests 1 to 5 specification.
+  def doCbsdTestCipher(self, cipher, client_cert=None, client_key=None):
+    """Does a cipher test as described in SCS/SDS tests 1 to 5 specification.
 
     Args:
       cipher: the cipher openSSL string name to test.
@@ -170,6 +171,29 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
+
+  def doSasTestCipher(self, cipher, client_cert, client_key, client_url):
+    """Does a cipher test as described in SSS tests 1 to 5 specification.
+
+    Args:
+      cipher: the cipher openSSL string name to test.
+      client_cert: SAS client certificate file in PEM format to use.
+      client_key: associated key file in PEM format to use.
+      client_url: base URL of the peer client SAS.
+    """
+
+    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
+                                   client_cert, client_key)
+
+    # Does a regular SAS registration
+    self.SasReset()
+    certificate_hash = getCertificateFingerprint(client_cert)
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': client_url})
+    self._sas_admin.TriggerFullActivityDump()
+    with CiphersOverload(self._sas, [cipher], client_cert, client_key):
+      self._sas.GetFullActivityDump(client_cert, client_key)
 
   def assertTlsHandshakeFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """

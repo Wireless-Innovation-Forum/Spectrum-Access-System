@@ -202,6 +202,30 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
+  def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
+    response = json.loads(json.dumps({
+        'files': [
+            {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709",'size':19,
+              'version': version,'recordType': "cbsd"},
+            {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+             'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19,
+             'version': version,'recordType': "zone"},
+            {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19,
+              'version': version, 'recordType': "esc_sensor"},
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19,
+              'version': version, 'recordType': "coordination"}
+            ],
+        'generationDateTime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'description': "Full activity dump files" }))
+    return response
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
@@ -266,6 +290,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
+  def TriggerFullActivityDump(self):
+    pass
+
   def TriggerLoadDpas(self):  
     pass
 
@@ -277,6 +304,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
   def TriggerDpaDeactivation(self, request):
     pass
+
+  def InjectPeerSas(self, request):
+    pass
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
@@ -309,9 +340,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
-    elif self.path == 'admin/trigger/create_ppa':
+    elif self.path == '/admin/trigger/create_ppa':
       response = FakeSasAdmin().TriggerPpaCreation(request)
-    elif self.path == 'admin/get_daily_activities_status':
+    elif self.path == '/admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
@@ -331,7 +362,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/load_dpas',
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
-                       '/admin/trigger/bulk_dpa_activation'):
+                       '/admin/trigger/bulk_dpa_activation',
+                       '/admin/trigger/create_full_activity_dump',
+                       '/admin/injectdata/peer_sas'):
       response = ''
     else:
       self.send_response(404)
@@ -345,9 +378,11 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     """Handles GET requests."""
     path, value = self._parseUrl(self.path)
     if path == '%s/sas_impl' % self.version:
-     response = FakeSas().GetSasImplementationRecord(value)
+      response = FakeSas().GetSasImplementationRecord(value)
     elif path == '%s/esc_sensor' % self.version:
       response = FakeSas().GetEscSensorRecord(value)
+    elif path == '%s/dump' % self.version:
+      response = FakeSas().GetFullActivityDump(self.version)
     else:
       self.send_response(404)
       return
