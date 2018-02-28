@@ -17,6 +17,7 @@ A SAS Test Harness server could be run by creating the object for the class SasT
 and by invoking the API start().
 """
 
+import ConfigParser
 import hashlib
 import inspect
 import json
@@ -50,7 +51,7 @@ class SasTestHarnessServer(threading.Thread):
   code to be executed by the thread is placed under the overridden method run ()
   where a HTTP server is created to serves the FAD files.
   """
-  def __init__(self, name, host_name, port, sas_version, cert_file=None,
+  def __init__(self, name, host_name, port, cert_file=None,
                key_file=None, ca_cert_file=None):
     """ This constructor initializes the SasTestHarnessServer class with required information
     passed as args.
@@ -61,8 +62,7 @@ class SasTestHarnessServer(threading.Thread):
         host_name: Host name part of the SAS Test Harness URL.
                    Note: this is without https:// or port number or version.
         port: port of SAS Test Harness host where http server is configured.
-        sas_version: SAS version of the SAS Test Harness to be used to construct the base URL.
-        cert_file: The relative path from this class directory to the certificate 
+        cert_file: The relative path from this class directory to the certificate
                    file used by SAS Test Harness to authorize with SAS UUT.
         key_file: The relative path from this class directory to the private key file
                   for the cert_file.
@@ -73,10 +73,10 @@ class SasTestHarnessServer(threading.Thread):
     self.name = name
     self.host_name = host_name
     self.port = port
-    self.sas_version = sas_version
+    self.sas_version = self.getSasTestHarnessVersion()
 
     #BaseURL format should be https: // < hostname >: < port > / versionX.Y
-    self.http_server_url = "https://" + host_name + ':' + str(port) + '/' + sas_version
+    self.http_server_url = "https://" + host_name + ':' + str(port) + '/' + self.sas_version
     self.dump_path = self.__generateTempDirectory()
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
     self.key_file = key_file if key_file is not None else DEFAULT_KEY_FILE
@@ -100,6 +100,16 @@ class SasTestHarnessServer(threading.Thread):
     os.makedirs(temp_dump_dir_path)
 
     return temp_dump_dir_path
+
+  def getSasTestHarnessVersion(self):
+    """This method retrieves the SAS Test Harness Version from sas.cfg.
+    Returns: Returns SAS version of the SAS Test Harness to be used
+             to construct the base URL.
+    """
+    config_parser = ConfigParser.RawConfigParser()
+    config_parser.read(['sas.cfg'])
+    sas_harness_version = config_parser.get('SasTestHarnessConfig', 'Version')
+    return sas_harness_version
 
   def getBaseUrl(self):
     return self.http_server_url
@@ -135,6 +145,7 @@ class SasTestHarnessServer(threading.Thread):
     """
     self.server.shutdown()
     logging.info("Stopped Test Harness Server:%s", self.name)
+
 
   def cleanDumpFiles(self):
     """ Clean existing dumpfile if any. """
@@ -279,7 +290,7 @@ def generateCbsdRecords(cbsd_records, grant_records_list):
   Args:
      cbsd_records: list of cbsdData objects that includes one or more grants object.
      grant_records_list: list of muliple grant records for all cbsd devices.
-       For an example : muliple grants [ [grant1, grant2], [grant1, grant2] ] are
+       For an example : muliple grants [ [grant1, grant2], [grant3, grant4 ] are
        associated with each cbsd records [ cbsd1, cbsd2 ].
 
   Returns:
