@@ -12,18 +12,13 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from datetime import datetime
 import json
-import logging
 import os
-from os import listdir
-from os.path import isfile, join
 import sas
 import sas_testcase
 
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, computePropagationAntennaModel
-from test.test_deque import fail
-  
+
 def cbsddata(device):
     installationParam = device['installationParam']
     if 'antennaAzimuth' not in installationParam:
@@ -113,23 +108,21 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     passed_tests = 0.0
     for configItem in  config:
        request= config[configItem]
-
        refResponse = computePropagationAntennaModel(request)
+       sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
 
-       try:
-           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
-           # Check response
-           this_test = False
-           if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
-               this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-                   
-               if 'rxAntennaGainDbi' in refResponse:
-                   this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
-           passed_tests += this_test*1.0
-       except AssertionError as e:
-           # Allow HTTP status 400
-           self.assertEqual(e.args[0], refResponse)
-           passed_tests += 1.0
+       # Check response
+       this_test = False
+       if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
+           this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+               
+           if 'rxAntennaGainDbi' in refResponse:
+               this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+       else:
+           self.assertEqual(sasResponse, refResponse)
+           this_test = 1.0
 
+       passed_tests += this_test*1.0
 
     self.assertTrue(passed_tests >= num_tests * test_pass_threshold)
+    

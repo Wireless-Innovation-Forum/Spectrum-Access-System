@@ -32,7 +32,7 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.geo import nlcd
-from reference_models.geo.utils import GridPolygon
+from reference_models.geo import utils as GeoUtils
  
 import jwt
 
@@ -304,7 +304,7 @@ def computePropagationAntennaModel(request):
         ppa = request['ppa']
 
         ARCSEC = 2
-        ppa_points = GridPolygon(ppa['geometry']['coordinates'], ARCSEC)
+        ppa_points = GeoUtils.GridPolygon(ppa['geometry']['coordinates'], ARCSEC)
         if len(ppa_points) == 1:
             rx['latitude'] = ppa_points[0][0]
             rx['longitude']= ppa_points[0][1]
