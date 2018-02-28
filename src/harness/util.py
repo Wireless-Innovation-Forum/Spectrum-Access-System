@@ -331,7 +331,6 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
-
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
 
@@ -376,17 +375,10 @@ def addGrantIdsToRequests(grant_ids, requests):
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
 
-def getCertFilename(cert_name):
-  """Returns the absolute path of the file corresponding to the given |cert_name|.
-  """
-  harness_dir = os.path.dirname(os.path.abspath
-                                (inspect.getfile(inspect.currentframe())))
-  return os.path.join(harness_dir, 'certs', cert_name)
-
 def getCertificateFingerprint(certificate):
   """ Get SHA1 hash of the input certificate.
   Args:
-    certificate: certificate file
+    certificate: The full path to the file containing the certificate
   Returns:
     sha1 fingerprint of the input certificate
   """

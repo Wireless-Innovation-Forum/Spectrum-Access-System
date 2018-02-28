@@ -18,9 +18,10 @@ import os
 import sas
 import sas_testcase
 from reference_models.geo import vincenty
-from sas_test_harness import SasTestHarnessServer
-from util import configurable_testcase, writeConfig, loadConfig, getCertFilename,\
-    getCertificateFingerprint, makePpaAndPalRecordsConsistent
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
+    generatePpaRecords
+from util import configurable_testcase, writeConfig, loadConfig, \
+    getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   """ This class contains all FAD related tests mentioned in SAS TS  """
@@ -48,6 +49,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                                     esc_sensor['installationParam']['longitude'],
                                                     15,
                                                     30)  # distance of 15 kms from ESC at 30 degrees
+
+    # Load the device_c1 in the neighborhood area of the ESC sensor
     device_c1['installationParam']['latitude'] = latitude
     device_c1['installationParam']['longitude'] = longitude
 
@@ -69,19 +72,28 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                                                 pal_high_frequency,
                                                                 'test_user_1')
 
-    # Load device_c3 within the PPA in SAS Test Harness
+    # Load device_c3 in SAS Test Harness
     device_c3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_c3['installationParam']['latitude'] = 38.822321
-    device_c3['installationParam']['longitude'] = -97.283932
+
+    # Get point inside PPA 
+    lat, lon = getRandomLatLongInPolygon(ppa_record_a)
+
+    # Get a latitude and longitude within 40 kms from point inside PPA.
+    latitude, longitude, _ = vincenty.GeodesicPoint(lat,
+                                                    lon,
+                                                    10,
+                                                    30)  # distance of 10 kms from PPA at 30 degrees
+    # Load the device_c3 in the neighborhood area of the PPA
+    device_c3['installationParam']['latitude'] = latitude
+    device_c3['installationParam']['longitude'] = longitude
 
     # Load grant request for device_c3 in SAS Test Harness
     grant_g3 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_g3['cbsdId'] = device_c3['userId']
     grant_g3['operationParam']['maxEirp'] = 20
 
-    # Update grant_G3 frequency to overlap with PPA zone frequency for C3 device
+    # Update grant_g3 frequency to overlap with PPA zone frequency for C3 device
     grant_g3['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3550000000,
         'highFrequency': 3555000000
@@ -90,11 +102,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Load the device_c2 with registration to SAS UUT
     device_c2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    # Load grant request for device_c2 to SAS UUT
-    grant_g2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_g2['operationParam']['maxEirp'] = 30
-
     # Get a latitude and longitude within 40 kms from ESC.
     latitude, longitude, _ = vincenty.GeodesicPoint(esc_sensor['installationParam']['latitude'],
                                          esc_sensor['installationParam']['longitude'], 20,
@@ -103,20 +110,33 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     device_c2['installationParam']['latitude'] = latitude
     device_c2['installationParam']['longitude'] = longitude
 
+    # Load grant request for device_c2 to SAS UUT
+    grant_g2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2['operationParam']['maxEirp'] = 30
+
     # Load the device_c4 with registration to SAS UUT.
     device_c4 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
 
-    #Placing this device within the PPA
-    device_c4['installationParam']['latitude'] = 38.7790
-    device_c4['installationParam']['longitude'] = -97.2263
+    # Get point inside PPA 
+    lat, lon = getRandomLatLongInPolygon(ppa_record_a)
+
+    # Get a latitude and longitude within 40 kms from point inside PPA.
+    latitude, longitude, _ = vincenty.GeodesicPoint(lat,
+                                                    lon,
+                                                    5,
+                                                    30)  # distance of 5 kms from PPA at 30 degrees
+    # Load the device_c4 in the neighborhood area of the PPA
+    device_c4['installationParam']['latitude'] = latitude
+    device_c4['installationParam']['longitude'] = longitude
 
     # Load grant request for device_c4 to SAS UUT
     grant_g4 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_g4['operationParam']['maxEirp'] = 20
 
-    #Update grant_G4 frequency to overlap with PPA zone frequency for C4 device
+    #Update grant_g4 frequency to overlap with PPA zone frequency for C4 device
     grant_g4['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3555000000,
         'highFrequency': 3560000000
@@ -133,14 +153,14 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'hostName': 'localhost',
         'port': 9001,
         'sasVersion': 'v1.2',
-        'serverCert': getCertFilename("server.cert"),
-        'serverKey': getCertFilename("server.key"),
-        'fileServePath': '/home/cbrsdev/FAD2/data'
+        'serverCert': "certs/server.cert",
+        'serverKey': "certs/server.key",
+        'caCert': "certs/ca.cert"
     }
 
     # Generate FAD Records for each record type like cbsd,zone and esc_sensor
-    cbsd_fad_records = SasTestHarnessServer.generateCbsdRecords(cbsd_records, grant_record_list)
-    ppa_fad_record = SasTestHarnessServer.generatePpaRecords(ppa_records, cbsdIds_reference_id_list)
+    cbsd_fad_records = generateCbsdRecords(cbsd_records, grant_record_list)
+    ppa_fad_record = generatePpaRecords(ppa_records, cbsdIds_reference_id_list)
     esc_fad_record = [esc_sensor]
 
     sas_harness_dump_records = {
@@ -188,13 +208,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                             sas_test_harness_config['hostName'],
                                             sas_test_harness_config['port'],
                                             sas_test_harness_config['sasVersion'],
-                                            sas_test_harness_config['fileServePath'],
                                             sas_test_harness_config['serverCert'],
                                             sas_test_harness_config['serverKey'])
-
-    SasTestHarnessServer.writeFadRecords(sas_harness_base_url,
-                                         sas_test_harness_config['fileServePath'],
-                                         sas_test_harness_dump_records)
+    sas_test_harness.writeFadRecords(sas_test_harness_dump_records)
     # Start the server
     sas_test_harness.start()
 
@@ -226,7 +242,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     cbsd_ids_c4, grant_ids_c4 = self.assertRegisteredAndGranted([device_c4], [grant_g4])
 
     # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
-    #                                    to SAS UUT
+    # respectively to SAS UUT
     transmit_expire_times = self.assertHeartbeatsSuccessful(
         list([cbsd_ids_c2, cbsd_ids_c4]),
         list([grant_ids_c2, grant_ids_c4]),
