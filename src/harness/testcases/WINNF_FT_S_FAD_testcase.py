@@ -299,15 +299,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         # download dump files and fill corresponding arrays
         for dump_file in response['files']:
             self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
-                                               dump_file[0])
+                                               dump_file)
             downloaded_file = None
             if dump_file['recordType'] != 'CoordinationEvent':                
                 downloaded_file = self._sas.DownloadFile(dump_file['url'],\
 				    sas_th_config['serverCert'], sas_th_config['serverKey'])
-                datetime.strptime(downloaded_file['startTime'],\
-                                                     '%Y-%m-%dT%H:%M:%SZ')
-                datetime.strptime(downloaded_file['endTime'],\
-                                                     '%Y-%m-%dT%H:%M:%SZ')
             if dump_file['recordType'] ==  'cbsd':
                 cbsd_dump_data.append(downloaded_file['recordData'])   
             elif dump_file['recordType'] ==  'esc_sensor':
