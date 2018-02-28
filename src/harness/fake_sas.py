@@ -89,7 +89,7 @@ class FakeSas(sas_interface.SasInterface):
   """
 
   def __init__(self):
-	pass
+    pass
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     response = {'registrationResponse': []}
@@ -309,7 +309,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def InjectPeerSas(self, request):
-	pass
+    pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
