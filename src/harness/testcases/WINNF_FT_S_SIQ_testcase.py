@@ -18,8 +18,7 @@ import sas
 import sas_testcase
 import logging
 from util import winnforum_testcase, writeConfig,loadConfig, configurable_testcase ,getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent,generateCpiRsaKeys, generateCpiEcKeys, convertRequestToRequestWithCpiSignature, \
-  filterChannelsByFrequencyRange, addCbsdIdsToRequests
+  makePpaAndPalRecordsConsistent,filterChannelsByFrequencyRange, addCbsdIdsToRequests
 import time
 
 class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
@@ -885,7 +884,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     
     ppa_cluster_list_1 = [0]
     ppa_cluster_list_2 = []
-    # Move device_b near to the first PPA zone
+    # Move device_b inside the  PPA zone
     device_b['installationParam']['latitude'] = 38.82767
     device_b['installationParam']['longitude'] = -97.20497
 
@@ -909,7 +908,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_1['inquiredSpectrum'] = [{
         'lowFrequency': 3550000000,
-        'highFrequency': 3570000000
+        'highFrequency': 3580000000
     }]
 
     # 2. Spectrum Inquiry: Invalid Value of low and high frequency and invalid id for cbsdId.
@@ -925,7 +924,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     spectrum_inquiry_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_3['inquiredSpectrum'] = [{
-        'lowFrequency': '',
         'highFrequency': 3700000000
     }]
     spectrum_inquiry_3['cbsdId'] = "REMOVE"
@@ -938,23 +936,22 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     config = {
         'registrationRequestsN2': devices,
-        'conditionalParameters' : conditionals,
+        'conditionalRegistrationData' : conditionals,
         'expectedResponseCodes': [(0,), (103,), (102,)],  
         'palRecordsN3':[pal_records1,pal_records2],
         'ppaRecordsN3':[{'ppaRecord':ppa_record1,
                          'ppaClusterList': ppa_cluster_list_1},
                         {'ppaRecord':ppa_record2,
-                         'ppaClusterList': ppa_cluster_list_2}]
+                         'ppaClusterList': ppa_cluster_list_2}],
    
         'spectrumInquiryRequestsN2':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
         'gwpzRecordsN1':[gwpz_e],
-        'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3600000000,'highFrequency': 3610000000}}, 
-                       {'frequency' :{'lowFrequency': 3620000000,'highFrequency': 3630000000}}, 
-                       {'frequency' :{'lowFrequency': 3650000000,'highFrequency': 3700000000}}],[],[] ], 
+        'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3550000000,'highFrequency': 3560000000}}, 
+                       {'frequency' :{'lowFrequency': 3560000000,'highFrequency': 3570000000}}, 
+                       ],[],[] ], 
 
-        'fr2Cbsd': [ [ {'frequency' :{'lowFrequency': 3550000000,'highFrequency': 3560000000}},
-                         {'frequency' :{'lowFrequency': 3560000000,'highFrequency': 3570000000}}],
-                   [],[] ]
+        'fr2Cbsd': [ [ {'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}}],
+                       [],[] ]
 
     }
     writeConfig(filename, config)
@@ -979,7 +976,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Step2&3: Register N2 CBSDs
     # Check registration response
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalParameters'])
+    cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalRegistrationData'])
 
     # Update PPA records with devices' CBSD IDs and Inject zone data
     if ('ppaRecordsN3' in config) and (config['ppaRecordsN3']):
@@ -1050,7 +1047,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                   (channel['frequencyRange']['highFrequency'] ==
                              fr2_range['frequency']['highFrequency'])):
                 isFrequencyIncludedInFr2Cbsd = True
-            self.assertTrue(isFrequencyIncludedInFr2Cbsd, "PAL channel is not available in Fr2Cbsd list")       
+            self.assertTrue(isFrequencyIncludedInFr2Cbsd, "PAL channel is not included in Fr2Cbsd list")       
   
             # Check the PAL channels frequency ranges does not include any frequency range from 3650-3700MHz.
             self.assertLess(channel['frequencyRange']['lowFrequency'], 3650000000) 
