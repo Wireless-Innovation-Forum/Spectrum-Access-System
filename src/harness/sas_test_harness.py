@@ -62,11 +62,11 @@ class SasTestHarnessServer(threading.Thread):
         host_name: Host name part of the SAS Test Harness URL.
                    Note: this is without https:// or port number or version.
         port: port of SAS Test Harness host where http server is configured.
-        cert_file: The relative path from this class directory to the certificate
+        cert_file: The relative path from the execution directory to the certificate
                    file used by SAS Test Harness to authorize with SAS UUT.
-        key_file: The relative path from this class directory to the private key file
+        key_file: The relative path from the execution directory to the private key file
                   for the cert_file.
-        ca_cert_file: The relative path from this class directory to the trusted 
+        ca_cert_file: The relative path from the execution directory to the trusted
                   CA certificate chain.
     """
     super(SasTestHarnessServer, self).__init__()
@@ -93,10 +93,10 @@ class SasTestHarnessServer(threading.Thread):
 
     Returns: Returns the absolute path of the created temporary directory.
     """
-    sas_testharness_data_dir = os.path.join(os.path.dirname(os.path.abspath(
+    sas_test_harness_data_dir = os.path.join(os.path.dirname(os.path.abspath(
       inspect.getfile(inspect.currentframe()))), '..', '..', 'SAS-Test-Harness-Data')
     current_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')
-    temp_dump_dir_path = os.path.join(sas_testharness_data_dir, current_time_stamp)
+    temp_dump_dir_path = os.path.join(sas_test_harness_data_dir, current_time_stamp)
     os.makedirs(temp_dump_dir_path)
 
     return temp_dump_dir_path
@@ -222,12 +222,12 @@ class SasTestHarnessServer(threading.Thread):
             raise Exception("ConfigurationError:incorrect record type. Unable to write FAD record")
         else:
           raise Exception("ConfigurationError:field id is not found. Unable to write FAD record")
-        if record_url is not None and generated_file_name is not None:
+        if not record_url or not generated_file_name:
+          raise Exception("SASTestHarnessError:Unable to create record url")
+        else:
           self.__writeDumpFile(generated_file_name, dump_record)
           fad_record = self.__createFadRecord(record_url, dump_record)
           fad_record_list.append(fad_record)
-        else:
-          raise Exception("SASTestHarnessError:Unable to create record url")
       fad_file_name = 'FAD.json'
       full_activity_dump = self.__createFadObject(fad_record_list)
       self.__writeDumpFile(fad_file_name, full_activity_dump)
@@ -284,71 +284,74 @@ def generateCbsdReferenceId(fcc_id, serial_number):
   """
   return str(fcc_id + '/' + str(hashlib.sha1(serial_number).hexdigest())).encode('utf-8')
 
-def generateCbsdRecords(cbsd_records, grant_records_list):
-  """ Generates the cbsdData Object by combining cbsdrecord and grantrecord based on SAS-SAS TS.
-
+def generateCbsdRecords(registration_requests, grant_requests_list):
+  """ Generates the cbsdData Object by combining registration request and grant request based
+      on SAS-SAS TS.
   Args:
-     cbsd_records: list of cbsdData objects that includes one or more grants object.
-     grant_records_list: list of muliple grant records for all cbsd devices.
+     registration_requests: list of registration requests that includes one or more grant requests.
+     grant_requests_list: list of muliple grant requests for all cbsd devices.
        For an example : muliple grants [ [grant1, grant2], [grant3, grant4 ] are
        associated with each cbsd records [ cbsd1, cbsd2 ].
 
   Returns:
-     It returns list of CBSDData Object based on SAS-SAS TS.
+     It returns list of CbsdData object based on SAS-SAS TS.
   """
 
   cbsd_records_list = []
-  for index, (cbsd_record, grant_records) in enumerate(zip(cbsd_records, grant_records_list)):
-    encoded_cbsd_id = generateCbsdReferenceId(cbsd_record['fccId'],
-                                         cbsd_record['cbsdSerialNumber'])
+  if not len(registration_requests) == len(grant_requests_list):
+    raise Exception('ConfigurationError: Number of registration requests doesnot match '
+                    'with number of grant requests')
 
-    # Calculate grant_expiry time for grant objects if grant expiry time may
-    # be incorrect or missing.
+  for index, (registration_request, grant_requests) in enumerate(zip(registration_requests, grant_requests_list)):
+    encoded_cbsd_id = generateCbsdReferenceId(registration_request['fccId'],
+                                         registration_request['cbsdSerialNumber'])
+
+    # Assign grant expiry time to grant objects.
     grant_time_stamp = datetime.now().today() + timedelta(hours=24)
-    grant_expiry_time = time.strftime(grant_time_stamp.replace(microsecond=0).isoformat()) + 'Z'
+    grant_expire_time = time.strftime(grant_time_stamp.replace(microsecond=0).isoformat()) + 'Z'
 
     internal_data = {
         'id': 'cbsd/{}'.format(encoded_cbsd_id),
         'registration': {
-            'fccId': cbsd_record['fccId'],
-            'cbsdCategory': cbsd_record['cbsdCategory'],
-            'callSign': cbsd_record['callSign'],
-            'userId': cbsd_record['userId'],
-            'airInterface': cbsd_record['airInterface'],
-            'measCapability': cbsd_record['measCapability'],
-            'installationParam': cbsd_record['installationParam']
+            'fccId': registration_request['fccId'],
+            'cbsdCategory': registration_request['cbsdCategory'],
+            'callSign': registration_request['callSign'],
+            'airInterface': registration_request['airInterface'],
+            'measCapability': registration_request['measCapability'],
+            'installationParam': registration_request['installationParam']
         }
     }
 
     # Check if groupingParam optional parameter present in CBSDRecord then
     # add to registration object.
-    if cbsd_record.has_key('groupingParam'):
-      internal_data['registration'].update({'groupingParam': cbsd_record['groupingParam']})
-    internal_data_grant = {}
-    internal_data_grant['grants'] = []
+    if registration_request.has_key('groupingParam'):
+      internal_data['registration'].update({'groupingParam': registration_request['groupingParam']})
+
+    internal_data['grants'] = []
 
     # Read all grant records if mulitiple grant records are associated with single cbsd.
-    for grant_record in grant_records:
+    for grant_request in grant_requests:
       grant_data = {}
-      if not grant_record.has_key('id'):
-        grant_data['id'] = 'SAMPLE_ID_{:05}'.format(random.randrange(1, 10 ** 5))
+      if grant_request.has_key('id'):
+        grant_data['id'] = grant_request['id']
+      if grant_request.has_key('operationParam'):
+        grant_data['operationParam'] = grant_request['operationParam']
+      if grant_request.has_key('channelType'):
+        grant_data['channelType'] = grant_request['channelType']
+
+      # grantExpireTime is mandatory in GrantData Object.
+      if not grant_request.has_key('grantExpireTime'):
+        grant_data['grantExpireTime'] = grant_expire_time
       else:
-        grant_data['id'] = grant_record['id']
-      grant_data['operationParam'] = grant_record['operationParam']
-      if not grant_record.has_key('channelType'):
-        grant_data['channelType'] = 'GAA'
-      else:
-        grant_data['channelType'] = grant_record['channelType']
-      if not grant_record.has_key('grantExpireTime'):
-        grant_data['grantExpireTime'] = grant_expiry_time
-      else:
-        grant_data['grantExpireTime'] = grant_record['grantExpireTime']
-      if not grant_record.has_key('terminated'):
+        grant_data['grantExpireTime'] = grant_request['grantExpireTime']
+
+      # terminated field is mandatory in GrantData Object.
+      if not grant_request.has_key('terminated'):
         grant_data['terminated'] = False
       else:
-        grant_data['terminated'] = grant_record['terminated']
-      internal_data_grant['grants'].append(grant_data)
-    internal_data.update(internal_data_grant)
+        grant_data['terminated'] = grant_request['terminated']
+      internal_data['grants'].append(grant_data)
+
     cbsd_records_list.append(internal_data)
   return cbsd_records_list
 
@@ -364,8 +367,8 @@ def generatePpaRecords(ppa_records, cbsd_reference_ids_list):
   """
 
   ppa_records_list = []
-  for index, (ppa_record, cbsd_reference_id) in \
-              enumerate(zip(ppa_records, cbsd_reference_ids_list)):
+  for ppa_record, cbsd_reference_id in \
+              (zip(ppa_records, cbsd_reference_ids_list)):
 
     # Check cbsdReferenceID in ppaInfo and add cbsdReferenceID if not present.
     if not ppa_record['ppaInfo'].has_key('cbsdReferenceId'):
