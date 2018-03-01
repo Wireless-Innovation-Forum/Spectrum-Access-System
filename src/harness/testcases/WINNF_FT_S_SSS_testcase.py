@@ -18,7 +18,7 @@ from util import winnforum_testcase, configurable_testcase, writeConfig, loadCon
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
-SAS_URL = 'https://fake.sas.url.not.used.org'
+SAS_URL = 'https://fake.sas.url.not.used.org/v1.2'
 
 
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
