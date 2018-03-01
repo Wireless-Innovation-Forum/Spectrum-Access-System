@@ -946,8 +946,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
    
         'spectrumInquiryRequestsN2':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
         'gwpzRecordsN1':[gwpz_e],
-        'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3550000000,'highFrequency': 3560000000}}, 
-                       {'frequency' :{'lowFrequency': 3560000000,'highFrequency': 3570000000}}, 
+        'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}} 
                        ],[],[] ], 
 
         'fr2Cbsd': [ [ {'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}}],
@@ -981,10 +980,10 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Update PPA records with devices' CBSD IDs and Inject zone data
     if ('ppaRecordsN3' in config) and (config['ppaRecordsN3']):
       for ppa in config['ppaRecordsN3']:
+        if len(ppa['ppaClusterList']) != 0 : 
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
         for device_index in ppa['ppaClusterList']:
-          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
-              cbsd_ids[device_index]
-          ]
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
 
     # Step4: Load N3 PPA
     for pal_record in config['palRecordsN3']:
