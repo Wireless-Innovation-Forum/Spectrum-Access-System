@@ -45,9 +45,9 @@ import json
 import os
 import sas
 import sas_testcase
-from sas_test_harness import SasTestHarnessServer
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 import time
-from util import configurable_testcase, writeConfig, loadConfig, getCertFilename,\
+from util import configurable_testcase, writeConfig, loadConfig, \
     getCertificateFingerprint, winnforum_testcase, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 class GrantTestcase(sas_testcase.SasTestCase):
@@ -274,67 +274,65 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse('grantId' in response)
     self.assertEqual(response['response']['responseCode'], 103)
 
-  @winnforum_testcase
   def generate_GRA_5_default_config(self, filename):
     """Generates the WinnForum configuration for GRA_5"""
     # Create the actual config for GRA_5
 
-    # Load device_a
-    device_a = json.load(
+    # Load device_c1.
+    device_c1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Load grant request for device_a
-    grant_a = json.load(
+
+    # Load grant request.
+    grant_g1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    # Load device_b 
-    device_b = json.load(
+    # Load device_c2.
+    device_c2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Creating conditionals for Cat B devices
-    self.assertEqual(device_b['cbsdCategory'], 'B')
-    conditionalParameters = {
-        'cbsdCategory': device_b['cbsdCategory'],
-        'fccId': device_b['fccId'],
-        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-        'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam'],
-        'measCapability': device_b['measCapability']
+    # Creating conditionals for Cat B devices.
+    self.assertEqual(device_c2['cbsdCategory'], 'B')
+    conditional_parameters = {
+        'cbsdCategory': device_c2['cbsdCategory'],
+        'fccId': device_c2['fccId'],
+        'cbsdSerialNumber': device_c2['cbsdSerialNumber'],
+        'airInterface': device_c2['airInterface'],
+        'installationParam': device_c2['installationParam'],
+        'measCapability': device_c2['measCapability']
     }
-    del device_b['cbsdCategory']
-    del device_b['airInterface']
-    del device_b['installationParam']
+    del device_c2['cbsdCategory']
+    del device_c2['airInterface']
+    del device_c2['installationParam']
 
-    # Load grant request for device_b 
-    grant_b = json.load(
+    # Load grant request
+    grant_g2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     conditionals = {
-        'registrationData': conditionalParameters
+        'registrationData': [conditional_parameters]
     }
 
-    cbsd_record = [device_a]
-    grant_record_list = [[grant_a]]
+    cbsd_record = [device_c1]
+    grant_record = [grant_g1]
 
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-TestHarness-1',
         'hostName': 'localhost',
         'port': 9001,
-        'sasVersion': 'v1.2',
-        'serverCert': getCertFilename("server.cert"),
-        'serverKey': getCertFilename("server.key"),
-        'fileServePath': '/home/cbrsdev/FAD2/data'
+        'serverCert': "certs/server.cert",
+        'serverKey': "certs/server.key",
+        'caCert': "certs/ca.cert"
     }
     sas_harness_dump_records = {
-        'cbsdRecords': SasTestHarnessServer.generateCbsdRecords(cbsd_record,
-                                                                grant_record_list)
+        'cbsdRecords': generateCbsdRecords(cbsd_record, [grant_record])
     }
  
     config = {
-        'registrationRequestC1': device_a,
-        'registrationRequestC2': device_b,
-        'conditionalParameters' : conditionals,
-        'grantRequestC1': grant_a,
-        'grantRequestC2': grant_b,
+        'registrationRequestC1': device_c1,
+        'registrationRequestC2': device_c2,
+        'conditionalParameters': conditionals,
+        'grantRequestG1': grant_g1,
+        'grantRequestG2': grant_g2,
         'sasTestHarnessConfig': sas_harness_config,
         'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
     }
@@ -344,70 +342,67 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_GRA_5(self, config_filename):
     """ SAS rejects GrantRequest if the CBSD already has a Grant from another SAS.
 
-    SAS rejects the request by sending responseCode 401
     """
     config = loadConfig(config_filename)
-    sas_test_harness_config = config['sasTestHarnessConfig']
+
     device_c1 = config['registrationRequestC1']
     device_c2 = config['registrationRequestC2']
-    grant_c1 = config['grantRequestC1']
-    grant_c2 = config['grantRequestC2']
-    sas_test_harness_dump_records_config = config['sasTestHarnessConfigDumpRecords']
-    sas_test_harness_dump_records = [sas_test_harness_dump_records_config['cbsdRecords']]
-    sas_harness_base_url = "https://" + sas_test_harness_config['hostName'] + ':' + str(sas_test_harness_config['port']) + '/' \
-                      + sas_test_harness_config['sasVersion']
-    # Step1: Initialize SAS-TH Server instance to dump FAD records
-    sas_test_harness_server = SasTestHarnessServer(sas_test_harness_config['sasTestHarnessName'],
-                                sas_test_harness_config['hostName'],
-                                sas_test_harness_config['port'],
-                                sas_test_harness_config['sasVersion'],
-                                sas_test_harness_config['fileServePath'],
-                                sas_test_harness_config['serverCert'],
-                                sas_test_harness_config['serverKey'])
-    
-    SasTestHarnessServer.writeFadRecords(sas_harness_base_url,
-                                         sas_test_harness_config['fileServePath'],
-                                         sas_test_harness_dump_records)
-    # Start the Test Harness server
+    grant_g1 = config['grantRequestG1']
+    grant_g2 = config['grantRequestG2']
+    sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords']]
+
+    # Create the SAS Test Harness.
+    sas_test_harness_server = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
+                                config['sasTestHarnessConfig']['hostName'],
+                                config['sasTestHarnessConfig']['port'],
+                                config['sasTestHarnessConfig']['serverCert'],
+                                config['sasTestHarnessConfig']['serverKey'],
+                                config['sasTestHarnessConfig']['caCert'])
+    sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
+
+    # Start the SAS Test Harness server
     sas_test_harness_server.start()
 
     # Notify the SAS UUT about the SAS Test Harness
-    certificate_hash = getCertificateFingerprint(sas_test_harness_config['serverCert'])
+    certificate_hash = getCertificateFingerprint(config['sasTestHarnessConfig']['serverCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': sas_harness_base_url})
+                                   'url': sas_test_harness_server.getBaseUrl()})
 
     # Step 2: Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 3: Send a valid Registration Request for CBSD (C1) and CBSD (C2) to the SAS UUT
-    # Check registration response of SAS UUT
+    # Step 3: Register CBSDs C1 and C2 with SAS UUT
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids = self.assertRegistered([device_c1, device_c2],config['conditionalParameters'])
-    grant_c1['cbsdId'] = cbsd_ids[0]
-    grant_c2['cbsdId'] = cbsd_ids[1]
+    cbsd_ids = self.assertRegistered([device_c1, device_c2], config['conditionalParameters'])
+    grant_g1['cbsdId'] = cbsd_ids[0]
+    grant_g2['cbsdId'] = cbsd_ids[1]
 
-    # Step 4: Send a valid Grant Request for C1 and C2 to the SAS UUT
-    request = {'grantRequest': [grant_c1, grant_c2]}
+    # Step 4: Send a valid Grant Request for C1 and C2 to the SAS UUT.
+    request = {'grantRequest': [grant_g1, grant_g2]}
     response = self._sas.Grant(request)['grantResponse']
 
-    # Check responseCode is 401 for CBSD C1
+    # Check the length of request and response match.
+    self.assertEqual(len(request['grantRequest']), len(response))
+
+    # Check responseCode is 401 for CBSD C1.
     self.assertEqual(response[0]['response']['responseCode'], 401)
 
-    # Check responseCode is 0 for CBSD C2
+    # Check responseCode is 0 for CBSD C2.
     self.assertEqual(response[1]['response']['responseCode'], 0)
 
-    sas_test_harness_server.stopServer()
+    # Stop and clean up SAS Test Harness.
+    sas_test_harness_server.shutdown()
     del sas_test_harness_server
 
-  @winnforum_testcase
   def generate_GRA_6_default_config(self, filename):
     """Generates the WinnForum configuration for GRA_6"""
     # Create the actual config for GRA_6
 
-    # Load device_a with registration in SAS Test Harness
-    device_a = json.load(
+    # Load device_a with registration in SAS Test Harness.
+    device_c1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Load grant request for device_a
+
+    # Load grant request.
     grant_g1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
@@ -418,25 +413,24 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_g2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
 
-    cbsd_record = [device_a]
-    grant_record_list = [[grant_g2]]
+    cbsd_record = [device_c1]
+    grant_record = [grant_g2]
 
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-TestHarness-1',
         'hostName': 'localhost',
         'port': 9001,
-        'sasVersion': 'v1.2',
-        'serverCert': getCertFilename("server.cert"),
-        'serverKey': getCertFilename("server.key"),
-        'fileServePath': '/home/cbrsdev/FAD2/data'
+        'serverCert': "certs/server.cert",
+        'serverKey': "certs/server.key",
+        'caCert': "certs/ca.cert"
     }
     sas_harness_dump_records = {
-        'cbsdRecords': SasTestHarnessServer.generateCbsdRecords(cbsd_record,
-                                                                grant_record_list)
+        'cbsdRecords': generateCbsdRecords(cbsd_record,
+                                           [grant_record])
     }
 
     config = {
-        'registrationRequestC1': device_a,
+        'registrationRequestC1': device_c1,
         'grantRequestG1': grant_g1,
         'sasTestHarnessConfig': sas_harness_config,
         'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
@@ -451,37 +445,32 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     config = loadConfig(config_filename)
-    sas_test_harness_config = config['sasTestHarnessConfig']
+
     device_c1 = config['registrationRequestC1']
     grant_g1 = config['grantRequestG1']
-    sas_test_harness_dump_records_config = config['sasTestHarnessConfigDumpRecords']
-    sas_test_harness_dump_records = [sas_test_harness_dump_records_config['cbsdRecords']]
-    sas_harness_base_url = "https://" + sas_test_harness_config['hostName'] + ':' + str(sas_test_harness_config['port']) + '/' \
-                      + sas_test_harness_config['sasVersion']
+    sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords']]
 
     # Step 1: Register CBSD C1 and get a Grant G1 from SAS UUT
     #The assertRegisteredAndGranted function does the Inject FCC ID and user ID for the registration requests
     cbsd_ids_c1, grant_ids_g1 = self.assertRegisteredAndGranted([device_c1], [grant_g1])
 
-    # Step 2: Initialize SAS-TH Server instance to dump FAD records
-    sas_test_harness_server = SasTestHarnessServer(sas_test_harness_config['sasTestHarnessName'],
-                                sas_test_harness_config['hostName'],
-                                sas_test_harness_config['port'],
-                                sas_test_harness_config['sasVersion'],
-                                sas_test_harness_config['fileServePath'],
-                                sas_test_harness_config['serverCert'],
-                                sas_test_harness_config['serverKey'])
-    SasTestHarnessServer.writeFadRecords(sas_harness_base_url,
-                                         sas_test_harness_config['fileServePath'],
-                                         sas_test_harness_dump_records)
+    # Step 2: Create SAS-TH Server instance to dump FAD records
+    sas_test_harness_server = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
+                                                   config['sasTestHarnessConfig']['hostName'],
+                                                   config['sasTestHarnessConfig']['port'],
+                                                   config['sasTestHarnessConfig']['serverCert'],
+                                                   config['sasTestHarnessConfig']['serverKey'],
+                                                   config['sasTestHarnessConfig']['caCert']
+                                                   )
+    sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
+
     # Start the Test Harness server
     sas_test_harness_server.start()
 
     # Notify the SAS UUT about the SAS Test Harness
-    certificate_hash = getCertificateFingerprint(sas_test_harness_config['serverCert'])
-
+    certificate_hash = getCertificateFingerprint(config['sasTestHarnessConfig']['serverCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': sas_harness_base_url})
+                                   'url': sas_test_harness_server.getBaseUrl()})
 
     # Step 3: Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -499,7 +488,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response.
     self.assertEqual(response['response']['responseCode'], 500)
 
-    sas_test_harness_server.stopServer()
+    # Stop SAS Test Harness and clean up
+    sas_test_harness_server.shutdown()
     del sas_test_harness_server
 
   @winnforum_testcase
