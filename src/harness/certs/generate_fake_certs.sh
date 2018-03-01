@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Remove the unknown TEST extension to get useable certificate ...
-sed -i '/TEST = critical, ASN1:NULL/d' ../../../cert/openssl.cnf
-
 # Setup: build intermediate directories.
 mkdir private
 mkdir root
@@ -128,19 +125,19 @@ echo "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_a.csr -keyout device_a.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_a"
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=test_fcc_id_a:test_serial_number_a"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -out device_a.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions cbsd_req_sign_without_test_ext -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_c.csr -keyout device_c.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_c"
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=test_fcc_id_c:test_serial_number_c"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
     -out device_c.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions cbsd_req_sign_without_test_ext -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 echo "\n\nGenerate 'admin_client' certificate/key"
@@ -363,7 +360,7 @@ openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in
 echo "\n\nGenerate sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
-    -out non_cbrs_signed_sas.csr -keyout non_cbrs_signed_sas.key \
+    -out non_cbrs_signed_sas.csr -keyout private/non_cbrs_signed_sas.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS Unknown"
 openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root_signed_sas_ca.key -in non_cbrs_signed_sas.csr \
     -out non_cbrs_signed_sas.cert -outdir ./root \
