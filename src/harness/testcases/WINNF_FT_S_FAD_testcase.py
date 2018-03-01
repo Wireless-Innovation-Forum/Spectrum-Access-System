@@ -176,13 +176,13 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     }
     # Generate FAD Records for each record type like cbsd,zone and esc_sensor
     cbsd_fad_records = generateCbsdRecords(cbsd_records, grant_record_list)
-    ppa_fad_record = generatePpaRecords(ppa_records, cbsd_reference_ids)
-    esc_fad_record = [esc_sensor]
+    ppa_fad_records = generatePpaRecords(ppa_records, cbsd_reference_ids)
+    esc_fad_records = [esc_sensor]
 
     sas_harness_dump_records = {
         'cbsdRecords': cbsd_fad_records,
-        'ppaRecord': ppa_fad_record,
-        'escSensorRecord': esc_fad_record
+        'ppaRecords': ppa_fad_records,
+        'escSensorRecords': esc_fad_records
     }
     config = {
         'registrationRequestC2': device_c2,
@@ -214,8 +214,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     grant_g2 = config['grantRequestG2']
     grant_g4 = config['grantRequestG4']
     sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords'],
-                                     config['sasTestHarnessConfigDumpRecords']['ppaRecord'],
-                                     config['sasTestHarnessConfigDumpRecords']['escSensorRecord']]
+                                     config['sasTestHarnessConfigDumpRecords']['ppaRecords'],
+                                     config['sasTestHarnessConfigDumpRecords']['escSensorRecords']]
 
     # Initialize SAS Test Harness Server instance to dump FAD records
     sas_test_harness = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
@@ -224,7 +224,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                             config['sasTestHarnessConfig']['serverCert'],
                                             config['sasTestHarnessConfig']['serverKey'],
                                             config['sasTestHarnessConfig']['caCert'])
+    
     sas_test_harness.writeFadRecords(sas_test_harness_dump_records)
+
     # Start the server
     sas_test_harness.start()
 
