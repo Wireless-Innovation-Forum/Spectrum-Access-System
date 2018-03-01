@@ -153,10 +153,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     Args:
       cipher: the cipher openSSL string name to test.
-      client_cert: optional client certificate file in PEM format to use.
+      client_cert: path to optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
-      client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.
+      client_key: path to associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
     client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
     client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
@@ -177,9 +177,9 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     Args:
       cipher: the cipher openSSL string name to test.
-      client_cert: SAS client certificate file in PEM format to use.
-      client_key: associated key file in PEM format to use.
-      client_url: base URL of the peer client SAS.
+      client_cert: path to (peer) SAS client certificate file in PEM format to use.
+      client_key: path to associated key file in PEM format to use.
+      client_url: base URL of the (peer) SAS client.
     """
 
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
