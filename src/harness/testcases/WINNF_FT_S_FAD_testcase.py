@@ -304,11 +304,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                 downloaded_file = self._sas.DownloadFile(dump_file['url'],\
 				    sas_th_config['serverCert'], sas_th_config['serverKey'])
             if dump_file['recordType'] ==  'cbsd':
-                cbsd_dump_data.append(downloaded_file['recordData'])   
+                cbsd_dump_data.extend(downloaded_file['recordData'])   
             elif dump_file['recordType'] ==  'esc_sensor':
-                esc_sensor_dump_data.append(downloaded_file['recordData'])
+                esc_sensor_dump_data.extend(downloaded_file['recordData'])
             elif dump_file['recordType'] ==  'zone':
-                ppa_dump_data.append(downloaded_file['recordData'])
+                ppa_dump_data.extend(downloaded_file['recordData'])
             else:
                 self.assertEqual('CoordinationEvent', dump_file['recordType'])
         
