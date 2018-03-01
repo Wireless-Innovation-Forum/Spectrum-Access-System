@@ -28,7 +28,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_6"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("unrecognized_sas.cert"),
@@ -48,7 +48,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_7"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("corrupted_sas.cert"),
@@ -68,7 +68,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_8"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("self_signed_sas.cert"),
@@ -88,7 +88,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_9"""
-    # Create the actual config for sas cert/key path 
+    # Create the actual config for SAS cert/key path 
 
     config = {
         'sasCert': self.getCertFilename("non_cbrs_signed_sas.cert"),
@@ -107,7 +107,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
                                    client_key=config['sasKey'])
   def generate_SSS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_10. """
-    # Create the actual config for sas cert/key path 
+    # Create the actual config for SAS cert/key path 
 
     config = {
         'sasCert': self.getCertFilename("wrong_type_sas.cert"),
@@ -123,6 +123,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     config = loadConfig(config_filename)
 
+    # Reset the SAS UUT
+    self.SasReset()
+
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
@@ -131,16 +134,16 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                      client_key=config['sasKey'])
     except AssertionError as e:
-      self.SasReset()
       try:
          self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+         self.fail("Full Activity Dump is expected to fail")
       except AssertionError as e:
          # Check if HTTP status is 403
          self.assertEqual(e.args[0], 403)
 
   def generate_SSS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.12"""
-    # Create the actual config for sas cert/key path 
+    # Create the actual config for SAS cert/key path 
 
     config = {
         'sasCert': self.getCertFilename("sas_expired.cert"),
@@ -176,7 +179,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_15_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_15. """
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas_inapplicable.cert"),
@@ -188,9 +191,11 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   def test_WINNF_FT_S_SSS_15(self, config_filename):
     """Certificate with inapplicable fields presented during Full Activity Dump 
     """
-
     config = loadConfig(config_filename)
     
+    # Reset the SAS UUT 
+    self.SasReset()
+
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
@@ -199,13 +204,14 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Initiate Full Activity Dump
     try:
        response = self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+       self.fail("Full Activity Dump is expected to fail")
     except AssertionError as e:
        # Check if HTTP status is 403
        self.assertEqual(e.args[0], 403)
 
   def generate_SSS_17_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_17"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas.cert"),
@@ -218,24 +224,34 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """Unknown SAS attempts to establish a TLS session.
     """
     config = loadConfig(config_filename)
+
+    # Reset the SAS UUT
+    self.SasReset()
+
     # Attempt TLS handshake without injecting peer SAS info and verify it fails
-    self.assertTlsHandshakeFailure(config['sasCert'], config['sasKey'])
+    try:
+      self.assertTlsHandshakeFailure(config['sasCert'], config['sasKey'])
+    except AssertionError as e:   
+      try:
+        # Initiate Full Activity Dump
+        response = self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+        self.fail("Full Activity Dump is expected to fail")
+      except AssertionError as e:
+        # Check if HTTP status is 401
+        self.assertEqual(e.args[0], 401)
 
   def generate_SSS_18_default_config(self, filename):
     """ Generates the WinnForum configuration for SSS.18 """
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
     
     valid_cert_key_pair = {'cert' :self.getCertFilename("sas.cert"),
                            'key' :self.getCertFilename("sas.key")}	
-    #
-    invalid_cert_key_pair_1 = {'cert' :self.getCertFilename("sas_expired.cert"),
-                               'key' :self.getCertFilename("sas_expired.key")}	
-    invalid_cert_key_pair_2 = {'cert' :self.getCertFilename("wrong_type_sas.cert"),
-                             'key' :self.getCertFilename("client.key")} 
+    invalid_cert_key_pair = {'cert' :self.getCertFilename("sas_expired.cert"),
+                             'key' :self.getCertFilename("sas_expired.key")}	
 
     config = {
         'validCertKeyPair': valid_cert_key_pair,
-        'invalidCertKeyPairs': [invalid_cert_key_pair_1,invalid_cert_key_pair_2]
+        'invalidCertKeyPair': invalid_cert_key_pair
     }
     writeConfig(filename, config)
 
@@ -244,6 +260,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """Security requirement for Full Activity Dump message Request
     """
     config = loadConfig(config_filename)
+
+    # Reset the SAS UUT
+    self.SasReset()
 
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(SAS_CERT)
@@ -265,16 +284,16 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self.assertContainsRequiredFields("FullActivityDump.schema.json", fadResponse)
     url = fadResponse['files'][0]['url']
 
-    # Attempting fad record download with different invalid cert,key pairs
-    for invalid_pair in config['invalidCertKeyPairs']:
-       
+    # Attempting FAD record download with different invalid cert,key pair
+    try:
+      self.assertTlsHandshakeFailure(client_cert=config['invalidCertKeyPair']['cert'],
+                                     client_key=config['invalidCertKeyPair']['key'])
+    except AssertionError as e:
       try:
-        self.assertTlsHandshakeFailure(client_cert=invalid_pair['cert'],
-                                       client_key=invalid_pair['key'])
+        downloadFile = self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
+                                                config['invalidCertKeyPair']['key'])
+        self.fail("FAD record file download should have failed")
       except AssertionError as e:
-        try:
-            downloadFile = self._sas.DownloadFile(url,invalid_pair['cert'],invalid_pair['key'] )
-        except AssertionError as e:
-            # Check if HTTP status is 401
-            self.assertEqual(e.args[0], 401)
+        # Check if HTTP status is 401
+        self.assertEqual(e.args[0], 401)
 

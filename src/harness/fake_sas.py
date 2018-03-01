@@ -202,15 +202,15 @@ class FakeSas(sas_interface.SasInterface):
       # Return Empty if invalid Id
       return {}
 
-  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+  def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
     response = json.loads(json.dumps({'files':[
-             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+             {'url': "https://localhost:{}/example/empty_activity_dump_file.json".format(PORT),
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709",'size':19, 'version': "v1.2",'recordType': "cbsd" },
-             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+             {'url': "https://localhost:{}/example/empty_activity_dump_file.json".format(PORT),
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "zone" },
-             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+             {'url': "https://localhost:{}/example/empty_activity_dump_file.json".format(PORT),
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "esc_sensor" },        
-             {'url': "https://localhost:9000/example/empty_activity_dump_file.json",
+             {'url': "https://localhost:{}/example/empty_activity_dump_file.json".format(PORT),
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': "v1.2",'recordType': "coordination" }
             ],
             'generationDateTime': datetime.utcnow().strftime(
@@ -274,7 +274,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def InjectPeerSas(self, request):
-    return {'resposne':100}
+    pass
 
   def TriggerMeasurementReportRegistration(self):
     pass
@@ -342,8 +342,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
-    elif self.path == '/%s/dump/None' % self.version :
-      response = FakeSas().GetFullActivityDump()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
@@ -381,8 +379,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
      response = FakeSas().GetSasImplementationRecord(value)
     elif path == '%s/esc_sensor' % self.version:
       response = FakeSas().GetEscSensorRecord(value)
-#   elif self.path == '%s' % self.version :
-#     response = FakeSas().GetFullActivityDump(value)
+    elif path == '%s/dump' % self.version :
+      response = FakeSas().GetFullActivityDump(value)
     else:
       self.send_response(404)
       return

@@ -180,8 +180,8 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 	  dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
 	  dump_time = datetime.strptime(dump_message['generationDateTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-	  time.sleep(10)
 	  if request_time > dump_time:
 		  break
+	  time.sleep(10)
     signal.alarm(0)
     return dump_message

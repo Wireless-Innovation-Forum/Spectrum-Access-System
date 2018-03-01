@@ -30,7 +30,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
 
 from shapely.geometry import shape, Point, LineString
@@ -382,6 +382,17 @@ def addGrantIdsToRequests(grant_ids, requests):
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
 
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: certificate file
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate,"rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint
 
 def filterChannelsByFrequencyRange(channels, freq_range):
   """Returns channels within given frequency range.

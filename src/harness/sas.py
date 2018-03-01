@@ -159,11 +159,12 @@ class SasImpl(sas_interface.SasInterface):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _RequestGet('https://%s/%s/%s/%s' %
-                       (self._base_url, self._sas_version, method_name, request),
-                       self._tls_config.WithClientCertificate(
-                           ssl_cert or self._GetDefaultSasSSLCertPath(),
-                           ssl_key or self._GetDefaultSasSSLKeyPath()))
+    url = 'https://%s/%s/%s' % (self._base_url, self._sas_version, method_name)
+    if request is not None:
+       url += '/%s' % request
+    return _RequestGet(url, self._tls_config.WithClientCertificate(
+                             ssl_cert or self._GetDefaultSasSSLCertPath(),
+                             ssl_key or self._GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return _RequestPost('https://%s/%s/%s' %
