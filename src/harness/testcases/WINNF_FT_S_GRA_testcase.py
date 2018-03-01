@@ -452,7 +452,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Step 1: Register CBSD C1 and get a Grant G1 from SAS UUT
     #The assertRegisteredAndGranted function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids_c1, grant_ids_g1 = self.assertRegisteredAndGranted([device_c1], [grant_g1])
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_c1], [grant_g1])
 
     # Step 2: Create SAS-TH Server instance to dump FAD records
     sas_test_harness_server = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
@@ -478,8 +478,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Step 4: Send the Heartbeat Request to the SAS UUT.
     request = {
       'heartbeatRequest': [{
-          'cbsdId': cbsd_ids_c1[0],
-          'grantId': grant_ids_g1[0],
+          'cbsdId': cbsd_ids[0],
+          'grantId': grant_ids[0],
           'operationState': 'GRANTED'
       }]
     }
