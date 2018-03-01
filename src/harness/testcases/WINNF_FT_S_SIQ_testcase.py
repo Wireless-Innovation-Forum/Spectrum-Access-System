@@ -857,9 +857,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
 
     # Load PAL records
-    pal_record1 = json.load(
+    pal_record_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    pal_record2 = json.load(
+    pal_record_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
 
     # Load PPA records
@@ -876,16 +876,18 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     pal_user_id2 = "pal_user_2"
 
     # Make PAL and PPA record consistent
-    ppa_record1, pal_record1 = makePpaAndPalRecordsConsistent(
-        ppa_record1, [pal_record1], pal_low_frequency1, pal_high_frequency1,
+    ppa_record1, pal_records1 = makePpaAndPalRecordsConsistent(
+        ppa_record1, [pal_record_0], pal_low_frequency1, pal_high_frequency1,
         pal_user_id1)
-    ppa_record2, pal_record2 = makePpaAndPalRecordsConsistent(
-        ppa_record2, [pal_record2], pal_low_frequency2, pal_high_frequency2,
+    ppa_record2, pal_records2 = makePpaAndPalRecordsConsistent(
+        ppa_record2, [pal_record_1], pal_low_frequency2, pal_high_frequency2,
         pal_user_id2) 
-
+    
+    ppa_cluster_list_1 = [0]
+    ppa_cluster_list_2 = []
     # Move device_b near to the first PPA zone
-    device_b['installationParam']['latitude'] = 38.96741
-    device_b['installationParam']['longitude'] = -100.29624
+    device_b['installationParam']['latitude'] = 38.82767
+    device_b['installationParam']['longitude'] = -97.20497
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -938,8 +940,12 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'registrationRequestsN2': devices,
         'conditionalParameters' : conditionals,
         'expectedResponseCodes': [(0,), (103,), (102,)],  
-        'palRecordsN3':[pal_record1,pal_record2],
-        'ppaRecordsN3':[ppa_record1,ppa_record2],
+        'palRecordsN3':[pal_records1,pal_records2],
+        'ppaRecordsN3':[{'ppaRecord':ppa_record1,
+                         'ppaClusterList': ppa_cluster_list_1},
+                        {'ppaRecord':ppa_record2,
+                         'ppaClusterList': ppa_cluster_list_2}]
+   
         'spectrumInquiryRequestsN2':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
         'gwpzRecordsN1':[gwpz_e],
         'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3600000000,'highFrequency': 3610000000}}, 
@@ -975,11 +981,19 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
     cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalParameters'])
 
+    # Update PPA records with devices' CBSD IDs and Inject zone data
+    if ('ppaRecordsN3' in config) and (config['ppaRecordsN3']):
+      for ppa in config['ppaRecordsN3']:
+        for device_index in ppa['ppaClusterList']:
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
+              cbsd_ids[device_index]
+          ]
+
     # Step4: Load N3 PPA
     for pal_record in config['palRecordsN3']:
       self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
-    for ppa_record in config['ppaRecordsN3']:
-      zone_id = self._sas_admin.InjectZoneData({"record": ppa_record})
+    for ppa in config['ppaRecordsN3']:
+      zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
 
  
     # Step5: Trigger CPAS activity
@@ -1007,6 +1021,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
       # Check response code matches the expected response code
       self.assertIn(response['response']['responseCode'],config['expectedResponseCodes'][index])
+
       if (response['response']['responseCode'] == 0) :
         # Check if the 'availableChannel' parameter is present
         self.assertTrue('availableChannel' in response)
