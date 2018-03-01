@@ -58,22 +58,20 @@ def GetTestingSas():
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
   return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
 
-
 def _RequestPost(url, request, config):
-    return _Request(url, request, config)
-
+  return _Request(url, request, config, True)
 
 def _RequestGet(url, config):
-    return _Request(url, None, config)
+  return _Request(url, None, config, False)
 
-
-def _Request(url, request, config):
+def _Request(url, request, config, is_post_method):
   """Sends HTTPS request.
 
   Args:
     url: Destination of the HTTPS request.
     request: Content of the request. (Can be None)
     config: a |TlsConfig| object defining the TLS/HTTPS configuration.
+    is_post_method (bool): If True, use POST, else GET.
   Returns:
     A dictionary represents the JSON response received from server.
   Raises:
@@ -100,11 +98,14 @@ def _Request(url, request, config):
   conn.setopt(conn.CAINFO, config.ca_cert)
   conn.setopt(conn.HTTPHEADER, header)
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
-  conn.setopt(conn.POST, True)
-  request = json.dumps(request) if request else ''
-  logging.info('Request to URL ' + url + ':\n' + request)
-  conn.setopt(conn.POSTFIELDS, request)
   conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+  request = json.dumps(request) if request else ''
+  if is_post_method:
+    conn.setopt(conn.POST, True)
+    conn.setopt(conn.POSTFIELDS, request)
+    logging.info('POST Request to URL %s :\n%s', url, request)
+  else:
+    logging.info('GET Request to URL %s', url)
   try:
     conn.perform()
   except pycurl.error as e:

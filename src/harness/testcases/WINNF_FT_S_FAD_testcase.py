@@ -213,8 +213,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         sas_harness_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'url': 'https://localhost:9003/v1.2',
-          'serverCert': os.path.join('certs', "server.cert"),
-          'serverKey': os.path.join('certs', "server.key")
+          'serverCert': os.path.join('certs', "client.cert"),
+          'serverKey': os.path.join('certs', "client.key")
         }	
         config = {
           'registrationRequests': devices,
@@ -320,7 +320,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for ppa_record in ppa_dump_data:
             self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)              
             self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
-            self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin_id)
+            self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
+            self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
 		    # TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
