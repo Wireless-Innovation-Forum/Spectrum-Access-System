@@ -31,19 +31,19 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         pass
     
     def assertEqualToIfExistDeviceOrPreloadedConditionalParam(self, attr_name, record,\
-                 preloaded_Conditionals, registration_request):
+                 preloaded_conditionals, registration_request):
         attr_value = registration_request[attr_name] if attr_name in registration_request\
-         else (preloaded_Conditionals[attr_name] if attr_name in \
-              preloaded_Conditionals else None)
+         else (preloaded_conditionals[attr_name] if attr_name in \
+              preloaded_conditionals else None)
         if attr_value != None: 
             self.assertEqual(attr_value, record[attr_name])
         else :
             self.assertFalse(attr_name in record)
     
     def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, record,\
-                 preloaded_Conditionals, registration_request):
+                 preloaded_conditionals, registration_request):
         attr_value = registration_request[attr_name] if attr_name in registration_request\
-         else preloaded_Conditionals[attr_name]      
+         else preloaded_conditionals[attr_name]      
         self.assertEqual(attr_value, record[attr_name])        
         
     
@@ -114,9 +114,9 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             
             # if callSign exist, it should have the same value as registered
             if 'callSign' in cbsd_record[0]:
-                self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])
-            max_eirp_by_MHz = 37;           
-            # if eirpCapability in the record, it should be the same as device or in accepted limits
+                self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])      
+            # if eirpCapability in the record, it should be the same as device or less than Fcc maxEirp value and the value limits of the spec
+            max_eirp_by_MHz = 37;     
             if 'eirpCapability' in cbsd_record[0]:
                 if 'eirpCapability' in device:
                     self.assertEqual(device['eirpCapability'], cbsd_record[0]['eirpCapability'])
@@ -209,22 +209,21 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         esc_sensors = []
         esc_sensors.append(json.load(
               open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
-
         # SAS Test Harness 
         sas_harness_config = {
-			'sasTestHarnessName': 'SAS-TH-2',
-			'url': 'https://localhost:9003/v1.2',
-			'serverCert': os.path.join('certs', "server.cert"),
-			'serverKey': os.path.join('certs', "server.key")
-			}	
+          'sasTestHarnessName': 'SAS-TH-2',
+          'url': 'https://localhost:9003/v1.2',
+          'serverCert': os.path.join('certs', "server.cert"),
+          'serverKey': os.path.join('certs', "server.key")
+        }	
         config = {
-            'registrationRequests': devices,
-            'conditionalRegistrationData': conditionals,
-            'grantRequests': grants,
-            'ppas': ppas,
-            'palRecords': pals,
-            'escSensors' : esc_sensors,
-			'sasHarness' : sas_harness_config
+          'registrationRequests': devices,
+          'conditionalRegistrationData': conditionals,
+          'grantRequests': grants,
+          'ppas': ppas,
+          'palRecords': pals,
+          'escSensors' : esc_sensors,
+          'sasHarness' : sas_harness_config
         }
         writeConfig(filename, config)
     
@@ -233,9 +232,9 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         """ This test verifies that a SAS UUT can successfully respond to a full
              activity dump request from a SAS Test Harness
 			
-		SAS UUT approves the request and responds,
-		with correct content and format for both dump message and files 
-          """
+		    SAS UUT approves the request and responds,
+		    with correct content and format for both dump message and files 
+        """
         # load config file
         config = loadConfig(config_filename)
         # Very light checking of the config file.
@@ -324,7 +323,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(ppa_record['id'].split("/")[1], self._sas._sas_admin_id)
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
-		# TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
+		    # TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
         for index, ppa in enumerate(config['ppas']):
           del ppa['id']
           exist_in_dump = False

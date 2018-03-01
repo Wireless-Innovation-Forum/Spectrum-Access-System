@@ -169,11 +169,11 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
    
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     """ this function trigger SAS UUT to generate dump files \
-	and wait for the generation of them with a timeout of 7200 seconds
-
-	Args: the certificate and the key of the server
-
-	return : dump message"""
+    and wait for the generation of them with a timeout of 7200 seconds
+    
+    Args: the certificate and the key of the server
+    
+    return : dump message"""
     self._sas_admin.TriggerFullActivityDump()
     request_time = datetime.utcnow()
     signal.signal(signal.SIGALRM,
