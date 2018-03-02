@@ -384,7 +384,7 @@ def _orderAttributes(obj):
     else:
         return obj
 
-def compareDict(first_dict, second_dict):
+def compareDictWithUnorderedLists(first_dict, second_dict):
   """ Deep comparison of two dictionaries
 
   Args:

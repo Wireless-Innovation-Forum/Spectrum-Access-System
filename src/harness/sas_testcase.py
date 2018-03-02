@@ -174,8 +174,8 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     Args: the certificate and the key of the server
     
     return : dump message"""
-    self._sas_admin.TriggerFullActivityDump()
     request_time = datetime.utcnow()
+    self._sas_admin.TriggerFullActivityDump()
     signal.signal(signal.SIGALRM,
                   lambda signum, frame:
                   (_ for _ in ()).throw(Exception('Full Activity Dump Check Timeout')))

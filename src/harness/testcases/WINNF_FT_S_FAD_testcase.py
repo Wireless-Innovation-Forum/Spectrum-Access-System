@@ -15,7 +15,7 @@ import json
 import os
 import sas
 from  util import winnforum_testcase, makePpaAndPalRecordsConsistent,\
- configurable_testcase, writeConfig, loadConfig, compareDict,\
+ configurable_testcase, writeConfig, loadConfig, compareDictWithUnorderedLists,\
  getCertificateFingerprint
 import sas_testcase
 import hashlib
@@ -213,8 +213,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         sas_harness_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'url': 'https://localhost:9003/v1.2',
-          'serverCert': os.path.join('certs', "client.cert"),
-          'serverKey': os.path.join('certs', "client.key")
+          'serverCert': os.path.join('certs', "sas.cert"),
+          'serverKey': os.path.join('certs', "sas.key")
         }	
         config = {
           'registrationRequests': devices,
@@ -325,11 +325,12 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
 		    # TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
+        # and we should check the order of the points of PPA contour in hte dump to be CCW 
         for index, ppa in enumerate(config['ppas']):
           del ppa['id']
           exist_in_dump = False
           for ppa_record in ppa_dump_data:			           
-            exist_in_dump = exist_in_dump or compareDict(ppa_record, ppa)
+            exist_in_dump = exist_in_dump or compareDictWithUnorderedLists(ppa_record, ppa)
           self.assertTrue(exist_in_dump)        
         # verify the schema of record and two first parts of esc sensor record  Id
         for esc_record in esc_sensor_dump_data:                    
@@ -342,8 +343,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           exist_in_dump = False
           del esc['id'] 
           for esc_record in esc_sensor_dump_data:
-            if compareDict(ppa_record, ppa):
-              exist_in_dump = exist_in_dump or compareDict(ppa_record, ppa)
+              exist_in_dump = exist_in_dump or compareDictWithUnorderedLists(esc_record, esc)
           self.assertTrue(exist_in_dump)
         # verify that retrieved cbsd dump files have correct schema
         for cbsd_record in cbsd_dump_data:
