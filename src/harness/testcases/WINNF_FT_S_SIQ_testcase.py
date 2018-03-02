@@ -935,22 +935,30 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     }
 
     config = {
-        'registrationRequests': devices,
-        'conditionalRegistrationData' : conditionals,
-        'expectedResponseCodes': [(0,), (103,), (102,)],  
-        'palRecords':[pal_records1,pal_records2],
-        'ppaRecords':[{'ppaRecord':ppa_record1,
-                         'ppaClusterList': ppa_cluster_list_1},
-                        {'ppaRecord':ppa_record2,
-                         'ppaClusterList': ppa_cluster_list_2}],
-   
-        'spectrumInquiryRequests':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
-        'gwpzRecords':[gwpz_e],
-        'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}} 
-                       ],[],[] ], 
-
-        'fr2Cbsd': [ [ {'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}}],
-                       [],[] ]
+      'registrationRequests': devices,
+      'conditionalRegistrationData': conditionals,
+      'expectedResponseCodes': [(0,), (103,), (102,)],
+      'palRecords': [pal_records1, pal_records2],
+      'ppaRecords': [
+        {'ppaRecord': ppa_record1, 'ppaClusterList': ppa_cluster_list_1},
+        {'ppaRecord': ppa_record2, 'ppaClusterList': ppa_cluster_list_2}
+      ],
+      'spectrumInquiryRequests': [
+        spectrum_inquiry_1,
+        spectrum_inquiry_2,
+        spectrum_inquiry_3
+      ],
+      'gwpzRecords': [gwpz_e],
+      'fr1Cbsd': [
+        [{'frequency': {'lowFrequency': 3570000000, 'highFrequency': 3580000000}}],
+        [],
+        []
+      ],
+      'fr2Cbsd': [
+        [{'frequency': {'lowFrequency': 3570000000, 'highFrequency': 3580000000}}],
+        [],
+        []
+      ]
 
     }
     writeConfig(filename, config)
