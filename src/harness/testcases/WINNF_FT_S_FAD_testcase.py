@@ -155,11 +155,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'highFrequency': 3555000000
     }
 
-    conditional_parameters = {
+    conditionals = {
         'registrationData': [conditional_parameters_c2,
                              conditional_parameters_c4]
     }
-
+    
     cbsd_records = [device_c1, device_c3]
     grant_record_list = [[grant_g1], [grant_g3]]
     ppa_records = [ppa_record_a]
@@ -187,7 +187,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequestC2': device_c2,
         'registrationRequestC4': device_c4,
-        'conditionals': conditional_parameters,
+        'conditionalRegistrationData': conditionals,
         'grantRequestG2': grant_g2,
         'grantRequestG4': grant_g4,
         'palRecords': pal_records[0],
@@ -242,12 +242,17 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     for cbsdRecord in config['sasTestHarnessConfigDumpRecords']['cbsdRecords']:
       self._sas_admin.InjectFccId({'fccId': cbsdRecord['registration']['fccId']})
 
+    
+    # Pre-load conditional registration data for C2 and C4 CBSDs.
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
 
     # Register devices C2 and C4, request grants G2 and G4 respectively with SAS UUT.
     # Ensure the registration and grant requests are successful.
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_c2, device_c4],
-                                                          [grant_g2, grant_g4],
-                                                          config['conditionals'])
+                                                          [grant_g2, grant_g4])
 
     # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
     # respectively to SAS UUT.
@@ -286,8 +291,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Check grant response, must be response code 0.
     for resp in response:
-      self.assertTrue(resp['response']['responseCode'] in (103, 500))
+        self.assertTrue(resp['response']['responseCode'] in (103, 500))
 
-    # Stop SAS Test Harness and clean up.
+    # As Python garbage collector is not very consistent, directory is not getting deleted. 
+    # Hence, explicitly stopping SAS Test Hanress and cleaning up
     sas_test_harness.shutdown()
     del sas_test_harness

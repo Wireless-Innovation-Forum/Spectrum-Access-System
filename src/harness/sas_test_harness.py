@@ -89,12 +89,12 @@ class SasTestHarnessServer(threading.Thread):
 
   def __generateTempDirectory(self):
     """ This method will generate a random directory using the current timestamp.
-    The relative path of the directory is ../../SAS-Test-Harness-Data/YYYY-MM-DD-HH-MM-SS-mmmmmm.
+    The relative path of the directory is ./SAS-Test-Harness-Data/YYYY-MM-DD-HH-MM-SS-mmmmmm.
 
     Returns: Returns the absolute path of the created temporary directory.
     """
     sas_test_harness_data_dir = os.path.join(os.path.dirname(os.path.abspath(
-      inspect.getfile(inspect.currentframe()))), '..', '..', 'SAS-Test-Harness-Data')
+      inspect.getfile(inspect.currentframe()))), 'SAS-Test-Harness-Data')
     current_time_stamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')
     temp_dump_dir_path = os.path.join(sas_test_harness_data_dir, current_time_stamp)
     os.makedirs(temp_dump_dir_path)
@@ -108,7 +108,7 @@ class SasTestHarnessServer(threading.Thread):
     """
     config_parser = ConfigParser.RawConfigParser()
     config_parser.read(['sas.cfg'])
-    sas_harness_version = config_parser.get('SasTestHarnessConfig', 'Version')
+    sas_harness_version = config_parser.get('SasConfig', 'Version')
     return sas_harness_version
 
   def getBaseUrl(self):
@@ -191,6 +191,35 @@ class SasTestHarnessServer(threading.Thread):
     with open(dump_file_path, "w") as file_handler:
       file_handler.writelines(json.dumps(data, sort_keys=True, indent=4))
 
+  def __verifyRecords(self, dump_records_list):
+    """This method checks if given dump records [cbsd1,..,cbsdN] or 
+       [pp1,..,ppaN] or [esc1,..,escN] is grouped with same record type 
+       by using id field.
+    Args:
+       dump_records_list: List of dump_records object. Contains dump records 
+                        in the format of [[cbsd1,..,cbsdn],[cbsda,..,cbsdc],
+                        [pp1,..,ppa3],[esc1,..,esc3]]"""
+
+    for index, dump_records in enumerate(dump_records_list):
+        if len(dump_records) == 0:
+           raise Exception("ConfigurationError:No records are configured")
+
+        if not dump_records[0].has_key('id'):
+           raise Exception("ConfigurationError:Id field is not configured")
+        
+        if 'cbsd' in dump_records[0]['id']:
+            if any('cbsd' not in cbsd_dump['id'] for cbsd_dump in dump_records):
+               raise Exception("ConfigurationError:CBSD dump records are not of same type")
+        elif 'zone' in dump_records[0]['id']:
+              if any('zone' not in zone_dump['id'] for zone_dump in dump_records):
+                 raise Exception("ConfigurationError:Zone dump records are not of same type")
+        elif 'esc_sensor' in dump_records[0]['id']:
+              if any('esc_sensor' not in esc_dump['id'] for esc_dump in dump_records):
+                 raise Exception("ConfigurationError:ESC dump records are not of same type")
+        else:
+            raise Exception("ConfigurationError:incorrect record type. \
+                                           Unable to write FAD record")
+
   def writeFadRecords(self, dump_records_list):
     """This method is used to write dump records in specified path. 
        These files will be served by SAS Test Harness.
@@ -199,42 +228,32 @@ class SasTestHarnessServer(threading.Thread):
             be written on the dump path. Contains dump records in the format of 
             [[cbsd1,..,cbsdn],[cbsda,..,cbsdc],[pp1,..,ppa3],[esc1,..,esc3]]
             In this case four dump files will be created 
-            activity_dump_file_cbsd0.json - will contrain 1-n cbsd records
-            activity_dump_file_cbsd1.json - will contrain a-c cbsd records
-            activity_dump_file_zone2.json - will contrain 1-3 ppa records
-            activity_dump_file_esc_sensor3.json - will contrain 1-3 esc records
+            activity_dump_file_cbsd0.json - contains 1-n cbsd records
+            activity_dump_file_cbsd1.json - contains a-c cbsd records
+            activity_dump_file_zone2.json - contains 1-3 ppa records
+            activity_dump_file_esc_sensor3.json - contains 1-3 esc records
 
     Returns:
        It returns None and all records are dumped in specified path."""
     
     fad_record_list = []
-    dump_body = {}
+
+    self.__verifyRecords(dump_records_list)
 
     for index, dump_records in enumerate(dump_records_list):
-        if len(dump_records) != 0:
-           dump_body['records'] = dump_records
-           # Get the first element in the dump records. 
-           # First record is used to check type of the dump record
-           dump_record = dump_records[0]
-           if dump_record.has_key('id'):
-              if 'cbsd' in dump_record['id']:
-                 generated_file_name = 'activity_dump_file_cbsd'+str(index)+'.json'
-                 record_url = self.getBaseUrl() +'/cbsd/'+ generated_file_name
-              elif 'zone' in dump_record['id']:
-                 generated_file_name = 'activity_dump_file_zone'+str(index)+'.json'
-                 record_url = self.getBaseUrl() +'/zone/'+ generated_file_name
-              elif 'esc_sensor' in dump_record['id']:
-                 generated_file_name = 'activity_dump_file_esc_sensor'+str(index)+'.json'
-                 record_url = self.getBaseUrl() +'/esc_sensor/'+ generated_file_name 
-           else:
-               raise Exception("ConfigurationError:incorrect record type. \
-                                           Unable to write FAD record")
-        else: 
-            raise Exception("ConfigurationError:No records are configured")
-        
+        if 'cbsd' in dump_records[0]['id']:
+           generated_file_name = 'activity_dump_file_cbsd'+str(index)+'.json'
+           record_url = self.getBaseUrl() +'/cbsd/'+ generated_file_name
+        elif 'zone' in dump_records[0]['id']:
+            generated_file_name = 'activity_dump_file_zone'+str(index)+'.json'
+            record_url = self.getBaseUrl() +'/zone/'+ generated_file_name
+        elif 'esc_sensor' in dump_records[0]['id']:
+             generated_file_name = 'activity_dump_file_esc_sensor'+str(index)+'.json'
+             record_url = self.getBaseUrl() +'/esc_sensor/'+ generated_file_name
+           
         # creates the dump file containing records of the same type
-        self.__writeDumpFile(generated_file_name, dump_body)
-        fad_record = self.__createFadRecord(record_url, dump_body)
+        self.__writeDumpFile(generated_file_name, dump_records)
+        fad_record = self.__createFadRecord(record_url, dump_records)
         fad_record_list.append(fad_record)
     
     # create full activity dump file
@@ -299,9 +318,9 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
   """ Generates the cbsdData Object by combining registration request 
       and grant request based on SAS-SAS TS.
   Args:
-     registration_requests: list of registration requests that includes one or 
-                            more grant requests.
-     grant_requests_list:   list of muliple grant requests for all cbsd devices.
+     registration_requests: List of CBSD registration requests. Corresponding 
+                            CBSDs will have at least one corresponding Grant request
+     grant_requests_list:   List of muliple grant requests for all cbsd devices.
                             For an example : muliple grants [ [grant1, grant2], 
                             [grant3, grant4 ] are associated with each cbsd records
                             [ cbsd1, cbsd2 ].
@@ -313,20 +332,19 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
   cbsd_records_list = []
   if not len(registration_requests) == len(grant_requests_list):
     raise Exception('ConfigurationError: Number of registration requests does' 
-                     'not match with number of grant requests')
+                     ' not match with number of grant requests')
+
+  if any(len(grant_requests) == 0 for grant_requests in grant_requests_list):
+     raise Exception('ConfigurationError: No grant requests are configured. '
+                      'At least one grant request has to be configured.') 
 
   for index, (registration_request, grant_requests) in enumerate \
                        (zip(registration_requests, grant_requests_list)):
-    encoded_cbsd_id = generateCbsdReferenceId(registration_request['fccId'],
+    cbsd_reference_id = generateCbsdReferenceId(registration_request['fccId'],
                                    registration_request['cbsdSerialNumber'])
 
-    # Assign grant expiry time to grant objects.
-    grant_time_stamp = datetime.now().today() + timedelta(hours=24)
-    grant_expire_time = time.strftime(grant_time_stamp.\
-                         replace(microsecond=0).isoformat()) + 'Z'
-
     internal_data = {
-        'id': 'cbsd/{}'.format(encoded_cbsd_id),
+        'id': 'cbsd/{}'.format(cbsd_reference_id),
         'registration': {
             'fccId': registration_request['fccId'],
             'cbsdCategory': registration_request['cbsdCategory'],
@@ -349,27 +367,33 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
     # single cbsd.
     for grant_request in grant_requests:
       grant_data = {}
-      if grant_request.has_key('id'):
-        grant_data['id'] = grant_request['id']
-      if grant_request.has_key('operationParam'):
-        grant_data['operationParam'] = grant_request['operationParam']
-      if grant_request.has_key('channelType'):
-        grant_data['channelType'] = grant_request['channelType']
+
+      # Auto-generating GrantData 'id' field.
+      grant_data['id'] = 'SAMPLE_ID_{:05}'.format(random.randrange(1, 10 ** 5)) 
+      
+      assert grant_request.has_key('operationParam'), "operationParam does not exist in GrantRequest"
+      grant_data['operationParam'] = grant_request['operationParam']
+
+      # Channel type is mandatory in GrantData Object.
+      # Setting it to 'GAA' by default. 
+      grant_data['channelType'] = 'GAA'
+
+      # Assign grant_expire_time to grant objects.
+      grant_time_stamp = datetime.now().today() + timedelta(hours=24)
+      grant_expire_time = time.strftime(grant_time_stamp.\
+                          replace(microsecond=0).isoformat()) + 'Z'
 
       # grantExpireTime is mandatory in GrantData Object.
-      if not grant_request.has_key('grantExpireTime'):
-        grant_data['grantExpireTime'] = grant_expire_time
-      else:
-        grant_data['grantExpireTime'] = grant_request['grantExpireTime']
+      # Setting it to a value of 24 hours from now.
+      grant_data['grantExpireTime'] = grant_expire_time
 
-      # terminated field is mandatory in GrantData Object.
-      if not grant_request.has_key('terminated'):
-        grant_data['terminated'] = False
-      else:
-        grant_data['terminated'] = grant_request['terminated']
+      #  'terminated' field is set to 'False' by default.
+      grant_data['terminated'] = False
+
       internal_data['grants'].append(grant_data)
 
     cbsd_records_list.append(internal_data)
+   
   return cbsd_records_list
 
 def generatePpaRecords(ppa_records, cbsd_reference_ids):
@@ -377,16 +401,16 @@ def generatePpaRecords(ppa_records, cbsd_reference_ids):
       based on SAS-SAS TS.
 
   Args:
-     ppa_records:        list of ppa_record objects used to generate ppa_dump file.
-     cbsd_reference_ids: list of one or more CBSD Reference IDs in the cluster list
-                         of the PPA.
+     ppa_records:        List of ppa_record objects used to generate ppa_dump file.
+     cbsd_reference_ids: List of lists containing one or more CBSD Reference 
+                         IDs in the cluster for each PPA record. 
   Returns:
      It returns list of ppa_records based on SAS-SAS TS.
   """
 
   ppa_records_list = []
   for ppa_record, cbsd_reference_id in \
-              (zip(ppa_records, cbsd_reference_ids)):
+              zip(ppa_records, cbsd_reference_ids):
 
     # Check cbsdReferenceID in ppaInfo and add cbsdReferenceID if not present.
     if not ppa_record['ppaInfo'].has_key('cbsdReferenceId'):
