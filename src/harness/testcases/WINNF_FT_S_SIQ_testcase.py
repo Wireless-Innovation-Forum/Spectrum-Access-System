@@ -1074,7 +1074,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
       else:
         # Check 'availableChannel' is not present if the response code is not SUCCESS
-        self.assertTrue('availableChannel' not in response)
+        self.assertFalse('availableChannel' in response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_13(self):
