@@ -20,8 +20,8 @@ getCertificateFingerprint
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
-SAS_URL = 'https://fake.sas.url.not.used.org/v1.2'
-SAS_TH_URL = "https://localhost/v1.2"
+SAS_TEST_HARNESS_URL = 'https://fake.sas.url.not.used/v1.2'
+
 
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -35,7 +35,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_2(self):
@@ -46,7 +46,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('AES256-GCM-SHA384',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_3(self):
@@ -57,7 +57,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_4(self):
@@ -68,7 +68,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_5(self):
@@ -79,7 +79,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   def generate_SSS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_6"""
@@ -101,7 +101,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
 
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
@@ -126,7 +126,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
@@ -150,7 +150,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
@@ -174,7 +174,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
@@ -198,7 +198,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
@@ -226,7 +226,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Read the fingerprint from the certificate
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL})
+                                   'url': SAS_TEST_HARNESS_URL})
     self.assertTlsHandshakeFailure(config['sasCert'],
                                    config['sasKey'],
                                    ssl_method=SSL.TLSv1_1_METHOD)
@@ -255,7 +255,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Read the fingerprint from the certificate
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TH_URL })
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(config['sasCert'],
                                    config['sasKey'],
                                    ciphers='ECDHE-RSA-AES256-GCM-SHA384')
