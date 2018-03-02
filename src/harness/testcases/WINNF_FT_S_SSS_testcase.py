@@ -133,13 +133,15 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     try:
       self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                      client_key=config['sasKey'])
-    except AssertionError as e:
+    except AssertionError:
+      trigger_succeed = False
       try:
          self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
-         self.fail("Full Activity Dump is expected to fail")
+         trigger_succeed = True
       except AssertionError as e:
          # Check if HTTP status is 403
          self.assertEqual(e.args[0], 403)
+      self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.12"""

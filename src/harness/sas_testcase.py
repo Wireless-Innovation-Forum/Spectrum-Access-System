@@ -168,7 +168,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
              frequency_range['highFrequency'])
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
-    request_time = datetime.utcnow()
+    request_time = datetime.utcnow().replace(microsecond=0)
     self._sas_admin.TriggerFullActivityDump()
     signal.signal(signal.SIGALRM,
                   lambda signum, frame:
