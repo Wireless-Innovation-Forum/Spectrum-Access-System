@@ -385,7 +385,7 @@ def addGrantIdsToRequests(grant_ids, requests):
 def getCertificateFingerprint(certificate):
   """ Get SHA1 hash of the input certificate.
   Args:
-    certificate: certificate file
+    certificate: The full path to the file containing the certificate
   Returns:
     sha1 fingerprint of the input certificate
   """

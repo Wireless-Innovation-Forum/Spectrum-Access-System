@@ -168,8 +168,8 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
              frequency_range['highFrequency'])
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
-    self._sas_admin.TriggerFullActivityDump()
     request_time = datetime.utcnow()
+    self._sas_admin.TriggerFullActivityDump()
     signal.signal(signal.SIGALRM,
                   lambda signum, frame:
                   (_ for _ in ()).throw(Exception('Full Activity Dump Check Timeout')))
@@ -177,11 +177,11 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     signal.alarm(7200)
     # Check generation date of full activity dump 
     while True:
-	  dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
-	  dump_time = datetime.strptime(dump_message['generationDateTime'],
+       dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
+       dump_time = datetime.strptime(dump_message['generationDateTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-	  if request_time > dump_time:
-		  break
-	  time.sleep(10)
+       if request_time <= dump_time:
+          break
+       time.sleep(10)
     signal.alarm(0)
     return dump_message

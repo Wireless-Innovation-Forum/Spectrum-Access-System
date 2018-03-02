@@ -21,7 +21,7 @@ getCertificateFingerprint
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
-SAS_TH_URL = "https://localhost/v1.2"
+SAS_TEST_HARNESS_URL = "https://url.not.used/v1.2"
 
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -129,7 +129,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
-                                     'url': SAS_TH_URL})
+                                     'url': SAS_TEST_HARNESS_URL})
     try:
       self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                      client_key=config['sasKey'])
@@ -199,11 +199,11 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
-                                     'url': SAS_TH_URL })
+                                     'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], SAS_CERT, SAS_KEY)
     # Initiate Full Activity Dump
     try:
-       response = self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+       self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
        self.fail("Full Activity Dump is expected to fail")
     except AssertionError as e:
        # Check if HTTP status is 403
@@ -234,7 +234,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     except AssertionError as e:   
       try:
         # Initiate Full Activity Dump
-        response = self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+        self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
         self.fail("Full Activity Dump is expected to fail")
       except AssertionError as e:
         # Check if HTTP status is 401
@@ -245,9 +245,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
     
     valid_cert_key_pair = {'cert' :self.getCertFilename("sas.cert"),
-                           'key' :self.getCertFilename("sas.key")}	
+                           'key' :self.getCertFilename("sas.key")}
     invalid_cert_key_pair = {'cert' :self.getCertFilename("sas_expired.cert"),
-                             'key' :self.getCertFilename("sas_expired.key")}	
+                             'key' :self.getCertFilename("sas_expired.key")}
 
     config = {
         'validCertKeyPair': valid_cert_key_pair,
@@ -267,7 +267,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Notify SAS UUT about peer SAS
     certificate_hash = getCertificateFingerprint(SAS_CERT)
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
-                                     'url': SAS_TH_URL })
+                                     'url': SAS_TEST_HARNESS_URL })
     # Load a Device
     device_a = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -279,7 +279,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Initiate Full Activity Dump with valid cert, key pair
     fadResponse =  self.TriggerFullActivityDumpAndWaitUntilComplete(config['validCertKeyPair']['cert'], \
-								    config['validCertKeyPair']['key'])
+                                                                    config['validCertKeyPair']['key'])
 
     self.assertContainsRequiredFields("FullActivityDump.schema.json", fadResponse)
     url = fadResponse['files'][0]['url']
