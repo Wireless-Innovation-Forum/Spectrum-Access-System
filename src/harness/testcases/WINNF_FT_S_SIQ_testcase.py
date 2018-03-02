@@ -935,7 +935,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     }
 
     config = {
-        'registrationRequestsN2': devices,
+        'registrationRequests': devices,
         'conditionalRegistrationData' : conditionals,
         'expectedResponseCodes': [(0,), (103,), (102,)],  
         'palRecordsN3':[pal_records1,pal_records2],
@@ -962,11 +962,11 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
         
     # Light checking of the config file
-    self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['registrationRequestsN2']))
+    self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['registrationRequests']))
     self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequestsN2']))
     self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['fr1Cbsd']))
     self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['fr2Cbsd']))
-    self.assertGreater(len(config['registrationRequestsN2']),0)
+    self.assertGreater(len(config['registrationRequests']),0)
 
     # Step1: Load information about N1 GWBZs
     if ('gwpzRecordsN1' in config) and (config['gwpzRecordsN1']):
@@ -977,9 +977,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Check registration response
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
     if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
-      cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalRegistrationData'])
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
     else:
-      cbsd_ids = self.assertRegistered(config['registrationRequestsN2'])
+      cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
     # Step4: Load N3 PPA
     if ('palRecordsN3' in config) and (config['palRecordsN3']):
