@@ -950,12 +950,12 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       ],
       'gwpzRecords': [gwpz_e],
       'fr1Cbsd': [
-        [{'frequency': {'lowFrequency': 3570000000, 'highFrequency': 3580000000}}],
+        [{'lowFrequency': 3570000000, 'highFrequency': 3580000000}],
         [],
         []
       ],
       'fr2Cbsd': [
-        [{'frequency': {'lowFrequency': 3570000000, 'highFrequency': 3580000000}}],
+        [{'lowFrequency': 3570000000, 'highFrequency': 3580000000}],
         [],
         []
       ]
@@ -1046,8 +1046,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             for fr1_range in config['fr1Cbsd'][index]:
               # Check if the channel range is lower than the low freq of FR1cbsd range or if it is higher 
               # than the high freq. If not then it is considered to be overlapping
-              self.assertTrue(((channel['frequencyRange']['highFrequency'] <= fr1_range['frequency']['lowFrequency']) or 
-                               (channel['frequencyRange']['lowFrequency'] >= fr1_range['frequency']['highFrequency'])), 
+              self.assertTrue(((channel['frequencyRange']['highFrequency'] <= fr1_range['lowFrequency']) or
+                               (channel['frequencyRange']['lowFrequency'] >= fr1_range['highFrequency'])),
                                 "GAA channel overlaps with FR1cbsd")
 
         # Check the PAL channels frequency ranges overlap with FR2cbsd
@@ -1056,9 +1056,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             isFrequencyIncludedInFr2Cbsd = False
             for fr2_range in config['fr2Cbsd'][index]:
               if ((channel['frequencyRange']['lowFrequency'] ==
-                             fr2_range['frequency']['lowFrequency']) and
+                             fr2_range['lowFrequency']) and
                   (channel['frequencyRange']['highFrequency'] ==
-                             fr2_range['frequency']['highFrequency'])):
+                             fr2_range['highFrequency'])):
                 isFrequencyIncludedInFr2Cbsd = True
             self.assertTrue(isFrequencyIncludedInFr2Cbsd, "PAL channel is not included in Fr2Cbsd list")       
   
