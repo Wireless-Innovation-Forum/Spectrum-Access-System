@@ -884,7 +884,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     
     ppa_cluster_list_1 = [0]
     ppa_cluster_list_2 = []
-    # Move device_b inside the  PPA zone
+    # Move device_b inside the PPA1 zone
     device_b['installationParam']['latitude'] = 38.82767
     device_b['installationParam']['longitude'] = -97.20497
 
@@ -903,7 +903,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     del device_b['installationParam']
 
     # N2 spectrum inquiry requests
-    # 1. Spectrum Inquiry: 3550-3700 .
+    # 1. Spectrum Inquiry: 3550-3580 .
     spectrum_inquiry_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
     spectrum_inquiry_1['inquiredSpectrum'] = [{
@@ -960,7 +960,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """[Configurable] Spectrum inquiry in the presence of protected entities."""
 
     config = loadConfig(config_filename)
-
+        
     # Light checking of the config file
     self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['registrationRequestsN2']))
     self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequestsN2']))
@@ -969,31 +969,37 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertGreater(len(config['registrationRequestsN2']),0)
 
     # Step1: Load information about N1 GWBZs
-    for gwpz_record in config['gwpzRecordsN1']:
-      self._sas_admin.InjectWisp(gwpz_record)
+    if ('gwpzRecordsN1' in config) and (config['gwpzRecordsN1']):
+      for gwpz_record in config['gwpzRecordsN1']:
+        self._sas_admin.InjectWisp(gwpz_record)
 
     # Step2&3: Register N2 CBSDs
     # Check registration response
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalRegistrationData'])
+    if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
+      cbsd_ids = self.assertRegistered(config['registrationRequestsN2'],config['conditionalRegistrationData'])
+    else:
+      cbsd_ids = self.assertRegistered(config['registrationRequestsN2'])
 
+    # Step4: Load N3 PPA
+    if ('palRecordsN3' in config) and (config['palRecordsN3']):
+      for pal_record in config['palRecordsN3']:
+        self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+ 
     # Update PPA records with devices' CBSD IDs and Inject zone data
     if ('ppaRecordsN3' in config) and (config['ppaRecordsN3']):
       for ppa in config['ppaRecordsN3']:
         if len(ppa['ppaClusterList']) != 0 : 
           ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
-        for device_index in ppa['ppaClusterList']:
-          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
-
-    # Step4: Load N3 PPA
-    for pal_record in config['palRecordsN3']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
-    for ppa in config['ppaRecordsN3']:
-      zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
-
+          for device_index in ppa['ppaClusterList']:
+            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
+        # Inject PPA into SAS UUT
+        zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
+    
  
     # Step5: Trigger CPAS activity
-    if (len(config['gwpzRecordsN1']) > 0 or len(config['palRecordsN3']) > 0):
+    if ((('gwpzRecordsN1' in config) and (config['gwpzRecordsN1'])) or \
+        (('palRecordsN3' in config) and (config['palRecordsN3']))):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Step6: Send N2 spectrum inquiry requests (one per registered CBSD)
