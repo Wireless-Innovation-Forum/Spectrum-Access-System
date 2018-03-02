@@ -282,6 +282,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
+
+  def InjectPeerSas(self, request):
+    pass
+
   def TriggerMeasurementReportRegistration(self):
     pass
 

@@ -13,12 +13,14 @@
 #    limitations under the License.
 import os
 from OpenSSL import SSL
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import security_testcase
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
+getCertificateFingerprint
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
-SAS_URL = 'https://fake.sas.url.not.used.org/v1.2'
+SAS_TEST_HARNESS_URL = 'https://fake.sas.url.not.used/v1.2'
 
 
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
@@ -33,7 +35,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_2(self):
@@ -44,7 +46,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('AES256-GCM-SHA384',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_3(self):
@@ -55,7 +57,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_4(self):
@@ -66,7 +68,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SSS_5(self):
@@ -77,11 +79,11 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     """
     self.doSasTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
                          client_cert=SAS_CERT, client_key=SAS_KEY,
-                         client_url=SAS_TH_URL)
+                         client_url=SAS_TEST_HARNESS_URL)
 
   def generate_SSS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_6"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("unrecognized_sas.cert"),
@@ -95,13 +97,18 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
+
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
   def generate_SSS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_7"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("corrupted_sas.cert"),
@@ -115,13 +122,17 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
   def generate_SSS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_8"""
-    # Create the actual config for sas cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("self_signed_sas.cert"),
@@ -135,13 +146,17 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
   def generate_SSS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_9"""
-    # Create the actual config for domain proxy cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("non_cbrs_signed_sas.cert"),
@@ -155,13 +170,17 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
   def generate_SSS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.12"""
-    # Create the actual config for domain proxy cert/key path
+    # Create the actual config for SAS cert/key path
 
     config = {
         'sasCert': self.getCertFilename("sas_expired.cert"),
@@ -175,22 +194,68 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    self.SasReset()
     config = loadConfig(config_filename)
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_SSS_13(self):
+  def generate_SSS_13_default_config(self, filename):
+    """Generates the WinnForum configuration for SSS.13"""
+    # Create the actual config for SAS cert/key path
+
+    config = {
+        'sasCert': self.getCertFilename("sas.cert"),
+        'sasKey': self.getCertFilename("sas.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SSS_13_default_config)
+  def test_WINNF_FT_S_SSS_13(self,config_filename):
     """ Disallowed TLS method attempted during registration.
 
-    Checks that SAS UUT response with fatal alert message.
+        Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(SAS_CERT, SAS_KEY, ssl_method=SSL.TLSv1_1_METHOD)
+    self.SasReset()
 
-  @winnforum_testcase
-  def test_WINNF_FT_S_SSS_14(self):
-    """Invalid ciphersuite presented during registration.
+    # Load the configuration
+    config = loadConfig(config_filename)
 
-    Checks that SAS UUT response with fatal alert message.
+    # Read the fingerprint from the certificate
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL})
+    self.assertTlsHandshakeFailure(config['sasCert'],
+                                   config['sasKey'],
+                                   ssl_method=SSL.TLSv1_1_METHOD)
+
+  def generate_SSS_14_default_config(self, filename):
+    """Generates the WinnForum configuration for SSS.14"""
+    # Create the actual config for SAS cert/key path
+
+    config = {
+        'sasCert': self.getCertFilename("sas.cert"),
+        'sasKey': self.getCertFilename("sas.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SSS_14_default_config)
+  def test_WINNF_FT_S_SSS_14(self, config_filename):
+    """ Invalid cipher suite presented during registration.
+
+        Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(SAS_CERT, SAS_KEY, ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.SasReset()
+
+    # Load the configuration
+    config = loadConfig(config_filename)
+
+    # Read the fingerprint from the certificate
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
+    self.assertTlsHandshakeFailure(config['sasCert'],
+                                   config['sasKey'],
+                                   ciphers='ECDHE-RSA-AES256-GCM-SHA384')
