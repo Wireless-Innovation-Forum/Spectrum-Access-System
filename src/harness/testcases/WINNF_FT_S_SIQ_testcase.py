@@ -939,7 +939,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData' : conditionals,
         'expectedResponseCodes': [(0,), (103,), (102,)],  
         'palRecords':[pal_records1,pal_records2],
-        'ppaRecordsN3':[{'ppaRecord':ppa_record1,
+        'ppaRecords':[{'ppaRecord':ppa_record1,
                          'ppaClusterList': ppa_cluster_list_1},
                         {'ppaRecord':ppa_record2,
                          'ppaClusterList': ppa_cluster_list_2}],
@@ -987,8 +987,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
-    if ('ppaRecordsN3' in config) and (config['ppaRecordsN3']):
-      for ppa in config['ppaRecordsN3']:
+    if ('ppaRecords' in config) and (config['ppaRecords']):
+      for ppa in config['ppaRecords']:
         if len(ppa['ppaClusterList']) != 0 : 
           ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
           for device_index in ppa['ppaClusterList']:
