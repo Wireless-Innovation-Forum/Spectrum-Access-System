@@ -202,14 +202,18 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], SAS_CERT, SAS_KEY)
-    # Initiate Full Activity Dump
     try:
-       self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
-       self.fail("Full Activity Dump is expected to fail")
-    except AssertionError as e:
-       # Check if HTTP status is 403
-       self.assertEqual(e.args[0], 403)
+       self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], SAS_CERT, SAS_KEY)
+    except AssertionError:
+       trigger_succeed = False
+       # Initiate Full Activity Dump
+       try:
+          self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+          trigger_succeed = True
+       except AssertionError as e:
+          # Check if HTTP status is 403
+          self.assertEqual(e.args[0], 403)
+       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_17_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_17"""
@@ -233,14 +237,16 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Attempt TLS handshake without injecting peer SAS info and verify it fails
     try:
       self.assertTlsHandshakeFailure(config['sasCert'], config['sasKey'])
-    except AssertionError as e:   
+    except AssertionError:
+      trigger_succeed = False
       try:
         # Initiate Full Activity Dump
         self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
-        self.fail("Full Activity Dump is expected to fail")
+        trigger_succeed = True
       except AssertionError as e:
         # Check if HTTP status is 401
         self.assertEqual(e.args[0], 401)
+      self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_18_default_config(self, filename):
     """ Generates the WinnForum configuration for SSS.18 """
