@@ -155,9 +155,14 @@ class SasImpl(sas_interface.SasInterface):
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
+  def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
+    return self._SasRequest('dump', None, ssl_cert, ssl_key)
+
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _RequestGet('https://%s/%s/%s/%s' %
-                       (self._base_url, self._sas_version, method_name, request),
+    url = 'https://%s/%s/%s' % (self._base_url, self._sas_version, method_name)
+    if request is not None:
+      url += '/%s' % request
+    return _RequestGet(url,
                        self._tls_config.WithClientCertificate(
                            ssl_cert or self._GetDefaultSasSSLCertPath(),
                            ssl_key or self._GetDefaultSasSSLKeyPath()))
@@ -282,10 +287,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
                  request, self._tls_config)
 
-  def TriggerLoadDpas(self):  
+  def TriggerLoadDpas(self):
     _RequestPost('https://%s/admin/trigger/load_dpas' %
                  self._base_url, None, self._tls_config)
-    
+
   def TriggerBulkDpaActivation(self, request):
     _RequestPost('https://%s/admin/trigger/bulk_dpa_activation' %
                  self._base_url, request, self._tls_config)
@@ -296,11 +301,18 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def TriggerDpaDeactivation(self, request):
     _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
-                 self._base_url, request, self._tls_config) 
-    
+                 self._base_url, request, self._tls_config)
+
+  def TriggerFullActivityDump(self):
+    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' %
+                 self._base_url, None, self._tls_config)
+
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
 
+  def InjectPeerSas(self, request):
+    _RequestPost('https://%s/admin/injectdata/peer_sas' %
+                 self._base_url, request, self._tls_config)
