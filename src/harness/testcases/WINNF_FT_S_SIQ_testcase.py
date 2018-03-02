@@ -945,7 +945,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                          'ppaClusterList': ppa_cluster_list_2}],
    
         'spectrumInquiryRequests':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
-        'gwpzRecordsN1':[gwpz_e],
+        'gwpzRecords':[gwpz_e],
         'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}} 
                        ],[],[] ], 
 
@@ -969,8 +969,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertGreater(len(config['registrationRequests']),0)
 
     # Step1: Load information about N1 GWBZs
-    if ('gwpzRecordsN1' in config) and (config['gwpzRecordsN1']):
-      for gwpz_record in config['gwpzRecordsN1']:
+    if ('gwpzRecords' in config) and (config['gwpzRecords']):
+      for gwpz_record in config['gwpzRecords']:
         self._sas_admin.InjectWisp(gwpz_record)
 
     # Step2&3: Register N2 CBSDs
@@ -998,7 +998,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     
  
     # Step5: Trigger CPAS activity
-    if ((('gwpzRecordsN1' in config) and (config['gwpzRecordsN1'])) or \
+    if ((('gwpzRecords' in config) and (config['gwpzRecords'])) or \
         (('palRecords' in config) and (config['palRecords']))):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
