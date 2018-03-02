@@ -944,7 +944,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                         {'ppaRecord':ppa_record2,
                          'ppaClusterList': ppa_cluster_list_2}],
    
-        'spectrumInquiryRequestsN2':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
+        'spectrumInquiryRequests':[spectrum_inquiry_1,spectrum_inquiry_2,spectrum_inquiry_3],
         'gwpzRecordsN1':[gwpz_e],
         'fr1Cbsd': [ [{'frequency' :{'lowFrequency': 3570000000,'highFrequency': 3580000000}} 
                        ],[],[] ], 
@@ -962,10 +962,10 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
         
     # Light checking of the config file
-    self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['registrationRequests']))
-    self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequestsN2']))
-    self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['fr1Cbsd']))
-    self.assertEqual(len(config['spectrumInquiryRequestsN2']),len(config['fr2Cbsd']))
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['registrationRequests']))
+    self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequests']))
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['fr1Cbsd']))
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['fr2Cbsd']))
     self.assertGreater(len(config['registrationRequests']),0)
 
     # Step1: Load information about N1 GWBZs
@@ -1003,14 +1003,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Step6: Send N2 spectrum inquiry requests (one per registered CBSD)
-    spectrum_inquiry_list = config['spectrumInquiryRequestsN2']
+    spectrum_inquiry_list = config['spectrumInquiryRequests']
     addCbsdIdsToRequests(cbsd_ids, spectrum_inquiry_list)
  
     spectrum_inquiry_request = {'spectrumInquiryRequest': spectrum_inquiry_list}
     spectrum_inquiry_response = self._sas.SpectrumInquiry(spectrum_inquiry_request)['spectrumInquiryResponse']
 
     # Check the response contains N2 SpectrumInquiryResponse objects
-    self.assertEqual(len(spectrum_inquiry_response),len(config['spectrumInquiryRequestsN2']))
+    self.assertEqual(len(spectrum_inquiry_response),len(config['spectrumInquiryRequests']))
 
     for index,response in enumerate(spectrum_inquiry_response):
       # If the corresponding request contained a valid cbsdId, the
