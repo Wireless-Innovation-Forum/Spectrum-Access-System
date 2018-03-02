@@ -938,7 +938,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'registrationRequests': devices,
         'conditionalRegistrationData' : conditionals,
         'expectedResponseCodes': [(0,), (103,), (102,)],  
-        'palRecordsN3':[pal_records1,pal_records2],
+        'palRecords':[pal_records1,pal_records2],
         'ppaRecordsN3':[{'ppaRecord':ppa_record1,
                          'ppaClusterList': ppa_cluster_list_1},
                         {'ppaRecord':ppa_record2,
@@ -982,8 +982,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
     # Step4: Load N3 PPA
-    if ('palRecordsN3' in config) and (config['palRecordsN3']):
-      for pal_record in config['palRecordsN3']:
+    if ('palRecords' in config) and (config['palRecords']):
+      for pal_record in config['palRecords']:
         self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
@@ -999,7 +999,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
  
     # Step5: Trigger CPAS activity
     if ((('gwpzRecordsN1' in config) and (config['gwpzRecordsN1'])) or \
-        (('palRecordsN3' in config) and (config['palRecordsN3']))):
+        (('palRecords' in config) and (config['palRecords']))):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Step6: Send N2 spectrum inquiry requests (one per registered CBSD)
