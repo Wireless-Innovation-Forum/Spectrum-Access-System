@@ -994,10 +994,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
-      if len(ppa['ppaClusterList']) != 0 :
-        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
-        for device_index in ppa['ppaClusterList']:
-          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
+      ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+      for device_index in ppa['ppaClusterList']:
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
       # Inject PPA into SAS UUT
       zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
     
