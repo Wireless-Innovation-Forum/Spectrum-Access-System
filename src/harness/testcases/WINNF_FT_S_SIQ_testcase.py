@@ -977,9 +977,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertGreater(len(config['registrationRequests']),0)
 
     # Step1: Load information about N1 GWBZs
-    if ('gwpzRecords' in config) and (config['gwpzRecords']):
-      for gwpz_record in config['gwpzRecords']:
-        self._sas_admin.InjectWisp(gwpz_record)
+    for gwpz_record in config['gwpzRecords']:
+      self._sas_admin.InjectWisp(gwpz_record)
 
     # Step2&3: Register N2 CBSDs
     # Check registration response
@@ -990,24 +989,21 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
     # Step4: Load N3 PPA
-    if ('palRecords' in config) and (config['palRecords']):
-      for pal_record in config['palRecords']:
-        self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
-    if ('ppaRecords' in config) and (config['ppaRecords']):
-      for ppa in config['ppaRecords']:
-        if len(ppa['ppaClusterList']) != 0 : 
-          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
-          for device_index in ppa['ppaClusterList']:
-            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
-        # Inject PPA into SAS UUT
-        zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
+    for ppa in config['ppaRecords']:
+      if len(ppa['ppaClusterList']) != 0 :
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+        for device_index in ppa['ppaClusterList']:
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
+      # Inject PPA into SAS UUT
+      zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
     
  
     # Step5: Trigger CPAS activity
-    if ((('gwpzRecords' in config) and (config['gwpzRecords'])) or \
-        (('palRecords' in config) and (config['palRecords']))):
+    if (len(config['gwpzRecords']) > 0 or len(config['palRecords']) > 0):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Step6: Send N2 spectrum inquiry requests (one per registered CBSD)
