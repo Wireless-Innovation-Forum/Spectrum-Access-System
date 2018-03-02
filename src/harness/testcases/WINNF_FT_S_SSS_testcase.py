@@ -18,9 +18,68 @@ import security_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
 getCertificateFingerprint
 
+SAS_CERT = os.path.join('certs', 'sas.cert')
+SAS_KEY = os.path.join('certs', 'sas.key')
+SAS_URL = 'https://fake.sas.url.not.used.org/v1.2'
 SAS_TH_URL = "https://localhost/v1.2"
+
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SSS_1(self):
+    """New registration with TLS_RSA_WITH_AES_128_GCM_SHA256 cipher.
+
+    Checks that SAS UUT response satisfy cipher security conditions.
+    Checks that a SAS registration with this configuration succeed.
+    """
+    self.doSasTestCipher('AES128-GCM-SHA256',
+                         client_cert=SAS_CERT, client_key=SAS_KEY,
+                         client_url=SAS_TH_URL)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SSS_2(self):
+    """New registration with TLS_RSA_WITH_AES_256_GCM_SHA384 cipher.
+
+    Checks that SAS UUT response satisfy specific security conditions.
+    Checks that a SAS registration with this configuration succeed.
+    """
+    self.doSasTestCipher('AES256-GCM-SHA384',
+                         client_cert=SAS_CERT, client_key=SAS_KEY,
+                         client_url=SAS_TH_URL)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SSS_3(self):
+    """New registration with TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 cipher.
+
+    Checks that SAS UUT response satisfy specific security conditions.
+    Checks that a SAS registration with this configuration succeed.
+    """
+    self.doSasTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
+                         client_cert=SAS_CERT, client_key=SAS_KEY,
+                         client_url=SAS_TH_URL)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SSS_4(self):
+    """New registration with TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 cipher.
+
+    Checks that SAS UUT response satisfy specific security conditions.
+    Checks that a SAS registration with this configuration succeed.
+    """
+    self.doSasTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
+                         client_cert=SAS_CERT, client_key=SAS_KEY,
+                         client_url=SAS_TH_URL)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SSS_5(self):
+    """New registration with TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 cipher.
+
+    Checks that SAS UUT response satisfy specific security conditions.
+    Checks that a SAS registration with this configuration succeed.
+    """
+    self.doSasTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
+                         client_cert=SAS_CERT, client_key=SAS_KEY,
+                         client_url=SAS_TH_URL)
 
   def generate_SSS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_6"""
