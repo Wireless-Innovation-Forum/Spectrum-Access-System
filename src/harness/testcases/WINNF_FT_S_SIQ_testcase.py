@@ -1001,8 +1001,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
     
  
-    # Step5: Trigger CPAS activity
-    if (len(config['gwpzRecords']) > 0 or len(config['palRecords']) > 0):
+    # Step5: Trigger CPAS activity if GWPZ > 0 or PPA > 0
+    if (len(config['gwpzRecords']) > 0 or len(config['ppaRecords']) > 0):
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Step6: Send N2 spectrum inquiry requests (one per registered CBSD)
