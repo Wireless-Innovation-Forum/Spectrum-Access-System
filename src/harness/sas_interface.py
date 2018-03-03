@@ -201,6 +201,14 @@ class SasInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Get data from json files after generate the
+     Full Activity Dump Message
+    Returns:
+     the message as an "json data" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class SasAdminInterface(object):
   """Minimal test control interface for the SAS under test."""
@@ -481,7 +489,6 @@ class SasAdminInterface(object):
     """
     pass
 
-
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -591,5 +598,3 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-  
-

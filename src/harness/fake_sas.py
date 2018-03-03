@@ -240,6 +240,13 @@ class FakeSas(sas_interface.SasInterface):
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
 
+  def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Get data from json files after generate the
+     Full Activity Dump Message
+    Returns:
+     the message as an "json data" object specified in WINNF-16-S-0096
+    """
+    pass
 
 class FakeSasAdmin(sas_interface.SasAdminInterface):
   """Implementation of SAS Admin for Fake SAS."""
@@ -282,7 +289,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
-
   def InjectPeerSas(self, request):
     pass
 
@@ -297,6 +303,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
                                         uuid.uuid4().hex)
 
   def TriggerDailyActivitiesImmediately(self):
+    pass
+
+  def TriggerFullActivityDump(self) :
     pass
 
   def GetDailyActivitiesStatus(self):
