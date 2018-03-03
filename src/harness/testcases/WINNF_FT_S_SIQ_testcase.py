@@ -989,8 +989,10 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
     # Step4: Load N3 PPA
-    for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+    # Inject PAL Records for all PPAs
+    for pal_records in config['palRecords']:
+      for pal_record in pal_records:
+        self._sas_admin.InjectPalDatabaseRecord(pal_record)
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
