@@ -18,6 +18,7 @@ import os
 import unittest
 import geojson
 import shapely.geometry as sgeo
+from shapely import ops
 
 from reference_models.geo import utils
 
@@ -101,6 +102,47 @@ class TestUtils(unittest.TestCase):
     self.assertAlmostEqual(area - area_with_hole, 0.617, 3)
     self.assertEqual(square, square_cleaned)
     self.assertEqual(multipoly_cleaned, sgeo.MultiPolygon([square, hole]))
+
+  def test_grid_point_and_null(self):
+    poly = sgeo.Polygon([(1.9, 0.9), (2.1, 0.9), (2.1, 1.1), (1.9, 1.1)])
+    exp_pts = [(2.0, 1.0)]
+    pts = utils.GridPolygon(poly, res_arcsec=900.)
+    self.assertListEqual(pts, exp_pts)
+    pts = utils.GridPolygon(poly, res_arcsec=7200.)
+    self.assertListEqual(pts, [])
+
+  def test_grid_simple(self):
+    poly = sgeo.Polygon([(1.9, 3.9), (3.1, 3.9), (3.1, 4.4),
+                         (2.5, 4.5), (2.4, 5.1), (1.9, 5.1)])
+    exp_pts = {(2.0, 4.0), (2.5, 4.0), (3.0, 4.0),
+               (2.0, 4.5), (2.5, 4.5), (2.0, 5.0)}
+    pts = utils.GridPolygon(poly, res_arcsec=1800.)
+    self.assertSetEqual(set(pts), exp_pts)
+
+  def test_grid_simple_with_hole(self):
+    poly = sgeo.Polygon([(1.9, 3.9), (3.1, 3.9), (3.1, 4.4),
+                         (2.5, 4.5), (2.4, 5.1), (1.9, 5.1)],
+                        [[(1.95, 3.95), (2.05, 3.95), (2.05, 4.4)]])
+    exp_pts = {(2.5, 4.0), (3.0, 4.0),
+               (2.0, 4.5), (2.5, 4.5), (2.0, 5.0)}
+    pts = utils.GridPolygon(poly, res_arcsec=1800.)
+    self.assertSetEqual(set(pts), exp_pts)
+
+  def test_grid_complex(self):
+    with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
+      json_geo = geojson.load(fd)
+
+    shape_geo = utils.GeoJsonToShapelyGeometry(json_geo)
+    exp_pts = {(-95, 40), (-95.5, 40.5), (-95.5, 40),
+               (-96, 40), (-96.5, 40.5), (-96.5, 40)}
+    pts = utils.GridPolygon(json_geo, res_arcsec=1800)
+    self.assertSetEqual(set(pts), exp_pts)
+
+    pts = utils.GridPolygon(shape_geo, res_arcsec=1800)
+    self.assertSetEqual(set(pts), exp_pts)
+
+    pts = utils.GridPolygon(ops.unary_union(shape_geo), res_arcsec=1800)
+    self.assertSetEqual(set(pts), exp_pts)
 
 if __name__ == '__main__':
   unittest.main()
