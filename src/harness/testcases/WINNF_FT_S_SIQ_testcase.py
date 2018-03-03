@@ -1049,14 +1049,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         # Check the PAL channels frequency ranges overlap with FR2cbsd
         for channel in response['availableChannel']:
           if channel['channelType'] == 'PAL':
-            isFrequencyIncludedInFr2Cbsd = False
             for fr2_range in config['fr2Cbsd'][index]:
-              if ((channel['frequencyRange']['lowFrequency'] ==
-                             fr2_range['lowFrequency']) and
-                  (channel['frequencyRange']['highFrequency'] ==
-                             fr2_range['highFrequency'])):
-                isFrequencyIncludedInFr2Cbsd = True
-            self.assertTrue(isFrequencyIncludedInFr2Cbsd, "PAL channel is not included in Fr2Cbsd list")       
+              self.assertChannelsContainFrequencyRange([channel], fr2_range)
   
             # Check the PAL channels frequency ranges does not include any frequency range from 3650-3700MHz.
             self.assertLess(channel['frequencyRange']['lowFrequency'], 3650000000) 
