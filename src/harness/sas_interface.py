@@ -411,14 +411,6 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def TriggerCreateFullActivityDump(self):
-    """SAS admin interface to trigger Generation Of Full Activity Dump
-
-    Note : SAS should not return until the full dump creation is complete
-    """
-    pass
-
-  @abc.abstractmethod
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:

@@ -305,9 +305,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
    
-  def TriggerCreateFullActivityDump(self):
-    pass
-
   def TriggerFullActivityDump(self) :
     pass
 
