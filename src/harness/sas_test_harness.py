@@ -248,9 +248,11 @@ class SasTestHarnessServer(threading.Thread):
             generated_file_name = 'activity_dump_file_zone'+str(index)+'.json'
             record_url = self.getBaseUrl() +'/zone/'+ generated_file_name
         elif 'esc_sensor' in dump_records[0]['id']:
-             generated_file_name = 'activity_dump_file_esc_sensor'+str(index)+'.json'
-             record_url = self.getBaseUrl() +'/esc_sensor/'+ generated_file_name
-           
+            generated_file_name = 'activity_dump_file_esc_sensor'+str(index)+'.json'
+            record_url = self.getBaseUrl() +'/esc_sensor/'+ generated_file_name
+        else:
+            raise Exception("ConfigurationError:incorrect record type. \
+                                           Unable to write FAD record")
         # creates the dump file containing records of the same type
         self.__writeDumpFile(generated_file_name, dump_records)
         fad_record = self.__createFadRecord(record_url, dump_records)
@@ -335,8 +337,7 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
                      ' not match with number of grant requests')
 
   if any(len(grant_requests) == 0 for grant_requests in grant_requests_list):
-     raise Exception('ConfigurationError: No grant requests are configured. '
-                      'At least one grant request has to be configured.') 
+     raise Exception('ConfigurationError: At least one of the grant request list is empty')
 
   for index, (registration_request, grant_requests) in enumerate \
                        (zip(registration_requests, grant_requests_list)):
@@ -369,19 +370,23 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
       grant_data = {}
 
       # Auto-generating GrantData 'id' field.
-      grant_data['id'] = 'SAMPLE_ID_{:05}'.format(random.randrange(1, 10 ** 5)) 
-      
+      grant_data['id'] = 'SAMPLE_ID_{:05}'.format(random.randrange(1, 10 ** 5))
+
       assert grant_request.has_key('operationParam'), "operationParam does not exist in GrantRequest"
       grant_data['operationParam'] = grant_request['operationParam']
 
+      # requestedOperationParam is a required field in SAS-SAS exchange in Release 1.
+      # Copying the operationParam into requestedOperationParam
+      grant_data['requestedOperationParam'] = grant_request['operationParam']
+
       # Channel type is mandatory in GrantData Object.
-      # Setting it to 'GAA' by default. 
+      # Setting it to 'GAA' by default.
       grant_data['channelType'] = 'GAA'
 
       # Assign grant_expire_time to grant objects.
-      grant_time_stamp = datetime.now().today() + timedelta(hours=24)
+      grant_time_stamp = datetime.now().today() + timedelta(days=2*365)
       grant_expire_time = time.strftime(grant_time_stamp.\
-                          replace(microsecond=0).isoformat()) + 'Z'
+                              replace(microsecond=0).isoformat()) + 'Z'
 
       # grantExpireTime is mandatory in GrantData Object.
       # Setting it to a value of 24 hours from now.

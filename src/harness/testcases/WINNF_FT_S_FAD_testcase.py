@@ -13,6 +13,7 @@
 #    limitations under the License.
 """ Implementation of FAD test cases """
 
+import hashlib
 import json
 import os
 import sas
@@ -163,7 +164,13 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     cbsd_records = [device_c1, device_c3]
     grant_record_list = [[grant_g1], [grant_g3]]
     ppa_records = [ppa_record_a]
-    cbsd_reference_ids = [['cbsdId-1', 'cbsdId-2']]
+
+    # Creating CBSD reference IDs of valid format
+    cbsd_reference_id1 = str('test_fcc_id_x' + '/' +
+                             str(hashlib.sha1('test_serial_number_x').hexdigest())).encode('utf-8')
+    cbsd_reference_id2 = str('test_fcc_id_y' + '/' +
+                             str(hashlib.sha1('test_serial_number_y').hexdigest())).encode('utf-8')
+    cbsd_reference_ids = [[cbsd_reference_id1, cbsd_reference_id2]]
 
     # SAS test harness configuration
     sas_harness_config = {
@@ -190,9 +197,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'grantRequestG2': grant_g2,
         'grantRequestG4': grant_g4,
-        'palRecords': pal_records[0],
+        'palRecords': pal_records,
         'sasTestHarnessConfig': sas_harness_config,
-        'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
+        'sasTestHarnessDumpRecords': sas_harness_dump_records
     }
     writeConfig(filename, config)
 
@@ -213,9 +220,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     device_c4 = config['registrationRequestC4']
     grant_g2 = config['grantRequestG2']
     grant_g4 = config['grantRequestG4']
-    sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords'],
-                                     config['sasTestHarnessConfigDumpRecords']['ppaRecords'],
-                                     config['sasTestHarnessConfigDumpRecords']['escSensorRecords']]
+    sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords'],
+                                     config['sasTestHarnessDumpRecords']['ppaRecords'],
+                                     config['sasTestHarnessDumpRecords']['escSensorRecords']]
 
     # Initialize SAS Test Harness Server instance to dump FAD records
     sas_test_harness = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
@@ -226,6 +233,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                             config['sasTestHarnessConfig']['caCert'])
     
     sas_test_harness.writeFadRecords(sas_test_harness_dump_records)
+
 
     # Start the server
     sas_test_harness.start()
@@ -239,7 +247,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectUserId({'userId': device_c4['userId']})
 
     # Whitelist the FCCID and UserID of the devices loaded to SAS-test_harness in SAS UUT
-    for cbsdRecord in config['sasTestHarnessConfigDumpRecords']['cbsdRecords']:
+    for cbsdRecord in config['sasTestHarnessDumpRecords']['cbsdRecords']:
       self._sas_admin.InjectFccId({'fccId': cbsdRecord['registration']['fccId']})
 
     
@@ -257,7 +265,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
     # respectively to SAS UUT.
     transmit_expire_times = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids,
-                                      [[('GRANTED')],[('GRANTED')]])
+                                                            ['GRANTED', 'GRANTED'])
 
     # Notify the SAS UUT about the SAS Test Harness
     certificate_hash = getCertificateFingerprint(config['sasTestHarnessConfig']['serverCert'])
