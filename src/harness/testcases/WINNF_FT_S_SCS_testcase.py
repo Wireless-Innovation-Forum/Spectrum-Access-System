@@ -28,7 +28,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy cipher security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('AES128-GCM-SHA256')
+    self.doCbsdTestCipher('AES128-GCM-SHA256')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_2(self):
@@ -37,7 +37,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('AES256-GCM-SHA384')
+    self.doCbsdTestCipher('AES256-GCM-SHA384')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_3(self):
@@ -47,7 +47,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that a CBSD registration with this configuration succeed.
     Note that the test require a SAS UUT
     """
-    self.doTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_4(self):
@@ -56,7 +56,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_5(self):
@@ -65,7 +65,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
 
   def generate_SCS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_6"""
