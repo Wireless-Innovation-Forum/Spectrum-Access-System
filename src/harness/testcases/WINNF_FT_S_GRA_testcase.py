@@ -316,7 +316,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_record = [grant_g1]
 
     sas_harness_config = {
-        'sasTestHarnessName': 'SAS-TestHarness-1',
+        'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': 'localhost',
         'port': 9001,
         'serverCert': "certs/server.cert",
@@ -330,11 +330,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequestC1': device_c1,
         'registrationRequestC2': device_c2,
-        'conditionalParameters': conditionals,
+        'conditionalRegistrationData': conditionals,
         'grantRequestG1': grant_g1,
         'grantRequestG2': grant_g2,
         'sasTestHarnessConfig': sas_harness_config,
-        'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
+        'sasTestHarnessDumpRecords': sas_harness_dump_records
     }
     writeConfig(filename, config)
 
@@ -349,7 +349,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c2 = config['registrationRequestC2']
     grant_g1 = config['grantRequestG1']
     grant_g2 = config['grantRequestG2']
-    sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords']]
+    sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords']]
 
     # Create the SAS Test Harness.
     sas_test_harness_server = SasTestHarnessServer(config['sasTestHarnessConfig']['sasTestHarnessName'],
@@ -366,14 +366,20 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Notify the SAS UUT about the SAS Test Harness
     certificate_hash = getCertificateFingerprint(config['sasTestHarnessConfig']['serverCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': sas_test_harness_server.getBaseUrl()})
+                                  'url': sas_test_harness_server.getBaseUrl()})
 
     # Step 2: Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
+    # Pre-load conditional registration data for C1 and C2 CBSDs.
+    if ('conditionalRegistrationData' in config) and (
+        config['conditionalRegistrationData']):
+      self._sas_admin.PreloadRegistrationData(
+          config['conditionalRegistrationData'])
+
     # Step 3: Register CBSDs C1 and C2 with SAS UUT
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids = self.assertRegistered([device_c1, device_c2], config['conditionalParameters'])
+    cbsd_ids = self.assertRegistered([device_c1, device_c2])
     grant_g1['cbsdId'] = cbsd_ids[0]
     grant_g2['cbsdId'] = cbsd_ids[1]
 
@@ -390,7 +396,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check responseCode is 0 for CBSD C2.
     self.assertEqual(response[1]['response']['responseCode'], 0)
 
-    # Stop and clean up SAS Test Harness.
+    # As Python garbage collector is not very consistent, directory is not getting deleted. 
+    # Hence, explicitly stopping SAS Test Hanress and cleaning up
     sas_test_harness_server.shutdown()
     del sas_test_harness_server
 
@@ -433,7 +440,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'registrationRequestC1': device_c1,
         'grantRequestG1': grant_g1,
         'sasTestHarnessConfig': sas_harness_config,
-        'sasTestHarnessConfigDumpRecords': sas_harness_dump_records
+        'sasTestHarnessDumpRecords': sas_harness_dump_records
     }
     writeConfig(filename, config)
 
@@ -448,7 +455,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     device_c1 = config['registrationRequestC1']
     grant_g1 = config['grantRequestG1']
-    sas_test_harness_dump_records = [config['sasTestHarnessConfigDumpRecords']['cbsdRecords']]
+    sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords']]
 
     # Step 1: Register CBSD C1 and get a Grant G1 from SAS UUT
     #The assertRegisteredAndGranted function does the Inject FCC ID and user ID for the registration requests
@@ -488,7 +495,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response.
     self.assertEqual(response['response']['responseCode'], 500)
 
-    # Stop SAS Test Harness and clean up
+    # As Python garbage collector is not very consistent, directory is not getting deleted. 
+    # Hence, explicitly stopping SAS Test Hanress and cleaning up
     sas_test_harness_server.shutdown()
     del sas_test_harness_server
 
