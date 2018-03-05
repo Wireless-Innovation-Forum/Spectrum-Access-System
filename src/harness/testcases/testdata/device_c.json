@@ -11,7 +11,7 @@
     "latitude": 38.815291,
     "longitude": -97.198805,
     "height": 4.5,
-    "heightType": "AMSL",
+    "heightType": "AGL",
     "indoorDeployment": false,
     "antennaGain": -127,
     "antennaBeamwidth": 0
