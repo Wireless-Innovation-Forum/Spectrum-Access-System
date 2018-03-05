@@ -1039,9 +1039,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         'installationParam': device_b['installationParam']
     }
     conditionals = {'registrationData': [conditionals_b]}
-    del device['cbsdCategory']
-    del device['airInterface']
-    del device['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['installationParam']
 
     # Create the actual config.
     devices = [device_a, device_b]
