@@ -204,7 +204,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                                                                 pal_high_frequency,
                                                                 device_a['userId'])
         ppas.append(ppa)
-        pals.append(pal)
+        pals.extend(pal)
         # ESC senosrs
         esc_sensors = []
         esc_sensors.append(json.load(
