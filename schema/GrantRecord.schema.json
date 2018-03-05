@@ -6,7 +6,8 @@
     "id",
     "channelType",
     "grantExpireTime",
-    "operationParam"
+    "operationParam",
+    "requestedOperationParam"
   ],
 	"properties":{
 		"id":{
