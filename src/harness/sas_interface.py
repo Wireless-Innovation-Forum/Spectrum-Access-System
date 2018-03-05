@@ -454,14 +454,14 @@ class SasAdminInterface(object):
     Args:
       request: A dictionary with multiple key-value pairs where the keys are
         reliabilityLevel: (permitted values: -1, 0.05, 0.95) 
-        cbsd: dictionaty defining cbsd
-        fss(optional): dictionaty defining fss
+        cbsd: dictionary defining cbsd
+        fss(optional): dictionary defining fss
         ppa(optional): GeoJSON Object
         
     Returns:
       double pathlossDb (pathloss in dB)
       double txAntennaGainDbi (transmitter antenna gain in dBi in the direction of the receiver)
-      rxAntennaGainDbi s(optional) (receiver antenna gain in dBi in the direction of the transmitter)
+      rxAntennaGainDbi (optional) (receiver antenna gain in dBi in the direction of the transmitter)
 
     """
     pass

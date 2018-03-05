@@ -320,8 +320,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
       response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
-      if response == 404:
-          self.send_response(404)
+      if response == 400:
+          self.send_response(400)
           return 	  
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',

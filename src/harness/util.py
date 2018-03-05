@@ -363,8 +363,9 @@ def computePropagationAntennaModel(request):
         ARCSEC = 2
         ppa_points = GeoUtils.GridPolygon(ppa['geometry'], ARCSEC)
         if len(ppa_points) == 1:
-            rx['latitude'] = ppa_points[0][0]
-            rx['longitude']= ppa_points[0][1]
+            rx['longitude']= ppa_points[0][0]
+            rx['latitude'] = ppa_points[0][1]
+            
         else:
             response = 400
             return response
@@ -381,7 +382,6 @@ def computePropagationAntennaModel(request):
     # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
     # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
     result = {}
-    
     if isfss:
         path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
                                                    rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
@@ -406,7 +406,7 @@ def computePropagationAntennaModel(request):
         result['txAntennaGainDbi'] = gain_tx_rx 
         
     
-        return result
+    return result
     
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.

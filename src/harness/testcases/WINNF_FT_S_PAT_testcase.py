@@ -35,8 +35,7 @@ def cbsddata(device):
               'indoorDeployment': installationParam['indoorDeployment'],
               'antennaAzimuth': installationParam['antennaAzimuth'],
               'antennaGain': installationParam['antennaGain'],
-              'antennaBeamwidth': installationParam['antennaBeamwidth'],
-              'cbsdCategory': device['cbsdCategory']}
+              'antennaBeamwidth': installationParam['antennaBeamwidth']}
     return cbsd
 
 def fssdata(fss_record, rx_antenna_gain_required=None):
@@ -79,15 +78,15 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_0['rxAntennaGainRequired'] = True
     reliability_level = -1
-    config = {}
-    config[0]= {'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)}
+    config = []
+    config.append({'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)})
 
     # Load PPA
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_3.json')))
      
     reliability_level = -1
-    config[1] = {'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]}
+    config.append({'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]})
 
     writeConfig(filename, config)
       
@@ -104,10 +103,12 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     
     config = loadConfig(config_filename)
     num_tests = len(config)
-    test_pass_threshold = 1.00
-    passed_tests = 0.0
-    for configItem in  config:
-       request= config[configItem]
+    test_pass_threshold = 0.95 #percentage of passed test expected
+    num_passed_tests = 0.0
+    num_tests = len(config)
+    max_fail_num = int ((1-test_pass_threshold) * num_tests)
+    num_failed_tests = 0.0
+    for request in  config:
        refResponse = computePropagationAntennaModel(request)
        sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
 
@@ -120,9 +121,15 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
        else:
            self.assertEqual(sasResponse, refResponse)
-           this_test = 1.0
+           this_test = True
 
-       passed_tests += this_test*1.0
-
-    self.assertTrue(passed_tests >= num_tests * test_pass_threshold)
+       if this_test:
+           num_passed_tests += 1.0
+       else:
+           num_failed_tests += 1.0
+       
+       if num_failed_tests >= max_fail_num:
+           break
+       
+    self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
     
