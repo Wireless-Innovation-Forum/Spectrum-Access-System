@@ -141,19 +141,19 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqual(1, len(grants_of_cbsd))
             self.assertTrue('id' in grants_of_cbsd[0])
             # Verify the Grant Of the Cbsd
-            if grants_of_cbsd[0]['requestedOperationParam'] is not None :
-                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
-                             max_eirp_by_MHz)
-                self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
-                             -137)
-                self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
-                                 ['lowFrequency'], 3550000000)
-                self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']\
-                                     ['operationFrequencyRange']['lowFrequency'] % 5000000, 0)
-                self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                                 ['operationFrequencyRange']['highFrequency'], 3700000000)
-                self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                                 ['operationFrequencyRange']['highFrequency'] % 5000000, 0)     
+            # check grant requestedOperationParam 
+            self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                          max_eirp_by_MHz)
+            self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['maxEirp'],\
+                          -137)
+            self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
+                              ['lowFrequency'], 3550000000)
+            self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']\
+                                  ['operationFrequencyRange']['lowFrequency'] % 5000000, 0)
+            self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                              ['operationFrequencyRange']['highFrequency'], 3700000000)
+            self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
+                              ['operationFrequencyRange']['highFrequency'] % 5000000, 0)     
             self.assertDictEqual( grants_of_cbsd[0]['operationParam'], \
                                   grant_request[index]['operationParam'])
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
