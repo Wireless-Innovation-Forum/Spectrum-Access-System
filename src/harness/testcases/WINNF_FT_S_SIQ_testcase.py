@@ -880,7 +880,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         pal_user_id1)
     ppa_record2, pal_records2 = makePpaAndPalRecordsConsistent(
         ppa_record2, [pal_record_1], pal_low_frequency2, pal_high_frequency2,
-        pal_user_id2) 
+        pal_user_id2)
+    # Merge PAL records lists into one list (may contain duplicates)
+    pal_records = pal_records1 + pal_records2
     
     ppa_cluster_list_1 = [0]
     ppa_cluster_list_2 = []
@@ -938,7 +940,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       'registrationRequests': devices,
       'conditionalRegistrationData': conditionals,
       'expectedResponseCodes': [(0,), (103,), (102,)],
-      'palRecords': [pal_records1, pal_records2],
+      'palRecords': pal_records,
       'ppaRecords': [
         {'ppaRecord': ppa_record1, 'ppaClusterList': ppa_cluster_list_1},
         {'ppaRecord': ppa_record2, 'ppaClusterList': ppa_cluster_list_2}
@@ -990,9 +992,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # 4. Load N3 PPAs
     # Inject PAL Records for all PPAs
-    for pal_records in config['palRecords']:
-      for pal_record in pal_records:
-        self._sas_admin.InjectPalDatabaseRecord(pal_record)
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
  
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
