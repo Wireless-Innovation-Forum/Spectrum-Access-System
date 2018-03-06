@@ -115,7 +115,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             # if callSign exist, it should have the same value as registered
             if 'callSign' in cbsd_record[0]:
                 self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])      
-            # if eirpCapability in the record, it should be the same as device or less than Fcc maxEirp value and the value limits of the spec
+            # if eirpCapability in the record, it should be the same as device or less than the FCC maxEirp value which was injected at the beginning of the test and less than
             max_eirp_by_MHz = 37;     
             if 'eirpCapability' in cbsd_record[0]:
                 if 'eirpCapability' in device:
@@ -148,7 +148,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
                           -137)
             self.assertGreaterEqual(grants_of_cbsd[0]['requestedOperationParam']['operationFrequencyRange']\
                               ['lowFrequency'], 3550000000)
-            self.assertLessEqual(grants_of_cbsd[0]['requestedOperationParam']\
+            self.assertEqual(grants_of_cbsd[0]['requestedOperationParam']\
                                   ['operationFrequencyRange']['lowFrequency'] % 5000000, 0)
             self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
                               ['operationFrequencyRange']['highFrequency'], 3700000000)
@@ -325,7 +325,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             del ppa_record['id']
         # verify that the injected ppas exist in the dump files
 		    # TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
-        # and we should check the order of the points of PPA contour in hte dump to be CCW 
+        # and we should check the order of the points of PPA contour in the dump to be CCW 
         for index, ppa in enumerate(config['ppas']):
           del ppa['id']
           exist_in_dump = False
