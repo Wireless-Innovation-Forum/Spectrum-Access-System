@@ -30,8 +30,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-import jwt
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
+import jwt
+
 from shapely.geometry import shape, Point, LineString
 
 
@@ -130,12 +131,15 @@ def writeConfig(config_filename, config):
 
 
 def getRandomLatLongInPolygon(ppa):
-  """Generate the Random Latitude and Longitude inside the PPA Polygon
+  """Generates a random point inside the PPA Polygon.
+
+  Note: since the generated point is NOT uniformly distributed within the PPA,
+  do not rely on this function if you want a purely uniform distribution.
+
   Args:
     ppa: (dictionary) A dictionary containing PPA Record.
   Returns:
-    A tuple in the form of latitude and longitude which itself is
-    a number.
+    A tuple (lat, lon) with the point coordinates.
   """
 
   try:
@@ -254,7 +258,9 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
 
 
 def assertContainsRequiredFields(schema_filename, response):
-  schema_filename = os.path.join('..', '..', 'schema', schema_filename)
+  schema_dir = os.path.join(os.path.dirname(os.path.abspath(
+      inspect.getfile(inspect.currentframe()))), '..', '..', 'schema')
+  schema_filename = os.path.join(schema_dir, schema_filename)
   schema = json.load(open(schema_filename))
   Draft4Validator.check_schema(schema)
   schema_dir = os.path.dirname(os.path.realpath(schema_filename))
@@ -376,6 +382,34 @@ def addGrantIdsToRequests(grant_ids, requests):
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
 
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: The full path to the file containing the certificate
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate,"rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint
+
+def filterChannelsByFrequencyRange(channels, freq_range):
+  """Returns channels within given frequency range.
+
+  Args:
+    channels: list of available channels.
+    freq_range: dict of frequency range.
+  """
+
+  return [
+      channel for channel in channels
+      if
+      freq_range['lowFrequency'] <= channel['frequencyRange']['lowFrequency']
+      and
+      channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
+  ]
+
 def _orderAttributes(obj):
     if isinstance(obj, dict):
         return sorted((k, _orderAttributes(v)) for k, v in obj.items())
@@ -393,15 +427,3 @@ def compareDictWithUnorderedLists(first_dict, second_dict):
  Returns: boolean set to true if the dictionaries are equal and false otherwise.
   """
   return _orderAttributes(first_dict) == _orderAttributes(second_dict)
-
-def getCertificateFingerprint(certificate):
-  """ Get SHA1 hash of the input certificate.
-  Args:
-    certificate: certificate file
-  Returns:
-    sha1 fingerprint of the input certificate
-  """
-  certificate_string = open(certificate, "rb").read()
-  cert = load_certificate(FILETYPE_PEM, certificate_string)
-  sha1_fingerprint = cert.digest("sha1")
-  return sha1_fingerprint

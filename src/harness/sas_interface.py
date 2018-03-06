@@ -189,10 +189,15 @@ class SasInterface(object):
 
   @abc.abstractmethod
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
-    """SAS-SAS Full Activity Dump  interface Requests a Pull Command 
-      to get Full Activity Dump Message
+    """SAS-SAS Full Activity Dump interface.
+
+    Requests a Pull Command to get Full Activity Dump Message.
+
+    Args:
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
     Returns:
-     the message as an "FullActivityDump" object specified in WINNF-16-S-0096
+      A dictionary containing the FullActivityDump object specified in WINNF-16-S-0096
     """
     pass
 
@@ -466,19 +471,21 @@ class SasAdminInterface(object):
 
   @abc.abstractmethod
   def TriggerFullActivityDump(self):
-    """SAS admin interface to trigger Generation Of Full Activity Dump
+    """SAS admin interface to trigger generation of a Full Activity Dump.
 
-    Note : SAS should not return until the full dump creation is complete
+    Note: SAS does not need to complete generation before returning HTTP 200.
+    See the testing API specification for more details.
     """
     pass
 
   @abc.abstractmethod
   def InjectPeerSas(self, request):
-    """SAS admin interface to Inject Peer Sas
+    """SAS admin interface to inject a peer SAS into the SAS UUT.
+
     Args:
       request: A dictionary with the following key-value pairs:
-	  "certificateHash": hash of the certificate of the peer SAS
-	  "url": the url of the peer SAS implementation that the SAS UUT will use to send requests
+        "certificateHash": the sha1 fingerprint of the certificate
+        "url": base URL of the peer SAS.
     """
     pass
 
@@ -591,4 +598,3 @@ class SasTestcaseInterface(object):
     If the status is not changed within 2 hours it will throw an exception.
     """
     pass
-

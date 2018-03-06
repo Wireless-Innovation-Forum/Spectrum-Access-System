@@ -166,7 +166,7 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
              frequency_range['highFrequency'])
-   
+
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     """ this function trigger SAS UUT to generate dump files \
     and wait for the generation of them with a timeout of 7200 seconds

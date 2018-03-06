@@ -1,40 +1,40 @@
 {
-  "name": "PPA Zone 2",
+  "name": "PPA Zone 0",
   "creator": "admin_0",
   "usage": "PPA",
   "terminated": false,
   "ppaInfo": {
-    "ppaRegionType": "RURAL"
+    "ppaRegionType": "URBAN"
   },
   "zone": {
     "type": "FeatureCollection",
     "features": [
       {
         "type": "Feature",
-        "properties": { },
+        "properties": {},
         "geometry": {
           "type": "Polygon",
           "coordinates": [
             [
               [
-                -88.82560,
-                30.72540
+                -97.23861694335938,
+                38.865374851611634
               ],
               [
-                -88.8407,
-                30.5848
+                -97.31964111328125,
+                38.7615795117574
               ],
               [
-                -88.68280,
-                30.56470
+                -97.16995239257811,
+                38.739088441876866
               ],
               [
-                -88.66220,
-                30.71010
+                -97.16171264648436,
+                38.86751337001198
               ],
               [
-                -88.82560,
-                30.72540
+                -97.23861694335938,
+                38.865374851611634
               ]
             ]
           ]

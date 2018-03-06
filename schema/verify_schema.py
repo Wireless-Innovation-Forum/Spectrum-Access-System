@@ -90,6 +90,8 @@ errors += testJsonSchema('MeasReport.schema.json', 'MeasReportExample.json')
 
 errors += testJsonSchema('PalRecord.schema.json', 'PalRecordExample.json')
 
+errors += testJsonSchema('FullActivityDump.schema.json', 'FullActivityDumpExample.json')
+
 errors += testJsonSchema('InstallationParamData.schema.json', 'InstallationParamDataExample.json')
 
 errors += testJsonSchema('CbsdRecordData.schema.json', 'CbsdRecordDataExample.json')
@@ -99,8 +101,6 @@ errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordWithRequestedOpe
 errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordWithoutRequestedOperationParaExample.json')
 
 errors += testJsonSchema('zoneData.schema.json', 'zoneDataOfPpaExample.json')
-
-errors += testJsonSchema('FullActivityDump.schema.json', 'FullActivityDumpExample.json')
 
 if errors == 0:
   print 'PASS'

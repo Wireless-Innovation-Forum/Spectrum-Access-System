@@ -201,7 +201,7 @@ class FakeSas(sas_interface.SasInterface):
     else:
       # Return Empty if invalid Id
       return {}
-  
+      
   def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
     response = json.loads(json.dumps({'files':[
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
@@ -221,13 +221,13 @@ class FakeSas(sas_interface.SasInterface):
                                       '%Y-%m-%dT%H:%M:%SZ'),
             'description':"Full activity dump files" }))
     return response;
+
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
-
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
-    
+
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     """SAS-SAS Get data from json files after generate the
      Full Activity Dump Message
@@ -277,6 +277,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectEscSensorDataRecord(self, request):
     pass
 
+  def InjectPeerSas(self, request):
+    pass
+
   def TriggerMeasurementReportRegistration(self):
     pass
 
@@ -290,12 +293,11 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
 
-  def TriggerFullActivityDump(self):
+  def TriggerFullActivityDump(self) :
     pass
 
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
-
   def TriggerLoadDpas(self):  
     pass
 
@@ -310,6 +312,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
   def InjectPeerSas(self, request):
     pass
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
@@ -340,8 +343,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().Relinquishment(request)
     elif self.path == '/%s/deregistration' % self.version:
       response = FakeSas().Deregistration(request)
-    elif self.path == '/%s/dump' % self.version:
-      response = FakeSas().GetFullActivityDump(self.version)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
     elif self.path == '/admin/trigger/create_ppa':
@@ -382,10 +383,10 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     """Handles GET requests."""
     path, value = self._parseUrl(self.path)
     if path == '%s/sas_impl' % self.version:
-     response = FakeSas().GetSasImplementationRecord(value)
+      response = FakeSas().GetSasImplementationRecord(value)
     elif path == '%s/esc_sensor' % self.version:
       response = FakeSas().GetEscSensorRecord(value)
-    elif self.path == '%s/dump' % self.version :
+    elif path == '%s/dump' % self.version:
       response = FakeSas().GetFullActivityDump(self.version)
     else:
       self.send_response(404)
