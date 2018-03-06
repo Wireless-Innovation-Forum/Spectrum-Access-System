@@ -180,9 +180,9 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     for frequency in frequency_ranges:
       if (channel['frequencyRange']['lowFrequency'] >= frequency['lowFrequency'] and
           channel['frequencyRange']['highFrequency'] <= frequency['highFrequency']):
-        isFrequencyIncludedInRange = True
+        is_frequency_included_in_range = True
         break
-    self.assertTrue(isFrequencyIncludedInRange, "Channel is not included in list of frequency ranges")
+    self.assertTrue(is_frequency_included_in_range, "Channel is not included in list of frequency ranges")
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     request_time = datetime.utcnow().replace(microsecond=0)
