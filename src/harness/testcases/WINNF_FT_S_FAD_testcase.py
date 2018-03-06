@@ -195,7 +195,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'grantRequestG2': grant_g2,
         'grantRequestG4': grant_g4,
-        'palRecords': [pal_records],
+        'palRecords': pal_records,
         'sasTestHarnessConfig': sas_harness_config,
         'sasTestHarnessDumpRecords': sas_harness_dump_records
     }
