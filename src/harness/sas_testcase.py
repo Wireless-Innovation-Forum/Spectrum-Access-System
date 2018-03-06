@@ -166,3 +166,20 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
              frequency_range['highFrequency'])
+
+  def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
+    """Check if the channel lies within the list of frequency ranges.
+
+    Args:
+      channel: A dictionary containing frequencyRange,
+               which is a dictionary containing lowFrequency and highFrequency
+      frequency_ranges: A list of dictionaries containing
+                        lowFrequency and highFrequency
+    """
+    isFrequencyIncludedInRange = False
+    for frequency in frequency_ranges:
+      if (channel['frequencyRange']['lowFrequency'] >= frequency['lowFrequency'] and
+          channel['frequencyRange']['highFrequency'] <= frequency['highFrequency']):
+        isFrequencyIncludedInRange = True
+        break
+    self.assertTrue(isFrequencyIncludedInRange, "Channel is not included in list of frequency ranges")
