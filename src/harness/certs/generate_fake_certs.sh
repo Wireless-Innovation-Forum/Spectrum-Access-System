@@ -360,7 +360,7 @@ openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in
 echo "\n\nGenerate sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
-    -out non_cbrs_signed_sas.csr -keyout private/non_cbrs_signed_sas.key \
+    -out non_cbrs_signed_sas.csr -keyout non_cbrs_signed_sas.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS Unknown"
 openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root_signed_sas_ca.key -in non_cbrs_signed_sas.csr \
     -out non_cbrs_signed_sas.cert -outdir ./root \
