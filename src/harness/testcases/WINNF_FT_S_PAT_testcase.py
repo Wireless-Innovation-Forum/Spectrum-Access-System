@@ -117,10 +117,15 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                   # Check response
            this_test = False
            if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
-               this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-                   
+               if 'pathlossDb' in sasResponse and 'txAntennaGainDbi' in sasResponse:
+                   this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+               else:
+                   this_test = False
                if 'rxAntennaGainDbi' in refResponse:
-                   this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+                   if 'rxAntennaGainDbi' in sasResponse:
+                       this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+                   else:
+                       this_test = False
            else:
                self.assertEqual(sasResponse, refResponse)
                this_test = True
@@ -131,12 +136,9 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                num_failed_tests += 1.0
            
         except ValueError as e:
-           logging.debug(e)
            num_invalid_tests += 1.0
-            
 
-       
-       if (num_failed_tests+num_invalid_tests) >= max_fail_num: #test fails if number of failed and invalid test greater than allowed
+        if (num_failed_tests+num_invalid_tests) >= max_fail_num: #test fails if number of failed and invalid test greater than allowed
            break
        
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
