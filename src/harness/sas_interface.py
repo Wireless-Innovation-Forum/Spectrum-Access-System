@@ -454,6 +454,11 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def InjectDatabaseUrl(self, request):
+    """Inject the Database URL into SAS."""
+    pass
+
+  @abc.abstractmethod
   def TriggerFullActivityDump(self):
     """SAS admin interface to trigger generation of a Full Activity Dump.
 
@@ -471,10 +476,6 @@ class SasAdminInterface(object):
         "certificateHash": the sha1 fingerprint of the certificate
         "url": base URL of the peer SAS.
     """
-
-  @abc.abstractmethod
-  def InjectDatabaseUrl(self, request):
-    """Inject the FCC Database URL into SAS."""
     pass
 
   @abc.abstractmethod
