@@ -347,12 +347,11 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
 def computePropagationAntennaModel(request):
     reliability_level = request['reliabilityLevel']
     if reliability_level not in [-1, 0.05, 0.95]:
-        response = 400
-        return response
+        raise ValueError('reliability_level not in [-1, 0.05, 0.95]')
+
     tx = request['cbsd']
     if ('fss' in request) and ('ppa' in request):
-        response = 400
-        return response
+        raise ValueError('fss and ppa in request')
     elif 'ppa' in request:
         rx ={}
         rx['height'] = 1.5
@@ -367,8 +366,7 @@ def computePropagationAntennaModel(request):
             rx['latitude'] = ppa_points[0][1]
             
         else:
-            response = 400
-            return response
+            raise ValueError('ppa boundary contains more than a single protection point')
         
         region_val = nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
 

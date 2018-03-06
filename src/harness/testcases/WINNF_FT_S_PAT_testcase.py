@@ -103,32 +103,40 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     
     config = loadConfig(config_filename)
     num_tests = len(config)
-    test_pass_threshold = 0.95 #percentage of passed test expected
+    test_pass_threshold = 0.999 #percentage of passed test expected
     num_passed_tests = 0.0
     num_tests = len(config)
     max_fail_num = int ((1-test_pass_threshold) * num_tests)
     num_failed_tests = 0.0
+    num_invalid_tests = 0.0
     for request in  config:
-       refResponse = computePropagationAntennaModel(request)
-       sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
+        try:
+           refResponse = computePropagationAntennaModel(request)
+           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
 
-       # Check response
-       this_test = False
-       if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
-           this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-               
-           if 'rxAntennaGainDbi' in refResponse:
-               this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
-       else:
-           self.assertEqual(sasResponse, refResponse)
-           this_test = True
+                  # Check response
+           this_test = False
+           if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
+               this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
+                   
+               if 'rxAntennaGainDbi' in refResponse:
+                   this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
+           else:
+               self.assertEqual(sasResponse, refResponse)
+               this_test = True
+    
+           if this_test:
+               num_passed_tests += 1.0
+           else:
+               num_failed_tests += 1.0
+           
+        except ValueError as e:
+           logging.debug(e)
+           num_invalid_tests += 1.0
+            
 
-       if this_test:
-           num_passed_tests += 1.0
-       else:
-           num_failed_tests += 1.0
        
-       if num_failed_tests >= max_fail_num:
+       if (num_failed_tests+num_invalid_tests) >= max_fail_num: #test fails if number of failed and invalid test greater than allowed
            break
        
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
