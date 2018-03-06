@@ -231,7 +231,7 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
 echo "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out wrong_type_client.cert -outdir ./root \
-    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 #certificate for test case WINNF.FT.S.SCS.11
@@ -392,7 +392,7 @@ openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_roo
 echo "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out wrong_type_domain_proxy.cert -outdir ./root \
-    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 
@@ -476,8 +476,15 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+# Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
+# Creating a wrong type certificate by reusing the client.csr and creating a client certificate.
+echo "\n\nGenerate wrong type certificate/key"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
+    -out wrong_type_sas.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-#Certificate for test case WINNF.FT.S.SSS.12 - Expired certificate presented during registration
+#Certificate for test case WINNF.FT.S.SSS.12 - Expired certificate presented by SAS Test Harness 
 echo "\n\nGenerate 'sas_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
@@ -487,6 +494,13 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_expired.csr \
     -out sas_expired.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
+
+#Certificate for test case WINNF.FT.S.SSS.15 -Certificate with inapplicable fields presented by SAS Test Harness 
+echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SSS.15' certificate"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
+    -out sas_inapplicable.cert -outdir ./root \
+    -policy policy_anything -extensions sas_req_inapplicable_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
