@@ -20,7 +20,7 @@ import sas
 import sas_testcase
 from reference_models.geo import vincenty
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
-    generatePpaRecords
+    generateCbsdReferenceId, generatePpaRecords
 from util import configurable_testcase, writeConfig, loadConfig, \
     getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
@@ -166,10 +166,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     ppa_records = [ppa_record_a]
 
     # Creating CBSD reference IDs of valid format
-    cbsd_reference_id1 = str('test_fcc_id_x' + '/' +
-                             str(hashlib.sha1('test_serial_number_x').hexdigest())).encode('utf-8')
-    cbsd_reference_id2 = str('test_fcc_id_y' + '/' +
-                             str(hashlib.sha1('test_serial_number_y').hexdigest())).encode('utf-8')
+    cbsd_reference_id1 = generateCbsdReferenceId('test_fcc_id_x', 'test_serial_number_x')
+    cbsd_reference_id2 = generateCbsdReferenceId('test_fcc_id_y', 'test_serial_number_y')
     cbsd_reference_ids = [[cbsd_reference_id1, cbsd_reference_id2]]
 
     # SAS test harness configuration
@@ -197,7 +195,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'grantRequestG2': grant_g2,
         'grantRequestG4': grant_g4,
-        'palRecords': pal_records,
+        'palRecords': [pal_records],
         'sasTestHarnessConfig': sas_harness_config,
         'sasTestHarnessDumpRecords': sas_harness_dump_records
     }
@@ -273,7 +271,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                    'url': sas_test_harness.getBaseUrl()})
 
     # Injecting the PAL Records of the PPA into SAS UUT.
-    self._sas_admin.InjectPalDatabaseRecord(config['palRecords'])
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
 
     # Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
