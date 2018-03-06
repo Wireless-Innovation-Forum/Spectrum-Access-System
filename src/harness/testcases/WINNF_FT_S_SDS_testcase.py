@@ -11,9 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
 import os
 import json
+
 import security_testcase
 from OpenSSL import SSL
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
@@ -32,8 +32,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy cipher security conditions.
     Checks that a DP registration with this configuration succeed.
     """
-    self.doTestCipher('AES128-GCM-SHA256', client_cert=DOMAIN_PROXY_CERT,
-                      client_key=DOMAIN_PROXY_KEY)
+    self.doCbsdTestCipher('AES128-GCM-SHA256', client_cert=DOMAIN_PROXY_CERT,
+                          client_key=DOMAIN_PROXY_KEY)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_2(self):
@@ -42,8 +42,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a DP registration with this configuration succeed.
     """
-    self.doTestCipher('AES256-GCM-SHA384', client_cert=DOMAIN_PROXY_CERT,
-                      client_key=DOMAIN_PROXY_KEY)
+    self.doCbsdTestCipher('AES256-GCM-SHA384', client_cert=DOMAIN_PROXY_CERT,
+                          client_key=DOMAIN_PROXY_KEY)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_3(self):
@@ -52,9 +52,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a DP registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
-                      client_cert=DOMAIN_PROXY_CERT,
-                      client_key=DOMAIN_PROXY_KEY)
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
+                          client_cert=DOMAIN_PROXY_CERT,
+                          client_key=DOMAIN_PROXY_KEY)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_4(self):
@@ -63,9 +63,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a DP registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
-                      client_cert=DOMAIN_PROXY_CERT,
-                      client_key=DOMAIN_PROXY_KEY)
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
+                          client_cert=DOMAIN_PROXY_CERT,
+                          client_key=DOMAIN_PROXY_KEY)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_5(self):
@@ -74,9 +74,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a DP registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
-                      client_cert=DOMAIN_PROXY_CERT,
-                      client_key=DOMAIN_PROXY_KEY)
+    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
+                          client_cert=DOMAIN_PROXY_CERT,
+                          client_key=DOMAIN_PROXY_KEY)
 
   def generate_SDS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_6"""
@@ -227,7 +227,6 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     self.assertTlsHandshakeFailure(DOMAIN_PROXY_CERT, DOMAIN_PROXY_KEY, ciphers='ECDHE-RSA-AES256-GCM-SHA384')
-
 
   def generate_SDS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SDS.15 """
