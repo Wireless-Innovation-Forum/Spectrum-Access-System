@@ -322,8 +322,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
-TEST = critical, ASN1:NULL
-
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -337,8 +335,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
-TEST = critical, ASN1:NULL
-
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -372,6 +368,15 @@ certificatePolicies=@cps,ROLE_SAS,FRN
 policyIdentifier = 2.16.840.1.114412.2.1
 CPS.1="https://www.digicert.com/CPS"
 
+
+[ sas_req_inapplicable_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_SAS,ZONE
 ####################################################################
 [ oper_req ]
 
@@ -405,16 +410,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_OPERATOR,ZONE
-
-
-[ wrong_oper_req_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS
 
 [ cps ]
 
@@ -488,7 +483,6 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
-TEST = critical, ASN1:NULL
 #FCCID
 #SERIAL
 
@@ -505,7 +499,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
-TEST = critical, ASN1:NULL
 #FCCID
 #SERIAL
 
@@ -517,8 +510,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD,ZONE
-TEST = critical, ASN1:NULL
-
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -531,7 +522,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_SAS
-TEST = critical, ASN1:NULL
 ####################################################################
  
 [ cbsd_oem_req ]
@@ -540,10 +530,8 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
-TEST = critical, ASN1:NULL
 #FCCID
 #SERIAL
-
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -557,7 +545,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_CBSD
-TEST = critical, ASN1:NULL
 #FCCID
 #SERIAL
 
