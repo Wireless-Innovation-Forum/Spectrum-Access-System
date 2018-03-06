@@ -272,7 +272,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Injecting the PAL Records of the PPA into SAS UUT.
     for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record[0])
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
     # Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
