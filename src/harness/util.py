@@ -24,8 +24,9 @@ import os
 import sys
 import time
 import random
-import sys
 import uuid
+import jwt
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -34,7 +35,6 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
 
 from shapely.geometry import shape, Point, LineString
-
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -336,7 +336,6 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
-
 
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
