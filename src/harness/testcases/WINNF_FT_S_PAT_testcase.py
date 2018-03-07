@@ -172,16 +172,19 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     num_tests = len(config)
     test_pass_threshold = 0.999 #percentage of passed test expected
-    num_passed_tests = 1
+    num_passed_tests = 0
     num_tests = len(config)
     max_fail_num = int ((1-test_pass_threshold) * num_tests)
-    num_failed_tests = 1
-    num_invalid_tests = 1
+    num_failed_tests = 0
+    num_invalid_tests = 0
+    test_num = 0
     for request in  config:
+        test_num += 1
         try:
            ref_response = computePropagationAntennaModel(request)
         except ValueError as e:
-           logging.debug(e)
+           logging.debug('Test # %d, Exception: %s', test_num, e)
+           logging.debug('Configuration: %s', request)
            num_invalid_tests += 1
            num_tests -= 1
            max_fail_num = int ((1-test_pass_threshold) * num_tests)
