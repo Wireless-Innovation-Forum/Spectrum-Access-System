@@ -156,6 +156,22 @@ class SasInterface(object):
     pass
 
   @abc.abstractmethod
+  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
+    """SAS-SAS Implementation Record Exchange interface
+
+    Requests a Pull Command to get the Sas Implementation Record
+
+    Args:
+      request: A string containing Sas Implementation Record Id
+      ssl_cert: Path to SSL cert file, if None, will use default cert file.
+      ssl_key: Path to SSL key file, if None, will use default key file.
+    Returns:
+      A dictionary of Sas Implementation Message object specified in 
+      WINNF-16-S-0096
+    """
+    pass
+
+  @abc.abstractmethod
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     """SAS-SAS ESC Sensor Record Exchange interface
 
@@ -472,7 +488,17 @@ class SasAdminInterface(object):
         "url": base URL of the peer SAS.
     """
     pass
-  
+
+  @abc.abstractmethod
+  def InjectDatabaseUrl(self, request):
+    """Inject the Database URL into SAS."""
+    pass
+
+class SasTestcaseInterface(object):
+  """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
+
+  __metaclass__ = abc.ABCMeta
+
   @abc.abstractmethod
   def QueryPropagationAndAntennaModel(self, request):
     """SAS admin interface to query propagation and antenna gains for CBSD and FSS  or Provided PPA Contour

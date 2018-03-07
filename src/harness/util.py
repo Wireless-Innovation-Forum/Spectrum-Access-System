@@ -22,7 +22,6 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
 import sys
-import time
 import random
 import uuid
 import jwt
@@ -35,6 +34,7 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
 from shapely.geometry import shape, Point, LineString
 from reference_models.geo import utils
+
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -128,6 +128,17 @@ def writeConfig(config_filename, config):
   with open(config_filename, 'w') as f:
     f.write(
         json.dumps(config, indent=2, sort_keys=False, separators=(',', ': ')))
+
+
+def writeDB(db_filename, data):
+  """Writes a fake databse file."""
+  dir_name = os.path.dirname(db_filename)
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
+
+  with open(db_filename, 'w') as f:
+    f.write(
+        json.dumps(data, indent=2, sort_keys=False, separators=(',', ': ')))
 
 
 def getRandomLatLongInPolygon(ppa):

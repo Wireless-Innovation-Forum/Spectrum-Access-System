@@ -259,6 +259,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectPalDatabaseRecord(self, request):
     pass
 
+  def InjectCpiUser(self, request):
+    pass
+
   def InjectFss(self, request):
     pass
 
@@ -310,6 +313,12 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerDpaDeactivation(self, request):
+    pass
+
+  def InjectDatabaseUrl(self, request):
+    pass
+
+  def InjectPeerSas(self, request):
     pass
 
 

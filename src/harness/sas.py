@@ -105,11 +105,49 @@ class SasImpl(sas_interface.SasInterface):
                            ssl_key or GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return RequestGet(url,
-                      self._tls_config.WithClientCertificate(
-                          ssl_cert if ssl_cert else
-                          GetDefaultSasSSLCertPath(), ssl_key
-                          if ssl_key else GetDefaultSasSSLKeyPath()))
+    return self._DownloadFile(
+        '%s' % url,
+        self._tls_config.WithClientCertificate(
+          ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
+          ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath()))
+    
+  def _GetDefaultCbsdSSLCertPath(self):
+    return os.path.join('certs', 'client.cert')
+
+  def _GetDefaultCbsdSSLKeyPath(self):
+    return os.path.join('certs', 'client.key')
+
+  def _GetDefaultSasSSLCertPath(self):
+    return os.path.join('certs', 'client.cert')
+
+  def _GetDefaultSasSSLKeyPath(self):
+    return os.path.join('certs', 'client.key')
+
+  def _DownloadFile(self, url, config):
+    response = StringIO.StringIO()
+    conn = pycurl.Curl()
+    conn.setopt(conn.URL, url)
+    conn.setopt(conn.WRITEFUNCTION, response.write)
+    header = [
+          'Host: %s' % urlparse.urlparse(url).hostname,
+          'content-type: application/json'
+    ]
+    conn.setopt(conn.VERBOSE, 3)
+    conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
+    conn.setopt(conn.SSLCERTTYPE, 'PEM')
+    conn.setopt(conn.SSLCERT, config.client_cert)
+    conn.setopt(conn.SSLKEY, config.client_key)
+    conn.setopt(conn.CAINFO, config.ca_cert)
+    conn.setopt(conn.HTTPHEADER, header)
+    conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
+    logging.debug('Request to URL ' + url)
+    conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
+    conn.perform()
+    assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
+    conn.close()
+    body = response.getvalue()
+    logging.debug('Response:\n' + body)
+    return json.loads(body)
 
   def UpdateSasRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
@@ -269,6 +307,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def _GetDefaultAdminSSLKeyPath(self):
     return os.path.join('certs', 'admin_client.key')
+
+  def InjectDatabaseUrl(self, request):
+    _RequestPost('https://%s/admin/injectdata/database_url' %
+                 self._base_url, request, self._tls_config)
 
   def InjectPeerSas(self, request):
     RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
