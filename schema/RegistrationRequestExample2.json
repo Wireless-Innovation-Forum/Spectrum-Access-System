@@ -4,7 +4,7 @@
   "callSign": "KQQQ",
   "userId": "John Doe",
   "airInterface": {
-    "radioTechnology": "E-UTRA",
+    "radioTechnology": "E_UTRA",
     "supportedSpec": "LTE-Rel10"
   },
   "cbsdManufacturer": "Equipment Maker B",

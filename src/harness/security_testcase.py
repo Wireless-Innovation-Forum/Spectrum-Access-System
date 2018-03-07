@@ -13,18 +13,19 @@
 #    limitations under the License.
 """Specialized implementation of SasTestCase for all SCS/SDS/SSS testcases."""
 
+import inspect
 import json
 import logging
 import os
 import re
-import socket
-import urlparse
-
-from OpenSSL import SSL, crypto
-
 import sas
 import sas_testcase
+import socket
+import urlparse
+import inspect
 
+from OpenSSL import SSL, crypto
+from util import getCertificateFingerprint
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -65,6 +66,13 @@ class SecurityTestCase(sas_testcase.SasTestCase):
   def SasReset(self):
     """Resets the SAS UUT to its initial state."""
     self._sas_admin.Reset()
+
+  def getCertFilename(self, cert_name):
+    """Returns the absolute path of the file corresponding to the given |cert_name|.
+    """
+    harness_dir = os.path.dirname(
+                  os.path.abspath(inspect.getfile(inspect.currentframe())))
+    return os.path.join(harness_dir, 'certs', cert_name)
 
   def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
     """Checks that the TLS handshake succeed with the given parameters.
@@ -140,15 +148,15 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     self.assertTrue(finished_check_idx > 0)
     self.assertTrue(finished_check_idx > cipher_check_idx)
 
-  def doTestCipher(self, cipher, client_cert=None, client_key=None):
-    """Does a cipher test as described in SCS/SDS/SSS tests 1 to 5 specification.
+  def doCbsdTestCipher(self, cipher, client_cert=None, client_key=None):
+    """Does a cipher test as described in SCS/SDS tests 1 to 5 specification.
 
     Args:
       cipher: the cipher openSSL string name to test.
-      client_cert: optional client certificate file in PEM format to use.
+      client_cert: path to optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
-      client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.
+      client_key: path to associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
     client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
     client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
@@ -164,3 +172,81 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
+  def doSasTestCipher(self, cipher, client_cert, client_key, client_url):
+    """Does a cipher test as described in SSS tests 1 to 5 specification.
+
+    Args:
+      cipher: the cipher openSSL string name to test.
+      client_cert: path to (peer) SAS client certificate file in PEM format to use.
+      client_key: path to associated key file in PEM format to use.
+      client_url: base URL of the (peer) SAS client.
+    """
+
+    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
+                                   client_cert, client_key)
+
+    # Does a regular SAS registration
+    self.SasReset()
+    certificate_hash = getCertificateFingerprint(client_cert)
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': client_url})
+    self._sas_admin.TriggerFullActivityDump()
+    with CiphersOverload(self._sas, [cipher], client_cert, client_key):
+      self._sas.GetFullActivityDump(client_cert, client_key)
+
+  def assertTlsHandshakeFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
+    """
+    Checks that the TLS handshake failure by varying the given parameters
+    Args:
+      client_cert: optional client certificate file in PEM format to use.
+        If 'None' the default CBSD certificate will be used.
+      client_key: associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' the default CBSD key file will be used.  
+      ciphers: optional cipher method
+      ssl_method: optional ssl_method
+    """
+    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
+    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
+
+    url = urlparse.urlparse('https://' + self._sas_admin._base_url)
+    client = socket.socket()
+    client.connect((url.hostname, url.port or 443))
+    logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
+    logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
+                  url.port or 443)
+    logging.debug('TLS handshake: privatekey_file=%s', client_key)
+    logging.debug('TLS handshake: certificate_file=%s', client_cert)
+    if ssl_method is not None:
+      ctx = SSL.Context(ssl_method)
+    else:
+      ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    if ciphers is not None:
+      ctx.set_cipher_list(ciphers)
+    else:
+      # cipher 'AES128-GCM-SHA256' will be added by default if cipher arg is passed as None
+      ctx.set_cipher_list(self._sas._tls_config.ciphers[0])
+
+    ctx.use_certificate_file(client_cert)
+    ctx.use_privatekey_file(client_key)
+    
+    client_ssl_informations = []
+    def _InfoCb(conn, where, ok):
+      client_ssl_informations.append(conn.get_state_string())
+      logging.debug('TLS handshake info: %d|%d %s', where, ok, conn.get_state_string())
+      return ok
+    ctx.set_info_callback(_InfoCb)
+
+    client_ssl = SSL.Connection(ctx, client)
+    client_ssl.set_connect_state()
+    client_ssl.set_tlsext_host_name(url.hostname)
+    
+    try:
+      client_ssl.do_handshake()
+      logging.debug('TLS handshake: succeed')
+      self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
+    except SSL.Error as e:
+      logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
+      self.assertEquals(client_ssl.get_peer_finished(), None)
+    finally:
+      client_ssl.close()

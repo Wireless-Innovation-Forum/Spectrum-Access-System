@@ -88,7 +88,7 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth=None, ant_beamwidth=None, ant_
     hor_dirs:       Ray directions in horizontal plane (degrees).
                     Either a scalar or an iterable.
     ant_azimut:     Antenna azimuth (degrees).
-    ant_beamwidth:  Antenna 3dB curoff beamwidth (degrees).
+    ant_beamwidth:  Antenna 3dB cutoff beamwidth (degrees).
                     If None, then antenna is isotropic (default).
     ant_gain:       Antenna gain (dBi).
 
@@ -99,7 +99,8 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth=None, ant_beamwidth=None, ant_
   is_scalar = np.isscalar(hor_dirs)
   hor_dirs = np.atleast_1d(hor_dirs)
 
-  if ant_beamwidth is None or ant_azimuth is None:
+  if (ant_beamwidth is None or ant_azimuth is None or
+      ant_beamwidth == 0 or ant_beamwidth == 360):
     gains = ant_gain * np.ones(hor_dirs.shape)
   else:
     bore_angle = hor_dirs - ant_azimuth

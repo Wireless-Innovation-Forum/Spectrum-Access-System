@@ -12,9 +12,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import json
+import os
 import security_testcase
-from util import winnforum_testcase
-
+from OpenSSL import SSL
+from util import winnforum_testcase,configurable_testcase, writeConfig,loadConfig
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -26,7 +28,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy cipher security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('AES128-GCM-SHA256')
+    self.doCbsdTestCipher('AES128-GCM-SHA256')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_2(self):
@@ -35,7 +37,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('AES256-GCM-SHA384')
+    self.doCbsdTestCipher('AES256-GCM-SHA384')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_3(self):
@@ -45,7 +47,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that a CBSD registration with this configuration succeed.
     Note that the test require a SAS UUT
     """
-    self.doTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_4(self):
@@ -54,7 +56,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_5(self):
@@ -63,4 +65,190 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+
+  def generate_SCS_6_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_6"""
+    # Create the actual config for client cert/key path
+
+    config = {
+      'clientCert': self.getCertFilename("unrecognized_device.cert"),
+      'clientKey': self.getCertFilename("unrecognized_device.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_6_default_config)
+  def test_WINNF_FT_S_SCS_6(self, config_filename):
+    """Unrecognized root of trust certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert with unknown_ca.
+    """
+    config = loadConfig(config_filename)
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+
+  def generate_SCS_7_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_7"""
+    # Create the actual config for client cert/key path
+
+    config = {
+      'clientCert': self.getCertFilename("corrupted_client.cert"),
+      'clientKey': self.getCertFilename("corrupted_client.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_7_default_config)
+  def test_WINNF_FT_S_SCS_7(self,config_filename):
+    """Corrupted certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    config = loadConfig(config_filename)
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+
+  def generate_SCS_8_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_8"""
+    # Create the actual config for client cert/key path
+
+    config = {
+      'clientCert': self.getCertFilename("self_signed_client.cert"),
+      'clientKey': self.getCertFilename("client.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_8_default_config)
+  def test_WINNF_FT_S_SCS_8(self,config_filename):
+    """Self-signed certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    config = loadConfig(config_filename)
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+
+  def generate_SCS_9_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_9"""
+    # Create the actual config for client cert/key path
+
+    config = {
+      'clientCert': self.getCertFilename("non_cbrs_signed_device.cert"),
+      'clientKey': self.getCertFilename("non_cbrs_signed_device.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_9_default_config)
+  def test_WINNF_FT_S_SCS_9(self,config_filename):
+    """Non-CBRS trust root signed certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    config = loadConfig(config_filename)
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+
+  def generate_SCS_10_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_10. """
+    # Create the actual config for client cert/key path
+
+    config = {
+      'clientCert': self.getCertFilename("wrong_type_client.cert"),
+      'clientKey': self.getCertFilename("server.key")
+
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_10_default_config)
+  def test_WINNF_FT_S_SCS_10(self,config_filename):
+    """Certificate of wrong type presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    config = loadConfig(config_filename)
+    try:
+      self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                     client_key=config['clientKey'])
+    except AssertionError as e:
+      self.SasReset()
+      # Load Devices
+      device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      # Register the devices
+      devices = [device_a]
+      request = {'registrationRequest': devices}
+      response = self._sas.Registration(request, ssl_cert=config['clientCert'],
+                                        ssl_key=config['clientKey'])['registrationResponse']
+      # Check Registration Response
+      self.assertEqual(response[0]['response']['responseCode'], 104)
+
+  def generate_SCS_12_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS.12"""
+    # Create the actual config for client cert/key path
+    
+    config = { 
+        'clientCert': self.getCertFilename("client_expired.cert"),
+        'clientKey': self.getCertFilename("client_expired.key")
+    }
+    writeConfig(filename, config)
+  
+  @configurable_testcase(generate_SCS_12_default_config)
+  def test_WINNF_FT_S_SCS_12(self,config_filename):
+    """Expired certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    config = loadConfig(config_filename)
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_13(self):
+    """ Disallowed TLS method attempted during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    self.assertTlsHandshakeFailure(ssl_method=SSL.TLSv1_1_METHOD)
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_14(self):
+    """Invalid ciphersuite presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    self.assertTlsHandshakeFailure(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+
+  def generate_SCS_15_default_config(self, filename):
+    """ Generates the WinnForum configuration for SCS.15 """
+    # Create the actual config for client cert/key path
+    
+    config = {
+        'clientCert': self.getCertFilename("client_inapplicable.cert"),
+        'clientKey': self.getCertFilename("client.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_15_default_config)
+  def test_WINNF_FT_S_SCS_15(self,config_filename):
+    """Certificate with inapplicable fields presented during registration. 
+    
+    Checks that SAS UUT response with tls connection succedded and response should be 104.    
+    """
+    config = loadConfig(config_filename)
+    
+    # Load the keys/certs and check that TLS handshake is valid
+    device_a_cert = config['clientCert']
+    device_a_key = config['clientKey']
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_a_cert, device_a_key)
+   
+    # Load device and inject fccId and userId
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    self.SasReset() 
+    self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
+    self._sas_admin.InjectUserId({'userId': device_a['userId']})
+    
+    # Send registration Request with certs(inapplicable fields) to SAS UUT 
+    request = {'registrationRequest': [device_a]}
+    response = self._sas.Registration(request,ssl_cert=device_a_cert,ssl_key=device_a_key)['registrationResponse'][0]
+
+    # Check registration response
+    self.assertEqual(response['response']['responseCode'],104)

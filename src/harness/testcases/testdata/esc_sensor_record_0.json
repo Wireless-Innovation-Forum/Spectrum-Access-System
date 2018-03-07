@@ -5,8 +5,1449 @@
     "longitude": -98.4842,
     "height": 9.3,
     "heightType": "AGL",
-    "antennaGain": 16,
-    "antennaBeamwidth": 30,
-    "antennaAzimuth": 271
+    "azimuthRadiationPattern": [
+      {
+       "angle": 0,
+       "gain": 30
+      },
+      {
+       "angle": 1,
+       "gain": 30
+      },
+      {
+       "angle": 2,
+       "gain": 30
+      },
+      {
+       "angle": 3,
+       "gain": 30
+      },
+      {
+       "angle": 4,
+       "gain": 30
+      },
+      {
+       "angle": 5,
+       "gain": 30
+      },
+      {
+       "angle": 6,
+       "gain": 30
+      },
+      {
+       "angle": 7,
+       "gain": 30
+      },
+      {
+       "angle": 8,
+       "gain": 30
+      },
+      {
+       "angle": 9,
+       "gain": 30
+      },
+      {
+       "angle": 10,
+       "gain": 30
+      },
+      {
+       "angle": 11,
+       "gain": 30
+      },
+      {
+       "angle": 12,
+       "gain": 30
+      },
+      {
+       "angle": 13,
+       "gain": 30
+      },
+      {
+       "angle": 14,
+       "gain": 30
+      },
+      {
+       "angle": 15,
+       "gain": 30
+      },
+      {
+       "angle": 16,
+       "gain": 30
+      },
+      {
+       "angle": 17,
+       "gain": 30
+      },
+      {
+       "angle": 18,
+       "gain": 30
+      },
+      {
+       "angle": 19,
+       "gain": 30
+      },
+      {
+       "angle": 20,
+       "gain": 30
+      },
+      {
+       "angle": 21,
+       "gain": 30
+      },
+      {
+       "angle": 22,
+       "gain": 30
+      },
+      {
+       "angle": 23,
+       "gain": 30
+      },
+      {
+       "angle": 24,
+       "gain": 30
+      },
+      {
+       "angle": 25,
+       "gain": 30
+      },
+      {
+       "angle": 26,
+       "gain": 30
+      },
+      {
+       "angle": 27,
+       "gain": 30
+      },
+      {
+       "angle": 28,
+       "gain": 30
+      },
+      {
+       "angle": 29,
+       "gain": 30
+      },
+      {
+       "angle": 30,
+       "gain": 30
+      },
+      {
+       "angle": 31,
+       "gain": 30
+      },
+      {
+       "angle": 32,
+       "gain": 30
+      },
+      {
+       "angle": 33,
+       "gain": 30
+      },
+      {
+       "angle": 34,
+       "gain": 30
+      },
+      {
+       "angle": 35,
+       "gain": 30
+      },
+      {
+       "angle": 36,
+       "gain": 30
+      },
+      {
+       "angle": 37,
+       "gain": 30
+      },
+      {
+       "angle": 38,
+       "gain": 30
+      },
+      {
+       "angle": 39,
+       "gain": 30
+      },
+      {
+       "angle": 40,
+       "gain": 30
+      },
+      {
+       "angle": 41,
+       "gain": 30
+      },
+      {
+       "angle": 42,
+       "gain": 30
+      },
+      {
+       "angle": 43,
+       "gain": 30
+      },
+      {
+       "angle": 44,
+       "gain": 30
+      },
+      {
+       "angle": 45,
+       "gain": 30
+      },
+      {
+       "angle": 46,
+       "gain": 30
+      },
+      {
+       "angle": 47,
+       "gain": 30
+      },
+      {
+       "angle": 48,
+       "gain": 30
+      },
+      {
+       "angle": 49,
+       "gain": 30
+      },
+      {
+       "angle": 50,
+       "gain": 30
+      },
+      {
+       "angle": 51,
+       "gain": 30
+      },
+      {
+       "angle": 52,
+       "gain": 30
+      },
+      {
+       "angle": 53,
+       "gain": 30
+      },
+      {
+       "angle": 54,
+       "gain": 30
+      },
+      {
+       "angle": 55,
+       "gain": 30
+      },
+      {
+       "angle": 56,
+       "gain": 30
+      },
+      {
+       "angle": 57,
+       "gain": 30
+      },
+      {
+       "angle": 58,
+       "gain": 30
+      },
+      {
+       "angle": 59,
+       "gain": 30
+      },
+      {
+       "angle": 60,
+       "gain": 30
+      },
+      {
+       "angle": 61,
+       "gain": 30
+      },
+      {
+       "angle": 62,
+       "gain": 30
+      },
+      {
+       "angle": 63,
+       "gain": 30
+      },
+      {
+       "angle": 64,
+       "gain": 30
+      },
+      {
+       "angle": 65,
+       "gain": 30
+      },
+      {
+       "angle": 66,
+       "gain": 30
+      },
+      {
+       "angle": 67,
+       "gain": 30
+      },
+      {
+       "angle": 68,
+       "gain": 30
+      },
+      {
+       "angle": 69,
+       "gain": 30
+      },
+      {
+       "angle": 70,
+       "gain": 30
+      },
+      {
+       "angle": 71,
+       "gain": 30
+      },
+      {
+       "angle": 72,
+       "gain": 30
+      },
+      {
+       "angle": 73,
+       "gain": 30
+      },
+      {
+       "angle": 74,
+       "gain": 30
+      },
+      {
+       "angle": 75,
+       "gain": 30
+      },
+      {
+       "angle": 76,
+       "gain": 30
+      },
+      {
+       "angle": 77,
+       "gain": 30
+      },
+      {
+       "angle": 78,
+       "gain": 30
+      },
+      {
+       "angle": 79,
+       "gain": 30
+      },
+      {
+       "angle": 80,
+       "gain": 30
+      },
+      {
+       "angle": 81,
+       "gain": 30
+      },
+      {
+       "angle": 82,
+       "gain": 30
+      },
+      {
+       "angle": 83,
+       "gain": 30
+      },
+      {
+       "angle": 84,
+       "gain": 30
+      },
+      {
+       "angle": 85,
+       "gain": 30
+      },
+      {
+       "angle": 86,
+       "gain": 30
+      },
+      {
+       "angle": 87,
+       "gain": 30
+      },
+      {
+       "angle": 88,
+       "gain": 30
+      },
+      {
+       "angle": 89,
+       "gain": 30
+      },
+      {
+       "angle": 90,
+       "gain": 30
+      },
+      {
+       "angle": 91,
+       "gain": 30
+      },
+      {
+       "angle": 92,
+       "gain": 30
+      },
+      {
+       "angle": 93,
+       "gain": 30
+      },
+      {
+       "angle": 94,
+       "gain": 30
+      },
+      {
+       "angle": 95,
+       "gain": 30
+      },
+      {
+       "angle": 96,
+       "gain": 30
+      },
+      {
+       "angle": 97,
+       "gain": 30
+      },
+      {
+       "angle": 98,
+       "gain": 30
+      },
+      {
+       "angle": 99,
+       "gain": 30
+      },
+      {
+       "angle": 100,
+       "gain": 30
+      },
+      {
+       "angle": 101,
+       "gain": 30
+      },
+      {
+       "angle": 102,
+       "gain": 30
+      },
+      {
+       "angle": 103,
+       "gain": 30
+      },
+      {
+       "angle": 104,
+       "gain": 30
+      },
+      {
+       "angle": 105,
+       "gain": 30
+      },
+      {
+       "angle": 106,
+       "gain": 30
+      },
+      {
+       "angle": 107,
+       "gain": 30
+      },
+      {
+       "angle": 108,
+       "gain": 30
+      },
+      {
+       "angle": 109,
+       "gain": 30
+      },
+      {
+       "angle": 110,
+       "gain": 30
+      },
+      {
+       "angle": 111,
+       "gain": 30
+      },
+      {
+       "angle": 112,
+       "gain": 30
+      },
+      {
+       "angle": 113,
+       "gain": 30
+      },
+      {
+       "angle": 114,
+       "gain": 30
+      },
+      {
+       "angle": 115,
+       "gain": 30
+      },
+      {
+       "angle": 116,
+       "gain": 30
+      },
+      {
+       "angle": 117,
+       "gain": 30
+      },
+      {
+       "angle": 118,
+       "gain": 30
+      },
+      {
+       "angle": 119,
+       "gain": 30
+      },
+      {
+       "angle": 120,
+       "gain": 30
+      },
+      {
+       "angle": 121,
+       "gain": 30
+      },
+      {
+       "angle": 122,
+       "gain": 30
+      },
+      {
+       "angle": 123,
+       "gain": 30
+      },
+      {
+       "angle": 124,
+       "gain": 30
+      },
+      {
+       "angle": 125,
+       "gain": 30
+      },
+      {
+       "angle": 126,
+       "gain": 30
+      },
+      {
+       "angle": 127,
+       "gain": 30
+      },
+      {
+       "angle": 128,
+       "gain": 30
+      },
+      {
+       "angle": 129,
+       "gain": 30
+      },
+      {
+       "angle": 130,
+       "gain": 30
+      },
+      {
+       "angle": 131,
+       "gain": 30
+      },
+      {
+       "angle": 132,
+       "gain": 30
+      },
+      {
+       "angle": 133,
+       "gain": 30
+      },
+      {
+       "angle": 134,
+       "gain": 30
+      },
+      {
+       "angle": 135,
+       "gain": 30
+      },
+      {
+       "angle": 136,
+       "gain": 30
+      },
+      {
+       "angle": 137,
+       "gain": 30
+      },
+      {
+       "angle": 138,
+       "gain": 30
+      },
+      {
+       "angle": 139,
+       "gain": 30
+      },
+      {
+       "angle": 140,
+       "gain": 30
+      },
+      {
+       "angle": 141,
+       "gain": 30
+      },
+      {
+       "angle": 142,
+       "gain": 30
+      },
+      {
+       "angle": 143,
+       "gain": 30
+      },
+      {
+       "angle": 144,
+       "gain": 30
+      },
+      {
+       "angle": 145,
+       "gain": 30
+      },
+      {
+       "angle": 146,
+       "gain": 30
+      },
+      {
+       "angle": 147,
+       "gain": 30
+      },
+      {
+       "angle": 148,
+       "gain": 30
+      },
+      {
+       "angle": 149,
+       "gain": 30
+      },
+      {
+       "angle": 150,
+       "gain": 30
+      },
+      {
+       "angle": 151,
+       "gain": 30
+      },
+      {
+       "angle": 152,
+       "gain": 30
+      },
+      {
+       "angle": 153,
+       "gain": 30
+      },
+      {
+       "angle": 154,
+       "gain": 30
+      },
+      {
+       "angle": 155,
+       "gain": 30
+      },
+      {
+       "angle": 156,
+       "gain": 30
+      },
+      {
+       "angle": 157,
+       "gain": 30
+      },
+      {
+       "angle": 158,
+       "gain": 30
+      },
+      {
+       "angle": 159,
+       "gain": 30
+      },
+      {
+       "angle": 160,
+       "gain": 30
+      },
+      {
+       "angle": 161,
+       "gain": 30
+      },
+      {
+       "angle": 162,
+       "gain": 30
+      },
+      {
+       "angle": 163,
+       "gain": 30
+      },
+      {
+       "angle": 164,
+       "gain": 30
+      },
+      {
+       "angle": 165,
+       "gain": 30
+      },
+      {
+       "angle": 166,
+       "gain": 30
+      },
+      {
+       "angle": 167,
+       "gain": 30
+      },
+      {
+       "angle": 168,
+       "gain": 30
+      },
+      {
+       "angle": 169,
+       "gain": 30
+      },
+      {
+       "angle": 170,
+       "gain": 30
+      },
+      {
+       "angle": 171,
+       "gain": 30
+      },
+      {
+       "angle": 172,
+       "gain": 30
+      },
+      {
+       "angle": 173,
+       "gain": 30
+      },
+      {
+       "angle": 174,
+       "gain": 30
+      },
+      {
+       "angle": 175,
+       "gain": 30
+      },
+      {
+       "angle": 176,
+       "gain": 30
+      },
+      {
+       "angle": 177,
+       "gain": 30
+      },
+      {
+       "angle": 178,
+       "gain": 30
+      },
+      {
+       "angle": 179,
+       "gain": 30
+      },
+      {
+       "angle": 180,
+       "gain": 30
+      },
+      {
+       "angle": 181,
+       "gain": 30
+      },
+      {
+       "angle": 182,
+       "gain": 30
+      },
+      {
+       "angle": 183,
+       "gain": 30
+      },
+      {
+       "angle": 184,
+       "gain": 30
+      },
+      {
+       "angle": 185,
+       "gain": 30
+      },
+      {
+       "angle": 186,
+       "gain": 30
+      },
+      {
+       "angle": 187,
+       "gain": 30
+      },
+      {
+       "angle": 188,
+       "gain": 30
+      },
+      {
+       "angle": 189,
+       "gain": 30
+      },
+      {
+       "angle": 190,
+       "gain": 30
+      },
+      {
+       "angle": 191,
+       "gain": 30
+      },
+      {
+       "angle": 192,
+       "gain": 30
+      },
+      {
+       "angle": 193,
+       "gain": 30
+      },
+      {
+       "angle": 194,
+       "gain": 30
+      },
+      {
+       "angle": 195,
+       "gain": 30
+      },
+      {
+       "angle": 196,
+       "gain": 30
+      },
+      {
+       "angle": 197,
+       "gain": 30
+      },
+      {
+       "angle": 198,
+       "gain": 30
+      },
+      {
+       "angle": 199,
+       "gain": 30
+      },
+      {
+       "angle": 200,
+       "gain": 30
+      },
+      {
+       "angle": 201,
+       "gain": 30
+      },
+      {
+       "angle": 202,
+       "gain": 30
+      },
+      {
+       "angle": 203,
+       "gain": 30
+      },
+      {
+       "angle": 204,
+       "gain": 30
+      },
+      {
+       "angle": 205,
+       "gain": 30
+      },
+      {
+       "angle": 206,
+       "gain": 30
+      },
+      {
+       "angle": 207,
+       "gain": 30
+      },
+      {
+       "angle": 208,
+       "gain": 30
+      },
+      {
+       "angle": 209,
+       "gain": 30
+      },
+      {
+       "angle": 210,
+       "gain": 30
+      },
+      {
+       "angle": 211,
+       "gain": 30
+      },
+      {
+       "angle": 212,
+       "gain": 30
+      },
+      {
+       "angle": 213,
+       "gain": 30
+      },
+      {
+       "angle": 214,
+       "gain": 30
+      },
+      {
+       "angle": 215,
+       "gain": 30
+      },
+      {
+       "angle": 216,
+       "gain": 30
+      },
+      {
+       "angle": 217,
+       "gain": 30
+      },
+      {
+       "angle": 218,
+       "gain": 30
+      },
+      {
+       "angle": 219,
+       "gain": 30
+      },
+      {
+       "angle": 220,
+       "gain": 30
+      },
+      {
+       "angle": 221,
+       "gain": 30
+      },
+      {
+       "angle": 222,
+       "gain": 30
+      },
+      {
+       "angle": 223,
+       "gain": 30
+      },
+      {
+       "angle": 224,
+       "gain": 30
+      },
+      {
+       "angle": 225,
+       "gain": 30
+      },
+      {
+       "angle": 226,
+       "gain": 30
+      },
+      {
+       "angle": 227,
+       "gain": 30
+      },
+      {
+       "angle": 228,
+       "gain": 30
+      },
+      {
+       "angle": 229,
+       "gain": 30
+      },
+      {
+       "angle": 230,
+       "gain": 30
+      },
+      {
+       "angle": 231,
+       "gain": 30
+      },
+      {
+       "angle": 232,
+       "gain": 30
+      },
+      {
+       "angle": 233,
+       "gain": 30
+      },
+      {
+       "angle": 234,
+       "gain": 30
+      },
+      {
+       "angle": 235,
+       "gain": 30
+      },
+      {
+       "angle": 236,
+       "gain": 30
+      },
+      {
+       "angle": 237,
+       "gain": 30
+      },
+      {
+       "angle": 238,
+       "gain": 30
+      },
+      {
+       "angle": 239,
+       "gain": 30
+      },
+      {
+       "angle": 240,
+       "gain": 30
+      },
+      {
+       "angle": 241,
+       "gain": 30
+      },
+      {
+       "angle": 242,
+       "gain": 30
+      },
+      {
+       "angle": 243,
+       "gain": 30
+      },
+      {
+       "angle": 244,
+       "gain": 30
+      },
+      {
+       "angle": 245,
+       "gain": 30
+      },
+      {
+       "angle": 246,
+       "gain": 30
+      },
+      {
+       "angle": 247,
+       "gain": 30
+      },
+      {
+       "angle": 248,
+       "gain": 30
+      },
+      {
+       "angle": 249,
+       "gain": 30
+      },
+      {
+       "angle": 250,
+       "gain": 30
+      },
+      {
+       "angle": 251,
+       "gain": 30
+      },
+      {
+       "angle": 252,
+       "gain": 30
+      },
+      {
+       "angle": 253,
+       "gain": 30
+      },
+      {
+       "angle": 254,
+       "gain": 30
+      },
+      {
+       "angle": 255,
+       "gain": 30
+      },
+      {
+       "angle": 256,
+       "gain": 30
+      },
+      {
+       "angle": 257,
+       "gain": 30
+      },
+      {
+       "angle": 258,
+       "gain": 30
+      },
+      {
+       "angle": 259,
+       "gain": 30
+      },
+      {
+       "angle": 260,
+       "gain": 30
+      },
+      {
+       "angle": 261,
+       "gain": 30
+      },
+      {
+       "angle": 262,
+       "gain": 30
+      },
+      {
+       "angle": 263,
+       "gain": 30
+      },
+      {
+       "angle": 264,
+       "gain": 30
+      },
+      {
+       "angle": 265,
+       "gain": 30
+      },
+      {
+       "angle": 266,
+       "gain": 30
+      },
+      {
+       "angle": 267,
+       "gain": 30
+      },
+      {
+       "angle": 268,
+       "gain": 30
+      },
+      {
+       "angle": 269,
+       "gain": 30
+      },
+      {
+       "angle": 270,
+       "gain": 30
+      },
+      {
+       "angle": 271,
+       "gain": 30
+      },
+      {
+       "angle": 272,
+       "gain": 30
+      },
+      {
+       "angle": 273,
+       "gain": 30
+      },
+      {
+       "angle": 274,
+       "gain": 30
+      },
+      {
+       "angle": 275,
+       "gain": 30
+      },
+      {
+       "angle": 276,
+       "gain": 30
+      },
+      {
+       "angle": 277,
+       "gain": 30
+      },
+      {
+       "angle": 278,
+       "gain": 30
+      },
+      {
+       "angle": 279,
+       "gain": 30
+      },
+      {
+       "angle": 280,
+       "gain": 30
+      },
+      {
+       "angle": 281,
+       "gain": 30
+      },
+      {
+       "angle": 282,
+       "gain": 30
+      },
+      {
+       "angle": 283,
+       "gain": 30
+      },
+      {
+       "angle": 284,
+       "gain": 30
+      },
+      {
+       "angle": 285,
+       "gain": 30
+      },
+      {
+       "angle": 286,
+       "gain": 30
+      },
+      {
+       "angle": 287,
+       "gain": 30
+      },
+      {
+       "angle": 288,
+       "gain": 30
+      },
+      {
+       "angle": 289,
+       "gain": 30
+      },
+      {
+       "angle": 290,
+       "gain": 30
+      },
+      {
+       "angle": 291,
+       "gain": 30
+      },
+      {
+       "angle": 292,
+       "gain": 30
+      },
+      {
+       "angle": 293,
+       "gain": 30
+      },
+      {
+       "angle": 294,
+       "gain": 30
+      },
+      {
+       "angle": 295,
+       "gain": 30
+      },
+      {
+       "angle": 296,
+       "gain": 30
+      },
+      {
+       "angle": 297,
+       "gain": 30
+      },
+      {
+       "angle": 298,
+       "gain": 30
+      },
+      {
+       "angle": 299,
+       "gain": 30
+      },
+      {
+       "angle": 300,
+       "gain": 30
+      },
+      {
+       "angle": 301,
+       "gain": 30
+      },
+      {
+       "angle": 302,
+       "gain": 30
+      },
+      {
+       "angle": 303,
+       "gain": 30
+      },
+      {
+       "angle": 304,
+       "gain": 30
+      },
+      {
+       "angle": 305,
+       "gain": 30
+      },
+      {
+       "angle": 306,
+       "gain": 30
+      },
+      {
+       "angle": 307,
+       "gain": 30
+      },
+      {
+       "angle": 308,
+       "gain": 30
+      },
+      {
+       "angle": 309,
+       "gain": 30
+      },
+      {
+       "angle": 310,
+       "gain": 30
+      },
+      {
+       "angle": 311,
+       "gain": 30
+      },
+      {
+       "angle": 312,
+       "gain": 30
+      },
+      {
+       "angle": 313,
+       "gain": 30
+      },
+      {
+       "angle": 314,
+       "gain": 30
+      },
+      {
+       "angle": 315,
+       "gain": 30
+      },
+      {
+       "angle": 316,
+       "gain": 30
+      },
+      {
+       "angle": 317,
+       "gain": 30
+      },
+      {
+       "angle": 318,
+       "gain": 30
+      },
+      {
+       "angle": 319,
+       "gain": 30
+      },
+      {
+       "angle": 320,
+       "gain": 30
+      },
+      {
+       "angle": 321,
+       "gain": 30
+      },
+      {
+       "angle": 322,
+       "gain": 30
+      },
+      {
+       "angle": 323,
+       "gain": 30
+      },
+      {
+       "angle": 324,
+       "gain": 30
+      },
+      {
+       "angle": 325,
+       "gain": 30
+      },
+      {
+       "angle": 326,
+       "gain": 30
+      },
+      {
+       "angle": 327,
+       "gain": 30
+      },
+      {
+       "angle": 328,
+       "gain": 30
+      },
+      {
+       "angle": 329,
+       "gain": 30
+      },
+      {
+       "angle": 330,
+       "gain": 30
+      },
+      {
+       "angle": 331,
+       "gain": 30
+      },
+      {
+       "angle": 332,
+       "gain": 30
+      },
+      {
+       "angle": 333,
+       "gain": 30
+      },
+      {
+       "angle": 334,
+       "gain": 30
+      },
+      {
+       "angle": 335,
+       "gain": 30
+      },
+      {
+       "angle": 336,
+       "gain": 30
+      },
+      {
+       "angle": 337,
+       "gain": 30
+      },
+      {
+       "angle": 338,
+       "gain": 30
+      },
+      {
+       "angle": 339,
+       "gain": 30
+      },
+      {
+       "angle": 340,
+       "gain": 30
+      },
+      {
+       "angle": 341,
+       "gain": 30
+      },
+      {
+       "angle": 342,
+       "gain": 30
+      },
+      {
+       "angle": 343,
+       "gain": 30
+      },
+      {
+       "angle": 344,
+       "gain": 30
+      },
+      {
+       "angle": 345,
+       "gain": 30
+      },
+      {
+       "angle": 346,
+       "gain": 30
+      },
+      {
+       "angle": 347,
+       "gain": 30
+      },
+      {
+       "angle": 348,
+       "gain": 30
+      },
+      {
+       "angle": 349,
+       "gain": 30
+      },
+      {
+       "angle": 350,
+       "gain": 30
+      },
+      {
+       "angle": 351,
+       "gain": 30
+      },
+      {
+       "angle": 352,
+       "gain": 30
+      },
+      {
+       "angle": 353,
+       "gain": 30
+      },
+      {
+       "angle": 354,
+       "gain": 30
+      },
+      {
+       "angle": 355,
+       "gain": 30
+      },
+      {
+       "angle": 356,
+       "gain": 30
+      },
+      {
+       "angle": 357,
+       "gain": 30
+      },
+      {
+       "angle": 358,
+       "gain": 30
+      },
+      {
+       "angle": 359,
+       "gain": 30
+      }
+    ]
   }
 }
+
+
