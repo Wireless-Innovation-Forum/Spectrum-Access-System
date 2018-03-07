@@ -16,9 +16,8 @@ import json
 import logging
 import os
 import security_testcase
-from fake_crl_server import FakeCrlServerTestHarness
 from OpenSSL import SSL
-from util import winnforum_testcase,configurable_testcase, writeConfig,loadConfig,\
+from util import winnforum_testcase,configurable_testcase, writeConfig, loadConfig,\
         countdown
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
@@ -184,56 +183,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       # Check Registration Response
       self.assertEqual(response[0]['response']['responseCode'], 104)
 
-
-  def generate_SCS_11_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_11. """
-    # Create the configuration for blacklisted client cert/key,wait timer & fake CRL Server information
-
-    config = {
-      'clientCert': self.getCertFilename("blacklisted_client.cert"),
-      'clientKey' : self.getCertFilename("blacklisted_client.key"),
-      'crlServer' : {
-                    'hostName':'localhost',
-                    'port':'9006',
-                    },
-      'crlUrl' : "ca.crl",
-      'crlFile': self.getCertFilename("ca_crl.crl"),
-      'wait_timer':60
-      }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_SCS_11_default_config)
-  def test_WINNF_FT_S_SCS_11(self,config_filename):
-    """Blacklisted certificate presented during registration..
-       Checks that SAS UUT response with fatal alert message.
-    """
-    # Read the configuration
-    config = loadConfig(config_filename)
-
-    # Create the Fake CRL Server
-    self.fake_crl_server = FakeCrlServerTestHarness(
-                           config['crlServer']['hostName'],
-                           config['crlServer']['port'],
-                           config['crlUrl'],
-                           config['crlFile'])
-
-    # Start the Fake CRL Server
-    self.fake_crl_server.start()
-
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the fake CRL server " % config['wait_timer'])
-
-    # Wait for the timer
-    countdown(config['wait_timer'])
-
-    # Tls handshake fails
-    self.assertTlsHandshakeFailure(config['clientCert'], config['clientKey'])
-    logging.info("TLS handshake failed as the client certificate has blacklisted")
-
-    # Stop the Fake CRL Server
-    self.fake_crl_server.stopServer()
-
-
   def generate_SCS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SCS.12"""
     # Create the actual config for client cert/key path
@@ -306,62 +255,14 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
 
-  def generate_SCS_16_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_16. """
-    # Create the configuration for client cert/key,wait timer & fake CRL Server information
-
-    config = {
-      'clientCert': self.getCertFilename("client.cert"),
-      'clientKey' : self.getCertFilename("client.key"),
-      'crlServer' : {
-                    'hostName':'localhost',
-                    'port':'9006',
-                    },
-      'crlUrl' : "ca.crl",
-      'crlFile': self.getCertFilename("ca_crl.crl"),
-      'wait_timer':60
-      }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_SCS_16_default_config)
-  def test_WINNF_FT_S_SCS_16(self,config_filename):
-    """Certificate signed by a revoked CA presented during registration.
-       Checks that SAS UUT response with fatal alert message.
-    """
-    # Read the configuration
-    config = loadConfig(config_filename)
-
-    # Create the Fake CRL Server
-    self.fake_crl_server = FakeCrlServerTestHarness(
-                           config['crlServer']['hostName'],
-                           config['crlServer']['port'],
-                           config['crlUrl'],
-                           config['crlFile'])
-
-    # Start the Fake CRL Server
-    self.fake_crl_server.start()
-
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the fake CRL server " % config['wait_timer'])
-
-    # Wait for the timer
-    countdown(config['wait_timer'])
-
-    # Tls handshake fails since CA is revoked
-    self.assertTlsHandshakeFailure(config['clientCert'], config['clientKey'])
-    logging.info("TLS handshake failed as the CA certificate has been revoked")
-
-    # Stop the Fake CRL Server
-    self.fake_crl_server.stopServer()
-
   def generate_SCS_17_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_17. """
     # Create the configuration for short lived invalid client cert/key,wait timer
 
     config = {
       'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey' : self.getCertFilename("short_lived_client.key"),
-      'wait_timer': 300
+      'clientKey': self.getCertFilename("short_lived_client.key"),
+      'waitTimer': 300
       }
     writeConfig(filename, config)
 
@@ -384,15 +285,19 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
                                            config['clientCert'],
-                                           config['clientKey']):self.assertRegistered([device_a])
+                                           config['clientKey']):
+      self.assertRegistered([device_a])
 
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['wait_timer'])
+    logging.info("CBSD device is in registered state")
+    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
 
     # Wait for the timer
-    countdown(config['wait_timer'])
+    countdown(config['waitTimer'])
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
     # Tls handshake fails
-    self.assertTlsHandshakeFailure(config['clientCert'], config['clientKey'])
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   def generate_SCS_18_default_config(self, filename):
@@ -401,8 +306,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     config = {
       'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey' : self.getCertFilename("short_lived_client.key"),
-      'wait_timer': 300
+      'clientKey': self.getCertFilename("short_lived_client.key"),
+      'waitTimer': 300
       }
     writeConfig(filename, config)
 
@@ -428,18 +333,20 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                        config['clientCert'],
-                        config['clientKey']):cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
+                                           config['clientCert'],
+                                           config['clientKey']):
+      cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
 
-    logging.info("device_a is in Granted State")
-
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['wait_timer'])
+    logging.info("CBSD is in Granted State")
+    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
 
     # Wait for the timer
-    countdown(config['wait_timer'])
+    countdown(config['waitTimer'])
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
     # Tls handshake fails
-    self.assertTlsHandshakeFailure(config['clientCert'], config['clientKey'])
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   def generate_SCS_19_default_config(self, filename):
@@ -448,8 +355,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     config = {
       'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey' : self.getCertFilename("short_lived_client.key"),
-      'wait_timer': 300
+      'clientKey': self.getCertFilename("short_lived_client.key"),
+      'waitTimer': 300
       }
     writeConfig(filename, config)
 
@@ -475,21 +382,24 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                        config['clientCert'],
-                        config['clientKey']):cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
+                                           config['clientCert'],
+                                           config['clientKey']):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+
     operation_states = [('GRANTED')]
-    transfer_expiry_timers = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
 
-    logging.info("device_a is in HeartBeat Successful State")
+    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
+                                           config['clientCert'],
+                                           config['clientKey']):
+      transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
 
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['wait_timer'])
+    logging.info("CBSD is in HeartBeat Successful State")
+    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
 
     # Wait for the timer
-    countdown(config['wait_timer'])
+    countdown(config['waitTimer'])
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
     # Tls handshake fails
-    self.assertTlsHandshakeFailure(config['clientCert'], config['clientKey'])
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'], client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
-
-
-

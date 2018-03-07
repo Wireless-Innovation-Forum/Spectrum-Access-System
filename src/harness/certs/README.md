@@ -21,9 +21,9 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
    admin_client  server  sas     client|device_[a|c]|corrupted_client        domain_proxy
 		          |       wrong_type_client|client_expired           corrupted_domain_proxy
                    corrupted_sas  client_inapplicable                        wrong_type_domain_proxy
-                   sas_expired                                               domain_proxy_expired
+                   sas_expired    short_lived_client                         domain_proxy_expired
                                                                              domain_proxy_inapplicable
-
+                                                                             short_lived_domain_proxy
  
 unrecognized_ca             non_cbrs_root_ca----------------------------------------------
          |                     |                                 \	                  \
@@ -109,6 +109,9 @@ Required certificates are:
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
 
+* `short_lived_client.[cert|key]`: Leaf CBSD certificate that will expire within 5 minutes of creation
+  Used on security test case test_WINNF_FT_S_SCS_17, test_WINNF_FT_S_SCS_18 and test_WINNF_FT_S_SCS_19
+
 * `corrupted_domain_proxy.cert`: corrupted 'domain_proxy.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SDS_7.
 
@@ -120,6 +123,9 @@ Required certificates are:
 
 * `domain_proxy_inapplicable.[cert|key]`: domain_proxy device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SDS_15.
+
+* `short_lived_domain_proxy.[cert|key]`: Leaf domain proxy  certificate that will expire within 5 minutes of creation
+  Used on security test case test_WINNF_FT_S_SDS_17, test_WINNF_FT_S_SDS_18 and test_WINNF_FT_S_SDS_19
 
 * `unrecognized_sas.[cert|key]`: leaf SAS certificate signed by
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.

@@ -234,78 +234,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-#certificate for test case WINNF.FT.S.SCS.11
-echo "\n\nGenerate blacklisted client certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_client.csr -keyout blacklisted_client.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted CBSD "
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in blacklisted_client.csr \
-    -out blacklisted_client.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
-#Revoke the blacklisted_client.cert for WINNF.FT.S.SCS.11
-openssl ca -revoke blacklisted_client.cert -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-#certificate for test case WINNF.FT.S.SDS.11
-echo "\n\nGenerate blacklisted domain proxy certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_domain_proxy.csr -keyout blacklisted_domain_proxy.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted Domain Proxy"
-openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in blacklisted_domain_proxy.csr \
-    -out blacklisted_domain_proxy.cert -outdir ./root \
-    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
-#Revoke the blacklisted_domain_proxy.cert for WINNF.FT.S.SDS.11
-openssl ca -revoke blacklisted_domain_proxy.cert -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-#certificate for test case WINNF.FT.S.SSS.11
-echo "\n\nGenerate blacklisted sas certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_sas.csr -keyout blacklisted_sas.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted SAS "
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in blacklisted_sas.csr \
-    -out blacklisted_sas.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
-#Revoke the blacklisted sas for WINNF.FT.S.SSS.11
-openssl ca -revoke blacklisted_sas.cert -keyfile private/sas_ca.key -cert sas_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-
-#Create a CRL for root CA containing the revoked CBSD CA certificate
-echo "\n\n Generate CRL for root_ca"
-openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf  -crlhours 1\
-     -out root/root_ca.crl
-
-#Creating CRL for blacklisted certificates xxS.11 test cases
-echo "\n\n Generate CRL for sas_ca"
-openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/sas_ca.crl
-
-echo "\n\n Generate CRL for proxy_ca"
-openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/proxy_ca.crl
-
-echo "\n\n Generate CRL for cbsd_ca"
-openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/cbsd_ca.crl
-
-#Create CA certificate chain containing the  CRLs with revoked leaf certificates
-cat root/cbsd_ca.crl root/sas_ca.crl root/proxy_ca.crl root/root_ca.crl > ca_leaf.crl
-
-
 #Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
 echo "\n\nGenerate 'client_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -323,9 +251,8 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out client_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
 # Certificate for WINNF.FT.S.SCS.17,WINNF.FT.S.SCS.18 and WINNF.FT.S.SCS.19
-echo "Created short lived certificate for WINNF.FT.S.SCS.17,WINNF.FT.S.SCS.18 and WINNF.FT.S.SCS.19"
+echo "Create short lived certificate for WINNF.FT.S.SCS.17,WINNF.FT.S.SCS.18 and WINNF.FT.S.SCS.19"
 current_time=`date -u  +%y%m%d%H%M%SZ`
 offset=5
 enddate_value=$(date -u -d "now + $offset minutes" '+%y%m%d%H%M%SZ')
@@ -339,7 +266,6 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in short_lived_clien
     -out short_lived_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384 -enddate $enddate_value
-
 
 # Generate certificates for test case WINNF.FT.S.SDS.6 - Unrecognized root of trust certificate presented during registration
 echo "\n\nGenerate 'unrecognized_domain_proxy' certificate/key"
@@ -395,7 +321,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-
 #Certificate for test case WINNF.FT.S.SDS.12 - Expired certificate presented during registration
 echo "\n\nGenerate 'domain_proxy_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -415,7 +340,7 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.cs
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for WINNF.FT.S.SDS.17,WINNF.FT.S.SDS.18 and WINNF.FT.S.SDS.19
-echo "Created short lived certificate for WINNF.FT.S.SDS.17,WINNF.FT.S.SDS.18 and WINNF.FT.S.SDS.19"
+echo "Create short lived certificate for WINNF.FT.S.SDS.17,WINNF.FT.S.SDS.18 and WINNF.FT.S.SDS.19"
 current_time=`date -u  +%y%m%d%H%M%SZ`
 offset=5
 enddate_value=$(date -u -d "now + $offset minutes" '+%y%m%d%H%M%SZ')
@@ -429,7 +354,6 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in short_lived_dom
     -out short_lived_domain_proxy.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384 -enddate $enddate_value
-
 # Generate certificates for test case WINNF.FT.S.SSS.6 - Unrecognized root of trust certificate presented during registration
 echo "\n\nGenerate 'unrecognized_sas' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -505,46 +429,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
-
-#Certificate for test case WINNF.FT.S.SCS.16 - Certificate signed by a revoked CA presented during registration
-#Revoke the CBSD CA Certificate
-openssl ca -revoke cbsd_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-#Certificate for test case WINNF.FT.S.SDS.16 - Certificate signed by a revoked CA presented during registration
-#Revoke the Domain Proxy CA Certificate
-openssl ca -revoke proxy_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-
-#Certificate for test case WINNF.FT.S.SSS.16 - Certificate signed by a revoked CA presented during registration
-#Revoke the SAS CA Certificate
-openssl ca -revoke sas_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf
-
-#Creating CRL for revoked CA xxS.16 test cases
-echo "\n\n Generate CRL for root_ca"
-openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf  -crlhours 1\
-     -out root/root_ca.crl
-
-echo "\n\n Generate CRL for sas_ca"
-openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/sas_ca.crl
-
-echo "\n\n Generate CRL for proxy_ca"
-openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/proxy_ca.crl
-
-echo "\n\n Generate CRL for cbsd_ca"
-openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out root/cbsd_ca.crl
-
-#Create CA certificate chain containing the CRLs with revoked certificates
-cat root/cbsd_ca.crl root/sas_ca.crl root/proxy_ca.crl root/root_ca.crl > ca_intermediate.crl
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
 #   cat root_ca.cert > ca.cert
