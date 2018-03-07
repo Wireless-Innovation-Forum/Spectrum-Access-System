@@ -129,12 +129,11 @@ basicConstraints 				= critical, CA:true
 keyUsage 						= critical, digitalSignature, cRLSign, keyCertSign
 
 ####################################################################
-
+#Not used yet
 [ crl_section ]
 
-#URI.0 = http://crl3.digicert.com/WInnForumCA.crl
-#URI.1 = http://crl4.digicert.com/WInnForumCA.crl
-URI.0 = http://localhost:9006/ca.crl
+URI.0 = http://crl3.digicert.com/WInnForumCA.crl
+URI.1 = http://crl4.digicert.com/WInnForumCA.crl
 
 ####################################################################
 #Not used yet
@@ -320,10 +319,9 @@ policyIdentifier = 2.16.840.1.114412.2.1
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, cRLSign
+keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -334,10 +332,9 @@ policyIdentifier = 2.16.840.1.114412.2.1
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, cRLSign
+keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
@@ -385,12 +382,10 @@ certificatePolicies=@cps,ROLE_SAS,ZONE
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_OPERATOR,FRN
-crlDistributionPoints=@crl_section
 #FRN
-
 
 [ cps ]
 
@@ -402,10 +397,9 @@ policyIdentifier = 2.16.840.1.114412.2.1
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_OPERATOR,FRN
-crlDistributionPoints=@crl_section
 #FRN
 
 [ oper_req_inapplicable_sign ]
@@ -487,7 +481,7 @@ policyIdentifier = 2.16.840.1.114412.2.1
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment,cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
 #FCCID
 #SERIAL
@@ -502,10 +496,9 @@ policyIdentifier = 2.16.840.1.114412.2.1
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment,cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
-crlDistributionPoints=@crl_section
 #FCCID
 #SERIAL
 
