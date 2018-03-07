@@ -40,6 +40,24 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         else :
             self.assertFalse(attr_name in record)
     
+    def assertEqualToDeviceOrPreloadedConditionalOptionalParam(self, attr_name, record,\
+                 preloaded_conditionals, registration_request):
+
+        attr_value = registration_request[attr_name] if attr_name in registration_request\
+         else (preloaded_conditionals[attr_name] if attr_name in \
+              preloaded_conditionals else None)
+        attr_value_in_record = record[attr_name] if attr_name in record else  None 
+        self.assertEqual(attr_value, attr_value_in_record)
+
+    def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, record,\
+                 preloaded_conditionals, registration_request, default_value):
+
+        attr_value = registration_request[attr_name] if attr_name in registration_request\
+         else (preloaded_conditionals[attr_name] if attr_name in \
+              preloaded_conditionals else default_value)
+        attr_value_in_record = record[attr_name] if attr_name in record else  None 
+        self.assertEqual(attr_value, attr_value_in_record)
+    
     def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, record,\
                  preloaded_conditionals, registration_request):
         attr_value = registration_request[attr_name] if attr_name in registration_request\
@@ -98,37 +116,41 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('indoorDeployment', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
-            
-            
-            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaAzimuth', \
+            #  parameters should equal to device or to default value            
+            self.assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue('antennaAzimuth', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam'])
-            
-            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaDowntilt', \
+                 cbsd_record[0]['installationParam'], 0)
+                
+            self.assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue('antennaBeamwidth', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam'])
-            
-            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaBeamwidth', \
-               device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam'])
+                 cbsd_record[0]['installationParam'], 360)
             
             # if callSign exist, it should have the same value as registered
             if 'callSign' in cbsd_record[0]:
                 self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])      
-            # if eirpCapability in the record, it should be the same as device or less than the FCC maxEirp value which was injected at the beginning of the test and less than
             max_eirp_by_MHz = 37;     
             if 'eirpCapability' in cbsd_record[0]:
-                if 'eirpCapability' in device:
-                    self.assertEqual(device['eirpCapability'], cbsd_record[0]['eirpCapability'])
-                    max_eirp_by_MHz = cbsd_record[0]['eirpCapability'] - 10
-                else:
-                    self.assertLessEqual(cbsd_record[0]['eirpCapability'], 47)
-                    self.assertGreaterEqual(cbsd_record[0]['eirpCapability'], -127)
-            # antennaModel if exists in device should exist with same value in record                
-            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('antennaModel', \
+              max_eirp_by_MHz = cbsd_record[0]['eirpCapability'] - 10
+            # optional parameters if exists in the dump record should be equal to the device's value
+            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('antennaModel', \
+               device['installationParam'], reg_conditional_device_data['installationParam'],\
+                 cbsd_record[0]['installationParam']) 
+                  
+            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('eirpCapability', \
+               device, reg_conditional_device_data,\
+                 cbsd_record[0])
+
+            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('horizontalAccuracy', \
+               device['installationParam'], reg_conditional_device_data['installationParam'],\
+                 cbsd_record[0]['installationParam']) 
+
+            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('verticalAccuracy', \
                device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
-            
+
+            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('antennaDownTilt', \
+               device['installationParam'], reg_conditional_device_data['installationParam'],\
+                 cbsd_record[0]['installationParam'])          
             # groupingParam if exists in device should exist with same value in record     
             if 'groupingParam' in device:      
                 self.assertDictEqual(device['groupingParam'], \
