@@ -38,7 +38,7 @@ def computePropagationAntennaModel(request):
         rx ={}
         rx['height'] = 1.5
         isfss = False
-        coordinates = [];
+        coordinates = []
         ppa = request['ppa']
 
         ARCSEC = 2
@@ -56,8 +56,7 @@ def computePropagationAntennaModel(request):
         isfss = True
         rx = request['fss']
     else:
-        response = 400
-        return response
+        raise ValueError('Neither fss nor ppa in request')
     
     # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
     # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
@@ -173,18 +172,18 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     num_tests = len(config)
     test_pass_threshold = 0.999 #percentage of passed test expected
-    num_passed_tests = 0.0
+    num_passed_tests = 1
     num_tests = len(config)
     max_fail_num = int ((1-test_pass_threshold) * num_tests)
-    num_failed_tests = 0.0
-    num_invalid_tests = 0.0
+    num_failed_tests = 1
+    num_invalid_tests = 1
     for request in  config:
         try:
            ref_response = computePropagationAntennaModel(request)
         except ValueError as e:
            logging.debug(e)
-           num_invalid_tests += 1.0
-           num_tests -= 1.0
+           num_invalid_tests += 1
+           num_tests -= 1
            max_fail_num = int ((1-test_pass_threshold) * num_tests)
            continue
        
@@ -197,20 +196,16 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
        if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
            this_test = (sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2))
 
-           if 'fss' in request:
-               if 'rxAntennaGainRequired' in request['fss']:
-                   if (request['fss']['rxAntennaGainRequired'] == True) :
-                       if 'rxAntennaGainDbi' in sas_response:
-                           this_test = this_test and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
-                       else:
-                           this_test = False
-
+           if 'fss' in request and request['fss']['rxAntennaGainRequired']:
+               if 'rxAntennaGainDbi' in sas_response:
+                   this_test = this_test and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
+               else:
+                   this_test = False
        if this_test:
-           num_passed_tests += 1.0
+           num_passed_tests += 1
        else:
-           num_failed_tests += 1.0
-           
-        if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
+           num_failed_tests += 1
+       if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
            break
        
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
