@@ -311,9 +311,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerFullActivityDump(self) :
     pass
 
-  def TriggerEnableNTIAExclusionZones(self):
-    pass
-
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
@@ -386,14 +383,13 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/meas_report_in_registration_response',
                        '/admin/trigger/meas_report_in_heartbeat_response',
                        '/admin/trigger/daily_activities_immediately',
-                       '/admin/trigger/enable_ntia_15_517',
                        '/admin/trigger/load_dpas',
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
+                       '/admin/injectdata/exclusion_zone',
                        '/admin/trigger/create_full_activity_dump',
-                       '/admin/injectdata/peer_sas',
-                       '/admin/injectdata/exclusion_zone'):
+                       '/admin/injectdata/peer_sas'):
       response = ''
     else:
       self.send_response(404)

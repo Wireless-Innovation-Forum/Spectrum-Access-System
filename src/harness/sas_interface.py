@@ -279,15 +279,14 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def InjectExclusionZone(self, request, frequency_range):  
+  def InjectExclusionZone(self, request): 
     """Inject exclusion zone information into SAS under test.
 
     Args:
-      request: A dictionary with a single key-value pair where the key is
-        "record" and the value is ZoneData object and frequency range to be injected into 
-        SAS under test. For more information about ZoneData please see 
-        the SAS-SAS TS (WINNF-16-S-0096).
-    """
+      request: A dictionary with the following key-value pairs:
+        "exclusionZone": A GeoJSON object defining the exclusion zone to be injected to SAS UUT.
+        "frequencyRanges": A list of frequency ranges for the exclusion zone.
+    """  
     pass
 
   @abc.abstractmethod
@@ -421,13 +420,6 @@ class SasAdminInterface(object):
       3. Apply EIRP updates to devices
     """
     pass
-
-  @abc.abstractmethod
-  def TriggerEnableNTIAExclusionZones(self):
-    """SAS admin interface to trigger enforcement of the NTIA exclusion zones 
-    """
-    pass
-
 
   @abc.abstractmethod
   def GetDailyActivitiesStatus(self):

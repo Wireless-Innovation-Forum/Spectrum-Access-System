@@ -1,10 +1,4 @@
 {
-  "id"  : "zone/exclusion_zone/ntia/2018_01_09/exz_zone0",
-  "name": "EXZ Zone 0",
-  "creator": "admin_0",
-  "usage": "EXCLUSION_ZONE",
-  "terminated": false,
-  "zone": {
     "type": "FeatureCollection",
     "features": [
       {
@@ -43,5 +37,4 @@
         }
       }
     ]
-  }
 }
