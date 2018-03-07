@@ -314,7 +314,7 @@ class SasTestHarnessServerHandler(BaseHTTPRequestHandler):
 def generateCbsdReferenceId(fcc_id, serial_number):
   """creates encoded cbsd_reference_id using sha1 with fcc_id and serial number of cbsd.
   """
-  return str(fcc_id + '/' + str(hashlib.sha1(serial_number).hexdigest())).encode('utf-8')
+  return str("cbsd/" + fcc_id + '/' + str(hashlib.sha1(serial_number).hexdigest())).encode('utf-8')
 
 def generateCbsdRecords(registration_requests, grant_requests_list):
   """ Generates the cbsdData Object by combining registration request 
