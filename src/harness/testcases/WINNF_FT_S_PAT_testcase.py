@@ -13,12 +13,81 @@
 #    limitations under the License.
 
 import json
+import logging
 import os
 import sas
 import sas_testcase
+from reference_models.propagation import wf_itm
+from reference_models.propagation import wf_hybrid
+from reference_models.antenna import antenna
+from reference_models.ppa import ppa
+nlcd_driver = ppa.nlcd_driver
+from reference_models.geo import utils as GeoUtils
 
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, computePropagationAntennaModel
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
 
+def computePropagationAntennaModel(request):
+    reliability_level = request['reliabilityLevel']
+    if reliability_level not in [-1, 0.05, 0.95]:
+        raise ValueError('reliability_level not in [-1, 0.05, 0.95]')
+
+    tx = request['cbsd']
+    if ('fss' in request) and ('ppa' in request):
+        raise ValueError('fss and ppa in request')
+    elif 'ppa' in request:
+        rx ={}
+        rx['height'] = 1.5
+        isfss = False
+        coordinates = [];
+        ppa = request['ppa']
+
+        ARCSEC = 2
+        ppa_points = GeoUtils.GridPolygon(ppa['geometry'], ARCSEC)
+        if len(ppa_points) == 1:
+            rx['longitude']= ppa_points[0][0]
+            rx['latitude'] = ppa_points[0][1]
+            
+        else:
+            raise ValueError('ppa boundary contains more than a single protection point')
+        
+        region_val = nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
+
+    elif 'fss' in request:
+        isfss = True
+        rx = request['fss']
+    else:
+        response = 400
+        return response
+    
+    # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
+    # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
+    result = {}
+    if isfss:
+        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
+                                                   rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
+        result['pathlossDb'] = path_loss.db_loss
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        result['txAntennaGainDbi'] = gain_tx_rx 
+        if 'rxAntennaGainRequired' in rx:
+            hor_dirs = path_loss.incidence_angles.hor_rx
+            ver_dirs = path_loss.incidence_angles.ver_rx
+            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], 
+                                                    rx['antennaElevation'], rx['antennaGain'])
+            result['rxAntennaGainDbi'] = gain_rx_tx           
+    else:
+        
+        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
+                                                        rx['latitude'], rx['longitude'], rx['height'], 
+                                                        reliability=-1, freq_mhz=3625., region=region_val)
+        result['pathlossDb'] = path_loss.db_loss
+        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        result['txAntennaGainDbi'] = gain_tx_rx 
+        
+    
+    return result
+   
 def cbsddata(device):
     installationParam = device['installationParam']
     if 'antennaAzimuth' not in installationParam:
@@ -111,34 +180,37 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     num_invalid_tests = 0.0
     for request in  config:
         try:
-           refResponse = computePropagationAntennaModel(request)
-           sasResponse = self._sas_admin.QueryPropagationAndAntennaModel(request)
-
-                  # Check response
-           this_test = False
-           if 'pathlossDb' in refResponse and 'txAntennaGainDbi' in refResponse:
-               if 'pathlossDb' in sasResponse and 'txAntennaGainDbi' in sasResponse:
-                   this_test = (sasResponse['pathlossDb'] < refResponse['pathlossDb'] + 1) and (sasResponse['txAntennaGainDbi'] < (refResponse['txAntennaGainDbi'] + .2))
-               else:
-                   this_test = False
-               if 'rxAntennaGainDbi' in refResponse:
-                   if 'rxAntennaGainDbi' in sasResponse:
-                       this_test = this_test and (sasResponse['rxAntennaGainDbi'] < (refResponse['rxAntennaGainDbi'] + .2))
-                   else:
-                       this_test = False
-           else:
-               self.assertEqual(sasResponse, refResponse)
-               this_test = True
-    
-           if this_test:
-               num_passed_tests += 1.0
-           else:
-               num_failed_tests += 1.0
-           
+           ref_response = computePropagationAntennaModel(request)
         except ValueError as e:
+           logging.debug(e)
            num_invalid_tests += 1.0
+           num_tests -= 1.0
+           max_fail_num = int ((1-test_pass_threshold) * num_tests)
+           continue
+       
+       # don't send a response to sas if invalid
+       sas_response = self._sas_admin.QueryPropagationAndAntennaModel(request)
 
-        if (num_failed_tests+num_invalid_tests) >= max_fail_num: #test fails if number of failed and invalid test greater than allowed
+
+       # Check response
+       this_test = False
+       if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
+           this_test = (sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2))
+
+           if 'fss' in request:
+               if 'rxAntennaGainRequired' in request['fss']:
+                   if (request['fss']['rxAntennaGainRequired'] == True) :
+                       if 'rxAntennaGainDbi' in sas_response:
+                           this_test = this_test and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
+                       else:
+                           this_test = False
+
+       if this_test:
+           num_passed_tests += 1.0
+       else:
+           num_failed_tests += 1.0
+           
+        if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
            break
        
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)

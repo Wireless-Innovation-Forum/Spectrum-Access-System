@@ -53,7 +53,7 @@ from BaseHTTPServer import HTTPServer
 import ConfigParser
 from datetime import datetime
 from datetime import timedelta
-from util import computePropagationAntennaModel
+from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
 import uuid
 import json
 import ssl
@@ -319,8 +319,9 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
-      response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
-      if response == 400:
+      try:
+          response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+      except ValueError:
           self.send_response(400)
           return 	  
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',

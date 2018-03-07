@@ -25,23 +25,17 @@ import sys
 import time
 import random
 import uuid
-
+import jwt
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-
-from reference_models.propagation import wf_itm
-from reference_models.propagation import wf_hybrid
-from reference_models.antenna import antenna
-from reference_models.ppa import ppa
-nlcd_driver = ppa.nlcd_driver
-from reference_models.geo import utils as GeoUtils
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
 
 from shapely.geometry import shape, Point, LineString
 
-    
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
     handler = logging.StreamHandler(sys.stdout)
@@ -343,69 +337,6 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
   request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
 
-     
-def computePropagationAntennaModel(request):
-    reliability_level = request['reliabilityLevel']
-    if reliability_level not in [-1, 0.05, 0.95]:
-        raise ValueError('reliability_level not in [-1, 0.05, 0.95]')
-
-    tx = request['cbsd']
-    if ('fss' in request) and ('ppa' in request):
-        raise ValueError('fss and ppa in request')
-    elif 'ppa' in request:
-        rx ={}
-        rx['height'] = 1.5
-        isfss = False
-        coordinates = [];
-        ppa = request['ppa']
-
-        ARCSEC = 2
-        ppa_points = GeoUtils.GridPolygon(ppa['geometry'], ARCSEC)
-        if len(ppa_points) == 1:
-            rx['longitude']= ppa_points[0][0]
-            rx['latitude'] = ppa_points[0][1]
-            
-        else:
-            raise ValueError('ppa boundary contains more than a single protection point')
-        
-        region_val = nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
-
-    elif 'fss' in request:
-        isfss = True
-        rx = request['fss']
-    else:
-        response = 400
-        return response
-    
-    # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
-    # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
-    result = {}
-    if isfss:
-        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                   rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
-        result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
-                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-        result['txAntennaGainDbi'] = gain_tx_rx 
-        if 'rxAntennaGainRequired' in rx:
-            hor_dirs = path_loss.incidence_angles.hor_rx
-            ver_dirs = path_loss.incidence_angles.ver_rx
-            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], 
-                                                    rx['antennaElevation'], rx['antennaGain'])
-            result['rxAntennaGainDbi'] = gain_rx_tx           
-    else:
-        
-        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                        rx['latitude'], rx['longitude'], rx['height'], 
-                                                        reliability=-1, freq_mhz=3625., region=region_val)
-        result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
-                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-        result['txAntennaGainDbi'] = gain_tx_rx 
-        
-    
-    return result
-    
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
 
@@ -450,6 +381,17 @@ def addGrantIdsToRequests(grant_ids, requests):
   """
   addIdsToRequests(grant_ids, requests, 'grantId')
 
+def getCertificateFingerprint(certificate):
+  """ Get SHA1 hash of the input certificate.
+  Args:
+    certificate: The full path to the file containing the certificate
+  Returns:
+    sha1 fingerprint of the input certificate
+  """
+  certificate_string = open(certificate,"rb").read()
+  cert = load_certificate(FILETYPE_PEM, certificate_string)
+  sha1_fingerprint = cert.digest("sha1")
+  return sha1_fingerprint
 
 def filterChannelsByFrequencyRange(channels, freq_range):
   """Returns channels within given frequency range.

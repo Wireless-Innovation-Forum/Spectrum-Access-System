@@ -461,7 +461,7 @@ class SasAdminInterface(object):
     Returns:
       double pathlossDb (pathloss in dB)
       double txAntennaGainDbi (transmitter antenna gain in dBi in the direction of the receiver)
-      rxAntennaGainDbi (optional) (receiver antenna gain in dBi in the direction of the transmitter)
+      double rxAntennaGainDbi (optional) (receiver antenna gain in dBi in the direction of the transmitter)
 
     """
     pass
