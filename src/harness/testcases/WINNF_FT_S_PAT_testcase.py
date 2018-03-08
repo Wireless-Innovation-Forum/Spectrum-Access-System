@@ -178,10 +178,10 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     num_failed_tests = 0
     num_invalid_tests = 0
 
-    for request, test_num in enumerate(config):
-        try:
+    for test_num, request in enumerate(config):
+       try:
            ref_response = computePropagationAntennaModel(request)
-        except ValueError as e:
+       except ValueError as e:
            logging.debug('Test # %d, Exception: %s', test_num, e)
            logging.debug('Configuration: %s', request)
            num_invalid_tests += 1
