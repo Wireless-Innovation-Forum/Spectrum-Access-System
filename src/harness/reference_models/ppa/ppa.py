@@ -12,11 +12,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import multiprocessing
-from collections import namedtuple
-import geojson
 import logging
 import multiprocessing
+from collections import namedtuple
+
+import geojson
 import numpy as np
 from concurrent import futures
 from reference_models.antenna import antenna
@@ -177,6 +177,12 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
+
+  if ppa_polygon.is_empty:
+    raise Exception("Empty Polygon is generated, please check the inputs.")
+  if ppa_polygon.geom_type == "MultiPolygon":
+    raise Exception("Multi Polygon is not supported, please check the inputs.")
+
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
   return _PpaPolygon(geojson=_ConvertToGeoJson(ppa_without_small_holes),
                      shapely=ppa_without_small_holes)
