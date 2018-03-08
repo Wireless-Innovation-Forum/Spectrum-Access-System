@@ -131,7 +131,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
              ['installationParam'], cbsd_record[0]['installationParam'])                   
             
              # parameters should exist in record if exist in device,\        
-            self.assertEqualToIfExistDeviceOrPreloadedCondtionalParam('indoorDeployment', \
+            self.assertEqualToDeviceOrPreloadedCondtionalParam('indoorDeployment', \
                 device['installationParam'], reg_conditional_device_data['installationParam'],\
                  cbsd_record[0]['installationParam'])
             #  parameters should equal to device or to default value            
