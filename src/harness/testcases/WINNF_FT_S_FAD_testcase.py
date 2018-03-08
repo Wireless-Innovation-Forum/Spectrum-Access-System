@@ -29,26 +29,6 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
     def tearDown(self):
         pass
-    
-    def assertEqualToDeviceOrPreloadedConditionalOptionalParam(self, attr_name, record,\
-                 preloaded_conditionals, registration_request):
-        """ this function checks the optional parameter of dump with
-         the parameter of the registered Cbsd
-         Args:
-          attr_name: string represent the attribute name, we want to compare.
-          record: the parent attribute that should contain the compared attribute in the dump record.
-          preloaded_conditionals:the parent attribute that should contain the compared attribute in the preloaded conditional parameters.
-          registration_request: the parent attribute that should contain the compared attribute in the registration request.
-
-        Behavior:if the value exist in dump record it should be equal to the value in 
-          preloaded conditional parameters or
-          registration request(the priority is for the registration request value)
-        """  
-        attr_value = registration_request[attr_name] if attr_name in registration_request\
-         else (preloaded_conditionals[attr_name] if attr_name in \
-              preloaded_conditionals else None)
-        attr_value_in_record = record[attr_name] if attr_name in record else  None 
-        self.assertEqual(attr_value, attr_value_in_record)
 
     def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, record,\
                  preloaded_conditionals, registration_request, default_value):
@@ -169,26 +149,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             max_eirp_by_MHz = 37;     
             if 'eirpCapability' in cbsd_record[0]:
               max_eirp_by_MHz = cbsd_record[0]['eirpCapability'] - 10
-            # optional parameters if exists in the dump record should be equal to the device's value
-            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('antennaModel', \
-               device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam']) 
-                  
-            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('eirpCapability', \
-               device, reg_conditional_device_data,\
-                 cbsd_record[0])
-
-            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('horizontalAccuracy', \
-               device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam']) 
-
-            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('verticalAccuracy', \
-               device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam'])
-
-            self.assertEqualToDeviceOrPreloadedConditionalOptionalParam('antennaDownTilt', \
-               device['installationParam'], reg_conditional_device_data['installationParam'],\
-                 cbsd_record[0]['installationParam'])          
+               
             # groupingParam if exists in device should exist with same value in record     
             if 'groupingParam' in device:      
                 self.assertDictEqual(device['groupingParam'], \
