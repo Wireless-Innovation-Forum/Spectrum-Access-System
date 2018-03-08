@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -152,22 +152,6 @@ class SasInterface(object):
       A dictionary with a single key-value pair where the key is
       "deregistrationResponse" and the value is a list of individual CBSD
       deregistration responses (each of which is itself a dictionary).
-    """
-    pass
-
-  @abc.abstractmethod
-  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
-    """SAS-SAS Implementation Record Exchange interface
-    
-    Requests a Pull Command to get the Sas Implementation Record
-    
-    Args:
-      request: A string containing Sas Implementation Record Id
-      ssl_cert: Path to SSL cert file, if None, will use default cert file.
-      ssl_key: Path to SSL key file, if None, will use default key file.
-    Returns:
-      A dictionary of Sas Implementation Message object specified in 
-      WINNF-16-S-0096
     """
     pass
 
@@ -336,17 +320,6 @@ class SasAdminInterface(object):
         "record" and the value is a SAS Administrator information (which is 
         itself a dictionary). The dictionary is an SASAdministrator object 
         (Specified in SAS-SAS TS WINNF-16-S-0096)
-    """
-    pass
-
-  @abc.abstractmethod
-  def InjectSasImplementationRecord(self, request):
-    """SAS admin interface to inject SAS Implementation Record into SAS under test.
-
-    Args:
-      request: A dictionary with a single key-value pair where the key is "record" 
-      and the value is a SasImplementation object (which is itself a dictionary 
-      specified in the SAS-SAS TS, WINNF-16-S-0096).
     """
     pass
 
