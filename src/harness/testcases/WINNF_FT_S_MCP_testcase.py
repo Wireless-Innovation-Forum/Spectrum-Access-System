@@ -12,18 +12,17 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import constraint_testcase
 import hashlib
 import json
 import os
 import sas
+import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, makePpaAndPalRecordsConsistent 
 
-
-class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
+class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -102,48 +101,55 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
     pal_low_frequency = 3550000000.0
     pal_high_frequency = 3560000000.0        
 
-    ppa_record_1, pal_record_1 = makePpaAndPalRecordsConsistent(ppa_record,
+    ppa_records_1, pal_records_1 = makePpaAndPalRecordsConsistent(ppa_record,
                                                                 [pal_record],
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 'test_user_1')
     # Load DPA record
-    dpa_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'dpa_0.json')))
-    dpa_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'dpa_1.json')))
-    dpa_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'dpa_0.json')))
+    dpa_1 = {
+       'dpaId': 'test_dpa_id1',
+       'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
+    }
+    dpa_2 = {
+       'dpaId': 'test_dpa_id2',
+       'frequencyRange': {'lowFrequency': 3660000000 , 'highFrequency': 3670000000 }
+    }
+    dpa_3 = {
+       'dpaId': 'test_dpa_id3',
+       'frequencyRange': {'lowFrequency': 3670000000 , 'highFrequency': 3680000000 }
+    }
+
+    # Define conditionals
+    conditionals = {
+        'registrationData': [conditionals]
+    }
 
     # Registration and grant records for multiple iterations
-    cbsd_records_iter_1_domain_proxy_0 = {
+    cbsd_records_iteration_1_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2],
-        'conditionalRegistrationData': conditionals
+        'grantRequests': [grant_request_1, grant_request_2]
     }
-    cbsd_records_iter_1_domain_proxy_1 = {
+    cbsd_records_iteration_1_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3],
-        'conditionalRegistrationData': {}
+        'grantRequests': [grant_request_3]
     }
-    cbsd_records_iter_2_domain_proxy_0 = {
+    cbsd_records_iteration_2_domain_proxy_0 = {
         'registrationRequests': [device_4],
-        'grantRequests': [grant_request_4],
-        'conditionalRegistrationData': {}
+        'grantRequests': [grant_request_4]
     }
-    cbsd_records_iter_2_domain_proxy_1 = {
+    cbsd_records_iteration_2_domain_proxy_1 = {
         'registrationRequests': [device_5, device_6],
-        'grantRequests': [grant_request_5, grant_request_6],
-        'conditionalRegistrationData': {}
+        'grantRequests': [grant_request_5, grant_request_6]
     }
     
     # Protected entities records for multiple iterations
-    protected_entities_iter_1 = {
-        'palRecords': [pal_record_1],
-        'ppaRecords': [ppa_record_1], 
+    protected_entities_iteration_1 = {
+        'palRecords': pal_records_1,
+        'ppaRecords': ppa_records_1, 
         'escRecords': [esc_record_1]
     }
-    protected_entities_iter_2 = {
+    protected_entities_iteration_2 = {
         'gwpzRecords': [gwpz_record_1], 
         'fssRecords': [fss_record_1]
     }
@@ -152,85 +158,103 @@ class MultiConstraintProtectionTestcase(constraint_testcase.ConstraintTestcase):
     # Following configurations are for two SAS test harnesses for two iterations
     sas_test_harness_device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1['fccId'] = "test_fcc_id_g"
+    sas_test_harness_device_1['userId'] =  "test_user_id_g"
+
     sas_test_harness_device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
+    sas_test_harness_device_2['userId'] =  "test_user_id_h"
+
     sas_test_harness_device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3['fccId'] = "test_fcc_id_i"
+    sas_test_harness_device_3['userId'] =  "test_user_id_i"
+
     sas_test_harness_device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    sas_test_harness_device_4['fccId'] = "test_fcc_id_j"
+    sas_test_harness_device_4['userId'] =  "test_user_id_j"
+
     sas_test_harness_device_5 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    sas_test_harness_device_5['fccId'] = "test_fcc_id_k"
+    sas_test_harness_device_5['userId'] =  "test_user_id_k"
+
     sas_test_harness_device_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    sas_test_harness_device_6['fccId'] = "test_fcc_id_l"
+    sas_test_harness_device_6['userId'] =  "test_user_id_l"
 
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
-    cbsd_fad_records_sas_test_harness_0_iteration_0 = generateCbsdRecords([sas_test_harness_device_1], [[grant_request_1]])
+    cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1], [[grant_request_1]])
 
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
-    cbsd_fad_records_sas_test_harness_1_iteration_0 = generateCbsdRecords([sas_test_harness_device_4,sas_test_harness_device_5],
+    cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_4,sas_test_harness_device_5],
                                                                           [[grant_request_2, grant_request_3], [grant_request_4]])
 
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 1
-    cbsd_fad_records_sas_test_harness_0_iteration_1 = generateCbsdRecords([sas_test_harness_device_2,sas_test_harness_device_3],
+    cbsd_fad_records_iteration_1_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_2,sas_test_harness_device_3],
                                                                           [[grant_request_1],[grant_request_2]])
 
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 1
-    cbsd_fad_records_sas_test_harness_1_iteration_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
+    cbsd_fad_records_iteration_1_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
    
     # SAS Test Harnesses configuration  
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': "certs/server.cert",
-        'serverKey': "certs/server.key",
-        'caCert': "certs/ca.cert"
+        'serverCert': os.path.join('certs', 'server.cert'),
+        'serverKey': os.path.join('certs', 'server.key'),
+        'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9002,
-        'serverCert': "certs/server.cert",
-        'serverKey': "certs/server.key",
-        'caCert': "certs/ca.cert"
+        'serverCert': os.path.join('certs', 'server.cert'),
+        'serverKey': os.path.join('certs', 'server.key'),
+        'caCert': os.path.join('certs', 'ca.cert')
     }
 
     # Generate SAS Test Harnesses dump records for multiple iterations   
     sas_test_harness_0_dump_records_iteration_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0_iteration_0
+        'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
     }
     sas_test_harness_0_dump_records_iteration_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0_iteration_1
+        'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_0
     }
     sas_test_harness_1_dump_records_iteration_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1_iteration_0
+        'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
     sas_test_harness_1_dump_records_iteration_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1_iteration_1
+        'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_1
     }
 
     # Create the actual config.
     iteration1_config = {
-        'cbsdRequests': [cbsd_records_iter_1_domain_proxy_0,cbsd_records_iter_1_domain_proxy_1],
-        'protectedEntities': protected_entities_iter_1,
+        'cbsdRequests': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
+        'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_1, dpa_2],
         'dpaDeactivationList': [],
-        'sasTestHarnessesData': [sas_test_harness_0_dump_records_iteration_0,sas_test_harness_1_dump_records_iteration_0]
+        'sasTestHarnessData': [sas_test_harness_0_dump_records_iteration_0,sas_test_harness_1_dump_records_iteration_0]
     }
     iteration2_config = {
-        'cbsdRequests': [cbsd_records_iter_2_domain_proxy_0,cbsd_records_iter_2_domain_proxy_1],
-        'protectedEntities': protected_entities_iter_2,
+        'cbsdRequests': [cbsd_records_iteration_2_domain_proxy_0,cbsd_records_iteration_2_domain_proxy_1],
+        'protectedEntities': protected_entities_iteration_2,
         'dpaActivationList': [dpa_3],
         'dpaDeactivationList': [dpa_1],
-        'sasTestHarnessesData': [sas_test_harness_0_dump_records_iteration_1,sas_test_harness_1_dump_records_iteration_1]
+        'sasTestHarnessData': [sas_test_harness_0_dump_records_iteration_1,sas_test_harness_1_dump_records_iteration_1]
     }
     config = {
+        'conditionalRegistrationData': conditionals,      
         'iterationData': [iteration1_config, iteration2_config],
-        'sasTestHarnesses': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': 'dp_1_client.cert', 
-                                'key':  'dp_1_client.key'},
-                               {'cert': 'dp_2_client.cert',
-                                'key':  'dp_2_client.key'}],
+        'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
+        'domainProxyConfigs': [{'cert': os.path.join('certs', 'dp_1_client.cert'),
+                                'key':  os.path.join('certs', 'dp_1_client.key')},
+                               {'cert': os.path.join('certs', 'dp_2_client.cert'),
+                                'key':  os.path.join('certs', 'dp_2_client.key')}],
         'deltaIap': 2
     }
     writeConfig(filename, config)
