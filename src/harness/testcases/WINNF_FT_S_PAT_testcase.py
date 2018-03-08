@@ -177,9 +177,8 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     max_fail_num = int ((1-test_pass_threshold) * num_tests)
     num_failed_tests = 0
     num_invalid_tests = 0
-    test_num = 0
-    for request in  config:
-        test_num += 1
+
+    for request, test_num in enumerate(config):
         try:
            ref_response = computePropagationAntennaModel(request)
         except ValueError as e:
