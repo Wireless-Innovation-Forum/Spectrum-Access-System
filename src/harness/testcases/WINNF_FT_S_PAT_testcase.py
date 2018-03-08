@@ -14,6 +14,7 @@
 
 import json
 import logging
+import math
 import os
 import sas
 import sas_testcase
@@ -22,9 +23,8 @@ from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.ppa import ppa
 nlcd_driver = ppa.nlcd_driver
-from reference_models.geo import utils as GeoUtils
-
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
+from reference_models.geo import utils as GeoUtils
 
 def computePropagationAntennaModel(request):
     reliability_level = request['reliabilityLevel']
@@ -186,7 +186,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
            logging.debug('Configuration: %s', request)
            num_invalid_tests += 1
            num_tests -= 1
-           max_fail_num = int ((1-test_pass_threshold) * num_tests)
+           max_fail_num = math.floor((1-test_pass_threshold) * num_tests)
            continue
        
        # don't send a response to sas if invalid
