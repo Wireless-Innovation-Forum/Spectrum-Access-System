@@ -19,7 +19,7 @@ import sas
 import sas_testcase
 
 from datetime import datetime
-from util import winnforum_testcase, configurable_testcase, writeConfig, \
+from util import configurable_testcase, writeConfig, \
   loadConfig
 
 class ExclusionZoneTestcase(sas_testcase.SasTestCase):
@@ -40,7 +40,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
                         {'lowFrequency': 3600000000, 'highFrequency': 3650000000}
                        ]
     exz_record_1 = {
-        'exclusionZone': exz_record,
+        'zone': exz_record,
         'frequencyRanges': frequency_ranges
     }
 
@@ -50,7 +50,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
                         {'lowFrequency': 3660000000, 'highFrequency': 3670000000}
                        ]
     exz_record_2 = {
-        'exclusionZone': exz_record,
+        'zone': exz_record,
         'frequencyRanges': frequency_ranges
     }
 
@@ -155,6 +155,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N2_2['cbsdCategory']
     del device_N2_2['airInterface']
     del device_N2_2['installationParam']
+    del device_N2_2['measCapability']
 
     self.assertEqual(device_N3_2['cbsdCategory'], 'B')
     conditionalsN3 = {
@@ -168,6 +169,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N3_2['cbsdCategory']
     del device_N3_2['airInterface']
     del device_N3_2['installationParam']
+    del device_N3_2['measCapability']
 
     self.assertEqual(device_N4_1['cbsdCategory'], 'B')
     conditionalsN4 = {
@@ -181,6 +183,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N4_1['cbsdCategory']
     del device_N4_1['airInterface']
     del device_N4_1['installationParam']
+    del device_N4_1['measCapability']
 
     # Create the actual config.
     grants_N2 = [grant_N2_1, grant_N2_2]
@@ -219,7 +222,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # Very light checking of the config file.
-    self.assertGreater(len(config['exclusionZoneRecords']) , 0, "Exclusion zone records are zero !!!")
+    self.assertGreater(len(config['exclusionZoneRecords']) , 0)
     self.assertEqual(len(config['registrationRequestsN2']),len(config['grantRequestsN2']))
     self.assertEqual(len(config['registrationRequestsN3']),len(config['grantRequestsN3']))
     self.assertEqual(len(config['registrationRequestsN4']),len(config['grantRequestsN4']))
@@ -272,7 +275,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     for response_num, response in enumerate(response_N3):
       self.assertEqual(response['cbsdId'], request_N3['grantRequest'][response_num]['cbsdId'])
-      self.assertTrue('grantId' in response)
+      self.assertFalse('grantId' in response)
       self.assertEqual(response['response']['responseCode'], 400)
 
     # Sending grant requests for N4 and validating the response code is 400
@@ -287,7 +290,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     for response_num, response in enumerate(response_N4):
       self.assertEqual(response['cbsdId'], request_N4['grantRequest'][response_num]['cbsdId'])
-      self.assertTrue('grantId' in response)
+      self.assertFalse('grantId' in response)
       self.assertEqual(response['response']['responseCode'], 400)
 
 
