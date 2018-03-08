@@ -1,9 +1,0 @@
-{
-  "id": "sas1/grant1",
-  "grantExpireTime": "2016-01-01T01:01:01Z",
-  "channelType": "PAL",
-  "operationParam": {
-    "maxEirp": 30,
-    "operationFrequencyRange": { "lowFrequency": 3610000000, "highFrequency": 3620000000 }
-  }
-}

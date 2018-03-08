@@ -30,19 +30,20 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     def tearDown(self):
         pass
     
-    def assertEqualToIfExistDeviceOrPreloadedConditionalParam(self, attr_name, record,\
-                 preloaded_conditionals, registration_request):
-        attr_value = registration_request[attr_name] if attr_name in registration_request\
-         else (preloaded_conditionals[attr_name] if attr_name in \
-              preloaded_conditionals else None)
-        if attr_value != None: 
-            self.assertEqual(attr_value, record[attr_name])
-        else :
-            self.assertFalse(attr_name in record)
-    
     def assertEqualToDeviceOrPreloadedConditionalOptionalParam(self, attr_name, record,\
                  preloaded_conditionals, registration_request):
+        """ this function checks the optional parameter of dump with
+         the parameter of the registered Cbsd
+         Args:
+          attr_name: string represent the attribute name, we want to compare.
+          record: the parent attribute that should contain the compared attribute in the dump record.
+          preloaded_conditionals:the parent attribute that should contain the compared attribute in the preloaded conditional parameters.
+          registration_request: the parent attribute that should contain the compared attribute in the registration request.
 
+        Behavior:if the value exist in dump record it should be equal to the value in 
+          preloaded conditional parameters or
+          registration request(the priority is for the registration request value)
+        """  
         attr_value = registration_request[attr_name] if attr_name in registration_request\
          else (preloaded_conditionals[attr_name] if attr_name in \
               preloaded_conditionals else None)
@@ -51,7 +52,20 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
 
     def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, record,\
                  preloaded_conditionals, registration_request, default_value):
+        """ this function checks the optional parameter of dump with
+         the parameter of the registered Cbsd
+         Args:
+          attr_name: string represent the attribute name, we want to compare.
+          record: the parent attribute that should contain the compared attribute in the dump record.
+          preloaded_conditionals:the parent attribute that should contain the compared attribute in the preloaded conditional parameters.
+          registration_request: the parent attribute that should contain the compared attribute in the registration request.
+          default_value : a default value of attribute type to be compared with.
 
+        Behavior:this function asserts that the value in dump record is equal to the value in 
+          preloaded conditional parameters or
+          registration request or a default value (the priority is for the registration request value,
+          then preloaded conditional parameters)
+        """  
         attr_value = registration_request[attr_name] if attr_name in registration_request\
          else (preloaded_conditionals[attr_name] if attr_name in \
               preloaded_conditionals else default_value)
@@ -60,12 +74,36 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
     
     def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, record,\
                  preloaded_conditionals, registration_request):
+        """ this function checks the required parameter of dump with
+         the required parameter of the registered Cbsd
+         Args:
+          attr_name: string represent the attribute name, we want to compare.
+          record: the parent attribute that should contain the compared attribute in the dump record.
+          preloaded_conditionals:the parent attribute that should contain the compared attribute in the preloaded conditional parameters.
+          registration_request: the parent attribute that should contain the compared attribute in the registration request.
+
+        Behavior: this function assert that the value in dump record equals to the value in 
+          preloaded conditional parameters or
+          registration request(the priority is for the registration request value)
+        """  
         attr_value = registration_request[attr_name] if attr_name in registration_request\
          else preloaded_conditionals[attr_name]      
         self.assertEqual(attr_value, record[attr_name])        
         
     
     def assertCbsdRecord(self, registration_request, grant_request, grant_response, cbsd_dump_data, reg_conditional_data):
+        """ this function assert that cbsds in the dump and their grants are the same as the data in registration_requestn, reg_conditional_data, grant_request
+         Args:
+          attr_name: string represent the attribute name, we want to compare.
+          record: the parent attribute that should contain the compared attribute in the dump record.
+
+          
+          registration_request: array of dictionaries of the Cbsd registration request data.
+          grant_request:  array of dictionaries of the grant request data
+          grant_response: array of dictionaries of the grant response data
+          cbsd_dump_data : array of dictionaries of the Cbsd dump records data
+          preloaded_conditionals: array of dictionaries of preloaded conditional parameters of the Cbsds.
+        """  
         for index, device in enumerate(registration_request):
             reg_conditional_device_data_list = [reg['registrationData'] for reg in \
                 reg_conditional_data if reg['fccId'] == device['fccId'] and \
@@ -89,7 +127,7 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertEqualToDeviceOrPreloadedConditionalParam('cbsdCategory', \
              device, reg_conditional_device_data, cbsd_record[0])
                 
-            self.assertEqualToDeviceOrPreloadedConditionalParam('meas_capability', \
+            self.assertEqualToDeviceOrPreloadedConditionalParam('measCapability', \
              device, reg_conditional_device_data, cbsd_record[0])
             
             self.assertEqualToDeviceOrPreloadedCondtionalParam('latitude', \
@@ -175,9 +213,11 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
             self.assertLessEqual( grants_of_cbsd[0]['requestedOperationParam']\
                               ['operationFrequencyRange']['highFrequency'], 3700000000)
             self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
-                              ['operationFrequencyRange']['highFrequency'] % 5000000, 0)     
+                              ['operationFrequencyRange']['highFrequency'] % 5000000, 0) 
+            # check grant OperationParam    
             self.assertDictEqual( grants_of_cbsd[0]['operationParam'], \
                                   grant_request[index]['operationParam'])
+
             self.assertEqual(grants_of_cbsd[0]['channelType'], grant_response[index]['channelType'])
             self.assertEqual( grants_of_cbsd[0]['grantExpireTime'], grant_response[index]['grantExpireTime'])
             self.assertFalse(grants_of_cbsd[0]['terminated'])
@@ -242,10 +282,10 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
           'registrationRequests': devices,
           'conditionalRegistrationData': conditionals,
           'grantRequests': grants,
-          'ppas': ppas,
+          'ppaRecords': ppas,
           'palRecords': pals,
-          'escSensors' : esc_sensors,
-          'sasHarness' : sas_harness_config
+          'escSensorRecords' : esc_sensors,
+          'sasTestHarnessConfig' : sas_harness_config
         }
         writeConfig(filename, config)
     
@@ -279,8 +319,8 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         request = {'registrationRequest': config['registrationRequests']}
         responses = self._sas.Registration(request)['registrationResponse']
         # Check registration responses and get cbsd Id
-        grants = config['grantRequests']
         self.assertEqual(len(responses), len(config['registrationRequests']))
+        grants = config['grantRequests']
         for index, response in enumerate(responses):
             self.assertEqual(response['response']['responseCode'], 0)
             grants[index]['cbsdId'] = response['cbsdId']
@@ -296,14 +336,14 @@ class FullActivityDumpMessageTestcase(sas_testcase.SasTestCase):
         for pal in config['palRecords']:
             self._sas_admin.InjectPalDatabaseRecord(pal)
                        
-        for ppa in config['ppas']:
+        for ppa in config['ppaRecords']:
             ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
         # inject N3 Esc sensor
-        for esc_sensor in config['escSensors']:
+        for esc_sensor in config['escSensorRecords']:
             self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
         # step 7
         # Notify the SAS UUT about the SAS Test Harness
-        sas_th_config = config['sasHarness']		
+        sas_th_config = config['sasTestHarnessConfig']		
         certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
         self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': sas_th_config['url']})

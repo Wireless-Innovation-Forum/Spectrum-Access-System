@@ -96,9 +96,7 @@ errors += testJsonSchema('InstallationParamData.schema.json', 'InstallationParam
 
 errors += testJsonSchema('CbsdRecordData.schema.json', 'CbsdRecordDataExample.json')
 
-errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordWithRequestedOperationParaExample.json')
-
-errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordWithoutRequestedOperationParaExample.json')
+errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordExample.json')
 
 errors += testJsonSchema('zoneData.schema.json', 'zoneDataOfPpaExample.json')
 
