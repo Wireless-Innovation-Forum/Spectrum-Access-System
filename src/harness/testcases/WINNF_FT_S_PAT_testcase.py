@@ -46,7 +46,8 @@ def computePropagationAntennaModel(request):
         if len(ppa_points) == 1:
             rx['longitude']= ppa_points[0][0]
             rx['latitude'] = ppa_points[0][1]
-            
+        elif len(ppa_points) == 0:
+            raise ValueError('ppa boundary contains no protection point')
         else:
             raise ValueError('ppa boundary contains more than a single protection point')
         
