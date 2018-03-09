@@ -349,7 +349,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       self.assertEqual(len(config['escSensors']), len(esc_sensor_dump_data))
       # verify the schema of record and first two parts of PPA record Id  
       for ppa_record in ppa_dump_data:
-          self.assertContainsRequiredFields("zoneData.schema.json", ppa_record)              
+          self.assertContainsRequiredFields("ZoneData.schema.json", ppa_record)              
           self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
           self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
           self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
