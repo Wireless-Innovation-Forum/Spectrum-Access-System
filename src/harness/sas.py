@@ -239,6 +239,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
                         request, self._tls_config)
 
+  def InjectExclusionZone(self, request):
+    return _RequestPost('https://%s/admin/injectdata/exclusion_zone' % self._base_url,
+                        request, self._tls_config)
+
   def InjectZoneData(self, request):
     return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
                         request, self._tls_config)

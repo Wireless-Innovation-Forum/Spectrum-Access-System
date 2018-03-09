@@ -263,6 +263,17 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def InjectExclusionZone(self, request): 
+    """Inject exclusion zone information into SAS under test.
+
+    Args:
+      request: A dictionary with the following key-value pairs:
+        "zone": A GeoJSON object defining the exclusion zone to be injected to SAS UUT.
+        "frequencyRanges": A list of frequency ranges for the exclusion zone.
+    """  
+    pass
+
+  @abc.abstractmethod
   def InjectZoneData(self, request):
     """Inject PPA or NTIA zone information into SAS under test.
 
