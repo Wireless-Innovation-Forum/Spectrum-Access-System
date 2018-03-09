@@ -182,16 +182,6 @@ class FakeSas(sas_interface.SasInterface):
         })
     return response
 
-  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
-    # Get the Sas implementation record
-    impl_record = json.load(
-          open(os.path.join('testcases', 'testdata', 'impl_record_0.json')))
-    if request == impl_record['id']:
-      return impl_record
-    else:
-      # Return Empty if invalid Id
-      return {}
-
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     # Get the Esc Sensor record
     esc_sensor_record = json.load(

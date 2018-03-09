@@ -315,9 +315,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'registrationData': [conditional_parameters]
     }
 
-    cbsd_records = [device_c1]
-    grant_records = [grant_g1]
-
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': 'localhost',
@@ -327,7 +324,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_harness_dump_records = {
-        'cbsdRecords': generateCbsdRecords(cbsd_records, [grant_records])
+        'cbsdRecords': generateCbsdRecords([device_c1], [[grant_g1]])
     }
     config = {
         'registrationRequestC1': device_c1,
@@ -422,10 +419,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'lowFrequency'] = 3645000000
     grant_g2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
-
-    cbsd_records = [device_c1]
-    grant_records = [grant_g2]
-
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-TestHarness-1',
         'hostName': 'localhost',
@@ -435,8 +428,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_harness_dump_records = {
-        'cbsdRecords': generateCbsdRecords(cbsd_records,
-                                           [grant_records])
+        'cbsdRecords': generateCbsdRecords([device_c1],
+                                           [[grant_g2]])
     }
 
     config = {
@@ -499,7 +492,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['response']['responseCode'], 500)
 
     # As Python garbage collector is not very consistent, directory is not getting deleted.
-    # Hence, explicitly stopping SAS Test Hanress and cleaning up
+    # Hence, explicitly stopping SAS Test Harness and cleaning up
     sas_test_harness_server.shutdown()
     del sas_test_harness_server
 
