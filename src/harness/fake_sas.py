@@ -276,9 +276,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectSasAdministratorRecord(self, request):
     pass
 
-  def InjectSasImplementationRecord(self, request):
-    pass
-
   def InjectEscSensorDataRecord(self, request):
     pass
 
