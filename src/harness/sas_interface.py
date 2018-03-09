@@ -284,7 +284,7 @@ class SasAdminInterface(object):
 
     Args:
       request: A dictionary with the following key-value pairs:
-        "exclusionZone": A GeoJSON object defining the exclusion zone to be injected to SAS UUT.
+        "zone": A GeoJSON object defining the exclusion zone to be injected to SAS UUT.
         "frequencyRanges": A list of frequency ranges for the exclusion zone.
     """  
     pass
