@@ -98,7 +98,7 @@ errors += testJsonSchema('CbsdRecordData.schema.json', 'CbsdRecordDataExample.js
 
 errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordExample.json')
 
-errors += testJsonSchema('zoneData.schema.json', 'zoneDataOfPpaExample.json')
+errors += testJsonSchema('ZoneData.schema.json', 'ZoneDataOfPpaExample.json')
 
 if errors == 0:
   print 'PASS'

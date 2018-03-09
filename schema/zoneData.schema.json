@@ -38,7 +38,7 @@
 	"$ref": "file:PpaInformation.schema.json"
     },
 	"zone": {
-	"$ref": "file:zone.schema.json"
+	"$ref": "file:Zone.schema.json"
     }
   },
   
