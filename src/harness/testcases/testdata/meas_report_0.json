@@ -1,7 +1,7 @@
 {
   "rcvdPowerMeasReports": [
     {
-      "measFrequency": 3620000000.0,
+      "measFrequency": 3620000000,
       "measBandwidth": 10000000,
       "measRcvdPower": -100
     }

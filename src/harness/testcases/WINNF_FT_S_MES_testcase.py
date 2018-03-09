@@ -97,8 +97,8 @@ class MeasurementTestcase(unittest.TestCase):
             for meas_num, meas in enumerate(meas_report):
                 meas_report[meas_num]['measBandwidth'] = 15000000
         spectrum_inquiry['inquiredSpectrum'] = [{
-            'lowFrequency': 3550000000.0,
-            'highFrequency': 3560000000.0
+            'lowFrequency': 3550000000,
+            'highFrequency': 3560000000
         }]
         spectrum_inquiries.append(spectrum_inquiry)
     # Send Spectrum Inquiry request
@@ -117,9 +117,9 @@ class MeasurementTestcase(unittest.TestCase):
         grant_0 = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant_0['operationParam']['operationFrequencyRange'][
-            'lowFrequency'] = 3550000000.0
+            'lowFrequency'] = 3550000000
         grant_0['operationParam']['operationFrequencyRange'][
-            'highFrequency'] = 3560000000.0
+            'highFrequency'] = 3560000000
         grant_0['cbsdId'] = spectrum_inquiry['cbsdId']
         if 'measReport' in spectrum_inquiry:
             grant_0['measReport'] = spectrum_inquiry['measReport']
@@ -177,6 +177,11 @@ class MeasurementTestcase(unittest.TestCase):
         if 'measReportConfig' in resp:
             self.assertFalse('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
         cbsd_ids.append(resp['cbsdId'])
+    # Check if SAS ask meas_report for the sixth device
+    ask_meas_report = False
+    if 'measReportConfig' in response[5] and 'RECEIVED_POWER_WITHOUT_GRANT' in response[5]['measReportConfig']:
+        ask_meas_report = True
+
     del request, response
     # Request grant
     grant_request = []
@@ -184,6 +189,11 @@ class MeasurementTestcase(unittest.TestCase):
         grant = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant['cbsdId'] = cbsd_id
+        # Add meas_report for the sixth device if needed
+        if grant['cbsdId'] == cbsd_ids[5] and ask_meas_report:
+            meas_report = json.load(
+                open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
+            grant['measReport'] =  {'rcvdPowerMeasReports': meas_report}
         grant_request.append(grant)
     request = {'grantRequest': grant_request}
     response = self._sas.Grant(request)['grantResponse']
@@ -237,7 +247,7 @@ class MeasurementTestcase(unittest.TestCase):
             del heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency']
         # Set measFrequency to 3540 MHZ for 3th device
         elif cbsd_id == cbsd_ids[2]:
-            heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000.0
+            heartbeat_request['measReport']['rcvdPowerMeasReports'][0]['measFrequency'] = 3540000000
         # Delete rcvdPowerMeasReports for 4th device
         elif cbsd_id == cbsd_ids[3]:
             del heartbeat_request['measReport']['rcvdPowerMeasReports']

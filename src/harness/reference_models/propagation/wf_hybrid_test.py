@@ -20,6 +20,7 @@ import unittest
 from reference_models.geo import testutils
 
 from reference_models.propagation import wf_hybrid
+from reference_models.propagation import wf_itm
 
 TERRAIN_TEST_DIR = os.path.join(os.path.dirname(__file__),
                                 '..', 'geo', 'testdata', 'ned')
@@ -60,9 +61,10 @@ class TestWfHybrid(unittest.TestCase):
     lat1, lng1, height1 = 37.756672, -122.508512, 201.0
     lat2, lng2, height2 = 37.756559, -122.507882, 10.0 # about 50m away
     reliability = 0.5
-    res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                reliability=reliability, freq_mhz=3625.,
-                                region='SUBURBAN')
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=reliability, freq_mhz=3625.,
+        region='SUBURBAN')
     self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
     self.assertEqual(res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.ITM_HIGH_HEIGHT)
@@ -71,121 +73,133 @@ class TestWfHybrid(unittest.TestCase):
     lat1, lng1, height1 = 37.756672, -122.508512, 50.0
     lat2, lng2, height2 = 37.756559, -122.507882, 10.0 # about 50m away
     reliability = 0.5
-    res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                reliability=reliability, freq_mhz=3625.,
-                                region='RURAL')
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=reliability, freq_mhz=3625.,
+        region='RURAL')
     self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
-    self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.ITM_RURAL)
+    self.assertEqual(res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.ITM_RURAL)
 
   def test_1km_mode(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
     lat2, lng2, height2 = 37.762314, -122.500973, 10.0  # 912 meters away
     reliability = 0.5
-    res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                reliability=reliability, freq_mhz=3625.,
-                                region='URBAN')
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=reliability, freq_mhz=3625.,
+        region='URBAN')
     self.assertAlmostEqual(res.db_loss, 144.836, 3)
-    self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.EHATA_FSL_INTERP)
+    self.assertEqual(res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.EHATA_FSL_INTERP)
 
   def test_itm_dominant(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
     lat2, lng2, height2 = 37.754406, -122.388342, 10.0
-    reliabilities = [0.1, 0.5, 0.9]
-    expected_itm_losses = [210.79, 211.51, 211.95]
-
-    for rel, exp_loss in zip(reliabilities, expected_itm_losses):
-      res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                  reliability=rel, freq_mhz=3625.,
-                                  region='SUBURBAN')
-      self.assertAlmostEqual(res.db_loss, exp_loss, 2)
-      self.assertEqual(res.db_loss, res.internals['itm_db_loss'])  # ploss == ploss_itm
-      self.assertEqual(res.internals['hybrid_opcode'],
-                       wf_hybrid.HybridMode.ITM_DOMINANT)
-      self.assertEqual(res.internals['itm_err_num'],
-                       wf_hybrid.wf_itm.ItmErrorCode.WARNING)
+    reliability = 0.5
+    expected_itm_loss = 211.47
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=reliability, freq_mhz=3625.,
+        region='SUBURBAN')
+    self.assertAlmostEqual(res.db_loss, expected_itm_loss, 2)
+    self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
+    self.assertEqual(res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.ITM_DOMINANT)
+    self.assertEqual(res.internals['itm_err_num'],
+                     wf_hybrid.wf_itm.ItmErrorCode.WARNING)
 
   def test_ehata_dominant(self):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.771594, -122.253895, 10.0
-    reliabilities = [0.1, 0.5, 0.9]
-    expected_losses = [148.740, 148.740, 148.740]
-
-    for rel, exp_loss in zip(reliabilities, expected_losses):
-      res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                  reliability=rel, freq_mhz=3625.,
-                                  region='SUBURBAN')
-      self.assertAlmostEqual(res.db_loss, exp_loss, 2)
-      self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.EHATA_DOMINANT)
+    reliability = 0.5
+    expected_loss = 148.740
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=reliability, freq_mhz=3625.,
+        region='SUBURBAN')
+    self.assertAlmostEqual(res.db_loss, expected_loss, 2)
+    self.assertEqual(res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.EHATA_DOMINANT)
 
   def test_ehata_mean(self):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.771594, -122.253895, 10.0
     expected_med_loss = 161.93
-    expected_offset = 12.4393
+    expected_offset = -12.45
     self.assertAlmostEqual(wf_hybrid._GetMedianToMeanOffsetDb(3625., False),
                            expected_offset, 2)
 
-    res_med = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                    reliability=0.5, freq_mhz=3625.,
-                                    region='SUBURBAN')
-    res_mean = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                     reliability=-1, freq_mhz=3625.,
-                                     region='SUBURBAN')
+    res_med = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=0.5, freq_mhz=3625.,
+        region='SUBURBAN')
+    res_mean = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=-1, freq_mhz=3625.,
+        region='SUBURBAN')
     self.assertAlmostEqual(res_mean[0], res_med[0] + expected_offset, 2)
 
   def test_over_80km(self):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.094745, -122.040671, 10.0  # 81km away
-    expected_loss = 282.254
+    expected_loss = 286.907
     expected_itm_loss = 269.067
 
-    res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                reliability=0.5, freq_mhz=3625.,
-                                region='SUBURBAN')
+    res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=0.5, freq_mhz=3625.,
+        region='SUBURBAN')
     self.assertAlmostEqual(res.db_loss, expected_loss, 3)
     self.assertAlmostEqual(expected_itm_loss, res.internals['itm_db_loss'], 0)
-    self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.ITM_CORRECTED)
+    self.assertEqual(res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.ITM_CORRECTED)
 
-  def test_average(self):
+  def test_average_itm(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
-    lat2, lng2, height2 = 37.754406, -122.388342, 10.0
+    lat2, lng2, height2 = 37.754406, -122.388342, 1.5
     reliabilities = np.arange(0.01, 1.0, 0.01)
     losses = []
     for rel in reliabilities:
-      res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                  reliability=rel, freq_mhz=3625.,
-                                  region='SUBURBAN')
+      res = wf_itm.CalcItmPropagationLoss(
+          lat1, lng1, height1, lat2, lng2, height2,
+          reliability=rel, freq_mhz=3625.)
       losses.append(res.db_loss)
 
-    avg_res = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                    reliability=-1, freq_mhz=3625.,
-                                    region='SUBURBAN')
+    avg_res = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        reliability=-1, freq_mhz=3625.,
+        region='SUBURBAN')
+    self.assertEqual(avg_res.internals['hybrid_opcode'],
+                     wf_hybrid.HybridMode.ITM_DOMINANT)
     self.assertAlmostEqual(avg_res.db_loss,
-                           10*np.log10(np.mean(10**(np.array(losses)/10.))),
+                           -10*np.log10(np.mean(10**(-np.array(losses)/10.))),
                            5)
 
   def test_indoor(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0
     lat2, lng2, height2 = 37.754406, -122.388342, 10.0
-    res_outdoor = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                                   cbsd_indoor=False,
-                                                   reliability=0.5, freq_mhz=3625.,
-                                                   region='SUBURBAN')
-    res_indoor = wf_hybrid.CalcHybridPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                                     cbsd_indoor=True,
-                                                     reliability=0.5, freq_mhz=3625.,
-                                                     region='SUBURBAN')
+    res_outdoor = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        cbsd_indoor=False,
+        reliability=0.5, freq_mhz=3625.,
+        region='SUBURBAN')
+    res_indoor = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, height1, lat2, lng2, height2,
+        cbsd_indoor=True,
+        reliability=0.5, freq_mhz=3625.,
+        region='SUBURBAN')
     self.assertEqual(res_indoor.db_loss, res_outdoor.db_loss + 15)
 
   def test_median_to_mean_offset(self):
     # Test median to mean offset formula on lognormal sample
     np.random.seed(1234)
-    median = -80
+    median = 80
     std = wf_hybrid.GetEHataStandardDeviation(3625, True)
-    signal = median + np.random.randn(1000000) * std
+    signal = -median + np.random.randn(1000000) * std
     signal_mean = 10*np.log10(np.mean(10**(signal / 10.)))
     offset = wf_hybrid._GetMedianToMeanOffsetDb(3625, True)
-    self.assertAlmostEqual(median + offset, signal_mean, 1)
+    self.assertAlmostEqual(median + offset, -signal_mean, 2)
 
 if __name__ == '__main__':
   unittest.main()
