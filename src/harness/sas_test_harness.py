@@ -345,7 +345,7 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
                                    registration_request['cbsdSerialNumber'])
 
     internal_data = {
-        'id': '{}'.format(cbsd_reference_id),
+        'id': cbsd_reference_id,
         'registration': {
             'fccId': registration_request['fccId'],
             'cbsdCategory': registration_request['cbsdCategory'],
