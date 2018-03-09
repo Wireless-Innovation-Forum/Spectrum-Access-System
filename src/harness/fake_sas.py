@@ -53,7 +53,6 @@ from BaseHTTPServer import HTTPServer
 import ConfigParser
 from datetime import datetime
 from datetime import timedelta
-from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
 import uuid
 import json
 import ssl
@@ -266,6 +265,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def QueryPropagationAndAntennaModel(self, request):
+    from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
     return computePropagationAntennaModel(request)
 	
   def GetDailyActivitiesStatus(self):
@@ -319,11 +319,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
-      try:
-          response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
-      except ValueError:
-          self.send_response(400)
-          return 	  
+      response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',

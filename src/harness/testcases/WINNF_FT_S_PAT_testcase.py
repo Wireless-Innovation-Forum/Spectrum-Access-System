@@ -41,8 +41,8 @@ def computePropagationAntennaModel(request):
         coordinates = []
         ppa = request['ppa']
 
-        ARCSEC = 2
-        ppa_points = GeoUtils.GridPolygon(ppa['geometry'], ARCSEC)
+        arcsec = 1
+        ppa_points = GeoUtils.GridPolygon(ppa['geometry'], arcsec)
         if len(ppa_points) == 1:
             rx['longitude']= ppa_points[0][0]
             rx['latitude'] = ppa_points[0][1]
@@ -119,9 +119,9 @@ def fssdata(fss_record, rx_antenna_gain_required=None):
               'antennaGain': installationParam['antennaGain'],
               'antennaElevation': -installationParam['antennaDowntilt']}
     if rx_antenna_gain_required is not None:
-        fss['rx_antenna_gain_required'] = rx_antenna_gain_required
+        fss['rxAntennaGainRequired'] = rx_antenna_gain_required
     else:
-        fss['rx_antenna_gain_required'] = False
+        fss['rxAntennaGainRequired'] = False
     return fss
 
 
