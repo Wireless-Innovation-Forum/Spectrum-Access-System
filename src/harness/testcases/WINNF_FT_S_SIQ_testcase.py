@@ -16,8 +16,9 @@ import json
 import os
 import sas
 import sas_testcase
-from util import winnforum_testcase, getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent, filterChannelsByFrequencyRange
+import logging
+from util import winnforum_testcase, writeConfig,loadConfig, configurable_testcase ,getRandomLatLongInPolygon, \
+  makePpaAndPalRecordsConsistent,filterChannelsByFrequencyRange, addCbsdIdsToRequests
 import time
 
 class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
@@ -840,6 +841,235 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[response_num]['cbsdId'], cbsd_ids[response_num])
       self.assertFalse('availableChannel' in response[response_num])
       self.assertEqual(response[response_num]['response']['responseCode'], 300)
+
+  def generate_SIQ_12_default_config(self, filename):
+    """Generates the WinnForum configuration for SIQ.12."""
+    # Load GWBL information
+    gwpz_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+    # Load device info
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+
+    # Load PAL records
+    pal_record_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+
+    # Load PPA records
+    ppa_record1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    
+    pal_low_frequency1 = 3570000000
+    pal_high_frequency1 = 3580000000
+    pal_user_id1 = "pal_user_1"
+    pal_low_frequency2 = 3600000000
+    pal_high_frequency2 = 3610000000
+    pal_user_id2 = "pal_user_2"
+
+    # Make PAL and PPA record consistent
+    ppa_record1, pal_records1 = makePpaAndPalRecordsConsistent(
+        ppa_record1, [pal_record_0], pal_low_frequency1, pal_high_frequency1,
+        pal_user_id1)
+    ppa_record2, pal_records2 = makePpaAndPalRecordsConsistent(
+        ppa_record2, [pal_record_1], pal_low_frequency2, pal_high_frequency2,
+        pal_user_id2)
+    # Merge PAL records lists into one list (may contain duplicates)
+    pal_records = pal_records1 + pal_records2
+    
+    ppa_cluster_list_1 = [0]
+    ppa_cluster_list_2 = []
+    # Move device_b inside the PPA1 zone
+    device_b['installationParam']['latitude'] = 38.82767
+    device_b['installationParam']['longitude'] = -97.20497
+
+    # Creating conditionals for Cat B devices
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    conditionalParameters = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
+    }
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['installationParam']
+
+    # N2 spectrum inquiry requests
+    # 1. Spectrum Inquiry: 3550-3580 .
+    spectrum_inquiry_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_1['inquiredSpectrum'] = [{
+        'lowFrequency': 3550000000,
+        'highFrequency': 3580000000
+    }]
+
+    # 2. Spectrum Inquiry: Invalid Value of low and high frequency and invalid id for cbsdId.
+    spectrum_inquiry_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_2['inquiredSpectrum'] = [{
+        'lowFrequency': 3610000000,
+        'highFrequency': 3590000000
+    }]
+    spectrum_inquiry_2['cbsdId'] = "INVALID_CBSD_ID_12345"
+
+    # 3. Spectrum Inquiry: Missing parameter low frequency and missing cbsdId
+    spectrum_inquiry_3 = json.load(
+        open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
+    spectrum_inquiry_3['inquiredSpectrum'] = [{
+        'highFrequency': 3700000000
+    }]
+    spectrum_inquiry_3['cbsdId'] = "REMOVE"
+
+    # Create the actual config.
+    devices = [device_b, device_c, device_e]
+    conditionals = {
+        'registrationData': [conditionalParameters]
+    }
+
+    config = {
+      'registrationRequests': devices,
+      'conditionalRegistrationData': conditionals,
+      'expectedResponseCodes': [(0,), (103,), (102,)],
+      'palRecords': pal_records,
+      'ppaRecords': [
+        {'ppaRecord': ppa_record1, 'ppaClusterList': ppa_cluster_list_1},
+        {'ppaRecord': ppa_record2, 'ppaClusterList': ppa_cluster_list_2}
+      ],
+      'spectrumInquiryRequests': [
+        spectrum_inquiry_1,
+        spectrum_inquiry_2,
+        spectrum_inquiry_3
+      ],
+      'gwpzRecords': [gwpz_e],
+      'fr1Cbsd': [
+        [{'lowFrequency': 3570000000, 'highFrequency': 3580000000}],
+        [],
+        []
+      ],
+      'fr2Cbsd': [
+        [{'lowFrequency': 3570000000, 'highFrequency': 3580000000}],
+        [],
+        []
+      ]
+
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SIQ_12_default_config)
+  def test_WINNF_FT_S_SIQ_12(self, config_filename):
+    """[Configurable] Spectrum inquiry in the presence of protected entities."""
+
+    config = loadConfig(config_filename)
+        
+    # Light checking of the config file
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['registrationRequests']))
+    self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequests']))
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['fr1Cbsd']))
+    self.assertEqual(len(config['spectrumInquiryRequests']),len(config['fr2Cbsd']))
+    self.assertGreater(len(config['registrationRequests']),0)
+
+    # 1. Load information about N1 GWBZs
+    for gwpz_record in config['gwpzRecords']:
+      self._sas_admin.InjectWisp(gwpz_record)
+
+    # 2 & 3. Register N2 CBSDs
+    # Check registration response
+    # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
+    if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
+    else:
+      cbsd_ids = self.assertRegistered(config['registrationRequests'])
+
+    # 4. Load N3 PPAs
+    # Inject PAL Records for all PPAs
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+ 
+    # Update PPA records with devices' CBSD IDs and Inject zone data
+    for ppa in config['ppaRecords']:
+      ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+      for device_index in ppa['ppaClusterList']:
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
+      # Inject PPA into SAS UUT
+      zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
+ 
+    # 5. Trigger CPAS activity if GWPZ > 0 or PPA > 0
+    if (len(config['gwpzRecords']) > 0 or len(config['ppaRecords']) > 0):
+      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
+
+    # 6. Send N2 spectrum inquiry requests (one per registered CBSD)
+    spectrum_inquiry_list = config['spectrumInquiryRequests']
+    addCbsdIdsToRequests(cbsd_ids, spectrum_inquiry_list)
+ 
+    spectrum_inquiry_request = {'spectrumInquiryRequest': spectrum_inquiry_list}
+    spectrum_inquiry_response = self._sas.SpectrumInquiry(spectrum_inquiry_request)['spectrumInquiryResponse']
+
+    # Check the response contains N2 SpectrumInquiryResponse objects
+    self.assertEqual(len(spectrum_inquiry_response),len(config['spectrumInquiryRequests']))
+
+    for index,response in enumerate(spectrum_inquiry_response):
+      # If the corresponding request contained a valid cbsdId, the
+      # response shall contain the same cbsdId.
+      if 'cbsdId' in spectrum_inquiry_list[index]:
+        if spectrum_inquiry_list[index]['cbsdId'] in cbsd_ids:
+          self.assertEqual(response['cbsdId'], spectrum_inquiry_list[index]['cbsdId'])
+        else:
+          self.assertFalse('cbsdId' in response)
+
+      # Check response code matches the expected response code
+      self.assertIn(response['response']['responseCode'],config['expectedResponseCodes'][index])
+
+      if (response['response']['responseCode'] == 0) :
+        # Check if the 'availableChannel' parameter is present
+        self.assertTrue('availableChannel' in response)
+
+        # Check if the ruleApplied field is set to FCC_PART_96
+        for channel in response['availableChannel']:
+          self.assertEqual(channel['ruleApplied'], 'FCC_PART_96')
+
+        # Check that the GAA channel frequency ranges do not overlap with FR1cbsd ranges
+        for channel in response['availableChannel']:
+          if channel['channelType'] == 'GAA':
+            for fr1_range in config['fr1Cbsd'][index]:
+              # Check if the channel range is lower than the low freq of FR1cbsd range or if it is higher 
+              # than the high freq. If not then it is considered to be overlapping
+              self.assertTrue(((channel['frequencyRange']['highFrequency'] <= fr1_range['lowFrequency']) or
+                               (channel['frequencyRange']['lowFrequency'] >= fr1_range['highFrequency'])),
+                                "GAA channel overlaps with FR1cbsd")
+
+        # Check the PAL channels frequency ranges overlap with FR2cbsd
+        for channel in response['availableChannel']:
+          if channel['channelType'] == 'PAL':
+            self.assertChannelIncludedInFrequencyRanges(channel, config['fr2Cbsd'][index])
+  
+            # Check the PAL channels frequency ranges does not include any frequency range from 3650-3700MHz.
+            self.assertLess(channel['frequencyRange']['lowFrequency'], 3650000000) 
+            self.assertLessEqual(channel['frequencyRange']['highFrequency'], 3650000000) 
+
+        # Check the available channels are within the range requested by that CBSD
+        for channel in response['availableChannel']:
+          isFrequencyIncludedInRange = False
+          for inquired_spectrum in spectrum_inquiry_request['spectrumInquiryRequest'][index]['inquiredSpectrum']:
+            if ((channel['frequencyRange']['lowFrequency'] >= inquired_spectrum['lowFrequency']) and 
+                (channel['frequencyRange']['lowFrequency'] < inquired_spectrum['highFrequency']) and
+                (channel['frequencyRange']['highFrequency'] > inquired_spectrum['lowFrequency']) and
+                (channel['frequencyRange']['highFrequency'] <= inquired_spectrum['highFrequency'])):
+              isFrequencyIncludedInRange = True
+          self.assertTrue(isFrequencyIncludedInRange, "Available channel is not in requested frequency range")
+
+      else:
+        # Check 'availableChannel' is not present if the response code is not SUCCESS
+        self.assertFalse('availableChannel' in response)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_13(self):

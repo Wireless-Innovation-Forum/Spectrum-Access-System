@@ -167,6 +167,23 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
              frequency_range['highFrequency'])
 
+  def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
+    """Check if the channel lies within the list of frequency ranges.
+
+    Args:
+      channel: A dictionary containing frequencyRange,
+               which is a dictionary containing lowFrequency and highFrequency
+      frequency_ranges: A list of dictionaries containing
+                        lowFrequency and highFrequency
+    """
+    is_frequency_included_in_range = False
+    for frequency in frequency_ranges:
+      if (channel['frequencyRange']['lowFrequency'] >= frequency['lowFrequency'] and
+          channel['frequencyRange']['highFrequency'] <= frequency['highFrequency']):
+        is_frequency_included_in_range = True
+        break
+    self.assertTrue(is_frequency_included_in_range, "Channel is not included in list of frequency ranges")
+
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     """ this function trigger SAS UUT to generate dump files \
     and wait for the generation of them with a timeout of 7200 seconds
