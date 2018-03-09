@@ -1,0 +1,3 @@
+# Exclude all folders and files
+# they will be generated automatically by the config tests
+configs/*
