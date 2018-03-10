@@ -409,12 +409,32 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc):
+def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-  server.socket = ssl.wrap_socket(
+
+  if ca_cert is not None:
+    assert os.path.exists(os.path.join('certs', ca_cert)), "%s is not exist in certs path" % ca_cert
+
+  if verify_crl:
+    # If verify CRL flag is set then load the ca chain with CRLs and verify that
+    # the client certificate is not revoked.
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.options &= ssl.CERT_REQUIRED
+    ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
+    ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
+    ssl_context.load_cert_chain(
+      certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
+    )
+    ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+    ssl_context.verify_mode = ssl.CERT_REQUIRED
+    server.socket = ssl_context.wrap_socket(server.socket,
+                                            server_side=True)
+  else:
+    server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
@@ -431,10 +451,14 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
+  parser.add_argument(
+    '--ca', help='Use CA certificate', dest='ca_cert', action='store')
+  parser.add_argument(
+    '--verify_crl', help='Use revoke and CRL', dest='verify_crl', action='store_true')
   args = parser.parse_args()
 
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc)
+  RunFakeServer(version, args.ecc, args.ca_cert, args.verify_crl)
 

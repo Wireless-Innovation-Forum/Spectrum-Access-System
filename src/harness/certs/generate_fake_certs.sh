@@ -397,6 +397,45 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
     -policy policy_anything -extensions sas_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+#Certificate for test case WINNF.FT.S.SCS.16 - Certificate signed by a revoked CA presented during registration
+#Revoke the CBSD CA Certificate
+openssl ca -revoke cbsd_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+     -config ../../../cert/openssl.cnf
+
+#Certificate for test case WINNF.FT.S.SDS.16 - Certificate signed by a revoked CA presented during registration
+#Revoke the Domain Proxy CA Certificate
+openssl ca -revoke proxy_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+     -config ../../../cert/openssl.cnf
+
+#Certificate for test case WINNF.FT.S.SSS.16 - Certificate signed by a revoked CA presented during registration
+#Revoke the SAS CA Certificate
+openssl ca -revoke sas_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+     -config ../../../cert/openssl.cnf
+
+#Creating CRL for revoked CA xxS.16 test cases
+echo "\n\n Generate CRL for root_ca"
+openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
+     -config ../../../cert/openssl.cnf  -crlhours 1\
+     -out root/root_ca.crl
+
+echo "\n\n Generate CRL for sas_ca"
+openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/sas_ca.crl
+
+echo "\n\n Generate CRL for proxy_ca"
+openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/proxy_ca.crl
+
+echo "\n\n Generate CRL for cbsd_ca"
+openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/cbsd_ca.crl
+
+#Create CA certificate chain containing the CRLs with revoked certificates
+cat root/cbsd_ca.crl root/sas_ca.crl root/proxy_ca.crl root/root_ca.crl > ca_intermediate.crl
+
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert

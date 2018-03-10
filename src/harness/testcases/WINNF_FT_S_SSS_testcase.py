@@ -14,6 +14,7 @@
 import json
 import logging
 import os
+import time
 from OpenSSL import SSL
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import security_testcase
@@ -331,6 +332,39 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
        # Check if HTTP status is 403
        self.assertEqual(e.args[0], 403)
     self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
+
+  def generate_SSS_16_default_config(self, filename):
+    """Generates the WinnForum configuration for SSS_16. """
+    # Create the configuration for client cert/key,wait timer information
+
+    config = {
+      'sasCert': self.getCertFilename("sas.cert"),
+      'sasKey': self.getCertFilename("sas.key"),
+      'waitTimer': 60
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SSS_16_default_config)
+  def test_WINNF_FT_S_SSS_16(self, config_filename):
+    """Certificate signed by a revoked CA presented during registration.
+       Checks that SAS UUT response with fatal alert message.
+    """
+
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
+                 "list from the CRL server " % config['waitTimer'])
+
+    # Wait for the timer
+    time.sleep(config['waitTimer'])
+
+    # Tls handshake fails since CA is revoked
+    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
+                                   client_key=config['sasKey'])
+
+    logging.info("TLS handshake failed as the CA certificate has been revoked")
+
 
   def generate_SSS_17_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_17"""

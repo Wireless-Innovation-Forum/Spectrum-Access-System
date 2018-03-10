@@ -20,7 +20,6 @@ from OpenSSL import SSL
 from util import winnforum_testcase, configurable_testcase, \
   writeConfig, loadConfig
 
-
 DOMAIN_PROXY_CERT = os.path.join('certs', 'domain_proxy.cert')
 DOMAIN_PROXY_KEY = os.path.join('certs', 'domain_proxy.key')
 
@@ -266,6 +265,38 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
+
+  def generate_SDS_16_default_config(self, filename):
+    """Generates the WinnForum configuration for SDS_16. """
+    # Create the configuration for client cert/key,wait timer information
+
+    config = {
+      'domainProxyCert': self.getCertFilename("domain_proxy.cert"),
+      'domainProxyKey': self.getCertFilename("domain_proxy.key"),
+      'waitTimer': 60
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SDS_16_default_config)
+  def test_WINNF_FT_S_SDS_16(self, config_filename):
+    """Certificate signed by a revoked CA presented during registration.
+       Checks that SAS UUT response with fatal alert message.
+    """
+
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
+                 "list from the CRL server " % config['waitTimer'])
+
+    # Wait for the timer
+    time.sleep(config['waitTimer'])
+
+    # Tls handshake fails since CA is revoked
+    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
+                                   client_key=config['domainProxyKey'])
+
+    logging.info("TLS handshake failed as the CA certificate has been revoked")
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_17(self):
