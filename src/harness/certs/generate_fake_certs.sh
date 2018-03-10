@@ -234,6 +234,72 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+#Certificate for test case WINNF.FT.S.SCS.11
+echo "\n\nGenerate blacklisted client certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out blacklisted_client.csr -keyout blacklisted_client.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted CBSD "
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in blacklisted_client.csr \
+    -out blacklisted_client.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Revoke the blacklisted_client.cert for WINNF.FT.S.SCS.11
+openssl ca -revoke blacklisted_client.cert -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
+     -config ../../../cert/openssl.cnf
+
+#Certificate for test case WINNF.FT.S.SDS.11
+echo "\n\nGenerate blacklisted domain proxy certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out blacklisted_domain_proxy.csr -keyout blacklisted_domain_proxy.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted Domain Proxy"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in blacklisted_domain_proxy.csr \
+    -out blacklisted_domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Revoke the blacklisted_domain_proxy.cert for WINNF.FT.S.SDS.11
+openssl ca -revoke blacklisted_domain_proxy.cert -keyfile private/proxy_ca.key -cert proxy_ca.cert \
+     -config ../../../cert/openssl.cnf
+
+#Certificate for test case WINNF.FT.S.SSS.11
+echo "\n\nGenerate blacklisted sas certificate/key"
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out blacklisted_sas.csr -keyout blacklisted_sas.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted SAS "
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in blacklisted_sas.csr \
+    -out blacklisted_sas.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+#Create a CRL for root CA containing the revoked CBSD CA certificate
+echo "\n\n Generate CRL for root_ca"
+openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
+     -config ../../../cert/openssl.cnf  -crlhours 1\
+     -out root/root_ca.crl
+
+#Creating CRL for blacklisted certificates xxS.11 test cases
+echo "\n\n Generate CRL for sas_ca"
+openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/sas_ca.crl
+
+echo "\n\n Generate CRL for proxy_ca"
+openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/proxy_ca.crl
+
+echo "\n\n Generate CRL for cbsd_ca"
+openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
+     -config ../../../cert/openssl.cnf -crlhours 1 \
+     -out root/cbsd_ca.crl
+
+#Create CA certificate chain containing the  CRLs with revoked leaf certificates
+cat root/cbsd_ca.crl root/sas_ca.crl root/proxy_ca.crl root/root_ca.crl > ca_leaf.crl
+
 #Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
 echo "\n\nGenerate 'client_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \

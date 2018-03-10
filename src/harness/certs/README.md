@@ -18,11 +18,12 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
           sas_ca--------              cbsd_ca   			   proxy_ca
           /    \        \                \              	  		\
          /      \        \                \              	  		 \
-   admin_client  server  sas     client|device_[a|c]|corrupted_client        domain_proxy
-		          |       wrong_type_client|client_expired           corrupted_domain_proxy
-                   corrupted_sas  client_inapplicable                        wrong_type_domain_proxy
-                   sas_expired                                               domain_proxy_expired
-                                                                             domain_proxy_inapplicable
+   admin_client  server  sas     client|device_[a|c]|corrupted_client        domain_proxy|
+		          |       wrong_type_client|client_expired           corrupted_domain_proxy|
+                   corrupted_sas|  client_inapplicable|                    wrong_type_domain_proxy|
+                   sas_expired|    blacklisted_client                      domain_proxy_expired|
+                   blacklisted_client                                   domain_proxy_inapplicable|
+                                                                        blacklisted_client
 
  
 unrecognized_ca             non_cbrs_root_ca----------------------------------------------
@@ -102,6 +103,9 @@ Required certificates are:
   
 * `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.
+  
+* `blacklisted_client.[cert|key]`: leaf CBSD device certificate is blacklisted 
+  Used on security test test_WINNF_FT_S_SCS_11, test_WINNF_FT_S_SDS_11 and test_WINNF_FT_S_SSS_11..
   
 * `client_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.

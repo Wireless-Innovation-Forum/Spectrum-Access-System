@@ -13,8 +13,10 @@
 #    limitations under the License.
 
 import json
+import logging
 import os
 import security_testcase
+import time
 from OpenSSL import SSL
 from util import winnforum_testcase,configurable_testcase, writeConfig,loadConfig
 
@@ -180,6 +182,38 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
                                         ssl_key=config['clientKey'])['registrationResponse']
       # Check Registration Response
       self.assertEqual(response[0]['response']['responseCode'], 104)
+
+  def generate_SCS_11_default_config(self, filename):
+    """Generates the WinnForum configuration for SCS_11. """
+    # Create the configuration for blacklisted client cert/key,wait timer information
+
+    config = {
+      'clientCert': self.getCertFilename("blacklisted_client.cert"),
+      'clientKey': self.getCertFilename("blacklisted_client.key"),
+      'waitTimer': 60
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_11_default_config)
+  def test_WINNF_FT_S_SCS_11(self, config_filename):
+    """Blacklisted certificate presented during registration..
+       Checks that SAS UUT response with fatal alert message.
+    """
+
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
+                 "list from the CRL server " % config['waitTimer'])
+
+    # Wait for the timer
+    time.sleep(config['waitTimer'])
+
+    # Tls handshake fails
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+    logging.info("TLS handshake failed as the client certificate has blacklisted")
+
 
   def generate_SCS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SCS.12"""

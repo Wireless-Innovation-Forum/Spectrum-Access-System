@@ -13,7 +13,8 @@
 #    limitations under the License.
 import os
 import json
-
+import logging
+import time
 import security_testcase
 from OpenSSL import SSL
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
@@ -192,6 +193,38 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
       # Check Registration Response
       self.assertEqual(response[0]['response']['responseCode'], 104)
 
+  def generate_SDS_11_default_config(self, filename):
+    """Generates the WinnForum configuration for SDS_11. """
+    # Create the configuration for blacklisted sas cert/key,wait timer information
+
+    config = {
+      'domainProxyCert': self.getCertFilename("blacklisted_domain_proxy.cert"),
+      'domainProxyKey': self.getCertFilename("blacklisted_domain_proxy.key"),
+      'waitTimer': 60
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SDS_11_default_config)
+  def test_WINNF_FT_S_SDS_11(self, config_filename):
+    """Blacklisted certificate presented during registration..
+       Checks that SAS UUT response with fatal alert message.
+    """
+
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
+                 "list from the CRL server " % config['waitTimer'])
+
+    # Wait for the timer
+    time.sleep(config['waitTimer'])
+
+    # Tls handshake fails
+    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
+                                   client_key=config['domainProxyKey'])
+
+    logging.info("TLS handshake failed as the domain proxy certificate has blacklisted")
+
   def generate_SDS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SDS.12"""
     # Create the actual config for domain proxy cert/key path
@@ -201,6 +234,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
         'domainProxyKey': self.getCertFilename("domain_proxy_expired.key")
     }
     writeConfig(filename, config)
+
 
   @configurable_testcase(generate_SDS_12_default_config)
   def test_WINNF_FT_S_SDS_12(self,config_filename):
