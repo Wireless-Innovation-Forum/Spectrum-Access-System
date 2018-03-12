@@ -33,6 +33,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
+import numpy as np
 
 from shapely.geometry import shape, Point, LineString
 
@@ -426,3 +427,93 @@ def compareDictWithUnorderedLists(first_dict, second_dict):
  Returns: boolean set to true if the dictionaries are equal and false otherwise.
   """
   return _orderAttributes(first_dict) == _orderAttributes(second_dict)
+
+def _areTwoPointsEqual(first_point, second_point, delta):
+  """ a comparison of two points
+
+  Args:
+    first_point: an array which is the coordinates of the first point.
+
+    second_point:  an array which is the coordinates of the second point.
+    delta: an accepted margin for comparing the points
+ Return:  boolean set to true if the points are equal and false otherwise """
+  return abs(first_point[0] - second_point[0]) <= delta \
+    and abs(first_point[1] - second_point[1]) <= delta
+
+
+def _areTwoContoursEqual(first_contour, second_contour, delta):
+  """ a comparison of two contours of simple polygons
+
+  Args:
+    first_contour: GeoJSON LinearRing coordinate arrays represents the first simple polygon to be compared.
+                   the points' order of this ploygon is used as an order reference.
+    second_contour: GeoJSON LinearRing coordinate arrays represents the second simple polygon to be compared.
+    delta: an accepted margin for comparing the contours
+ Returns: boolean set to true if the contours are equal and false otherwise.
+  """
+  length = len(first_contour)
+  are_equal = length == len(second_contour) \
+    and first_contour[length -1] == first_contour[0]\
+    and second_contour[length -1] == second_contour[0]
+  if not are_equal:
+    return False
+  contour_length = length -1
+  start_points_of_second_contour = [p for p in range(contour_length) \
+    if _areTwoPointsEqual(second_contour[p], first_contour[0], delta)]
+  if len(start_points_of_second_contour) != 1:
+    return False
+  shift_index = start_points_of_second_contour[0]
+  for index in range(1, contour_length):
+    are_equal &= _areTwoPointsEqual(first_contour[index],  \
+      second_contour[(index + shift_index) % (contour_length)], delta)
+    if not are_equal:
+      return are_equal
+  return are_equal
+
+def areTwoPolygonsEqual(first_polygon, second_polygon, delta = 0):
+  """
+  Args:
+    first_polygon: the reference coordinates of GeoJSON polygon object which is an array of LinearRing coordinate arrays.
+      the points' order of this ploygon is used as an order reference.
+    second_polygon: the coordinates of GeoJSON polygon object.
+    delta: an accepted margin for comparing the points
+
+   Returns: boolean set to true if the polygons are equal and false otherwise.
+  """
+  # check the contours of the polygons
+  if len(first_polygon) != len(second_polygon)\
+   or not _areTwoContoursEqual(first_polygon[0], second_polygon[0], delta):
+    return False
+  #check the holes of the polygons
+  for index in range(1,  len(first_polygon)):
+    hole_in_second_polygon = [h for h in range(1, len(second_polygon)) \
+      if _areTwoContoursEqual(first_polygon[index], second_polygon[h], delta)]
+    if len(hole_in_second_polygon) != 1:
+      return False
+  return True
+
+def areTwoPpasEqual(first_ppa, second_ppa, delta = 0):
+  """ Deep comparison of two PPAs considering
+
+  Args:
+    first_ppa: a dictionary contains a reference of PPA data to compare to,
+               the points' order of the ploygon of this PPA is used a reference.
+    second_ppa: a dictionary contains PPA data to be compared.
+    delta: an accepted margin for comparing the polygons of PPAs
+
+ Returns: boolean set to true if the PPAs are equal and false otherwise.
+ Note: the PPA should contain only one GeoJson Feature, this feature should contain only one Polygon
+       and polygons with holes are accepted
+  """
+  polygon_of_first_ppa = first_ppa["zone"]["features"][0]["coordinates"]
+  polygon_of_second_ppa = second_ppa["zone"]["features"][0]["coordinates"]
+  if(not _areTwoPolygonsEqual(polygon_of_first_ppa, polygon_of_second_ppa, delta)):
+     return False
+  # check other Ppa parameters
+  del first_ppa["zone"]["features"][0]["coordinates"]
+  del second_ppa["zone"]["features"][0]["coordinates"]
+  result = compareDictWithUnorderedLists(first_ppa, second_ppa)
+  first_ppa["zone"]["features"][0]["coordinates"] = polygon_of_first_ppa
+  second_ppa["zone"]["features"][0]["coordinates"] = polygon_of_second_ppa
+  return result
+ 

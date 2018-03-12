@@ -1,6 +1,6 @@
 import sas_testcase
 import unittest
-from util import compareDictWithUnorderedLists
+from util import compareDictWithUnorderedLists, areTwoPolygonsEqual
 #===============================================================================
 # this class unit tests AssertChannelsContainFrequencyRange method with different
 # possible combinations for simplifying the tests we use frequencies in MHz units 
@@ -112,3 +112,70 @@ class AssertPpaComparison(sas_testcase.SasTestCase):
      self.assertFalse(compareDictWithUnorderedLists(ppa, ppa_with_pal_id_different))
 
      self.assertTrue(compareDictWithUnorderedLists(ppa, ppa))
+
+class AssertPolygonComparison(sas_testcase.SasTestCase):
+    
+   def setUp(self):
+    pass
+
+   def test_shouldAreTwoPolygonsEqualWithSameOrderReturnTrue(self):
+     c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     c2 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithFirstPointNotEqualLastPointReturnFalse(self):
+      c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348]]]
+      c2 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348]]]
+      self.assertFalse(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithNotEqualLengthtReturnFalse(self):
+      c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+      c2 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-107.40234375,44.43377984606822]]]
+      self.assertFalse(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithDifferentOrderReturnTrue(self):
+     c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     c2 = [[[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822], [-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573]]]
+     self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithSameOrderOnePointDifferentReturnFalse(self):
+     c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     c2 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.534179,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     self.assertFalse(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithNotCorrectOrderReturnFalse(self):
+     c1 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-107.5341796875,43.61221676817573],[-106.69921875,43.8028187190472],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     c2 = [[[-107.40234375,44.43377984606822],[-107.9296875,43.96119063892024],[-106.69921875,43.8028187190472],[-107.5341796875,43.61221676817573],[-106.69921875,44.49650533109348],[-107.40234375,44.43377984606822]]]
+     self.assertFalse(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithDeltaDifferenceReturnTrue(self):
+     c1 = [[[0, 0],[1, 0],[0, 1],[1, 1],[0, 0]]]
+     c2 = [[[0, 0],[1.1, 0.2],[-0.1, 1],[1, 1],[0, 0]]]
+     self.assertTrue(areTwoPolygonsEqual(c1, c2, 0.2))
+ 
+   def test_shouldAreTwoPolygonsEqualWithMoreThanDeltaDifferenceReturnFalse(self):
+     c1 = [[[0, 0],[1, 0],[0, 1],[1, 1],[0, 0]]]
+     c2 = [[[0, 0],[1.1, 0.2],[-0.1, 1],[1, 1],[0, 0]]]
+     self.assertFalse(areTwoPolygonsEqual(c1, c2, 0.1))
+
+   def test_shouldAreTwoPolygonsEqualWithTwoHolesReturnTrue(self):
+     c1 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]], \
+       [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
+       [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
+       ]
+     c2 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]],\
+       [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
+       [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
+       ]
+     self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))
+
+   def test_shouldAreTwoPolygonsEqualWithTwoHolesInDifferentOrderReturnTrue(self):
+     c1 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]], \
+       [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
+       [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
+       ]
+     c2 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]],\
+       [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]],\
+       [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]]\
+       ]
+     self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))

@@ -24,7 +24,7 @@ from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
 
 from util import configurable_testcase, writeConfig, loadConfig \
   , getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent \
-      , compareDictWithUnorderedLists,winnforum_testcase
+  , compareDictWithUnorderedLists, winnforum_testcase, areTwoPpasEqual
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   """ This class contains all FAD related tests mentioned in SAS TS  """
@@ -355,13 +355,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
           del ppa_record['id']
       # verify that the injected ppas exist in the dump files
-		  # TODO: check that the PPAs overlap nearly entirely, rather than requiring exactly the same vertices.
-      # and we should check the order of the points of PPA contour in the dump to be CCW 
       for index, ppa in enumerate(config['ppas']):
         del ppa['id']
         exist_in_dump = False
         for ppa_record in ppa_dump_data:			           
-          exist_in_dump = exist_in_dump or compareDictWithUnorderedLists(ppa_record, ppa)
+          exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
         self.assertTrue(exist_in_dump)        
       # verify the schema of record and two first parts of esc sensor record  Id
       for esc_record in esc_sensor_dump_data:                    

@@ -337,10 +337,6 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/trigger/create_full_activity_dump' % 
                    self._base_url, None, self._tls_config)
 
-  def TriggerFullActivityDump(self):
-    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' %
-                 self._base_url, None, self._tls_config)
-
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
 
