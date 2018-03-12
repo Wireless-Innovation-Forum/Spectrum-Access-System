@@ -116,28 +116,28 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqualToDeviceOrPreloadedConditionalParam('measCapability', \
             device, reg_conditional_device_data, cbsd_record[0])
             
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('latitude', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('latitude', \
             device['installationParam'], reg_conditional_device_data\
             ['installationParam'], cbsd_record[0]['installationParam'])
             
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('longitude', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('longitude', \
             device['installationParam'], reg_conditional_device_data\
             ['installationParam'], cbsd_record[0]['installationParam'])
             
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('height', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('height', \
             device['installationParam'], reg_conditional_device_data\
             ['installationParam'], cbsd_record[0]['installationParam'])
 
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('heightType', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('heightType', \
             device['installationParam'], reg_conditional_device_data\
             ['installationParam'], cbsd_record[0]['installationParam'])
             
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('antennaGain', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('antennaGain', \
             device['installationParam'], reg_conditional_device_data\
             ['installationParam'], cbsd_record[0]['installationParam'])                   
             
             # parameters should exist in record if exist in device,\        
-          self.assertEqualToDeviceOrPreloadedCondtionalParam('indoorDeployment', \
+          self.assertEqualToDeviceOrPreloadedConditionalParam('indoorDeployment', \
               device['installationParam'], reg_conditional_device_data['installationParam'],\
                 cbsd_record[0]['installationParam'])
           #  parameters should equal to device or to default value            

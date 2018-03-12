@@ -29,7 +29,6 @@
       "longitude",
       "height",
       "heightType",
-      "antennaGain",
       "antennaAzimuth",
       "antennaBeamwidth"
     ],
