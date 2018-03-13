@@ -1043,11 +1043,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     grant_expire_time = datetime.strptime(response['grantExpireTime'],
                                           '%Y-%m-%dT%H:%M:%SZ')
     grant_id = response['grantId']
-    heartbeat_request = {
+    heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }
+    }]
     del request, response
 
     # Step 4: Send heartbeat request and check heartbeat response
@@ -1064,18 +1064,18 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
             'lowFrequency': 3550000000,
             'highFrequency': 3560000000
         },
-        'dpaId': 'east_dpa6',
+        'dpaId': 'east_dpa6'
     })
 
     # Step 6: Sleep 240 seconds
     time.sleep(240)
 
     # Step 7
-    heartbeat_request = {
+    heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }
+    }]
     # Send heartbeat request and Check heartbeat response
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
@@ -1091,11 +1091,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertLess(datetime.utcnow(), grant_expire_time)
 
     # Step 8 - Heartbeat request with operationState = GRANTED
-    heartbeat_request = {
+    heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }
+    }]
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # Check heartbeat response
