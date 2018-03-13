@@ -1,5 +1,5 @@
 {
-  "_comment":"FSS - Inband Blocking CBSD partial overlap",
+        "_comment":"FSS - Inband Blocking CBSD partial overlap",
 	"id": "device_0_id",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_a",
@@ -20,7 +20,6 @@
                       "latitude": 39.54111,
                       "longitude": -99.54437,
                       "height": 3,
-                      "heightType":"AGL",
                       "indoorDeployment": true,
                       "antennaAzimuth": 72,
                       "antennaDowntilt": 3,

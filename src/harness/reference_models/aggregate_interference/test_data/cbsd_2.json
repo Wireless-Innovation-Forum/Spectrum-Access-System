@@ -1,11 +1,11 @@
 {
-  "_comment":"FSS - Inband Blocking CBSD partial overlap",
-	"id": "device_0_id",
+  "_comment":"FSS - TT&C Blocking CBSD",
+	"id": "device_2_id",
 	"registrationRequest": {
-					"fccId": "test_fcc_id_a",
+					"fccId": "test_fcc_id_c",
 		            "cbsdCategory": "B",
 		            "callSign": "KPPP",
-		            "userId": "test_user_id_a",
+		            "userId": "test_user_id_c",
 		            "airInterface": {
     				  "radioTechnology": "E_UTRA",
                       "supportedSpec": "LTE-Rel10"
@@ -14,11 +14,11 @@
                       "vendor": "Equipment Maker C"
                     },
 
-					"cbsdSerialNumber": "4321dcba_1",
+					"cbsdSerialNumber": "4321dcba_2",
                     "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
                     "installationParam": {
-                      "latitude": 39.54111,
-                      "longitude": -99.54437,
+                      "latitude": 40.70146, 
+                      "longitude": -97.84423,
                       "height": 3,
                       "heightType":"AGL",
                       "indoorDeployment": true,
@@ -31,12 +31,12 @@
     "grantRequests": [{
 					"channelType": "GAA",
 					"grantExpireTime": "calculated at runtime",
-					"id": "SAMPLE_1_12345",
+					"id": "SAMPLE_1_123",
 					"operationParam": {
-						"maxEirp": 37,
+						"maxEirp": 20,
 						"operationFrequencyRange": {
-							"highFrequency": 3603000000.0,
-							"lowFrequency": 3593000000.0
+							"highFrequency": 3620000000.0,
+							"lowFrequency": 3610000000.0
 						}
 					},
 					"terminated": false

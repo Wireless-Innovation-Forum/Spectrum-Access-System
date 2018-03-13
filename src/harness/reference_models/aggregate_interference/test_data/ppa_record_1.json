@@ -1,18 +1,16 @@
 {
-  "id": "PPA_0",
-  "name": "PPA Zone 0",
-  "creator": "admin_0",
+  "id": "PPA_1",
+  "name": "PPA Zone 1",
+  "creator": "admin_1",
   "usage": "PPA",
   "terminated": false,
   "ppaInfo": {
-        "ppaRegionType": "RURAL",
+        "ppaRegionType": "URBAN",
         "cbsdReferenceId": [
-          "cbsd_5",
-          "cbsd_3"
+          "cbsd_5"
         ],
         "palId": [
-          "pal_0",
-          "pal_1"
+          "pal_2"
         ],
         "ppaBeginDate": "2016-01-02 08:26:55",
         "ppaExpirationDate": "2020-01-02 08:26:55" 
@@ -24,7 +22,7 @@
         "type": "Feature",
         "properties": {},
         "geometry": {
-          "type": "polygon",
+          "type": "Polygon",
           "coordinates": [
               [
               [

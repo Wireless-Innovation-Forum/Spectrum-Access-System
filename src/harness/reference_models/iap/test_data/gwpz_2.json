@@ -1,11 +1,11 @@
 {  
-   "id":"incumbent/uls/0",
+   "id":"incumbent/uls/2",
    "type":"PART_90",
    "deploymentParam":{  
       "operationParam":{  
          "operationFrequencyRange":{  
-            "lowFrequency":3650000000.0,
-            "highFrequency":3680000000.0
+            "lowFrequency":3690000000.0,
+            "highFrequency":3700000000.0
          }
       }
    },
@@ -15,7 +15,7 @@
          {  
             "type":"Feature",
             "properties":{  
-               "gwpzRegionType":"RURAL"
+               "gwpzRegionType":"SUBURBAN"
             },
             "geometry":{  
                "type":"Polygon",

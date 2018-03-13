@@ -1,10 +1,11 @@
 {
+  "_comment":"FSS - Co-Channel/GWPZ CBSD",
 	"id": "device_1_id",
 	"registrationRequest": {
-					"fccId": "test_fcc_id_a",
+					"fccId": "test_fcc_id_b",
 		            "cbsdCategory": "A",
 		            "callSign": "KPPP",
-		            "userId": "test_user_id_a",
+		            "userId": "test_user_id_b",
 		            "airInterface": {
     				  "radioTechnology": "E_UTRA",
                       "supportedSpec": "LTE-Rel10"
@@ -13,13 +14,13 @@
                       "vendor": "Equipment Maker C"
                     },
 
-					"cbsdSerialNumber": "4321dcba_1",
+					"cbsdSerialNumber": "5321dcba_1",
                     "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
                     "installationParam": {
-                      "latitude": 39.0331,
-                      "longitude": -100.0398,
+                      "latitude": 39.97396,
+                      "longitude": -98.78219,
                       "height": 3,
-                      "heightType": "AGL",
+                      "heightType":"AGL",
                       "indoorDeployment": true,
                       "antennaAzimuth": 72,
                       "antennaDowntilt": 3,
@@ -30,25 +31,12 @@
     "grantRequests": [{
 					"channelType": "GAA",
 					"grantExpireTime": "calculated at runtime",
-					"id": "SAMPLE_ID_12345",
+					"id": "SAMPLE_2_12345",
 					"operationParam": {
 						"maxEirp": 20,
 						"operationFrequencyRange": {
-							"highFrequency": 3700000000.0,
-							"lowFrequency": 3690000000.0
-						}
-					},
-					"terminated": false
-				},
-               {
-					"channelType": "GAA",
-					"grantExpireTime": "calculated at runtime",
-					"id": "SAMPLE_ID_4582",
-					"operationParam": {
-						"maxEirp": 30,
-						"operationFrequencyRange": {
-							"highFrequency": 3680000000.0,
-							"lowFrequency": 3670000000.0
+							"highFrequency": 3662000000.0,
+							"lowFrequency": 3647000000.0
 						}
 					},
 					"terminated": false

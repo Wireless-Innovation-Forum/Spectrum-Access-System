@@ -1,13 +1,19 @@
-# The WinnForum R2-SGN-16 Iterative Allocation Process(IAP) Reference Implementation
+# The WinnForum R2-SGN-12 Iterative Aggregate Interference Calculation Reference Implementation
 
-This folder contains Python code and test data for calculation of the IAP 
-according to the R2-SGN-16 requirement in the WINNF-TS-0112 document, Version V1.4.1 
+This folder contains Python code and test data for calculation of the Aggregate Interference
+according to the R2-SGN-12 requirement in the WINNF-TS-0112 document, Version V1.4.1 
 (January 16, 2018) [1].
 
 ## Main Interface 
 
-The main routine to perform IAP on different incumbent types is  
-`iap.performIAP()`. 
+The main routine to perform aggregate interference on FSS incumbent is 
+`aggregate_interference.calculateAggregateInterferenceForFSS()`. 
+The main routine to perform aggregate interference on ESC incumbent is 
+`aggregate_interference.calculateAggregateInterferenceForESC()`. 
+The main routine to perform aggregate interference on GWPZ incumbent is 
+`aggregate_interference.calculateAggregateInterferenceForGWPZ()`. 
+The main routine to perform aggregate interference on PPA incumbent is 
+`aggregate_interference.calculateAggregateInterferenceForPPA()`. 
 
 ## Code Prerequisites
 
@@ -24,10 +30,10 @@ Python software and packages:
    
 ## Test Data
 
-To test the `iap.performIAP()` routine for a GWPZ, PPA, FSS and ESC incumbent types, 
-one can use the example given in the `iap_example.py` file along with the test 
+To test the aggregate_interference routine for a GWPZ, PPA, FSS and ESC incumbent types, 
+one can use the example given in the `aggregate_interference_example.py` file along with the test 
 data stored in the `\test_data` sub-folder. To run the example, use the command 
-`python iap_example.py`.
+`python aggregate_interference_example.py`.
 
 ## Copyrights and Disclaimers
 #

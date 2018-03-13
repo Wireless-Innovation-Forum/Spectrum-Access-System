@@ -12,308 +12,350 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from reference_models.examples import entities, example_fss_interference
-from reference_models.iap import util
-from reference_models.iap import compute
+"""
+==================================================================================
+  Aggregate Interference Calculations Reference Model[R2-SGN-12].
+  Based on WINNF-TS-0112, Version V1.4.1, 16 January 2018.
 
+  This model provides the functions to calculate the aggregate interference for
+  the protection constrains of FSS, ESC, GWPZ and PPA.
 
-# Global aggrigate interference container
-aggregate_interference = {}
+  The main routines are:
 
-# Calculate aggregate interference per area constraint
+    calculateAggregateInterferenceForFss
+    calculateAggregateInterferenceForEsc
+    calculateAggregateInterferenceForGwpz
+    calculateAggregateInterferenceForPpa
 
+  The routines returns a dictionary conotaining key as protection constraints 
+  (lat, long, low_freq, high_freq, entity_type) and value as the aggregate 
+  interference value in dBm for each of the constraints.
+==================================================================================
+"""
 
-def aggrAreaConstraint(
-    protectionPoints, channels, lowFreq, highFreq, cbsdGrantReqs,
-        protection_ent_type):
-    """
-    Updates global container aggregate_interference with aggregate interference for protection point, channel
-    Inputs:
-     protectionPoints:   List of protection points inside protection area
-     channels:           Channels over which reference incumbent needs protection
-     lowFreq:            low frequency of protection constraint (Hz)
-     highFreq:           high frequency of protection constraint (Hz)
-     cbsdGrantReqs:      a list of grant requests, each one being a dictionary
-                         containing grant information
-     hIncAnt:            reference incumbent antenna height (m)
-     protection_ent_type:  an enum member of class ProtectionEntityType
-    Returns:             Updates global container aggregate_interference with aggregate interference for protection point, channel
+import numpy as np 
+import logging
+from reference_models.interference import interference as interf
+from reference_models.geo import utils
 
-    """
-    aggregate_interference_point_channel = []
-    # For each point p_i in protectionPoints
-    for protectionPoint in protectionPoints:
-        # Get protection constrain over 5MHz channel range
-        constraint = util.ProtectionConstraint(latitude=protectionPoint[0],
-                                               longitude=protectionPoint[1],
-                                               lowFrequency=lowFreq,
-                                               highFrequency=highFreq,
-                                               entityType=protection_ent_type)
-        # Identify Na CBSD grants in the neighborhood of the protection point
-        # and channel
-        Na_grants = util.findGrantsInsideNeighborhood(
-            cbsdGrantReqs, constraint)
+def convertAndSumInterference(cbsd_interference_list):
+  """ Converts interference in dBm to mW to calculate aggregate interference """
+  
+  interferences_in_mw = [interf.dbToLinear(cbsd_interference) 
+      for cbsd_interference in cbsd_interference_list]
 
-        # For each channel in channels
-        for channel in channels:
-            # Get protection constrain over 5MHz channel range
-            ch_constraint = util.ProtectionConstraint(
-                latitude=protectionPoint[0],
-                longitude=protectionPoint[1],
-                lowFrequency=channel[0],
-                highFrequency=channel[1],
-                entityType=protection_ent_type)
+  aggregate_interference_in_mw = np.sum(interferences_in_mw)
 
-            cbsd_interference_list = []
-            for i, grant in enumerate(Na_grants):
-                cbsd_interference = compute.computeInterference(
-                    grant, ch_constraint, util.GWPZ_PPA_HEIGHT, grant.maxEirp)
-                cbsd_interference_list.append(cbsd_interference)
-            aggregate_interference[ch_constraint] = sum(cbsd_interference_list)
+  return interf.linearToDb(aggregate_interference_in_mw)
 
+def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_freq, 
+      grant_objects, fss_info, esc_antenna_info, protection_ent_type, 
+      region_type="SUBURBAN"):
+  """Algorithm to compute aggregate interference for protection point
+  
+  This method is invoked to calculate aggregate interference for FSS(Co-channel 
+  passband) and ESC protection points.It is also invoked for protection points 
+  within PPA and GWPZ protection areas.
 
-# Calculate aggregate interference per protection point
-def aggrPointConstraint(
-    protectionPoint, channels, lowFreq, highFreq, cbsdGrantReqs,
-        hIncAnt, azIncAnt, fssEntities, protection_ent_type):
-    """
-     Updates global container aggregate_interference with aggregate interference for protection point, channel
-    Inputs:
-     protectionPoints:   List of protection points inside protection area
-     channels:           Channels over which reference incumbent needs protection
-     lowFreq:            low frequency of protection constraint (Hz)
-     highFreq:           high frequency of protection constraint (Hz)
-     cbsdGrantReqs:      a list of grant requests, each one being a dictionary
-                         containing grant information
-     hIncAnt:            reference incumbent antenna height (m)
-     protection_ent_type:  an enum member of class ProtectionEntityType
-    Returns:              Updates global container aggregate_interference with aggregate interference for protection point, channel
+  Args:
+   protection_point: Protection point inside protection area
+   channels: Channels over which reference incumbent needs protection
+   low_freq: Low frequency of protection constraint (Hz)
+   high_freq: High frequency of protection constraint (Hz)
+   grant_objects: A list of grant requests, each one being a namedtuple
+                  containing grant information
+   fss_info: Contains information on antenna height and weights on the tangent
+             and perpendicular components.
+   esc_antenna_info: Contains information on ESC antenna height, azimuth,
+                     gain and pattern gain 
+   protection_ent_type: An enum member of class ProtectionEntityType
+   region_type: Region type of the protection point
+   Returns:
+      Aggregate interference for a protection constraint
+  """
 
-    """
-    aggregate_interference_point_channel = []
-    # For each channel in channels
-    for channel in channels:
+  aggregate_interference = {}
 
-        # Get protection constrain over 5MHz channel range
-        constraint = util.ProtectionConstraint(latitude=protectionPoint[0],
-                                               longitude=protectionPoint[1],
-                                               lowFrequency=lowFreq,
-                                               highFrequency=highFreq,
-                                               entityType=protection_ent_type)
+  for channel in channels:
+    # Get protection constraint over 5MHz channel range
+    protection_constraint = \
+           interf.ProtectionConstraint(latitude=protection_point[0],
+             longitude=protection_point[1], low_frequency=channel[0],
+             high_frequency=channel[1], entity_type=protection_ent_type)
 
-        # Identify Na CBSD grants in the neighborhood of the protection point
-        # and channel
-        Na_grants = util.findGrantsInsideNeighborhood(
-            cbsdGrantReqs, constraint)
-        cbsd_interference_list = []
-        for i, grant in enumerate(Na_grants):
-            # Compute interference grant causes to protection point over
-            # channel
-            if protection_ent_type is util.ProtectionEntityType.FSS_CO_CHA:
-                cbsd_interference = compute.computeInterferenceFSS(grant,
-                                                                   constraint, hIncAnt, fssEntities, grant.maxEirp)
-            else:
-                cbsd_interference = compute.computeInterferenceESC(
-                    grant, constraint, hIncAnt, azIncAnt, grant.maxEirp, fssEntities)
-            cbsd_interference_list.append(cbsd_interference)
-        # Get protection constrain over 5MHz channel range
-        ch_constraint = util.ProtectionConstraint(latitude=protectionPoint[0],
-                                                  longitude=protectionPoint[1],
-                                                  lowFrequency=channel[0],
-                                                  highFrequency=channel[1],
-                                                  entityType=protection_ent_type)
-        aggregate_interference[ch_constraint] = sum(cbsd_interference_list)
+    # Identify CBSD grants in the neighborhood of the protection point
+    # and channel
+    neighborhood_grants = interf.findOverlappingGrantsInsideNeighborhood(
+                            grant_objects, protection_constraint)
 
+    if len(neighborhood_grants) is 0:
+      continue
 
-def aggrFSSBlockingConstraint(
-    protectionPoint, lowFreq, highFreq, cbsdGrantReqs, hIncAnt,
-        fss_entities, protection_ent_type):
-    """
-     Updates global container aggregate_interference with aggregate interference for protection point, channel
-    Inputs:
-        protectionPoints:   List of protection points inside protection area
-        channels:           Channels over which reference incumbent needs protection
-        lowFreq:            low frequency of protection constraint (Hz)
-        highFreq:           high frequency of protection constraint (Hz)
-        cbsdGrantReqs:           a list of grant requests, each one being a dictionary
-                            containing grant information
-        hIncAnt:            reference incumbent antenna height (m)
-                            given protection constraint
-        protection_ent_type:  an enum member of class ProtectionEntityType
-    Returns:              Updates global container aggregate_interference with aggregate interference for protection point, channel
-
-    """
-
-    # Find all the GAA grants inside 150kms
-    # Assign values to the protection constraint
-    constraint = util.ProtectionConstraint(latitude=protectionPoint[0],
-                                           longitude=protectionPoint[1],
-                                           lowFrequency=lowFreq,
-                                           highFrequency=highFreq,
-                                           entityType=protection_ent_type)
-
-    # Identify Na CBSD grants in the neighborhood of the protection constrain
-    Na_grants = util.findGrantsInsideNeighborhood(cbsdGrantReqs, constraint)
     cbsd_interference_list = []
-    for i, grant in enumerate(Na_grants):
-        cbsd_interference = compute.computeInterferenceFSSBlocking(
-            grant, constraint, hIncAnt, fssEntities, grant.maxEirp)
+    # Compute interference grant causes to protection point over channel 
+    for i, grant in enumerate(neighborhood_grants):
+      # Compute interference at FSS incumbent type
+      if protection_ent_type is interf.ProtectionEntityType.FSS_CO_CHANNEL or\
+        protection_ent_type is interf.ProtectionEntityType.FSS_BLOCKING:
+         cbsd_interference = interf.computeInterferenceFss(grant, 
+                               protection_constraint, fss_info, grant.max_eirp)
+         cbsd_interference_list.append(cbsd_interference)
+
+      # Compute interference at ESC incumbent type
+      elif protection_ent_type is interf.ProtectionEntityType.ESC_CAT_A or\
+         protection_ent_type is interf.ProtectionEntityType.ESC_CAT_B:
+        cbsd_interference = interf.computeInterferenceEsc(grant, 
+                              protection_constraint, esc_antenna_info, 
+                              grant.max_eirp)
         cbsd_interference_list.append(cbsd_interference)
-    aggregate_interference[constraint] = sum(cbsd_interference_list)
+
+      else:
+        # Compute interference at GWPZ or PPA incumbent types
+        cbsd_interference = interf.computeInterferencePpaGwpzPoint(grant, 
+                              protection_constraint, interf.GWPZ_PPA_HEIGHT, 
+                              grant.max_eirp, region_type)
+        cbsd_interference_list.append(cbsd_interference)
+    
+    # Update aggregate interference for a protection constraint
+    aggregate_interference[protection_constraint] =\
+              convertAndSumInterference(cbsd_interference_list)
+
+  return aggregate_interference
+
+def aggrFSSBlockingConstraint(protection_point, low_freq, high_freq, 
+                              grant_objects, fss_info, protection_ent_type):
+  """ Calculates aggregate interference for from CBSDs in the neighborhood of 
+  FSS Blocking pass band
+  """ 
+
+  # Assign values to the protection constraint
+  constraint = interf.ProtectionConstraint(latitude=protection_point[0],
+                 longitude=protection_point[1], low_frequency=low_freq,
+                 high_frequency=high_freq, entity_type=protection_ent_type)
+
+  # Identify CBSD grants in the neighborhood of the protection constraint
+  neighborhood_grants = interf.\
+      findOverlappingGrantsInsideNeighborhood(grant_objects, constraint)
+  cbsd_interference_list = []
+  aggregate_interference = {}
+  for grant in neighborhood_grants:
+    cbsd_interference = interf.computeInterferenceFssBlocking(grant, constraint,
+                          fss_info, grant.max_eirp)
+    cbsd_interference_list.append(cbsd_interference)
+
+  aggregate_interference[constraint] =\
+      convertAndSumInterference(cbsd_interference_list)
+  return aggregate_interference
 
 
-def calculateAggregateInterferenceForFSS(fss, cbsd_list):
-    """
-    Calculates aggregate interference to FSS.
-    Inputs:
-        fss : FSS protection entity
-        cbsd_list: list of CBSD objects
-    Returns:
-        result: aggregate interference to FSS in the dictionary format {(latitude, longitude, lowFrequency,highFrequency,entityType): aggregateinterference, .......}
+def calculateAggregateInterferenceForFss(fss_record, cbsd_list):
+  """
+  Calculates aggregate interference for FSS.
+  
+  Calculates aggregate interference for each prtection constraint in the FSS
+  based on the interferences caused by CBSD's grants in the neighborhood of
+  the FSS protection entity.
 
-    """
+  Args:
+    fss_record: FSS protection entity
+    cbsd_list: list of CBSD objects containing RegistrationRequests and GrantRequests
+  Returns:
+    Aggregate interference to FSS in the dictionary format,where the key is a tuple. 
+    {(latitude, longitude, low_frequency, high_frequency,entity_type):
+    aggregate_interference(dBm)}
+  """
+  grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
+  # Get FSS T&C Flag value
+  fss_weight1 = fss_record['deploymentParam'][0]['weight1']
+  fss_weight2 = fss_record['deploymentParam'][0]['weight2']
 
-    cbsd_grant_reqs = util.getGrantsFromCbsdObjects(cbsd_list)
-    # Get FSS T&C Flag value
-    fss_ttc_flag = fss['deploymentParam'][0]['ttc_flag']
-    # Get the protection point of the FSS
-    fss_point = fss['deploymentParam'][0]['installationParam']
-    protection_point = [fss_point['latitude'], fss_point['longitude']]
-    # Get FSS Antenna Height
-    fss_height_agl = fss_point['height']
+  fss_ttc_flag = fss_record['deploymentParam'][0]['ttc']
+  # Get the protection point of the FSS
+  fss_point = fss_record['deploymentParam'][0]['installationParam']
+  protection_point = (fss_point['latitude'], fss_point['longitude'])
 
-    # Get FSS Antenna Gain
-    fss_max_antenna_gain = fss_point['antennaGain']
+  # Get the frequency range of the FSS
+  fss_freq_range =\
+    fss_record['deploymentParam'][0]['operationParam']['operationFrequencyRange']
+  fss_low_freq = fss_freq_range['lowFrequency']
+  fss_high_freq = fss_freq_range['highFrequency']
 
-    # Get the frequency range of the FSS
-    fss_freqRange = fss['deploymentParam'][0][
-        'operationParam']['operationFrequencyRange']
-    fss_lowFreq = fss_freqRange['lowFrequency']
-    fss_highFreq = fss_freqRange['highFrequency']
-    # TODO -- Details on elevation and arc parameters are to clarified
-    fss_info = entities.FssLicenseInfo(latitude=protection_point[0],
-                                       longitude=protection_point[1],
-                                       height_agl=fss_height_agl,
-                                       max_gain_dbi=fss_max_antenna_gain,
-                                       satellite_arc_east_limit=-60,
-                                       satellite_arc_west_limit=-143,
-                                       elevation_east_limit=32.8,
-                                       elevation_west_limit=22.9,
-                                       azimuth_east_limit=132.6,
-                                       azimuth_west_limit=241.2)
+  # Get FSS information
+  fss_info = interf.\
+      FssInformation(antenna_height=fss_point['height'],
+                     antenna_azimuth=fss_point['antennaAzimuth'],
+                     antenna_elevation=fss_point['antennaElevationAngle'],
+                     antenna_gain=fss_point['antennaGain'],
+                     weight1=fss_weight1,
+                     weight2=fss_weight2)
 
-    # Get all the FSS "protection points".
-    fss_entities = example_fss_interference.GetAllFssFromLicenseInfo(fss_info)
-
-    # FSS Passband is between 3600 and 4200
-    if (fss_lowFreq >= util.FSS_LOW_FREQ and fss_lowFreq < util.CBRS_HIGH_FREQ):
-        # Get channels for co-channel CBSDs
-        protection_channels = util.getChannels(
-            fss_lowFreq, util.CBRS_HIGH_FREQ)
-        aggrPointConstraint(
-            protection_point, protection_channels, fss_lowFreq, util.CBRS_HIGH_FREQ,
-            cbsd_grant_reqs, fss_height_agl, None, fss_entities, util.ProtectionEntityType.FSS_CO_CHA)
-        # 5MHz channelization is not required for Blocking protection
-        # FSS in-band blocking algorithm
-        aggrFSSBlockingConstraint(
-            protection_point, util.CBRS_LOW_FREQ, fss_lowFreq, cbsd_grant_reqs, fss_height_agl,
-            fss_entities, util.ProtectionEntityType.FSS_BLOCKING)
-    # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
-    elif (fss_lowFreq >= 3700 and fss_highFreq <= 4200) and (fss_ttc_flag == True):
-        # 5MHz channelization is not required for Blocking protection
-        # FSS TT&C Blocking Algorithm
-        aggrFSSBlockingConstraint(
-            protection_point, util.CBRS_LOW_FREQ, fss_lowFreq, cbsd_grant_reqs, fss_height_agl,
-            fss_entities, util.ProtectionEntityType.FSS_BLOCKING)
-    elif (fss_lowFreq >= 3700 and fss_highFreq <= 4200) and (fss_ttc_flag == False):
-        print 'Aggregate nterference not calculated for FSS Pass band 3700 to 4200 and TT&C flag set to false'
-    return aggregate_interference
-
-
-def calculateAggregateInterferenceForESC(esc, cbsd_list):
-    """
-    Calculates aggregate interference to ESC.
-    Inputs:
-        esc : esc protection entity
-        cbsd_list: list of CBSD objects
-    Returns:
-        result: aggregate interference to ESC in the dictionary format {(latitude, longitude, lowFrequency,highFrequency,entityType): aggregateinterference, .......}
-
-    """
-
-    cbsd_grant_reqs = util.getGrantsFromCbsdObjects(cbsd_list)
-
-    # Get the protection point of the ESC
-    esc_point = esc['installationParam']
-    protection_point = [esc_point['latitude'], esc_point['longitude']]
-
-    # Get ESC Antenna Height
-    antenna_height = esc_point['height']
-
-    # Get ESC Antenna Azimuth
-    antenna_azimuth = esc_point['antennaAzimuth']
-
-    # ESC Category A CBSDs between 3550 - 3660 MHz within 40 km
-    protection_channels = util.getChannels(
-        util.ESC_CAT_A_LOW_FREQ, util.ESC_CAT_A_HIGH_FREQ)
-    aggrPointConstraint(
-        protection_point, protection_channels, util.ESC_CAT_A_LOW_FREQ, util.ESC_CAT_A_HIGH_FREQ,
-        cbsd_grant_reqs, antenna_height, antenna_azimuth, None, util.ProtectionEntityType.ESC_CAT_A)
-    # ESC Category B CBSDs between 3550 - 3680 MHz within 80 km
-    protection_channels = util.getChannels(
-        util.ESC_CAT_B_LOW_FREQ, util.ESC_CAT_B_HIGH_FREQ)
-    aggrPointConstraint(
-        protection_point, protection_channels, util.ESC_CAT_B_LOW_FREQ, util.ESC_CAT_B_HIGH_FREQ,
-        cbsd_grant_reqs, antenna_height, antenna_azimuth, None, util.ProtectionEntityType.ESC_CAT_B)
-
-    return aggregate_interference
+  aggregate_interference = {}
+  # FSS Passband is between 3600 and 4200
+  if(fss_low_freq >= interf.FSS_LOW_FREQ and 
+         fss_low_freq < interf.CBRS_HIGH_FREQ):
+    # Get channels for co-channel CBSDs
+    protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ)
+    aggregate_interference = aggregateInterferenceForPoint(protection_point, 
+                               protection_channels, fss_low_freq, 
+                               interf.CBRS_HIGH_FREQ, grant_list, fss_info, 
+                               None, interf.ProtectionEntityType.FSS_CO_CHANNEL)
+    # 5MHz channelization is not required for Blocking protection
+    # FSS in-band blocking algorithm
+    aggregate_interference = aggrFSSBlockingConstraint(
+      protection_point, interf.CBRS_LOW_FREQ, fss_low_freq, 
+      grant_list, fss_info, interf.ProtectionEntityType.FSS_BLOCKING)
+  # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
+  elif(fss_low_freq >= 3700 and fss_high_freq <= 4200) and\
+                                (fss_ttc_flag is True):
+    # 5MHz channelization is not required for Blocking protection
+    # FSS TT&C Blocking Algorithm
+    aggregate_interference = aggrFSSBlockingConstraint(
+      protection_point, interf.CBRS_LOW_FREQ, fss_low_freq, 
+      grant_list, fss_info, interf.ProtectionEntityType.FSS_BLOCKING)
+  elif(fss_low_freq >= 3700 and fss_high_freq <= 4200) and\
+                             (fss_ttc_flag is False):
+    logging.info('Aggregate interference not calculated for FSS Pass band'
+    '3700 to 4200 and TT&C flag set to false')
+  return aggregate_interference
 
 
-def calculateAggregateInterferenceForGWPZ(gwpz, cbsd_list):
-    """
-    Calculates aggregate interference to GWPZ.
-    Inputs:
-        gwpz : gwpz protection entity
-        cbsd_list: list of CBSD objects
-    Returns:
-        result: aggregate interference to GWPZ in the dictionary format {(latitude, longitude, lowFrequency,highFrequency,entityType): aggregateinterference, .......}
+def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
+  """
+  Calculates aggregate interference for ESC.
+  
+  Calculates aggregate interference for each prtection constraint in the ESC
+  based on the interferences caused by CBSD's grants in the neighborhood of
+  the ESC protection entity.
+  
+  Args:
+    esc_record: ESC protection entity
+    cbsd_list: list of CBSD objects containing RegistrationRequests and GrantRequests
+  Returns:
+    Aggregate interference to ESC in the dictionary format,where the key is a tuple. 
+    {(latitude, longitude, low_frequency, high_frequency,entity_type):
+    aggregate_interference(dBm)}
+  """
 
-    """
+  grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
+  # Get the protection point of the ESC
+  esc_point = esc_record['installationParam']
+  protection_point = (esc_point['latitude'], esc_point['longitude'])
 
-    cbsd_grant_reqs = util.getGrantsFromCbsdObjects(cbsd_list)
+  # Get azimuth radiation pattern
+  ant_pattern = esc_point['azimuthRadiationPattern']
 
-    # Get Fine Grid Points for a GWPZ protoection area
-    protection_points = util.getFUGPoints(gwpz)
-    gwpz_freqRange = gwpz['record']['deploymentParam'][
-        0]['operationParam']['operationFrequencyRange']
-    gwpz_lowFreq = gwpz_freqRange['lowFrequency']
-    gwpz_highFreq = gwpz_freqRange['highFrequency']
-    # Get channels over which area incumbent needs partial/full protection
-    protection_channels = util.getChannels(gwpz_lowFreq, gwpz_highFreq)
-    aggrAreaConstraint(
-        protection_points, protection_channels, gwpz_lowFreq, gwpz_highFreq, cbsd_grant_reqs,
-        util.ProtectionEntityType.GWPZ_AREA)
-    return aggregate_interference
+  # Initialize array of size length of ant_pattern list
+  ant_pattern_gain = np.arange(len(ant_pattern))
+  for i, pattern in enumerate(ant_pattern):
+    ant_pattern_gain[i] = pattern['gain']
+
+  # Get ESC antenna information
+  esc_antenna_info = interf.\
+    EscInformation(antenna_height=esc_point['height'],
+                     antenna_azimuth=esc_point['antennaAzimuth'],
+                     antenna_gain=esc_point['antennaGain'],
+                     antenna_pattern_gain=ant_pattern_gain)
+
+  # ESC Category A CBSDs between 3550 - 3660 MHz within 40 km
+  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_A_LOW_FREQ, 
+                          interf.ESC_CAT_A_HIGH_FREQ)
+  aggregate_interference = aggregateInterferenceForPoint(protection_point, 
+                             protection_channels, interf.ESC_CAT_A_LOW_FREQ, 
+                             interf.ESC_CAT_A_HIGH_FREQ, grant_list, None, 
+                             esc_antenna_info, interf.ProtectionEntityType.ESC_CAT_A)
+  # ESC Category B CBSDs between 3550 - 3680 MHz within 80 km
+  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_B_LOW_FREQ, 
+                          interf.ESC_CAT_B_HIGH_FREQ)
+  aggregate_interference = aggregateInterferenceForPoint(protection_point, 
+                             protection_channels, interf.ESC_CAT_B_LOW_FREQ, 
+                             interf.ESC_CAT_B_HIGH_FREQ, grant_list, None, 
+                             esc_antenna_info, interf.ProtectionEntityType.ESC_CAT_B)
+
+  return aggregate_interference
 
 
-def calculateAggregateInterferenceForPPA(ppa, cbsd_list):
-    """
-    Calculates aggregate interference to PPA.
-    Inputs:
-        ppa : ppa protection entity
-        cbsd_list: list of CBSD objects
-    Returns:
-        result: aggregate interference to PPA in the dictionary format {(latitude, longitude, lowFrequency,highFrequency,entityType): aggregateinterference, .......}
-    """
-    cbsd_grant_reqs = util.getGrantsFromCbsdObjects(cbsd_list)
+def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
+  """
+  Calculates aggregate interference for GWPZ.
+  
+  Calculates aggregate interference for each prtection constraint in the GWPZ
+  based on the interferences caused by CBSD's grants in the neighborhood of
+  the GWPZ protection entity.
 
-    # Get Fine Grid Points for a PPA protoection area
-    protection_points = util.getFUGPoints(ppa)
-    # TODO -- PAL -- freq range -
-    # Get channels over which area incumbent needs partial/full protection
-    protection_channels = util.getChannels(
-        util.PPA_LOW_FREQ, util.PPA_HIGH_FREQ)
-    aggrAreaConstraint(
-        protection_points, protection_channels, util.PPA_LOW_FREQ, util.PPA_HIGH_FREQ, cbsd_grant_reqs,
-        util.ProtectionEntityType.PPA_AREA)
-    return aggregate_interference
+  Args:
+    gwpz_record: GWPZ protection entity
+    cbsd_list: list of CBSD objects containing RegistrationRequests and GrantRequests
+  Returns:
+    Aggregate interference to GWPZ in the dictionary format,where the key is a tuple. 
+    {(latitude, longitude, low_frequency, high_frequency,entity_type):
+    aggregate_interference(dBm)}
+  """
+
+  grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
+  gwpz_region = gwpz_record['zone']['features'][0]['properties']['gwpzRegionType']
+  # Get Fine Grid Points for a GWPZ protoection area
+  protection_points = utils.GridPolygon(gwpz_record)
+  gwpz_freqRange =\
+     gwpz_record['deploymentParam']['operationParam']['operationFrequencyRange']
+  gwpz_lowFreq = gwpz_freqRange['lowFrequency']
+  gwpz_highFreq = gwpz_freqRange['highFrequency']
+  # Get channels over which area incumbent needs partial/full protection
+  protection_channels = interf.getProtectedChannels(gwpz_lowFreq, gwpz_highFreq)
+  for protection_point in protection_points:
+    aggregate_interference = aggregateInterferenceForPoint(protection_point, 
+                               protection_channels, gwpz_lowFreq, 
+                               gwpz_highFreq, grant_list, None, None, 
+                               interf.ProtectionEntityType.GWPZ_AREA, 
+                               gwpz_region)
+  return aggregate_interference
+
+
+def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list):
+  """
+  Calculates aggregate interference for PPA.
+  
+  Calculates aggregate interference for each prtection constraint in the PPA
+  based on the interferences caused by CBSD's grants in the neighborhood of
+  the PPA protection entity.
+
+  Args:
+    ppa_record: PPA protection entity
+    pal_list: list of PAL records
+    cbsd_list: list of CBSD objects containing RegistrationRequests and GrantRequests
+  Returns:
+    Aggregate interference to PPA in the dictionary format,where the key is a tuple. 
+    {(latitude, longitude, low_frequency, high_frequency,entity_type):
+    aggregate_interference(dBm)}
+  """
+  grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
+  # Get Fine Grid Points for a PPA protoection area
+  protection_points = utils.GridPolygon(ppa_record)
+
+  # Get the region type of the PPA protection area
+  ppa_region = ppa_record['ppaInfo']['ppaRegionType']
+
+  # Find the PAL records for the PAL_IDs defined in PPA records
+  ppa_pal_ids = ppa_record['ppaInfo']['palId']
+  
+  for pal_record in pal_list:
+    # Frequency range of all the PAL records within a PPA is same 
+    # Considering frequency range from first PAL record for 
+    # aggregate interference calculation
+    if pal_record['palId'] == ppa_pal_ids[0]:
+      # Get the frequencies from the PAL records
+      ppa_freq_range =\
+        pal_record['channelAssignment']['primaryAssignment']
+      ppa_low_freq = ppa_freq_range['lowFrequency']
+      ppa_high_freq = ppa_freq_range['highFrequency']
+
+      # Get channels over which area incumbent needs partial/full protection
+      protection_channels = interf.\
+        getProtectedChannels(ppa_low_freq, ppa_high_freq)
+      for protection_point in protection_points:
+        aggregate_interference = aggregateInterferenceForPoint(protection_point, 
+                                   protection_channels, ppa_low_freq, 
+                                   ppa_high_freq, grant_list, None, None, 
+                                   interf.ProtectionEntityType.PPA_AREA, 
+                                   ppa_region)
+      break
+  return aggregate_interference
