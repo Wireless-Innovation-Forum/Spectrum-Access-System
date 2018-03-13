@@ -101,55 +101,50 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     pal_low_frequency = 3550000000.0
     pal_high_frequency = 3560000000.0        
 
-    ppa_records_1, pal_records_1 = makePpaAndPalRecordsConsistent(ppa_record,
+    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(ppa_record,
                                                                 [pal_record],
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 'test_user_1')
-    # Load DPA record
+    # Define DPA's 
     dpa_1 = {
-       'dpaId': 'test_dpa_id1',
+       'dpaId': 'dpa_east_4',
        'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
     }
     dpa_2 = {
-       'dpaId': 'test_dpa_id2',
+       'dpaId': 'dpa_east_5',
        'frequencyRange': {'lowFrequency': 3660000000 , 'highFrequency': 3670000000 }
     }
     dpa_3 = {
-       'dpaId': 'test_dpa_id3',
+       'dpaId': 'dpa_east_6',
        'frequencyRange': {'lowFrequency': 3670000000 , 'highFrequency': 3680000000 }
     }
 
-    # Define conditionals
-    conditionals = {
-        'registrationData': [conditionals]
-    }
-
     # Registration and grant records for multiple iterations
-    cbsd_records_iteration_1_domain_proxy_0 = {
+    cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
         'grantRequests': [grant_request_1, grant_request_2]
     }
-    cbsd_records_iteration_1_domain_proxy_1 = {
+    cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_3],
         'grantRequests': [grant_request_3]
     }
-    cbsd_records_iteration_2_domain_proxy_0 = {
+    cbsd_records_iteration_1_domain_proxy_0 = {
         'registrationRequests': [device_4],
         'grantRequests': [grant_request_4]
     }
-    cbsd_records_iteration_2_domain_proxy_1 = {
+    cbsd_records_iteration_1_domain_proxy_1 = {
         'registrationRequests': [device_5, device_6],
         'grantRequests': [grant_request_5, grant_request_6]
     }
     
     # Protected entities records for multiple iterations
-    protected_entities_iteration_1 = {
+    protected_entities_iteration_0 = {
         'palRecords': pal_records_1,
-        'ppaRecords': ppa_records_1, 
+        'ppaRecords': ppa_record_1, 
         'escRecords': [esc_record_1]
     }
-    protected_entities_iteration_2 = {
+    protected_entities_iteration_1 = {
         'gwpzRecords': [gwpz_record_1], 
         'fssRecords': [fss_record_1]
     }
@@ -219,37 +214,37 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Generate SAS Test Harnesses dump records for multiple iterations   
-    sas_test_harness_0_dump_records_iteration_0 = {
+    sas_test_harness_0_iteration_0_dump_records = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
     }
-    sas_test_harness_0_dump_records_iteration_1 = {
+    sas_test_harness_0_iteration_1_dump_records = {
         'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_0
     }
-    sas_test_harness_1_dump_records_iteration_0 = {
+    sas_test_harness_1_iteration_0_dump_records = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
-    sas_test_harness_1_dump_records_iteration_1 = {
+    sas_test_harness_1_iteration_1_dump_records = {
         'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_1
     }
 
     # Create the actual config.
+    iteration0_config = {
+        'cbsdRequests': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
+        'protectedEntities': protected_entities_iteration_0,
+        'dpaActivationList': [dpa_1, dpa_2],
+        'dpaDeactivationList': [],
+        'sasTestHarnessData': [sas_test_harness_0_iteration_0_dump_records,sas_test_harness_1_iteration_0_dump_records]
+    }
     iteration1_config = {
         'cbsdRequests': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
         'protectedEntities': protected_entities_iteration_1,
-        'dpaActivationList': [dpa_1, dpa_2],
-        'dpaDeactivationList': [],
-        'sasTestHarnessData': [sas_test_harness_0_dump_records_iteration_0,sas_test_harness_1_dump_records_iteration_0]
-    }
-    iteration2_config = {
-        'cbsdRequests': [cbsd_records_iteration_2_domain_proxy_0,cbsd_records_iteration_2_domain_proxy_1],
-        'protectedEntities': protected_entities_iteration_2,
         'dpaActivationList': [dpa_3],
         'dpaDeactivationList': [dpa_1],
-        'sasTestHarnessData': [sas_test_harness_0_dump_records_iteration_1,sas_test_harness_1_dump_records_iteration_1]
+        'sasTestHarnessData': [sas_test_harness_0_iteration_1_dump_records,sas_test_harness_1_iteration_1_dump_records]
     }
     config = {
         'conditionalRegistrationData': conditionals,      
-        'iterationData': [iteration1_config, iteration2_config],
+        'iterationData': [iteration0_config, iteration1_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'dp_1_client.cert'),
                                 'key':  os.path.join('certs', 'dp_1_client.key')},
