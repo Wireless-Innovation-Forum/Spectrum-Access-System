@@ -23,7 +23,7 @@ from reference_models.geo import census_tract, vincenty, nlcd
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
 from shapely import geometry, ops
-
+import json
 import util
 
 THRESHOLD_PER_10MHZ = -96
@@ -171,4 +171,4 @@ def PpaCreationModel(devices, pal_records):
 
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
   # Convert Shapely Object to GeoJSON Dictionary
-  return geometry.mapping(ppa_without_small_holes)
+  return json.dumps(geometry.mapping(ppa_without_small_holes))
