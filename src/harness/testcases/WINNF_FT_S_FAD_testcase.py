@@ -242,6 +242,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       sas_harness_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'hostName': 'localhost',
+          'url': 'localhost',
           'port': 9002,
           'serverCert': "certs/sas.cert",
           'serverKey': "certs/sas.key",
@@ -345,8 +346,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
-      self.assertEqual(len(config['ppas']), len(ppa_dump_data))
-      self.assertEqual(len(config['escSensors']), len(esc_sensor_dump_data))
+      self.assertEqual(len(config['ppaRecords']), len(ppa_dump_data))
+      self.assertEqual(len(config['escSensorRecords']), len(esc_sensor_dump_data))
       # verify the schema of record and first two parts of PPA record Id  
       for ppa_record in ppa_dump_data:
           self.assertContainsRequiredFields("ZoneData.schema.json", ppa_record)              
@@ -368,7 +369,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         self.assertEqual(esc_record['id'].split("/")[1], self._sas._sas_admin_id)
         del esc_record['id'] 
       # verify that all the injected Esc sensors exist in the dump files                 
-      for esc in config['escSensors']:
+      for esc in config['escSensorRecords']:
         exist_in_dump = False
         del esc['id'] 
         for esc_record in esc_sensor_dump_data:
