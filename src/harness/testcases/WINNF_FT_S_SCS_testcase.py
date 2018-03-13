@@ -12,13 +12,15 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import inspect
 import json
 import logging
 import os
 import security_testcase
+import time
 from OpenSSL import SSL
-from util import winnforum_testcase,configurable_testcase, writeConfig, loadConfig,\
-        countdown
+from util import winnforum_testcase,configurable_testcase, writeConfig, loadConfig
+
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -259,11 +261,33 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Generates the WinnForum configuration for SCS_17. """
     # Create the configuration for short lived invalid client cert/key,wait timer
 
+    # Get current working directory
+    cwd = os.getcwd()
+
+    # testcases directory
+    testcases_dir = os.path.dirname(
+      os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+    # Absolute path to the certs directory
+    path = os.path.join(testcases_dir, '../certs')
+
+    # Change directory to the certs directory
+    os.chdir(path)
+
+    # Build short lived certificate command
+    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
+
+    # Create the short lived certificate
+    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
+
+    # Revert back to the previous directory
+    os.chdir(cwd)
+
     config = {
-      'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey': self.getCertFilename("short_lived_client.key"),
-      'waitTimer': 300
-      }
+        'clientCert': self.getCertFilename("short_lived_client.cert"),
+        'clientKey': self.getCertFilename("short_lived_client.key"),
+        'waitTimer': 130
+    }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SCS_17_default_config)
@@ -289,13 +313,13 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertRegistered([device_a])
 
     logging.info("CBSD device is in registered state")
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
 
-    # Wait for the timer
-    countdown(config['waitTimer'])
+    # sleep for waitTimer so that certificate will become invalid
+    time.sleep(config['waitTimer'])
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
-    # Tls handshake fails
+    # Verify TLS handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
@@ -304,11 +328,33 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Generates the WinnForum configuration for SCS_18. """
     # Create the configuration for invalid client cert/key & wait timer
 
+    # Get current working directory
+    cwd = os.getcwd()
+
+    # testcases directory
+    testcases_dir = os.path.dirname(
+      os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+    # Absolute path to the certs directory
+    path = os.path.join(testcases_dir, '../certs')
+
+    # Change directory to the certs directory
+    os.chdir(path)
+
+    # Build short lived certificate command
+    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
+
+    # Create the short lived certificate
+    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
+
+    # Revert back to the previous directory
+    os.chdir(cwd)
+
     config = {
-      'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey': self.getCertFilename("short_lived_client.key"),
-      'waitTimer': 300
-      }
+        'clientCert': self.getCertFilename("short_lived_client.cert"),
+        'clientKey': self.getCertFilename("short_lived_client.key"),
+        'waitTimer': 130
+    }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SCS_18_default_config)
@@ -338,13 +384,13 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
 
     logging.info("CBSD is in Granted State")
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
 
-    # Wait for the timer
-    countdown(config['waitTimer'])
+    # sleep for waitTimer so that certificate will become invalid
+    time.sleep(config['waitTimer'])
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
-    # Tls handshake fails
+    # Verify TLS handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
@@ -353,11 +399,33 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """Generates the WinnForum configuration for SCS_19. """
     # Create the configuration for invalid client cert/key & wait timer
 
+    # Get current working directory
+    cwd = os.getcwd()
+
+    # testcases directory
+    testcases_dir = os.path.dirname(
+      os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+    # Absolute path to the certs directory
+    path = os.path.join(testcases_dir, '../certs')
+
+    # Change directory to the certs directory
+    os.chdir(path)
+
+    # Build short lived certificate command
+    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
+
+    # Create the short lived certificate
+    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
+
+    # Revert back to the previous directory
+    os.chdir(cwd)
+
     config = {
-      'clientCert': self.getCertFilename("short_lived_client.cert"),
-      'clientKey': self.getCertFilename("short_lived_client.key"),
-      'waitTimer': 300
-      }
+        'clientCert': self.getCertFilename("short_lived_client.cert"),
+        'clientKey': self.getCertFilename("short_lived_client.key"),
+        'waitTimer': 130
+    }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SCS_19_default_config)
@@ -394,12 +462,12 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
 
     logging.info("CBSD is in HeartBeat Successful State")
-    logging.info("Waiting for %s secs so the certificate will be invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
 
-    # Wait for the timer
-    countdown(config['waitTimer'])
+    # sleep for waitTimer so that certificate will become invalid
+    time.sleep(config['waitTimer'])
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
-    # Tls handshake fails
+    # Verify TLS handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'], client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate is invalid")
