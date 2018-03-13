@@ -13,7 +13,7 @@
       "description": "ESC Sensor Id in the format esc_sensor/$ADMINISTRATOR/$SENSOR_ID",
       "pattern": "((.+?)\/(.+?)\/(.+?)+)"
     },
-    "installationParam": { "$ref": "file:RadiationPattern.schema.json" },
+    "installationParam": { "$ref": "file:InstallationParamEsc.schema.json" },
     "protectionLevel": {
       "description": "The protection level to be applied to the ESC Sensor in units of dBm/Mhz",
       "type": "number"
