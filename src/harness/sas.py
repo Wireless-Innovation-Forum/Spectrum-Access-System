@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -149,9 +149,6 @@ class SasImpl(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('deregistration', request, ssl_cert, ssl_key)
 
-  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
-    return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
-
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
@@ -242,6 +239,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
                         request, self._tls_config)
 
+  def InjectExclusionZone(self, request):
+    return _RequestPost('https://%s/admin/injectdata/exclusion_zone' % self._base_url,
+                        request, self._tls_config)
+
   def InjectZoneData(self, request):
     return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
                         request, self._tls_config)
@@ -293,10 +294,6 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerMeasurementReportHeartbeat(self):
     _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
                  self._base_url, None, self._tls_config)
-
-  def InjectSasImplementationRecord(self, request):
-    _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url,
-                 request, self._tls_config)
 
   def InjectEscSensorDataRecord(self, request):
     _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
