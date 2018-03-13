@@ -100,6 +100,8 @@ errors += testJsonSchema('GrantRecord.schema.json', 'GrantRecordExample.json')
 
 errors += testJsonSchema('ZoneData.schema.json', 'ZoneDataOfPpaExample.json')
 
+errors += testJsonSchema('EscSensorRecord.schema.json', 'EscSensorRecordExample.json')
+
 if errors == 0:
   print 'PASS'
 else:

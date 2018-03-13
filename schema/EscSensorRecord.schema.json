@@ -13,31 +13,10 @@
       "description": "ESC Sensor Id in the format esc_sensor/$ADMINISTRATOR/$SENSOR_ID",
       "pattern": "((.+?)\/(.+?)\/(.+?)+)"
     },
-    "installationParam": {
-      "$ref": "#/escInstallationParam"
-    },
+    "installationParam": { "$ref": "file:RadiationPattern.schema.json" },
     "protectionLevel": {
       "description": "The protection level to be applied to the ESC Sensor in units of dBm/Mhz",
       "type": "number"
-    }
-  },
-  "escInstallationParam": {
-    "description": "Installation parameters provided for a ESC Sensor",
-    "type": "object",
-    "required": [
-      "latitude",
-      "longitude",
-      "height",
-      "heightType",
-      "antennaAzimuth",
-      "antennaBeamwidth"
-    ],
-    "properties": {
-      "allOf": [
-        {
-          "$ref": "file:InstallationParam.schema.json"
-        }
-      ]
     }
   }
 }
