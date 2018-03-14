@@ -17,7 +17,7 @@ import signal
 import time
 import unittest
 import sas
-from google3.third_party.winnforum_sas.src.harness import util
+import util
 
 
 class SasTestCase(unittest.TestCase):
