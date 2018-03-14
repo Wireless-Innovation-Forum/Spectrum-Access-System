@@ -14,61 +14,26 @@
 
 """WinnForum-specific version of ITM propagation model.
 
-This version differs slightly from the ITM propagation model in some
-input parameters. It also automatically manages Climate, Refractivity
-and Terrain databases.
-
 Typical usage:
-  # Reconfigure the terrain driver
-   #  - reset the terrain tile directory
-  ConfigureTerrainDriver(terrain_dir=my_ned_path)
-   #  - reset the cache size. Memory use is: cache_size * 50MB
-  ConfigureTerrainDriver(cache_size=8)
+  # Configure the terrain driver (memory use is: cache_size * 50MB)
+  from reference_models.geo import drive
+  drive.ConfigureTerrainDriver(terrain_dir=my_ned_path, cache_size=16)
 
   # Get the path loss and incidence angles
   db_loss, incidence_angles, internals = CalcItmPropagationLoss(
               lat_cbsd, lon_cbsd, height_cbsd,
               lat_rx, lon_rx, height_rx,
+              cbsd_indoor=False,
               reliability=0.5,
               freq_mhz=3625.)
 """
 
 from collections import namedtuple
-import logging
 import numpy as np
 
-from reference_models.geo import refractivity
-from reference_models.geo import tropoclim
+from reference_models.geo import drive
 from reference_models.geo import vincenty
-from reference_models.geo import terrain
 from reference_models.propagation.itm import itm
-
-# Initialize tropoclim and refractivity drivers
-climateDriver = tropoclim.ClimateIndexer()
-refractDriver = refractivity.RefractivityIndexer()
-def ConfigureItuDrivers(itu_dir=None):
-  """Configure the ITU climate and refractivity drivers.
-  """
-  if itu_dir is not None:
-    climateDriver.ConfigureDataFile(itu_dir)
-    refractDriver.ConfigureDataFile(itu_dir)
-
-
-# Initialize terrain driver
-terrainDriver = terrain.TerrainDriver()
-def ConfigureTerrainDriver(terrain_dir=None, cache_size=None):
-  """Configure the NED terrain driver.
-
-  Note that memory usage is about cache_size * 50MB.
-
-  Inputs:
-    terrain_dir: if specified, change the terrain directory.
-    cache_size:  if specified, change the terrain tile cache size.
-  """
-  if terrain_dir is not None:
-    terrainDriver.SetTerrainDirectory(terrain_dir)
-  if cache_size is not None:
-    terrainDriver.SetCacheSize(cache_size)
 
 
 # ITM warning codes
@@ -170,26 +135,29 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   # Get the terrain profile, using Vincenty great circle route, and WF
   # standard (bilinear interp; 1500 pts for all distances over 45 km)
   if its_elev is None:
-    its_elev = terrainDriver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
-                                           lat2=lat_rx, lon2=lon_rx,
-                                           target_res_meter=30.,
-                                           do_interp=True, max_points=1501)
+    its_elev = drive.terrain_driver.TerrainProfile(
+        lat1=lat_cbsd, lon1=lon_cbsd,
+        lat2=lat_rx, lon2=lon_rx,
+        target_res_meter=30.,
+        do_interp=True, max_points=1501)
 
   # Find the midpoint of the great circle path
-  dist_km, bearing_cbsd, bearing_rx = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd, lat_rx, lon_rx)
-  latmid, lonmid, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd, dist_km/2., bearing_cbsd)
+  dist_km, bearing_cbsd, bearing_rx = vincenty.GeodesicDistanceBearing(
+      lat_cbsd, lon_cbsd, lat_rx, lon_rx)
+  latmid, lonmid, _ = vincenty.GeodesicPoint(
+      lat_cbsd, lon_cbsd, dist_km/2., bearing_cbsd)
 
   # Determine climate value, based on ITU-R P.617 method:
-  climate = climateDriver.TropoClim(latmid, lonmid)
+  climate = drive.climate_driver.TropoClim(latmid, lonmid)
   # If the common volume lies over the sea, the climate value to use depends
   # on the climate values at either end. A simple min() function should
   # properly implement the logic, since water is the max.
   if climate == 7:
-    climate = min(climateDriver.TropoClim(lat_cbsd, lon_cbsd),
-                  climateDriver.TropoClim(lat_rx, lon_rx))
+    climate = min(drive.climate_driver.TropoClim(lat_cbsd, lon_cbsd),
+                  drive.climate_driver.TropoClim(lat_rx, lon_rx))
 
   # Look up the refractivity at the path midpoint, if not explicitly provided
-  refractivity = refractDriver.Refractivity(latmid, lonmid)
+  refractivity = drive.refract_driver.Refractivity(latmid, lonmid)
 
   # Call ITM prop loss.
   reliabilities = reliability
@@ -207,9 +175,6 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                                                   mdvar, False)
   if do_avg:
     db_loss = -10*np.log10(np.mean(10**(-np.array(db_loss)/10.)))
-
-  if err_num !=  ItmErrorCode.NONE:
-    logging.info('Got ITM applicability warning [%d]: %s' % (err_num, str_mode))
 
   # Add indoor losses
   if cbsd_indoor:
@@ -327,7 +292,7 @@ def ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd, height_is_agl=True):
   Returns:
     the CBSD HAAT (meters).
   """
-  norm_haat, alt_ground = terrainDriver.ComputeNormalizedHaat(lat_cbsd, lon_cbsd)
+  norm_haat, alt_ground = drive.terrain_driver.ComputeNormalizedHaat(lat_cbsd, lon_cbsd)
   if height_is_agl:
     return height_cbsd + norm_haat
   else:

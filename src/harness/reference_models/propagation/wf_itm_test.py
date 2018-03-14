@@ -17,6 +17,7 @@ import numpy as np
 import unittest
 
 from reference_models.geo import testutils
+from reference_models.geo import drive
 
 from reference_models.propagation import wf_itm
 
@@ -32,8 +33,8 @@ class TestWfItm(unittest.TestCase):
   def setUpClass(cls):
     cls.unzip_files = testutils.UnzipTestDir(TERRAIN_TEST_DIR)
     # Mocking the ITU drivers to always return fixed values
-    wf_itm.climateDriver.TropoClim = lambda lat, lon: 5
-    wf_itm.refractDriver.Refractivity = lambda lat, lon: 314
+    drive.climate_driver.TropoClim = lambda lat, lon: 5
+    drive.refract_driver.Refractivity = lambda lat, lon: 314
 
   @classmethod
   def tearDownClass(cls):
@@ -41,8 +42,8 @@ class TestWfItm(unittest.TestCase):
 
   def setUp(self):
     # Reconfigure the drivers to point to geo/testdata directories
-    wf_itm.ConfigureTerrainDriver(terrain_dir=TERRAIN_TEST_DIR)
-    wf_itm.ConfigureItuDrivers(itu_dir=ITU_TEST_DIR)
+    drive.ConfigureTerrainDriver(terrain_dir=TERRAIN_TEST_DIR)
+    drive.ConfigureItuDrivers(itu_dir=ITU_TEST_DIR)
 
   def test_los_mode(self):
     lat1, lng1, height1 = 37.756672, -122.508512, 20.0

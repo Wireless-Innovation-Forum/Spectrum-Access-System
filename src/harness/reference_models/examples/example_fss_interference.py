@@ -27,7 +27,8 @@ import fss_pointing
 
 # Configure here the path to terrain directory
 # (if not specified in your CONFIG.py file)
-#wf_itm.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
+## from reference_models.geo import drive
+## drive.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
 
 # Find all the FSS protection points from a given FSS license info.
 # Note that in production, one may have the exact pointing of each FSS.

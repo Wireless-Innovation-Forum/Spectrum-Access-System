@@ -44,13 +44,9 @@ from enum import Enum
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 from reference_models.propagation import wf_itm
-# from reference_models.geo import terrain
+from reference_models.geo import drive
 from reference_models.geo import vincenty
 from reference_models.antenna import antenna
-
-# Initialize terrain driver
-# terrainDriver = terrain.TerrainDriver()
-terrainDriver = wf_itm.terrainDriver
 
 # Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km)
@@ -162,7 +158,7 @@ def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, cons
         height_cbsd = reg_requests[i].get('installationParam', {}).get('height')
         height_type_cbsd = reg_requests[i].get('installationParam', {}).get('heightType')
         if height_type_cbsd == 'AMSL':
-            altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+            altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
             height_cbsd = height_cbsd - altitude_cbsd
 
         # Sanity check on CBSD antenna height
