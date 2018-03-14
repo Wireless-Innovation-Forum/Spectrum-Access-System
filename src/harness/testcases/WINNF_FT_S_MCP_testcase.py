@@ -108,15 +108,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                                                                 'test_user_1')
     # Define DPA's 
     dpa_1 = {
-       'dpaId': 'dpa_east_4',
+       'dpaId': 'east_dpa4',
        'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
     }
     dpa_2 = {
-       'dpaId': 'dpa_east_5',
+       'dpaId': 'east_dpa5',
        'frequencyRange': {'lowFrequency': 3660000000 , 'highFrequency': 3670000000 }
     }
     dpa_3 = {
-       'dpaId': 'dpa_east_6',
+       'dpaId': 'east_dpa6',
        'frequencyRange': {'lowFrequency': 3670000000 , 'highFrequency': 3680000000 }
     }
 
