@@ -321,7 +321,7 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
     }
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = [conditionals_b]
     del device_b['installationParam']
     del device_b['cbsdCategory']
     del device_b['airInterface']

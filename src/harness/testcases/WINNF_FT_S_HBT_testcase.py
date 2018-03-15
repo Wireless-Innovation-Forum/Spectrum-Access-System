@@ -834,7 +834,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
     }
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = [conditionals_b]
     del device_b['installationParam']
     del device_b['cbsdCategory']
     del device_b['airInterface']
@@ -872,30 +872,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         len(config['heartbeatRequests']),
         len(config['expectedResponseCodes']))
 
-    # Whitelist FCC IDs.
-    for device in config['registrationRequests']:
-      self._sas_admin.InjectFccId({
-          'fccId': device['fccId'],
-          'fccMaxEirp': 47
-      })
-
-    # Whitelist user IDs.
-    for device in config['registrationRequests']:
-      self._sas_admin.InjectUserId({'userId': device['userId']})
-
     # Register devices
-    if ('conditionalRegistrationData' in config) and (
-        config['conditionalRegistrationData']):
-      self._sas_admin.PreloadRegistrationData(
-          config['conditionalRegistrationData'])
-    request = {'registrationRequest': config['registrationRequests']}
-    response = self._sas.Registration(request)['registrationResponse']
-    # Check registration response
-    cbsd_ids = []
-    for resp in response:
-      self.assertEqual(resp['response']['responseCode'], 0)
-      cbsd_ids.append(resp['cbsdId'])
-    del request, response
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
 
     # Request grant
     grant_request = config['grantRequests']
@@ -1043,11 +1022,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     grant_expire_time = datetime.strptime(response['grantExpireTime'],
                                           '%Y-%m-%dT%H:%M:%SZ')
     grant_id = response['grantId']
-    heartbeat_request = [{
+    heartbeat_request = {
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }]
+    }
     del request, response
 
     # Step 4: Send heartbeat request and check heartbeat response
@@ -1064,18 +1043,18 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
             'lowFrequency': 3550000000,
             'highFrequency': 3560000000
         },
-        'dpaId': 'east_dpa6'
+        'dpaId': 'east_dpa6',
     })
 
     # Step 6: Sleep 240 seconds
     time.sleep(240)
 
     # Step 7
-    heartbeat_request = [{
+    heartbeat_request = {
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }]
+    }
     # Send heartbeat request and Check heartbeat response
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
@@ -1091,11 +1070,11 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertLess(datetime.utcnow(), grant_expire_time)
 
     # Step 8 - Heartbeat request with operationState = GRANTED
-    heartbeat_request = [{
+    heartbeat_request = {
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,
         'operationState': 'GRANTED'
-    }]
+    }
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
     # Check heartbeat response
