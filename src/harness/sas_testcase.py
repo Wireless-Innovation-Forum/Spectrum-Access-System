@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -11,22 +11,17 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-"""Implementation of SasTestcaseInterface"""
 
-import json
-from jsonschema import validate, Draft4Validator, RefResolver
 from datetime import datetime
-import os
-import logging
-import unittest
-import sas_interface
-import sas
 import signal
 import time
-
+import unittest
+import sas
 import util
 
-class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
+
+class SasTestCase(unittest.TestCase):
+
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
     self._sas_admin.Reset()
@@ -35,9 +30,29 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     pass
 
   def assertContainsRequiredFields(self, schema_filename, response):
+    """Assertion of required fields in response, validating it with Schema.
+
+    Args:
+      schema_filename: A string containing the filename of the schema to be used
+        to validate. (The schema file should exist in /schema directory.)
+      response: A dictionary containing the response to validate for required
+        fields using the schema.
+    """
     util.assertContainsRequiredFields(schema_filename, response)
 
   def assertValidResponseFormatForApprovedGrant(self, grant_response):
+    """Validates an approved grant response.
+
+    Checks presence and basic validity of each required field.
+    Checks basic validity of optional fields if they exist.
+    Args:
+      grant_response: A dictionary with a single grant response object from an
+        array originally returned by a SAS server as specified in TS
+
+    Returns:
+      Nothing. It asserts if something about the response is broken/not per
+      specs. Assumes it is dealing with an approved request.
+    """
     # Check required string fields
     for field_name in ('cbsdId', 'grantId', 'grantExpireTime', 'channelType'):
       self.assertTrue(field_name in grant_response)
@@ -54,6 +69,26 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
   def assertRegistered(self, registration_request,
                        conditional_registration_data=None):
+    """Register a list of devices.
+
+    Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
+    Includes injection of FCC IDs and conditional registration data.
+
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A list of cbsd_ids.
+    """
+
     for device in registration_request:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
@@ -65,7 +100,8 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     ssl_key = self._sas._tls_config.client_key
 
     request = {'registrationRequest': registration_request}
-    response = self._sas.Registration(request,ssl_cert=ssl_cert,ssl_key=ssl_key)['registrationResponse']
+    response = self._sas.Registration(
+        request, ssl_cert=ssl_cert, ssl_key=ssl_key)['registrationResponse']
 
     # Check the registration response; collect CBSD IDs
     cbsd_ids = []
@@ -79,6 +115,27 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
 
   def assertRegisteredAndGranted(self, registration_request, grant_request,
                                  conditional_registration_data=None):
+    """Register and get grants for a list of devices.
+
+    Quickly register and grant N devices; assert SUCCESS for each step and
+    return corresponding CBSD and grant IDs.
+    Args:
+      registration_request:  A dictionary with a single key-value pair where
+        the key is "registrationRequest" and the value is a list of individual
+        CBSD registration requests (each of which is itself a dictionary).
+      grant_request: A dictionary with a single key-value pair where the key is
+        "grantRequest" and the value is a list of individual CBSD
+        grant requests (each of which is itself a dictionary).
+      conditional_registration_data: A dictionary with a single key-value pair
+        where the key is "registrationData" and the value is a list of
+        individual CBSD registration data which need to be preloaded into SAS
+        (each of which is itself a dictionary). The dictionary is a
+        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
+        required, other fields are optional.
+
+    Returns:
+      A tuple containing list of cbsdIds and grantIds.
+    """
     self.assertEqual(len(registration_request), len(grant_request))
     cbsd_ids = self.assertRegistered(registration_request,
                                      conditional_registration_data)
@@ -86,14 +143,14 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     for cbsd_id, grant_req in zip(cbsd_ids, grant_request):
       grant_req['cbsdId'] = cbsd_id
 
-
     # Pass the correct client cert and key in Grant request
     ssl_cert = self._sas._tls_config.client_cert
     ssl_key = self._sas._tls_config.client_key
 
     grant_ids = []
     request = {'grantRequest': grant_request}
-    grant_response = self._sas.Grant(request,ssl_cert=ssl_cert,ssl_key=ssl_key)['grantResponse']
+    grant_response = self._sas.Grant(
+        request, ssl_cert=ssl_cert, ssl_key=ssl_key)['grantResponse']
 
     # Check the grant response
     for cbsd_id, grant_resp in zip(cbsd_ids, grant_response):
@@ -106,6 +163,20 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     return cbsd_ids, grant_ids
 
   def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
+    """Makes a heartbeat request for a list of devices with its grants and
+    operation states.
+
+    Sends heartbeat requests and assert the response for valid CBSD ID,
+     Grant ID, and Transmit expire time.
+    Args:
+      cbsd_ids: A list containing CBSD IDs.
+      grant_ids: A list containing Grant IDs associated with each device in
+        cbsd_ids list.
+      operation_states: A list containing operation states (AUTHORIZED or
+        GRANTED) for each devices in the cbsd_ids list.
+    Returns:
+      A list of transmit expire time in the format YYYY-MM-DDThh:mm:ssZ.
+    """
     transmit_expire_times = []
     self.assertEqual(len(cbsd_ids), len(grant_ids))
     self.assertEqual(len(cbsd_ids), len(operation_states))
@@ -113,18 +184,21 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     for cbsd_id, grant_id, operation_state in zip(cbsd_ids, grant_ids,
                                                   operation_states):
       heartbeat_requests.append({
-        'cbsdId': cbsd_id,
-        'grantId': grant_id,
-        'operationState': operation_state
+          'cbsdId': cbsd_id,
+          'grantId': grant_id,
+          'operationState': operation_state
       })
-
 
     # Pass the correct client cert and key in HeartBeat request
     ssl_cert = self._sas._tls_config.client_cert
     ssl_key = self._sas._tls_config.client_key
 
-    heartbeat_response = self._sas.Heartbeat({
-      'heartbeatRequest': heartbeat_requests},ssl_cert=ssl_cert, ssl_key=ssl_key)['heartbeatResponse']
+    heartbeat_response = self._sas.Heartbeat(
+        {
+            'heartbeatRequest': heartbeat_requests
+        },
+        ssl_cert=ssl_cert,
+        ssl_key=ssl_key)['heartbeatResponse']
 
     for index, response in enumerate(heartbeat_response):
       # Check the heartbeat response
@@ -134,16 +208,22 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
                                                '%Y-%m-%dT%H:%M:%SZ')
       self.assertLess(datetime.utcnow(), transmit_expire_time)
       self.assertLessEqual(
-        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
       self.assertEqual(response['response']['responseCode'], 0)
       transmit_expire_times.append(response['transmitExpireTime'])
     return transmit_expire_times
 
   def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
+    """
+    Triggers daily activities immediately and checks for the status of activity
+    every 10 seconds until it is completed.
+    If the status is not changed within 2 hours it will throw an exception.
+    """
     self._sas_admin.TriggerDailyActivitiesImmediately()
     signal.signal(signal.SIGALRM,
                   lambda signum, frame:
-                  (_ for _ in ()).throw(Exception('Daily Activity Check Timeout')))
+                  (_ for _ in ()).throw(
+                      Exception('Daily Activity Check Timeout')))
 
     # Timeout after 2 hours if it's not completed
     signal.alarm(7200)
@@ -151,54 +231,62 @@ class SasTestCase(sas_interface.SasTestcaseInterface, unittest.TestCase):
     while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
       time.sleep(10)
     signal.alarm(0)
-    
+
   def assertChannelsContainFrequencyRange(self, channels, frequency_range):
-    channels.sort(key=lambda ch: (ch['frequencyRange']['lowFrequency'], ch['frequencyRange']['highFrequency']), reverse = False)
-    for index, channel in  enumerate(channels):
-        if index == 0:
-           self.assertEqual(channel['frequencyRange']['lowFrequency'],\
-             frequency_range['lowFrequency'])
-        else:
-            self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
-                                 channels[index - 1]\
-                                 ['frequencyRange']['highFrequency'])
-            
-    channels.sort(key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse = True)
-    self.assertEqual(channels[0]['frequencyRange']['highFrequency'],\
-             frequency_range['highFrequency'])
+    channels.sort(
+        key=
+        lambda ch: (ch['frequencyRange']['lowFrequency'],
+                    ch['frequencyRange']['highFrequency']),
+        reverse=False)
+    for index, channel in enumerate(channels):
+      if index == 0:
+        self.assertEqual(channel['frequencyRange']['lowFrequency'],
+                         frequency_range['lowFrequency'])
+      else:
+        self.assertLessEqual(
+            channel['frequencyRange']['lowFrequency'],
+            channels[index - 1]['frequencyRange']['highFrequency'])
+
+    channels.sort(
+        key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse=True)
+    self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
+                     frequency_range['highFrequency'])
 
   def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
-    """Check if the channel lies within the list of frequency ranges.
+    """Checks if the channel lies within the list of frequency ranges.
 
     Args:
       channel: A dictionary containing frequencyRange,
-               which is a dictionary containing lowFrequency and highFrequency
+        which is a dictionary containing lowFrequency and highFrequency.
       frequency_ranges: A list of dictionaries containing
-                        lowFrequency and highFrequency
+        lowFrequency and highFrequency.
     """
     is_frequency_included_in_range = False
     for frequency in frequency_ranges:
-      if (channel['frequencyRange']['lowFrequency'] >= frequency['lowFrequency'] and
-          channel['frequencyRange']['highFrequency'] <= frequency['highFrequency']):
+      if (channel['frequencyRange']['lowFrequency'] >= frequency['lowFrequency']
+          and channel['frequencyRange']['highFrequency'] <=
+          frequency['highFrequency']):
         is_frequency_included_in_range = True
         break
-    self.assertTrue(is_frequency_included_in_range, "Channel is not included in list of frequency ranges")
+    self.assertTrue(is_frequency_included_in_range,
+                    'Channel is not included in list of frequency ranges')
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     request_time = datetime.utcnow().replace(microsecond=0)
     self._sas_admin.TriggerFullActivityDump()
     signal.signal(signal.SIGALRM,
                   lambda signum, frame:
-                  (_ for _ in ()).throw(Exception('Full Activity Dump Check Timeout')))
+                  (_ for _ in ()).throw(
+                      Exception('Full Activity Dump Check Timeout')))
     # Timeout after 2 hours if it's not completed
     signal.alarm(7200)
-    # Check generation date of full activity dump 
+    # Check generation date of full activity dump
     while True:
-       dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
-       dump_time = datetime.strptime(dump_message['generationDateTime'],
-                                               '%Y-%m-%dT%H:%M:%SZ')
-       if request_time <= dump_time:
-          break
-       time.sleep(10)
+      dump_message = self._sas.GetFullActivityDump(server_cert, server_key)
+      dump_time = datetime.strptime(dump_message['generationDateTime'],
+                                    '%Y-%m-%dT%H:%M:%SZ')
+      if request_time <= dump_time:
+        break
+      time.sleep(10)
     signal.alarm(0)
     return dump_message

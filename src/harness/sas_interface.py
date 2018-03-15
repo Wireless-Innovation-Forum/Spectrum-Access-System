@@ -441,7 +441,7 @@ class SasAdminInterface(object):
         "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
 
     """
-    pass 
+    pass
 
   @abc.abstractmethod
   def TriggerDpaDeactivation(self, request):
@@ -450,7 +450,7 @@ class SasAdminInterface(object):
       request: A dictionary with the following key-value pairs:
         "dpaId": (string) it represents the field "name" in the kml file of DPAs
         "frequencyRange": frequencyRange of DPA Channel with lowFrequency, highFrequency
-    """   
+    """
     pass
 
   @abc.abstractmethod
@@ -473,112 +473,3 @@ class SasAdminInterface(object):
     """
     pass
 
-class SasTestcaseInterface(object):
-  """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
-
-  __metaclass__ = abc.ABCMeta
-
-  @abc.abstractmethod
-  def assertContainsRequiredFields(self, schema_filename, response):
-    """Assertion of Required Fields in Response validating it with Schema
-
-    Args:
-      schema_filename: A string containing the filename of the schema to be used
-      to validate. (The schema file should exist in /schema directory)
-      response: A dictionary containing the response to validate for required
-      fields using the schema.
-    """
-    pass
-
-  @abc.abstractmethod
-  def assertValidResponseFormatForApprovedGrant(self, grant_response):
-    """Validate an approved grant response.
-
-    Check presence and basic validity of each required field.
-    Check basic validity of optional fields if they exist.
-    Args:
-      grant_response: A dictionary with a single grant response object from an
-        array originally returned by a SAS server as specified in TS
-
-    Returns:
-      Nothing. It asserts if something about the response is broken/not per
-      specs. Assumes it is dealing with an approved request.
-    """
-    pass
-
-  @abc.abstractmethod
-  def assertRegistered(self, registration_request,
-                       conditional_registration_data=None):
-    """Register a list of devices.
-
-    Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
-    Includes injection of FCC IDs and conditional registration data.
-
-    Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
-      conditional_registration_data: A dictionary with a single key-value pair
-        where the key is "registrationData" and the value is a list of
-        individual CBSD registration data which need to be preloaded into SAS
-        (each of which is itself a dictionary). The dictionary is a
-        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
-        required, other fields are optional.
-
-    Returns:
-      A list of cbsd_ids.
-    """
-    pass
-
-  @abc.abstractmethod
-  def assertRegisteredAndGranted(self, registration_request, grant_request,
-                                 conditional_registration_data=None):
-    """Register and get grants for a list of devices.
-
-    Quickly register and grant N devices; assert SUCCESS for each step and
-    return corresponding CBSD and grant IDs.
-    Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
-      grant_request: A dictionary with a single key-value pair where the key is
-        "grantRequest" and the value is a list of individual CBSD
-        grant requests (each of which is itself a dictionary).
-      conditional_registration_data: A dictionary with a single key-value pair
-        where the key is "registrationData" and the value is a list of
-        individual CBSD registration data which need to be preloaded into SAS
-        (each of which is itself a dictionary). The dictionary is a
-        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
-        required, other fields are optional.
-
-    Returns:
-      A tuple containing list of cbsdIds and grantIds.
-    """
-    pass
-
-  @abc.abstractmethod
-  def assertHeartbeatsSuccessful(self, cbsd_ids, grant_ids, operation_states):
-    """Make a heartbeat requests for the list of devices with its grants and 
-    operation states.
-    
-    Sends heartbeat requests and assert the response for valid cbsd id,
-     grant id, and transmit expire time
-    Args:
-      cbsd_ids: A list containing cbsd Ids.
-      grant_ids: A list containing grant Id associated with each device in 
-      cbsd_ids list.
-      operation_states: A list containing operation states (AUTHORIZED or 
-      GRANTED) for each devices in the cbsd_ids list.
-    Returns:
-      A list of transmit expire time in the format YYYY-MM-DDThh:mm:ssZ.    
-    """
-    pass
-
-  @abc.abstractmethod
-  def TriggerDailyActivitiesImmediatelyAndWaitUntilComplete(self):
-    """
-    Trigger the Daily Activities Immediately and will check for the status
-    of activity every 10 seconds until it is completed.
-    If the status is not changed within 2 hours it will throw an exception.
-    """
-    pass
