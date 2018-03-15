@@ -1,0 +1,31 @@
+{
+  "id": "incumbent/ibfs/0",
+  "type": "FSS",
+  "deploymentParam": 
+  [
+    {
+      "installationParam": {
+        "latitude": 38.985278,
+        "longitude":  -77.445833,
+        "height": 26.5,
+        "elevation": 100,
+        "heightType": "AGL",
+        "antennaGain": 0,
+        "antennaBeamwidth": 0,
+        "antennaAzimuth": 270,
+        "antennaDowntilt": 0,
+        "indoorDeployment": true,
+        "antennaElevationAngle":39
+      },
+      "operationParam": {
+        "operationFrequencyRange": {
+          "lowFrequency": 3610000000,
+          "highFrequency": 4200000000
+        }
+      },
+      "ttc": true,
+      "weight1": 0.5,
+      "weight2": 0.5
+    }
+    ]
+}

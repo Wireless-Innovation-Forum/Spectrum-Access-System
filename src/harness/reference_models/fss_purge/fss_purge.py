@@ -200,7 +200,6 @@ def calculateOobeInterference(cbsds, fss_entity):
     mcbsd = getMcbsdValue(grant_with_max_high_freq)
     gcbsd = getAntennaGainTowardsFss(incidence_angle, cbsd)
     gfss = getAntennaGainFssReceiver(fss_entity, incidence_angle)
-
     oobe_interference = mcbsd + gcbsd - lcbsd + gfss
     cbsd['oobe_interference'] = oobe_interference
 
@@ -277,7 +276,7 @@ def getMeanPathLossFromCbsdToFss(cbsd, fss):
 def convertAmslToAgl(latitude, longitude, height_amsl):
   """ Convert AMSL height to AGL height."""
 
-  altitude_cbsd = terrainDriver.GetTerrainElevation(latitude, longitude)
+  altitude_cbsd = wf_itm.terrainDriver.GetTerrainElevation(latitude, longitude)
   return height_amsl - altitude_cbsd
 
 def getAntennaGainFssReceiver(fss_entity, incidence_angle):
