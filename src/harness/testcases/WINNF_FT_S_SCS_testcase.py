@@ -12,7 +12,6 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import inspect
 import json
 import logging
 import os
@@ -257,50 +256,23 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
 
-  def generate_SCS_17_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_17. """
-    # Create the configuration for short lived invalid client cert/key,wait timer
-
-    # Get current working directory
-    cwd = os.getcwd()
-
-    # testcases directory
-    testcases_dir = os.path.dirname(
-      os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    # Absolute path to the certs directory
-    path = os.path.join(testcases_dir, '../certs')
-
-    # Change directory to the certs directory
-    os.chdir(path)
-
-    # Build short lived certificate command
-    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
-
-    # Create the short lived certificate
-    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
-
-    # Revert back to the previous directory
-    os.chdir(cwd)
-
-    config = {
-        'clientCert': self.getCertFilename("short_lived_client.cert"),
-        'clientKey': self.getCertFilename("short_lived_client.key"),
-        'waitTimer': 130
-    }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_SCS_17_default_config)
-  def test_WINNF_FT_S_SCS_17(self,config_filename):
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_17(self):
     """Invalid certificate following an approved registration request
        Checks that SAS UUT response with fatal alert message.
     """
-    # Read the configuration
-    config = loadConfig(config_filename)
+    device_cert_name = "short_lived_client"
+    expiry_timer = 2  # in minutes
+
+    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
     # Successful Tls Handshake
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
-                                   config['clientCert'], config['clientKey'])
+                                   device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
@@ -308,66 +280,39 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           config['clientCert'],
-                                           config['clientKey']):
+                                           device_cert,
+                                           device_key):
       self.assertRegistered([device_a])
 
     logging.info("CBSD device is in registered state")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
     # sleep for waitTimer so that certificate will become invalid
-    time.sleep(config['waitTimer'])
-    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    time.sleep(wait_timer)
 
     # Verify TLS handshake fails
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailure(client_cert=device_cert,
+                                   client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
-  def generate_SCS_18_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_18. """
-    # Create the configuration for invalid client cert/key & wait timer
-
-    # Get current working directory
-    cwd = os.getcwd()
-
-    # testcases directory
-    testcases_dir = os.path.dirname(
-      os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    # Absolute path to the certs directory
-    path = os.path.join(testcases_dir, '../certs')
-
-    # Change directory to the certs directory
-    os.chdir(path)
-
-    # Build short lived certificate command
-    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
-
-    # Create the short lived certificate
-    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
-
-    # Revert back to the previous directory
-    os.chdir(cwd)
-
-    config = {
-        'clientCert': self.getCertFilename("short_lived_client.cert"),
-        'clientKey': self.getCertFilename("short_lived_client.key"),
-        'waitTimer': 130
-    }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_SCS_18_default_config)
-  def test_WINNF_FT_S_SCS_18(self,config_filename):
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_18(self):
     """Invalid certificate following an approved grant request
        Checks that SAS UUT response with fatal alert message.
     """
-    # Read the configuration
-    config = loadConfig(config_filename)
+    device_cert_name = "short_lived_client"
+    expiry_timer = 2  # in minutes
+
+    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
     # Successful Tls Handshake
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
-                                   config['clientCert'], config['clientKey'])
+                                   device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
@@ -379,66 +324,39 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           config['clientCert'],
-                                           config['clientKey']):
+                                           device_cert,
+                                           device_key):
       cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
 
     logging.info("CBSD is in Granted State")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
     # sleep for waitTimer so that certificate will become invalid
-    time.sleep(config['waitTimer'])
+    time.sleep(wait_timer)
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
     # Verify TLS handshake fails
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailure(client_cert=device_cert,
+                                   client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
-  def generate_SCS_19_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_19. """
-    # Create the configuration for invalid client cert/key & wait timer
-
-    # Get current working directory
-    cwd = os.getcwd()
-
-    # testcases directory
-    testcases_dir = os.path.dirname(
-      os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    # Absolute path to the certs directory
-    path = os.path.join(testcases_dir, '../certs')
-
-    # Change directory to the certs directory
-    os.chdir(path)
-
-    # Build short lived certificate command
-    command = "./generate_short_lived_certs.sh  CBSD  short_lived_client " + " 2 "
-
-    # Create the short lived certificate
-    self.assertEqual(os.system(command),0,"short lived certificate creation failed")
-
-    # Revert back to the previous directory
-    os.chdir(cwd)
-
-    config = {
-        'clientCert': self.getCertFilename("short_lived_client.cert"),
-        'clientKey': self.getCertFilename("short_lived_client.key"),
-        'waitTimer': 130
-    }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_SCS_19_default_config)
-  def test_WINNF_FT_S_SCS_19(self,config_filename):
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_19(self):
     """Invalid certificate following an approved heartbeat request
        Checks that SAS UUT response with fatal alert message.
     """
-    # Read the configuration
-    config = loadConfig(config_filename)
+    device_cert_name = "short_lived_client"
+    expiry_timer = 2  # in minutes
+
+    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
     # Successful Tls Handshake
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
-                                   config['clientCert'], config['clientKey'])
+                                   device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
@@ -450,24 +368,24 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           config['clientCert'],
-                                           config['clientKey']):
+                                           device_cert,
+                                           device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
 
     operation_states = [('GRANTED')]
 
     with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           config['clientCert'],
-                                           config['clientKey']):
+                                           device_cert,
+                                           device_key):
       transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
 
     logging.info("CBSD is in HeartBeat Successful State")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % config['waitTimer'])
+    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
     # sleep for waitTimer so that certificate will become invalid
-    time.sleep(config['waitTimer'])
+    time.sleep(wait_timer)
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
     # Verify TLS handshake fails
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'], client_key=config['clientKey'])
+    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
