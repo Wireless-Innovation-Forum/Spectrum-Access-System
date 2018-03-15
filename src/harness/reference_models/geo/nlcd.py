@@ -32,7 +32,6 @@ For WinnForum use, only 3 classification are used:
 # from those files.
 # See the src/data/ directory for the scripts doing the regridding.
 
-import enum
 import numpy as np
 import os
 import time
@@ -42,9 +41,7 @@ from reference_models.geo import tiles
 from reference_models.geo import CONFIG
 
 
-# Note: need to use IntEnum to have comparable enum values to numeric values
-# since they need to be compared to integer values returned by data drivers.
-class LandCoverCodes(enum.IntEnum):
+class LandCoverCodes:
   """Defines the land cover codes from USGS NLCD database.
 
   Original NLCD codes from USGS are described at:

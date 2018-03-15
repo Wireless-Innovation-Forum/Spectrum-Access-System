@@ -49,6 +49,12 @@ class TestPpa(unittest.TestCase):
     cls.pal_records = util.makePalRecordsConsistent(
         cls.pal_records, pal_low_frequency, pal_high_frequency, user_id)
 
+  def setUp(self):
+    self.original_hybrid = wf_hybrid.CalcHybridPropagationLoss
+
+  def tearDown(self):
+    wf_hybrid.CalcHybridPropagationLoss = self.original_hybrid
+
   def assertAlmostSamePolygon(self, poly1, poly2, tol_km2=0.001):
     self.assertTrue(utils.GeometryArea(poly1.difference(poly2)) < tol_km2)
     self.assertTrue(utils.GeometryArea(poly2.difference(poly1)) < tol_km2)

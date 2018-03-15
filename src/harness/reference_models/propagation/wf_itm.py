@@ -35,6 +35,9 @@ from reference_models.geo import drive
 from reference_models.geo import vincenty
 from reference_models.propagation.itm import itm
 
+# TEMPORARY to avoid breaking code under PR
+terrainDriver = drive.terrain_driver
+
 
 # ITM warning codes
 class ItmErrorCode:

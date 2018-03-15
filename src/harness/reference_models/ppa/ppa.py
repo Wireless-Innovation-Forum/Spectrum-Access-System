@@ -33,6 +33,9 @@ RX_HEIGHT = 1.5
 MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A = 30.
 MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B = 47.
 
+# TEMPORARY to avoid breaking code under PR
+nlcd_driver = drive.nlcd_driver
+
 
 def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, antenna_gain,
                                               cbsd_region_type, latitudes, longitudes):
