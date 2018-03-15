@@ -46,6 +46,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_7 = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_8 = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_h.json')))	  
 
     # Load Grant requests
     grant_request_1 = json.load(
@@ -60,6 +64,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_7 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_8 = json.load(
+      open(os.path.join('testcases', 'testdata', 'grant_3.json')))	  
   
     # device_b is Category B
     # Load Conditional Data
@@ -106,7 +114,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                                                                 pal_low_frequency,
                                                                 pal_high_frequency,
                                                                 'test_user_1')
-    # Define DPA's 
+    # Define DPAs
     dpa_1 = {
        'dpaId': 'east_dpa4',
        'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
@@ -140,8 +148,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     
     # Protected entities records for multiple iterations
     protected_entities_iteration_0 = {
-        'palRecords': pal_records_1,
-        'ppaRecords': ppa_record_1, 
+        'palRecords': [pal_records_1],
+        'ppaRecords': [ppa_record_1], 
         'escRecords': [esc_record_1]
     }
     protected_entities_iteration_1 = {
@@ -214,33 +222,37 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Generate SAS Test Harnesses dump records for multiple iterations   
-    sas_test_harness_0_iteration_0_dump_records = {
+    dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
     }
-    sas_test_harness_0_iteration_1_dump_records = {
+    dump_records_iteration_1_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_0
     }
-    sas_test_harness_1_iteration_0_dump_records = {
+    dump_records_iteration_0_sas_test_harness_1 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
-    sas_test_harness_1_iteration_1_dump_records = {
+    dump_records_iteration_1_sas_test_harness_1 = {
         'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_1
     }
 
     # Create the actual config.
     iteration0_config = {
-        'cbsdRequests': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
+        'cbsdRequestsWithDomainProxys': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
+        'registrationRequests': [device_7],
+        'grantRequests': [grant_request_7],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
         'dpaDeactivationList': [],
-        'sasTestHarnessData': [sas_test_harness_0_iteration_0_dump_records,sas_test_harness_1_iteration_0_dump_records]
+        'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0,dump_records_iteration_0_sas_test_harness_1]
     }
     iteration1_config = {
-        'cbsdRequests': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
+        'cbsdRequestsWithDomainProxys': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
+        'registrationRequests' : [device_8],
+        'grantRequests' : [grant_request_8],
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],
         'dpaDeactivationList': [dpa_1],
-        'sasTestHarnessData': [sas_test_harness_0_iteration_1_dump_records,sas_test_harness_1_iteration_1_dump_records]
+        'sasTestHarnessData': [dump_records_iteration_1_sas_test_harness_0,dump_records_iteration_1_sas_test_harness_1]
     }
     config = {
         'conditionalRegistrationData': conditionals,      
