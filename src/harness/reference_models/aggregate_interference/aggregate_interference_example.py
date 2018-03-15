@@ -16,7 +16,7 @@
 # Test Aggregate Interference calculation for GWPZ, PPA, FSS and ESC Sensor 
 # incumbent types.
 # Expected result is dictionary containing aggregate interference
-# value at a protection constaint. 
+# value at a protection constraint. 
 # =============================================================================
 import json
 import os
@@ -62,7 +62,7 @@ if __name__ == '__main__':
       pal_record = json.load(open(os.path.join(_BASE_DATA_DIR, pal_file)))
       pal_list.append(pal_record)
   
-  # Determine which CBSD grants are on the move list
+  # Determine aggregate interference caused by the grants in the neighborhood
   start_time = time.time()
   fss_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForFss(fss, cbsd_list)
