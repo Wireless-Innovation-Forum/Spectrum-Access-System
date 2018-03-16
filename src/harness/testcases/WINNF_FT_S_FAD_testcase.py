@@ -91,8 +91,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         preloaded_conditionals: array of dictionaries of preloaded conditional parameters of the Cbsds.
       """  
       for index, device in enumerate(registration_request):
-          reg_conditional_device_data_list = [reg['registrationData'] for reg in \
-              reg_conditional_data if reg['fccId'] == device['fccId'] and \
+          reg_conditional_device_data_list = [reg for reg in \
+              reg_conditional_data['registrationData'] if reg['fccId'] == device['fccId'] and \
               reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
           reg_conditional_device_data = {}
           if any(reg_conditional_device_data_list):
@@ -355,8 +355,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
           self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
           del ppa_record['id']
+          if 'cbsdReferenceId' in ppa_record['ppaInfo']:
+            self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
+            del ppa_record['ppaInfo']['cbsdReferenceId']
       # verify that the injected ppas exist in the dump files
-      for index, ppa in enumerate(config['ppas']):
+      for index, ppa in enumerate(config['ppaRecords']):
         del ppa['id']
         exist_in_dump = False
         for ppa_record in ppa_dump_data:			           
