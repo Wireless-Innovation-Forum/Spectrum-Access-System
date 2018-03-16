@@ -144,5 +144,21 @@ class TestUtils(unittest.TestCase):
     pts = utils.GridPolygon(ops.unary_union(shape_geo), res_arcsec=1800)
     self.assertSetEqual(set(pts), exp_pts)
 
+  def test_polygons_equal(self):
+    poly_ref = sgeo.Point(0,0).buffer(1)
+
+    poly = sgeo.Point(0,0).buffer(1)
+    self.assertTrue(utils.PolygonsAlmostEqual(poly_ref, poly, 1e-6))
+
+    poly = sgeo.Point(0,0).buffer(1.1)
+    self.assertTrue(utils.PolygonsAlmostEqual(poly_ref, poly, 21.2))
+
+    poly = sgeo.Point(0,0).buffer(1.1)
+    self.assertFalse(utils.PolygonsAlmostEqual(poly_ref, poly, 20.8))
+
+    poly = sgeo.Point(0, 0.1).buffer(1)
+    self.assertTrue(utils.PolygonsAlmostEqual(poly_ref, poly, 15))
+
+
 if __name__ == '__main__':
   unittest.main()
