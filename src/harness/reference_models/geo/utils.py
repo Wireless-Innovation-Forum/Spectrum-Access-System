@@ -236,3 +236,29 @@ def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
                               for p in poly])
   else:
     raise ValueError('Input geometry is not a shapely Polygon or MultiPolygon')
+
+
+def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
+  """Checks similarity of a polygon to a reference polygon within some tolerance.
+
+  The check is done using method defined in WG4 Test and Certification spec,
+  equation 8.3.1.
+
+  Args:
+    poly_ref, poly: Two polygons in WGS84 or NAD83 coordinates (degrees), either:
+      - a shapely polygon  (Polygon, MultiPolygon)
+      - a GeoJSON geometry (dict), representing either a Polygon or MultiPolygon
+    tol_perc: The tolerance (in percent).
+
+  Returns:
+    True if the two polygons are equal (within the tolerance), False otherwise.
+  """
+  if isinstance(poly_ref, dict):
+    poly_ref = GeoJsonToShapelyGeometry(poly1)
+  if isinstance(poly, dict):
+    poly = GeoJsonToShapelyGeometry(poly)
+
+  union_polys = poly_ref.union(poly)
+  intersection_polys = poly_ref.intersection(poly)
+  return ((GeometryArea(union_polys) - GeometryArea(intersection_polys))
+          < tol_perc/100. * GeometryArea(poly_ref))

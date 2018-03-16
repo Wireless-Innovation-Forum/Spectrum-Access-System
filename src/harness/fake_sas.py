@@ -249,6 +249,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def PreloadRegistrationData(self, request):
     pass
 
+  def InjectExclusionZone(self, request, ssl_cert=None, ssl_key=None):
+    pass
+
   def InjectZoneData(self, request, ssl_cert=None, ssl_key=None):
     return request['record']['id']
 
@@ -354,6 +357,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_activation',
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
+                       '/admin/injectdata/exclusion_zone',
                        '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
