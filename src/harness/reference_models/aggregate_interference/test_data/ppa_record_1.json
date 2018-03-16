@@ -1,0 +1,54 @@
+{
+  "id": "PPA_1",
+  "name": "PPA Zone 1",
+  "creator": "admin_1",
+  "usage": "PPA",
+  "terminated": false,
+  "ppaInfo": {
+        "ppaRegionType": "URBAN",
+        "cbsdReferenceId": [
+          "cbsd_5"
+        ],
+        "palId": [
+          "pal_2"
+        ],
+        "ppaBeginDate": "2016-01-02 08:26:55",
+        "ppaExpirationDate": "2020-01-02 08:26:55" 
+      },
+  "zone": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+              [
+              [
+                        -98.82563,
+                        39.55876
+                     ],
+                     [
+                        -98.82396,
+                        39.55874
+                     ],
+                     [
+                        -98.82374,
+                        39.55774
+                     ],
+                     [
+                        -98.82468,
+                        39.5572
+                     ],
+                     [
+                        -98.82563,
+                        39.55876
+                     ]
+                ]
+          ]
+        }
+      }
+    ]
+  }
+}
