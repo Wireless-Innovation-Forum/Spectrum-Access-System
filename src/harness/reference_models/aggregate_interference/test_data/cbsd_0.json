@@ -1,0 +1,45 @@
+{
+  "_comment":"FSS - Inband Blocking CBSD partial overlap",
+	"id": "device_0_id",
+	"registrationRequest": {
+					"fccId": "test_fcc_id_a",
+		            "cbsdCategory": "B",
+		            "callSign": "KPPP",
+		            "userId": "test_user_id_a",
+		            "airInterface": {
+    				  "radioTechnology": "E_UTRA",
+                      "supportedSpec": "LTE-Rel10"
+                    },
+		            "cbsdInfo": {
+                      "vendor": "Equipment Maker C"
+                    },
+
+					"cbsdSerialNumber": "4321dcba_1",
+                    "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
+                    "installationParam": {
+                      "latitude": 39.54111,
+                      "longitude": -99.54437,
+                      "height": 3,
+                      "heightType":"AGL",
+                      "indoorDeployment": true,
+                      "antennaAzimuth": 72,
+                      "antennaDowntilt": 3,
+                      "antennaGain": 16,
+                      "antennaBeamwidth": 30
+                    }
+			    	},
+    "grantRequests": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_1_12345",
+					"operationParam": {
+						"maxEirp": 37,
+						"operationFrequencyRange": {
+							"highFrequency": 3603000000.0,
+							"lowFrequency": 3593000000.0
+						}
+					},
+					"terminated": false
+				}]
+
+}
