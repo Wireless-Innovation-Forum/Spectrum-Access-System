@@ -57,7 +57,7 @@ aggregate_interference = {}
 # Global IAP Allowed Margin container (mW/RBW)
 iap_allowed_margin = {}
 
-# Global IAP protection threshold per IAPBW container (dBm/IAPBW)
+# Global IAP protection threshold per IAPBW_HZ container (dBm/IAPBW_HZ)
 threshold_per_iapbw = {}
 
 def iapPointConstraint(protection_point, channels, low_freq, high_freq, 
@@ -72,8 +72,8 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
   Args:
     protection_point: List of protection points inside protection area
-    channels: Channels over which reference incumbent needs 
-              protection
+    channels: List of tuples containing (low_freq, high_freq) of each 5MHz 
+              segment of the whole frequency range of protoected entity
     low_freq: low frequency of protection constraint (Hz)
     high_freq: high frequency of protection constraint (Hz)
     grant_objects: a list of grant requests, each one being a tuple 
@@ -82,8 +82,8 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
               weights on the tangent and perpendicular compnents.
     esc_antenna_info: contains information on ESC antenna height, azimuth, 
                       gain and pattern gain
-    threshold: protection threshold (dBm/IAPBW)
-    protection_ent_type: an enum member of class ProtectionEntityType
+    threshold: protection threshold (dBm/IAPBW_HZ)
+    protection_ent_type: an enum member of class ProtectedEntityType
   Returns:
     Updates global container aggregate_interference dictionary in the format of 
     {(latitude,longitude,low_freq,high_freq,entity_type):aggregate_interference}
@@ -97,17 +97,17 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     # Set interference quota for protection_point, channel combination
 
     # Calculate Roll of Attenuation for ESC Sensor Protection entity
-    if protection_ent_type is interf.ProtectionEntityType.ESC_CAT_A or\
-      protection_ent_type is interf.ProtectionEntityType.ESC_CAT_B:
+    if protection_ent_type is interf.ProtectedEntityType.ESC_CAT_A or\
+      protection_ent_type is interf.ProtectedEntityType.ESC_CAT_B:
       if channel[0] >= 3650.e6:
         center_freq = (channel[0] + channel[1]) / 2
         interference_quota = interf.dbToLinear(interf.linearToDb(threshold) - 
-                (2.5 + ((center_freq - interf.ESC_CH21_CF) / interf.ONE_MHZ)))
+                (2.5 + ((center_freq - interf.ESC_CH21_CF_HZ) / interf.ONE_MHZ)))
       else:
         interference_quota = threshold
 
     # Get the FSS blocking passband range
-    elif protection_ent_type is interf.ProtectionEntityType.FSS_BLOCKING:
+    elif protection_ent_type is interf.ProtectedEntityType.FSS_BLOCKING:
       interference_quota = threshold
       channel = [low_freq, high_freq]
 
@@ -132,56 +132,57 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     fair_share = interference_quota / num_grants
 
     # Empty list of final IAP EIRP and interference assigned to the grant
-    grant_eirp = []
+    grants_eirp = []
     interference_list = []
 
     aggr_interference = 0
 
-    # Initialize flag to 0 for all the grants
+    # Initialize flag to False for all the grants
     grant_initialize_flag = []
-    grant_initialize_flag[:num_grants] = [0] * num_grants
+    grant_initialize_flag[:num_grants] = [False] * num_grants
 
-    # Initialize grant EIRP to maxEirp for all the grants
+    # Initialize grant EIRP to maxEirp for all the grants 
+    grants_eirp = [grant.max_eirp for grant in neighborhood_grants]
     for i, grant in enumerate(neighborhood_grants):
-      grant_eirp.append(grant.max_eirp)
+      grants_eirp.append(grant.max_eirp)
 
     while num_grants:
       for i, grant in enumerate(neighborhood_grants):
-        if grant_initialize_flag[i] == 0:
+        if grant_initialize_flag[i] is False:
           # Compute interference grant causes to protection point over channel
 
           # Compute interference to FSS Co-channel protection constraint
-          if protection_ent_type is interf.ProtectionEntityType.FSS_CO_CHANNEL:
+          if protection_ent_type is interf.ProtectedEntityType.FSS_CO_CHANNEL:
             interference = interf.dbToLinear(interf.computeInterferenceFss(
-                             grant, channel_constraint, fss_info, grant_eirp[i]))
+                             grant, channel_constraint, fss_info, grants_eirp[i]))
 
           # Compute interference to FSS Blocking protection constraint
-          elif protection_ent_type is interf.ProtectionEntityType.FSS_BLOCKING:
+          elif protection_ent_type is interf.ProtectedEntityType.FSS_BLOCKING:
             interference = interf.dbToLinear(interf.computeInterferenceFssBlocking(
-                             grant, channel_constraint, fss_info, grant_eirp[i]))
+                             grant, channel_constraint, fss_info, grants_eirp[i]))
 
           # Compute interference to ESC protection constraint
-          elif protection_ent_type is interf.ProtectionEntityType.ESC_CAT_A or\
-                protection_ent_type is interf.ProtectionEntityType.ESC_CAT_B:
+          elif protection_ent_type is interf.ProtectedEntityType.ESC_CAT_A or\
+                protection_ent_type is interf.ProtectedEntityType.ESC_CAT_B:
             interference = interf.dbToLinear(interf.computeInterferenceEsc(
-                             grant, channel_constraint, esc_antenna_info, grant_eirp[i]))
+                             grant, channel_constraint, esc_antenna_info, grants_eirp[i]))
 
           # Compute interference to GWPZ or PPA protection constraint
           else:
             interference = interf.dbToLinear(interf.computeInterferencePpaGwpzPoint(
                              grant, channel_constraint, interf.GWPZ_PPA_HEIGHT, 
-                             grant_eirp[i], region_type))
+                             grants_eirp[i], region_type))
 
           # calculated interference exceeds fair share of
           # interference to which the grants are entitled
           if interference < fair_share:
             interference_list.append(interference)
             # Grant is satisfied
-            grant_initialize_flag[i] = 1
+            grant_initialize_flag[i] = True
 
       for i, grant in enumerate(neighborhood_grants):
 
-        if grant_initialize_flag[i] == 1:
+        if grant_initialize_flag[i] is True:
 
           # Remove satisfied CBSD grant from consideration
           interference_quota = interference_quota - interference_list[i]
@@ -201,12 +202,12 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
               # Nested dictionary - contains dictionary of protection
               # constraint over which grant extends
-              post_iap_grant = PostIAPGrantInfo(eirp=grant_eirp[i], 
+              post_iap_grant = PostIAPGrantInfo(eirp=grants_eirp[i], 
                                  interference=interference_list[i])
               post_iap_managed_grants[grant.grant_index][channel_constraint] =\
                                                              post_iap_grant
         else:
-          grant_eirp[i] = grant_eirp[i] - 1
+          grants_eirp[i] = grants_eirp[i] - 1
 
       aggregate_interference[channel_constraint] = aggr_interference
 
@@ -245,25 +246,25 @@ def performIapForEsc(protection_entity, grant_objects, iap_margin_esc):
   pool = Pool(processes=min(interf.NUM_OF_PROCESSES, len(protection_point)))
 
   # ESC Category A CBSDs between 3550 - 3660 MHz within 40 km
-  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_A_LOW_FREQ, 
-                          interf.ESC_CAT_A_HIGH_FREQ)
+  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_A_LOW_FREQ_HZ, 
+                          interf.ESC_CAT_A_HIGH_FREQ_HZ)
 
-  logging.info('$$$$ Calling ESC Category A Protection $$$$')
+  logging.debug('$$$$ Calling ESC Category A Protection $$$$')
   # ESC algorithm
   iapPointConstraint(protection_point, protection_channels, 
-    interf.ESC_CAT_A_LOW_FREQ, interf.ESC_CAT_A_HIGH_FREQ, 
+    interf.ESC_CAT_A_LOW_FREQ_HZ, interf.ESC_CAT_A_HIGH_FREQ_HZ, 
     grant_objects, None, esc_antenna_info, None, 
-    iap_margin_esc, interf.ProtectionEntityType.ESC_CAT_A)
+    iap_margin_esc, interf.ProtectedEntityType.ESC_CAT_A)
 
   # ESC Category B CBSDs between 3550 - 3680 MHz within 80 km
-  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_B_LOW_FREQ, 
-                          interf.ESC_CAT_B_HIGH_FREQ)
+  protection_channels = interf.getProtectedChannels(interf.ESC_CAT_B_LOW_FREQ_HZ, 
+                          interf.ESC_CAT_B_HIGH_FREQ_HZ)
 
-  logging.info('$$$$ Calling ESC Category B Protection $$$$')
+  logging.debug('$$$$ Calling ESC Category B Protection $$$$')
   iapPointConstraint(protection_point, protection_channels, 
-    interf.ESC_CAT_B_LOW_FREQ, interf.ESC_CAT_B_HIGH_FREQ, 
+    interf.ESC_CAT_B_LOW_FREQ_HZ, interf.ESC_CAT_B_HIGH_FREQ_HZ, 
     grant_objects, None, esc_antenna_info, None, 
-    iap_margin_esc, interf.ProtectionEntityType.ESC_CAT_B)
+    iap_margin_esc, interf.ProtectedEntityType.ESC_CAT_B)
 
   pool.close()
   pool.join()
@@ -284,7 +285,7 @@ def performIapForGwpz(protection_entity, grant_objects, iap_margin_gwpz):
     iap_margin_gwpz: Pre IAP threshold value for GWPZ incumbent type(mW/RBW)
   """
 
-  logging.info('$$$$ Getting GRID points for GWPZ Protection Area $$$$')
+  logging.debug('$$$$ Getting GRID points for GWPZ Protection Area $$$$')
   # Get Fine Grid Points for a GWPZ protection area
   protection_points = utils.GridPolygon(protection_entity)
 
@@ -302,11 +303,11 @@ def performIapForGwpz(protection_entity, grant_objects, iap_margin_gwpz):
   # Apply IAP for each protection constraint with a pool of parallel processes.
   pool = Pool(processes=min(interf.NUM_OF_PROCESSES, len(protection_points)))
 
-  logging.info('$$$$ Calling GWPZ Protection $$$$')
+  logging.debug('$$$$ Calling GWPZ Protection $$$$')
   for protection_point in protection_points:
     iapPointConstraint(protection_point, protection_channels, gwpz_low_freq, 
       gwpz_high_freq, grant_objects, None, None, gwpz_region, 
-      iap_margin_gwpz, interf.ProtectionEntityType.GWPZ_AREA)
+      iap_margin_gwpz, interf.ProtectedEntityType.GWPZ_AREA)
 
   pool.close()
   pool.join()
@@ -329,7 +330,7 @@ def performIapForPpa(protection_entity, grant_objects,
     pal_records: PAL records associated with a PPA protection area 
   """
 
-  logging.info('$$$$ Getting GRID points for PPA Protection Area $$$$')
+  logging.debug('$$$$ Getting GRID points for PPA Protection Area $$$$')
 
   # Get Fine Grid Points for a PPA protection area
   protection_points = utils.GridPolygon(protection_entity)
@@ -357,11 +358,11 @@ def performIapForPpa(protection_entity, grant_objects,
       pool = Pool(processes=min(interf.NUM_OF_PROCESSES, 
                                    len(protection_points)))
 
-      logging.info('$$$$ Calling PPA Protection $$$$')
+      logging.debug('$$$$ Calling PPA Protection $$$$')
       for protection_point in protection_points:
         iapPointConstraint(protection_point, protection_channels, ppa_low_freq,
           ppa_high_freq, grant_objects, None, None, ppa_region,
-          iap_margin_ppa, interf.ProtectionEntityType.PPA_AREA)
+          iap_margin_ppa, interf.ProtectedEntityType.PPA_AREA)
       break
 
   pool.close()
@@ -414,45 +415,45 @@ def performIapForFss(protection_entity, grant_objects,
   pool = Pool(processes=min(interf.NUM_OF_PROCESSES, len(protection_point)))
 
   # FSS Passband is between 3600 and 4200
-  if (fss_low_freq >= interf.FSS_LOW_FREQ and 
-            fss_low_freq < interf.CBRS_HIGH_FREQ):
+  if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and 
+            fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
     # Get channels for co-channel CBSDs
-    protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ)
+    protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
     # FSS Co-channel algorithm
-    logging.info('$$$$ Calling FSS Protection $$$$')
+    logging.debug('$$$$ Calling FSS Protection $$$$')
     iapPointConstraint(protection_point, protection_channels, fss_low_freq,
-      interf.CBRS_HIGH_FREQ, grant_objects, fss_info, None, 
+      interf.CBRS_HIGH_FREQ_HZ, grant_objects, fss_info, None, 
       None, iap_margin_fss_cochannel, 
-      interf.ProtectionEntityType.FSS_CO_CHANNEL)
+      interf.ProtectedEntityType.FSS_CO_CHANNEL)
 
-    logging.info('$$$$ Calling FSS In-band blocking Protection $$$$')
+    logging.debug('$$$$ Calling FSS In-band blocking Protection $$$$')
 
     # 5MHz channelization is not required for Blocking protection
     # FSS in-band blocking algorithm
-    protection_channels = [interf.CBRS_LOW_FREQ, fss_low_freq]
+    protection_channels = [interf.CBRS_LOW_FREQ_HZ, fss_low_freq]
     iapPointConstraint(protection_point, protection_channels, 
-      interf.CBRS_LOW_FREQ, fss_low_freq, grant_objects, 
+      interf.CBRS_LOW_FREQ_HZ, fss_low_freq, grant_objects, 
       fss_info, None, None, iap_margin_fss_blocking, 
-      interf.ProtectionEntityType.FSS_BLOCKING)
+      interf.ProtectedEntityType.FSS_BLOCKING)
 
   # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
-  elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ and 
-           fss_high_freq <= interf.FSS_TTC_HIGH_FREQ):
+  elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
+           fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ):
     if (fss_ttc_flag is True):
 
       # 5MHz channelization is not required for Blocking protection
       # FSS TT&C Blocking Algorithm
-      logging.info('$$$$ Calling FSS TT&C  blocking Protection $$$$')
-      protection_channels = [interf.CBRS_LOW_FREQ, fss_low_freq]
+      logging.debug('$$$$ Calling FSS TT&C  blocking Protection $$$$')
+      protection_channels = [interf.CBRS_LOW_FREQ_HZ, fss_low_freq]
       iapPointConstraint(protection_point, protection_channels, 
-        interf.CBRS_LOW_FREQ, fss_low_freq, grant_objects, 
+        interf.CBRS_LOW_FREQ_HZ, fss_low_freq, grant_objects, 
         fss_info, None, None, iap_margin_fss_blocking, 
-        interf.ProtectionEntityType.FSS_BLOCKING)
+        interf.ProtectedEntityType.FSS_BLOCKING)
 
     # FSS Passband is between 3700 and 4200 and TT&C flag is set to FALSE
     else:
-      logging.info('$$$$ IAP for FSS not applied for FSS Pass band 3700 to 4200' 
+      logging.debug('$$$$ IAP for FSS not applied for FSS Pass band 3700 to 4200' 
         'and TT&C flag set to false $$$$')
 
   pool.close()
@@ -472,30 +473,30 @@ def calculateIapQ(protection_thresholds, pre_iap_headrooms):
                           (dBm/RBW)
     protection_ent_type: protected entity type
   Returns:
-    Updates threshold_per_iapbw(dBm/IAPBW) and iap_allowed_margin(mW/RBW) 
+    Updates threshold_per_iapbw(dBm/IAPBW_HZ) and iap_allowed_margin(mW/RBW) 
     global container
   """
   
-  # Get threshold per IAPBW(dBm/IAPBW) and IAP allowed margin(mW/RBW)
+  # Get threshold per IAPBW_HZ(dBm/IAPBW_HZ) and IAP allowed margin(mW/RBW)
   for key, interference_quota in protection_thresholds.iteritems():
 
     if key is 'QPpa':
       threshold_per_iapbw['iap_threshold_ppa'] = interference_quota + \
-                    interf.linearToDb(interf.IAPBW / interf.PPA_RBW)
+                    interf.linearToDb(interf.IAPBW_HZ / interf.PPA_RBW_HZ)
       iap_allowed_margin['iap_margin_ppa'] = interf.dbToLinear(
                       threshold_per_iapbw['iap_threshold_ppa'] -
                             pre_iap_headrooms.get('MgPpa'))
 
     elif key is 'QGwpz':
       threshold_per_iapbw['iap_threshold_gwpz'] = interference_quota + \
-                       interf.linearToDb(interf.IAPBW / interf.GWPZ_RBW)
+                       interf.linearToDb(interf.IAPBW_HZ / interf.GWPZ_RBW_HZ)
       iap_allowed_margin['iap_margin_gwpz'] = interf.dbToLinear(
                       threshold_per_iapbw['iap_threshold_gwpz'] -
                       pre_iap_headrooms.get('MgGwpz'))
 
     elif key is 'QFssCochannel':
       threshold_per_iapbw['iap_threshold_fss_cochannel'] = interference_quota + \
-                       interf.linearToDb(interf.IAPBW / interf.ONE_MHZ)
+                       interf.linearToDb(interf.IAPBW_HZ / interf.ONE_MHZ)
       iap_allowed_margin['iap_margin_fss_cochannel'] = interf.dbToLinear(
                       threshold_per_iapbw['iap_threshold_fss_cochannel'] -
                       pre_iap_headrooms.get('MgFssCochannel'))
@@ -508,30 +509,26 @@ def calculateIapQ(protection_thresholds, pre_iap_headrooms):
 
     elif key is 'QEsc':
       threshold_per_iapbw['iap_threshold_esc'] = interference_quota + \
-                       interf.linearToDb(interf.IAPBW / interf.ONE_MHZ)
+                       interf.linearToDb(interf.IAPBW_HZ / interf.ONE_MHZ)
       iap_allowed_margin['iap_margin_esc'] = interf.dbToLinear(
                       threshold_per_iapbw['iap_threshold_esc'] -
                       pre_iap_headrooms.get('MgEsc'))
 
-  logging.info('$$$$ IAP Allowed Margin in mW (q_p - m_g_p) : $$$$' + 
+  logging.debug('$$$$ IAP Allowed Margin in mW (q_p - m_g_p) : $$$$' + 
                                            str(iap_allowed_margin))
 
-  logging.info('$$$$ Threshold per IAPBW in dBm/IAPBW (q_p) : $$$$' + 
+  logging.debug('$$$$ Threshold per IAPBW_HZ in dBm/IAPBW_HZ (q_p) : $$$$' + 
                                            str(threshold_per_iapbw))
 
 
-def calculateApIapRef():
+def calculateApIapRef(num_sas):
   """Compute post IAP aggregate interference 
 
   Routine to calculate aggregate interference from all the CBSDs managed by the
   SAS at protected entity.
 
   Args:
-    post_iap_managed_grants: Global container to store eirp and interference of
-                             a grant over all the protection points and 
-                             channels
-    aggregate_interference: Global container to store aggregate interference 
-                             or all the protection points and channels(mW/RBW)
+    num_sas: number of SASs in the peer group 
   Returns:
     ap_iap_ref: post IAP aggregate interference dictionary in the format of 
                 {(latitude,longitude,low_freq,high_freq,entity_type):ap_iap_ref}
@@ -552,28 +549,28 @@ def calculateApIapRef():
           a_sas_p = a_sas_p + grant_params.interference 
 
     # Calculate ap_iap_ref for a particular protection point, channel
-    if p_ch_key.entity_type == interf.ProtectionEntityType.ESC_CAT_A or \
-         p_ch_key.entity_type == interf.ProtectionEntityType.ESC_CAT_B:
+    if p_ch_key.entity_type == interf.ProtectedEntityType.ESC_CAT_A or \
+         p_ch_key.entity_type == interf.ProtectedEntityType.ESC_CAT_B:
       q_p = threshold_per_iapbw['iap_threshold_esc']
 
-    elif p_ch_key.entity_type == interf.ProtectionEntityType.GWPZ_AREA:
+    elif p_ch_key.entity_type == interf.ProtectedEntityType.GWPZ_AREA:
       q_p = threshold_per_iapbw['iap_threshold_gwpz']
 
-    elif p_ch_key.entity_type == interf.ProtectionEntityType.PPA_AREA:
+    elif p_ch_key.entity_type == interf.ProtectedEntityType.PPA_AREA:
       q_p = threshold_per_iapbw['iap_threshold_ppa']
 
-    elif p_ch_key.entity_type == interf.ProtectionEntityType.FSS_CO_CHANNEL:
+    elif p_ch_key.entity_type == interf.ProtectedEntityType.FSS_CO_CHANNEL:
       q_p = threshold_per_iapbw['iap_threshold_fss_cochannel']
 
-    elif p_ch_key.entity_type == interf.ProtectionEntityType.FSS_BLOCKING:
+    elif p_ch_key.entity_type == interf.ProtectedEntityType.FSS_BLOCKING:
       q_p = threshold_per_iapbw['iap_threshold_fss_blocking']
 
-    ap_iap_ref[p_ch_key] = (interf.dbToLinear(q_p) - a_p_ch) / interf.NUM_SAS + a_sas_p
+    ap_iap_ref[p_ch_key] = (interf.dbToLinear(q_p) - a_p_ch) / num_sas + a_sas_p
 
   return ap_iap_ref
 
 
-def performIap(protection_thresholds, pre_iap_headrooms, protection_entities,
+def performIap(protection_thresholds, pre_iap_headrooms, protected_entities,
                sas_uut_fad_object, sas_th_fad_objects, pal_records):
   """Main IAP Routine
 
@@ -581,20 +578,20 @@ def performIap(protection_thresholds, pre_iap_headrooms, protection_entities,
   incumbent types.
 
   Args:
-    protection_thresholds: a list of protection thresholds per IAPBW(dBm/RBW)
+    protection_thresholds: a list of protection thresholds per IAPBW_HZ(dBm/RBW)
                            for protection entities
     pre_iap_headrooms: a list of pre IAP headroom for protection entities
-                       (dBm/RBW)
-    protection_entities: a list of protection entities, a list of FSS and 
+                       (dB)
+    protected_entities: a list of protected entities, a list of FSS and 
                          GWPZ records
-    sas_uut_fad_object: a list of FAD objects from SAS UUT
+    sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_object: a list of FAD objects from SAS Test Harness
   Returns:
     A list of post IAP aggregate interference from all the CBSDs managed by the 
     SAS at a ProtectionConstraint
   """
 
-  # Calculate protection threshold per IAPBW
+  # Calculate protection threshold per IAPBW_HZ
   calculateIapQ(protection_thresholds, pre_iap_headrooms)
 
   # List of CBSD grant tuples extracted from FAD record
@@ -618,22 +615,25 @@ def performIap(protection_thresholds, pre_iap_headrooms, protection_entities,
   grant_objects = grant_objects + grant_objects_test_harness
 
   # Extract PPA protection entity information from SAS UUT FAD object
-  ppa_protection_entities = sas_uut_fad_object.getPpaRecords()
+  ppa_protected_entities = sas_uut_fad_object.getPpaRecords()
 
   # Extract PPA protection entity information from SAS Test harness FAD objects
   for fad in sas_th_fad_objects:
     ppa_entities_test_harness = fad.getPpaRecords()
-    ppa_protection_entities = ppa_protection_entities + ppa_entities_test_harness
+    ppa_protected_entities = ppa_protected_entities + ppa_entities_test_harness
 
   # Extract ESC protection entity information from SAS UUT FAD object
-  esc_protection_entities = sas_uut_fad_object.getEscSensorRecords()
+  esc_protected_entities = sas_uut_fad_object.getEscSensorRecords()
 
   # Extract ESC protection entity information from SAS Test harness FAD objects
   for fad in sas_th_fad_objects:
     esc_entities_test_harness = fad.getEscSensorRecords()
-    esc_protection_entities = esc_protection_entities + esc_entities_test_harness
+    esc_protected_entities = esc_protected_entities + esc_entities_test_harness
 
-  for protection_entity in protection_entities:
+  # Get number of SAS 
+  num_sas = len(sas_th_fad_objects) + 1
+
+  for protection_entity in protected_entities:
     if protection_entity['type'] == 'FSS':
       performIapForFss(protection_entity, grant_objects, 
         iap_allowed_margin['iap_margin_fss_cochannel'], 
@@ -643,23 +643,23 @@ def performIap(protection_thresholds, pre_iap_headrooms, protection_entities,
       performIapForGwpz(protection_entity, grant_objects, 
         iap_allowed_margin['iap_margin_gwpz'])
 
-  for ppa_entity in ppa_protection_entities:
+  for ppa_entity in ppa_protected_entities:
     if len(ppa_entity) != 0:
       performIapForPpa(ppa_entity, grant_objects, 
         iap_allowed_margin['iap_margin_ppa'], pal_records)
 
-  for esc_entity in esc_protection_entities:
+  for esc_entity in esc_protected_entities:
     if len(esc_entity) != 0:
       performIapForEsc(esc_entity, grant_objects, 
         iap_allowed_margin['iap_margin_esc'])
 
-  logging.info('$$$$  AGGREGATE INTERFERENCE A_p (mW/RBW) : $$$$' + 
+  logging.debug('$$$$  AGGREGATE INTERFERENCE A_p (mW/RBW) : $$$$' + 
                                    str(aggregate_interference))
-  logging.info('$$$$ Post IAP Managed Grant $$$$$$\n' + 
+  logging.debug('$$$$ Post IAP Managed Grant $$$$$$\n' + 
                                    str(post_iap_managed_grants))
 
   # List of Post IAP Aggregate interference from all the CBSDs managed by
   # the SAS at the protected entity
-  ap_iap_ref = calculateApIapRef()
+  ap_iap_ref = calculateApIapRef(num_sas)
 
   return ap_iap_ref
