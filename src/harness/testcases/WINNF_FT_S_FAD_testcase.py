@@ -290,6 +290,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       responses = self._sas.Registration(request)['registrationResponse']
       # Check registration responses and get cbsd Id
       self.assertEqual(len(responses), len(config['registrationRequests']))
+      # TODO : to update the test so that it is possible to get a PAL Grant
       grants = config['grantRequests']
       for index, response in enumerate(responses):
           self.assertEqual(response['response']['responseCode'], 0)
@@ -355,6 +356,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
           self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
           del ppa_record['id']
+          # TODO : to update the following check according when PAL grants are supported in this test case
           if 'cbsdReferenceId' in ppa_record['ppaInfo']:
             self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
             del ppa_record['ppaInfo']['cbsdReferenceId']
