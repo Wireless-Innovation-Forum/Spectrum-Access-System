@@ -56,27 +56,15 @@ sas_th_1 = sas_objects.FullActivityDump("", "", "", "")
 sas_th_2 = sas_objects.FullActivityDump("", "", "", "")
 sas_uut.cbsd_records = [cbsd_0, cbsd_1, cbsd_2]
 sas_th_1.cbsd_records = [cbsd_3, cbsd_6]
-sas_th_1.ppa_records = [ppa_0, ppa_1, ppa_2]
 sas_th_2.cbsd_records = [cbsd_4, cbsd_5]
-sas_th_2.esc_records = [esc_0]
 pal_records = [pal_0, pal_1, pal_2, pal_3]
 
 sas_th_fad_objects = [sas_th_1, sas_th_2]
-protection_entities = [gpwz_0, gpwz_1, gpwz_2, fss_0, fss_1]
-
-
-# values from WINNF-TS-0061-V1.1.0 - WG4 SAS Test and Certification Spec-Table 
-# 8.4-2 Protected entity reference for IAP Protection
-protection_thresholds = {'QPpa': -80, 'QGwpz': -80, 'QFssCochannel': -129, 
-                         'QFssBlocking': -60, 'QEsc': -109}
-# considered the default value for testing purpose
-pre_iap_headRooms = {'MgPpa': -2, 'MgGwpz': -2, 'MgFssCochannel': -2, 
-                     'MgFssBlocking': -2, 'MgEsc': -2}
+protected_entities = [gpwz_0, gpwz_1, gpwz_2, fss_0, fss_1, ppa_0, ppa_1, ppa_2, esc_0]
 
 start_time = time.time()
 
-iap_output = iap.performIap(protection_thresholds, pre_iap_headRooms, 
-               protection_entities, sas_uut, sas_th_fad_objects, pal_records)
+iap_output = iap.performIap(protected_entities, sas_uut, sas_th_fad_objects, pal_records)
 
 end_time = time.time()
 
