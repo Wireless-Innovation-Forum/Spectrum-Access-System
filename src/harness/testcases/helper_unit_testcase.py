@@ -113,47 +113,5 @@ class AssertPpaComparison(sas_testcase.SasTestCase):
 
      self.assertTrue(compareDictWithUnorderedLists(ppa, ppa))
 
-class AssertPolygonComparison(sas_testcase.SasTestCase):
-    
-   def setUp(self):
-    pass
-
-   def test_shouldIsPolygonCCWWithCorrectOrderCoordinatesReturnTrue(self):
-     c1 = {"type": "Polygon","coordinates": [  [[  -97.23861694335938,  38.865374851611634],[  -97.31964111328125,  38.7615795117574],[  -97.16995239257811,  38.739088441876866],[  -97.16171264648436,  38.86751337001198],[  -97.23861694335938,  38.865374851611634]  ]]}
-     self.assertTrue(isPolygonCCW(c1))
-
-   #def test_shouldAreTwoPolygonsEqualWithDeltaDifferenceReturnTrue(self):
-   #  c1 = [[[0, 0],[1, 0],[0, 1],[1, 1],[0, 0]]]
-   #  c2 = [[[0, 0],[1.1, 0.2],[-0.1, 1],[1, 1],[0, 0]]]
-   #  self.assertTrue(areTwoPolygonsEqual(c1, c2, 0.2))
- 
-   #def test_shouldAreTwoPolygonsEqualWithMoreThanDeltaDifferenceReturnFalse(self):
-   #  c1 = [[[0, 0],[1, 0],[0, 1],[1, 1],[0, 0]]]
-   #  c2 = [[[0, 0],[1.1, 0.2],[-0.1, 1],[1, 1],[0, 0]]]
-   #  self.assertFalse(areTwoPolygonsEqual(c1, c2, 0.1))
-
-   #def test_shouldAreTwoPolygonsEqualWithTwoHolesReturnTrue(self):
-   #  c1 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]], \
-   #    [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
-   #    [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
-   #    ]
-   #  c2 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]],\
-   #    [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
-   #    [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
-   #    ]
-   #  self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))
-
-   #def test_shouldAreTwoPolygonsEqualWithTwoHolesInDifferentOrderReturnTrue(self):
-   #  c1 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]], \
-   #    [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]],\
-   #    [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]]\
-   #    ]
-   #  c2 = [[[0, 0],[1,0],[0, 1],[1, 1],[0, 0]],\
-   #    [[0.4, 0.4],[0.4, 0.5],[0.5, 0.5, ],[0.5, 0.4],[0.4, 0.4]],\
-   #    [[0.5, 0.5],[0.5, 0.6],[0.6, 0.5, ],[0.6, 0.6],[0.5, 0.5]]\
-   #    ]
-   #  self.assertTrue(areTwoPolygonsEqual(c1, c2, 0))
-
-   
 if __name__ == '__main__':
   unittest.main()

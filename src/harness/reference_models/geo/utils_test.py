@@ -159,6 +159,20 @@ class TestUtils(unittest.TestCase):
     poly = sgeo.Point(0, 0.1).buffer(1)
     self.assertTrue(utils.PolygonsAlmostEqual(poly_ref, poly, 15))
 
+  def test_polygon_correct_ceoJson_winding(self):
+
+    poly_with_hole = {"type": "Polygon","coordinates": [[[-97.23,38.86],[-97.31,38.76],[-97.16,38.73],[-97.16,38.86],[-97.23,38.86]],
+                                                        [[-97.21,38.82],[-97.18,38.81],[-97.19,38.78],[-97.22,38.78],[-97.21,38.82]]]}
+    self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(poly))
+
+    poly_with_hole['coordinates'][0] = list(reversed(poly_with_hole['coordinates'][0]))
+    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly))
+
+    poly_with_hole['coordinates'][1] = list(reversed(poly_with_hole['coordinates'][1]))
+    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly))
+
+    poly_with_hole['coordinates'][0] = list(reversed(poly_with_hole['coordinates'][0]))
+    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly))
 
 if __name__ == '__main__':
   unittest.main()

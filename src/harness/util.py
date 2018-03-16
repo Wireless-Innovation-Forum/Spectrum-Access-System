@@ -428,24 +428,7 @@ def compareDictWithUnorderedLists(first_dict, second_dict):
   """
   return _orderAttributes(first_dict) == _orderAttributes(second_dict)
 
-def isPolygonCCW(polygon):
-  """
-  Args:
-    polygon: the reference GeoJSON geometry of  polygon object.
-
-   Returns: boolean set to true if the coordinates are CCW oriented  and false otherwise.
-  """
-  shapely_polygon = utils.GeoJsonToShapelyGeometry(polygon);
-  print(shapely_polygon.exterior)
-  if not shapely_polygon.exterior.is_ccw:
-    return False
-  #check the holes of the polygons
-  for ring in shapely_polygon.interiors:
-    if not ring.is_ccw:
-      return False
-  return True;
-
-def areTwoPpasEqual(first_ppa, second_ppa, delta = 10):
+def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
   """ Deep comparison of two PPAs considering
 
   Args:
@@ -463,9 +446,9 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta = 10):
 
   if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
     return False
-  if not isPolygonCCW(geometry_of_first_ppa):
+  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_first_ppa):
         return False
-  if not isPolygonCCW(geometry_of_second_ppa):
+  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_second_ppa):
         return False
   # check other Ppa parameters
   del first_ppa["zone"]["features"][0]["geometry"]["coordinates"]

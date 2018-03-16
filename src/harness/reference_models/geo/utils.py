@@ -262,3 +262,22 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
   intersection_polys = poly_ref.intersection(poly)
   return ((GeometryArea(union_polys) - GeometryArea(intersection_polys))
           < tol_perc/100. * GeometryArea(poly_ref))
+
+
+def hasPolygonCorrectGeoJsonWinding(polygon):
+  """
+  Args:
+    polygon: the reference GeoJSON geometry of  polygon object.
+
+   Returns: boolean set to true if the polygon has a correct GeoJson Winding and false otherwise.
+  """
+  shapely_polygon = utils.GeoJsonToShapelyGeometry(polygon);
+  print(shapely_polygon.exterior)
+  if not shapely_polygon.exterior.is_ccw:
+    return False
+  #check the holes of the polygons
+  for ring in shapely_polygon.interiors:
+    if ring.is_ccw:
+      return False
+  return True;
+
