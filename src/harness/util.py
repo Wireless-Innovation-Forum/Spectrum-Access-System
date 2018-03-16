@@ -20,12 +20,10 @@ import inspect
 import json
 from jsonschema import validate, Draft4Validator, RefResolver
 import logging
-import numpy as np
 import os
 import sys
 import time
 import random
-import sys
 import uuid
 import jwt
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
@@ -51,15 +49,15 @@ def _log_testcase_header(name, doc):
 
 
 def winnforum_testcase(testcase):
-    """Decorator for common features (e.g. logging) for WinnForum test cases."""
-    def decorated_testcase(*args, **kwargs):
-        assert testcase, ('Avoid using @winnforum_testcase with '
-                          '@configurable_testcase')
+  """Decorator for common features (e.g. logging) for WinnForum test cases."""
+  def decorated_testcase(*args, **kwargs):
+    assert testcase, ('Avoid using @winnforum_testcase with '
+                      '@configurable_testcase')
 
-        _log_testcase_header(testcase.__name__, testcase.__doc__)
-        testcase(*args, **kwargs)
+    _log_testcase_header(testcase.__name__, testcase.__doc__)
+    testcase(*args, **kwargs)
 
-    return decorated_testcase
+  return decorated_testcase
 
 
 def configurable_testcase(default_config_function):
@@ -116,20 +114,20 @@ def configurable_testcase(default_config_function):
 
 
 def loadConfig(config_filename):
-    """Loads a configuration file."""
-    with open(config_filename, 'r') as f:
-        return json.loads(f.read())
+  """Loads a configuration file."""
+  with open(config_filename, 'r') as f:
+    return json.loads(f.read())
 
 
 def writeConfig(config_filename, config):
-    """Writes a configuration file."""
-    dir_name = os.path.dirname(config_filename)
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
+  """Writes a configuration file."""
+  dir_name = os.path.dirname(config_filename)
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
 
-    with open(config_filename, 'w') as f:
-        f.write(
-            json.dumps(config, indent=2, sort_keys=False, separators=(',', ': ')))
+  with open(config_filename, 'w') as f:
+    f.write(
+        json.dumps(config, indent=2, sort_keys=False, separators=(',', ': ')))
 
 
 def getRandomLatLongInPolygon(ppa):
@@ -272,21 +270,21 @@ def assertContainsRequiredFields(schema_filename, response):
 
 
 def generateCpiRsaKeys():
-    """Generate a private/public RSA 2048 key pair.
+  """Generate a private/public RSA 2048 key pair.
 
-    Returns:
-      A tuple (private_key, public key) as PEM string encoded.
-    """
-    rsa_key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend())
-    rsa_private_key = rsa_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption())
-    rsa_public_key = rsa_key.public_key().public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo)
-    return rsa_private_key, rsa_public_key
+  Returns:
+    A tuple (private_key, public key) as PEM string encoded.
+  """
+  rsa_key = rsa.generate_private_key(
+      public_exponent=65537, key_size=2048, backend=default_backend())
+  rsa_private_key = rsa_key.private_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PrivateFormat.TraditionalOpenSSL,
+      encryption_algorithm=serialization.NoEncryption())
+  rsa_public_key = rsa_key.public_key().public_bytes(
+      encoding=serialization.Encoding.PEM,
+      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+  return rsa_private_key, rsa_public_key
 
 
 def generateCpiEcKeys():
