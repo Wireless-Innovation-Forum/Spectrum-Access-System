@@ -307,6 +307,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     _RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
                  self._base_url, None, self._tls_config)
 
+  def TriggerEnableNtiaExclusionZones(self):
+    _RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
+                 self._base_url, None, self._tls_config)
+    pass
+
   def GetDailyActivitiesStatus(self):
     return _RequestPost('https://%s/admin/get_daily_activities_status' %
                         self._base_url, None, self._tls_config)

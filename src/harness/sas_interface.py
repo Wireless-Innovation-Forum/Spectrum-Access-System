@@ -395,6 +395,12 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def TriggerEnableNtiaExclusionZones(self):
+    """SAS admin interface to trigger enforcement of the NTIA exclusion zones 
+    """
+    pass
+
+  @abc.abstractmethod
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:
