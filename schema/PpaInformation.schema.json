@@ -21,7 +21,8 @@
       "type": "array",
       "description": "List of one or more CBSD Reference IDs in the cluster list of the PPA.",
       "items": {
-        "type": "string"
+        "type": "string",
+        "pattern" : "cbsd/.+/.+"
     }
 	},
     "ppaBeginDate": {
