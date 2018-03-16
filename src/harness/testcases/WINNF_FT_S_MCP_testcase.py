@@ -72,7 +72,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # device_b is Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B') 
-    conditionals_b = {
+    conditionals_device_2 = {
         'cbsdCategory': device_2['cbsdCategory'],
         'fccId': device_2['fccId'],
         'cbsdSerialNumber': device_2['cbsdSerialNumber'],
@@ -80,8 +80,17 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'installationParam': device_2['installationParam'],
         'measCapability': device_2['measCapability']
     }
+    self.assertEqual(device_8['cbsdCategory'], 'B')
+    conditionals_device_8 = {
+        'cbsdCategory': device_8['cbsdCategory'],
+        'fccId': device_8['fccId'],
+        'cbsdSerialNumber': device_8['cbsdSerialNumber'],
+        'airInterface': device_8['airInterface'],
+        'installationParam': device_8['installationParam'],
+        'measCapability': device_8['measCapability']
+    }    
     
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_8]}
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -116,15 +125,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                                                                 'test_user_1')
     # Define DPAs
     dpa_1 = {
-       'dpaId': 'east_dpa4',
+       'dpaId': 'east_dpa_4',
        'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
     }
     dpa_2 = {
-       'dpaId': 'east_dpa5',
+       'dpaId': 'east_dpa_5',
        'frequencyRange': {'lowFrequency': 3660000000 , 'highFrequency': 3670000000 }
     }
     dpa_3 = {
-       'dpaId': 'east_dpa6',
+       'dpaId': 'east_dpa_6',
        'frequencyRange': {'lowFrequency': 3670000000 , 'highFrequency': 3680000000 }
     }
 
@@ -148,7 +157,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     
     # Protected entities records for multiple iterations
     protected_entities_iteration_0 = {
-        'palRecords': [pal_records_1],
+        'palRecords': pal_records_1,
         'ppaRecords': [ppa_record_1], 
         'escRecords': [esc_record_1]
     }
@@ -237,18 +246,26 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     iteration0_config = {
-        'cbsdRequestsWithDomainProxys': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
-        'registrationRequests': [device_7],
-        'grantRequests': [grant_request_7],
+        'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
+        'cbsdRecord' : {
+            'registrationRequest': device_7,
+            'grantRequest': grant_request_7,
+            'clientCert': os.path.join('certs', 'client.cert'), 
+            'clientKey': os.path.join('certs', 'client.key')
+        },
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
         'dpaDeactivationList': [],
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0,dump_records_iteration_0_sas_test_harness_1]
     }
     iteration1_config = {
-        'cbsdRequestsWithDomainProxys': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
-        'registrationRequests' : [device_8],
-        'grantRequests' : [grant_request_8],
+        'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
+        'cbsdRecord' : {
+            'registrationRequest' : device_8,
+            'grantRequest' : grant_request_8,
+            'clientCert': os.path.join('certs', 'client.cert'),
+            'clientKey': os.path.join('certs', 'client.key')
+        },
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],
         'dpaDeactivationList': [dpa_1],
