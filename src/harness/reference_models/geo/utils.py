@@ -254,7 +254,7 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
     True if the two polygons are equal (within the tolerance), False otherwise.
   """
   if isinstance(poly_ref, dict):
-    poly_ref = GeoJsonToShapelyGeometry(poly1)
+    poly_ref = GeoJsonToShapelyGeometry(poly)
   if isinstance(poly, dict):
     poly = GeoJsonToShapelyGeometry(poly)
 
@@ -271,7 +271,7 @@ def hasPolygonCorrectGeoJsonWinding(polygon):
 
    Returns: boolean set to true if the polygon has a correct GeoJson Winding and false otherwise.
   """
-  shapely_polygon = utils.GeoJsonToShapelyGeometry(polygon);
+  shapely_polygon = GeoJsonToShapelyGeometry(polygon);
   print(shapely_polygon.exterior)
   if not shapely_polygon.exterior.is_ccw:
     return False
