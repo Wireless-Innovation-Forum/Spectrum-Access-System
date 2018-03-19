@@ -319,7 +319,11 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     elif self.path == 'admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
-      response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+      try:
+	response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+      except ValueError:
+	self.send_response(400)
+      return 
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
