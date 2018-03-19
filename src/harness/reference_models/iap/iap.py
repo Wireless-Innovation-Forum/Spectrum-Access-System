@@ -146,6 +146,8 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     # Empty list of final IAP EIRP and interference assigned to the grant
     grants_eirp = []
     interference_list = []
+    # Initialize interference list to 0 for all the neighborhood_grants
+    interference_list[:num_grants] = [0] * num_grants
 
     aggr_interference = 0
 
@@ -155,42 +157,40 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
     # Initialize grant EIRP to maxEirp for all the grants 
     grants_eirp = [grant.max_eirp for grant in neighborhood_grants]
-    for i, grant in enumerate(neighborhood_grants):
-      grants_eirp.append(grant.max_eirp)
 
-    while num_grants:
-      for i, grant in enumerate(neighborhood_grants):
-        if grant_initialize_flag[i] is False:
+    while (num_grants > 0):
+      for index, grant in enumerate(neighborhood_grants):
+        if grant_initialize_flag[index] is False:
           # Compute interference grant causes to protection point over channel
 
           # Compute interference to FSS Co-channel protection constraint
           if protection_ent_type is interf.ProtectedEntityType.FSS_CO_CHANNEL:
             interference = interf.dbToLinear(interf.computeInterferenceFss(
-                             grant, channel_constraint, fss_info, grants_eirp[i]))
+                             grant, channel_constraint, fss_info, grants_eirp[index]))
 
           # Compute interference to FSS Blocking protection constraint
           elif protection_ent_type is interf.ProtectedEntityType.FSS_BLOCKING:
             interference = interf.dbToLinear(interf.computeInterferenceFssBlocking(
-                             grant, channel_constraint, fss_info, grants_eirp[i]))
+                             grant, channel_constraint, fss_info, grants_eirp[index]))
 
           # Compute interference to ESC protection constraint
           elif protection_ent_type is interf.ProtectedEntityType.ESC_CAT_A or\
                 protection_ent_type is interf.ProtectedEntityType.ESC_CAT_B:
             interference = interf.dbToLinear(interf.computeInterferenceEsc(
-                             grant, channel_constraint, esc_antenna_info, grants_eirp[i]))
+                             grant, channel_constraint, esc_antenna_info, grants_eirp[index]))
 
           # Compute interference to GWPZ or PPA protection constraint
           else:
             interference = interf.dbToLinear(interf.computeInterferencePpaGwpzPoint(
                              grant, channel_constraint, interf.GWPZ_PPA_HEIGHT, 
-                             grants_eirp[i], region_type))
+                             grants_eirp[index], region_type))
 
           # calculated interference exceeds fair share of
           # interference to which the grants are entitled
           if interference < fair_share:
-            interference_list.append(interference)
+            interference_list[index] = interference
             # Grant is satisfied
-            grant_initialize_flag[i] = True
+            grant_initialize_flag[index] = True
 
       for i, grant in enumerate(neighborhood_grants):
 
@@ -198,7 +198,9 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
           # Remove satisfied CBSD grant from consideration
           interference_quota = interference_quota - interference_list[i]
-          num_grants = num_grants - 1
+
+          if num_grants > 0:
+            num_grants = num_grants - 1
 
           # re-calculate the fair share if number of grants are not zero
           if num_grants != 0:
@@ -307,7 +309,7 @@ def performIapForGwpz(protected_entity, grant_objects, iap_margin_gwpz):
   gwpz_high_freq = gwpz_freq_range['highFrequency']
 
   gwpz_region = protected_entity['zone']['features'][0]\
-                                 ['properties']['gwpzRegionType']
+                                 ['properties']['clutter']
 
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(gwpz_low_freq, gwpz_high_freq)
@@ -418,11 +420,13 @@ def performIapForFss(protected_entity, grant_objects,
   fss_high_freq = fss_freq_range['highFrequency']
 
   # Get FSS information
-  fss_info = interf.FssInformation(antenna_height=fss_point['height'],
-               antenna_azimuth=fss_point['antennaAzimuth'],
-               antenna_elevation=fss_point['antennaElevationAngle'],
-               antenna_gain=fss_point['antennaGain'],
-               weight1=fss_weight1, weight2=fss_weight2)
+  fss_info = interf.FssProtectionPoint(latitude=fss_point['latitude'], 
+               longitude=fss_point['longitude'],
+               height_agl=fss_point['height'],
+               max_gain_dbi=fss_point['antennaGain'],
+               pointing_azimuth=fss_point['antennaAzimuth'],
+               pointing_elevation=fss_point['antennaElevationAngle'],
+               weight_1=fss_weight1, weight_2=fss_weight2)
 
   pool = Pool(processes=min(interf.NUM_OF_PROCESSES, len(protection_point)))
 

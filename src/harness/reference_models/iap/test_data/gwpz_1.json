@@ -15,7 +15,7 @@
          {  
             "type":"Feature",
             "properties":{  
-               "gwpzRegionType":"URBAN"
+               "clutter":"URBAN"
             },
             "geometry":{  
                "type":"Polygon",
