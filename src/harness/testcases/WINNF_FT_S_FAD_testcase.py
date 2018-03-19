@@ -36,8 +36,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   def tearDown(self):
     pass
       
-  def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, record,\
-                preloaded_conditionals, registration_request, default_value):
+  def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, registration_request,\
+                                                                   preloaded_conditionals, record, default_value):
       """ this function checks the optional parameter of dump with
         the parameter of the registered Cbsd
         Args:
@@ -58,8 +58,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       attr_value_in_record = record[attr_name] if attr_name in record else  None 
       self.assertEqual(attr_value, attr_value_in_record)
     
-  def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, record,\
-                preloaded_conditionals, registration_request):
+  def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, registration_request,\
+                                                     preloaded_conditionals, record):
       """ this function checks the required parameter of dump with
         the required parameter of the registered Cbsd
         Args:
@@ -96,10 +96,12 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
           reg_conditional_device_data = {}
           if any(reg_conditional_device_data_list):
-            self.assertEqual(reg_conditional_device_data_list, 1)
+            self.assertEqual(1, len(reg_conditional_device_data_list))
             reg_conditional_device_data = reg_conditional_device_data_list[0]
           if 'installationParam' not in reg_conditional_device_data:
-              reg_conditional_device_data['installationParam'] = None
+              reg_conditional_device_data['installationParam'] = {}
+          if 'installationParam' not in device:
+              device['installationParam'] = {}
           record_id = 'cbsd/'+ device['fccId']+'/'+ hashlib.sha1(device['cbsdSerialNumber']).hexdigest()
           cbsd_record = [record['registration'] for record in cbsd_dump_data if record['id'] == record_id]
           self.assertEqual(1, len(cbsd_record))
@@ -164,7 +166,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               self.assertFalse('groupingParam' in cbsd_record[0])
           
           # Get grants by cbsd_id
-          grants_of_cbsd = [cbsd['grants'] for cbsd in cbsd_dump_data if cbsd['id'] == record_id]
+          grants_of_cbsd = [cbsd['grants'] for cbsd in cbsd_dump_data if cbsd['id'] == record_id][0]
           self.assertEqual(1, len(grants_of_cbsd))
           self.assertTrue('id' in grants_of_cbsd[0])
           # Verify the Grant Of the Cbsd

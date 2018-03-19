@@ -441,8 +441,8 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
  Note: the PPA should contain only one GeoJson Feature, this feature should contain only one Polygon
        and polygons with holes are accepted
   """
-  geometry_of_first_ppa = first_ppa["zone"]["features"][0]["geometry"]
-  geometry_of_second_ppa = second_ppa["zone"]["features"][0]["geometry"]
+  geometry_of_first_ppa = first_ppa['zone']['features'][0]['geometry']
+  geometry_of_second_ppa = second_ppa['zone']['features'][0]['geometry']
 
   if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
     return False
@@ -451,10 +451,10 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
   if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_second_ppa):
         return False
   # check other Ppa parameters
-  del first_ppa["zone"]["features"][0]["geometry"]["coordinates"]
-  del second_ppa["zone"]["features"][0]["geometry"]["coordinates"]
+  del first_ppa['zone']['features'][0]['geometry']['coordinates']
+  del second_ppa['zone']['features'][0]['geometry']['coordinates']
   result = compareDictWithUnorderedLists(first_ppa, second_ppa)
-  first_ppa["zone"]["features"][0]["geometry"]["coordinates"] = geometry_of_first_ppa["coordinates"]
-  second_ppa["zone"]["features"][0]["geometry"]["coordinates"] = geometry_of_second_ppa["coordinates"]
+  first_ppa['zone']['features'][0]['geometry']['coordinates'] = geometry_of_first_ppa['coordinates']
+  second_ppa['zone']['features'][0]['geometry']['coordinates'] = geometry_of_second_ppa['coordinates']
   return result
  

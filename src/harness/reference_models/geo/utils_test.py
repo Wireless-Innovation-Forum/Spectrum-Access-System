@@ -161,7 +161,7 @@ class TestUtils(unittest.TestCase):
 
   def test_polygon_correct_geoJson_winding(self):
 
-    poly_with_hole = {"type": "Polygon","coordinates": [[[-97.23,38.86],[-97.31,38.76],[-97.16,38.73],[-97.16,38.86],[-97.23,38.86]],
+    poly_with_hole = {'type': 'Polygon','coordinates': [[[-97.23,38.86],[-97.31,38.76],[-97.16,38.73],[-97.16,38.86],[-97.23,38.86]],
                                                         [[-97.21,38.82],[-97.18,38.81],[-97.19,38.78],[-97.22,38.78],[-97.21,38.82]]]}
     self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(poly_with_hole))
 
