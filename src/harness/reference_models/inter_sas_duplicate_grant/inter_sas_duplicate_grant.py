@@ -15,13 +15,14 @@
 """
 ==================================================================================
   This is a subset of the pre-IAP reference model which implements inter-SAS
-  duplicate grant removal. If a CBSD has registered with multiple SASs then has
-  overlapping grants then the overlapping grants will be removed from the FAD
-  objects. The main function is interSasDuplicateGrantReferenceModel().
+  duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
+  CBSD is removed from the FAD objects of the respective SASs. The main function
+  is interSasDuplicateGrantReferenceModel().
 ==================================================================================
 """
-
-
+import time
+import json
+from collections import Counter
 def interSasDuplicateGrantReferenceModel(sas_uut_fad, sas_test_harness_fads):
   """ Removes duplicate grants from FAD objects of SAS UUT and SAS test harnesses.
 
@@ -35,61 +36,40 @@ def interSasDuplicateGrantReferenceModel(sas_uut_fad, sas_test_harness_fads):
       from SAS test harnesses.
   """
 
-  # Creating list of cbsds from SAS UUT FAD object and SAS Test Harness FAD object
-  cbsd_list = []
-  for cbsds in sas_uut_fad.getCbsdRecords():
-    cbsd_list.append(cbsds)
+  all_cbsd_ids= []
+  # Get all the CBSD Reference ID of all CBSDs from UUT and SAS test Harness FAD objects
+  for cbsd in sas_uut_fad.getCbsdRecords():
+    all_cbsd_ids.append(cbsd['id'])
   for fad in sas_test_harness_fads:
-    for cbsds in fad.getCbsdRecords():
-      cbsd_list.append(cbsds)
+    for cbsd in fad.getCbsdRecords():
+      all_cbsd_ids.append(cbsd['id'])
+  cbsds_ids_to_remove = [str(k) for k, v in Counter(all_cbsd_ids).iteritems() if v > 1]
 
-  # Iterate through each CBSD and check if the FCC ID and SerialNumber matches another CBSD
-  # If yes then check whether their grants overlap and mark the overlapping grants as duplicate.
-  for index_a, cbsd_a in enumerate(cbsd_list):
-    for index_b, cbsd_b in enumerate(cbsd_list):
+  indices_in_sas_uut_to_remove = []
+  # Iterate through the UUT CBSD list and find the indices of the duplicate CBSDs
+  sas_uut_cbsd = sas_uut_fad.getCbsdRecords()
+  for index,cbsd in enumerate(sas_uut_cbsd):
+    if cbsd['id'] in cbsds_ids_to_remove:
+      indices_in_sas_uut_to_remove.append(index)
+  indices_in_sas_uut_to_remove.sort(reverse=True)
 
-        # Check that the objects we compare are different and not of the same index.
-      if index_a != index_b:
+  # Remove the CBSD at the index position
+  for index in indices_in_sas_uut_to_remove:
+    sas_uut_cbsd.pop(index)
 
-           # Check if fccId and cbsdSerialNumber match
-        if ((cbsd_a['registrationRequest']['fccId'] ==
-             cbsd_b['registrationRequest']['fccId']) and
-             (cbsd_a['registrationRequest']['cbsdSerialNumber'] ==
-             cbsd_b['registrationRequest']['cbsdSerialNumber'])):
+  sas_test_harness_cbsds = []
 
-          # Check for overlapping grantrequests
-          for grant_in_a in cbsd_a['grantRequests']:
-            for grant_in_b in cbsd_b['grantRequests']:
-              if checkForOverlappingGrants(grant_in_a,grant_in_b):
-                grant_in_b["duplicate_flag"] = "TRUE"
+  # Iterate through the SAS Test Harness CBSD list and find the indices of the duplicate CBSDs
+  indices_in_sas_test_harness_to_remove = []
+  for fad in sas_test_harness_fads:
+    indices_in_sas_test_harness_to_remove = []
+    sas_test_harness_cbsds = fad.getCbsdRecords()
+    for index,cbsd in enumerate(sas_test_harness_cbsds):
+      if cbsd['id'] in cbsds_ids_to_remove:
+        indices_in_sas_test_harness_to_remove.append(index)
+    indices_in_sas_test_harness_to_remove.sort(reverse=True)
 
-  # Remove the grants marked as duplicate. If all grants of a CBSD are removed then remove the CBSD.
-  cbsds_to_remove = []
-  for cbsd in cbsd_list:
-    grants_to_remove = []
-    for grants in cbsd['grantRequests']:
-      if "duplicate_flag" in grants:
-        grants_to_remove.append(grants)
-    for grant in grants_to_remove:
-      cbsd['grantRequests'].remove(grant)
-      if not cbsd['grantRequests']:
-        cbsds_to_remove.append(cbsd)
-
-  for cbsd in cbsds_to_remove:
-    cbsd_list.remove(cbsd)
-
-def checkForOverlappingGrants(grant_a, grant_b):
-  """Checks if the frequency ranges of two grants are overlapping."""
-
-  low_frequency_a = grant_a['operationParam']['operationFrequencyRange']['lowFrequency']
-  high_frequency_a = grant_a['operationParam']['operationFrequencyRange']['highFrequency']
-  low_frequency_b = grant_b['operationParam']['operationFrequencyRange']['lowFrequency']
-  high_frequency_b = grant_b['operationParam']['operationFrequencyRange']['highFrequency']
-
-  # If the low or high frequency of grant_a falls within the frequency range of grant_b
-  # then the grants are overlapping.
-  if (low_frequency_a <= low_frequency_b < high_frequency_a) or \
-      (low_frequency_a < high_frequency_b <= high_frequency_a):
-    return True
-  return False
-
+    # Remove the CBSD at the index position.
+    for index in indices_in_sas_test_harness_to_remove:
+      sas_test_harness_cbsds.pop(index)
+    
