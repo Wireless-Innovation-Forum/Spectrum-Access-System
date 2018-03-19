@@ -254,7 +254,7 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
     True if the two polygons are equal (within the tolerance), False otherwise.
   """
   if isinstance(poly_ref, dict):
-    poly_ref = GeoJsonToShapelyGeometry(poly)
+    poly_ref = GeoJsonToShapelyGeometry(poly_ref)
   if isinstance(poly, dict):
     poly = GeoJsonToShapelyGeometry(poly)
 
