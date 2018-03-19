@@ -180,12 +180,13 @@ def calculateAggregateInterferenceForFss(fss_record, cbsd_list):
   fss_high_freq = fss_freq_range['highFrequency']
 
   # Get FSS information
-  fss_info = interf.FssInformation(antenna_height=fss_point['height'],
-               antenna_azimuth=fss_point['antennaAzimuth'],
-               antenna_elevation=fss_point['antennaElevationAngle'],
-               antenna_gain=fss_point['antennaGain'],
-               weight1=fss_weight1,
-               weight2=fss_weight2)
+  fss_info = interf.FssProtectionPoint(latitude=fss_point['latitude'], 
+               longitude=fss_point['longitude'],
+               height_agl=fss_point['height'],
+               max_gain_dbi=fss_point['antennaGain'],
+               pointing_azimuth=fss_point['antennaAzimuth'],
+               pointing_elevation=fss_point['antennaElevationAngle'],
+               weight_1=fss_weight1, weight_2=fss_weight2)
 
   aggregate_interference = {}
   # FSS Passband is between 3600 and 4200
