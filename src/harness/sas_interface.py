@@ -447,25 +447,6 @@ class SasAdminInterface(object):
     """   
     pass
 
-  @abc.abstractmethod
-  def QueryPropagationAndAntennaModel(self, request):
-    """SAS admin interface to query propagation and antenna gains for CBSD and FSS  or Provided PPA Contour
-    
-    Args:
-      request: A dictionary with multiple key-value pairs where the keys are
-        reliabilityLevel: (permitted values: -1, 0.05, 0.95) 
-        cbsd: dictionary defining cbsd
-        fss(optional): dictionary defining fss
-        ppa(optional): GeoJSON Object
-        
-    Returns:
-      double pathlossDb (pathloss in dB)
-      double txAntennaGainDbi (transmitter antenna gain in dBi in the direction of the receiver)
-      double rxAntennaGainDbi (optional) (receiver antenna gain in dBi in the direction of the transmitter)
-
-    """
-    pass
-
 class SasTestcaseInterface(object):
   """Includes Helper Function interface for SAS-CBSD and SAS-SAS Testcases"""
 
@@ -576,4 +557,22 @@ class SasTestcaseInterface(object):
     """
     pass
   
+  @abc.abstractmethod
+  def QueryPropagationAndAntennaModel(self, request):
+    """SAS admin interface to query propagation and antenna gains for CBSD and FSS  or Provided PPA Contour
+    
+    Args:
+      request: A dictionary with multiple key-value pairs where the keys are
+        reliabilityLevel: (permitted values: -1, 0.05, 0.95) 
+        cbsd: dictionary defining cbsd
+        fss(optional): dictionary defining fss
+        ppa(optional): GeoJSON Object
+        
+    Returns:
+      double pathlossDb (pathloss in dB)
+      double txAntennaGainDbi (transmitter antenna gain in dBi in the direction of the receiver)
+      double rxAntennaGainDbi (optional) (receiver antenna gain in dBi in the direction of the transmitter)
+
+    """
+    pass
 
