@@ -17,7 +17,7 @@ import os
 import unittest
 import sas_objects
 from reference_models.fss_purge import fss_purge
-
+from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 class TestFssPurge(unittest.TestCase):
 
   def test_fss_purge_default(self):
@@ -44,35 +44,32 @@ class TestFssPurge(unittest.TestCase):
    fad_object_1.cbsd_records = [cbsd_0, cbsd_1]
    fad_object_2.cbsd_records = [cbsd_2, cbsd_3]
    fad_object_3.cbsd_records = [cbsd_4, cbsd_5]
-   headroom = {'MgPpa': 2, 'MgGwpz': 2, 'MgCochannel': 2,
-               'MgBlocking': 2, 'MgOobe': 2, 'MgEsc': 2}
    protected_entities = [{'fssRecords':[fss_entity]}]
    sas_uut_fad_object = fad_object_1
    sas_test_harness_fad_object = [fad_object_2, fad_object_3]
  
    print "================CBSD Grants passed as input======================"
    for records in sas_uut_fad_object.getCbsdRecords():
-    for grants in records['grantRequests']:
-       print " ",json.dumps(grants['id'])
+    for grants in records['grants']:
+      print " ",json.dumps(grants['id'])
    for fad in sas_test_harness_fad_object:
-      for rec in fad.getCbsdRecords():
-          for grants in rec['grantRequests']:
-             print " ",json.dumps(grants['id'])
+     for rec in fad.getCbsdRecords():
+       for grants in rec['grants']:
+         print " ",json.dumps(grants['id'])
    print "===================================================================="
 
    for entity in protected_entities:
      if 'fssRecords' in entity:
        for fssRecord in entity['fssRecords']:
-         fss_purge.fssPurgeModel(sas_uut_fad_object, sas_test_harness_fad_object, fssRecord, headroom['MgOobe'])
-
+         fss_purge.fssPurgeModel(sas_uut_fad_object, sas_test_harness_fad_object, fssRecord)
    print "================CBSD Grants received as output======================"
    for records in sas_uut_fad_object.getCbsdRecords():
-    for grants in records['grantRequests']:
+     for grants in records['grants']:
        print " ",json.dumps(grants['id'])
    for fad in sas_test_harness_fad_object:
       for rec in fad.getCbsdRecords():
-          for grants in rec['grantRequests']:
-             print " ",json.dumps(grants['id'])
+        for grants in rec['grants']:
+          print " ",json.dumps(grants['id'])
    print "===================================================================="
 
 if __name__ == '__main__':
