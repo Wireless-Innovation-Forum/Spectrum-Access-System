@@ -64,7 +64,9 @@ def computePropagationAntennaModel(request):
     result = {}
     if isfss:
         path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                   rx['latitude'], rx['longitude'], rx['height'], reliability=reliability_level, freq_mhz=3625.)
+                                                   rx['latitude'], rx['longitude'], rx['height'],
+                                                   cbsd_indoor= tx['indoorDeployment'],
+                                                   reliability=reliability_level, freq_mhz=3625.)
         result['pathlossDb'] = path_loss.db_loss
         gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
                                                      ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
