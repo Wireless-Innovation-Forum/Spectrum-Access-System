@@ -64,7 +64,7 @@ openssl ca -cert root-ecc_ca.cert -keyfile private/root-ecc_ca.key -in sas-ecc_c
 echo "\n\nGenerate 'cbsd_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
-    -out cbsd_ca.csr -keyout cbsd_ca.key \
+    -out cbsd_ca.csr -keyout private/cbsd_ca.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA CBSD CA-1"
 openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in cbsd_ca.csr \
     -policy policy_anything -extensions cbsd_ca_sign -config ../../../cert/openssl.cnf \
@@ -119,7 +119,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out client.csr -keyout client.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD Example"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in client.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -129,7 +129,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_a.csr -keyout device_a.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_a"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in device_a.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -out device_a.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -138,7 +138,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_c.csr -keyout device_c.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=device_c"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in device_c.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
     -out device_c.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -157,7 +157,7 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
 echo "\n\nGenerate 'proxy_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts oper_ca  -config ../../../cert/openssl.cnf \
-    -out proxy_ca.csr -keyout proxy_ca.key \
+    -out proxy_ca.csr -keyout private/proxy_ca.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA"
 openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in proxy_ca.csr \
     -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
@@ -168,7 +168,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out domain_proxy.csr -keyout domain_proxy.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a"
-openssl ca -cert proxy_ca.cert -keyfile proxy_ca.key -in domain_proxy.csr \
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
     -out domain_proxy.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -240,14 +240,14 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out client_expired.csr -keyout client_expired.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD Example"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in client_expired.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client_expired.csr \
     -out client_expired.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
 #Certificate for test case WINNF.FT.S.SCS.15 - Certificate with inapplicable fields presented during registration
 echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SCS.15' certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in client.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out client_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -312,14 +312,14 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out domain_proxy_expired.csr -keyout domain_proxy_expired.key \
     -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Domain Proxy - Expired"
-openssl ca -cert proxy_ca.cert -keyfile proxy_ca.key -in domain_proxy_expired.csr \
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy_expired.csr \
     -out domain_proxy_expired.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
 #Certificate for test case WINNF.FT.S.SDS.15 -Certificate with inapplicable fields presented during registration
 echo "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SDS.15' certificate"
-openssl ca -cert proxy_ca.cert -keyfile proxy_ca.key -in domain_proxy.csr \
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
     -out domain_proxy_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -373,7 +373,7 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
 # Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
 # Creating a wrong type certificate by reusing the client.csr and creating a client certificate.
 echo "\n\nGenerate wrong type certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile cbsd_ca.key -in client.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
     -out wrong_type_sas.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -407,7 +407,6 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 #   cat sas_ca.cert >>  server.cert
 
 # cleanup: remove all files not directly used by the testcases.
-rm -rf private
 rm -rf root
 rm index.txt*
 rm *.csr

@@ -18,7 +18,8 @@ import os
 import security_testcase
 import time
 from OpenSSL import SSL
-from util import winnforum_testcase,configurable_testcase, writeConfig, loadConfig
+from util import winnforum_testcase, configurable_testcase,\
+  writeConfig, loadConfig
 
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
@@ -256,136 +257,137 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
 
+
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_17(self):
-    """Invalid certificate following an approved registration request
-       Checks that SAS UUT response with fatal alert message.
+    """Invalid certificate following an approved registration request.
+
+    Checks that SAS UUT response with fatal alert message.
     """
     device_cert_name = "short_lived_client"
-    expiry_timer = 2  # in minutes
+    cert_duration_minutes = 1  # in minutes
 
-    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
 
+    # Get the absolute path of the short lived certificate created.
     device_cert = self.getCertFilename(device_cert_name + ".cert")
     device_key = self.getCertFilename(device_cert_name + ".key")
-    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
-    # Successful Tls Handshake
+    # Successful TLS Handshake
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
                                    device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           device_cert,
-                                           device_key):
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
       self.assertRegistered([device_a])
 
     logging.info("CBSD device is in registered state")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
-    # sleep for waitTimer so that certificate will become invalid
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
     time.sleep(wait_timer)
 
     # Verify TLS handshake fails
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=device_cert,
-                                   client_key=device_key)
+    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_18(self):
-    """Invalid certificate following an approved grant request
-       Checks that SAS UUT response with fatal alert message.
+    """Invalid certificate following an approved grant request.
+
+    Checks that SAS UUT response with fatal alert message.
     """
     device_cert_name = "short_lived_client"
-    expiry_timer = 2  # in minutes
+    cert_duration_minutes = 1  # in minutes
 
-    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
 
+    # Get the absolute path of the short lived certificate created.
     device_cert = self.getCertFilename(device_cert_name + ".cert")
     device_key = self.getCertFilename(device_cert_name + ".key")
-    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
-    # Successful Tls Handshake
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
-                                   device_cert, device_key)
+    # Successful TLS Handshake
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_cert,
+                                   device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
     # Load the grant_0 file
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           device_cert,
-                                           device_key):
-      cbsd_ids,grant_ids = self.assertRegisteredAndGranted([device_a],[grant_0])
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
 
     logging.info("CBSD is in Granted State")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
-    # sleep for waitTimer so that certificate will become invalid
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
     time.sleep(wait_timer)
-    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
-    # Verify TLS handshake fails
-    self.assertTlsHandshakeFailure(client_cert=device_cert,
-                                   client_key=device_key)
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_19(self):
-    """Invalid certificate following an approved heartbeat request
-       Checks that SAS UUT response with fatal alert message.
+    """Invalid certificate following an approved heartbeat request.
+
+    Checks that SAS UUT response with fatal alert message.
     """
     device_cert_name = "short_lived_client"
-    expiry_timer = 2  # in minutes
+    cert_duration_minutes = 1  # in minutes
 
-    self.create_short_lived_certificate("CBSD", device_cert_name, expiry_timer)
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
 
+    # Get the absolute path of the short lived certificate created.
     device_cert = self.getCertFilename(device_cert_name + ".cert")
     device_key = self.getCertFilename(device_cert_name + ".key")
-    wait_timer = (expiry_timer * 60) + 10  # In seconds
 
-    # Successful Tls Handshake
+    # Successful TLS Handshake.
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
                                    device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
-    # Load the device_a file
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Load the device_a file.
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
-    # Load the grant_0 file
-    grant_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Load the grant_0 file.
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           device_cert,
-                                           device_key):
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+    operation_states = ['GRANTED']
 
-    operation_states = [('GRANTED')]
-
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'],
-                                           device_cert,
-                                           device_key):
-      transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids,grant_ids,operation_states)
+    # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
+    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+      transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids, operation_states)
 
     logging.info("CBSD is in HeartBeat Successful State")
-    logging.info("Waiting for %s secs so the certificate will become invalid" % wait_timer)
 
-    # sleep for waitTimer so that certificate will become invalid
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
     time.sleep(wait_timer)
-    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
 
-    # Verify TLS handshake fails
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
     self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
