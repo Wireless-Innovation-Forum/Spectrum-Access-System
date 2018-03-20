@@ -89,13 +89,17 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'installationParam': device_8['installationParam'],
         'measCapability': device_8['measCapability']
     }    
-    
-    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_8]}
+   
+    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_8]} 
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
     del device_2['installationParam']
     del device_2['measCapability']
+    del device_8['cbsdCategory']
+    del device_8['airInterface']
+    del device_8['installationParam']
+    del device_8['measCapability']
    
     # Load GWPZ Record
     gwpz_record_1 = json.load(
@@ -247,11 +251,11 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Create the actual config.
     iteration0_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_0_domain_proxy_0,cbsd_records_iteration_0_domain_proxy_1],
-        'cbsdRecord' : {
-            'registrationRequest': device_7,
-            'grantRequest': grant_request_7,
-            'clientCert': os.path.join('certs', 'client.cert'), 
-            'clientKey': os.path.join('certs', 'client.key')
+        'cbsdRecords' : {
+            'registrationRequests': [device_7],
+            'grantRequests': [grant_request_7],
+            'clientCerts': [os.path.join('certs', 'client.cert')], 
+            'clientKeys': [os.path.join('certs', 'client.key')]
         },
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
@@ -260,11 +264,11 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     }
     iteration1_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_1_domain_proxy_0,cbsd_records_iteration_1_domain_proxy_1],
-        'cbsdRecord' : {
-            'registrationRequest' : device_8,
-            'grantRequest' : grant_request_8,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+        'cbsdRecords' : {
+            'registrationRequests' : [device_8],
+            'grantRequests' : [grant_request_8],
+            'clientCerts': [os.path.join('certs', 'client.cert')],
+            'clientKeys': [os.path.join('certs', 'client.key')]
         },
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],
