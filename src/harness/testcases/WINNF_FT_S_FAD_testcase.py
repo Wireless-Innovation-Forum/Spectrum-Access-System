@@ -134,7 +134,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           dump_antenna_azimuth = cbsd_record[0]['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in cbsd_record[0]['installationParam'] else None
           is_default_dump_beamwidth = dump_antenna_beamwidth == 360 or dump_antenna_beamwidth == 0
-          is_default_dump_azimuth = dump_antenna_azimuth == 360 or dump_antenna_azimuth == 0
           # beamwidth should be equal to registered value or default value
           if registered_antenna_beamwidth is None:
             self.assertTrue(is_default_dump_beamwidth)
