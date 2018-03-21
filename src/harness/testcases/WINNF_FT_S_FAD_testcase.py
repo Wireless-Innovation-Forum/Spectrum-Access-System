@@ -35,28 +35,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-      
-  def assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue(self, attr_name, registration_request,\
-                                                                   preloaded_conditionals, record, default_value):
-      """ this function checks the optional parameter of dump with
-        the parameter of the registered Cbsd
-        Args:
-        attr_name: string represent the attribute name, we want to compare.
-        record: the parent attribute that should contain the compared attribute in the dump record.
-        preloaded_conditionals:the parent attribute that should contain the compared attribute in the preloaded conditional parameters.
-        registration_request: the parent attribute that should contain the compared attribute in the registration request.
-        default_value : a default value of attribute type to be compared with.
-
-      Behavior:this function asserts that the value in dump record is equal to the value in 
-        preloaded conditional parameters or
-        registration request or a default value (the priority is for the registration request value,
-        then preloaded conditional parameters)
-      """  
-      attr_value = registration_request[attr_name] if attr_name in registration_request\
-        else (preloaded_conditionals[attr_name] if attr_name in \
-            preloaded_conditionals else default_value)
-      attr_value_in_record = record[attr_name] if attr_name in record else  None 
-      self.assertEqual(attr_value, attr_value_in_record)
     
   def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, registration_request,\
                                                      preloaded_conditionals, record):
