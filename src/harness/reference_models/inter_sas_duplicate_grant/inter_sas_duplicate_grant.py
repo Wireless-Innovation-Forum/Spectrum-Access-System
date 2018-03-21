@@ -20,10 +20,9 @@
   is interSasDuplicateGrantReferenceModel().
 ==================================================================================
 """
-import time
-import json
+import copy
 from collections import Counter
-def interSasDuplicateGrantReferenceModel(sas_uut_fad, sas_test_harness_fads):
+def interSasDuplicateGrantReferenceModel(input_sas_uut_fad, input_sas_test_harness_fads):
   """ Removes duplicate grants from FAD objects of SAS UUT and SAS test harnesses.
 
   Checks if a CBSD is registered with more than one SAS and removes the grants of the
@@ -31,10 +30,16 @@ def interSasDuplicateGrantReferenceModel(sas_uut_fad, sas_test_harness_fads):
   removed from a CBSD then the CBSD is removed from the FAD Object.
 
   Args:
-    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
-    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
+    input_sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
+    input_sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
       from SAS test harnesses.
+  Returns:
+    sas_uut_fad: A FullActivityDump object containing the FAD record of SAS UUT after purged grants removed.    
+    sas_test_harness_fads: A list of FullActivityDump object containing the FAD record of 
+      SAS test harness after purged grants removed.    
   """
+  sas_uut_fad = copy.deepcopy(input_sas_uut_fad)
+  sas_test_harness_fads = copy.deepcopy(input_sas_test_harness_fads)
 
   all_cbsd_ids= []
   # Get all the CBSD Reference ID of all CBSDs from UUT and SAS test Harness FAD objects
@@ -72,4 +77,5 @@ def interSasDuplicateGrantReferenceModel(sas_uut_fad, sas_test_harness_fads):
     # Remove the CBSD at the index position.
     for index in indices_in_sas_test_harness_to_remove:
       sas_test_harness_cbsds.pop(index)
-    
+  return sas_uut_fad,sas_test_harness_fads
+
