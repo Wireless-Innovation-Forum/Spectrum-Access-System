@@ -1,46 +1,88 @@
-{
-  "zone": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [
-            [
-              [
-                -96.9296265,
-                39.8380682
-              ],
-              [
-                -97.0834351,
-                39.4828454
-              ],
-              [
-                -95.8364868,
-                39.542176
-              ],
-              [
-                -96.0617065,
-                39.9518589
-              ],
-              [
-                -96.4901733,
-                39.9771201
-              ],
-              [
-                -96.9296265,
-                39.8380682
-              ]
-            ]
-          ]
-        },
-        "type": "Feature",
-        "properties": {}
-      }
-    ]
-  },
-  "frequencyRange": {
-    "lowFrequency": 3625000000,
-    "highFrequency": 3635000000
-  }
-}
+[
+    {
+	"type": "FeatureCollection",
+	"features": [
+	    {
+		"type": "Feature",
+		"properties": {
+		    "id": "exclusion_zone_1",
+		    "description": "some description about the exclusion zone"
+		},
+		"geometry": {
+		    "type": "Polygon",
+		    "coordinates": [
+			[
+			    [
+				    -96.9296265,
+				39.8380682
+			    ],
+			    [
+				    -97.0834351,
+				39.4828454
+			    ],
+			    [
+				    -95.8364868,
+				39.542176
+			    ],
+			    [
+				    -96.0617065,
+				39.9518589
+			    ],
+			    [
+				    -96.4901733,
+				39.9771201
+			    ],
+			    [
+				    -96.9296265,
+				39.8380682
+			    ]
+			]
+		    ]
+		}
+	    }
+	]
+    },
+    {
+	"type": "FeatureCollection",
+	"features": [
+	    {
+		"type": "Feature",
+		"properties": {
+		    "id": "exclusion_zone_2",
+		    "description": "some description about the exclusion zone"
+		},
+		"geometry": {
+		    "type": "Polygon",
+		    "coordinates": [
+			[
+			    [
+				    -100.9296266,
+				42.8380682
+			    ],
+			    [
+				    -101.0834351,
+				42.4828454
+			    ],
+			    [
+				    -99.8364868,
+				42.542176
+			    ],
+			    [
+				    -100.0617065,
+				42.9518589
+			    ],
+			    [
+				    -100.4901733,
+				42.9771201
+			    ],
+			    [
+				    -100.9296266,
+				42.8380682
+			    ]
+			]
+		    ]
+		}
+	    }
+	]
+    }
+]
