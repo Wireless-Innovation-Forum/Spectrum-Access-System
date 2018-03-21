@@ -142,15 +142,33 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqualToDeviceOrPreloadedConditionalParam('indoorDeployment', \
               device['installationParam'], reg_conditional_device_data['installationParam'],\
                 cbsd_record[0]['installationParam'])
-          #  parameters should equal to device or to default value            
-          self.assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue('antennaAzimuth', \
-              device['installationParam'], reg_conditional_device_data['installationParam'],\
-                cbsd_record[0]['installationParam'], 0)
-                
-          self.assertEqualToDeviceOrPreloadedConditionalParamOrDefaultValue('antennaBeamwidth', \
-              device['installationParam'], reg_conditional_device_data['installationParam'],\
-                cbsd_record[0]['installationParam'], 360)
-            
+          #  parameters should equal to device or to default value
+          registered_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
+            if 'antennaAzimuth' in device['installationParam'] \
+            else reg_conditional_device_data['installationParam']['antennaAzimuth'] \
+            if ['antennaAzimuth'] in reg_conditional_device_data['installationParam'] else None
+          registered_antenna_beamwidth = device['installationParam']['antennaBeamwidth'] \
+            if 'antennaBeamwidth' in device['installationParam'] \
+            else reg_conditional_device_data['installationParam']['antennaBeamwidth'] \
+            if ['antennaBeamwidth'] in reg_conditional_device_data['installationParam'] else None
+          dump_antenna_beamwidth = cbsd_record[0]['installationParam']['antennaBeamwidth'] \
+            if 'antennaBeamwidth' in cbsd_record[0]['installationParam'] else None
+          dump_antenna_azimuth = cbsd_record[0]['installationParam']['antennaAzimuth'] \
+            if 'antennaAzimuth' in cbsd_record[0]['installationParam'] else None
+          is_default_dump_beamwidth = dump_antenna_beamwidth == 360 or dump_antenna_beamwidth == 0
+          is_default_dump_azimuth = dump_antenna_azimuth == 360 or dump_antenna_azimuth == 0
+          # beamwidth should be equal to registered value or default value
+          if registered_antenna_beamwidth is None:
+            self.assertTrue(is_default_dump_beamwidth)
+          else:
+              self.assertEqual(registered_antenna_beamwidth, dump_antenna_beamwidth)
+          # if azimuth is not registered then then the beamwidth in the dump should be the values of omni directional antenna
+          # and then the value of antenna azimuth can exist in the dump with any value
+          if registered_antenna_azimuth is None:
+            self.assertTrue(is_default_dump_beamwidth)
+          else:
+            self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
+
           # if callSign exist, it should have the same value as registered
           if 'callSign' in cbsd_record[0]:
               self.assertEqual(device['callSign'], cbsd_record[0]['callSign'])      
