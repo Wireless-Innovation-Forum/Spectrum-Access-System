@@ -444,12 +444,17 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
   geometry_of_first_ppa = first_ppa['zone']['features'][0]['geometry']
   geometry_of_second_ppa = second_ppa['zone']['features'][0]['geometry']
 
+  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_first_ppa):
+    logging.error('polygon of first PPA does not have a correct Json Winding')
+    return False
+
+  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_second_ppa):
+    logging.error('polygon of second PPA does not have a correct Json Winding')
+    return False
+
   if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
     return False
-  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_first_ppa):
-        return False
-  if not utils.hasPolygonCorrectGeoJsonWinding(geometry_of_second_ppa):
-        return False
+
   # check other Ppa parameters
   del first_ppa['zone']['features'][0]['geometry']['coordinates']
   del second_ppa['zone']['features'][0]['geometry']['coordinates']

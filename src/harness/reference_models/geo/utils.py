@@ -272,12 +272,12 @@ def hasPolygonCorrectGeoJsonWinding(polygon):
    Returns: boolean set to true if the polygon has a correct GeoJson Winding and false otherwise.
   """
   shapely_polygon = GeoJsonToShapelyGeometry(polygon);
-  print(shapely_polygon.exterior)
+
   if not shapely_polygon.exterior.is_ccw:
     return False
   #check the holes of the polygons
   for ring in shapely_polygon.interiors:
     if ring.is_ccw:
       return False
-  return True;
+  return True
 
