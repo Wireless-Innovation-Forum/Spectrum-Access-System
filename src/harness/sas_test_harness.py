@@ -270,6 +270,7 @@ class SasTestHarnessServer(threading.Thread):
     fad_file_name = 'FAD.json'
     full_activity_dump = self.__createFadObject(fad_record_list)
     self.__writeDumpFile(fad_file_name, full_activity_dump)
+    self.server.setFadGenerationTime(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'))
     logging.info('FAD Records generated successfully.'
                     'The files are placed under the path:%s', self.getDumpFilePath())
 
