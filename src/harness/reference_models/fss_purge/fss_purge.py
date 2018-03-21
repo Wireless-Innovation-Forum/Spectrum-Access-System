@@ -19,6 +19,8 @@
     The main function is fssPurgeModel().
 ==================================================================================
 """
+import json
+import copy
 import numpy as np
 from reference_models.antenna import antenna
 from reference_models.interference import interference
@@ -280,7 +282,7 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
 
   return fss_ant_gain
 
-def fssPurgeModel(sas_uut_fad, sas_test_harness_fads, fss_record):
+def fssPurgeModel(input_sas_uut_fad, input_sas_test_harness_fads, fss_records):
   """Entry point function to execute FSS purge list model.
 
   Performs FSS purge model as described in R2-SGN-29 on the FAD CBSD records of SAS UUT
@@ -288,23 +290,29 @@ def fssPurgeModel(sas_uut_fad, sas_test_harness_fads, fss_record):
   records of the FAD objects.
 
   Args:
-    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
-    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
+    input_sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
+    input_sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
       from SAS test harnesses.
-    fss_record: A single FSS record dictionary.
+    fss_records: A list of FSS record dictionary.
+  Returns:
+    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT with purged grants removed.
+    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
+      from SAS test harnesses with purged grants removed.
   """
+  sas_uut_fad = copy.deepcopy(input_sas_uut_fad)
+  sas_test_harness_fads = copy.deepcopy(input_sas_test_harness_fads)
+  # Get the CBSD list from the FAD Object. 
+  cbsds = []
+  cbsds.extend(sas_uut_fad.getCbsdRecords())
+  for fad in sas_test_harness_fads:
+    cbsds.extend(fad.getCbsdRecords())
 
-  # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
-  if fss_record['deploymentParam'][0]['ttc']:
-    # Get the CBSD list from the FAD Object. 
-    cbsds = []
-    cbsds.extend(sas_uut_fad.getCbsdRecords())
-    for fad in sas_test_harness_fads:
-      cbsds.extend(fad.getCbsdRecords())
+  for fss_record in fss_records:
+    # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
+    if fss_record['deploymentParam'][0]['ttc']:
+      neighboring_cbsds = getNeighboringCbsdsToFss(cbsds, fss_record)
+      if neighboring_cbsds:
+        fss_entity = getFssInfo(fss_record)
+        performPurge(neighboring_cbsds, fss_entity)
 
-    neighboring_cbsds = getNeighboringCbsdsToFss(cbsds, fss_record)
-    if neighboring_cbsds:
-      fss_entity = getFssInfo(fss_record)
-      performPurge(neighboring_cbsds, fss_entity)
-
-  return 
+  return sas_uut_fad,sas_test_harness_fads 

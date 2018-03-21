@@ -60,13 +60,14 @@ class TestFssPurge(unittest.TestCase):
 
    for entity in protected_entities:
      if 'fssRecords' in entity:
-       for fssRecord in entity['fssRecords']:
-         fss_purge.fssPurgeModel(sas_uut_fad_object, sas_test_harness_fad_object, fssRecord)
+       fss_purged_sas_uut_fad_object , fss_purged_sas_test_harness_fad_object = fss_purge.fssPurgeModel\
+             (sas_uut_fad_object, sas_test_harness_fad_object, entity['fssRecords'])
+
    print "================CBSD Grants received as output======================"
-   for records in sas_uut_fad_object.getCbsdRecords():
+   for records in fss_purged_sas_uut_fad_object.getCbsdRecords():
      for grants in records['grants']:
        print " ",json.dumps(grants['id'])
-   for fad in sas_test_harness_fad_object:
+   for fad in fss_purged_sas_test_harness_fad_object:
       for rec in fad.getCbsdRecords():
         for grants in rec['grants']:
           print " ",json.dumps(grants['id'])

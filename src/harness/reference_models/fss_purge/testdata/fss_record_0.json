@@ -14,7 +14,6 @@
         "antennaBeamwidth": 0,
         "antennaAzimuth": 270,
         "antennaDowntilt": 0,
-        "indoorDeployment": true,
         "antennaElevationAngle":39
       },
       "operationParam": {
