@@ -23,9 +23,7 @@
           "highFrequency": 4200000000
         }
       },
-      "ttc": true,
-      "weight1": 0.5,
-      "weight2": 0.5
+      "ttc": true
     }
     ]
 }
