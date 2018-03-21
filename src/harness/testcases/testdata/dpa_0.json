@@ -11,8 +11,8 @@
                 "operation" : [
                     {
                         "frequencyRange": {
-                            "lowFrequency": 3650000000,
-                            "highFrequency": 3660000000
+                            "lowFrequency": 3550000000,
+                            "highFrequency": 3650000000
                         },
                         "status" : {
                             "state": "active",

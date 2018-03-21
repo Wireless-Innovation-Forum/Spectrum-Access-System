@@ -69,7 +69,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     grant_request_8 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_3.json')))	  
   
-    # device_b is Category B
+    # device_b device_d and device_h are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B') 
     conditionals_device_2 = {
@@ -79,6 +79,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'airInterface': device_2['airInterface'],
         'installationParam': device_2['installationParam'],
         'measCapability': device_2['measCapability']
+    }
+    self.assertEqual(device_4['cbsdCategory'], 'B') 
+    conditionals_device_4 = {
+        'cbsdCategory': device_4['cbsdCategory'],
+        'fccId': device_4['fccId'],
+        'cbsdSerialNumber': device_4['cbsdSerialNumber'],
+        'airInterface': device_4['airInterface'],
+        'installationParam': device_4['installationParam'],
+        'measCapability': device_4['measCapability']
     }
     self.assertEqual(device_8['cbsdCategory'], 'B')
     conditionals_device_8 = {
@@ -130,15 +139,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Define DPAs
     dpa_1 = {
        'dpaId': 'east_dpa_4',
-       'frequencyRange': {'lowFrequency': 3650000000 , 'highFrequency': 3660000000 }
+       'frequencyRange': {'lowFrequency': 3550000000 , 'highFrequency': 3650000000 }
     }
     dpa_2 = {
        'dpaId': 'east_dpa_5',
-       'frequencyRange': {'lowFrequency': 3660000000 , 'highFrequency': 3670000000 }
+       'frequencyRange': {'lowFrequency': 3550000000 , 'highFrequency': 3650000000 }
     }
     dpa_3 = {
        'dpaId': 'east_dpa_6',
-       'frequencyRange': {'lowFrequency': 3670000000 , 'highFrequency': 3680000000 }
+       'frequencyRange': {'lowFrequency': 3550000000 , 'highFrequency': 3650000000 }
     }
 
     # Registration and grant records for multiple iterations
