@@ -124,11 +124,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           registered_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in device['installationParam'] \
             else reg_conditional_device_data['installationParam']['antennaAzimuth'] \
-            if ['antennaAzimuth'] in reg_conditional_device_data['installationParam'] else None
+            if 'antennaAzimuth' in reg_conditional_device_data['installationParam'] else None
           registered_antenna_beamwidth = device['installationParam']['antennaBeamwidth'] \
             if 'antennaBeamwidth' in device['installationParam'] \
             else reg_conditional_device_data['installationParam']['antennaBeamwidth'] \
-            if ['antennaBeamwidth'] in reg_conditional_device_data['installationParam'] else None
+            if 'antennaBeamwidth' in reg_conditional_device_data['installationParam'] else None
           dump_antenna_beamwidth = cbsd_record[0]['installationParam']['antennaBeamwidth'] \
             if 'antennaBeamwidth' in cbsd_record[0]['installationParam'] else None
           dump_antenna_azimuth = cbsd_record[0]['installationParam']['antennaAzimuth'] \
