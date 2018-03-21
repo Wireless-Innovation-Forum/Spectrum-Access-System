@@ -19,7 +19,7 @@ generate the certificates with the updated extension field.
 Go to harness directory and execute **python simple_crl_server.py**<br/>
 The simple CRL server will start and generate a CRL file based on the contents from the **harness/certs**
 directory.<br/> The crl file will not have any certificates revoked when started for the first time.<br/>
-The ca.crl file at the location "certs/XXXX" will be served by this simple CRL server.<br/>
+The ca.crl file at the location "harness/certs/crl" will be served by this simple CRL server.<br/>
 <pre>
 <code>
 $ python simple_crl_server.py 

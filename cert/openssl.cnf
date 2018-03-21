@@ -486,7 +486,7 @@ policyIdentifier = 2.16.840.1.114412.2.1
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment,cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
 #FCCID
@@ -502,7 +502,7 @@ policyIdentifier = 2.16.840.1.114412.2.1
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment,cRLSign
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
