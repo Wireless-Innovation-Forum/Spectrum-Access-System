@@ -100,9 +100,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
     self.assertTrue(zone_id)
     # Trigger SAS to active one DPA on channel c
-    self._sas_admin.TriggerDpaActivation(\
-        {'frequencyRange': {'lowFrequency': pal_low_frequency, \
-                           'highFrequency': pal_high_frequency}, 'dpaId': 'east_dpa4'})
+    self._sas_admin.TriggerDpaActivation(
+        {'frequencyRange': {'lowFrequency': pal_low_frequency,
+                            'highFrequency': pal_high_frequency},
+         'dpaId': 'east_dpa_4'})
     # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
     time.sleep(240)
     # Send grant request
