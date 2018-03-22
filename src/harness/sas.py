@@ -68,11 +68,6 @@ class SasImpl(sas_interface.SasInterface):
                           ssl_cert or self._GetDefaultSasSSLCertPath(),
                           ssl_key or self._GetDefaultSasSSLKeyPath()))
 
-  def GetUrl(self,url, ssl_cert=None, ssl_key=None):
-    return _RequestGet(url,self._tls_config.WithClientCertificate(
-                           ssl_cert or self._GetDefaultSasSSLCertPath(),
-                           ssl_key or self._GetDefaultSasSSLKeyPath()))
-
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return RequestPost('https://%s/%s/%s' % (self._base_url, self._sas_version,
                                              method_name), request,
