@@ -14,11 +14,19 @@
 
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
+from enum import Enum
 import logging
-
 
 class Grant(object):
   """Holds the Grant request parameters."""
+
+  # Define an enumeration class named ResponseCodes with members
+  # 'SUCCESS',TERMINATED_GRANT', 'SUSPENDED_GRANT',UNSYNC_OP_PARAM
+  class ResponseCodes(Enum):
+    SUCCESS = 0
+    TERMINATED_GRANT = 500
+    SUSPENDED_GRANT = 501
+    UNSYNC_OP_PARAM = 502
 
   def __init__(self, grant_id, grant_request):
     """Store grant parameters and initialize state variables.
@@ -40,10 +48,7 @@ class Grant(object):
     return self.grant_request
 
   def getRequestOperationParam(self):
-    try:
       return self.grant_request['operationParam']
-    except KeyError:
-      logging.debug("operationParam not found in the Grant Request.")
 
   def constructHeartbeatRequest(self):
     """Constructs heartbeat request for the grant object."""
@@ -84,10 +89,7 @@ class Cbsd(object):
     return self.cbsd_id
 
   def getGrantObject(self, grant_id):
-    try:
       return self.grant_objects[grant_id]
-    except KeyError:
-      logging.debug("Grant Object not found in the CBSD object ,grant_id=%s.", grant_id)
 
   def getRegistrationRequest(self):
     return self.registration_request
@@ -95,6 +97,12 @@ class Cbsd(object):
   def hasActiveGrant(self):
     for grant_object in self.grant_objects.itervalues():
       if grant_object.isActive():
+        return True
+    return False
+
+  def hasAuthorizedGrant(self):
+    for grant_object in self.grant_objects.itervalues():
+      if grant_object.isGrantAuthorizedInLastHeartbeat():
         return True
     return False
 
@@ -124,7 +132,6 @@ class DomainProxy(object):
   CBSD objects belonging to this Domain Proxy. Bulk operations like registration, grant and heartbeat
   procedures are performed on all of the CBSDs belonging to this Domain Proxy.
   """
-
   def __init__(self, ssl_cert, ssl_key, testcase):
     """
     Args:
@@ -137,7 +144,7 @@ class DomainProxy(object):
     self.cbsd_objects = {}
     self.testcase = testcase
 
-  def initialize(self, registration_requests, grant_requests):
+  def addCbsdsAndGrants(self, registration_requests, grant_requests):
     """Construct CBSD object based on the the result of registration and
     grant requests.
 
@@ -170,55 +177,68 @@ class DomainProxy(object):
         self.cbsd_objects[cbsd_ids[index]] = cbsd_object
 
   def getCbsdObjectById(self, cbsd_id):
-    try:
       return self.cbsd_objects[cbsd_id]
-    except KeyError:
-      logging.debug("CBSD Object not found in the Domain Proxy object,cbsd_id=%s.", cbsd_id)
 
-  def heartbeatRequestForAllGrants(self):
+  def heartbeatRequestForAllActiveGrants(self):
     """Performs heartbeat request for all grants of CBSD devices at once.
 
     Returns:
       heartbeat_requests : list of heart beat requests which are constructed for all the grants
-      by the caller(
+      by the caller
       heartbeat_responses: list of heart beat response
     """
     # Concatenate all the heartbeat request of CBSD into single request
     heartbeat_requests = []
     for cbsd_object_item in self.cbsd_objects.values():
-      heartbeat_requests = cbsd_object_item.constructHeartbeatRequestForAllActiveGrants()
+      heartbeat_requests.extend(cbsd_object_item.constructHeartbeatRequestForAllActiveGrants())
 
     if len(heartbeat_requests):
       heartbeat_requests_wrapped = {
         'heartbeatRequest': heartbeat_requests
       }
+      print heartbeat_requests_wrapped
       # Perform heartbeat requests
       heartbeat_responses = self.testcase._sas.Heartbeat(
         heartbeat_requests_wrapped, self.ssl_cert, self.ssl_key)['heartbeatResponse']
 
       for heartbeat_response in heartbeat_responses:
-        try:
-          cbsd_object = self.cbsd_objects[heartbeat_response['cbsdId']]
-          grant_object = cbsd_object.grant_objects[heartbeat_response['grantId']]
-        except KeyError:
-          logging.debug("CBSD or the Grant object not found")
+        cbsd_object = self.cbsd_objects[heartbeat_response['cbsdId']]
+        grant_object = cbsd_object.grant_objects[heartbeat_response['grantId']]
 
-        if heartbeat_response['response']['responseCode'] == 0:
-          grant_object.authorized_in_last_heartbeat = True
-        else:
-          self.mapResponseCodeToGrantState(heartbeat_response['response']['responseCode'],
-                                           grant_object)
+        # Update grant state based on the heartbeat response
+        self._mapResponseCodeToGrantState(heartbeat_response['response']['responseCode'],
+                                         grant_object)
+
       return heartbeat_requests, heartbeat_responses
 
-  def mapResponseCodeToGrantState(self, heartbeat_response_code, grant_object):
-    """Maps the heartbeat response and update the grant state"""
-    if heartbeat_response_code == 502:
+  def _mapResponseCodeToGrantState(self, heartbeat_response_code, grant_object):
+    """Maps the heartbeat response and update the grant state."""
+    if heartbeat_response_code == Grant.ResponseCodes.SUCCESS.value:
+      grant_object.authorized_in_last_heartbeat = True
+    elif heartbeat_response_code == Grant.ResponseCodes.TERMINATED_GRANT.value:
       grant_object.is_terminated = True
-    elif heartbeat_response_code == 500:
+    elif heartbeat_response_code == Grant.ResponseCodes.SUSPENDED_GRANT.value:
+      grant_object.authorized_in_last_heartbeat = False
+    elif heartbeat_response_code == Grant.ResponseCodes.UNSYNC_OP_PARAM.value:
       grant_object.is_terminated = True
       grant_object.authorized_in_last_heartbeat = False
-    elif heartbeat_response_code == 501:
-      grant_object.authorized_in_last_heartbeat = False
+      logging.error('Received UNSYNC_OP_PARAM code in Heartbeat Response')
+    else:
+      logging.error('Unknown code=%s received in Heartbeat Response',heartbeat_response_code)
+
+  def _constructGrantRequests(self,heartbeat_request):
+    """Constrcut unwrapped version of grant request."""
+    grant_request = {
+      'cbsdId': heartbeat_request['cbsdId'],
+      'operationParam': {
+        'maxEirp': heartbeat_request['operationParam']['maxEirp'],
+        'operationFrequencyRange': {
+          'lowFrequency': heartbeat_request['operationParam']['operationFrequencyRange']['lowFrequency'],
+          'highFrequency': heartbeat_request['operationParam']['operationFrequencyRange']['highFrequency']
+        }
+      }
+    }
+    return grant_request
 
   def performHeartbeatAndUpdateGrants(self):
     """Does heartbeat request for all active grants and updates the grants.
@@ -233,14 +253,21 @@ class DomainProxy(object):
     """
     # Heartbeat on all active grants
     heartbeat_requests = []
-    heartbeat_requests, heartbeat_responses = self.heartbeatRequestForAllGrants()
+    heartbeat_requests, heartbeat_responses = self.heartbeatRequestForAllActiveGrants()
     relinquish_requests = []
     grant_requests = []
 
     # Construct relinquishment and grant for the heart beat response which have operation param
     for heartbeat_response, heartbeat_request in zip(heartbeat_responses, heartbeat_requests):
-        if heartbeat_response['response']['responseCode'] != 0:
-          # If any heartbeats contain suggested operation params,construct relinquish requests
+        if heartbeat_response['response']['responseCode'] == Grant.ResponseCodes.TERMINATED_GRANT.value:
+           if 'operationParam' in heartbeat_response:
+             # Construct grant request for Terminated grants
+             grant_requests.append(self._constructGrantRequests(heartbeat_request))
+           else:
+             logging.error('Invalid Response since operation param not present in case of Terminated Grant')
+
+        elif heartbeat_response['response']['responseCode'] != 0:
+          # If any heartbeat contain suggested operation params,construct relinquish requests
           if 'operationParam' in heartbeat_response:
             relinquish_request = {
                 'cbsdId': heartbeat_response['cbsdId'],
@@ -249,43 +276,36 @@ class DomainProxy(object):
             relinquish_requests.append(relinquish_request)
 
             # Construct grant request for relinquished grants
-            grant_request = {
-              'cbsdId': heartbeat_request['cbsdId'],
-              'operationParam': {
-                'maxEirp': heartbeat_request['operationParam']['maxEirp'],
-                'operationFrequencyRange': {
-                  'lowFrequency': heartbeat_request['operationParam']['operationFrequencyRange']['lowFrequency'],
-                  'highFrequency': heartbeat_request['operationParam']['operationFrequencyRange']['highFrequency']
-                }
-              }
-            }
-            grant_requests.append(grant_request)
+            grant_requests.append(self._constructGrantRequests(heartbeat_request))
 
-          del self.cbsd_objects[heartbeat_response['cbsdId']]
+            # Delete the grant object
+            del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
 
     # Perform relinquishment since operation param present in heartbeat response
     if len(relinquish_requests):
       relinquish_requests_wrap = {
         'relinquishmentRequest': relinquish_requests
       }
-      self.testcase._sas.Relinquishment(relinquish_requests_wrap,
-                                        self.ssl_cert, self.ssl_key)
+      relinquish_responses = self.testcase._sas.Relinquishment(relinquish_requests_wrap,
+                                        self.ssl_cert, self.ssl_key)['relinquishmentResponse']
+      for relinquish_response in relinquish_responses:
+        if relinquish_response['response']['responseCode'] != 0:
+          logging.error('Relinquishment request for the grantId= %s failed',relinquish_response['grantId'])
+
+    if len(grant_requests):
       grant_requests_wrap = {
         'grantRequest': grant_requests
       }
-
       # Perform Grant for relinquished grants
       grant_responses = self.testcase._sas.Grant(grant_requests_wrap,
                                                  self.ssl_cert, self.ssl_key)['grantResponse']
-      try:
-        for grant_response, grant_request in zip(grant_responses, grant_requests):
-          cbsd_object = self.cbsd_objects[grant_request['cbsdId']]
-          cbsd_object.grant_objects[grant_response['grantId']] = Grant(grant_response['grantId'], grant_request)
-      except KeyError:
-        logging.debug("CBSD or Grant object not found")
 
-      # Perform Heartbeat request for all grants
-      _,_ =self.heartbeatRequestForAllGrants()
+      for grant_response, grant_request in zip(grant_responses, grant_requests):
+        cbsd_object = self.cbsd_objects[grant_request['cbsdId']]
+        cbsd_object.grant_objects[grant_response['grantId']] = Grant(grant_response['grantId'], grant_request)
+
+    # Perform Heartbeat request for all grants
+    self.heartbeatRequestForAllActiveGrants()
 
   def getCbsdsWithAtLeastOneAuthorizedGrant(self):
     """This function returns a list of CBSD with authorized grants.
@@ -294,6 +314,6 @@ class DomainProxy(object):
     """
     cbsd_objects = []
     for cbsd_object in self.cbsd_objects.values():
-      if cbsd_object.hasActiveGrant():
+      if cbsd_object.hasAuthorizedGrant():
         cbsd_objects.append(cbsd_object)
     return cbsd_objects
