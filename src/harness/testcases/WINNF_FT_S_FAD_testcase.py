@@ -18,7 +18,7 @@ import json
 import os
 import sas
 import sas_testcase
-from reference_models.geo import vincenty
+from reference_models.geo import vincenty, utils
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generateCbsdReferenceId, generatePpaRecords
 
@@ -142,6 +142,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           # if azimuth is not registered then then the beamwidth in the dump should be the values of omni directional antenna
           # and then the value of antenna azimuth can exist in the dump with any value
           if registered_antenna_azimuth is None:
+            self.assertIsNotNone(dump_antenna_azimuth)
             self.assertTrue(is_default_dump_beamwidth)
           else:
             self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
@@ -305,6 +306,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self._sas_admin.InjectPalDatabaseRecord(pal)
                        
       for ppa in config['ppaRecords']:
+          self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa['zone']['features'][0]['geometry']))
           ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
       # inject N3 Esc sensor
       for esc_sensor in config['escSensorRecords']:
@@ -361,9 +363,10 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       for index, ppa in enumerate(config['ppaRecords']):
         del ppa['id']
         exist_in_dump = False
-        for ppa_record in ppa_dump_data:			           
+        for ppa_record in ppa_dump_data:
+          self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry']))         
           exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
-        self.assertTrue(exist_in_dump)        
+        self.assertTrue(exist_in_dump)         
       # verify the schema of record and two first parts of esc sensor record  Id
       for esc_record in esc_sensor_dump_data:                    
         self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
