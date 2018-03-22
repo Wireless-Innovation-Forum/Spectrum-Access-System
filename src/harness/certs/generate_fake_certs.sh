@@ -408,5 +408,4 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 
 # cleanup: remove all files not directly used by the testcases.
 rm -rf root
-rm index.txt*
 rm *.csr

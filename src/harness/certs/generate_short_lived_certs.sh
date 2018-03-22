@@ -60,10 +60,11 @@ function generate_dp_short_lived_certificate()
   echo "The intermediate Domain Proxy CA file not found."
   return -1
 }
+
 # Argument1 : Type (CBSD, DomainProxy).
-if [ $1 == "CBSD" ]; then
+if [ "$1" == "CBSD" ]; then
   generate_cbsd_short_lived_certificate $2 $3
-elif [ $1 == "DomainProxy" ]; then
+elif [ "$1" == "DomainProxy" ]; then
   generate_dp_short_lived_certificate $2 $3
 else
   echo "Wrong option other than (CBSD, DomainProxy)."
@@ -71,5 +72,3 @@ else
 fi
 
 rm -rf root
-rm index.txt*
-rm *.csr

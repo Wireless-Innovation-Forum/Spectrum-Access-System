@@ -292,8 +292,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
     # Send Registration request with short lived certificates to SAS UUT.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], domain_proxy_cert, domain_proxy_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
       self.assertRegistered([device_a])
+
     logging.info("CBSD device is in registered state")
 
     # Wait for the short lived certificate to expire.
@@ -334,7 +336,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     # Device is registered with short live certificate and ensure that response is successful.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], domain_proxy_cert, domain_proxy_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
 
     logging.info("CBSD device is in Granted State")
@@ -378,15 +381,15 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], domain_proxy_cert, domain_proxy_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
-    operation_states = ['GRANTED']
-    logging.info("CBSD is in Registered & Granted State")
+      operation_states = ['GRANTED']
+      logging.info("CBSD is in Registered & Granted State")
 
-    # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], domain_proxy_cert, domain_proxy_key):
-      transmit_expire_times = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids, operation_states)
-
+      # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
+      transmit_expire_times = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids,
+                                                              operation_states)
     logging.info("CBSD is in HeartBeat Successful State")
 
     # Wait for the short lived certificate to expire.

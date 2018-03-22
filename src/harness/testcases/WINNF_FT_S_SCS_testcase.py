@@ -284,7 +284,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
       self.assertRegistered([device_a])
 
     logging.info("CBSD device is in registered state")
@@ -328,7 +329,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
 
     logging.info("CBSD is in Granted State")
@@ -372,12 +374,12 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
-    operation_states = ['GRANTED']
+      operation_states = ['GRANTED']
 
-    # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
-    with security_testcase.CiphersOverload(self._sas, ['AES128-GCM-SHA256'], device_cert, device_key):
+      # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
       transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids, operation_states)
 
     logging.info("CBSD is in HeartBeat Successful State")
