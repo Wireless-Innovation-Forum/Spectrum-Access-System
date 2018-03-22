@@ -40,13 +40,13 @@ function generate_crl_chain()
 }
 
 #Argument1 : Type (CBSD,DP,SAS,-u)
-if [ $1 == "CBSD" ]; then
+if [ "$1" == "CBSD" ]; then
   blacklist_certificate  $2 cbsd_ca
-elif [ $1 == "DP" ]; then
+elif [ "$1" == "DP" ]; then
   blacklist_certificate  $2 proxy_ca
-elif [ $1 == "SAS" ]; then
+elif [ "$1" == "SAS" ]; then
   blacklist_certificate  $2 sas_ca
-elif [ $1 == "-u" ]; then
+elif [ "$1" == "-u" ]; then
   generate_crl_chain
 else
   echo "Wrong option other than (CBSD,DP,SAS,-u)"

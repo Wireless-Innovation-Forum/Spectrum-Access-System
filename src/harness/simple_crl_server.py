@@ -207,7 +207,7 @@ def updateCrlUrlAndRegenerateCertificates():
 
   # Update CRL URL in openssl.cnf.
   crl_url = 'URI.0 = {}'.format(DEFAULT_CRL_URL)
-  update_crl_section_command = (r"sed -i -e 's~^URI.0\s=\s.*$~%s'~1 ../../cert/openssl.cnf"
+  update_crl_section_command = (r"sed -i -e 's~^URI.0\s=\s.*$~%s~1' ../../cert/openssl.cnf"
                                 % crl_url)
   command_exit_status = subprocess.call(update_crl_section_command, shell=True)
   if command_exit_status:
