@@ -446,12 +446,14 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
 
   if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
     return False
-
+  if first_ppa['zone']['features'][0]['geometry']['type'] \
+    != second_ppa['zone']['features'][0]['geometry']['type']:
+    return False
   # check other Ppa parameters
-  del first_ppa['zone']['features'][0]['geometry']['coordinates']
-  del second_ppa['zone']['features'][0]['geometry']['coordinates']
+  del first_ppa['zone']['features'][0]['geometry']
+  del second_ppa['zone']['features'][0]['geometry']
   result = compareDictWithUnorderedLists(first_ppa, second_ppa)
-  first_ppa['zone']['features'][0]['geometry']['coordinates'] = geometry_of_first_ppa['coordinates']
-  second_ppa['zone']['features'][0]['geometry']['coordinates'] = geometry_of_second_ppa['coordinates']
+  first_ppa['zone']['features'][0]['geometry'] = geometry_of_first_ppa
+  second_ppa['zone']['features'][0]['geometry'] = geometry_of_second_ppa
   return result
  
