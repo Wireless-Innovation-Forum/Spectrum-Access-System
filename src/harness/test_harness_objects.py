@@ -254,7 +254,7 @@ class DomainProxy(object):
     # Heartbeat on all active grants
     heartbeat_requests = []
     heartbeat_requests, heartbeat_responses = self.heartbeatRequestForAllActiveGrants()
-    relinquish_requests = []
+    relinquishment_requests = []
     grant_requests = []
 
     # Construct relinquishment and grant for the heart beat response which have operation param
@@ -267,13 +267,13 @@ class DomainProxy(object):
              logging.error('Invalid Response since operation param not present in case of Terminated Grant')
 
         elif heartbeat_response['response']['responseCode'] != 0:
-          # If any heartbeat contain suggested operation params,construct relinquish requests
+          # If any heartbeat contain suggested operation params,construct relinquishment requests
           if 'operationParam' in heartbeat_response:
-            relinquish_request = {
+            relinquishment_request = {
                 'cbsdId': heartbeat_response['cbsdId'],
                 'grantId': heartbeat_response['grantId']
             }
-            relinquish_requests.append(relinquish_request)
+            relinquishment_requests.append(relinquishment_request)
 
             # Construct grant request for relinquished grants
             grant_requests.append(self._constructGrantRequests(heartbeat_request))
@@ -282,16 +282,21 @@ class DomainProxy(object):
             del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
 
     # Perform relinquishment since operation param present in heartbeat response
-    if len(relinquish_requests):
-      relinquish_requests_wrap = {
-        'relinquishmentRequest': relinquish_requests
+    if len(relinquishment_requests):
+      relinquishment_requests_wrap = {
+        'relinquishmentRequest': relinquishment_requests
       }
-      relinquish_responses = self.testcase._sas.Relinquishment(relinquish_requests_wrap,
+      relinquishment_responses = self.testcase._sas.Relinquishment(relinquishment_requests_wrap,
                                         self.ssl_cert, self.ssl_key)['relinquishmentResponse']
-      for relinquish_response in relinquish_responses:
-        if relinquish_response['response']['responseCode'] != 0:
-          logging.error('Relinquishment request for the grantId= %s failed',relinquish_response['grantId'])
 
+      # Validate the response of the relinquishment request
+      for relinquishment_request, relinquishment_response in \
+              zip(relinquishment_requests, relinquishment_responses):
+        self.testcase.assertEqual(relinquishment_response['response']['responseCode'], 0)
+        self.testcase.assertEqual(relinquishment_response['cbsdId'], relinquishment_request['cbsdId'])
+        self.testcase.assertEqual(relinquishment_response['grantId'], relinquishment_request['grantId'])
+
+    # Check if any grant request need to be sent
     if len(grant_requests):
       grant_requests_wrap = {
         'grantRequest': grant_requests
