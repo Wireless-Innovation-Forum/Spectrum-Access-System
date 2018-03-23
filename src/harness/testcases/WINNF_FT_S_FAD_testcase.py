@@ -350,36 +350,41 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       self.assertEqual(len(config['escSensorRecords']), len(esc_sensor_dump_data))
       # verify the schema of record and first two parts of PPA record Id  
       for ppa_record in ppa_dump_data:
-          self.assertContainsRequiredFields("ZoneData.schema.json", ppa_record)              
-          self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
-          self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
-          self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
-          del ppa_record['id']
-          # TODO : to update the following check according when PAL grants are supported in this test case
-          if 'cbsdReferenceId' in ppa_record['ppaInfo']:
-            self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
-            del ppa_record['ppaInfo']['cbsdReferenceId']
-      # verify that the injected ppas exist in the dump files
-      for index, ppa in enumerate(config['ppaRecords']):
-        del ppa['id']
+        self.assertContainsRequiredFields("ZoneData.schema.json", ppa_record)              
+        self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
+        self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
+        self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
+        del ppa_record['id']
+        # TODO : to update the following check according when PAL grants are supported in this test case
+        if 'cbsdReferenceId' in ppa_record['ppaInfo']:
+          self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
+          del ppa_record['ppaInfo']['cbsdReferenceId']
+        self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])) 
+        # verify that the injected ppas exist in the dump files
         exist_in_dump = False
-        for ppa_record in ppa_dump_data:
-          self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry']))         
+        for ppa in config['ppaRecords']:
+          if 'id' in ppa:
+            del ppa['id']        
           exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
-        self.assertTrue(exist_in_dump)         
+          if exist_in_dump:
+            break
+        self.assertTrue(exist_in_dump)     
       # verify the schema of record and two first parts of esc sensor record  Id
       for esc_record in esc_sensor_dump_data:                    
         self.assertContainsRequiredFields("EscSensorRecord.schema.json", esc_record)
         self.assertEqual(esc_record['id'].split("/")[0], 'esc_sensor')
         self.assertEqual(esc_record['id'].split("/")[1], self._sas._sas_admin_id)
-        del esc_record['id'] 
-      # verify that all the injected Esc sensors exist in the dump files                 
-      for esc in config['escSensorRecords']:
-        exist_in_dump = False
-        del esc['id'] 
-        for esc_record in esc_sensor_dump_data:
-            exist_in_dump = exist_in_dump or compareDictWithUnorderedLists(esc_record, esc)
+        del esc_record['id']     
+        # verify that all the injected Esc sensors exist in the dump files 
+        exist_in_dump = False                
+        for esc in config['escSensorRecords']:
+          if 'id' in esc:
+            del esc['id']
+          exist_in_dump = exist_in_dump or compareDictWithUnorderedLists(esc_record, esc)
+          if exist_in_dump:
+            break
         self.assertTrue(exist_in_dump)
+
       # verify that retrieved cbsd dump files have correct schema
       for cbsd_record in cbsd_dump_data:
           self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
