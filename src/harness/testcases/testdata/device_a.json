@@ -14,7 +14,8 @@
     "heightType": "AGL",
     "indoorDeployment": true,
     "antennaGain": 16,
-    "antennaBeamwidth": 30
+    "antennaBeamwidth": 30,
+    "antennaAzimuth": 90
   },
   "measCapability": [
   ]
