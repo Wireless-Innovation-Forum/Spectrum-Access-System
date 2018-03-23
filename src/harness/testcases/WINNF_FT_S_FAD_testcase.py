@@ -18,7 +18,7 @@ import json
 import os
 import sas
 import sas_testcase
-from reference_models.geo import vincenty, utils
+from reference_models.geo import vincenty
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generateCbsdReferenceId, generatePpaRecords
 
@@ -306,7 +306,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self._sas_admin.InjectPalDatabaseRecord(pal)
                        
       for ppa in config['ppaRecords']:
-          self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa['zone']['features'][0]['geometry']))
           ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
       # inject N3 Esc sensor
       for esc_sensor in config['escSensorRecords']:
@@ -359,8 +358,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         if 'cbsdReferenceId' in ppa_record['ppaInfo']:
           self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
           del ppa_record['ppaInfo']['cbsdReferenceId']
-        self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])) 
         # verify that the injected ppas exist in the dump files
+        # TODO: add Check for GeoJSON Winding of ppa polygon  
         exist_in_dump = False
         for ppa in config['ppaRecords']:
           if 'id' in ppa:
