@@ -284,6 +284,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            device_cert, device_key):
       self.assertRegistered([device_a])
@@ -329,6 +331,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            device_cert, device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
@@ -374,6 +378,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            device_cert, device_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])

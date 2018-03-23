@@ -292,6 +292,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
     # Send Registration request with short lived certificates to SAS UUT.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            domain_proxy_cert, domain_proxy_key):
       self.assertRegistered([device_a])
@@ -336,6 +338,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     # Device is registered with short live certificate and ensure that response is successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            domain_proxy_cert, domain_proxy_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
@@ -381,6 +385,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
     with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
                                            domain_proxy_cert, domain_proxy_key):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
