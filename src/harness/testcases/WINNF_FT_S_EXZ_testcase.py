@@ -402,7 +402,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_N1_2['cbsdCategory'], 'B')
-    conditionalsN1 = {
+    conditionals_N1 = {
         'cbsdCategory': device_N1_2['cbsdCategory'],
         'fccId': device_N1_2['fccId'],
         'cbsdSerialNumber': device_N1_2['cbsdSerialNumber'],
@@ -416,7 +416,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N1_2['measCapability']
 
     self.assertEqual(device_N2_1['cbsdCategory'], 'B')
-    conditionalsN2 = {
+    conditionals_N2 = {
         'cbsdCategory': device_N2_1['cbsdCategory'],
         'fccId': device_N2_1['fccId'],
         'cbsdSerialNumber': device_N2_1['cbsdSerialNumber'],
@@ -430,7 +430,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N2_1['measCapability']
 
     self.assertEqual(device_N3_2['cbsdCategory'], 'B')
-    conditionalsN3 = {
+    conditionals_N3 = {
         'cbsdCategory': device_N3_2['cbsdCategory'],
         'fccId': device_N3_2['fccId'],
         'cbsdSerialNumber': device_N3_2['cbsdSerialNumber'],
@@ -452,8 +452,6 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     devices_N2 = [device_N2_1, device_N2_2]
     devices_N3 = [device_N3_1, device_N3_2, device_N3_3]
 
-    conditionals = [conditionalsN1, conditionalsN2, conditionalsN3]
-
     config = {
         'registrationRequestsN1': devices_N1,
         'registrationRequestsN2': devices_N2,
@@ -461,7 +459,9 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
         'grantRequestsN1': grants_N1,
         'grantRequestsN2': grants_N2,
         'grantRequestsN3': grants_N3,
-        'conditionalRegistrationData': conditionals
+        'conditionalRegistrationDataN1': [conditionals_N1],
+        'conditionalRegistrationDataN2': [conditionals_N2],
+        'conditionalRegistrationDataN3': [conditionals_N3]
     }
     writeConfig(filename, config)
 
@@ -486,14 +486,13 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerEnableNtiaExclusionZones()
 
     # Register N1 devices
-    cbsd_ids_N1 = self.assertRegistered(config['registrationRequestsN1'], config['conditionalRegistrationData'][0])
+    cbsd_ids_N1 = self.assertRegistered(config['registrationRequestsN1'], config['conditionalRegistrationDataN1'])
 
     # Register N2 devices
-    cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'], config['conditionalRegistrationData'][1])
+    cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'], config['conditionalRegistrationDataN2'])
 
     # Register N3 devices
-    cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'], config['conditionalRegistrationData'][2])
-
+    cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'], config['conditionalRegistrationDataN3'])
 
     # Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
