@@ -15,12 +15,110 @@
 """Utility geometry routines.
 """
 
+import json
 import shapely.geometry as sgeo
-from shapely import ops
+import shapely.ops as ops
 import numpy as np
 
 WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 WGS_POLAR_RADIUS_KM2 = 6356.753
+
+
+def HasCorrectGeoJsonWinding(geometry):
+  """Returns True if a GeoJSON geometry has correct windings.
+
+  A GeoJSON polygon should follow the right-hand rule with respect to the area it
+  bounds, ie exterior rings are CCW and holes are CW.
+
+  Args:
+    geometry: A dict or string representing a GeoJSON geometry.
+
+  Raises:
+    ValueError: If invalid input or GeoJSON geometry type.
+  """
+  if isinstance(geometry, str):
+    geometry = json.loads(geometry)
+  if not isinstance(geometry, dict) or 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+
+  def _HasSinglePolygonCorrectWinding(coords):
+    exterior = coords[0]
+    if not sgeo.LinearRing(exterior).is_ccw:
+      return False
+    for hole in coords[1:]:
+      if sgeo.LinearRing(hole).is_ccw:
+        return False
+    return True
+
+  if geometry['type'] == 'Polygon':
+    coords = geometry['coordinates']
+    return _HasSinglePolygonCorrectWinding(coords)
+  elif geometry['type'] == 'MultiPolygon':
+    for coords in geometry['coordinates']:
+      if not _HasSinglePolygonCorrectWinding(coords):
+        return False
+    return True
+  elif geometry['type'] == 'GeometryCollection':
+    for subgeo in geometry['geometries']:
+      if not HasCorrectGeoJsonWinding(subgeo):
+        return False
+    return True
+  else:
+    return True
+
+
+def InsureGeoJsonWinding(geometry):
+  """Returns the input GeoJSON geometry with windings corrected.
+
+  A GeoJSON polygon should follow the right-hand rule with respect to the area it
+  bounds, ie exterior rings are CCW and holes are CW.
+  Note that the input geometry may be modified in place (case of a dict).
+
+  Args:
+    geometry: A dict or string representing a GeoJSON geometry. The returned
+      corrected geometry is in same format as the input (dict or str).
+
+  Raises:
+    ValueError: If invalid input or GeoJSON geometry type.
+  """
+  if HasCorrectGeoJsonWinding(geometry):
+    return geometry
+
+  is_str = False
+  if isinstance(geometry, str):
+    geometry = json.loads(geometry)
+    is_str = True
+  if not isinstance(geometry, dict) or 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+
+  def _InsureSinglePolygonCorrectWinding(coords):
+    """Modifies in place the coords for correct windings."""
+    exterior = coords[0]
+    if not sgeo.LinearRing(exterior).is_ccw:
+      exterior.reverse()
+    for hole in coords[1:]:
+      if sgeo.LinearRing(hole).is_ccw:
+        hole.reverse()
+
+  def _list_convert(x):
+    # shapely mapping returns a nested tuple.
+    return map(_list_convert, x) if isinstance(x, (tuple, list)) else x
+
+  if 'coordinates' in geometry:
+    geometry['coordinates'] = _list_convert(geometry['coordinates'])
+
+  if geometry['type'] == 'Polygon':
+    _InsureSinglePolygonCorrectWinding(geometry['coordinates'])
+  elif geometry['type'] == 'MultiPolygon':
+    for coords in geometry['coordinates']:
+      _InsureSinglePolygonCorrectWinding(coords)
+  elif geometry['type'] == 'GeometryCollection':
+    for subgeo in geometry['geometries']:
+      InsureGeoJsonWinding(subgeo)
+
+  if is_str:
+    geometry = json.dumps(geometry)
+  return geometry
 
 
 def GeoJsonToShapelyGeometry(geometry):
@@ -31,11 +129,13 @@ def GeoJsonToShapelyGeometry(geometry):
   `shapely.ops.unary_union()` routine.
 
   Args:
-    geometry: a dict representing a GeoJSON geometry.
+    geometry: A dict or string representing a GeoJSON geometry.
 
   Raises:
     ValueError: If invalid GeoJSON geometry is passed.
   """
+  if isinstance(geometry, str):
+    geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
 
@@ -46,6 +146,43 @@ def GeoJsonToShapelyGeometry(geometry):
   if isinstance(geometry, sgeo.Polygon) or isinstance(geometry, sgeo.MultiPolygon):
     geometry = geometry.buffer(0)
   return geometry
+
+
+def ToShapely(geometry):
+  """Returns a |shapely| geometry from a generic geometry or a GeoJSON dict.
+
+  A generic geometry implements the __geo_interface__ as supported by all major
+  geometry libraries, such as shapely, etc...
+
+  The original geometry structure is maintained, for example GeometryCollections
+  and MultiPolygons are kept as is. To dissolve them, use the `shapely.ops.unary_union()`
+  routine.
+
+  Args:
+    geometry: A generic geometry or a GeoJSON geometry (dict or str).
+  """
+  try:
+    return GeoJsonToShapelyGeometry(geometry.__geo_interface__)
+  except AttributeError:
+    return GeoJsonToShapelyGeometry(geometry)
+
+
+def ToGeoJson(geometry, as_dict=False):
+  """Returns a GeoJSON geometry from a generic geometry.
+
+  A generic geometry implements the __geo_interface__ as supported by all major
+  geometry libraries, such as shapely, etc...
+
+  The original geometry structure is maintained, for example GeometryCollections
+  and MultiPolygons are kept as is. To dissolve them, use the `shapely.ops.unary_union()`
+  routine.
+
+  Args:
+    geometry: A generic geometry, for example a shapely geometry.
+    as_dict: If True returns the GeoJSON as a dict, otherwise as str.
+  """
+  json_geometry = json.dumps(InsureGeoJsonWinding(geometry.__geo_interface__))
+  return json.loads(json_geometry) if as_dict else json_geometry
 
 
 def GridPolygon(poly, res_arcsec):
@@ -254,7 +391,7 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
     True if the two polygons are equal (within the tolerance), False otherwise.
   """
   if isinstance(poly_ref, dict):
-    poly_ref = GeoJsonToShapelyGeometry(poly1)
+    poly_ref = GeoJsonToShapelyGeometry(poly_ref)
   if isinstance(poly, dict):
     poly = GeoJsonToShapelyGeometry(poly)
 
