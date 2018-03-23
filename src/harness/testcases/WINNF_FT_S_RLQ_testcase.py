@@ -493,7 +493,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
     }
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = [conditionals_b]
     del device_b['installationParam']
     del device_b['cbsdCategory']
     del device_b['airInterface']
@@ -553,14 +553,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices and get grants
-    if ('conditionalRegistrationData' in config) and (
-        config['conditionalRegistrationData']):
-      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequests'], config['grantRequests'],
-          config['conditionalRegistrationData'])
-    else:
-      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequests'], config['grantRequests'])
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+        config['registrationRequests'], config['grantRequests'],
+        config['conditionalRegistrationData'])
 
     # First relinquishment
     relinquishment_request = config['relinquishmentRequestsFirst']
