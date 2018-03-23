@@ -132,7 +132,7 @@ class TestUtils(unittest.TestCase):
     with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
       json_geo = json.load(fd)
 
-    shape_geo = utils.GeoJsonToShapelyGeometry(json_geo)
+    shape_geo = utils.ToShapely(json_geo)
     exp_pts = {(-95, 40), (-95.5, 40.5), (-95.5, 40),
                (-96, 40), (-96.5, 40.5), (-96.5, 40)}
     pts = utils.GridPolygon(json_geo, res_arcsec=1800)
