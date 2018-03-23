@@ -17,6 +17,7 @@
 import inspect
 import logging
 import os
+import socket
 import sys
 import subprocess
 import threading
@@ -75,6 +76,11 @@ class SimpleCrlServer(threading.Thread):
     self.crl_file_path = crl_file_path
     self.setDaemon(True)
 
+    # Setting the parameters for handler class.
+    self.server = CrlHttpServer(self.crl_url_path, self.crl_file_path,
+                                (self.host_name, self.port),
+                                CrlServerHttpHandler)
+
   def run(self):
     """Starts the HTTPServer as background thread.
 
@@ -82,11 +88,7 @@ class SimpleCrlServer(threading.Thread):
     when the thread is started using thread.start().
     """
 
-    # Setting the parameters for handler class.
     logging.info("Started CRL Server at %s", self.host_name + ":" + str(self.port))
-    self.server = CrlHttpServer(self.crl_url_path, self.crl_file_path,
-                                (self.host_name, self.port),
-                                CrlServerHttpHandler)
     self.server.serve_forever()
 
   def stopServer(self):
@@ -133,7 +135,7 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
     # with 404 'Not Found' response.
     try:
       with open(os.path.join(self.server.crl_file_path)) as file_handle:
-        self.wfile.write(file_handle.read())
+        file_data = file_handle.read()
     except IOError:
       self.log_message('There is an error reading file:{}'.format(
           self.server.crl_file_path))
@@ -143,6 +145,7 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
       self.send_response(200)
       self.send_header("Content-type", "application/pkix-crl")
       self.end_headers()
+      self.wfile.write(file_data)
       return
 
 def getCertsDirectoryAbsolutePath():
@@ -255,10 +258,15 @@ def crlServerStart():
   # Create CRL chain containing CRLs of sub CAs and root CA.
   generateCrlChain()
 
-  crl_server = SimpleCrlServer(DEFAULT_CRL_URL, os.path.join(getCertsDirectoryAbsolutePath(),
+  try:
+    crl_server = SimpleCrlServer(DEFAULT_CRL_URL, os.path.join(getCertsDirectoryAbsolutePath(),
                                                              'crl/ca.crl'))
-  crl_server.start()
-  logging.info("CRL Server has been started")
+    crl_server.start()
+    logging.info("CRL Server has been started")
+    logging.info('CRL Server URL:%s' % DEFAULT_CRL_URL)
+  except socket.error as err:
+    raise Exception("RunTimeError:There is an error starting CRL Server:"
+                    "exit_reason:{}".format(err.strerror))
 
   return crl_server
 
@@ -315,6 +323,9 @@ logger.setLevel(logging.INFO)
 
 if __name__ == '__main__':
   # Start Simple CRL Server and waits for user input.
-  crl_server_instance = crlServerStart()
-  readInput()
-  crlServerStop(crl_server_instance)
+  try:
+    crl_server_instance = crlServerStart()
+    readInput()
+    crlServerStop(crl_server_instance)
+  except Exception as err:
+    logging.error(err.message)
