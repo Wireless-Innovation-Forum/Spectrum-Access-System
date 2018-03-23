@@ -17,65 +17,43 @@
   This is a subset of the pre-IAP reference model which implements inter-SAS
   duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
   CBSD is removed from the FAD objects of the respective SASs. The main function
-  is interSasDuplicateGrantReferenceModel().
+  is interSasDuplicateGrantPurgeReferenceModel().
 ==================================================================================
 """
-import copy
-from collections import Counter
-def interSasDuplicateGrantReferenceModel(input_sas_uut_fad, input_sas_test_harness_fads):
+
+from collections import defaultdict
+
+def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads):
   """ Removes duplicate grants from FAD objects of SAS UUT and SAS test harnesses.
 
-  Checks if a CBSD is registered with more than one SAS and removes the grants of the
-  CBSD if the grant frequencies overlap either fully or partially. If all grants are
-  removed from a CBSD then the CBSD is removed from the FAD Object.
+  Checks if a CBSD is registered with more than one SAS and removes the CBSD from
+  all the FAD objects of all SASs.
 
   Args:
-    input_sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
-    input_sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
+    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
+    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
       from SAS test harnesses.
-  Returns:
-    sas_uut_fad: A FullActivityDump object containing the FAD record of SAS UUT after purged grants removed.    
-    sas_test_harness_fads: A list of FullActivityDump object containing the FAD record of 
-      SAS test harness after purged grants removed.    
   """
-  sas_uut_fad = copy.deepcopy(input_sas_uut_fad)
-  sas_test_harness_fads = copy.deepcopy(input_sas_test_harness_fads)
-
-  all_cbsd_ids= []
   # Get all the CBSD Reference ID of all CBSDs from UUT and SAS test Harness FAD objects
+  cbsd_id_counts = defaultdict(int)
   for cbsd in sas_uut_fad.getCbsdRecords():
-    all_cbsd_ids.append(cbsd['id'])
+    cbsd_id_counts[cbsd['id']] += 1
   for fad in sas_test_harness_fads:
     for cbsd in fad.getCbsdRecords():
-      all_cbsd_ids.append(cbsd['id'])
-  cbsds_ids_to_remove = [str(k) for k, v in Counter(all_cbsd_ids).iteritems() if v > 1]
+      cbsd_id_counts[cbsd['id']] += 1
+  cbsds_to_keep = []
 
-  indices_in_sas_uut_to_remove = []
-  # Iterate through the UUT CBSD list and find the indices of the duplicate CBSDs
-  sas_uut_cbsd = sas_uut_fad.getCbsdRecords()
-  for index,cbsd in enumerate(sas_uut_cbsd):
-    if cbsd['id'] in cbsds_ids_to_remove:
-      indices_in_sas_uut_to_remove.append(index)
-  indices_in_sas_uut_to_remove.sort(reverse=True)
+  # Iterate through the UUT CBSD list and keep only the non duplicate CBSDs
+  for cbsd in sas_uut_fad.getCbsdRecords():
+    if cbsd_id_counts[cbsd['id']] == 1:
+      cbsds_to_keep.append(cbsd)
+  sas_uut_fad.setCbsdRecords(cbsds_to_keep)
 
-  # Remove the CBSD at the index position
-  for index in indices_in_sas_uut_to_remove:
-    sas_uut_cbsd.pop(index)
-
-  sas_test_harness_cbsds = []
-
-  # Iterate through the SAS Test Harness CBSD list and find the indices of the duplicate CBSDs
-  indices_in_sas_test_harness_to_remove = []
+  # Iterate through the test harness CBSD list and keep only the non duplicate CBSDs
   for fad in sas_test_harness_fads:
-    indices_in_sas_test_harness_to_remove = []
-    sas_test_harness_cbsds = fad.getCbsdRecords()
-    for index,cbsd in enumerate(sas_test_harness_cbsds):
-      if cbsd['id'] in cbsds_ids_to_remove:
-        indices_in_sas_test_harness_to_remove.append(index)
-    indices_in_sas_test_harness_to_remove.sort(reverse=True)
-
-    # Remove the CBSD at the index position.
-    for index in indices_in_sas_test_harness_to_remove:
-      sas_test_harness_cbsds.pop(index)
-  return sas_uut_fad,sas_test_harness_fads
+    cbsds_to_keep = []
+    for cbsd in fad.getCbsdRecords():
+      if cbsd_id_counts[cbsd['id']] == 1:
+        cbsds_to_keep.append(cbsd)
+    fad.setCbsdRecords(cbsds_to_keep)
 
