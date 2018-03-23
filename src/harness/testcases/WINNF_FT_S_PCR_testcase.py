@@ -48,7 +48,7 @@ import sas_testcase
 from reference_models.ppa import ppa
 from reference_models.geo import CONFIG, utils
 from util import configurable_testcase, loadConfig, \
-     makePalRecordsConsistent, writeConfig
+     makePalRecordsConsistent, writeConfig, getCertificateFingerprint
 
 class PpaCreationTestcase(sas_testcase.SasTestCase):
   """
@@ -137,8 +137,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         'ituDataPath': CONFIG.GetItuDir(),
         'terrainDataPath': CONFIG.GetTerrainDir(),
         'landCoverDataPath': CONFIG.GetLandCoverDir(),
-        'serverCert': os.path.join('certs/client.cert'),
-        'serverKey': os.path.join('certs/client.key')
+        'serverCert': os.path.join('certs/sas.cert'),
+        'serverKey': os.path.join('certs/sas.key')
     }
     writeConfig(filename, config)
 
@@ -191,7 +191,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
 
     self.assertIsNotNone(ppa_id)
-    
+
+    # Notify the SAS UUT about the SAS Test Harness
+    certificate_hash = getCertificateFingerprint(self._sas._tls_config.client_cert)
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': self._sas._base_url})
+
     # As SAS is reset at the beginning of the test, the FAD records should contain
     # only one zone record containing the PPA that was generated. Hence the first
     # zone record is retrived and verified if it matches the PPA ID.
