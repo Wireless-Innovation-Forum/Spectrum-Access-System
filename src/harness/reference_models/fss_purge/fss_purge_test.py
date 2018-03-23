@@ -15,7 +15,7 @@
 import json
 import os
 import unittest
-import sas_objects
+import full_activity_dump
 from reference_models.fss_purge import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 class TestFssPurge(unittest.TestCase):
@@ -38,12 +38,9 @@ class TestFssPurge(unittest.TestCase):
    fss_entity = json.load(
      open(os.path.join('testdata', 'fss_record_0.json')))
    
-   fad_object_1 = sas_objects.FullActivityDump("","","","")
-   fad_object_2 = sas_objects.FullActivityDump("","","","",)
-   fad_object_3 = sas_objects.FullActivityDump("","","","",)
-   fad_object_1.cbsd_records = [cbsd_0, cbsd_1]
-   fad_object_2.cbsd_records = [cbsd_2, cbsd_3]
-   fad_object_3.cbsd_records = [cbsd_4, cbsd_5]
+   fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
+   fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
+   fad_object_3 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_4, cbsd_5]})
    protected_entities = [{'fssRecords':[fss_entity]}]
    sas_uut_fad_object = fad_object_1
    sas_test_harness_fad_object = [fad_object_2, fad_object_3]
@@ -60,14 +57,13 @@ class TestFssPurge(unittest.TestCase):
 
    for entity in protected_entities:
      if 'fssRecords' in entity:
-       fss_purged_sas_uut_fad_object , fss_purged_sas_test_harness_fad_object = fss_purge.fssPurgeModel\
-             (sas_uut_fad_object, sas_test_harness_fad_object, entity['fssRecords'])
+       fss_purge.fssPurgeModel(sas_uut_fad_object, sas_test_harness_fad_object, entity['fssRecords'])
 
    print "================CBSD Grants received as output======================"
-   for records in fss_purged_sas_uut_fad_object.getCbsdRecords():
+   for records in sas_uut_fad_object.getCbsdRecords():
      for grants in records['grants']:
        print " ",json.dumps(grants['id'])
-   for fad in fss_purged_sas_test_harness_fad_object:
+   for fad in sas_test_harness_fad_object:
       for rec in fad.getCbsdRecords():
         for grants in rec['grants']:
           print " ",json.dumps(grants['id'])

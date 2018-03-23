@@ -19,8 +19,6 @@
     The main function is fssPurgeModel().
 ==================================================================================
 """
-import json
-import copy
 import numpy as np
 from reference_models.antenna import antenna
 from reference_models.interference import interference
@@ -36,7 +34,6 @@ FSS_OOBE_MARGIN = 1
 
 def getFssInfo(fss_record):
   """ Create a FssProtectionPoint tuple from the fss_record.
-
   Args:
     fss_record: A single FSS record dictionary.
   Returns:
@@ -73,17 +70,17 @@ def getFssInfo(fss_record):
                                   weight_2=fss_weight_2)
   return fss_entity
 
-def getNeighboringCbsdsToFss(cbsd_list, fss_record):
-  """ Get the list of all CBSDs that lie within 40 KMs of FSS.
+def getFssNeighboringCbsdsWithGrants(cbsd_list, fss_record):
+  """ Get the list of all CBSDs that lie within 40 KMs of FSS and have at least one grant.
 
   Args:
     cbsd_list:  List of CbsdData dictionaries as defined in the SAS-SAS specification.
     fss_record: A FSS record dictionary.
   Returns:
-    List of CBSDs lying within 40 KMs of FSS.
+    List of CBSDs lying within 40 KMs of FSS and having at least one grant.
   """
 
-  neighboring_cbsds = []
+  neighboring_cbsds_with_grants = []
   for cbsd in cbsd_list:
     distance_km, _, _ = vincenty.GeodesicDistanceBearing(
         fss_record['deploymentParam'][0]['installationParam']['latitude'],
@@ -91,13 +88,12 @@ def getNeighboringCbsdsToFss(cbsd_list, fss_record):
         cbsd['registrationRequest']['installationParam']['latitude'],
         cbsd['registrationRequest']['installationParam']['longitude'])
 
-    if distance_km <= 40:
-        neighboring_cbsds.append(cbsd)
-  return neighboring_cbsds
+    if distance_km <= 40 and cbsd['grants']:
+        neighboring_cbsds_with_grants.append(cbsd)
+  return neighboring_cbsds_with_grants
 
 def performPurge(cbsds, fss_entity):
   """ Implementation of algorithm described in R2-SGN-29.
-
   The list of grants to be purged based on the interference caused by their
   out of band emission are identified and the grants are removed from the CBSDs.
 
@@ -121,7 +117,6 @@ def performPurge(cbsds, fss_entity):
   index = np.searchsorted(cumulated_interference, interference.dbToLinear(oobe_threshold_value))
   cbsds_to_purge = sorted_cbsds[index:]
   sorted_cbsds = sorted_cbsds[:index]
-
   # Remove the grants from the CBSDs that are in the purge list.
   if cbsds_to_purge:
     for index, cbsd in enumerate(cbsds_to_purge):
@@ -166,7 +161,6 @@ def calculateOobeInterference(cbsds, fss_entity):
   
   The interference values are calculated based on the grant with the highest highFrequency value.
   The calculated value is added into the CBSD object.
-
   Args:
     cbsds: List of CbsdData objects that are in the neighborhood to an FSS.
     fss_entity: The FssProtectionPoint tuple of the FSS for which the interference is calculated.
@@ -186,7 +180,6 @@ def calculateOobeInterference(cbsds, fss_entity):
 
 def getMcbsdValue(grant):
   """ Identifies the MCBSD value for a grant.
-
   MCBSD is the CBSD conducted power (in dBm) on the frequency segment, 
   using the Tx mask of CBSD according to R0-DEV-05(e).
 
@@ -204,7 +197,6 @@ def getMcbsdValue(grant):
 
 def getAntennaGainTowardsFss(incidence_angle, cbsd):
   """Get antenna gain of CBSD in direction of FSS protection point [R2-SGN-20]
-
   Args:
     incidence_angle: Incidence angle as identified by ITM model.
     cbsd: A CbsdData object.
@@ -221,7 +213,6 @@ def getAntennaGainTowardsFss(incidence_angle, cbsd):
 
 def getMeanPathLossFromCbsdToFss(cbsd, fss):
   """Get mean ITM path loss from CBSD to FSS protection point.
-
   Args:
     cbsd: A CbsdData object
     fss_entity: The FssProtectionPoint tuple of the FSS.
@@ -262,7 +253,6 @@ def convertAmslToAgl(latitude, longitude, height_amsl):
 
 def getAntennaGainFssReceiver(fss_entity, incidence_angle):
   """Get antenna gain of FSS receiver determined using FSS antenna reference model.
-
   Args:
     cbsd: A CbsdData object
     incidence_angle: Incidence angle as identified by ITM model.
@@ -282,25 +272,18 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
 
   return fss_ant_gain
 
-def fssPurgeModel(input_sas_uut_fad, input_sas_test_harness_fads, fss_records):
+def fssPurgeModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   """Entry point function to execute FSS purge list model.
 
   Performs FSS purge model as described in R2-SGN-29 on the FAD CBSD records of SAS UUT
-  and SAS test harnesses for a given FSS entity. The grants are removed from the CBSD
+  and SAS test harnesses for a list of FSS records. The grants are removed from the CBSD
   records of the FAD objects.
-
   Args:
-    input_sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
-    input_sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
+    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
+    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
       from SAS test harnesses.
     fss_records: A list of FSS record dictionary.
-  Returns:
-    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT with purged grants removed.
-    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records 
-      from SAS test harnesses with purged grants removed.
   """
-  sas_uut_fad = copy.deepcopy(input_sas_uut_fad)
-  sas_test_harness_fads = copy.deepcopy(input_sas_test_harness_fads)
   # Get the CBSD list from the FAD Object. 
   cbsds = []
   cbsds.extend(sas_uut_fad.getCbsdRecords())
@@ -310,9 +293,8 @@ def fssPurgeModel(input_sas_uut_fad, input_sas_test_harness_fads, fss_records):
   for fss_record in fss_records:
     # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
     if fss_record['deploymentParam'][0]['ttc']:
-      neighboring_cbsds = getNeighboringCbsdsToFss(cbsds, fss_record)
-      if neighboring_cbsds:
+      neighboring_cbsds_with_grants = getFssNeighboringCbsdsWithGrants(cbsds, fss_record)
+      if neighboring_cbsds_with_grants:
         fss_entity = getFssInfo(fss_record)
-        performPurge(neighboring_cbsds, fss_entity)
-
-  return sas_uut_fad,sas_test_harness_fads 
+        performPurge(neighboring_cbsds_with_grants, fss_entity)
+   

@@ -13,8 +13,7 @@
         "antennaGain": 0,
         "antennaBeamwidth": 0,
         "antennaAzimuth": 270,
-        "antennaDowntilt": 0,
-        "antennaElevationAngle":39
+        "antennaDowntilt": -90
       },
       "operationParam": {
         "operationFrequencyRange": {
