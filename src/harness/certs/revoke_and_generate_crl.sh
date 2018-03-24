@@ -16,21 +16,21 @@ function blacklist_certificate()
 function generate_crl_chain()
 {
   #Create a CRL for root CA containing the revoked intermediate CA certificate.
-  echo "\n\n Generate CRL for root_ca"
+  echo -e "\n\n Generate CRL for root_ca"
   openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
       -config ../../../cert/openssl.cnf -crlhours 1 \
       -out crl/root_ca.crl
 
   #Creating CRL for blacklisted certificates SxS.11 test cases.
-  echo "\n\n Generate CRL for sas_ca"
+  echo -e "\n\n Generate CRL for sas_ca"
   openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
       -config ../../../cert/openssl.cnf -crlhours 1 \
       -out crl/sas_ca.crl
-  echo "\n\n Generate CRL for proxy_ca"
+  echo -e "\n\n Generate CRL for proxy_ca"
   openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
       -config ../../../cert/openssl.cnf -crlhours 1 \
       -out crl/proxy_ca.crl
-  echo "\n\n Generate CRL for cbsd_ca"
+  echo -e "\n\n Generate CRL for cbsd_ca"
   openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
       -config ../../../cert/openssl.cnf -crlhours 1 \
       -out crl/cbsd_ca.crl
