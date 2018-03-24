@@ -18,7 +18,7 @@ function generate_cbsd_short_lived_certificate()
     enddate_value=$(date -u -d "now + $offset minutes" '+%y%m%d%H%M%SZ')
 
     # Generate normal operation short_lived certificate/key.
-    echo "\n\nGenerate 'short_lived' certificate/key"
+    echo -e "\n\nGenerate 'short_lived' certificate/key"
     openssl req -new -newkey rsa:2048 -nodes \
         -reqexts cbsd_req -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
@@ -46,7 +46,7 @@ function generate_dp_short_lived_certificate()
     enddate_value=$(date -u -d "now + $offset minutes" '+%y%m%d%H%M%SZ')
 
     # Generate normal operation short_lived domain proxy certificate/key.
-    echo "\n\nGenerate 'short_lived' certificate/key"
+    echo -e "\n\nGenerate 'short_lived' certificate/key"
     openssl req -new -newkey rsa:2048 -nodes \
         -reqexts oper_req -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
