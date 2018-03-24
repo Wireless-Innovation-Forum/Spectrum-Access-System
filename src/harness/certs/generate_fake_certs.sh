@@ -4,6 +4,7 @@
 sed -i '/TEST = critical, ASN1:NULL/d' ../../../cert/openssl.cnf
 
 # Setup: build intermediate directories.
+rm -rf crl/
 mkdir private
 mkdir root
 touch index.txt
@@ -407,7 +408,5 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 #   cat sas_ca.cert >>  server.cert
 
 # cleanup: remove all files not directly used by the testcases.
-rm -rf private
 rm -rf root
-rm index.txt*
 rm *.csr
