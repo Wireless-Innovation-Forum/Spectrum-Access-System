@@ -260,7 +260,7 @@ def crlServerStart():
 
   try:
     crl_server = SimpleCrlServer(DEFAULT_CRL_URL, os.path.join(getCertsDirectoryAbsolutePath(),
-                                                             'crl/ca.crl'))
+                                                               'crl/ca.crl'))
     crl_server.start()
     logging.info("CRL Server has been started")
     logging.info('CRL Server URL:%s' % DEFAULT_CRL_URL)
