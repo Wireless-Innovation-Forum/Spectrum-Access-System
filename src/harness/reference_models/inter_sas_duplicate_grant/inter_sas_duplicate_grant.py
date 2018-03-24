@@ -24,7 +24,8 @@
 from collections import defaultdict
 
 def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads):
-  """ Removes duplicate grants from FAD objects of SAS UUT and SAS test harnesses.
+  """ Removes CBSDs with grants from more than one SAS from FAD objects of SAS UUT 
+  and SAS test harnesses.
 
   Checks if a CBSD is registered with more than one SAS and removes the CBSD from
   all the FAD objects of all SASs.
