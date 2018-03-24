@@ -132,8 +132,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     pal_record = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
 
-    pal_low_frequency = 3550000000.0
-    pal_high_frequency = 3560000000.0
+    pal_low_frequency = 3550000000
+    pal_high_frequency = 3560000000
 
     ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(ppa_record,
                                                                  [pal_record],
