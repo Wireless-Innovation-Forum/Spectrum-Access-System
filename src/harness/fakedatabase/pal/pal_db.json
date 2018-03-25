@@ -1,44 +1,64 @@
 [
-  {
-    "license": {
-      "licenseAreaExtent": "zone/census_tract/census/2010/123456789",
-      "licenseFrequencyChannelId": "1",
-      "licenseId": "fccId123456789-1",
-      "licenseDate": "2017-07-01T00:00:00Z",
-      "licenseAreaIdentifier": "Census Tract 123456789, Long Name",
-      "licenseExpiration": "2020-07-01T00:00:00Z"
+    {
+        "palId" : "pal/10-2017/123456789/A",
+        "licensee" : "CBSD Operator 1",
+        "censusYear": 2017,
+        "fipsCode": "20041084200",
+        "userId" : "cbsdOp1",
+        "registrationInformation" : {
+            "frn" : "123456-789",
+            "registrationDate": "2017-06-01",
+            "licenseConditions": "license_pal_0"
+        },
+        "license": {
+            "licenseId": "fccId123456789-1",
+            "licenseDate": "2017-07-01T00:00:00Z",
+            "licenseExpiration": "2020-07-01T00:00:00Z",
+            "licenseAreaIdentifier": "Census Tract 123456789 Long Name",
+            "licenseAreaExtent": "zone/census_tract/census/2017/123456789",
+            "licenseFrequencyChannelId": "1"
+        },
+        "licenseStatus": "VALID",
+        "channelAssignment": {
+            "primaryAssignment": {
+                "lowFrequency": 3550000000,
+                "highFrequency": 3560000000
+            },
+            "secondaryAssignment": {
+                "lowFrequency": 3580000000,
+                "highFrequency": 3590000000
+            }
+	      }
     },
-    "userId": "cbsdOp1",
-    "registrationInformation": {
-      "frn": "123456-789",
-      "registrationDate": "2017-06-01"
-    },
-    "licensee": "CBSD Operator No.1",
-    "channelAssignment": {
-      "primaryAssignment": {
-        "lowFrequency": 3550000000,
-        "highFrequency": 3560000000
-      },
-      "secondaryAssignment": {
-        "lowFrequency": 3580000000,
-        "highFrequency": 3590000000
-      }
-    },
-    "licenseStatus": "VALID",
-    "palId": "pal/10-2017/123456789/A"
-  },
-  {
-    "censusYear": 2010,
-    "license": {
-      "licenseId": "test_fcc_id_pal_1"
-    },
-    "registrationInformation": {
-      "callSign": "call_sign_pal_1",
-      "frn": "test_fcc_frn_pal_1",
-      "licenseConditions": "license_pal_1"
-    },
-    "licensee": "CBSD Operator No.1",
-    "licenseStatus": "VALID",
-    "fipsCode": 20063955100
-  }
+    {
+        "palId" : "pal/10-2017/123456789/B",
+        "licensee" : "CBSD Operator 2",
+        "censusYear": 2017,
+        "fipsCode": "20041084210",
+        "userId" : "cbsdOp2",
+        "registrationInformation" : {
+            "frn" : "123456-987",
+            "registrationDate": "2017-06-01",
+            "licenseConditions": "license_pal_1"
+        },
+        "license": {
+            "licenseId": "fccId123456789-2",
+            "licenseDate": "2017-07-01T00:00:00Z",
+            "licenseExpiration": "2020-07-01T00:00:00Z",
+            "licenseAreaIdentifier": "Census Tract 987654321 Long Name",
+            "licenseAreaExtent": "zone/census_tract/census/2017/987654321",
+            "licenseFrequencyChannelId": "2"
+        },
+        "licenseStatus": "VALID",
+        "channelAssignment": {
+            "primaryAssignment": {
+                "lowFrequency": 3560000000,
+                "highFrequency": 3570000000
+            },
+            "secondaryAssignment": {
+                "lowFrequency": 3590000000,
+                "highFrequency": 3600000000
+            }
+        }
+    }
 ]
