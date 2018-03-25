@@ -8,7 +8,7 @@
         "latitude": 39.2291,
         "longitude":  -100.1,
         "height": 7.6,
-        "elevation": 100,
+        "elevation": 100.0,
         "heightType": "AGL",
         "antennaGain": 16,
         "antennaBeamwidth": 30,
