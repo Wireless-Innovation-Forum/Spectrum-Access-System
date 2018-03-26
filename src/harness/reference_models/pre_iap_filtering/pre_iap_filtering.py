@@ -22,7 +22,7 @@ from reference_models.fss_purge import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 
 
-def performPreIapFiltering(protected_entities, sas_uut_fad, sas_test_harness_fads):
+def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads):
   """ The main function that invokes all pre-IAP filtering models.
 
   The grants/CBSDs to be purged are removed from the input parameters.
@@ -30,7 +30,7 @@ def performPreIapFiltering(protected_entities, sas_uut_fad, sas_test_harness_fad
   Args:
     protected_entities: A dictionary containing the list of protected entities. The key
       is a protected enity type and the value is a list of corresponding protected
-      entity records. The format is {'entity_name':[record1, record2]}.
+      entity records. The format is {'entityName':[record1, record2]}.
     sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
     sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
       from SAS test harnesses.
@@ -45,8 +45,7 @@ def performPreIapFiltering(protected_entities, sas_uut_fad, sas_test_harness_fad
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
 
   # Invoke FSS purge list reference model
-  for entity in protected_entities:
-    if 'fssRecords' in entity:
-      fss_purge.fssPurgeModel(sas_uut_fad, sas_test_harness_fads,\
+  if 'fssRecords' in protected_entities:
+    fss_purge.fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
                                 protected_entities['fssRecords'])
 
