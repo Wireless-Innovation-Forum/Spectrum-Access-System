@@ -35,8 +35,8 @@
 					"operationParam": {
 						"maxEirp": 37,
 						"operationFrequencyRange": {
-							"highFrequency": 3670000000.0,
-							"lowFrequency": 3660000000.0
+							"highFrequency": 3670000000,
+							"lowFrequency": 3660000000
 						}
 					},
 					"terminated": false
@@ -48,8 +48,8 @@
                                         "operationParam": {
                                                 "maxEirp": 37,
                                                 "operationFrequencyRange": {
-                                                        "highFrequency": 3680000000.0,
-                                                        "lowFrequency": 3670000000.0
+                                                        "highFrequency": 3680000000,
+                                                        "lowFrequency": 3670000000
                                                 }
                                         },
                                         "terminated": false
@@ -61,8 +61,8 @@
                                         "operationParam": {
                                                 "maxEirp": 37,
                                                 "operationFrequencyRange": {
-                                                        "highFrequency": 3699000000.0,
-                                                        "lowFrequency": 3696000000.0
+                                                        "highFrequency": 3699000000,
+                                                        "lowFrequency": 3696000000
                                                 }
                                         },
                                         "terminated": false
