@@ -294,24 +294,34 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
   def generate_EXZ_2_default_config(self, filename):
     """Generates the WinnForum configuration for EXZ.2."""
-    # Load device info
-    # Move the device locations outside 50 meters of all NTIA exclusion zones
+
+    # Loading N1 set of CBSDs each located outside 50 meters of all Exclusion Zones
     device_N1_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_N1_1['installationParam']['latitude'] = 35.63887
-    device_N1_1['installationParam']['longitude'] = -102.68289
+    # Moving device_N1_1 just outside of 50 meters from exclusion zone of
+    # 'Fort Carson Military Reservation'
+    device_N1_1['installationParam']['latitude'] = 40.31260
+    device_N1_1['installationParam']['longitude'] = -96.25100
+
     device_N1_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_N1_2['installationParam']['latitude'] = 35.13134
-    device_N1_2['installationParam']['longitude'] = -114.23897
+    # Moving device_N1_2 just outside of 50 meters from exclusion zone of
+    # 'Yuma Proving ground'
+    device_N1_2['installationParam']['latitude'] = 33.58101
+    device_N1_2['installationParam']['longitude'] = -114.35775
+
     device_N1_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_N1_3['installationParam']['latitude'] = 36.12391
-    device_N1_3['installationParam']['longitude'] = -107.06258
+    # Moving device_N1_3 just outside of 50 meters from exclusion zone of
+    # 'White Sands Missile Range
+    device_N1_3['installationParam']['latitude'] = 33.85263
+    device_N1_3['installationParam']['longitude'] = -106.57198
 
-    # Move the devices to be located within at least one exclusion zone
+    # Loading N2 set of CBSDs each located within at least one Exclusion Zone
     device_N2_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    # Moving device_N2_1 to a location inside the exclusion zone of
+    # 'Fort Carson Military Reservation'
     device_N2_1['installationParam']['latitude'] = 37.47922
     device_N2_1['installationParam']['longitude'] = -103.99037
     device_N2_1['fccId'] = "test_fcc_id_bb"
@@ -319,14 +329,18 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     device_N2_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Moving device_N2_2 to a location inside the exclusion zone of
+    # 'White Sands Missile Range'
     device_N2_2['installationParam']['latitude'] = 33.39486
     device_N2_2['installationParam']['longitude'] = -106.40535
     device_N2_2['fccId'] = "test_fcc_id_cc"
     device_N2_2['cbsdSerialNumber'] = "test_serial_number_cc"
 
-    # Move devices to locations within 50 meters of at least one of the exclusion zones
+    # Loading N3 set of CBSDs each located within 50 meters of at least one Exclusion Zone
     device_N3_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    # Moving device_N3_1 to a location within 50 meters from the exclusion zone
+    # of 'White Sands Missile Range'
     device_N3_1['installationParam']['latitude'] = 33.16232
     device_N3_1['installationParam']['longitude'] = -106.77766
     device_N3_1['fccId'] = "test_fcc_id_aaa"
@@ -334,6 +348,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     device_N3_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    # Moving device_N3_2 to a location within 50 meters from the exclusion zone
+    # of 'Yuma Proving Ground'
     device_N3_2['installationParam']['latitude'] = 33.05882
     device_N3_2['installationParam']['longitude'] = -113.945
     device_N3_2['fccId'] = "test_fcc_id_bbb"
@@ -341,6 +357,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     device_N3_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    # Moving device_N3_3 to a location within 50 meters from the exclusion zone
+    # of 'Fort Irwin'
     device_N3_3['installationParam']['latitude'] = 35.39799
     device_N3_3['installationParam']['longitude'] = -116.29082
     device_N3_3['fccId'] = "test_fcc_id_ccc"
