@@ -1,0 +1,26 @@
+{  
+  "type":"FeatureCollection",
+  "features":[  
+    {  
+      "type":"Feature",
+      "properties":{  
+        "id":"FRL_1",
+        "description":"Federal radiolocation service, St. Inigoes, MD.",
+        "exclusion_distance_from_site_in_km":80,
+        "operationParam":{  
+          "operationFrequencyRange":{  
+            "lowFrequency":3650000000,
+            "highFrequency":3700000000
+          }
+        }
+      },
+      "geometry":{  
+        "coordinates":[  
+          -76.38333333,
+          38.16666667
+        ],
+        "type":"Point"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{  
+  "type":"FeatureCollection",
+  "features":[  
+    {  
+      "type":"Feature",
+      "properties":{  
+        "id":"FRL_3",
+        "description":"Federal radiolocation service, Pensacola, FL.",
+        "exclusion_distance_from_site_in_km":80,
+        "operationParam":{  
+          "operationFrequencyRange":{  
+            "lowFrequency":3650000000,
+            "highFrequency":3700000000
+          }
+        }
+      },
+      "geometry":{  
+        "coordinates":[  
+          -87.27388889,
+          30.35777778
+        ],
+        "type":"Point"
+      }
+    }
+  ]
+}
+
