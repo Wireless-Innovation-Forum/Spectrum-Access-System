@@ -16,6 +16,8 @@
 
 class FullActivityDump(object):
 
+  _valid_field_names = ['cbsd', 'esc_sensor', 'zone']
+
   def __init__(self, dump):
     """Initializes FAD object with the given dump.
 
@@ -27,15 +29,18 @@ class FullActivityDump(object):
         referring to an empty list.
     """
     self._dump_data = dump
-    for field_name in ['cbsd', 'esc_sensor', 'zone']:
+    # Check no unknown fields exist in the dump and ensure all fields have data.
+    for field_name in self._dump_data:
+      if field_name not in self._valid_field_names:
+        raise ValueError('Dump field name \"%s\" is not a valid field to be '
+          'contained in a FullActivityDump' % field_name)
+    for field_name in self._valid_field_names:
       if field_name not in self._dump_data:
         self._dump_data[field_name] = []
 
   def getData(self):
     """Returns all data in FAD.
 
-    Args:
-      record_types: Optional. A list of record types to return. Defaults to all.
     Returns:
       A copy of the internal dictionary of FAD data. See __init__ for the
       structure of the data.

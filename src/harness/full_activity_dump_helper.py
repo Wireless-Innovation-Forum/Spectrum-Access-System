@@ -119,9 +119,9 @@ def _processDump(sas, ssl_cert, ssl_key, dump):
   util.assertContainsRequiredFields('FullActivityDump.schema.json', dump)
   dump_data = {'cbsd': [], 'esc_sensor': [], 'zone': []}
   for dump_file in dump['files']:
-    if dump_file['recordType'] == 'CoordinationEvent':
+    if dump_file['recordType'] == 'coordination':
       logging.debug(
-          'CoordinationEvent record skipped in downloading Full Activity Dump')
+          'Coordination event record skipped in downloading Full Activity Dump')
       continue
     util.assertContainsRequiredFields('ActivityDumpFile.schema.json', dump_file)
     dump_data[dump_file['recordType']].extend(

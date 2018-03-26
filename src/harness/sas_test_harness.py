@@ -84,7 +84,6 @@ class SasTestHarnessServer(threading.Thread):
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
     self.key_file = key_file if key_file is not None else DEFAULT_KEY_FILE
     self.ca_cert_file = ca_cert_file if ca_cert_file is not None else DEFAULT_CA_CERT
-    self.server = None
     self.setDaemon(True)
     self.server = SasHttpServer(
         self.dump_path,
