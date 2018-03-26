@@ -33,10 +33,10 @@
 					"grantExpireTime": "calculated at runtime",
 					"id": "cbsd_4_grant_0",
 					"operationParam": {
-						"maxEirp": 37,
+						"maxEirp": 37.0,
 						"operationFrequencyRange": {
-							"highFrequency": 3690000000.0,
-							"lowFrequency": 3680000000.0
+							"highFrequency": 3690000000,
+							"lowFrequency": 3680000000
 						}
 					},
 					"terminated": false

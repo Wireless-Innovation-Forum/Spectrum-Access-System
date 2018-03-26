@@ -48,8 +48,6 @@ def getFssInfo(fss_record):
   fss_azimuth = fss_record['deploymentParam'][0]['installationParam']['antennaAzimuth']
   fss_pointing_elevation = fss_record['deploymentParam'][0]['installationParam']['elevation']
   fss_max_gain_dbi = fss_record['deploymentParam'][0]['installationParam']['antennaGain']
-  fss_weight_1 = fss_record['deploymentParam'][0]['weight1']
-  fss_weight_2 = fss_record['deploymentParam'][0]['weight2']
 
   # Convert the height to AGL if it was AMSL type.
   if fss_height_type == 'AMSL':
@@ -65,9 +63,7 @@ def getFssInfo(fss_record):
                                   height_agl=fss_height_agl,
                                   max_gain_dbi=fss_max_gain_dbi,
                                   pointing_azimuth=fss_azimuth,
-                                  pointing_elevation=fss_pointing_elevation,
-                                  weight_1=fss_weight_1,
-                                  weight_2=fss_weight_2)
+                                  pointing_elevation=fss_pointing_elevation)
   return fss_entity
 
 def getFssNeighboringCbsdsWithGrants(cbsd_list, fss_record):
@@ -265,9 +261,7 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
                               incidence_angle.hor_rx, incidence_angle.ver_rx,
                               fss_entity.pointing_azimuth,
                               fss_entity.pointing_elevation,
-                              fss_entity.max_gain_dbi,
-                              fss_entity.weight_1,
-                              fss_entity.weight_2)
+                              fss_entity.max_gain_dbi)
 
 
   return fss_ant_gain

@@ -33,10 +33,10 @@
 					"grantExpireTime": "calculated at runtime",
 					"id": "cbsd_0_grant_0",
 					"operationParam": {
-						"maxEirp": 37,
+						"maxEirp": 37.0,
 						"operationFrequencyRange": {
-							"highFrequency": 3610000000.0,
-							"lowFrequency": 3600000000.0
+							"highFrequency": 3610000000,
+							"lowFrequency": 3600000000
 						}
 					},
 					"terminated": false
@@ -46,10 +46,10 @@
                                         "grantExpireTime": "calculated at runtime",
                                         "id": "cbsd_0_grant_1",
                                         "operationParam": {
-                                                "maxEirp": 37,
+                                                "maxEirp": 37.0,
                                                 "operationFrequencyRange": {
-                                                        "highFrequency": 3630000000.0,
-                                                        "lowFrequency": 3620000000.0
+                                                        "highFrequency": 3630000000,
+                                                        "lowFrequency": 3620000000
                                                 }
                                         },
                                         "terminated": false
@@ -59,10 +59,10 @@
                                         "grantExpireTime": "calculated at runtime",
                                         "id": "cbsd_0_grant_2",
                                         "operationParam": {
-                                                "maxEirp": 37,
+                                                "maxEirp": 37.0,
                                                 "operationFrequencyRange": {
-                                                        "highFrequency": 3695000000.0,
-                                                        "lowFrequency": 3690000000.0
+                                                        "highFrequency": 3695000000,
+                                                        "lowFrequency": 3690000000
                                                 }
                                         },
                                         "terminated": false
