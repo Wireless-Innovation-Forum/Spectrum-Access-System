@@ -272,7 +272,7 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
 
   return fss_ant_gain
 
-def fssPurgeModel(sas_uut_fad, sas_test_harness_fads, fss_records):
+def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   """Entry point function to execute FSS purge list model.
 
   Performs FSS purge model as described in R2-SGN-29 on the FAD CBSD records of SAS UUT

@@ -57,7 +57,7 @@ class TestFssPurge(unittest.TestCase):
 
    for entity in protected_entities:
      if 'fssRecords' in entity:
-       fss_purge.fssPurgeModel(sas_uut_fad_object, sas_test_harness_fad_object, entity['fssRecords'])
+       fss_purge.fssPurgeReferenceModel(sas_uut_fad_object, sas_test_harness_fad_object, entity['fssRecords'])
 
    print "================CBSD Grants received as output======================"
    for records in sas_uut_fad_object.getCbsdRecords():
