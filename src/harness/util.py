@@ -431,14 +431,13 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
   """ Deep comparison of two PPAs considering
 
   Args:
-    first_ppa: a dictionary contains a reference of PPA data to compare to,
-               the points' order of the polygon of this PPA is used a reference.
-    second_ppa: a dictionary contains PPA data to be compared.
+    first_ppa: a dictionary contains  the firt PPA data.
+    second_ppa: a dictionary contains the second PPA data.
     delta: an accepted margin for comparing the polygons of PPAs
 
  Returns: boolean set to true if the PPAs are equal and false otherwise.
- Note: the PPA should contain only one GeoJson Feature, this feature should contain only one Polygon
-       and polygons with holes are accepted
+ Note: the PPA should contain a key 'zone' holding a GeoJSON feature collection with first feature
+     defining the PPA zone as a polygon (or multipolygon) geometry
   """
   geometry_of_first_ppa = first_ppa['zone']['features'][0]['geometry']
   geometry_of_second_ppa = second_ppa['zone']['features'][0]['geometry']

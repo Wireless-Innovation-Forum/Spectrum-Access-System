@@ -1,6 +1,6 @@
 import sas_testcase
 import unittest
-from util import compareDictWithUnorderedLists, isPolygonCCW
+from util import compareDictWithUnorderedLists
 #===============================================================================
 # this class unit tests AssertChannelsContainFrequencyRange method with different
 # possible combinations for simplifying the tests we use frequencies in MHz units 
