@@ -18,9 +18,6 @@ import time
 import unittest
 import sas
 import util
-from reference_models.geo import census_tract, utils
-from shapely import geometry, ops
-
 
 
 class SasTestCase(unittest.TestCase):
@@ -294,26 +291,3 @@ class SasTestCase(unittest.TestCase):
       time.sleep(10)
     signal.alarm(0)
     return dump_message
-
-  def assertPpaWithinServiceArea(self, pal_records, ppa_zone_geometry):
-    """ Check if the ppa zone geometry's boundary and interior intersect only
-      with the interior of the service area (not its boundary or exterior).
-
-    Args:
-      pal_records: A list of pal records to compute service area based on census_tracts.
-      ppa_zone_geometry: A PPA polygon dictionary in GeoJSON format.
-    """
-
-    census_tract_driver = census_tract.CensusTractDriver()
-
-    # Get the census tract for each pal record and convert it to Shapely geometry.
-    census_tracts_for_pal = [
-      utils.ToShapely(census_tract_driver.GetCensusTract(pal['license']['licenseAreaIdentifier'])
-                      ['features'][0]['geometry']) for pal in pal_records]
-    pal_service_area = ops.cascaded_union(census_tracts_for_pal)
-
-    # Convert GeoJSON dictionary to Shapely object.
-    ppa_zone_shapely_geometry = utils.ToShapely(ppa_zone_geometry)
-
-    self.assertTrue(ppa_zone_shapely_geometry.buffer(-1e-6).within(pal_service_area),
-                    "PPA Zone is not within service area")

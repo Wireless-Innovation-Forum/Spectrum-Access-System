@@ -492,15 +492,3 @@ class SasAdminInterface(object):
     """
     pass
 
-  @abc.abstractmethod
-  def assertPpaWithinServiceArea(self, pal_records, ppa_zone_geometry):
-    """ Assertion of ppa_zone is within service area.
-    Args:
-      pal_records: A list of pal records to compute service area based on census_tracts.
-      ppa_zone_geometry: A PPA  polygon dictionary in GeoJSON format.
-
-    Returns:
-      Nothing. It asserts if ppa zone geometry's boundary and interior intersect only
-    with the interior of the service area (not its boundary or exterior).
-    """
-    pass
