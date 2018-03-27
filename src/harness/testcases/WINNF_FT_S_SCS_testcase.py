@@ -15,7 +15,6 @@
 import json
 import logging
 import os
-import time
 import security_testcase
 import time
 from OpenSSL import SSL
@@ -260,12 +259,11 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SCS_16_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_16. """
-    # Create the configuration for client cert/key,wait timer information
+    # Create the configuration for client cert/key path.
 
     config = {
       'clientCert': self.getCertFilename("client.cert"),
-      'clientKey': self.getCertFilename("client.key"),
-      'waitTimer': 60
+      'clientKey': self.getCertFilename("client.key")
     }
     writeConfig(filename, config)
 
@@ -278,16 +276,11 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Read the configuration
     config = loadConfig(config_filename)
 
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the CRL server " % config['waitTimer'])
-
-    # Wait for the timer
-    time.sleep(config['waitTimer'])
-
     # Tls handshake fails since CA is revoked
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
     logging.info("TLS handshake failed as the CA certificate has been revoked")
+	
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_17(self):

@@ -2,13 +2,27 @@
 
 mkdir -p crl
 
-function blacklist_certificate()
+function revoke_certificate()
 {
-  #Argument1: Name of the certificate to be  blacklisted.
-  #Argument2: Intermediate CA to generate CRL.
+  #Argument1: Name of the certificate to be revoked.
 
+  #Fetch the Common Name to find out the issuer
+  CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
+
+  if [ "$CN" == "WInnForum RSA CBSD CA-1" ]; then
+      CA=cbsd_ca
+  elif [ "$CN" == "WInnForum RSA Domain Proxy CA" ]; then
+      CA=proxy_ca
+  elif [ "$CN" == "WInnForum RSA SAS CA-1" ]; then
+      CA=sas_ca
+  elif [ "$CN" == "WInnForum RSA Root CA-1" ]; then
+      CA=root_ca
+  else
+      echo "Unknown issuer CN=$CN for certificate $1"
+      exit -1
+   fi
   # Revoke certificate.
-  openssl ca -revoke $1 -keyfile private/$2.key -cert $2.cert \
+  openssl ca -revoke $1 -keyfile private/$CA.key -cert $CA.cert \
       -config ../../../cert/openssl.cnf
   generate_crl_chain
 }
@@ -38,17 +52,12 @@ function generate_crl_chain()
   #Create CA certificate chain containing the CRLs of revoked leaf certificates.
   cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca.crl
 }
-
-#Argument1 : Type (CBSD,DP,SAS,-u)
-if [ "$1" == "CBSD" ]; then
-  blacklist_certificate  $2 cbsd_ca
-elif [ "$1" == "DP" ]; then
-  blacklist_certificate  $2 proxy_ca
-elif [ "$1" == "SAS" ]; then
-  blacklist_certificate  $2 sas_ca
+#Argument1 : Type (-r,-u)
+if [ "$1" == "-r" ]; then
+  revoke_certificate  $2
 elif [ "$1" == "-u" ]; then
   generate_crl_chain
 else
-  echo "Wrong option other than (CBSD,DP,SAS,-u)"
+  echo "Wrong option other than (-r, -u)"
   exit -1
 fi
