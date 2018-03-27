@@ -35,7 +35,6 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
 import numpy as np
 from reference_models.geo import utils
-import shapely.geometry 
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -433,7 +432,7 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
 
   Args:
     first_ppa: a dictionary contains a reference of PPA data to compare to,
-               the points' order of the ploygon of this PPA is used a reference.
+               the points' order of the polygon of this PPA is used a reference.
     second_ppa: a dictionary contains PPA data to be compared.
     delta: an accepted margin for comparing the polygons of PPAs
 
@@ -446,8 +445,7 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
 
   if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
     return False
-  if first_ppa['zone']['features'][0]['geometry']['type'] \
-    != second_ppa['zone']['features'][0]['geometry']['type']:
+  if geometry_of_first_ppa['type'] != geometry_of_second_ppa['type']:
     return False
   # check other Ppa parameters
   del first_ppa['zone']['features'][0]['geometry']
