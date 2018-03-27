@@ -303,7 +303,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
-  def TriggerLoadDpas(self): 
+  def TriggerLoadDpas(self):  
     pass
 
   def TriggerBulkDpaActivation(self, request):
@@ -317,6 +317,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
   def InjectDatabaseUrl(self, request):
     pass
+
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
