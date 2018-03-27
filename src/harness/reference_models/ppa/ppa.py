@@ -144,9 +144,8 @@ def PpaCreationModel(devices, pal_records):
 
   if ppa_polygon.is_empty:
     raise Exception("Empty Polygon is generated, please check the inputs.")
-  if ppa_polygon.geom_type == "MultiPolygon":
-    raise Exception("Multi Polygon is not supported, please check the inputs.")
 
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
+  
   # Convert Shapely Object to GeoJSON geometry string
   return utils.ToGeoJson(ppa_without_small_holes)

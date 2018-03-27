@@ -307,14 +307,13 @@ class SasTestCase(unittest.TestCase):
     census_tract_driver = census_tract.CensusTractDriver()
 
     # Get the census tract for each pal record and convert it to Shapely geometry.
-    census_tracts_for_pal = [geometry.shape(census_tract_driver.GetCensusTract(pal['license']
-                                                                               ['licenseAreaIdentifier'])
-                                            ['features'][0]['geometry']).buffer(0) for pal in pal_records]
+    census_tracts_for_pal = [
+      utils.ToShapely(census_tract_driver.GetCensusTract(pal['license']['licenseAreaIdentifier'])
+                      ['features'][0]['geometry']) for pal in pal_records]
     pal_service_area = ops.cascaded_union(census_tracts_for_pal)
 
     # Convert GeoJSON dictionary to Shapely object.
-  
-    ppa_zone_shapely_geometry = utils.GeoJsonToShapelyGeometry(ppa_zone_geometry)
+    ppa_zone_shapely_geometry = utils.ToShapely(ppa_zone_geometry)
 
-    self.assertTrue(ppa_zone_shapely_geometry.within(pal_service_area), "PPA Zone is not "
-                                                                           "within service area")
+    self.assertTrue(ppa_zone_shapely_geometry.buffer(-1e-6).within(pal_service_area),
+                    "PPA Zone is not within service area")
