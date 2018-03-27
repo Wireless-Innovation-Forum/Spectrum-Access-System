@@ -176,7 +176,7 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
       one year after the current date
     Returns:
       A list containing individual PAL records in the form of dictionary
-    Note: The PAL Dictionary must contain censusYear(number) and 
+    Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1) \
@@ -230,9 +230,9 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
 
     Returns:
-      A tuple containing PPA record which itself is a dictionary and PAL records 
+      A tuple containing PPA record which itself is a dictionary and PAL records
       list which contains individual PAL records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear(number) and 
+    Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1)
@@ -408,3 +408,14 @@ def filterChannelsByFrequencyRange(channels, freq_range):
       and
       channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
   ]
+
+class TestComponentError(Exception):
+  """Indicates a test component failed due to no fault of the SAS UUT.
+
+  Some test components are theoretically capable of failing through no fault of
+  the SAS UUT. If a failure happens that is clearly not the fault of the SAS UUT
+  this exception may be raised to indicate the test result is invalid and the
+  test should be rerun. Please indicate the component that failed in the
+  message to help with analysis of repeated failures.
+  """
+  pass
