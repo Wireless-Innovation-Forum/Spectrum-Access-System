@@ -1,26 +1,28 @@
 {
-  "id": "incumbent/ibfs/0",
-  "type": "FSS",
-  "deploymentParam": 
-  [
-    {
-      "installationParam": {
-        "latitude": 39.2291,
-        "longitude":  -100.1,
-        "height": 7.6,
-        "heightType": "AGL",
-        "antennaGain": 16,
-        "antennaBeamwidth": 30,
-        "antennaAzimuth": 270,
-        "antennaDowntilt": -90
-      },
-      "operationParam": {
-        "operationFrequencyRange": {
-          "lowFrequency": 3650000000,
-          "highFrequency": 4200000000
+  "IncumbentProtectionData": {
+    "id": "incumbent/ibfs/0",
+    "type": "FSS",
+    "deploymentParam": 
+    [
+      {
+        "installationParam": {
+          "latitude": 39.2291,
+          "longitude":  -100.1,
+          "height": 7.6,
+          "heightType": "AGL",
+          "antennaGain": 16,
+          "antennaBeamwidth": 30,
+          "antennaAzimuth": 270,
+          "antennaDowntilt": -90
+        },
+        "operationParam": {
+          "operationFrequencyRange": {
+            "lowFrequency": 3650000000,
+            "highFrequency": 4200000000
+          }
         }
       }
-    }
-  ],
+    ]
+  },
   "ttc": true
 }
