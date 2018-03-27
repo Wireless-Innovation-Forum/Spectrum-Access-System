@@ -170,5 +170,5 @@ def PpaCreationModel(devices, pal_records):
     raise Exception("Multi Polygon is not supported, please check the inputs.")
 
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
-  # Convert Shapely Object to GeoJSON Dictionary
-  return json.dumps(geometry.mapping(ppa_without_small_holes))
+  # Convert Shapely Object to GeoJSON geometry string
+  return utils.ToGeoJson(ppa_without_small_holes)

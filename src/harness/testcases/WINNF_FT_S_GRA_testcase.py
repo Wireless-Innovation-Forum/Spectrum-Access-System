@@ -100,9 +100,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     zone_id = self._sas_admin.InjectZoneData({'record': ppa_record})
     self.assertTrue(zone_id)
     # Trigger SAS to active one DPA on channel c
-    self._sas_admin.TriggerDpaActivation(\
-        {'frequencyRange': {'lowFrequency': pal_low_frequency, \
-                           'highFrequency': pal_high_frequency}, 'dpaId': 'east_dpa4'})
+    self._sas_admin.TriggerDpaActivation(
+        {'frequencyRange': {'lowFrequency': pal_low_frequency,
+                            'highFrequency': pal_high_frequency},
+         'dpaId': 'east_dpa_4'})
     # wait for DPA activation
     time.sleep(240)
     # Send grant request
@@ -1248,7 +1249,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
     }
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = [conditionals_b]
     del device_b['installationParam']
     del device_b['cbsdCategory']
     del device_b['airInterface']
@@ -1379,37 +1380,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertTrue('ppaRecord' in ppa)
         self.assertTrue('ppaClusterList' in ppa)
 
-    # Whitelist FCC IDs.
-    for device in config['registrationRequests']:
-      self._sas_admin.InjectFccId({
-          'fccId': device['fccId'],
-          'fccMaxEirp': 47
-      })
-
-    # Whitelist user IDs.
-    for device in config['registrationRequests']:
-      self._sas_admin.InjectUserId({'userId': device['userId']})
-
-    # Pre-load conditional registration data for N3 CBSDs.
-    if ('conditionalRegistrationData' in config) and (
-            config['conditionalRegistrationData']):
-      self._sas_admin.PreloadRegistrationData(
-          config['conditionalRegistrationData'])
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
 
     # Inject PAL database record
     if ('palRecords' in config) and (config['palRecords']):
       for pal_record in config['palRecords']:
         self._sas_admin.InjectPalDatabaseRecord(pal_record)
-
-    # Register devices
-    request = {'registrationRequest': config['registrationRequests']}
-    response = self._sas.Registration(request)['registrationResponse']
-    # Check registration response
-    cbsd_ids = []
-    for resp in response:
-      self.assertEqual(resp['response']['responseCode'], 0)
-      cbsd_ids.append(resp['cbsdId'])
-    del request, response
 
     # Update PPA records with devices' CBSD ID and Inject zone data
     if ('ppas' in config) and (config['ppas']):
