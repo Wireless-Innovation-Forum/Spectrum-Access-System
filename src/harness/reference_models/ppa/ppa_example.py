@@ -46,4 +46,4 @@ pal_records = util.makePalRecordsConsistent(pal_records, pal_low_frequency,
                                                   pal_high_frequency, user_id)
 
 ppa = ppa.PpaCreationModel(devices, pal_records)
-print ppa.geojson
+print ppa

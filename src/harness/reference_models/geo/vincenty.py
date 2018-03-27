@@ -281,7 +281,6 @@ def GeodesicPoints(lat, lon, distances_km, bearing, accuracy=1.0E-12):
     idxs = np.where(np.abs(sigma - lastsigma) > accuracy)[0]
     if not len(idxs):
       break
-
   cos_sigma = np.cos(sigma)
   sin_sigma = np.sin(sigma)
   cos_twosigmam = np.cos(twosigmam)

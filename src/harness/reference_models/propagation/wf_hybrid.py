@@ -106,27 +106,33 @@ def GetEHataStandardDeviation(freq_mhz, is_urban):
   Returns:
     the offset in dB to apply to the median
   """
-  std = (_ALPHA_U + _BETA_U * math.log10(freq_mhz)
-         + _GAMMA_U * math.log10(freq_mhz)**2)
-  if not is_urban:
-    std += 2
-  return std
+  return 8.4 if is_urban else 10.4
+  # Exact formula is:
+  # std = (_ALPHA_U + _BETA_U * math.log10(freq_mhz)
+  #       + _GAMMA_U * math.log10(freq_mhz)**2)
+  # if not is_urban:
+  #  std += 2
+  # return std
 
 
 # Offset from median to mean dB
 def _GetMedianToMeanOffsetDb(freq_mhz, is_urban):
-  """Gets the Offset from median to mean for lognormal distribution.
+  """Gets the Offset from median to mean for inverse lognormal distribution.
+
+  Note that the offset is computed in order to have
+    (median_pathloss + offset) being 1/<1/L>, ie the pathloss corresponding to
+  the mean signal level. This explains the minus applied to the offset.
 
   Inputs:
     freq_mhz:  the frequency in MHz. Used to compute the eHata stdev.
     is_urban:  if False, an extra 2dB is added to the stdev
 
   Returns:
-    the offset in dB to apply to the median
+    the offset in dB to apply to the median pathloss.
   """
   std = GetEHataStandardDeviation(freq_mhz, is_urban)
   offset = std**2 * math.log(10.) / 20.
-  return offset
+  return -offset
 
 
 # Defined namedtuple for nice output packing
@@ -193,11 +199,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   Raises:
     Exception if input parameters invalid or out of range.
   """
-  # TODO: Apply quantile in eHata prediction for values not equal to 0.5.
-  #       Not critical since the expected use is only for mean value (ie reliability=-1)
-  #       which is properly managed. For now raise an exception if reliability value
-  #       different of -1 or 0.5
-
   # Sanity checks on input parameters
   if height_cbsd < 1 or height_rx < 1:
     raise Exception('End-point height less than 1m.')
@@ -207,10 +208,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     raise Exception('Frequency outside range [40MHz - 10GHz].')
   if region not in ['RURAL', 'URBAN', 'SUBURBAN']:
     raise Exception('Region %s not allowed' % region)
-
-  if reliability != -1 and reliability != 0.5:
-    logging.warning('E-Hata submodel only computes the median.'
-                    'Use GetEhataStdDev() to obtain quantile in case opcode is 4 or 5.')
+  if reliability not in (-1, 0.5):
+    raise Exception('Hybrid model only computes the median or the mean.')
 
   # Get the terrain profile, using Vincenty great circle route, and WF
   # standard (bilinear interp; 1501 pts for all distances over 45 km)
@@ -250,10 +249,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     return _BuildOutput(db_loss_itm, incidence_angles, internals,
                         HybridMode.ITM_RURAL, cbsd_indoor)
 
-  # The eHata offset to apply (in case the mean is requested)
-  offset_median_to_mean = 0.
-  if reliability == -1:
-    offset_median_to_mean = _GetMedianToMeanOffsetDb(freq_mhz, region == 'URBAN')
+  # The eHata offset to apply (only in case the mean is requested)
+  offset_median_to_mean = _GetMedianToMeanOffsetDb(freq_mhz, region == 'URBAN')
 
   # Now process the different cases
   dist_km = internals['dist_km']
@@ -273,7 +270,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     # TODO: validate the following approach with WinnForum participants:
     # Weight the offset as well from 0 (100m) to 1.0 (1km).
-    db_loss += alpha * offset_median_to_mean
+    if reliability == -1:
+      db_loss += alpha * offset_median_to_mean
     return _BuildOutput(db_loss, incidence_angles, internals,
                         HybridMode.EHATA_FSL_INTERP, cbsd_indoor)
 
@@ -281,8 +279,10 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
                                         region_code)
     if reliability == 0.5:
+      ehata_loss = ehata_loss_med
       itm_loss_med = db_loss_itm
     else:
+      ehata_loss = ehata_loss_med + offset_median_to_mean
       itm_loss_med = wf_itm.CalcItmPropagationLoss(
           lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
           False, 0.5, freq_mhz, its_elev).db_loss
@@ -291,7 +291,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
       return _BuildOutput(db_loss_itm, incidence_angles, internals,
                           HybridMode.ITM_DOMINANT, cbsd_indoor)
     else:
-      ehata_loss = ehata_loss_med + offset_median_to_mean
       return _BuildOutput(ehata_loss, incidence_angles, internals,
                           HybridMode.EHATA_DOMINANT, cbsd_indoor)
 

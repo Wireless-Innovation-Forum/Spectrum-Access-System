@@ -12,11 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import multiprocessing
-from collections import namedtuple
-import geojson
 import logging
 import multiprocessing
+from collections import namedtuple
+
 import numpy as np
 from concurrent import futures
 from reference_models.antenna import antenna
@@ -24,7 +23,7 @@ from reference_models.geo import census_tract, vincenty, nlcd
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
 from shapely import geometry, ops
-
+import json
 import util
 
 THRESHOLD_PER_10MHZ = -96
@@ -33,8 +32,6 @@ MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A = 30.
 MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B = 47.
 census_tract_driver = census_tract.CensusTractDriver()
 nlcd_driver = nlcd.NlcdDriver()
-
-_PpaPolygon = namedtuple('_PpaPolygon', ['geojson', 'shapely'])
 
 
 def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, antenna_gain,
@@ -119,17 +116,6 @@ def _ClipPpaByCensusTract(contour_union, pal_records):
   return contour_union.intersection(census_tracts_union)
 
 
-def _ConvertToGeoJson(ppa_polygon):
-  """Converts a shapely Polygon or MultiPolygon into a GeoJSON feature collection"""
-  if ppa_polygon.type == 'MultiPolygon':
-    ppa_geojson = geojson.FeatureCollection(
-      [geojson.Feature(geometry=[polygon for polygon in ppa_polygon])])
-  else:
-    ppa_geojson = geojson.FeatureCollection(
-      [geojson.Feature(geometry=ppa_polygon)])
-  return ppa_geojson
-
-
 def ConfigureCensusTractDriver(census_tract_dir=None):
   """Configure the Census Tract driver.
 
@@ -161,7 +147,7 @@ def PpaCreationModel(devices, pal_records):
     devices: (List) A list containing device information.
     pal_records: (List) A list containing pal records.
   Returns:
-    A Named Tuple of PPA Polygon in shapely and geojson format
+    A PPA Polygon Dictionary in GeoJSON format
   """
   # Validation for Inputs
   for device in devices:
@@ -177,6 +163,12 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
+
+  if ppa_polygon.is_empty:
+    raise Exception("Empty Polygon is generated, please check the inputs.")
+  if ppa_polygon.geom_type == "MultiPolygon":
+    raise Exception("Multi Polygon is not supported, please check the inputs.")
+
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
-  return _PpaPolygon(geojson=_ConvertToGeoJson(ppa_without_small_holes),
-                     shapely=ppa_without_small_holes)
+  # Convert Shapely Object to GeoJSON geometry string
+  return utils.ToGeoJson(ppa_without_small_holes)
