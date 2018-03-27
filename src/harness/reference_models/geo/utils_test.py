@@ -16,7 +16,7 @@
 import numpy as np
 import os
 import unittest
-import geojson
+import json
 import shapely.geometry as sgeo
 from shapely import ops
 
@@ -46,7 +46,7 @@ class TestUtils(unittest.TestCase):
     # The real Missouri area is 180530 km2. Make sure we are within 0.25%
     official_area = 180530
     with open(os.path.join(TEST_DIR, 'missouri.json'), 'r') as fd:
-      missouri = geojson.load(fd)
+      missouri = json.load(fd)
     poly = sgeo.Polygon(missouri['geometries'][0]['coordinates'][0][0])
     area = utils.GeometryArea(poly)
     self.assertTrue(np.abs(area - official_area) < 0.0025 * official_area)
@@ -54,14 +54,14 @@ class TestUtils(unittest.TestCase):
   def test_area_geojson_missouri(self):
     official_area = 180530
     with open(os.path.join(TEST_DIR, 'missouri.json'), 'r') as fd:
-      missouri = geojson.load(fd)
+      missouri = json.load(fd)
     area = utils.GeometryArea(missouri)
     self.assertTrue(np.abs(area - official_area) < 0.0025 * official_area)
 
   def test_area_geojson_ppa(self):
     expected_area = 130.98
     with open(os.path.join(TEST_DIR, 'ppa_record_0.json'), 'r') as fd:
-      ppa = geojson.load(fd)
+      ppa = json.load(fd)
     area = utils.GeometryArea(ppa['zone']['features'][0]['geometry'])
     self.assertAlmostEqual(area, expected_area, 2)
 
@@ -69,7 +69,7 @@ class TestUtils(unittest.TestCase):
     expected_area = 3535
     expected_real_area = expected_area * 2/3.
     with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
-      multigeo = geojson.load(fd)
+      multigeo = json.load(fd)
     area = utils.GeometryArea(multigeo)
     self.assertAlmostEqual(area, expected_area, 0)
     area = utils.GeometryArea(multigeo, merge_geometries=True)
@@ -130,9 +130,9 @@ class TestUtils(unittest.TestCase):
 
   def test_grid_complex(self):
     with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
-      json_geo = geojson.load(fd)
+      json_geo = json.load(fd)
 
-    shape_geo = utils.GeoJsonToShapelyGeometry(json_geo)
+    shape_geo = utils.ToShapely(json_geo)
     exp_pts = {(-95, 40), (-95.5, 40.5), (-95.5, 40),
                (-96, 40), (-96.5, 40.5), (-96.5, 40)}
     pts = utils.GridPolygon(json_geo, res_arcsec=1800)
@@ -160,19 +160,88 @@ class TestUtils(unittest.TestCase):
     self.assertTrue(utils.PolygonsAlmostEqual(poly_ref, poly, 15))
 
   def test_polygon_correct_geojson_winding(self):
-
-    poly_with_hole = {'type': 'Polygon','coordinates': [[[-97.23,38.86],[-97.31,38.76],[-97.16,38.73],[-97.16,38.86],[-97.23,38.86]],
-                                                        [[-97.21,38.82],[-97.18,38.81],[-97.19,38.78],[-97.22,38.78],[-97.21,38.82]]]}
-    self.assertTrue(utils.hasPolygonCorrectGeoJsonWinding(poly_with_hole))
+    poly_with_hole = {'type': 'Polygon',
+                      'coordinates': [
+                          [[-97.23, 38.86], [-97.31, 38.76], [-97.16, 38.73],
+                           [-97.16, 38.86], [-97.23, 38.86]],
+                          [[-97.21, 38.82], [-97.18, 38.81], [-97.19, 38.78],
+                           [-97.22, 38.78], [-97.21, 38.82]]]}
+    self.assertTrue(utils.HasCorrectGeoJsonWinding(poly_with_hole))
 
     poly_with_hole['coordinates'][0] = list(reversed(poly_with_hole['coordinates'][0]))
-    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly_with_hole))
+    self.assertFalse(utils.HasCorrectGeoJsonWinding(poly_with_hole))
 
     poly_with_hole['coordinates'][1] = list(reversed(poly_with_hole['coordinates'][1]))
-    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly_with_hole))
+    self.assertFalse(utils.HasCorrectGeoJsonWinding(poly_with_hole))
 
     poly_with_hole['coordinates'][0] = list(reversed(poly_with_hole['coordinates'][0]))
-    self.assertFalse(utils.hasPolygonCorrectGeoJsonWinding(poly_with_hole))
+    self.assertFalse(utils.HasCorrectGeoJsonWinding(poly_with_hole))
+
+  def test_json_polygon_corrected_winding(self):
+    poly_with_hole = {'type': 'Polygon',
+                      'coordinates': [
+                          [[-97.23, 38.86], [-97.31, 38.76], [-97.16, 38.73],
+                           [-97.16, 38.86], [-97.23, 38.86]],
+                          [[-97.21, 38.82], [-97.18, 38.81], [-97.19, 38.78],
+                           [-97.22, 38.78], [-97.21, 38.82]]]}
+    poly_with_hole['coordinates'][0].reverse()
+    poly_with_hole['coordinates'][1].reverse()
+
+    corr_poly = utils.InsureGeoJsonWinding(poly_with_hole)
+    self.assertDictEqual(corr_poly, poly_with_hole)
+
+    poly_str = json.dumps(poly_with_hole)
+    corr_poly = utils.InsureGeoJsonWinding(poly_str)
+    self.assertIsInstance(corr_poly, str)
+    self.assertDictEqual(json.loads(corr_poly), poly_with_hole)
+
+  def test_json_multicollection_correct_winding(self):
+    with open(os.path.join(TEST_DIR, 'test_geocollection.json'), 'r') as fd:
+      json_geo = json.load(fd)
+    json_geo['geometries'][0]['coordinates'][0].reverse()
+    json_geo['geometries'][1]['coordinates'][0].reverse()
+
+    self.assertFalse(utils.HasCorrectGeoJsonWinding(json_geo))
+    corr_poly = utils.InsureGeoJsonWinding(json_geo)
+    self.assertTrue(utils.HasCorrectGeoJsonWinding(json_geo))
+
+  def test_togeojson_with_correct_winding(self):
+    loop = [[-95.0, 40.0], [-95.5, 40.5], [-95.5, 40.0], [-95.0, 40.0]]
+    hole = [[-95.2, 40.2], [-95.3, 40.3], [-95.3, 40.2], [-95.2, 40.2]]
+    poly = sgeo.Polygon(loop, [hole])
+
+    json_poly = json.loads(utils.ToGeoJson(poly))
+    self.assertIn('type', json_poly)
+    self.assertEqual(json_poly['type'], 'Polygon')
+    self.assertIn('coordinates', json_poly)
+    self.assertTrue(json_poly['coordinates'] == [loop, list(reversed(hole))])
+
+  def test_togeojson_with_multi_polygon(self):
+    loop1 = [[-95.0, 40.0], [-95.5, 40.5], [-95.5, 40.0], [-95.0, 40.0]]
+    loop2 = [[-95.2, 40.2], [-95.3, 40.2], [-95.3, 40.3], [-95.2, 40.2]]
+    mpoly = sgeo.MultiPolygon([sgeo.Polygon(loop1), sgeo.Polygon(loop2)])
+
+    json_poly = json.loads(utils.ToGeoJson(mpoly))
+    self.assertIn('type', json_poly)
+    self.assertEqual(json_poly['type'], 'MultiPolygon')
+    self.assertIn('coordinates', json_poly)
+    self.assertTrue(json_poly['coordinates'] == [[loop1], [list(reversed(loop2))]])
+
+  def test_toshapely(self):
+    poly = sgeo.Point(0, 0).buffer(1)
+    poly_json = utils.ToGeoJson(poly)
+
+    # Test for a generic geometry object.
+    poly2 = utils.ToShapely(poly)
+    self.assertEqual(poly2.difference(poly).area, 0)
+    self.assertEqual(poly.difference(poly2).area, 0)
+
+    # Test for a string geojson.
+    poly2 = utils.ToShapely(poly_json)
+    self.assertEqual(poly2.difference(poly).area, 0)
+    self.assertEqual(poly.difference(poly2).area, 0)
+
+
 
 if __name__ == '__main__':
   unittest.main()

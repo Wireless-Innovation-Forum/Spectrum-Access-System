@@ -78,12 +78,10 @@ class SasTestCase(unittest.TestCase):
       registration_request:  A dictionary with a single key-value pair where
         the key is "registrationRequest" and the value is a list of individual
         CBSD registration requests (each of which is itself a dictionary).
-      conditional_registration_data: A dictionary with a single key-value pair
-        where the key is "registrationData" and the value is a list of
-        individual CBSD registration data which need to be preloaded into SAS
-        (each of which is itself a dictionary). The dictionary is a
-        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
-        required, other fields are optional.
+      conditional_registration_data: A list of individual CBSD registration
+        data that need to be preloaded into SAS (each of which is a dictionary).
+        The dictionary is a RegistrationRequest object, the fccId and
+        cbsdSerialNumber fields are required, other fields are optional.
 
     Returns:
       A list of cbsd_ids.
@@ -93,7 +91,9 @@ class SasTestCase(unittest.TestCase):
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
     if conditional_registration_data:
-      self._sas_admin.PreloadRegistrationData(conditional_registration_data)
+      self._sas_admin.PreloadRegistrationData({
+          'registrationData': conditional_registration_data
+      })
 
     # Pass the correct client cert and key in Registration request
     ssl_cert = self._sas._tls_config.client_cert
@@ -126,12 +126,10 @@ class SasTestCase(unittest.TestCase):
       grant_request: A dictionary with a single key-value pair where the key is
         "grantRequest" and the value is a list of individual CBSD
         grant requests (each of which is itself a dictionary).
-      conditional_registration_data: A dictionary with a single key-value pair
-        where the key is "registrationData" and the value is a list of
-        individual CBSD registration data which need to be preloaded into SAS
-        (each of which is itself a dictionary). The dictionary is a
-        RegistrationRequest object, the fccId and cbsdSerialNumber fields are
-        required, other fields are optional.
+      conditional_registration_data: A list of individual CBSD registration
+        data that need to be preloaded into SAS (each of which is a dictionary).
+        The dictionary is a RegistrationRequest object, the fccId and
+        cbsdSerialNumber fields are required, other fields are optional.
 
     Returns:
       A tuple containing list of cbsdIds and grantIds.

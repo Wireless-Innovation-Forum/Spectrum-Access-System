@@ -286,6 +286,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
 
+  def QueryPropagationAndAntennaModel(self, request):
+    from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
+    return computePropagationAntennaModel(request)
+	
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
   def TriggerLoadDpas(self):
@@ -336,8 +340,13 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path == '/admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
-    elif self.path in ('/admin/reset',
-                       '/admin/injectdata/fcc_id',
+    elif self.path == '/admin/query/propagation_and_antenna_model':
+      try:
+	    response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+      except ValueError:
+	    self.send_response(400)
+      return 	  
+    elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
                        '/admin/injectdata/blacklist_fcc_id',
@@ -389,12 +398,11 @@ def RunFakeServer(version, is_ecc):
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-
   server.socket = ssl.wrap_socket(
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT ,
+      ca_certs=CA_CERT,
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
@@ -413,5 +421,4 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
   RunFakeServer(version, args.ecc)
-
 

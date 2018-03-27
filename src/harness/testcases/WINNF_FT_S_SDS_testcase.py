@@ -11,12 +11,15 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import os
 import json
-
+import logging
 import security_testcase
+import os
+import time
 from OpenSSL import SSL
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
+from util import winnforum_testcase, configurable_testcase, \
+  writeConfig, loadConfig
+
 
 DOMAIN_PROXY_CERT = os.path.join('certs', 'domain_proxy.cert')
 DOMAIN_PROXY_KEY = os.path.join('certs', 'domain_proxy.key')
@@ -264,3 +267,143 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
 
+  @winnforum_testcase
+  def test_WINNF_FT_S_SDS_17(self):
+    """Invalid certificate following an approved registration request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_domain_proxy"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate DP CA.
+    self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
+
+    # Get the absolute path of short lived certificate.
+    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+                                   domain_proxy_cert, domain_proxy_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file.
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Send Registration request with short lived certificates to SAS UUT.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
+      self.assertRegistered([device_a])
+
+    logging.info("CBSD device is in registered state")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    logging.info("TLS handshake failed as the domain proxy certificate is invalid")
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SDS_18(self):
+    """Invalid certificate following an approved grant request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_domain_proxy"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate DP CA.
+    self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
+
+    # Get the absoulte path of short lived certificate.
+    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], domain_proxy_cert,
+                                   domain_proxy_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load the grant_0 file
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Device is registered with short live certificate and ensure that response is successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+
+    logging.info("CBSD device is in Granted State")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    logging.info("TLS handshake failed as the domain proxy certificate is invalid")
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SDS_19(self):
+    """Invalid certificate following an approved heartbeat request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_domain_proxy"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate DP CA.
+    self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
+
+    # Get the absolute path of short lived certificate created.
+    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],domain_proxy_cert,
+                                   domain_proxy_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file.
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load the grant_0 file.
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           domain_proxy_cert, domain_proxy_key):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+      operation_states = ['GRANTED']
+      logging.info("CBSD is in Registered & Granted State")
+
+      # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
+      transmit_expire_times = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids,
+                                                              operation_states)
+    logging.info("CBSD is in HeartBeat Successful State")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    logging.info("TLS handshake failed as the domain proxy certificate is invalid")
