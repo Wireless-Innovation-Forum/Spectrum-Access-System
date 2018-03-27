@@ -22,8 +22,8 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
 		          |       wrong_type_client|client_expired           corrupted_domain_proxy|
                    corrupted_sas|  client_inapplicable|                    wrong_type_domain_proxy|
                    sas_expired|    blacklisted_client                      domain_proxy_expired|
-                   blacklisted_client                                   domain_proxy_inapplicable|
-                                                                        blacklisted_client
+                   blacklisted_sas                                       domain_proxy_inapplicable|
+                                                                         blacklisted_domain_proxy
 
  
 unrecognized_ca             non_cbrs_root_ca----------------------------------------------
@@ -104,8 +104,8 @@ Required certificates are:
 * `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.
   
-* `blacklisted_client.[cert|key]`: leaf CBSD device certificate is blacklisted 
-  Used on security test test_WINNF_FT_S_SCS_11, test_WINNF_FT_S_SDS_11 and test_WINNF_FT_S_SSS_11..
+* `blacklisted_client.[cert|key]`: A leaf CBSD device certificate that is blacklisted using CRL. 
+  Used on security test test_WINNF_FT_S_SCS_11.
   
 * `client_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.
@@ -118,6 +118,9 @@ Required certificates are:
 
 * `wrong_type_domain_proxy.cert`: domain_proxy certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SDS_10.
+  
+* `blacklisted_domain_proxy.[cert|key]`: A leaf domain proxy certificate that is blacklisted using CRL. 
+  Used on security test test_WINNF_FT_S_SDS_11.
   
 * `domain_proxy_expired.[cert|key]`: domain_proxy device expired certificate
   Used on security test test_WINNF_FT_S_SDS_12.
@@ -142,6 +145,9 @@ Required certificates are:
 * `non_cbrs_signed_sas.[cert|key]`: leaf SAS certificate signed by
   `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SSS_9.
+  
+* `blacklisted_sas.[cert|key]`: A leaf SAS certificate that is blacklisted using CRL.
+  Used on security test test_WINNF_FT_S_SSS_11.
 
 * `sas_expired.[cert|key]`: leaf SAS expired certificate
   Used on security test test_WINNF_FT_S_SSS_12.

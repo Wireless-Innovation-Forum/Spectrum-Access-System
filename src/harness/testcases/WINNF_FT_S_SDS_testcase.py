@@ -197,12 +197,11 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SDS_11_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_11. """
-    # Create the configuration for blacklisted sas cert/key,wait timer information
+    # Create the configuration for blacklisted domain proxy cert/key path
 
     config = {
       'domainProxyCert': self.getCertFilename("blacklisted_domain_proxy.cert"),
-      'domainProxyKey': self.getCertFilename("blacklisted_domain_proxy.key"),
-      'waitTimer': 60
+      'domainProxyKey': self.getCertFilename("blacklisted_domain_proxy.key")
     }
     writeConfig(filename, config)
 
@@ -214,12 +213,6 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Read the configuration
     config = loadConfig(config_filename)
-
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the CRL server " % config['waitTimer'])
-
-    # Wait for the timer
-    time.sleep(config['waitTimer'])
 
     # Tls handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
@@ -236,7 +229,6 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
         'domainProxyKey': self.getCertFilename("domain_proxy_expired.key")
     }
     writeConfig(filename, config)
-
 
   @configurable_testcase(generate_SDS_12_default_config)
   def test_WINNF_FT_S_SDS_12(self,config_filename):

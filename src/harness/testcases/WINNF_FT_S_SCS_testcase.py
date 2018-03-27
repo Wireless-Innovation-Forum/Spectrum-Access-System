@@ -187,29 +187,22 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SCS_11_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_11. """
-    # Create the configuration for blacklisted client cert/key,wait timer information
+    # Create the configuration for blacklisted client cert/key path
 
     config = {
       'clientCert': self.getCertFilename("blacklisted_client.cert"),
-      'clientKey': self.getCertFilename("blacklisted_client.key"),
-      'waitTimer': 60
+      'clientKey': self.getCertFilename("blacklisted_client.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SCS_11_default_config)
   def test_WINNF_FT_S_SCS_11(self, config_filename):
-    """Blacklisted certificate presented during registration..
+    """Blacklisted certificate presented during registration.
        Checks that SAS UUT response with fatal alert message.
     """
 
     # Read the configuration
     config = loadConfig(config_filename)
-
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the CRL server " % config['waitTimer'])
-
-    # Wait for the timer
-    time.sleep(config['waitTimer'])
 
     # Tls handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'],

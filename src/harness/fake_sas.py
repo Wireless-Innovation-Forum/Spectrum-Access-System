@@ -413,10 +413,9 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
-  server = HTTPServer(('localhost', PORT), FakeSasHandler)
-
   if ca_cert is not None:
-    assert os.path.exists(os.path.join('certs', ca_cert)), "%s is not exist in certs path" % ca_cert
+    assert os.path.exists(os.path.join('certs',ca_cert)), "%s is not exist in certs path" % ca_cert
+  server = HTTPServer(('localhost', PORT), FakeSasHandler)
 
   if verify_crl:
     # If verify CRL flag is set then load the ca chain with CRLs and verify that
@@ -424,11 +423,11 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.options &= ssl.CERT_REQUIRED
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
-    ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
+    ssl_context.load_verify_locations(cafile=os.path.join('certs',ca_cert))
     ssl_context.load_cert_chain(
-      certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
-    )
+                               certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+                               keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
+                                )
     ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
     ssl_context.verify_mode = ssl.CERT_REQUIRED
     server.socket = ssl_context.wrap_socket(server.socket,
@@ -438,7 +437,8 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
+      ca_certs=CA_CERT if not ca_cert else os.path.join('certs',ca_cert),
+
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
       ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),

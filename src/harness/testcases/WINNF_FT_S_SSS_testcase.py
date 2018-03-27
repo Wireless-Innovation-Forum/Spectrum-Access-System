@@ -13,13 +13,12 @@
 #    limitations under the License.
 import json
 import logging
-import time
 import os
 from OpenSSL import SSL
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import security_testcase
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, \
-  getCertificateFingerprint
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
+getCertificateFingerprint
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
@@ -179,7 +178,6 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
                                    'url': SAS_TEST_HARNESS_URL })
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
-
   def generate_SSS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_10. """
     # Create the actual config for SAS cert/key path 
@@ -220,35 +218,34 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
   def generate_SSS_11_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_11. """
-    # Create the configuration for blacklisted sas cert/key,wait timer
+    # Create the configuration for blacklisted SAS cert/key path
 
     config = {
       'sasCert': self.getCertFilename("blacklisted_sas.cert"),
-      'sasKey': self.getCertFilename("blacklisted_sas.key"),
-      'waitTimer': 60
+      'sasKey': self.getCertFilename("blacklisted_sas.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SSS_11_default_config)
   def test_WINNF_FT_S_SSS_11(self, config_filename):
-    """Blacklisted certificate presented during registration..
+    """Blacklisted certificate presented by SAS Test Harness.
        Checks that SAS UUT response with fatal alert message.
     """
+    # Reset SAS UUT
+    self.SasReset()
 
     # Read the configuration
     config = loadConfig(config_filename)
 
-    logging.info("Waiting for %s secs to allow the UUT to pull the revoked certificate "
-                 "list from the CRL server " % config['waitTimer'])
-
-    # Wait for the timer
-    time.sleep(config['waitTimer'])
+    # Read the fingerprint from the certificate
+    certificate_hash = getCertificateFingerprint(config['sasCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL })
 
     # Tls handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
                                    client_key=config['sasKey'])
     logging.info("TLS handshake failed as the sas certificate has blacklisted")
-
 
   def generate_SSS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.12"""
