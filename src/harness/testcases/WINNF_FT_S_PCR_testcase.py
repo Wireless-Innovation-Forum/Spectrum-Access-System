@@ -42,28 +42,39 @@
 """  Implementation of PCR tests """
 
 import json
+import logging
 import os
+import signal
+import time
 import sas
 import sas_testcase
 from shapely import ops
+from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
 from reference_models.geo import CONFIG, census_tract, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint
 
+
 DEFAULT_ITU_DATAPATH = CONFIG.GetItuDir()
 DEFAULT_TERRAIN_DATAPATH = CONFIG.GetTerrainDir()
 DEFAULT_LANDCOVER_DATAPATH = CONFIG.GetLandCoverDir()
 DEFAULT_CENSUSTRACTS_DATAPATH = CONFIG.GetCensusTractsDir()
+SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 
-def assertPpaWithinServiceArea(pal_records, ppa_zone_geometry):
-  """ Check if the ppa zone geometry's boundary and interior intersect only
+def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
+  """Check if the ppa zone geometry's boundary and interior intersect only
     with the interior of the service area (not its boundary or exterior).
 
   Args:
     pal_records: A list of pal records to compute service area based on census_tracts.
     ppa_zone_geometry: A PPA polygon dictionary in GeoJSON format.
+
+  Returns:
+    A value is the boolean with the value as True if the ppa zone geometry's boundary and
+      interior intersect with in the interior of the service area otherwise value as false
+
   """
 
   census_tract_driver = census_tract.CensusTractDriver()
@@ -81,8 +92,7 @@ def assertPpaWithinServiceArea(pal_records, ppa_zone_geometry):
 
 
 class PpaCreationTestcase(sas_testcase.SasTestCase):
-  """
-  Implementation of PCR tests to verify the area of the non-overlapping
+  """Implementation of PCR tests to verify the area of the non-overlapping
   difference between the maximum PPA boundary created by SAS UUT shall be no more than
   10% of the area of the maximum PPA boundary created by the Reference Model.
   """
@@ -92,6 +102,96 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+
+  def triggerPpaCreationAndWaitUntilComplete(self, ppa_creation_request):
+    """ Triggers PPA Creation Admin API and returns PPA ID if the creation status is completed.
+
+    Triggers PPA creation to the SAS UUT. Checks the status of the PPA creation by
+    invoking the PPA creation status API. If the status is complete then the PPA ID
+    is returned. The status is checked every 10 secs for upto 2 hours. Exception is
+    raised if the PPA creation returns error or times out.
+
+    Args:
+      ppa_creation_request: A dictionary with a multiple key-value pair containing the
+        "cbsdIds", "palIds" and optional "providedContour"(a GeoJSON object).
+
+    Returns:
+      A Return value is string format of the PPA ID.
+    """
+
+    try:
+      ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+
+      # Verify ppa_id should not be None.
+      self.assertIsNotNone(ppa_id, msg="PPA ID received from SAS UUT as result of "
+                                       "PPA Creation is None")
+    except AssertionError as err:
+      logging.error('There is an error while creating PPA:%s', err.message)
+      self.fail('There is an error while creating PPA:%s' % err.message)
+    else:
+      logging.info('TriggerPpaCreation is success')
+
+      # Triggers most recent PPA Creation Status immediately and checks for the status of activity
+      # every 10 seconds until it is completed. If the status is not changed within 2 hours
+      # it will throw an exception.
+      signal.signal(signal.SIGALRM,
+                    lambda signum, frame:
+                    (_ for _ in ()).throw(
+                        Exception('Most Recent PPA Creation Status Check Timeout')))
+
+      # Timeout after 2 hours if it's not completed.
+      signal.alarm(7200)
+
+      # Check the Status of most recent ppa creation every 10 seconds.
+      while not self._sas_admin.GetPpaCreationStatus()['completed']:
+        time.sleep(10)
+
+      # Additional check to ensure whether PPA Creation status has error.
+      self.assertTrue(self._sas_admin.GetPpaCreationStatus()['completed'],
+                      msg='PPA Creation Status is not completed')
+      self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
+                       msg='There was an error while create PPA')
+      signal.alarm(0)
+
+      return ppa_id
+
+
+  def triggerCpasAndRetrievePpaZone(self, ppa_id, ssl_cert, ssl_key):
+    """ Triggers CPAS and Retrieves PPA Zone Record matches with specified ppa_id.
+
+    Performs CPAS and pulls FAD from SAS UUT. Retrieves the ZoneData Records from FAD,
+    checks that only one record is present and it matches the ppa_id.
+
+    Args:
+      ppa_id: String format of PPA ID.
+      ssl_cert: Path to SSL cert file to be used for pulling FAD record.
+      ssl_key: Path to SSL key file to be used for pulling FAD record.
+
+    Returns:
+      A PPA record of format of ZoneData Object.
+
+    """
+
+    # Notify the SAS UUT about the SAS Test Harness.
+    certificate_hash = getCertificateFingerprint(ssl_cert)
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': SAS_TEST_HARNESS_URL})
+
+    # As SAS is reset at the beginning of the test, the FAD records should contain
+    # only one zone record containing the PPA that was generated. Hence the first
+    # zone record is retrieved and verified if it matches the PPA ID.
+    uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert, ssl_key)
+    uut_ppa_zone_data = uut_fad.getZoneRecords()
+    # Check if the retrieved FAD that has valid PPA zone record matches the PPA ID
+    # that was generated using the admin API.
+    self.assertEquals(len(uut_ppa_zone_data), 1, msg='No PPA Zone Records received from SAS UUT')
+    self.assertIsNotNone(uut_ppa_zone_data[0].get('id'),
+                         msg="PPA Id is not present in PPA Zone Record")
+    self.assertEquals(uut_ppa_zone_data[0]['id'], ppa_id,
+                         msg='PPA Id: {0} does not match PPA Zone Record PPA Id:{1}'.format(
+                             ppa_id, uut_ppa_zone_data[0]['id']
+                         ))
+    return uut_ppa_zone_data[0]
 
   def generate_PCR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for PCR 1. """
@@ -180,6 +280,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # light checking of itu,terrain and landcover data path exists.
+    
     self.assertTrue(os.path.exists(DEFAULT_ITU_DATAPATH),
                     msg='ITU Data path is not configured')
     self.assertTrue(os.path.exists(DEFAULT_TERRAIN_DATAPATH),
@@ -203,38 +304,16 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         "cbsdIds": cbsd_ids,
         "palIds": pal_ids
     }
-    ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
 
-    # Verify ppa_id should not be None.
-    self.assertIsNotNone(ppa_id)
-
-    # Notify the SAS UUT about the SAS Test Harness.
-    certificate_hash = getCertificateFingerprint(config['sasTestHarnessCert'])
-    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': self._sas._base_url})
-
-    # As SAS is reset at the beginning of the test, the FAD records should contain
-    # only one zone record containing the PPA that was generated. Hence the first
-    # zone record is retrieved and verified if it matches the PPA ID.
-    response = self.TriggerFullActivityDumpAndWaitUntilComplete(
-        config['sasTestHarnessCert'], config['sasTestHarnessKey'])
-    self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
-    ppa_zone_data = []
-
-    # Download 'zone' dump file.
-    for dump_file in response['files']:
-      self.assertContainsRequiredFields("ActivityDumpFile.schema.json", dump_file)
-      downloaded_file = None
-      if dump_file['recordType'] == 'zone':
-        url = str(dump_file['url']).strip()
-        downloaded_file = self._sas.DownloadFile(url, config['sasTestHarnessCert'],
-                                                 config['sasTestHarnessKey'])
-        ppa_zone_data.extend(downloaded_file['recordData'])
-
-    # Check if the retrieved FAD PPA zone record matches the PPA ID that was generated
-    # using the admin API.
-    self.assertEqual(ppa_zone_data[0]['id'], ppa_id)
-    uut_ppa_geometry = ppa_zone_data[0]['zone']['features'][0]['geometry']
+    # Trigger PPA Creation to SAS UUT.
+    ppa_id = self.triggerPpaCreationAndWaitUntilComplete(ppa_creation_request)
+    
+    # Notify SAS UUT about SAS Harness and trigger Full Activity Dump and retrieves the
+    # PPA Zone that matches with PPA Id.
+    uut_ppa_zone_data = self.triggerCpasAndRetrievePpaZone(
+        ppa_id,
+        ssl_cert=config['sasTestHarnessCert'],
+        ssl_key=config['sasTestHarnessKey'])
 
     # Configure the Census Tract Directory that the PPA uses
     ppa.ConfigureCensusTractDriver(DEFAULT_CENSUSTRACTS_DATAPATH)
@@ -250,8 +329,27 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
           # and conditional_params match and add the 'installationParam'.
           if conditional_params['fccId'] == device['fccId'] and \
                           conditional_params['cbsdSerialNumber'] == device['cbsdSerialNumber']:
+            # The following REG-conditional parameters are required to present in
+            # installationParam Object and cbsdCategory in RegistrationRequest for PPA
+            # reference model to determine PPA contour boundary.
+            install_params = {}
+            install_params['eirpCapability'] = conditional_params['installationParam'][
+                'eirpCapability']
+            install_params['antennaAzimuth'] = conditional_params['installationParam'][
+                'antennaAzimuth']
+            install_params['longitude'] = conditional_params['installationParam'][
+                'longitude']
+            install_params['latitude'] = conditional_params['installationParam'][
+                'latitude']
+            install_params['antennaGain'] = conditional_params['installationParam'][
+                'antennaGain']
+            install_params['indoorDeployment'] = conditional_params['installationParam'][
+                'indoorDeployment']
+            install_params['antennaBeamwidth'] = conditional_params['installationParam'][
+                'antennaBeamwidth']
+            install_params['height'] = conditional_params['installationParam']['height']
             device.update({
-                'installationParam': conditional_params['installationParam']
+                'installationParam': install_params
             })
             device.update({
                 'cbsdCategory': conditional_params['cbsdCategory']
@@ -262,7 +360,15 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         config['registrationRequests'], config['palRecords'])
 
     # Check if the PPA generated by the SAS UUT is fully contained within the service area.
-    self.assertTrue(assertPpaWithinServiceArea(config['palRecords'], uut_ppa_geometry),
+    logging.debug("SAS UUT PPA - retrieved through FAD:%s",
+                  json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
+                             separators=(',', ': ')))
+    logging.debug("Reference model PPA - retrieved through PpaCreationModel:%s",
+                  json.dumps(json.loads(test_harness_ppa_geometry), indent=2, sort_keys=False,
+                             separators=(',', ': ')))
+
+    uut_ppa_geometry = uut_ppa_zone_data['zone']['features'][0]['geometry']
+    self.assertTrue(isPpaWithinServiceArea(config['palRecords'], uut_ppa_geometry),
                     msg="PPA Zone is not within service area")
 
     # Check the Equation 8.3.1 in Test Specfification is satisified w.r t [n.12, R2-PAL-05]
