@@ -13,11 +13,11 @@
   "licenseStatus": "VALID",
   "channelAssignment": {
     "primaryAssignment": {
-      "lowFrequency": 3580000000.0,
-      "highFrequency": 3590000000.0
+      "lowFrequency": 3590000000.0,
+      "highFrequency": 3600000000.0
     },
     "secondaryAssignment": {
-      "lowFrequency": 3580000000.0,
+      "lowFrequency": 3590000000.0,
       "highFrequency": 3600000000.0
     }
   }

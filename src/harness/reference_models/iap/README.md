@@ -1,8 +1,8 @@
 # The WinnForum R2-SGN-16 Iterative Allocation Process(IAP) Reference Implementation
 
 This folder contains Python code and test data for calculation of the IAP 
-according to the R2-SGN-16 requirement in the WINNF-TS-0112 document, Version V1.4.1 
-(January 16, 2018) [1].
+according to the R2-SGN-16 requirement in the WINNF-TS-0061 document, Version V1.0.0-r5.1 
+(January 17, 2018) [1].
 
 ## Main Interface 
 
@@ -24,7 +24,13 @@ Python software and packages:
    
 ## Test Data
 
-To test the `iap.performIAP()` routine for a GWPZ, PPA, FSS and ESC incumbent types, 
+To test the 
+    `iap.performIapForGwpz(), 
+     iap.performIapForPpa(), 
+     iap.performIapForFssCochannel, 
+     iap.performIapForFssBlocking,
+     iap.performIapForEsc` 
+routine for a GWPZ, PPA, FSS and ESC incumbent types respectively,
 one can use the example given in the `iap_example.py` file along with the test 
 data stored in the `\test_data` sub-folder. To run the example, use the command 
 `python iap_example.py`.
@@ -47,4 +53,4 @@ data stored in the `\test_data` sub-folder. To run the example, use the command
 
 [1] WInnForum Standards, Requirements for Commercial Operation in the 
 U.S. 3550-3700 MHz Citizens Broadband Radio Service Band,  Working Document 
-WINNF-TS-0112, Version V1.4.1 (January 16, 2018).
+WINNF-TS-0061, Version V1.0.0-r5.1 (January 17, 2018).

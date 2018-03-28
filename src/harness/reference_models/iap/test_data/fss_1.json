@@ -5,16 +5,14 @@
   [
     {
       "installationParam": {
-        "latitude": 40.44694,
-        "longitude":  -97.86621,
-        "elevation": 100,
+        "latitude": 37,
+        "longitude":  -76,
+        "elevation": 50,
         "height": 26.5,
         "heightType": "AGL",
-        "antennaGain": 16,
-        "antennaBeamwidth": 30,
+        "antennaGain": 0,
         "antennaAzimuth": 180,
-        "antennaDowntilt": -5,
-        "antennaElevationAngle":40
+        "antennaDowntilt": -5
       },
       "operationParam": {
         "operationFrequencyRange": {
@@ -22,8 +20,6 @@
           "highFrequency": 4200000000
         }
       },
-      "weight1": 0.5,
-      "weight2": 0.5,
       "ttc": true
     }
     ]

@@ -1,11 +1,10 @@
 {
-        "_comment":"GWPZ - CBSD for URBAN and SUBURBAN regions",
-	"id": "device_6_id",
+	"id": "device_7_id",
 	"registrationRequest": {
-					"fccId": "test_fcc_id_d",
+					"fccId": "fccId7",
 		            "cbsdCategory": "A",
 		            "callSign": "KPPP",
-		            "userId": "test_user_id_d",
+		            "userId": "G83kdd",
 		            "airInterface": {
     				  "radioTechnology": "E_UTRA",
                       "supportedSpec": "LTE-Rel10"
@@ -14,28 +13,28 @@
                       "vendor": "Equipment Maker C"
                     },
 
-					"cbsdSerialNumber": "5321dcba_1",
+					"cbsdSerialNumber": "serial7",
                     "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
                     "installationParam": {
-                      "latitude": 40.01078,
-                      "longitude": -99.38507,
-                      "height": 3,
-                      "indoorDeployment": true,
-                      "antennaAzimuth": 72,
-                      "antennaDowntilt": 3,
-                      "antennaGain": 16,
-                      "antennaBeamwidth": 30
+                      "latitude": 29.22,
+                      "longitude": -81.4,
+                      "height": 75,
+                      "indoorDeployment": false,
+                      "antennaAzimuth": 170,
+                      "antennaDowntilt": -5,
+                      "antennaGain": 0,
+                      "antennaBeamwidth": 60
                     }
 			    	},
-    "grantRequests": [{
+    "grants": [{
 					"channelType": "GAA",
 					"grantExpireTime": "calculated at runtime",
 					"id": "SAMPLE_2_12345",
 					"operationParam": {
-						"maxEirp": 20,
+						"maxEirp": 20.0,
 						"operationFrequencyRange": {
-							"highFrequency": 3700000000.0,
-							"lowFrequency": 3680000000.0
+							"highFrequency": 3560000000,
+							"lowFrequency": 3550000000
 						}
 					},
 					"terminated": false
