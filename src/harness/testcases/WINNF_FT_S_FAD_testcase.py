@@ -139,11 +139,10 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
             self.assertTrue(is_default_dump_beamwidth)
           else:
               self.assertEqual(registered_antenna_beamwidth, dump_antenna_beamwidth)
-          # if azimuth is not registered then then the beamwidth in the dump should be the values of omni directional antenna
-          # and then the value of antenna azimuth can exist in the dump with any value
+          # TODO: add check that if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
+          # if azimuth is not registered then the value of antenna azimuth should exist in the dump with any value
           if registered_antenna_azimuth is None:
             self.assertIsNotNone(dump_antenna_azimuth)
-            self.assertTrue(is_default_dump_beamwidth)
           else:
             self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
 
