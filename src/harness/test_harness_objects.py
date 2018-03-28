@@ -249,7 +249,7 @@ class DomainProxy(object):
     relinquishment_requests = []
     grant_requests = []
 
-    # Construct relinquishment and grant for the heart beat response which have operation param.
+    # Construct relinquishment and grant for the heartbeat response which have operation param.
     for heartbeat_response, heartbeat_request in zip(heartbeat_responses, heartbeat_requests):
         if heartbeat_response['response']['responseCode'] == ResponseCodes.TERMINATED_GRANT.value:
            if 'operationParam' in heartbeat_response:
