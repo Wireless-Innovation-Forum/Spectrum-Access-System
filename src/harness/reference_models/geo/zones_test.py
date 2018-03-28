@@ -22,18 +22,44 @@ from shapely import ops
 
 from reference_models.geo import zones
 
-TEST_DIR = os.path.join(os.path.dirname(__file__),'testdata', 'zones')
+#TEST_DIR = os.path.join(os.path.dirname(__file__),'testdata', 'zones')
 
 
 class TestZones(unittest.TestCase):
+  # Simplistic tests which only check the proper reading of the files.
+
+  def test_read_protection(self):
+    z = zones.GetCoastalProtectionZone()
+    self.assertTrue(z.is_valid)
+    self.assertTrue(z.area > 80)
 
   def test_read_exclusion(self):
-    z = zones.GetCoastalProtectionZone()
-    print z.area
+    z = zones.GetExclusionZones()
+    self.assertTrue(z.is_valid)
+    self.assertTrue(z.area > 3 and z.area < 4)
 
   def test_read_dpa(self):
-    z = zones.GetDPAZones()
-    print z['east_dpa_5'].area
+    z = zones.GetDpaZones()
+    for name, zone in z.items():
+      self.assertTrue(zone.is_valid)
+    self.assertAlmostEqual(z['east_dpa_5'].area, 6, 1)
+
+  def test_read_usborder(self):
+    z = zones.GetUsBorder()
+    self.assertTrue(z.is_valid)
+    us_area = 9.8e6
+    approx_area = z.area * 110**2 * np.cos(44*np.pi/180)
+    self.assertTrue(approx_area > us_area * 0.9 and
+                    approx_area < us_area * 1.1)
+
+  def test_read_urban_areas(self):
+    z = zones.GetUrbanAreas()
+    exp_area = 150000  # Should be instead 275000 ??
+    approx_area = z.area * 110**2 * np.cos(44*np.pi/180)
+    self.assertTrue(z.is_valid)
+    self.assertTrue(approx_area > exp_area * 0.9 and
+                    approx_area < exp_area * 1.1)
+
 
 if __name__ == '__main__':
   unittest.main()

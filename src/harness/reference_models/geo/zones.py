@@ -19,23 +19,27 @@ These routines allows to read the various zones used by SAS:
  - Exclusion zones for Ground Based stations.
  - Coastal DPAs.
 
-Plus a few other useful zones for evaluation purpose:
- - TBD.
+Plus a few other useful zones for evaluation/simulation purpose:
+ - US Border
+ - US Urban areas
 """
 import os
 import numpy as np
 import shapely.geometry as sgeo
 from pykml import parser
+import zipfile
 
 from reference_models.geo import CONFIG
 
 
-# The reference file for Protection Zones and exclusion zones
+# The reference files.
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
 EXCLUSION_ZONE_FILE = 'protection_zones.kml'
 DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
 
-# The reference file for Exclusion Zones
+# The reference files for extra zones.
+USBORDER_FILE = 'usborder.kmz'
+URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
 
 # One source of data is the the `protection_zones.kml` preprocessed by
 # Winnforum (see src/data/), and which holds both the protection zone and
@@ -65,18 +69,26 @@ def _GetPolygon(poly):
   return sgeo.Polygon(out_points, holes=int_points)
 
 
-def _ReadKmlZones(kml_path, root_id_zone='Placemark'):
+def _ReadKmlZones(kml_path, root_id_zone='Placemark', simplify=0):
   """Gets all the zones defined in a KML.
 
   Args:
-    kml_path: The path name to the exclusion zone KML.
+    kml_path: The path name to the exclusion zone KML or KMZ.
     root_id_zone: The root id defininig a zone. Usually it is 'Placemark'.
+    simplify: If set, simplifies the resulting polygons
 
   Returns:
     a dictionary of |shapely| Polygon (or MultiPolygon) keyed by their name.
   """
-  with open(kml_path, 'r') as kml_file:
-    root = parser.parse(kml_file).getroot()
+  if kml_path.endswith('kmz'):
+    with zipfile.ZipFile(kml_path) as kmz:
+      kml_name = [info.filename for info in kmz.infolist()
+                  if os.path.splitext(info.filename)[1] == '.kml'][0]
+      with kmz.open(kml_name) as kml_file:
+        root = parser.parse(kml_file).getroot()
+  else:
+    with open(kml_path, 'r') as kml_file:
+      root = parser.parse(kml_file).getroot()
   tag = root.tag[:root.tag.rfind('}')+1]
   zones = {}
   for element in root.findall('.//' + tag + root_id_zone):
@@ -93,6 +105,8 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark'):
       polygon = sgeo.MultiPolygon(polygons)
     # Fix most invalid polygons
     polygon = polygon.buffer(0)
+    if simplify:
+      polygon.simplify(simplify)
     if not polygon.is_valid:
       # polygon is broken and should be fixed upstream
       raise ValueError('Polygon %s is invalid and cannot be cured.' % name)
@@ -102,12 +116,9 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark'):
 
 
 def GetCoastalProtectionZone():
-  """Gets the coastal protection zone.
+  """Returns the coastal protection zone as a |shapely.MultiPolygon|.
 
   The coastal protection zone is used for DPA CatA neighborhood.
-
-  Returns:
-    A |shapely.MultiPolygon| defining the coastal protection zone.
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
   zones = _ReadKmlZones(kml_file)
@@ -116,14 +127,11 @@ def GetCoastalProtectionZone():
   return coastal_zone
 
 
-def GetGBSExclusionZones():
-  """Gets the Ground Based Station exclusion zones.
+def GetExclusionZones():
+  """Returns all GBS exclusion zones as a |shapely.MultiPolygon|.
 
   The GBS exclusion zone are used for protecting Ground Based Station
   transmitting below 3500MHz.
-
-  Returns:
-    A |shapely.MultiPolygon| defining all exclusion zones.
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
   zones = _ReadKmlZones(kml_file)
@@ -132,14 +140,39 @@ def GetGBSExclusionZones():
   return exclusion_zones
 
 
-def GetDPAZones():
-  """Gets all the DPA zones.
+def GetDpaZones():
+  """Returns DPA zones as a dict of DPA |shapely.Polygon| keyed by their names.
 
   DPA zones a Dynamic Protection Area protected through the use of ESC sensors.
-
-  Returns:
-    A dict of |shapely.Polygon| keyed by their names.
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), DPA_ZONE_FILE)
   zones = _ReadKmlZones(kml_file, root_id_zone='Document')
   return zones
+
+
+def GetUsBorder(simplify_deg=1e-3):
+  """Gets the US border as a |shapely.MultiPolygon|.
+
+  Args:
+    simplify_deg: if defined, simplify the zone with given tolerance (degrees).
+      Default is 1e-3 which corresponds roughly to 100m in continental US.
+  """
+  kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
+  zones = _ReadKmlZones(kml_file, simplify=simplify_deg)
+  border_zone = sgeo.MultiPolygon(zones.values())
+  return border_zone
+
+
+def GetUrbanAreas(simplify_deg=1e-3):
+  """Gets the US urban area as a |shapely.MultiPolygon|.
+
+  Args:
+    simplify_deg: if defined, simplify the zone with given tolerance (degrees).
+      Default is 1e-3 which corresponds roughly to 100m in continental US.
+  """
+  kml_file = os.path.join(CONFIG.GetNtiaDir(), URBAN_AREAS_FILE)
+  zones = _ReadKmlZones(kml_file, root_id_zone='Document', simplify=simplify_deg)
+  urban_areas = sgeo.MultiPolygon(zones.values())
+  urban_areas = urban_areas.buffer(0)
+  # TODO(sbdt): verify that read properly or if a cascaded_union is necessary
+  return urban_areas
