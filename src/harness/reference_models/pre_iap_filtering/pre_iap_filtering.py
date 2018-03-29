@@ -18,13 +18,15 @@
   models to filter out grants and CBSDs before IAP model is invoked.
 ==================================================================================
 """
+
 from reference_models.fss_purge import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+from reference_models.ppa_gwpz_fss_gwbl_purge import ppa_gwpz_fss_gwbl_purge
+from reference_models.pre_iap_filtering import pre_iap_util
 
-
+FSS_GWBL_PROTECTION_DISTANCE = 150
 def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads):
   """ The main function that invokes all pre-IAP filtering models.
-
   The grants/CBSDs to be purged are removed from the input parameters.
   
   Args:
@@ -41,11 +43,15 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
   inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel\
                                                (sas_uut_fad, sas_test_harness_fads)
 
-  # TODO
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
+  list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']
+                              ,protected_entities['fssRecords'], FSS_GWBL_PROTECTION_DISTANCE)
+  ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad,
+      sas_test_harness_fads, protected_entities['ppaRecords'], 
+      protected_entities['palRecords'], protected_entities['gwpzRecords'], 
+      list_of_fss_neighboring_gwbl) 
 
   # Invoke FSS purge list reference model
   if 'fssRecords' in protected_entities:
-    fss_purge.fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
+    fss_purge.fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
                                 protected_entities['fssRecords'])
-

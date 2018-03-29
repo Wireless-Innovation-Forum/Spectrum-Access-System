@@ -1,0 +1,44 @@
+{
+        "_comment":"FSS - TT&C Blocking CBSD",
+	"id": "device_2_id",
+	"registrationRequest": {
+					"fccId": "test_fcc_id_c",
+		            "cbsdCategory": "B",
+		            "callSign": "KPPP",
+		            "userId": "test_user_id_c",
+		            "airInterface": {
+    				  "radioTechnology": "E_UTRA",
+                      "supportedSpec": "LTE-Rel10"
+                    },
+		            "cbsdInfo": {
+                      "vendor": "Equipment Maker C"
+                    },
+
+					"cbsdSerialNumber": "4321dcba_2",
+                    "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
+                    "installationParam": {
+                      "latitude": 40.49732, 
+                      "longitude": -101.49208,
+                      "height": 3,
+                      "indoorDeployment": true,
+                      "antennaAzimuth": 72,
+                      "antennaDowntilt": 3,
+                      "antennaGain": 16,
+                      "antennaBeamwidth": 30
+                    }
+			    	},
+    "grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "cbsd_2_grant_0",
+					"operationParam": {
+						"maxEirp": 20.0,
+						"operationFrequencyRange": {
+							"highFrequency": 3690000000,
+							"lowFrequency": 3610000000
+						}
+					},
+					"terminated": false
+				}]
+
+}
