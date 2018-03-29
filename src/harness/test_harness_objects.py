@@ -134,7 +134,7 @@ class DomainProxy(object):
     self.cbsd_objects = {}
     self.testcase = testcase
 
-  def addCbsdsAndGrants(self, registration_requests, grant_requests):
+  def registerCbsdsAndRequestGrants(self, registration_requests, grant_requests):
     """Construct CBSD object based on the result of registration and
     grant requests.
 
@@ -146,7 +146,7 @@ class DomainProxy(object):
     """
     # Checking if the number of registration requests matches number of grant requests.
     # There should be exactly one grant request per registration request.
-    assert len(grant_requests) == len(registration_requests)
+    self.testcase.assertEqual(len(grant_requests), len(registration_requests))
     cbsd_ids = self.testcase.assertRegistered(registration_requests,
                                               cert=self.ssl_cert, key=self.ssl_key)
 
@@ -162,6 +162,9 @@ class DomainProxy(object):
     #perform grant operation.
     grant_responses = self.testcase._sas.Grant(grant_requests_wrap,
                                                self.ssl_cert, self.ssl_key)['grantResponse']
+
+    # Check the length of grant responses is the same as grant requests.
+    self.testcase.assertEqual(len(grant_responses), len(grant_requests))
 
     # Make one CBSD object per successful grant request.
     for grant_request, grant_response, \
@@ -195,6 +198,9 @@ class DomainProxy(object):
       # Perform heartbeat requests.
       heartbeat_responses = self.testcase._sas.Heartbeat(
         heartbeat_requests_wrapped, self.ssl_cert, self.ssl_key)['heartbeatResponse']
+
+      # Check the length of heartbeat responses is the same as heartbeat requests.
+      self.testcase.assertEqual(len(heartbeat_responses), len(heartbeat_requests))
 
       for heartbeat_request, heartbeat_response in zip(heartbeat_requests, heartbeat_responses):
         cbsd_object = self.cbsd_objects[heartbeat_request['cbsdId']]
@@ -244,7 +250,6 @@ class DomainProxy(object):
       4. Heartbeat is performed again for all grants. Failures are ignored.
     """
     # Heartbeat on all active grants
-    heartbeat_requests = []
     heartbeat_requests, heartbeat_responses = self.heartbeatForAllActiveGrants()
     relinquishment_requests = []
     grant_requests = []
@@ -258,8 +263,8 @@ class DomainProxy(object):
            else:
              logging.error('Invalid Response received for grantId=%s and cbsdId=%s',
                            heartbeat_response['grantId'], heartbeat_response['cbsdId'])
-             # Delete the grant object
-             del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
+           # Delete the grant object
+           del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
 
         elif heartbeat_response['response']['responseCode'] == ResponseCodes.SUSPENDED_GRANT.value:
           # If any heartbeat contain suggested operation params,construct relinquishment requests.
@@ -284,6 +289,9 @@ class DomainProxy(object):
       relinquishment_responses = self.testcase._sas.Relinquishment(relinquishment_requests_wrap,
                                         self.ssl_cert, self.ssl_key)['relinquishmentResponse']
 
+      # Check the length of relinquishment responses is the same as relinquishment request.
+      self.testcase.assertEqual(len(relinquishment_responses), len(relinquishment_requests))
+
       # Validate the response of the relinquishment request.
       for relinquishment_request, relinquishment_response in \
               zip(relinquishment_requests, relinquishment_responses):
@@ -301,9 +309,15 @@ class DomainProxy(object):
       grant_responses = self.testcase._sas.Grant(grant_requests_wrap,
                                                  self.ssl_cert, self.ssl_key)['grantResponse']
 
+      # Check the length of grant responses is the same as grant requests.
+      self.testcase.assertEqual(len(grant_responses), len(grant_requests))
+
       for grant_response, grant_request in zip(grant_responses, grant_requests):
-        cbsd_object = self.cbsd_objects[grant_request['cbsdId']]
-        cbsd_object.grant_objects[grant_response['grantId']] = Grant(grant_response['grantId'], grant_request)
+        if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+          cbsd_object = self.cbsd_objects[grant_request['cbsdId']]
+          cbsd_object.grant_objects[grant_response['grantId']] = Grant(grant_response['grantId'], grant_request)
+        else:
+          logging.debug("Grant request failed for the cbsdId=%s",grant_request['cbsdId'])
 
     # Perform Heartbeat request for all grants.
     self.heartbeatForAllActiveGrants()
