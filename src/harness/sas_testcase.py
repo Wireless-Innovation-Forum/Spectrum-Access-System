@@ -68,7 +68,7 @@ class SasTestCase(unittest.TestCase):
     self.assertTrue(grant_response['channelType'] in ('PAL', 'GAA'))
 
   def assertRegistered(self, registration_request,
-                       conditional_registration_data=None):
+                       conditional_registration_data=None, cert=None, key=None):
     """Register a list of devices.
 
     Quickly register N devices, assert registration SUCCESS, get CBSD IDs.
@@ -82,6 +82,8 @@ class SasTestCase(unittest.TestCase):
         data that need to be preloaded into SAS (each of which is a dictionary).
         The dictionary is a RegistrationRequest object, the fccId and
         cbsdSerialNumber fields are required, other fields are optional.
+      cert: Path to SSL cert file, if None, will use default cert file.
+      key: Path to SSL key file, if None, will use default key file.
 
     Returns:
       A list of cbsd_ids.
@@ -96,8 +98,8 @@ class SasTestCase(unittest.TestCase):
       })
 
     # Pass the correct client cert and key in Registration request
-    ssl_cert = self._sas._tls_config.client_cert
-    ssl_key = self._sas._tls_config.client_key
+    ssl_cert = cert if cert != None else self._sas._tls_config.client_cert
+    ssl_key = key if key != None else self._sas._tls_config.client_key
 
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(
