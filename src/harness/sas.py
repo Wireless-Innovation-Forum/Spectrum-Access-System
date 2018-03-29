@@ -193,6 +193,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
                 self._base_url, None, self._tls_config)
 
+  def QueryPropagationAndAntennaModel(self, request):
+    return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
+                 self._base_url, request, self._tls_config)
+
   def GetDailyActivitiesStatus(self):
     return RequestPost(
         'https://%s/admin/get_daily_activities_status' % self._base_url, None,
