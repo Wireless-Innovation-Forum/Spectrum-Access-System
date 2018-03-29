@@ -78,15 +78,16 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
 
     # Inject FSS station operating at range 3670 - 4200 MHz.
-    fss = json.load(
+    fss_data = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss =  fss_data['record']
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3670000000
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 4200000000
     fss['deploymentParam'][0]['installationParam']['latitude'] = 38.4
     fss['deploymentParam'][0]['installationParam']['longitude'] = -98.9
-    self._sas_admin.InjectFss({'record': fss})
+    self._sas_admin.InjectFss(fss_data)
 
     # Inject GWBL station operating at range 3650 - 3700 MHz and associated
     # GWPZ, within 150 km of FSS (approx. 100 km from FSS location set above).
