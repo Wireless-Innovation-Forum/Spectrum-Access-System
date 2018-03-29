@@ -36,17 +36,19 @@ class TileStats(object):
       return
     self.tiles_stats[(ilat, ilon)] += 1
 
+  def DetailedCountPerTile(self):
+    tiles_loaded = [(cnt, key)
+                    for key, cnt in self.tiles_stats.items()
+                    if cnt > 0]
+    return zip(*tiles_loaded)[0]
+
   def Reset(self):
     self.tiles_stats = {tile: 0 for tile in self._tiles_set}
 
   def Report(self):
-    tiles_loaded = [(cnt, key)
-                    for key, cnt in self.tiles_stats.items()
-                    if cnt > 0]
-    tiles_loaded.sort()
-    count_per_tile = zip(*tiles_loaded)[0]
+    count_per_tile = self.DetailedCountPerTile()
     print "Used tiles: {total} / {max}".format(
-        total=len(tiles_loaded), max=len(self._tiles_set))
+        total=len(count_per_tile), max=len(self._tiles_set))
     print "Total load ops: {total}".format(
         total=sum(count_per_tile))
     print "Active tiles statistics (#loads per used tiles):"
