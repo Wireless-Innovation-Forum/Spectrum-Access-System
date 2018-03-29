@@ -80,7 +80,8 @@ def computePropagationAntennaModel(request):
     else:
         
         path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                        rx['latitude'], rx['longitude'], rx['height'], 
+                                                        rx['latitude'], rx['longitude'], rx['height'],
+                                                        cbsd_indoor= tx['indoorDeployment'],                                                        
                                                         reliability=-1, freq_mhz=3625., region=region_val)
         result['pathlossDb'] = path_loss.db_loss
         gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
