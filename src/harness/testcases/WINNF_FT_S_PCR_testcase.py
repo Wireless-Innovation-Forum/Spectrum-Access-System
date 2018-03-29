@@ -129,7 +129,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       logging.error('There is an error while creating PPA:%s', err.message)
       self.fail('There is an error while creating PPA:%s' % err.message)
     else:
-      logging.info('TriggerPpaCreation is success')
+      logging.info('TriggerPpaCreation is in progress')
 
       # Triggers most recent PPA Creation Status immediately and checks for the status of activity
       # every 10 seconds until it is completed. If the status is not changed within 2 hours
@@ -148,9 +148,9 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
       # Additional check to ensure whether PPA Creation status has error.
       self.assertTrue(self._sas_admin.GetPpaCreationStatus()['completed'],
-                      msg='PPA Creation Status is not completed')
+                      msg='PPA creation status is not completed')
       self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
-                       msg='There was an error while create PPA')
+                       msg='There was an error while creating PPA')
       signal.alarm(0)
 
       return ppa_id
@@ -181,17 +181,20 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # only one zone record containing the PPA that was generated. Hence the first
     # zone record is retrieved and verified if it matches the PPA ID.
     uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert, ssl_key)
-    uut_ppa_zone_data = uut_fad.getZoneRecords()
-    # Check if the retrieved FAD that has valid PPA zone record matches the PPA ID
-    # that was generated using the admin API.
-    self.assertEquals(len(uut_ppa_zone_data), 1, msg='No PPA Zone Records received from SAS UUT')
-    self.assertIsNotNone(uut_ppa_zone_data[0].get('id'),
-                         msg="PPA Id is not present in PPA Zone Record")
-    self.assertEquals(uut_ppa_zone_data[0]['id'], ppa_id,
-                         msg='PPA Id: {0} does not match PPA Zone Record PPA Id:{1}'.format(
-                             ppa_id, uut_ppa_zone_data[0]['id']
-                         ))
-    return uut_ppa_zone_data[0]
+
+    try:
+
+      # Check if the retrieved FAD that has valid PPA zone record matches the PPA ID
+      # that was generated using the admin API.
+      uut_ppa_zone_data = uut_fad.getZoneRecords([lambda x: x['id'] == ppa_id])
+      self.assertEquals(len(uut_ppa_zone_data), 1,
+                        msg='There is no single PPA Zone record matches with PPA ID '
+                            '{0} received from SAS UUT'.format(ppa_id))
+    except KeyError:
+      self.fail('There is an error while filtering PPA Zone record based '
+                'on PPA ID:{0}'.format(ppa_id))
+    else:
+      return uut_ppa_zone_data[0]
 
   def generate_PCR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for PCR 1. """
@@ -280,7 +283,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # light checking of itu,terrain and landcover data path exists.
-    
+
     self.assertTrue(os.path.exists(DEFAULT_ITU_DATAPATH),
                     msg='ITU Data path is not configured')
     self.assertTrue(os.path.exists(DEFAULT_TERRAIN_DATAPATH),
@@ -307,7 +310,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Trigger PPA Creation to SAS UUT.
     ppa_id = self.triggerPpaCreationAndWaitUntilComplete(ppa_creation_request)
-    
+
     # Notify SAS UUT about SAS Harness and trigger Full Activity Dump and retrieves the
     # PPA Zone that matches with PPA Id.
     uut_ppa_zone_data = self.triggerCpasAndRetrievePpaZone(
