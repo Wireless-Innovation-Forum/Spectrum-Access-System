@@ -176,7 +176,7 @@ def findGrantsInsideNeighborhood(reg_requests, grant_requests, grant_index, cons
 
         if cbsd_cat == 'A':
             if dpa_type is not DpaType.OUT_OF_BAND:
-                point_cbsd = SPoint(lat_cbsd, lon_cbsd)
+                point_cbsd = SPoint(lon_cbsd, lat_cbsd)
                 if dist_km <= CAT_A_NBRHD_DIST and polygon_ex_zone.contains(point_cbsd):
                     cbsd_in_nbrhd = True
         elif cbsd_cat == 'B':
@@ -543,7 +543,8 @@ def moveListConstraint(protectionPoint, lowFreq, highFreq, registrationReq,
 
 
 def findMoveList(protection_specs, protection_points, registration_requests,
-                 grant_requests, num_iter, num_processes, exclusion_zone=None):
+                 grant_requests, num_iter, num_processes, exclusion_zone=None,
+                 pool=None):
 
     """
     Main routine to find CBSD indices on the move list.
@@ -568,12 +569,13 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                             If it is a list of locations, each one is a tuple
                             with fields 'latitude' and 'longitude'.
                             Default value is 'None'.
+        pool:               optional |multiprocessing.Pool| to use
+
     Returns:
         result:             a Boolean list (same size as registration_requests/
                             grant_requests) with TRUE elements at indices having
                             grants on the move list
     """
-
     # Determine DPA type based on frequency range.
     if protection_specs.lowFreq >= LOW_FREQ_COCH and protection_specs.highFreq <= HIGH_FREQ_COCH:
         dpa_type = DpaType.CO_CHANNEL
@@ -587,7 +589,8 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     grant_index = range(1, len(registration_requests) + 1)
 
     # Find the move list of each protection constraint with a pool of parallel processes.
-    pool = Pool(processes=min(num_processes, len(protection_points)))
+    if pool is None:
+      pool = Pool(processes=min(num_processes, len(protection_points)))
     moveListC = partial(moveListConstraint, lowFreq=protection_specs.lowFreq,
                         highFreq=protection_specs.highFreq,
                         registrationReq=registration_requests, grantReq=grant_requests,
@@ -596,8 +599,6 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                         numIter=num_iter, threshold=protection_specs.threshold,
                         beamwidth=protection_specs.beamwidth)
     M_c = pool.map(moveListC, protection_points)
-    pool.close()
-    pool.join()
 
     # Find the unique CBSD indices in the M_c list of lists.
     M = set().union(*M_c)
