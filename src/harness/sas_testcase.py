@@ -75,9 +75,8 @@ class SasTestCase(unittest.TestCase):
     Includes injection of FCC IDs and conditional registration data.
 
     Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
+      registration_request: A list of individual CBSD registration requests
+        (each of which is itself a dictionary).
       conditional_registration_data: A list of individual CBSD registration
         data that need to be preloaded into SAS (each of which is a dictionary).
         The dictionary is a RegistrationRequest object, the fccId and
@@ -122,9 +121,8 @@ class SasTestCase(unittest.TestCase):
     Quickly register and grant N devices; assert SUCCESS for each step and
     return corresponding CBSD and grant IDs.
     Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
+      registration_request: A list of individual CBSD registration requests
+        (each of which is itself a dictionary).
       grant_request: A dictionary with a single key-value pair where the key is
         "grantRequest" and the value is a list of individual CBSD
         grant requests (each of which is itself a dictionary).
