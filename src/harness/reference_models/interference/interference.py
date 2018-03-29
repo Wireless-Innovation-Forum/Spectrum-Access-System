@@ -88,7 +88,7 @@ ESC_CAT_A_HIGH_FREQ_HZ = 3660.e6
 ESC_LOW_FREQ_HZ = 3550.e6
 ESC_HIGH_FREQ_HZ = 3680.e6
 
-# ESC Channel 21 Center Frequency
+# ESC Channel 21 Centre Frequency
 ESC_CH21_CF_HZ = 36525.e5
 
 # One Mega Hertz
@@ -163,7 +163,7 @@ EscInformation = namedtuple('EscInformation',
 
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
-  return 10**(x / 10)
+  return 10**(x /float(10))
 
 def linearToDb(x):
   """This function returns mW to dBm converted value"""
@@ -183,7 +183,6 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
     (low_freq_hz,high_freq_hz). 
   """
   assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
-
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
 
   return [(low, high) for low,high in zip(channels, channels+5*MHZ)]
@@ -193,7 +192,7 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
   """Finds grants inside protection entity neighborhood
 
   Args:
-    grants: a list of grants of type GAA
+    grants: an iterator of grants with attributes latitude and longitude
     protection_point: tuple containing (latitude,longitude) of a protection entity 
     entity_type: enum of type ProtectedEntityType 
   Returns:
@@ -218,13 +217,13 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
 
 def findOverlappingGrants(grants, constraint):
-  """Finds grants inside protection entity neighborhood
+  """Finds grants overlapping with protection entity
    
   Grants overlapping with frequency range of the protection entity are 
   considered as overlapping grants 
 
   Args:
-    grants: a list of grants of type GAA
+    grants: an iterator of grants with attributes latitude and longitude
     constraint: protection constraint of type ProtectionConstraint
   Returns:
     grants_inside: a list of grants, each one being a namedtuple of type
@@ -245,9 +244,10 @@ def findOverlappingGrants(grants, constraint):
     # ESC Passband is 3550-3680MHz
     # Category A CBSD grants are considered in the neighborhood only for 
     # constraint frequency range 3550-3660MHz
-    if ProtectedEntityType.ESC == _DISTANCE_PER_PROTECTION_TYPE[constraint.entity_type]:
-      if grant.cbsd_category == 'A' and constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ:
-        freq_check = False
+    if (constraint.entity_type == ProtectedEntityType.ESC and
+          grant.cbsd_category == 'A' and 
+          constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ):
+          freq_check = False
 
     # Append the grants information if it is inside the neighborhood of
     # protection constraint
@@ -322,10 +322,6 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
       altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
       height_cbsd = height_cbsd - altitude_cbsd
 
-    # Sanity check on CBSD antenna height
-    if height_cbsd < 1 or height_cbsd > 1000:
-      raise ValueError('CBSD height is less than 1m or greater than 1000m.')
-
     for grant in grants:
       # Return CBSD information
       cbsd_grant = CbsdGrantInformation(
@@ -370,8 +366,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
     interference: interference contribution(dBm)
   """
 
-  if (cbsd_grant.latitude == constraint.latitude) and \
-    (cbsd_grant.longitude == constraint.longitude): 
+  if (cbsd_grant.latitude == constraint.latitude and
+        cbsd_grant.longitude == constraint.longitude): 
     db_loss = 0
     incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
   else:
@@ -452,8 +448,7 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   Args:
     cbsd_grant: a namedtuple of type CbsdGrantInformation
     constraint: protection constraint of type ProtectionConstraint
-    fss_info: contains information on antenna height the tangent 
-              and perpendicular components.
+    fss_info: contains fss point and antenna information
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
     interference: interference contribution(dBm)
@@ -499,20 +494,20 @@ def getFssMaskLoss(cbsd_grant, constraint):
 
   # if lower edge of the FSS passband is less than CBSD grant
   # lowFrequency and highFrequency
-  if constraint.low_frequency < cbsd_grant.low_frequency and\
-         constraint.low_frequency < cbsd_grant.high_frequency:
+  if (constraint.low_frequency < cbsd_grant.low_frequency and
+         constraint.low_frequency < cbsd_grant.high_frequency):
     fss_mask_loss = 0.5 
 
   # if CBSD grant lowFrequency and highFrequency is less than
   # 50MHz offset from the FSS passband lower edge
-  elif cbsd_grant.low_frequency < offset and\
-     cbsd_grant.high_frequency < offset:
+  elif (cbsd_grant.low_frequency < offset and
+     cbsd_grant.high_frequency < offset):
     fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.25)
 
   # if CBSD grant lowFrequency is less than 50MHz offset and
   # highFrequency is greater than 50MHz offset
-  elif cbsd_grant.low_frequency < offset and\
-            cbsd_grant.high_frequency > offset:
+  elif (cbsd_grant.low_frequency < offset and
+            cbsd_grant.high_frequency > offset):
     low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) /
                                                      MHZ) * 0.25)
     fss_mask_loss = low_freq_mask_loss + linearToDb(((cbsd_grant.high_frequency - offset) / 
@@ -521,10 +516,10 @@ def getFssMaskLoss(cbsd_grant, constraint):
   # if FSS Passband lower edge frequency is grater than CBSD grant
   # lowFrequency and highFrequency and
   # CBSD grand low and high frequencies are greater than 50MHz offset
-  elif constraint.low_frequency > cbsd_grant.low_frequency and \
-      constraint.low_frequency > cbsd_grant.high_frequency and \
-      cbsd_grant.low_frequency > offset and\
-             cbsd_grant.high_frequency > offset:
+  elif (constraint.low_frequency > cbsd_grant.low_frequency and
+      constraint.low_frequency > cbsd_grant.high_frequency and 
+      cbsd_grant.low_frequency > offset and
+             cbsd_grant.high_frequency > offset):
     fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.6)
 
   return fss_mask_loss
@@ -539,8 +534,7 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   Args:
     cbsd_grant: a namedtuple of type CbsdGrantInformation
     constraint: protection constraint of type ProtectionConstraint
-    fss_info: contains information on antenna height on 
-              the tangent and perpendicular components.
+    fss_info: contains fss point and antenna information 
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
     interference: interference contribution(dBm)
@@ -613,9 +607,8 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   Args:
     grant : namedtuple of type CbsdGrantInformation
     eirp : EIRP of the grant 
-    channel_constraint: namedtuple f type ProtectionConstraint
-    fss_info: contains information on antenna height
-              on the tangent and perpendicular components.
+    channel_constraint: namedtuple of type ProtectionConstraint
+    fss_info: contains fss point and antenna information
     esc_antenna_info: contains information on ESC antenna height, azimuth, 
                       gain and pattern gain 
     region_type: region type of protection PPA/GWPZ area.
