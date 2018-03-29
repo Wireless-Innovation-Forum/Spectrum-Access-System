@@ -217,19 +217,20 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_11_default_config(self, filename):
-    """Generates the WinnForum configuration for SSS_11. """
+    """Generates the WinnForum configuration for SSS_11."""
     # Create the configuration for blacklisted SAS cert/key path
 
     config = {
-      'sasCert': self.getCertFilename("blacklisted_sas.cert"),
-      'sasKey': self.getCertFilename("blacklisted_sas.key")
+        'sasCert': self.getCertFilename("blacklisted_sas.cert"),
+        'sasKey': self.getCertFilename("blacklisted_sas.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SSS_11_default_config)
   def test_WINNF_FT_S_SSS_11(self, config_filename):
     """Blacklisted certificate presented by SAS Test Harness.
-       Checks that SAS UUT response with fatal alert message.
+
+    Checks that SAS UUT response with fatal alert message.
     """
     # Reset SAS UUT
     self.SasReset()
@@ -240,7 +241,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Read the fingerprint from the certificate
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                   'url': SAS_TEST_HARNESS_URL })
+                                   'url': SAS_TEST_HARNESS_URL})
 
     # Tls handshake fails
     self.assertTlsHandshakeFailure(client_cert=config['sasCert'],

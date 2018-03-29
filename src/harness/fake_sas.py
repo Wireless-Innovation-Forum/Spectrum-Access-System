@@ -423,11 +423,10 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.options &= ssl.CERT_REQUIRED
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
-    ssl_context.load_verify_locations(cafile=os.path.join('certs',ca_cert))
+    ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
     ssl_context.load_cert_chain(
-                               certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-                               keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
-                                )
+        certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+        keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
     ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
     ssl_context.verify_mode = ssl.CERT_REQUIRED
     server.socket = ssl_context.wrap_socket(server.socket,
@@ -437,7 +436,7 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
       server.socket,
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT if not ca_cert else os.path.join('certs',ca_cert),
+      ca_certs=CA_CERT if not ca_cert else os.path.join('certs', ca_cert),
 
       cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
       ssl_version=ssl.PROTOCOL_TLSv1_2,
@@ -452,9 +451,9 @@ if __name__ == '__main__':
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
   parser.add_argument(
-    '--ca', help='Use CA certificate', dest='ca_cert', action='store')
+      '--ca', help='Use CA certificate', dest='ca_cert', action='store')
   parser.add_argument(
-    '--verify_crl', help='Use revoke and CRL', dest='verify_crl', action='store_true')
+      '--verify_crl', help='Use revoke and CRL', dest='verify_crl', action='store_true')
   args = parser.parse_args()
 
   config_parser = ConfigParser.RawConfigParser()

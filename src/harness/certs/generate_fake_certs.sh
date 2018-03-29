@@ -241,7 +241,7 @@ echo "\n\nGenerate blacklisted client certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out blacklisted_client.csr -keyout blacklisted_client.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted CBSD "
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted CBSD"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in blacklisted_client.csr \
     -out blacklisted_client.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
@@ -271,7 +271,7 @@ echo "\n\nGenerate blacklisted sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
     -out blacklisted_sas.csr -keyout blacklisted_sas.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted SAS "
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=Blacklisted SAS"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in blacklisted_sas.csr \
     -out blacklisted_sas.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
@@ -279,29 +279,29 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in blacklisted_sas.csr
 
 #Revoke the blacklisted_sas.cert for WINNF.FT.S.SSS.11
 openssl ca -revoke blacklisted_sas.cert -keyfile private/sas_ca.key -cert sas_ca.cert \
-     -config ../../../cert/openssl.cnf
+    -config ../../../cert/openssl.cnf
 
 #Create a CRL for root CA containing the revoked CBSD CA certificate
-echo "\n\n Generate CRL for root_ca"
+echo "\n\nGenerate CRL for root_ca"
 openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-     -config ../../../cert/openssl.cnf  -crlhours 1\
-     -out crl/root_ca.crl
+    -config ../../../cert/openssl.cnf  -crlhours 1\
+    -out crl/root_ca.crl
 
 #Creating CRL for blacklisted certificates xxS.11 test cases
-echo "\n\n Generate CRL for sas_ca"
+echo "\n\nGenerate CRL for sas_ca"
 openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out crl/sas_ca.crl
+    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -out crl/sas_ca.crl
 
-echo "\n\n Generate CRL for proxy_ca"
+echo "\n\nGenerate CRL for proxy_ca"
 openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out crl/proxy_ca.crl
+    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -out crl/proxy_ca.crl
 
-echo "\n\n Generate CRL for cbsd_ca"
+echo "\n\nGenerate CRL for cbsd_ca"
 openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-     -config ../../../cert/openssl.cnf -crlhours 1 \
-     -out crl/cbsd_ca.crl
+    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -out crl/cbsd_ca.crl
 
 #Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
 echo "\n\nGenerate 'client_expired' certificate/key"
