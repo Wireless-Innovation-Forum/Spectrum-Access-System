@@ -175,19 +175,25 @@ class AggregateInterferenceOutputFormat:
   def __init__(self):
     self.manager = multiprocessing.Manager()
     self.aggregate_interference_info = self.manager.dict()
+    self.lock = multiprocessing.Lock()
 
   def SetAggregateInterferenceInfo(self, latitude, longitude, interference):
-    if self.aggregate_interference_info.has_key(latitude) is False:
-      self.aggregate_interference_info[latitude] = {}
+    self.lock.acquire()
+    try:
+      if latitude not in self.aggregate_interference_info:
+        self.aggregate_interference_info[latitude] = self.manager.dict()
    
-    # Creating a proxy container for mutable dictionary
-    aggregate_interference_proxy = self.aggregate_interference_info[latitude]
+      # Creating a proxy container for mutable dictionary
+      aggregate_interference_proxy = self.aggregate_interference_info[latitude]
 
-    if aggregate_interference_proxy.has_key(longitude) is False:
-      aggregate_interference_proxy[longitude] = []
+      if longitude not in aggregate_interference_proxy:
+        aggregate_interference_proxy[longitude] = self.manager.list()
 
-    aggregate_interference_proxy[longitude].append(interference)
-    self.aggregate_interference_info[latitude] = aggregate_interference_proxy 
+      aggregate_interference_proxy[longitude].append(interference)
+      self.aggregate_interference_info[latitude] = aggregate_interference_proxy
+
+    finally:
+      self.lock.release()
 
   def GetAggregateInterferenceInfo(self):
     return self.aggregate_interference_info
@@ -298,30 +304,25 @@ def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_object: a list of FAD objects from SAS Test Harness
   Returns:
-    grant_objects: a list of CBSD grants dictionary containing registrationRequest
+    grant_objects: a list of CBSD grants dictionary containing registration
     and grants
   """
   # List of CBSD grant tuples extracted from FAD record
   grant_objects = []
 
-  # Creating list of cbsds
-  cbsd_list_uut = []
-  cbsd_list_th = []
-
-  for cbsds in sas_uut_fad_object.getCbsdRecords():
-    cbsd_list_uut.append(cbsds)
-
-  grant_objects_uut = getAllGrantInformationFromCbsdDataDump(cbsd_list_uut, True)
+  grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
+                        sas_uut_fad_object.getCbsdRecords(), True)
+   
+  grant_objects_test_harness = []
 
   for fad in sas_th_fad_objects:
-    for cbsds in fad.getCbsdRecords():
-      cbsd_list_th.append(cbsds)
-      grant_objects_test_harness = getAllGrantInformationFromCbsdDataDump(
-                                     cbsd_list_th, False)
-
+    grant_objects_test_harness.extend(getAllGrantInformationFromCbsdDataDump(
+                                     fad.getCbsdRecords(), False))
+  
   grant_objects = grant_objects_uut + grant_objects_test_harness
 
   return grant_objects 
+
 
 def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
   """Extracts list of CbsdGrantInformation namedtuple
@@ -344,14 +345,14 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
 
   # Loop over each CBSD grant
   for cbsd_data_record in cbsd_data_records:
-    registration = cbsd_data_record.get('registrationRequest')
-    grants = cbsd_data_record.get('grants')
+    registration = cbsd_data_record['registration']
+    grants = cbsd_data_record['grants']
 
     # Check CBSD location
-    lat_cbsd = registration.get('installationParam', {}).get('latitude')
-    lon_cbsd = registration.get('installationParam', {}).get('longitude')
-    height_cbsd = registration.get('installationParam', {}).get('height')
-    height_type_cbsd = registration.get('installationParam', {}).get('heightType')
+    lat_cbsd = registration['installationParam']['latitude']
+    lon_cbsd = registration['installationParam']['longitude']
+    height_cbsd = registration['installationParam']['height']
+    height_type_cbsd = registration['installationParam']['heightType']
     if height_type_cbsd == 'AMSL':
       altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
       height_cbsd = height_cbsd - altitude_cbsd
@@ -363,22 +364,14 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
         latitude=lat_cbsd,
         longitude=lon_cbsd,
         height_agl=height_cbsd,
-        indoor_deployment=registration.get('installationParam', {})
-                                      .get('indoorDeployment'),
-        antenna_azimuth=registration.get('installationParam', {})
-                                    .get('antennaAzimuth'),
-        antenna_gain=registration.get('installationParam', {})
-                                 .get('antennaGain'),
-        antenna_beamwidth=registration.get('installationParam', {})
-                                      .get('antennaBeamwidth'),
-        cbsd_category=registration.get('cbsdCategory'),
-        max_eirp=grant.get('operationParam', {}).get('maxEirp'),
-        low_frequency=grant.get('operationParam', {})
-                        .get('operationFrequencyRange', {})
-                        .get('lowFrequency'),
-        high_frequency=grant.get('operationParam', {})
-                         .get('operationFrequencyRange', {})
-                         .get('highFrequency'),
+        indoor_deployment=registration['installationParam']['indoorDeployment'],
+        antenna_azimuth=registration['installationParam']['antennaAzimuth'],
+        antenna_gain=registration['installationParam']['antennaGain'],
+        antenna_beamwidth=registration['installationParam']['antennaBeamwidth'],
+        cbsd_category=registration['cbsdCategory'],
+        max_eirp=grant['operationParam']['maxEirp'],
+        low_frequency=grant['operationParam']['operationFrequencyRange']['lowFrequency'],
+        high_frequency=grant['operationParam']['operationFrequencyRange']['highFrequency'],
         is_managed_grant=is_managing_sas)
       grant_objects.append(cbsd_grant)
   return grant_objects
@@ -653,24 +646,24 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
 
   # Compute interference to FSS Co-channel protection constraint
   if channel_constraint.entity_type is ProtectedEntityType.FSS_CO_CHANNEL:
-    interference = dbToLinear(computeInterferenceFssCochannel(
-                     grant, channel_constraint, fss_info, eirp))
+    interference = computeInterferenceFssCochannel(
+                     grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to FSS Blocking protection constraint
   elif channel_constraint.entity_type is ProtectedEntityType.FSS_BLOCKING:
-    interference = dbToLinear(computeInterferenceFssBlocking(
-                     grant, channel_constraint, fss_info, eirp))
+    interference = computeInterferenceFssBlocking(
+                     grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to ESC protection constraint
   elif channel_constraint.entity_type is ProtectedEntityType.ESC:
-    interference = dbToLinear(computeInterferenceEsc(
-                     grant, channel_constraint, esc_antenna_info, eirp))
+    interference = computeInterferenceEsc(
+                     grant, channel_constraint, esc_antenna_info, eirp)
 
   # Compute interference to GWPZ or PPA protection constraint
   else:
-    interference = dbToLinear(computeInterferencePpaGwpzPoint(
+    interference = computeInterferencePpaGwpzPoint(
                      grant, channel_constraint, GWPZ_PPA_HEIGHT, 
-                           eirp, region_type))
+                           eirp, region_type)
   
   return interference
 
