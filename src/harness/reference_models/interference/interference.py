@@ -36,7 +36,8 @@
   FSS/GWPZ/PPA/ESC incumbent types
 ==================================================================================
 """
-import numpy as np
+import numpy as np 
+import multiprocessing
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
@@ -161,13 +162,46 @@ EscInformation = namedtuple('EscInformation',
                                  ['antenna_height', 'antenna_azimuth',
                                   'antenna_gain', 'antenna_pattern_gain'])
 
+class AggregateInterferenceOutputFormat:
+  """Implementation of output format of aggregate interference 
+
+  This class is used to generate specified output format for post IAP 
+  allowed interference or for aggregate interference to non-DPAs
+  
+  Creates a data structure to store post IAP allowed interference or 
+  aggregate interference to non-DPAs output in the format of 
+  {latitude : {longitude : [ output_first_5MHz_segment, output_first_5MHz_segment ]}}
+  """
+  def __init__(self):
+    self.manager = multiprocessing.Manager()
+    self.aggregate_interference_info = self.manager.dict()
+
+  def SetAggregateInterferenceInfo(self, latitude, longitude, interference):
+    if self.aggregate_interference_info.has_key(latitude) is False:
+      self.aggregate_interference_info[latitude] = {}
+   
+    # Creating a proxy container for mutable dictionary
+    aggregate_interference_proxy = self.aggregate_interference_info[latitude]
+
+    if aggregate_interference_proxy.has_key(longitude) is False:
+      aggregate_interference_proxy[longitude] = []
+
+    aggregate_interference_proxy[longitude].append(interference)
+    self.aggregate_interference_info[latitude] = aggregate_interference_proxy 
+
+  def GetAggregateInterferenceInfo(self):
+    return self.aggregate_interference_info
+
+
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
-  return 10**(x /float(10))
+  return 10**(x / float(10))
+
 
 def linearToDb(x):
   """This function returns mW to dBm converted value"""
   return 10 * np.log10(x)
+
 
 def getProtectedChannels(low_freq_hz, high_freq_hz):
   """Gets protected channels list 
@@ -348,6 +382,7 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
         is_managed_grant=is_managing_sas)
       grant_objects.append(cbsd_grant)
   return grant_objects
+
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant, 
                                   max_eirp, region='SUBURBAN'):
