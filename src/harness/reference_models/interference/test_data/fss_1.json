@@ -1,4 +1,5 @@
 {
+  "record":{
   "id": "incumbent/ibfs/1",
   "type": "FSS",
   "deploymentParam":
@@ -20,7 +21,8 @@
         }
       }
     }
-  ],
+  ]
+  },
   "ttc": true
 }
 

@@ -30,7 +30,7 @@
 
   The routines returns a nested dictionary in the format of
   {latitude : {longitude : [interference1, interference2]}}. interference 
-  is the aggregate interference value in dBm for each of the protection constraint.
+  is the aggregate interference value in mW for each of the protection constraint.
 ==================================================================================
 """
 
@@ -44,7 +44,7 @@ from functools import partial
 
 
 # Aggregate interference to non-DPAs in the formation of 
-# {latitude: {longitude : [interference(dBm), interference(dBm)]}
+# {latitude: {longitude : [interference(mW), interference(mW)]}
 aggregate_interference = interf.AggregateInterferenceOutputFormat()
 
 
@@ -52,7 +52,7 @@ def convertAndSumInterference(cbsd_interference_list):
   """Converts interference in dBm to mW to calculate aggregate interference"""
   
   interferences_in_dbm = np.array(cbsd_interference_list)
-  return interf.linearToDb(np.sum(interf.dbToLinear(interferences_in_dbm)))
+  return np.sum(interf.dbToLinear(interferences_in_dbm))
 
 
 def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_freq, 
@@ -77,7 +77,7 @@ def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_fre
    protection_ent_type: An enum member of class ProtectedEntityType
    region_type: Region type of the protection point
    Returns:
-      Aggregate interference for a protection constraint(dBm)
+      Aggregate interference for a protection constraint(mW)
   """
 
   # Get all the grants inside neighborhood of the protection entity
@@ -123,19 +123,20 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
 
   Args:
     fss_record: FSS co-channel protection entity
-    cbsd_list: list of CBSD objects containing RegistrationRequests and Grants
+    cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to FSS co-channel in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(dBm), aggr_interf2(dBm)]}}
+    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
   """
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
 
   # Get the protection point of the FSS
-  fss_point = fss_record['deploymentParam'][0]['installationParam']
+  fss_point = fss_record['record']['deploymentParam'][0]['installationParam']
   protection_point = (fss_point['latitude'], fss_point['longitude'])
 
   # Get the frequency range of the FSS
-  fss_freq_range = fss_record['deploymentParam'][0]['operationParam']['operationFrequencyRange']
+  fss_freq_range = fss_record['record']['deploymentParam'][0]\
+                     ['operationParam']['operationFrequencyRange']
   fss_low_freq = fss_freq_range['lowFrequency']
 
   # Get FSS information
@@ -162,25 +163,26 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
   """Calculates aggregate interference for FSS blocking.
   
   Calculates aggregate interference for FSS blocking pass band based on the 
-  interferences caused by CBSD's grants in the neighborhood ofthe FSS 
+  interferences caused by CBSD's grants in the neighborhood of the FSS 
   blocking protection entity.
 
   Args:
     fss_record: FSS blocking protection entity
-    cbsd_list: list of CBSD objects containing RegistrationRequests and Grants
+    cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to FSS blocking in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(dBm), aggr_interf2(dBm)]}}
+    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
   """
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
 
   fss_ttc_flag = fss_record['ttc']
   # Get the protection point of the FSS
-  fss_point = fss_record['deploymentParam'][0]['installationParam']
+  fss_point = fss_record['record']['deploymentParam'][0]['installationParam']
   protection_point = (fss_point['latitude'], fss_point['longitude'])
 
   # Get the frequency range of the FSS
-  fss_freq_range = fss_record['deploymentParam'][0]['operationParam']['operationFrequencyRange']
+  fss_freq_range = fss_record['record']['deploymentParam'][0]\
+                     ['operationParam']['operationFrequencyRange']
   fss_low_freq = fss_freq_range['lowFrequency']
   fss_high_freq = fss_freq_range['highFrequency']
 
@@ -220,10 +222,10 @@ def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
   
   Args:
     esc_record: ESC protection entity
-    cbsd_list: list of CBSD objects containing RegistrationRequests and Grants
+    cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to ESC in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(dBm), aggr_interf2(dBm)]}}
+    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
   """
 
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
@@ -269,10 +271,10 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
 
   Args:
     gwpz_record: GWPZ protection entity
-    cbsd_list: list of CBSD objects containing RegistrationRequests and Grants
+    cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to GWPZ in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(dBm), aggr_interf2(dBm)]}}
+    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
   """
 
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
@@ -316,10 +318,10 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list):
   Args:
     ppa_record: PPA protection entity
     pal_list: list of PAL records
-    cbsd_list: list of CBSD objects containing RegistrationRequests and Grants
+    cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to PPA in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(dBm), aggr_interf2(dBm)]}}
+    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
   """
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
 
