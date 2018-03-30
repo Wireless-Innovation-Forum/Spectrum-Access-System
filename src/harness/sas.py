@@ -27,7 +27,6 @@ def GetTestingSas():
   sas_sas_ec_base_url = config_parser.get('SasConfig', 'SasSasEcBaseUrl')
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  sas_sas_active_base_url = _sas_sas_rsa_base_url
   return SasImpl(admin_and_cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
     sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version), SasAdminImpl(admin_and_cbsd_sas_rsa_base_url)
 
