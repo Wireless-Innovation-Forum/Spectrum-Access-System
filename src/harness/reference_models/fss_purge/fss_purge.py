@@ -24,7 +24,7 @@ from reference_models.antenna import antenna
 from reference_models.interference import interference
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
-
+from reference_models.pre_iap_filtering import pre_iap_util
 # Definition of constants and data types for FSS purge model.
 # Reference Channel bandwidth for FSS OOBE calculation
 REF_BW = 5.e6
@@ -41,13 +41,13 @@ def getFssInfo(fss_record):
   """
 
   # Extract fields from FSS record. 
-  fss_latitude = fss_record['deploymentParam'][0]['installationParam']['latitude']
-  fss_longitude = fss_record['deploymentParam'][0]['installationParam']['longitude']
-  fss_height = fss_record['deploymentParam'][0]['installationParam']['height']
-  fss_height_type = fss_record['deploymentParam'][0]['installationParam']['heightType']
-  fss_azimuth = fss_record['deploymentParam'][0]['installationParam']['antennaAzimuth']
-  fss_pointing_elevation = fss_record['deploymentParam'][0]['installationParam']['elevation']
-  fss_max_gain_dbi = fss_record['deploymentParam'][0]['installationParam']['antennaGain']
+  fss_latitude = fss_record['record']['deploymentParam'][0]['installationParam']['latitude']
+  fss_longitude = fss_record['record']['deploymentParam'][0]['installationParam']['longitude']
+  fss_height = fss_record['record']['deploymentParam'][0]['installationParam']['height']
+  fss_height_type = fss_record['record']['deploymentParam'][0]['installationParam']['heightType']
+  fss_azimuth = fss_record['record']['deploymentParam'][0]['installationParam']['antennaAzimuth']
+  fss_pointing_elevation = fss_record['record']['deploymentParam'][0]['installationParam']['elevation']
+  fss_max_gain_dbi = fss_record['record']['deploymentParam'][0]['installationParam']['antennaGain']
 
   # Convert the height to AGL if it was AMSL type.
   if fss_height_type == 'AMSL':
@@ -64,29 +64,8 @@ def getFssInfo(fss_record):
                                   max_gain_dbi=fss_max_gain_dbi,
                                   pointing_azimuth=fss_azimuth,
                                   pointing_elevation=fss_pointing_elevation)
+                                  
   return fss_entity
-
-def getFssNeighboringCbsdsWithGrants(cbsd_list, fss_record):
-  """ Get the list of all CBSDs that lie within 40 KMs of FSS and have at least one grant.
-
-  Args:
-    cbsd_list:  List of CbsdData dictionaries as defined in the SAS-SAS specification.
-    fss_record: A FSS record dictionary.
-  Returns:
-    List of CBSDs lying within 40 KMs of FSS and having at least one grant.
-  """
-
-  neighboring_cbsds_with_grants = []
-  for cbsd in cbsd_list:
-    distance_km, _, _ = vincenty.GeodesicDistanceBearing(
-        fss_record['deploymentParam'][0]['installationParam']['latitude'],
-        fss_record['deploymentParam'][0]['installationParam']['longitude'],
-        cbsd['registrationRequest']['installationParam']['latitude'],
-        cbsd['registrationRequest']['installationParam']['longitude'])
-
-    if distance_km <= 40 and cbsd['grants']:
-        neighboring_cbsds_with_grants.append(cbsd)
-  return neighboring_cbsds_with_grants
 
 def performPurge(cbsds, fss_entity):
   """ Implementation of algorithm described in R2-SGN-29.
@@ -262,8 +241,6 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
                               fss_entity.pointing_azimuth,
                               fss_entity.pointing_elevation,
                               fss_entity.max_gain_dbi)
-
-
   return fss_ant_gain
 
 def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
@@ -286,8 +263,8 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
 
   for fss_record in fss_records:
     # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
-    if fss_record['deploymentParam'][0]['ttc']:
-      neighboring_cbsds_with_grants = getFssNeighboringCbsdsWithGrants(cbsds, fss_record)
+    if fss_record['ttc']:
+      neighboring_cbsds_with_grants = pre_iap_util.getFssNeighboringCbsdsWithGrants(cbsds, fss_record, 40)
       if neighboring_cbsds_with_grants:
         fss_entity = getFssInfo(fss_record)
         performPurge(neighboring_cbsds_with_grants, fss_entity)
