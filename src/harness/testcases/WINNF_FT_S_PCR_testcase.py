@@ -150,14 +150,13 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     return ppa_id
 
-  def triggerFadAndRetrievePpaZone(self, ppa_id, ssl_cert, ssl_key):
-    """ Triggers FAD and Retrieves PPA Zone Record matches with specified ppa_id.
+  def triggerFadAndRetrievePpaZone(self, ssl_cert, ssl_key):
+    """ Triggers FAD and Retrieves PPA Zone Record.
 
     Pulls FAD from SAS UUT. Retrieves the ZoneData Records from FAD,
-    checks that only one record is present and it matches the ppa_id.
+    checks that only one record is present.
 
     Args:
-      ppa_id: String format of PPA ID.
       ssl_cert: Path to SSL cert file to be used for pulling FAD record.
       ssl_key: Path to SSL key file to be used for pulling FAD record.
 
@@ -173,15 +172,13 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # As SAS is reset at the beginning of the test, the FAD records should contain
     # only one zone record containing the PPA that was generated. Hence the first
-    # zone record is retrieved and verified if it matches the PPA ID.
+    # zone record is retrieved.
     uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert, ssl_key)
 
-    # Check if the retrieved FAD that has valid atleast PPA zone record.
+    # Check if the retrieved FAD that has valid and at least one PPA zone record.
     uut_ppa_zone_data = uut_fad.getZoneRecords()
-    print len(uut_ppa_zone_data)
-    self.assertEquals(len(uut_ppa_zone_data), 2,
-                      msg='There is no single PPA Zone record matches with PPA ID '
-                          '{0} received from SAS UUT'.format(ppa_id))
+    self.assertEquals(len(uut_ppa_zone_data), 1,
+                      msg='There is no single PPA Zone record received from SAS UUT')
 
     return uut_ppa_zone_data[0]
 
@@ -379,9 +376,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     ppa_id = self.triggerPpaCreationAndWaitUntilComplete(ppa_creation_request)
 
     # Notify SAS UUT about SAS Harness and trigger Full Activity Dump and retrieves the
-    # PPA Zone that matches with PPA Id.
+    # PPA Zone record.
     uut_ppa_zone_data = self.triggerFadAndRetrievePpaZone(
-        ppa_id,
         ssl_cert=config['sasTestHarnessCert'],
         ssl_key=config['sasTestHarnessKey'])
 
