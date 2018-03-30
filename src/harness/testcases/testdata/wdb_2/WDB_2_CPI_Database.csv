@@ -1,0 +1,10 @@
+cpiId,cpiName,mailingAddress,legalAddress,email,phone,trainingProgram,completionDate,trainingProgramAdministrator,licenseStartDate,licenseEndDate ,status,publicKeyIdentifier 
+professional_installer_id_1,a_name,"1060 W Addison St, Chicago, IL 60613","1060 W Addison St, Chicago, IL 60613",abc@abc.com,(555) 123-4567,The Best CPI Training Program Ever,1/9/2018,"ACME CPI Training Programs, Inc.",1/9/2018,1/8/2021,ACTIVE,"""-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwo8FIFXbWFuDwh9Sqymd
+m1FaHr8sWVwDFN9QccWsqeXMQYwls0HtyRV7OWXxQVYshDTayAecRd8jVBhjbdIw
+z4uuyiwphPdzjHvdhnFRWaTKiAFVF+lj1UNI9BP8EJtwUE1pzUywj6E6nkVJ1+pk
+X0OdjWnvkYBr9fnWP1Pdty9ZcCPgd3xFvtn2dd+apxVvbkYuXgV5hk1fsiN3+dDE
+wcf5/gfbD2q6wmmZTRUd+zlMFZUQpfnEGKcsh0hZ5IYgGbIkE4ewhH8isiVnjV04
+j9DsCHbZr7z7rLiVWfuqDISnS8GbxCTvRo0DfDSNLnL1eAcDOnCp+3TSqW3mmSmm
+XwIDAQAB
+-----END PUBLIC KEY-----"""

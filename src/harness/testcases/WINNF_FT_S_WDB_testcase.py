@@ -18,7 +18,8 @@ import sas
 import sas_testcase
 from datetime import datetime
 from fake_db_server import FakeDatabaseTestHarness
-from util import configurable_testcase, writeConfig, loadConfig
+from util import configurable_testcase, writeConfig, loadConfig,\
+    convertRequestToRequestWithCpiSignature
 
 
 class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
@@ -37,17 +38,21 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # Load PAL database record
+    pal_record_0 = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+
     # Fake database test harness configuration
-    fake_database_config = {
+    # The databaseFile WDB_1_PAL_Database.csv is populated with PAL record 
+    # details of pal_record_0
+    fake_pal_database_config = {
         'hostName': 'localhost',
-        'port': 9090
+        'port': 9090,
+        'databaseFile': os.path.join('testcases', 'testdata', 'wdb_1', 'WDB_1_PAL_Database.csv')
     }
 
-    # Load PAL database record
-    pal_db_record_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_db_record_0.json')))
-
-    device_b['userId'] = pal_db_record_0['licensee']
+    # Setting the user ID of the of the CBSD to be the same as PAL ID owner.
+    device_b['userId'] = pal_record_0['licensee']
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -68,10 +73,10 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config file
     config = {
-        'palDbRecord': pal_db_record_0,
+        'palRecord': pal_record_0,
         'registrationRequest': device_b,
         'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'fakePalDatabaseInfo': fake_pal_database_config
     }
     writeConfig(filename, config)
 
@@ -81,14 +86,12 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
 
-    device_c = config['registrationRequest']
-
     # Step 1: Register CBSD C to the SAS UUT.
-    cbsd_ids = self.assertRegistered([device_c],
+    cbsd_ids = self.assertRegistered([config['registrationRequest']],
                         config['conditionalRegistrationData'])
 
     # Step 2: Request creation of PPA 
-    pal_id = config['palDbRecord']['palId']
+    pal_id = config['palRecord']['palId']
     ppa_creation_request = {
             "cbsdIds": cbsd_ids,
             "palIds": [pal_id]
@@ -99,19 +102,17 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(ppa_id, None)
 
     # Step 3: Create PAL database with a PAL record containg the PAL ID P.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
+    # Create fake PAL database server
+    fake_pal_database_server = FakeDatabaseTestHarness(
+                              config['fakePalDatabaseInfo']['databaseFile'],
+                              config['fakePalDatabaseInfo']['hostName'],
+                              config['fakePalDatabaseInfo']['port'])
 
-    # Write the PAL record into the database file
-    fake_database_server.writeDatabaseFile(config['palDbRecord'])
-
-    # Start fake database server
-    fake_database_server.start()
+    # Start fake PAL database server
+    fake_pal_database_server.start()
 
     # Inject the fake database URL into SAS UUT
-    database_url = fake_database_server.getBaseUrl()
+    database_url = fake_pal_database_server.getBaseUrl()
     self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 4: Admin Test Harness triggers CPAS
@@ -122,7 +123,85 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertNotEqual(ppa_id, None)
 
     # As Python garbage collector is not very consistent, the deletion
-    # of the fake_database_server object is not immediate and consistent.
+    # of the fake_pal_database_server object is not immediate and consistent.
     # Hence, explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
+    fake_pal_database_server.shutdown()
+    del fake_pal_database_server
+  
+  def generate_WDB_2_default_config(self, filename):
+    """Generates the WinnForum configuration for WDB.2"""
+
+    # Load category B device info
+    device_b = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # Load CPI user info
+    cpi_id = 'professional_installer_id_1'
+    cpi_name = 'a_name'
+    # Read private key for the CPI user
+    with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'), 
+          'r') as file_handle:
+      cpi_private_key = file_handle.read()
+
+    # Convert device_b's registration request to embed cpiSignatureData
+    convertRequestToRequestWithCpiSignature(cpi_private_key, cpi_id,
+                                            cpi_name, device_b)
+
+    # Fake CPI database test harness configuration.
+    # The CPI database file WDB_2_CPI_Database.csv has one CPI information for the above CPI
+    # user and the public key mentioned in the csv file corresponds to the cpi_private_key.
+    fake_cpi_database_config = {
+        'hostName': 'localhost',
+        'port': 9090,
+        'databaseFile': os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Database.csv')
+    }
+
+    # Create the actual config.
+    config = {
+      'registrationRequest': device_b,
+      'fakeDatabaseInfo': fake_cpi_database_config
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_WDB_2_default_config)
+  def test_WINNF_FT_S_WDB_2(self, config_filename):
+    """CPI database update."""
+
+    # Load the configuration file
+    config = loadConfig(config_filename)
+
+    # Step 1: Register device B and ensure failure
+    request = {'registrationRequest': config['registrationRequest']}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check the register response code is 103 (INVALID_VALUE).
+    self.assertEqual(response['response']['responseCode'], 103)
+
+    # Step 2: Create a CPI database which includes CPI user with credentials
+    # matching those used to create the request in Step 1.
+    fake_cpi_database_server = FakeDatabaseTestHarness(
+        config['fakeDatabaseInfo']['databaseFile'],
+        config['fakeDatabaseInfo']['hostName'],
+        config['fakeDatabaseInfo']['port'])
+
+    # Start fake GWBL database server.
+    fake_cpi_database_server.start()
+
+    # Inject the fake database URL into SAS UUT
+    database_url = fake_cpi_database_server.getBaseUrl()
+    self._sas_admin.InjectDatabaseUrl(database_url)
+
+    # Step 3: Trigger daily activities.
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Step 4: Register the same device and ensure SUCCESS
+    request = {'registrationRequest': config['registrationRequest']}
+    response = self._sas.Registration(request)['registrationResponse']
+
+    # Check the register response code is 0 (SUCCESS).
+    self.assertEqual(response['response']['responseCode'], 0)
+
+    # As Python garbage collector is not very consistent,
+    # explicitly stopping database test harnesses and cleaning up.
+    fake_cpi_database_server.shutdown()
+    del fake_cpi_database_server	
