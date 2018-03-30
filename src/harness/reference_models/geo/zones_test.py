@@ -16,7 +16,6 @@
 import numpy as np
 import os
 import unittest
-import geojson
 import shapely.geometry as sgeo
 from shapely import ops
 
@@ -54,7 +53,7 @@ class TestZones(unittest.TestCase):
 
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()
-    exp_area = 150000  # Should be instead 275000 ??
+    exp_area = 275000
     approx_area = z.area * 110**2 * np.cos(44*np.pi/180)
     self.assertTrue(z.is_valid)
     self.assertTrue(approx_area > exp_area * 0.9 and

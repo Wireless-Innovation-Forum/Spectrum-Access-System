@@ -141,11 +141,10 @@ def GenerateCbsdList(n_cbsd, template_cbsd,
 
 def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
                            nlcd_driver=None, urban_areas=None):
-  """Returns an inland Cbsd within polygon, possibly in urban area.
-
+  """Returns a number of inland |Cbsd| within polygon, possibly in urban area.
 
   Args:
-    template_cbsd: An |Cbsd| used as a template.
+    template_cbsd: A |Cbsd| used as a template.
     polygon: A |shapely.Polygon| where to put the Cbsd.
     nlcd_driver: The land cover driver for detecting inland positions (optional).
     urban_areas: An optional  |shapely.MultiPolygon| defining the urban areas.
@@ -154,29 +153,37 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
   t = template_cbsd
   bounds = polygon.bounds
   cbsds = []
+  total_asked, total_got = 0, 0
+  ratio = 0.5
   while len(cbsds) < num_cbsds:
-    while True:
-      lng = np.random.uniform(bounds[0], bounds[2])
-      lat = np.random.uniform(bounds[1], bounds[3])
-      if not sgeo.Point(lng, lat).within(polygon):
-        continue
+    n_block = int((num_cbsds - len(cbsds)) / ratio * 1.2)
+    lngs = np.random.uniform(bounds[0], bounds[2], n_block)
+    lats = np.random.uniform(bounds[1], bounds[3], n_block)
+    in_points = sgeo.MultiPoint(zip(lngs, lats))
+    in_points = polygon.intersection(in_points)
+    if urban_areas is not None:
+      in_points = urban_areas.intersection(in_points)
+    if isinstance(in_points, sgeo.Point):
+      in_points = [in_points]
+    total_asked += n_block
+    total_got += len(in_points)
+    if not in_points:
+      continue
+    ratio = total_got / float(total_asked)
+    for point in in_points:
       if nlcd_driver is not None:
-        land_cover = nlcd_driver.GetLandCoverCodes(lat, lng)
-        if land_cover <= nlcd.LandCoverCodes.PERENNIAL_SNOW:
+        land_cover = nlcd_driver.GetLandCoverCodes(point.y, point.x)
+        if land_cover < nlcd.LandCoverCodes.PERENNIAL_SNOW:
           continue
 
-      if urban_areas is not None:
-        if not sgeo.Point(lng, lat).within(urban_areas):
-          continue
-      break
+      azimuth_offset = np.random.uniform(0, 360)
+      azimuths = (t.antenna_azimuth if isinstance(t.antenna_azimuth, list)
+                  else [t.antenna_azimuth])
+      for azimuth in azimuths:
+        cbsds.append(Cbsd(point.y, point.x, t.height_agl, t.is_indoor, t.category,
+                          t.eirp_dbm_mhz, azimuth,
+                          t.antenna_beamwidth, t.antenna_gain))
 
-    azimuth_offset = np.random.uniform(0, 360)
-    azimuths = (t.antenna_azimuth if isinstance(t.antenna_azimuth, list)
-                else [t.antenna_azimuth])
-    for azimuth in azimuths:
-      cbsds.append(Cbsd(lat, lng, t.height_agl, t.is_indoor, t.category,
-                        t.eirp_dbm_mhz, azimuth,
-                        t.antenna_beamwidth, t.antenna_gain))
 
   return cbsds
 
