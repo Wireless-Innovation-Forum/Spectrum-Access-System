@@ -323,8 +323,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
-  def SetVersion(cls, version):
-    cls.version = version
+  def SetVersion(cls, cbsd_sas_version, sas_sas_version):
+    cls.cbsd_sas_version = cbsd_sas_version
+    cls.sas_sas_version = sas_sas_version
 
   def _parseUrl(self, url):
     """Parse the Url into the path and value."""
@@ -338,17 +339,17 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     length = int(self.headers.getheader('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
-    if self.path == '/%s/registration' % self.version:
+    if self.path == '/%s/registration' % self.cbsd_sas_version:
       response = FakeSas().Registration(request)
-    elif self.path == '/%s/spectrumInquiry' % self.version:
+    elif self.path == '/%s/spectrumInquiry' % self.cbsd_sas_version:
       response = FakeSas().SpectrumInquiry(request)
-    elif self.path == '/%s/grant' % self.version:
+    elif self.path == '/%s/grant' % self.cbsd_sas_version:
       response = FakeSas().Grant(request)
-    elif self.path == '/%s/heartbeat' % self.version:
+    elif self.path == '/%s/heartbeat' % self.cbsd_sas_version:
       response = FakeSas().Heartbeat(request)
-    elif self.path == '/%s/relinquishment' % self.version:
+    elif self.path == '/%s/relinquishment' % self.cbsd_sas_version:
       response = FakeSas().Relinquishment(request)
-    elif self.path == '/%s/deregistration' % self.version:
+    elif self.path == '/%s/deregistration' % self.cbsd_sas_version:
       response = FakeSas().Deregistration(request)
     elif self.path == '/admin/injectdata/zone':
       response = FakeSasAdmin().InjectZoneData(request)
@@ -396,10 +397,10 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     """Handles GET requests."""
     path, value = self._parseUrl(self.path)
-    if path == '%s/esc_sensor' % self.version:
+    if path == '%s/esc_sensor' % self.sas_sas_version:
       response = FakeSas().GetEscSensorRecord(value)
-    elif path == '%s/dump' % self.version:
-      response = FakeSas().GetFullActivityDump(self.version)
+    elif path == '%s/dump' % self.sas_sas_version:
+      response = FakeSas().GetFullActivityDump(self.sas_sas_version)
     else:
       self.send_response(404)
       return
@@ -409,8 +410,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc):
-  FakeSasHandler.SetVersion(version)
+def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc):
+  FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
@@ -435,6 +436,7 @@ if __name__ == '__main__':
 
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
-  version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc)
+  cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
+  sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
+  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc)
 
