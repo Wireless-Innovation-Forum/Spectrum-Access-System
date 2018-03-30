@@ -61,7 +61,8 @@ DEFAULT_TERRAIN_DATAPATH = CONFIG.GetTerrainDir()
 DEFAULT_LANDCOVER_DATAPATH = CONFIG.GetLandCoverDir()
 DEFAULT_CENSUSTRACTS_DATAPATH = CONFIG.GetCensusTractsDir()
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
-
+CONDITIONAL_PARAMS_REQUIRED = ('antennaAzimuth', 'longitude', 'latitude', 'height',
+                               'antennaGain', 'indoorDeployment', 'antennaBeamwidth')
 
 def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
   """Check if the ppa zone geometry's boundary and interior intersect only
@@ -119,47 +120,40 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       A Return value is string format of the PPA ID.
     """
 
-    try:
-      ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
 
-      # Verify ppa_id should not be None.
-      self.assertIsNotNone(ppa_id, msg="PPA ID received from SAS UUT as result of "
-                                       "PPA Creation is None")
-    except AssertionError as err:
-      logging.error('There is an error while creating PPA:%s', err.message)
-      self.fail('There is an error while creating PPA:%s' % err.message)
-    else:
-      logging.info('TriggerPpaCreation is in progress')
+    # Verify ppa_id should not be None.
+    self.assertIsNotNone(ppa_id, msg="PPA ID received from SAS UUT as result of "
+                                     "PPA Creation is None")
 
-      # Triggers most recent PPA Creation Status immediately and checks for the status of activity
-      # every 10 seconds until it is completed. If the status is not changed within 2 hours
-      # it will throw an exception.
-      signal.signal(signal.SIGALRM,
-                    lambda signum, frame:
-                    (_ for _ in ()).throw(
-                        Exception('Most Recent PPA Creation Status Check Timeout')))
+    logging.info('TriggerPpaCreation is in progress')
 
-      # Timeout after 2 hours if it's not completed.
-      signal.alarm(7200)
+    # Triggers most recent PPA Creation Status immediately and checks for the status of activity
+    # every 10 seconds until it is completed. If the status is not changed within 2 hours
+    # it will throw an exception.
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(
+                      Exception('Most Recent PPA Creation Status Check Timeout')))
 
-      # Check the Status of most recent ppa creation every 10 seconds.
-      while not self._sas_admin.GetPpaCreationStatus()['completed']:
-        time.sleep(10)
+    # Timeout after 2 hours if it's not completed.
+    signal.alarm(7200)
 
-      # Additional check to ensure whether PPA Creation status has error.
-      self.assertTrue(self._sas_admin.GetPpaCreationStatus()['completed'],
-                      msg='PPA creation status is not completed')
-      self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
-                       msg='There was an error while creating PPA')
-      signal.alarm(0)
+    # Check the Status of most recent ppa creation every 10 seconds.
+    while not self._sas_admin.GetPpaCreationStatus()['completed']:
+      time.sleep(10)
 
-      return ppa_id
+    # Additional check to ensure whether PPA creation status has error.
+    self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
+                     msg='There was an error while creating PPA')
+    signal.alarm(0)
 
+    return ppa_id
 
-  def triggerCpasAndRetrievePpaZone(self, ppa_id, ssl_cert, ssl_key):
-    """ Triggers CPAS and Retrieves PPA Zone Record matches with specified ppa_id.
+  def triggerFadAndRetrievePpaZone(self, ppa_id, ssl_cert, ssl_key):
+    """ Triggers FAD and Retrieves PPA Zone Record matches with specified ppa_id.
 
-    Performs CPAS and pulls FAD from SAS UUT. Retrieves the ZoneData Records from FAD,
+    Pulls FAD from SAS UUT. Retrieves the ZoneData Records from FAD,
     checks that only one record is present and it matches the ppa_id.
 
     Args:
@@ -182,19 +176,92 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # zone record is retrieved and verified if it matches the PPA ID.
     uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert, ssl_key)
 
-    try:
+    # Check if the retrieved FAD that has valid atleast PPA zone record.
+    uut_ppa_zone_data = uut_fad.getZoneRecords()
+    print len(uut_ppa_zone_data)
+    self.assertEquals(len(uut_ppa_zone_data), 2,
+                      msg='There is no single PPA Zone record matches with PPA ID '
+                          '{0} received from SAS UUT'.format(ppa_id))
 
-      # Check if the retrieved FAD that has valid PPA zone record matches the PPA ID
-      # that was generated using the admin API.
-      uut_ppa_zone_data = uut_fad.getZoneRecords([lambda x: x['id'] == ppa_id])
-      self.assertEquals(len(uut_ppa_zone_data), 1,
-                        msg='There is no single PPA Zone record matches with PPA ID '
-                            '{0} received from SAS UUT'.format(ppa_id))
-    except KeyError:
-      self.fail('There is an error while filtering PPA Zone record based '
-                'on PPA ID:{0}'.format(ppa_id))
-    else:
-      return uut_ppa_zone_data[0]
+    return uut_ppa_zone_data[0]
+
+  def assertRegConditionalsForPpaRefModel(self, registration_request,
+                                          conditional_registration_data):
+    """Asserts the REG Conditionals required for PPA creation model and raises an exception
+    if any and prepares the registration request by adding required fields.
+
+    Performs the assert to check installationParam present in registrationRequests or
+    conditional registration data and raises an exception.
+    PpaCreationModel requires the input registrationRequests to have 'installationParam'.
+    But this parameter is removed for devices where conditionals are pre-loaded.
+    Adding the 'installationParam' into registrationRequests by taking the corresponding
+    values from conditionalRegistrationData.
+
+    Args:
+      registration_request: A list of individual CBSD registration
+        requests (each of which is itself a dictionary).
+      conditional_registration_data: A list of individual CBSD registration
+        data that need to be preloaded into SAS (each of which is a dictionary).
+        the fccId and cbsdSerialNumber fields are required, other fields are optional
+        but required for ppa reference model.
+
+    Raises:
+      It will throws an exception if the installationParam object and required fields is not found
+    in conditionalRegistrationData and registrationRequests for category B and A devices
+    respectively.
+
+    """
+
+    for device in registration_request:
+      if 'installationParam' not in device:
+        for conditional_params in conditional_registration_data:
+          # Check if FCC_ID+Serial_Number present in registrationRequest
+          # and conditional_params match and add the 'installationParam'.
+          self.assertIn('installationParam', conditional_params,
+                        msg='installationParm Object is not found in REG-Conditionals')
+          if not (conditional_params['fccId'] == device['fccId'] and \
+                  conditional_params['cbsdSerialNumber'] == device['cbsdSerialNumber']):
+            raise Exception('ConfigError:Wrong REG-Conditional data for device is found. '
+                            'Please load the correct REG-Conditional data for the device')
+          else:
+            # The following REG-conditional parameters are required to present in
+            # installationParam Object and cbsdCategory in RegistrationRequest for PPA
+            # reference model to determine PPA contour boundary.
+            # assert that all the needed parameters for PPA are present.
+            if any([conditional_param_name not in conditional_params['installationParam']
+                    for conditional_param_name in CONDITIONAL_PARAMS_REQUIRED]):
+              raise Exception('ConfigError:Any one of the REG conditional parameter:%s '
+                              'is not found in installation param:%s' %
+                              (CONDITIONAL_PARAMS_REQUIRED,
+                               conditional_params['installationParam']))
+            install_params = {}
+            install_params['antennaAzimuth'] = conditional_params['installationParam'][
+                'antennaAzimuth']
+            install_params['longitude'] = conditional_params['installationParam'][
+                'longitude']
+            install_params['latitude'] = conditional_params['installationParam'][
+                'latitude']
+            install_params['antennaGain'] = conditional_params['installationParam'][
+                'antennaGain']
+            install_params['indoorDeployment'] = conditional_params['installationParam'][
+                'indoorDeployment']
+            install_params['antennaBeamwidth'] = conditional_params['installationParam'][
+                'antennaBeamwidth']
+            install_params['height'] = conditional_params['installationParam']['height']
+            device.update({
+                'installationParam': install_params
+            })
+            device.update({
+                'cbsdCategory': conditional_params['cbsdCategory']
+            })
+      else:
+        # Assert the REG-Conditionals for Category A Device required for PPA reference model
+        logging.debug("else")
+        if any([conditional_param_name not in device['installationParam']
+                for conditional_param_name in CONDITIONAL_PARAMS_REQUIRED]):
+          raise Exception('ConfigError:Any one of the REG conditional parameter:%s is '
+                          'not found in installationParam %s' %
+                          (CONDITIONAL_PARAMS_REQUIRED, device['installationParam']))
 
   def generate_PCR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for PCR 1. """
@@ -267,8 +334,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
         'palRecords': pal_records,
-        'sasTestHarnessCert': os.path.join('certs/sas.cert'),
-        'sasTestHarnessKey': os.path.join('certs/sas.key')
+        'sasTestHarnessCert': os.path.join('certs', 'sas.cert'),
+        'sasTestHarnessKey': os.path.join('certs', 'sas.key')
     }
     writeConfig(filename, config)
 
@@ -313,7 +380,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Notify SAS UUT about SAS Harness and trigger Full Activity Dump and retrieves the
     # PPA Zone that matches with PPA Id.
-    uut_ppa_zone_data = self.triggerCpasAndRetrievePpaZone(
+    uut_ppa_zone_data = self.triggerFadAndRetrievePpaZone(
         ppa_id,
         ssl_cert=config['sasTestHarnessCert'],
         ssl_key=config['sasTestHarnessKey'])
@@ -321,42 +388,13 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Configure the Census Tract Directory that the PPA uses
     ppa.ConfigureCensusTractDriver(DEFAULT_CENSUSTRACTS_DATAPATH)
 
-    # PpaCreationModel requires the input registrationRequests to have 'installationParam'.
-    # But this parameter is removed for devices where conditionals are pre-loaded.
-    # Adding the 'installationParam' into registrationRequests by taking the
-    # corresponding values from conditionalRegistrationData.
-    for device in config['registrationRequests']:
-      if not device.has_key('installationParam'):
-        for conditional_params in config['conditionalRegistrationData']:
-          # Check if FCC_ID+Serial_Number present in registrationRequest
-          # and conditional_params match and add the 'installationParam'.
-          if conditional_params['fccId'] == device['fccId'] and \
-                          conditional_params['cbsdSerialNumber'] == device['cbsdSerialNumber']:
-            # The following REG-conditional parameters are required to present in
-            # installationParam Object and cbsdCategory in RegistrationRequest for PPA
-            # reference model to determine PPA contour boundary.
-            install_params = {}
-            install_params['eirpCapability'] = conditional_params['installationParam'][
-                'eirpCapability']
-            install_params['antennaAzimuth'] = conditional_params['installationParam'][
-                'antennaAzimuth']
-            install_params['longitude'] = conditional_params['installationParam'][
-                'longitude']
-            install_params['latitude'] = conditional_params['installationParam'][
-                'latitude']
-            install_params['antennaGain'] = conditional_params['installationParam'][
-                'antennaGain']
-            install_params['indoorDeployment'] = conditional_params['installationParam'][
-                'indoorDeployment']
-            install_params['antennaBeamwidth'] = conditional_params['installationParam'][
-                'antennaBeamwidth']
-            install_params['height'] = conditional_params['installationParam']['height']
-            device.update({
-                'installationParam': install_params
-            })
-            device.update({
-                'cbsdCategory': conditional_params['cbsdCategory']
-            })
+    # Asserts the REG-Conditional value doesn't exist in the registrationRequest,
+    # it required to be exist in the registrationRequest data
+    try:
+      self.assertRegConditionalsForPpaRefModel(config['registrationRequests'],
+                                               config['conditionalRegistrationData'])
+    except Exception as err:
+      self.fail(err.message)
 
     # Trigger PPA creation.
     test_harness_ppa_geometry = ppa.PpaCreationModel(

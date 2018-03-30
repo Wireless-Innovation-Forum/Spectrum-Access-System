@@ -370,8 +370,6 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       except ValueError:
         self.send_response(400)
       return
-    elif self.path == '/%s/dump/None' % self.version:
-      response = FakeSas().GetFullActivityDump()
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
