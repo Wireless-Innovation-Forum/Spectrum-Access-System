@@ -1,5 +1,5 @@
 {
-  "palId": "pal_1",
+  "palId": "pal_0",
   "licensee": "CBSD Operator No.1",
   "userID": "user_0",
   "registrationInformation": {
@@ -13,12 +13,12 @@
   "licenseStatus": "VALID",
   "channelAssignment": {
     "primaryAssignment": {
-      "lowFrequency": 3580000000.0,
-      "highFrequency": 3590000000.0
+      "lowFrequency": 3560000000.0,
+      "highFrequency": 3570000000.0
     },
     "secondaryAssignment": {
-      "lowFrequency": 3580000000.0,
-      "highFrequency": 3600000000.0
+      "lowFrequency": 3560000000.0,
+      "highFrequency": 3570000000.0
     }
   }
 }

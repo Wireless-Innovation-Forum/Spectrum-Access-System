@@ -1,10 +1,10 @@
 {  
-   "id":"incumbent/uls/2",
+   "id":"incumbent/uls/1",
    "type":"PART_90",
    "deploymentParam":{  
       "operationParam":{  
          "operationFrequencyRange":{  
-            "lowFrequency":3690000000.0,
+            "lowFrequency":3650000000.0,
             "highFrequency":3700000000.0
          }
       }
@@ -15,35 +15,31 @@
          {  
             "type":"Feature",
             "properties":{  
-               "gwpzRegionType":"SUBURBAN"
+               "clutter":"RURAL"
             },
             "geometry":{  
                "type":"Polygon",
                "coordinates":[  
                   [  
                      [  
-                        -99.07837,
-                        39.8243
+                        -120.20,
+                        34.75
                      ],
                      [  
-                        -99.07706,
-                        39.82476
+                        -120.15,
+                        34.75
                      ],
                      [  
-                        -99.07566,
-                        39.82393
+                        -120.15,
+                        34.70
                      ],
                      [  
-                        -99.07655,
-                        39.82306
+                        -120.20,
+                        34.70
                      ],
                      [  
-                        -99.07818,
-                        39.82335
-                     ],
-                     [  
-                        -99.07837,
-                        39.8243
+                        -120.20,
+                        34.75
                      ]
                   ]
                ]
