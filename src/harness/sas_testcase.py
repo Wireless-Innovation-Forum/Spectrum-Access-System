@@ -75,9 +75,8 @@ class SasTestCase(unittest.TestCase):
     Includes injection of FCC IDs and conditional registration data.
 
     Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
+      registration_request: A list of individual CBSD registration requests
+        (each of which is itself a dictionary).
       conditional_registration_data: A list of individual CBSD registration
         data that need to be preloaded into SAS (each of which is a dictionary).
         The dictionary is a RegistrationRequest object, the fccId and
@@ -98,8 +97,8 @@ class SasTestCase(unittest.TestCase):
       })
 
     # Pass the correct client cert and key in Registration request
-    ssl_cert = cert if cert != None else self._sas._tls_config.client_cert
-    ssl_key = key if key != None else self._sas._tls_config.client_key
+    ssl_cert = cert if cert is not None else self._sas._tls_config.client_cert
+    ssl_key = key if key is not None else self._sas._tls_config.client_key
 
     request = {'registrationRequest': registration_request}
     response = self._sas.Registration(
@@ -116,15 +115,15 @@ class SasTestCase(unittest.TestCase):
     return cbsd_ids
 
   def assertRegisteredAndGranted(self, registration_request, grant_request,
-                                 conditional_registration_data=None):
+                                 conditional_registration_data=None, cert=None,
+                                 key=None):
     """Register and get grants for a list of devices.
 
     Quickly register and grant N devices; assert SUCCESS for each step and
     return corresponding CBSD and grant IDs.
     Args:
-      registration_request:  A dictionary with a single key-value pair where
-        the key is "registrationRequest" and the value is a list of individual
-        CBSD registration requests (each of which is itself a dictionary).
+      registration_request: A list of individual CBSD registration requests
+        (each of which is itself a dictionary).
       grant_request: A dictionary with a single key-value pair where the key is
         "grantRequest" and the value is a list of individual CBSD
         grant requests (each of which is itself a dictionary).
@@ -132,6 +131,8 @@ class SasTestCase(unittest.TestCase):
         data that need to be preloaded into SAS (each of which is a dictionary).
         The dictionary is a RegistrationRequest object, the fccId and
         cbsdSerialNumber fields are required, other fields are optional.
+      cert: Path to SSL cert file, if None, will use default cert file.
+      key: Path to SSL key file, if None, will use default key file.
 
     Returns:
       A tuple containing list of cbsdIds and grantIds.
@@ -144,8 +145,8 @@ class SasTestCase(unittest.TestCase):
       grant_req['cbsdId'] = cbsd_id
 
     # Pass the correct client cert and key in Grant request
-    ssl_cert = self._sas._tls_config.client_cert
-    ssl_key = self._sas._tls_config.client_key
+    ssl_cert = cert if cert is not None else self._sas._tls_config.client_cert
+    ssl_key = key if key is not None else self._sas._tls_config.client_key
 
     grant_ids = []
     request = {'grantRequest': grant_request}
