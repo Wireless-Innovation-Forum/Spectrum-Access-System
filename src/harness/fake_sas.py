@@ -414,14 +414,19 @@ def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
   if is_ecc:
     assert ssl.HAS_ECDH
   if ca_cert is not None:
-    assert os.path.exists(os.path.join('certs',ca_cert)), "%s is not exist in certs path" % ca_cert
+    try:
+      with open(os.path.join('certs', ca_cert)) as file_handle:
+        ca_cert_data = file_handle.read()
+    except IOError:
+      print "%s is not exist in certs path"
+    return
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
 
   if verify_crl:
     # If verify CRL flag is set then load the ca chain with CRLs and verify that
     # the client certificate is not revoked.
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_context.options &= ssl.CERT_REQUIRED
+    ssl_context.options |= ssl.CERT_REQUIRED
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
     ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
     ssl_context.load_cert_chain(
