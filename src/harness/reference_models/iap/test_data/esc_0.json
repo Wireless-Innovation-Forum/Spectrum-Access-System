@@ -1,11 +1,13 @@
 {  
    "id":"esc_sensor/admin_0/esc_sensor_0",
    "installationParam":{  
-      "elevation":50,
       "height":26.5,
       "heightType":"AGL",
       "latitude":42.30,
       "longitude":-107.85,
+      "antennaDowntilt":0,
+      "antennaGain":0,
+      "antennaAzimuth":0,
       "azimuthRadiationPattern":[  
          {  
             "angle":1,

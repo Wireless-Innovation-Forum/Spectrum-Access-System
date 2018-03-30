@@ -7,7 +7,6 @@
       "installationParam": {
         "latitude": 38.872131,
         "longitude":  -77.155742,
-        "elevation": 50,
         "height": 26.5,
         "heightType": "AGL",
         "antennaGain": 0,
@@ -19,9 +18,9 @@
           "lowFrequency": 3600000000,
           "highFrequency": 4200000000
         }
-      },
-      "ttc": false
+      }
     }
-    ]
+  ],
+  "ttc": false
 }
 

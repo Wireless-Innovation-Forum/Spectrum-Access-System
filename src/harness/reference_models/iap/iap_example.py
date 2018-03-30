@@ -83,7 +83,6 @@ ppa_records = [ppa_0, ppa_1, ppa_2, ppa_3]
 
 sas_th_fad_objects = [sas_th_1, sas_th_2]
 
-
 start_time = time.time()
 
 for fss_record in fss_records:
@@ -94,7 +93,7 @@ for fss_record in fss_records:
   fss_high_freq = fss_freq_range['highFrequency']
 
   # Get FSS T&C Flag value
-  fss_ttc_flag = fss_record['deploymentParam'][0]['ttc']
+  fss_ttc_flag = fss_record['ttc']
   
   # FSS Passband is between 3600 and 4200
   if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and 
@@ -107,9 +106,9 @@ for fss_record in fss_records:
                                                   str(fss_blocking_allowed_interference))
   # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
   elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
-           fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ):
-    if (fss_ttc_flag is True):
-      fss_blocking_allowed_interference = iap.performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
+          fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
+          fss_ttc_flag is True):
+    fss_blocking_allowed_interference = iap.performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
     print('$$$$ IAP Reference Model Output for FSS Blocking: AP_IAP_Ref (mW/IAPBW)$$$$' +
                                                   str(fss_blocking_allowed_interference))
 for esc_record in esc_records:

@@ -25,7 +25,8 @@
     performIapForEsc
     performIapForGwpz
     performIapForPpa
-    performIapForFss
+    performIapForFssCochannel
+    performIapForFssBlocking
     calculateApIapRef
 
   The routines return a nested dictionary containing in the format of
@@ -44,10 +45,6 @@ import multiprocessing
 from multiprocessing import Pool
 from functools import partial
 
-# Define Post IAP Grant information, i.e., a tuple with named fields of
-# 'eirp', 'interference'
-PostIAPGrantInfo = namedtuple('PostIAPGrantInfo', ['eirp', 'interference'])
-
 # values from WINNF-TS-0061-V1.1.0 - WG4 SAS Test and Certification Spec-Table 
 # 8.4-2 Protected entity reference for IAP Protection 
 # The values are in (dBm/RBW)
@@ -64,45 +61,25 @@ MG_FSS_CO_CHANNEL_DB = 1
 MG_FSS_BLOCKING_DB = 1
 MG_ESC_DB = 1
 
+# Nested dictionary containing aggregate interference 
+# calculated within IAPBW by managing SAS using the EIRP 
+# obtained from IAP for that point p foro CBSDs managed 
+# by the managing SAS. Values are stored as 
+# {latitude: {longitude : [a_sas_p1(mw/IAPBW),a_sas_p2(mW/IAPBW)]}
+asas_interference = interf.AggregateInterferenceOutputFormat()
 
-class PostIapOutputFormat:
-  """Implementation of IAP output format
-  
-  Creates a data structure to store post IAP output in the format of 
-  {latitude : {longitude : [ output_first_5MHz_segment, output_first_5MHz_segment ]}}
-  """
-  def __init__(self):
-    self.manager = multiprocessing.Manager()
-    self.post_iap_output_info = self.manager.dict()
 
-  def SetPostIapInfo(self, latitude, longitude, grant_info):
-    if self.post_iap_output_info.has_key(latitude) is False:
-      self.post_iap_output_info[latitude] = {}
-   
-    # Creating a proxy container for mutable dictionary
-    post_iap_output_proxy = self.post_iap_output_info[latitude]
+# Nested dictionary containing aggregate interference 
+# calculated within IAPBW by managing SAS using the EIRP 
+# obtained by all CBSDs(including CBSDs managed by other
+# SAS) through IAP for protected entity p. Values are stored as 
+# {latitude: {longitude : [a_p1(mW/IAPBW),a_p2(mW/IAPBW)]}
+aggregate_interference = interf.AggregateInterferenceOutputFormat()
 
-    if post_iap_output_proxy.has_key(longitude) is False:
-      post_iap_output_proxy[longitude] = []
-
-    post_iap_output_proxy[longitude].append(grant_info)
-    self.post_iap_output_info[latitude] = post_iap_output_proxy 
-
-  def GetPostIapInfo(self):
-    return self.post_iap_output_info 
-
-# Post IAP managed grants information maintained in the format of 
-# { latitude : {longitude : [ (eirp1, interference1), (eirp2, interference2) ] }}
-post_iap_managed_grants = PostIapOutputFormat()
-
-# Aggregate interference Ap considering grants from managing SAS and
-# SAS Test Harness in the format of 
-# { latitude : {longitude : [ interference1, interference2] }}
-aggregate_interference = PostIapOutputFormat()
 
 def iapPointConstraint(protection_point, channels, low_freq, high_freq, 
                        grant_objects, fss_info, esc_antenna_info, region_type, 
-                       threshold, protection_ent_type):
+                       threshold, protection_ent_type): 
   """ Routine to compute aggregate interference(Ap) from authorized grants 
    
   Aggregate interference is calculated over all the 5MHz channels.This routine 
@@ -118,23 +95,22 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     high_freq: high frequency of protection constraint (Hz)
     grant_objects: a list of grant requests, each one being a tuple 
                    containing grant information
-    fss_info: contains information on antenna height
-              on the tangent and perpendicular components.
+    fss_info: contains fss point and antenna information
     esc_antenna_info: contains information on ESC antenna height, azimuth, 
                       gain and pattern gain
     threshold: protection threshold (mW)
     protection_ent_type: an enum member of class ProtectedEntityType
   Returns:
-    Updates post_iap_managed_grants global instance of class type PostIapOutputFormat.
-    It is updated in the format of {latitude : {longitude : [ (eirp, interference),.. ]}}
-    and aggregate_interference global instance of class type PostIapOutputFormat.
-    It is updated in the format of {latitude : { longitude : [interference,..] }}
+    Updates asas_interference instance of class type AggregateInterferenceOutputFormat.
+    It is updated in the format of {latitude : {longitude : [ asas_p(mW/IAPBW),.. ]}}
+    and aggregate_interference instance of class type AggregateInterferenceOutputFormat.
+    It is updated in the format of {latitude : { longitude : [a_p(mW/IAPBW),..] }}
   """
   
   # Get all the grants inside neighborhood of the protection entity
   grants_inside = interf.findGrantsInsideNeighborhood(
                     grant_objects, protection_point, protection_ent_type)
-  
+    
   if len(grants_inside) > 0:
 
     for channel in channels:
@@ -182,6 +158,8 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
       aggr_interference = 0
 
+      a_sas_p_interference = 0
+
       # Initialize flag to False for all the grants
       grant_initialize_flag = [False] * num_grants
 
@@ -220,17 +198,16 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
             # Update EIRP and Interference only if managed grant
             if grant.is_managed_grant:
-              post_iap_grant = PostIAPGrantInfo(eirp=grants_eirp[i], 
-                                 interference=interference_list[i])
-              post_iap_managed_grants.SetPostIapInfo(channel_constraint.latitude, 
-                channel_constraint.longitude, post_iap_grant)
+              a_sas_p_interference += interference_list[i]
           else:
             grants_eirp[i] = grants_eirp[i] - 1
-      
-        aggregate_interference.SetPostIapInfo(channel_constraint.latitude,
+       
+      aggregate_interference.SetAggregateInterferenceInfo(channel_constraint.latitude,
             channel_constraint.longitude, aggr_interference)
-   
-  return 
+      
+      asas_interference.SetAggregateInterferenceInfo(channel_constraint.latitude, 
+                channel_constraint.longitude, a_sas_p_interference)
+  return
 
 
 def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
@@ -267,13 +244,16 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
 
   # Get ESC antenna information
   esc_antenna_info = interf.EscInformation(antenna_height=esc_point['height'],
-                       antenna_azimuth=0,
-                       antenna_gain=0,
+                       antenna_azimuth=esc_point['antennaAzimuth'],
+                       antenna_gain=esc_point['antennaGain'],
                        antenna_pattern_gain=ant_pattern_gain)
 
   # Get ESC passband 3550-3680 MHz protection channels
   protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ, 
                           interf.ESC_HIGH_FREQ_HZ)
+
+  asas_interference.__init__()
+  aggregate_interference.__init__()
 
   logging.debug('$$$$ Calling ESC Protection $$$$')
   # ESC algorithm
@@ -307,7 +287,7 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
 
   logging.debug('$$$$ Getting GRID points for GWPZ Protection Area $$$$')
   # Get Fine Grid Points for a GWPZ protection area
-  protection_points = utils.GridPolygon(protected_entity)
+  protection_points = utils.GridPolygon(protected_entity, 2)
 
   gwpz_freq_range = protected_entity['deploymentParam']\
                       ['operationParam']['operationFrequencyRange']
@@ -320,6 +300,9 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(gwpz_low_freq, gwpz_high_freq)
   
+  asas_interference.__init__()
+  aggregate_interference.__init__()
+
   # Apply IAP for each protection constraint with a pool of parallel processes.
   pool = Pool(processes=min(multiprocessing.cpu_count(), len(protection_points)))
 
@@ -364,7 +347,7 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects, p
   logging.debug('$$$$ Getting GRID points for PPA Protection Area $$$$')
 
   # Get Fine Grid Points for a PPA protection area
-  protection_points = utils.GridPolygon(protected_entity)
+  protection_points = utils.GridPolygon(protected_entity, 2)
 
   # Get the region type of the PPA protection area
   ppa_region = protected_entity['ppaInfo']['ppaRegionType']
@@ -381,6 +364,9 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects, p
 
       # Get channels over which area incumbent needs partial/full protection
       protection_channels = interf.getProtectedChannels(ppa_low_freq, ppa_high_freq)
+      
+      asas_interference.__init__()
+      aggregate_interference.__init__()
 
       # Apply IAP for each protection constraint with a pool of parallel 
       # processes.
@@ -410,7 +396,7 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
   FSS protection is provided over co-channel pass band
 
   Args:
-    protected_entity: Protected entity of type PPA
+    protected_entity: Protected entity of type FSS co-channel
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_object: a list of FAD objects from SAS Test Harness
   """
@@ -439,10 +425,13 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
                height_agl=fss_point['height'],
                max_gain_dbi=fss_point['antennaGain'],
                pointing_azimuth=fss_point['antennaAzimuth'],
-               pointing_elevation=fss_point['elevation'])
+               pointing_elevation=fss_point['antennaDowntilt'])
 
   # Get channels for co-channel CBSDs
   protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
+  
+  asas_interference.__init__()
+  aggregate_interference.__init__()
 
   # FSS Co-channel algorithm
   logging.debug('$$$$ Calling FSS co-channel Protection $$$$')
@@ -475,7 +464,7 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
   num_sas = len(sas_th_fad_objects) + 1
 
   # Get FSS T&C Flag value
-  fss_ttc_flag = protected_entity['deploymentParam'][0]['ttc']
+  fss_ttc_flag = protected_entity['ttc']
 
   # Get the protection point of the FSS
   fss_point = protected_entity['deploymentParam'][0]['installationParam']
@@ -493,24 +482,27 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
                height_agl=fss_point['height'],
                max_gain_dbi=fss_point['antennaGain'],
                pointing_azimuth=fss_point['antennaAzimuth'],
-               pointing_elevation=fss_point['elevation'])
+               pointing_elevation=fss_point['antennaDowntilt'])
 
   # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
   if (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
-           fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ):
-    if (fss_ttc_flag is False):
+        fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
+        fss_ttc_flag is False):
       logging.debug('$$$$ IAP for FSS not applied for FSS Pass band 3700 to 4200' 
         'and TT&C flag set to false $$$$')
   else:
+    asas_interference.__init__()
+    aggregate_interference.__init__()
+
     logging.debug('$$$$ Calling FSS blocking Protection $$$$')
     # 5MHz channelization is not required for Blocking protection
-    protection_channels = [interf.CBRS_LOW_FREQ_HZ, fss_low_freq]
+    protection_channels = [(interf.CBRS_LOW_FREQ_HZ, fss_low_freq)]
     iapPointConstraint(protection_point, protection_channels, 
       interf.CBRS_LOW_FREQ_HZ, fss_low_freq, grant_objects, 
       fss_info, None, None, iap_margin_fss_blocking, 
-      interf.ProtectedEntityType.FSS_BLOCKING)
+      interf.ProtectedEntityType.FSS_BLOCKING) 
 
-  ap_iap_ref = calculateApIapRef(iap_margin_fss_blocking, num_sas)
+  ap_iap_ref = calculateApIapRef(iap_margin_fss_blocking, num_sas) 
   return ap_iap_ref 
 
 
@@ -523,31 +515,21 @@ def calculateApIapRef(q_p, num_sas):
   Args:
     q_p: Pre IAP threshold value for protection type(mW)
     num_sas: number of SASs in the peer group 
-  Returns:
+   Returns:
     ap_iap_ref: post IAP allowed interference in the format of 
-                {latitude : {longitude : [interference, interference]}}
+    {latitude : {longitude : [interference(mW/IAPBW), interference(mW/IAPBW)]}}
   """
-
   ap_iap_ref = {}
-  managed_grants_info = post_iap_managed_grants.GetPostIapInfo()
-  a_p_info = aggregate_interference.GetPostIapInfo()
-
+  asas_info = asas_interference.GetAggregateInterferenceInfo()
+  a_p_info = aggregate_interference.GetAggregateInterferenceInfo() 
+  
   # Compute AP_IAP_Ref 
   for latitude, a_p_ch in a_p_info.items():
     for longitude, a_p_list in a_p_ch.items():
-      a_sas_p = 0
-
-      # Calculate a_sas_p - Aggregate interference calculated using the
-      # EIRP obtained by all CBSDs through application of IAP for protected
-      # entity p. Only grants managed by SAS UUT are considered
-      for lat, point_info in managed_grants_info.items():
-        for lon, grant_info in point_info.items():
-          if latitude == lat and longitude == lon:
-            a_sas_p = a_sas_p + sum(interference[1] for interference in grant_info)
-
       ap_iap_ref[latitude] = {}
       ap_iap_ref[latitude][longitude] = []
-      for a_p in a_p_list:
-        ap_iap_ref[latitude][longitude].append(((q_p - a_p) / num_sas) + a_sas_p)
+      for index, a_p in enumerate(a_p_list):
+        ap_iap_ref[latitude][longitude].append(((q_p - a_p) / num_sas) + 
+                              asas_info[latitude][longitude][index])
   
   return ap_iap_ref
