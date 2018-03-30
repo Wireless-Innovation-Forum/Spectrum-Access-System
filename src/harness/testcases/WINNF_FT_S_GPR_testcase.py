@@ -451,5 +451,4 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
 
     for response_num, response in enumerate(response):
       self.assertEqual(response['cbsdId'], request['grantRequest'][response_num]['cbsdId'])
-      self.assertTrue('grantId' in response)
       self.assertEqual(response['response']['responseCode'], 400)
