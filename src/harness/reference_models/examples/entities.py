@@ -22,8 +22,8 @@ from collections import namedtuple
 import numpy as np
 import shapely.geometry as sgeo
 
-from reference_models.geo import vincenty
 from reference_models.geo import nlcd
+from reference_models.geo import vincenty
 
 # CBSD devices
 Cbsd = namedtuple('Cbsd',
@@ -151,8 +151,6 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
     urban_areas: An optional  |shapely.MultiPolygon| defining the urban areas.
       If not specified, do not enforce the Cbsd to be in urban areas.
   """
-  if urban_areas is not None:
-    urban_areas = urban_areas.intersect(polygon)
   t = template_cbsd
   bounds = polygon.bounds
   cbsds = []

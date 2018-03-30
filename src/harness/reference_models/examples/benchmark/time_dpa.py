@@ -27,7 +27,7 @@ from reference_models.examples import entities
 #------------------------------
 # Define simulation parameters
 # - DPA to simulate
-dpa_name = 'east_dpa_1'  # Norfolk
+dpa_name = 'east_dpa_7'
 
 # - Number of sites to distribute within a given range of the DPA
 num_sites = 500
@@ -46,7 +46,7 @@ front_usborder_buffer_km = 40   # Front contour defined by the extension of the
                                 # front border.
 
 # - Do we restrict the sites to be within the census-defined urban areas
-do_inside_urban_area = False
+do_inside_urban_area = True
 
 # - Ratio of cat B and different catA
 ratio_cat_b = 0.2
@@ -87,7 +87,6 @@ def PrepareSimulation():
   urban_areas = zones.GetUrbanAreas() if do_inside_urban_area else None
   protection_zone = zones.GetCoastalProtectionZone()
 
-
   # Distribute random CBSD of various types around the FSS.
   print 'Distributing random CBSDs in DPA neighborhood'
   # - Find the zone where to distribute the CBSDs
@@ -98,6 +97,9 @@ def PrepareSimulation():
 
   zone_cata = dpa_zone.buffer(extend_cata_deg).intersection(us_border)
   zone_catb = dpa_zone.buffer(extend_catb_deg).intersection(us_border)
+
+  if urban_areas is not None:
+    urban_areas = urban_areas.intersection(zone_catb)
 
   # - Distribute the CBSDs
   cbsds_cat_a_indoor = entities.GenerateCbsdsInPolygon(
