@@ -19,43 +19,27 @@ Irregular Terrain Model (ITM) and Free Space Loss (FSL), as described
 in WinnForum specification R2-SGN-04.
 
 Typical usage:
-  # Reconfigure the terrain driver
-   #  - reset the terrain tile directory
-  ConfigureTerrainDriver(terrain_dir=my_ned_path)
-   #  - reset the cache size. Memory use is: cache_size * 50MB
-  ConfigureTerrainDriver(cache_size=8)
+  # Configure the terrain driver (memory use is: cache_size * 50MB)
+  from reference_models.geo import drive
+  drive.ConfigureTerrainDriver(terrain_dir=my_ned_path, cache_size=16)
 
   # Get the path loss and incidence angles
   db_loss, incidence_angles, internals = CalcHybridPropagationLoss(
               lat_cbsd, lon_cbsd, height_cbsd,
               lat_rx, lon_rx, height_rx,
+              cbsd_indoor=False,
               reliability=0.5,
               freq_mhz=3625.,
               region='URBAN')
 """
 
 from collections import namedtuple
-import logging
 import math
 
-from reference_models.geo import terrain
+from reference_models.geo import drive
 from reference_models.geo import vincenty
-
 from reference_models.propagation import wf_itm
 from reference_models.propagation.ehata import ehata
-
-
-# Configure the terrain driver
-def ConfigureTerrainDriver(terrain_dir=None, cache_size=None):
-  """Configure the NED terrain driver.
-
-  Note that memory usage is about cache_size * 50MB.
-
-  Inputs:
-    terrain_dir: if specified, modify the terrain directory.
-    cache_size:  if specified, change the terrain tile cache size.
-  """
-  wf_itm.ConfigureTerrainDriver(terrain_dir=terrain_dir, cache_size=cache_size)
 
 
 # eHata standard deviation calculation parameters
@@ -213,7 +197,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
   # Get the terrain profile, using Vincenty great circle route, and WF
   # standard (bilinear interp; 1501 pts for all distances over 45 km)
-  its_elev = wf_itm.terrainDriver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
+  its_elev = drive.terrain_driver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
                                                  lat2=lat_rx, lon2=lon_rx,
                                                  target_res_meter=30.,
                                                  do_interp=True, max_points=1501)
@@ -300,7 +284,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     lat_80km, lon_80km, _ = vincenty.GeodesicPoint(lat_cbsd, lon_cbsd,
                                                    80., bearing)
-    its_elev_80km = wf_itm.terrainDriver.TerrainProfile(
+    its_elev_80km = drive.terrain_driver.TerrainProfile(
         lat_cbsd, lon_cbsd, lat_80km, lon_80km,
         target_res_meter=30.,
         do_interp=True, max_points=1501)

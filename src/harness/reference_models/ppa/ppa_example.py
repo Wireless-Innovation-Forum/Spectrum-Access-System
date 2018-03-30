@@ -22,6 +22,7 @@ import logging
 import os
 
 import util
+from reference_models.geo import drive
 from reference_models.ppa import ppa
 
 # Configuration
@@ -33,7 +34,7 @@ pal_high_frequency = 3650000000
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
 # Change the Default Census Tract Driver Directory to parent directory of test_data
-ppa.ConfigureCensusTractDriver(TEST_DIR)
+drive.ConfigureCensusTractDriver(TEST_DIR)
 
 # Load Devices and PAL Records
 devices = [json.load(open(os.path.join(TEST_DIR, device_filename)))

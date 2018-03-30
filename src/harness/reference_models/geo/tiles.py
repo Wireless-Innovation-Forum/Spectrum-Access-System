@@ -36,24 +36,26 @@ class TileStats(object):
       return
     self.tiles_stats[(ilat, ilon)] += 1
 
+  def ActiveTilesCount(self):
+    counts = [cnt for cnt in self.tiles_stats.values() if cnt > 0]
+    num_active_tiles = len(counts)
+    return (num_active_tiles, [0] if not counts else counts)
+
   def Reset(self):
     self.tiles_stats = {tile: 0 for tile in self._tiles_set}
 
   def Report(self):
-    tiles_loaded = [(cnt, key)
-                    for key, cnt in self.tiles_stats.items()
-                    if cnt > 0]
-    tiles_loaded.sort()
-    count_per_tile = zip(*tiles_loaded)[0]
+    num_active_tiles, counts = self.ActiveTilesCount()
     print "Used tiles: {total} / {max}".format(
-        total=len(tiles_loaded), max=len(self._tiles_set))
+        total=num_active_tiles, max=len(self._tiles_set))
     print "Total load ops: {total}".format(
-        total=sum(count_per_tile))
+        total=sum(counts))
     print "Active tiles statistics (#loads per used tiles):"
     print "  Avg:{avg} (std={std})".format(
-        avg=np.mean(count_per_tile), std=np.std(count_per_tile))
+        avg=np.mean(counts), std=np.std(counts))
     print "  Min:{min} Max:{max}".format(
-        min=np.min(count_per_tile), max=np.max(count_per_tile))
+        min=np.min(counts), max=np.max(counts))
+
 
 NED_TILES = set([
     ( 6, 162), (44, -81), (67,-165),

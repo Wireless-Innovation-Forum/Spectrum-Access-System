@@ -28,13 +28,15 @@ ITU_DIR = os.path.join(_BASE_DATA_DIR, 'itu')
 CENSUS_TRACTS_DIR = os.path.join(_BASE_DATA_DIR, 'census_tracts')
 TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'ned')
 LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
+NTIA_DIR = os.path.join(_BASE_DATA_DIR, 'ntia')
 
 # If not using the standard location for the data files,
 # define the absolute path of your data directories
 #ITU_DIR =
 #TERRAIN_DIR =
 #LANDCOVER_DIR =
-
+#CENSUS_TRACTS_DIR
+#NTIA_DIR=
 
 def GetItuDir():
   return ITU_DIR
@@ -47,3 +49,6 @@ def GetLandCoverDir():
 
 def GetCensusTractsDir():
   return CENSUS_TRACTS_DIR
+
+def GetNtiaDir():
+  return NTIA_DIR

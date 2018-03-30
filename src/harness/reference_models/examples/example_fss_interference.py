@@ -27,7 +27,8 @@ import fss_pointing
 
 # Configure here the path to terrain directory
 # (if not specified in your CONFIG.py file)
-#wf_itm.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
+## from reference_models.geo import drive
+## drive.ConfigureTerrainDriver(terrain_dir='/home/winnforum/SAS-data/ned/')
 
 # Find all the FSS protection points from a given FSS license info.
 # Note that in production, one may have the exact pointing of each FSS.
@@ -131,7 +132,7 @@ for k, cbsd in enumerate(cbsds):
   cbsd_effective_eirp = antenna.GetStandardAntennaGains(
       incidence_angles.hor_cbsd,
       cbsd.antenna_azimuth, cbsd.antenna_beamwidth,
-      cbsd.eirp_dbm)
+      cbsd.eirp_dbm_mhz)
 
   cbsd_rssi[k] = cbsd_effective_eirp - db_loss
   cbsd_incidence_angles.append(incidence_angles)
@@ -156,6 +157,6 @@ for fss_entity in fss_entities:
 # Print out results
 print 'For FSS lat=%.7f lon=%.7f: %d CBSDs' % (
     base_fss.latitude, base_fss.longitude, len(cbsds))
-print '   Max RSSI = %.2f dBm' % max(fss_total_rssi)
+print '   Max RSSI = %.2f dBm / MHz' % max(fss_total_rssi)
 print '   RSSI per possible pointing:'
 print [int(val*100)/100. for val in fss_total_rssi]
