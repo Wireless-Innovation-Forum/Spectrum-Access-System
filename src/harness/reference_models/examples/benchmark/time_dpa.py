@@ -68,8 +68,9 @@ ratio_cat_a_indoor = 0.4
 
 # - Simulation setup
 #   + Number of parallel processes -
-#     do not exceed your workstation parallel capabilities (number of core -2)
-num_processes = 8
+#     do not exceed your workstation parallel capabilities (number of core minus 2)
+#     Auto mode: -1 => will derive a proper setup as 75% of your workstation capabilities
+num_processes = -1
 #   + Number of cached tiles (per process)
 num_cached_tiles = 32
 
@@ -215,6 +216,8 @@ if __name__ == '__main__':
 
   # Create the pool of process
   # Done externally from the move_list function to keep terrains in cache
+  if num_processes < 0: # auto mode
+    num_processes = round(0.75 * multiprocessing.cpu_count())
   pool = multiprocessing.Pool(num_processes)
 
   (protection_points, all_cbsds,
