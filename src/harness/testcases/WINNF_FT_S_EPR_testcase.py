@@ -38,38 +38,41 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     esc_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
 
-    # Load devices info
+    # Load devices info 
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1(Cat A) to a location within 40 meters of ESC sensor
-    device_1['installationParam']['latitude'] = 38.66815
-    device_1['installationParam']['longitude'] = -98.12986
+    # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
+    device_1['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2(Cat B) to a location within 80 meters of ESC sensor
-    device_2['installationParam']['latitude'] = 38.66782
-    device_2['installationParam']['longitude'] = -98.13033
+    # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
+    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.55
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    # Moving device_3(Cat A) to a location outisde 40 meters of ESC sensor
-    device_3['installationParam']['latitude'] = 38.6679
-    device_3['installationParam']['longitude'] = -98.13017
+    # Moving device_3(Cat A) to a location outisde 40 KMs of ESC sensor
+    device_3['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    # Moving device_4(Cat B) to a location outside 80 meters of ESC sensor
-    device_4['installationParam']['latitude'] = 38.66747
-    device_4['installationParam']['longitude'] = -98.12986
+    # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
+    device_4['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
 
     # Load Grant requests
+    # Loading grant_request_1 for device_1 with In-band frequency range of 3620 to 3630 MHz
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Loading grant_request_2 for device_2 with In-band frequency range of 3630 to 3640 MHz
     grant_request_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+
+    # Loading grant_request_3 for device_3 with Out-of-band frequency range of 3650 to 3660 MHz
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+
+    # Loading grant_request_4 for device_4 with In-band frequency range of 3620 to 3630 MHz
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
@@ -173,48 +176,44 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1(Cat A) to a location within 40 meters of ESC sensor
-    device_1['installationParam']['latitude'] = 38.66815
-    device_1['installationParam']['longitude'] = -98.12986
+    # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
+    device_1['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2(Cat B) to a location within 80 meters of ESC sensor
-    device_2['installationParam']['latitude'] = 38.66782
-    device_2['installationParam']['longitude'] = -98.13033
+    # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
+    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.55
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    # Moving device_3(Cat A) to a location outisde 40 meters of ESC sensor
-    device_3['installationParam']['latitude'] = 38.6679
-    device_3['installationParam']['longitude'] = -98.13017
+    # Moving device_3(Cat A) to a location outisde 40 KMs of ESC sensor
+    device_3['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    # Moving device_4(Cat B) to a location outside 80 meters of ESC sensor
-    device_4['installationParam']['latitude'] = 38.66747
-    device_4['installationParam']['longitude'] = -98.12986
+    # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
+    device_4['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
 
-    # Load Grant requests
+    # Load Grant requests with In-band frequency range for all devices
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
-    grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
+    grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
+    grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
     grant_request_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
-    grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
-    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
+    grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3570000000
+    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3580000000
 
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_2.json')))
-    grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
-    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
+    grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3590000000
+    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3600000000
 
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3670000000
-    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3680000000
+    grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
+    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
 
     # device_b and device_d are Category B
     # Load Conditional Data
