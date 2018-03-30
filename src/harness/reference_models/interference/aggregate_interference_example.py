@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
   for fss_record in fss_list:
     # Get the frequency range of the FSS
-    fss_freq_range = fss_record['deploymentParam'][0]\
+    fss_freq_range = fss_record['record']['deploymentParam'][0]\
         ['operationParam']['operationFrequencyRange']
     fss_low_freq = fss_freq_range['lowFrequency']
     fss_high_freq = fss_freq_range['highFrequency']
@@ -110,11 +110,11 @@ if __name__ == '__main__':
             fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
       fss_cochannel_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list)
-      print('Aggregate Interference (dBm) output at FSS co-channel: ' + 
+      print('Aggregate Interference (mW) output at FSS co-channel: ' + 
                     str(fss_cochannel_aggr_interference))
       fss_blocking_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
-      print('\nAggregate Interference (dBm) output at FSS blocking: \n' + 
+      print('\nAggregate Interference (mW) output at FSS blocking: \n' + 
                     str(fss_blocking_aggr_interference))
     # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
     elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
@@ -122,23 +122,23 @@ if __name__ == '__main__':
             fss_ttc_flag is True):
       fss_blocking_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
-      print('\nAggregate Interference (dBm) output at FSS blocking: \n' + 
+      print('\nAggregate Interference (mW) output at FSS blocking: \n' + 
                     str(fss_blocking_aggr_interference))
 
   for esc_record in esc_list:
     esc_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForEsc(esc_record, cbsd_list)
-    print('\nAggregate Interference (dBm) output at ESC: \n' + 
+    print('\nAggregate Interference (mW) output at ESC: \n' + 
                     str(esc_aggr_interference))
   for gwpz_record in gwpz_list:
     gwpz_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list)
-    print('\nAggregate Interference (dBm) output at GWPZ: \n' + 
+    print('\nAggregate Interference (mW) output at GWPZ: \n' + 
                     str(gwpz_aggr_interference))
   for ppa_record in ppa_list:
     ppa_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list)
-    print('\nAggregate Interference (dBm) output at PPA: \n' + 
+    print('\nAggregate Interference (mW) output at PPA: \n' + 
                     str(ppa_aggr_interference))
 
   end_time = time.time()

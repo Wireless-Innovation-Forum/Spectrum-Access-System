@@ -1,6 +1,6 @@
 {
 	"id": "device_8_id",
-	"registrationRequest": {
+	"registration": {
 					"fccId": "fccId8",
 		            "cbsdCategory": "A",
 		            "callSign": "KPPP",
@@ -19,6 +19,7 @@
                       "latitude": 29.22,
                       "longitude": -81.2,
                       "height": 75,
+                      "heightType": "AGL",
                       "indoorDeployment": false,
                       "antennaAzimuth": 170,
                       "antennaDowntilt": -5,
@@ -31,7 +32,7 @@
 					"grantExpireTime": "calculated at runtime",
 					"id": "SAMPLE_2_12345",
 					"operationParam": {
-						"maxEirp": 20,
+						"maxEirp": 20.0,
 						"operationFrequencyRange": {
 							"highFrequency": 3650000000,
 							"lowFrequency": 3640000000
