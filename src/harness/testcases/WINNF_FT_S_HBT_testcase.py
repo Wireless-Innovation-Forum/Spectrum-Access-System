@@ -1065,11 +1065,10 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     if response['response']['responseCode'] == 500:
       return
 
-    # Sleep 240 seconds
-    time.sleep(240)
+    # Step 8
+    time.sleep(300)
     self.assertLess(datetime.utcnow(), grant_expire_time)
-
-    # Step 8 - Heartbeat request with operationState = GRANTED
+    # Step 9 - Heartbeat request with operationState = GRANTED
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,

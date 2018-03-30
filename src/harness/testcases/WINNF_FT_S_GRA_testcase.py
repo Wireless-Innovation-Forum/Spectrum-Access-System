@@ -104,7 +104,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         {'frequencyRange': {'lowFrequency': pal_low_frequency,
                             'highFrequency': pal_high_frequency},
          'dpaId': 'east_dpa_4'})
-    # UNAPPROVED Not in WINNF-TS-0016 Release 1 Spec, but necessary Step for DPA
+    # wait for DPA activation
     time.sleep(240)
     # Send grant request
     grant_0 = json.load(
