@@ -1,3 +1,17 @@
+#    Copyright 2017 SAS Project Authors. All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
 """Benchmark the DPA model timing.
 
 This is a simple simulation of the DPA for purpose of estimating time to run.
@@ -46,7 +60,7 @@ front_usborder_buffer_km = 40   # Front contour defined by the extension of the
                                 # front border.
 
 # - Do we restrict the sites to be within the census-defined urban areas
-do_inside_urban_area = True
+do_inside_urban_area = False
 
 # - Ratio of cat B and different catA
 ratio_cat_b = 0.2

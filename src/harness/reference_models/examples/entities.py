@@ -206,8 +206,8 @@ def GetCbsdGrantRequest(cbsd, min_freq_mhz, max_freq_mhz):
   return {
       'operationParam': {
           'operationFrequencyRange': {
-              'lowFrequency': min_freq_mhz * 1e6,
-              'highFrequency': max_freq_mhz * 1e6
+              'lowFrequency': int(min_freq_mhz * 1e6),
+              'highFrequency': int(max_freq_mhz * 1e6)
           },
           'maxEirp': cbsd.eirp_dbm_mhz
       }
