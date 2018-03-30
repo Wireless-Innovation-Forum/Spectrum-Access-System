@@ -178,8 +178,7 @@ class AggregateInterferenceOutputFormat:
     self.lock = multiprocessing.Lock()
 
   def SetAggregateInterferenceInfo(self, latitude, longitude, interference):
-    self.lock.acquire()
-    try:
+    with self.lock():
       if latitude not in self.aggregate_interference_info:
         self.aggregate_interference_info[latitude] = self.manager.dict()
    
@@ -191,10 +190,7 @@ class AggregateInterferenceOutputFormat:
 
       aggregate_interference_proxy[longitude].append(interference)
       self.aggregate_interference_info[latitude] = aggregate_interference_proxy
-
-    finally:
-      self.lock.release()
-
+      
   def GetAggregateInterferenceInfo(self):
     return self.aggregate_interference_info
 
