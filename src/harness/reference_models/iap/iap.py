@@ -142,71 +142,65 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
       # in the neighborhood of the protection point and channel
       neighborhood_grants = interf.findOverlappingGrants(
                               grants_inside, channel_constraint)
-      num_grants = len(neighborhood_grants)
+      num_unsatisfied_grants = len(neighborhood_grants)
 
       if not neighborhood_grants:
         continue
 
       # calculate the fair share
-      fair_share = float(interference_quota) / num_grants
+      fair_share = float(interference_quota) / num_unsatisfied_grants 
 
       # Empty list of final IAP EIRP and interference assigned to the grant
       grants_eirp = []
-
-      # Initialize interference list to 0 for all the neighborhood_grants
-      interference_list = [0] * num_grants
 
       aggr_interference = 0
 
       a_sas_p_interference = 0
 
       # Initialize flag to False for all the grants
-      grant_initialize_flag = [False] * num_grants
+      grant_initialize_flag = [False] * num_unsatisfied_grants 
 
       # Initialize grant EIRP to maxEirp for all the grants 
       grants_eirp = [grant.max_eirp for grant in neighborhood_grants]
 
-      while (num_grants > 0):
+      while (num_unsatisfied_grants > 0):
         for index, grant in enumerate(neighborhood_grants):
           if grant_initialize_flag[index] is False:
             # Compute interference grant causes to protection point over channel
-            interference = interf.computeInterference(grant, grants_eirp[index], 
-                             channel_constraint, fss_info, esc_antenna_info, region_type)
+            interference = interf.dbToLinear(interf.computeInterference(grant, 
+                             grants_eirp[index], channel_constraint, fss_info, 
+                             esc_antenna_info, region_type))
             # calculated interference exceeds fair share of
             # interference to which the grants are entitled
             if interference < fair_share:
-              interference_list[index] = interference
-              # Grant is satisfied
-              grant_initialize_flag[index] = True
+              # Remove satisfied CBSD grant from consideration
+              interference_quota = interference_quota - interference
 
-        for i, grant in enumerate(neighborhood_grants):
+              num_unsatisfied_grants = num_unsatisfied_grants - 1
 
-          if grant_initialize_flag[i] is True:
+              # re-calculate the fair share if number of grants are not zero
+              if num_unsatisfied_grants != 0:
+                fair_share = float (interference_quota) / num_unsatisfied_grants 
 
-            # Remove satisfied CBSD grant from consideration
-            interference_quota = interference_quota - interference_list[i]
+              # Ap: Updates aggregate interference calculated within IAPBW by managing SAS 
+              # using the EIRP obtained by all CBSDs(including CBSDs managed by other SASs) 
+              # through application of IAP for protected entity
+              aggr_interference += interference
 
-            if num_grants > 0:
-              num_grants = num_grants - 1
+              # ASASp: Updates aggregate interference calculated within IAPBW by managing SAS 
+              # using the EIRP obtained from IAP results for the point p for CBSD 
+              # managed by the managing SAS
+              if grant.is_managed_grant:
+                a_sas_p_interference += interference
 
-            # re-calculate the fair share if number of grants are not zero
-            if num_grants != 0:
-              fair_share = float (interference_quota) / num_grants
+            else:
+              grants_eirp[index] = grants_eirp[index] - 1
 
-            # Get aggregate interference
-            aggr_interference += interference_list[i]
-
-            # Update EIRP and Interference only if managed grant
-            if grant.is_managed_grant:
-              a_sas_p_interference += interference_list[i]
-          else:
-            grants_eirp[i] = grants_eirp[i] - 1
-       
-      aggregate_interference.SetAggregateInterferenceInfo(channel_constraint.latitude,
-            channel_constraint.longitude, aggr_interference)
-      
       asas_interference.SetAggregateInterferenceInfo(channel_constraint.latitude, 
                 channel_constraint.longitude, a_sas_p_interference)
+
+      aggregate_interference.SetAggregateInterferenceInfo(channel_constraint.latitude,
+            channel_constraint.longitude, aggr_interference)
   return
 
 
@@ -371,7 +365,7 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects, p
       # Apply IAP for each protection constraint with a pool of parallel 
       # processes.
       logging.debug('$$$$ Calling PPA Protection $$$$')
-     
+      
       pool = Pool(processes=min(multiprocessing.cpu_count(), 
                                    len(protection_points)))
       iapPoint = partial(iapPointConstraint, channels=protection_channels, 
@@ -411,11 +405,11 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
   num_sas = len(sas_th_fad_objects) + 1
 
   # Get the protection point of the FSS
-  fss_point = protected_entity['deploymentParam'][0]['installationParam']
+  fss_point = protected_entity['record']['deploymentParam'][0]['installationParam']
   protection_point = (fss_point['latitude'], fss_point['longitude'])
 
   # Get the frequency range of the FSS
-  fss_freq_range = protected_entity['deploymentParam'][0]\
+  fss_freq_range = protected_entity['record']['deploymentParam'][0]\
       ['operationParam']['operationFrequencyRange']
   fss_low_freq = fss_freq_range['lowFrequency']
 
@@ -467,11 +461,11 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
   fss_ttc_flag = protected_entity['ttc']
 
   # Get the protection point of the FSS
-  fss_point = protected_entity['deploymentParam'][0]['installationParam']
+  fss_point = protected_entity['record']['deploymentParam'][0]['installationParam']
   protection_point = (fss_point['latitude'], fss_point['longitude'])
 
   # Get the frequency range of the FSS
-  fss_freq_range = protected_entity['deploymentParam'][0]\
+  fss_freq_range = protected_entity['record']['deploymentParam'][0]\
       ['operationParam']['operationFrequencyRange']
   fss_low_freq = fss_freq_range['lowFrequency']
   fss_high_freq = fss_freq_range['highFrequency']
@@ -521,15 +515,15 @@ def calculateApIapRef(q_p, num_sas):
   """
   ap_iap_ref = {}
   asas_info = asas_interference.GetAggregateInterferenceInfo()
-  a_p_info = aggregate_interference.GetAggregateInterferenceInfo() 
-  
+  a_p_info = aggregate_interference.GetAggregateInterferenceInfo()
+
   # Compute AP_IAP_Ref 
   for latitude, a_p_ch in a_p_info.items():
     for longitude, a_p_list in a_p_ch.items():
       ap_iap_ref[latitude] = {}
       ap_iap_ref[latitude][longitude] = []
       for index, a_p in enumerate(a_p_list):
-        ap_iap_ref[latitude][longitude].append(((q_p - a_p) / num_sas) + 
+          ap_iap_ref[latitude][longitude].append(((q_p - a_p) / num_sas) + 
                               asas_info[latitude][longitude][index])
   
   return ap_iap_ref

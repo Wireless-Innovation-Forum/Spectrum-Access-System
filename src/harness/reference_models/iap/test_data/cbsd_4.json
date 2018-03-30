@@ -1,6 +1,6 @@
 {
 	"id": "device_4_id",
-	"registrationRequest": {
+	"registration": {
 					"fccId": "fccId5",
 		            "cbsdCategory": "B",
 		            "callSign": "KPPP",
@@ -19,6 +19,7 @@
                       "latitude": 36.998,
                       "longitude": -76,
                       "height": 75,
+                      "heightType": "AGL",
                       "indoorDeployment": false,
                       "antennaAzimuth": 0,
                       "antennaDowntilt": -5,

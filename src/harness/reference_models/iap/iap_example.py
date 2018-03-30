@@ -87,7 +87,7 @@ start_time = time.time()
 
 for fss_record in fss_records:
   # Get the frequency range of the FSS
-  fss_freq_range = fss_record['deploymentParam'][0]\
+  fss_freq_range = fss_record['record']['deploymentParam'][0]\
       ['operationParam']['operationFrequencyRange']
   fss_low_freq = fss_freq_range['lowFrequency']
   fss_high_freq = fss_freq_range['highFrequency']
