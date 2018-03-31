@@ -171,6 +171,7 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
       continue
     ratio = total_got / float(total_asked)
     for point in in_points:
+      if len(cbsds) > num_cbsds: break
       if nlcd_driver is not None:
         land_cover = nlcd_driver.GetLandCoverCodes(point.y, point.x)
         if land_cover < nlcd.LandCoverCodes.PERENNIAL_SNOW:

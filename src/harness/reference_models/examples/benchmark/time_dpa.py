@@ -44,7 +44,7 @@ from reference_models.examples import entities
 dpa_name = 'east_dpa_7'
 
 # - Number of sites to distribute within a given range of the DPA
-num_sites = 500
+num_sites = 45000
 max_dist_cat_a = 160
 max_dist_cat_b = 320
 
@@ -60,7 +60,7 @@ front_usborder_buffer_km = 40   # Front contour defined by the extension of the
                                 # us border.
 
 # - Do we restrict the sites to be within the census-defined urban areas ?
-do_inside_urban_area = False
+do_inside_urban_area = True
 
 # - Ratio of cat B and different catA
 ratio_cat_b = 0.2
@@ -69,7 +69,7 @@ ratio_cat_a_indoor = 0.4
 # - Simulation setup
 #   + Number of parallel processes -
 #     do not exceed your workstation parallel capabilities (number of core minus 2)
-#     Auto mode: -1 => will derive a proper setup as 75% of your workstation capabilities
+#     Auto mode: -1 => will derive a proper setup as 50% of your workstation capabilities
 num_processes = -1
 #   + Number of cached tiles (per process)
 num_cached_tiles = 32
@@ -221,7 +221,7 @@ if __name__ == '__main__':
   # Create the pool of process
   # Done externally from the move_list function to keep terrains in cache
   if num_processes < 0: # auto mode
-    num_processes = int(round(0.75 * multiprocessing.cpu_count()))
+    num_processes = int(round(0.5 * multiprocessing.cpu_count()))
   pool = multiprocessing.Pool(num_processes)
 
   (protection_points, all_cbsds,
