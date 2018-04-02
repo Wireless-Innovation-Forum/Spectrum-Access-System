@@ -19,7 +19,7 @@ import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, makePpaAndPalRecordsConsistent
+  loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 
 class PpaProtectionTestcase(sas_testcase.SasTestCase):
@@ -34,30 +34,47 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
   def generate_PPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for PPR.1. """
 
+    # Load PPA record
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+
+    pal_low_frequency = 3550000000
+    pal_high_frequency = 3560000000
+
+    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
+                                  ppa_record,
+                                  [pal_record],
+                                  pal_low_frequency,
+                                  pal_high_frequency,
+                                  'test_user_1'
+    )
+
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1 to a location within 40 meters of PPA zone
+    # Moving device_1 to a location within 40 KMs of PPA zone
     device_1['installationParam']['latitude'] = 38.8203
     device_1['installationParam']['longitude'] = -97.2741
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2 to a location outside 40 meters of PPA zone
-    device_2['installationParam']['latitude'] = 38.8201
-    device_2['installationParam']['longitude'] = -97.27651
+    # Moving device_2 to a location outside 40 KMs of PPA zone
+    device_2['installationParam']['latitude'] = 39.31476
+    device_2['installationParam']['longitude'] = -96.75139
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location within PPA zone
-    device_3['installationParam']['latitude'] = 38.82767
-    device_3['installationParam']['longitude'] = -97.20497
+    device_3['installationParam']['latitude'], \
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4 to a location within PPA zone
-    device_4['installationParam']['latitude'] = 38.79583
-    device_4['installationParam']['longitude'] = -97.25303
+    device_4['installationParam']['latitude'], \
+    device_4['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     # Load Grant requests
     grant_request_1 = json.load(
@@ -103,23 +120,6 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     del device_4['installationParam']
     del device_4['measCapability']
 
-    # Load PPA record
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-
-    pal_low_frequency = 3550000000
-    pal_high_frequency = 3570000000
-
-    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
-                                  ppa_record,
-                                  [pal_record],
-                                  pal_low_frequency,
-                                  pal_high_frequency,
-                                  'test_user_1'
-    )
-
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
@@ -133,7 +133,7 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     # Protected entity record
     protected_entities = {
         'palRecords': pal_records_1,
-        'ppaRecords': [ppa_record_1]
+        'ppaRecord': ppa_record_1
     }
 
     iteration_config = {
@@ -179,32 +179,50 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
 
   def generate_PPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for PPR.2. """
+
+    # Load PPA record
+    ppa_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_record = json.load(
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+
+    pal_low_frequency = 3550000000
+    pal_high_frequency = 3560000000
+
+    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
+                                  ppa_record,
+                                  [pal_record],
+                                  pal_low_frequency,
+                                  pal_high_frequency,
+                                  'test_user_1'
+    )
+
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1 to a location within 40 meters of PPA zone
+    # Moving device_1 to a location within 40 KMs of PPA zone
     device_1['installationParam']['latitude'] = 38.8203
     device_1['installationParam']['longitude'] = -97.2741
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2 to a location outside 40 meters of PPA zone
-    device_2['installationParam']['latitude'] = 38.8201
-    device_2['installationParam']['longitude'] = -97.27651
+    # Moving device_2 to a location outside 40 KMs of PPA zone
+    device_2['installationParam']['latitude'] = 39.31476
+    device_2['installationParam']['longitude'] = -96.75139
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location within PPA zone
-    device_3['installationParam']['latitude'] = 38.82767
-    device_3['installationParam']['longitude'] = -97.20497
+    device_3['installationParam']['latitude'], \
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4 to a location within PPA zone
-    device_4['installationParam']['latitude'] = 38.79583
-    device_4['installationParam']['longitude'] = -97.25303
+    device_4['installationParam']['latitude'], \
+    device_4['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
-    # Load Grant requests
+    # Load Grant requests with overlapping frequency range for all devices
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
@@ -259,23 +277,6 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     del device_4['installationParam']
     del device_4['measCapability']
 
-    # Load PPA record
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-
-    pal_low_frequency = 3550000000
-    pal_high_frequency = 3570000000
-
-    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
-                                  ppa_record,
-                                  [pal_record],
-                                  pal_low_frequency,
-                                  pal_high_frequency,
-                                  'test_user_1'
-    )
-
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
@@ -289,7 +290,7 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     # Protected entity record
     protected_entities = {
         'palRecords': pal_records_1,
-        'ppaRecords': [ppa_record_1]
+        'ppaRecord': ppa_record_1
     }
 
     # SAS Test Harnesses configurations,
