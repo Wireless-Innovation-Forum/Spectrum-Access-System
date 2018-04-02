@@ -19,7 +19,7 @@ import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import addCbsdIdsToRequests, winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, makePpaAndPalRecordsConsistent
+  loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
 
 
 class GwpzProtectionTestcase(sas_testcase.SasTestCase):
@@ -41,27 +41,27 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1 to a location within 40 meters of GWPZ zone
+    # Moving device_1 to a location within 40 KMs of GWPZ zone
     device_1['installationParam']['latitude'] = 37.6161
     device_1['installationParam']['longitude'] = -106.95261
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2 to a location outside 40 meters of GWPZ zone
-    device_2['installationParam']['latitude'] = 37.61599
-    device_2['installationParam']['longitude'] = -106.95356
+    # Moving device_2 to a location outside 40 KMs of GWPZ zone
+    device_2['installationParam']['latitude'] = 37.83075
+    device_2['installationParam']['longitude'] = -107.65025
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
-    device_3['installationParam']['latitude'] = 37.61547
-    device_3['installationParam']['longitude'] = -106.95043
+    device_3['installationParam']['latitude'], \
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    # Moving device_4 to a location outside 40 meters of GWPZ zone
-    device_4['installationParam']['latitude'] = 37.61639
-    device_4['installationParam']['longitude'] = -106.9552
+    # Moving device_4 to a location outside 40 KMs of GWPZ zone
+    device_4['installationParam']['latitude'] = 38.0934
+    device_4['installationParam']['longitude'] = -106.91676
 
     # Load Grant requests
     grant_request_1 = json.load(
@@ -173,27 +173,27 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    # Moving device_1 to a location within 40 meters of GWPZ zone
+    # Moving device_1 to a location within 40 KMs of GWPZ zone
     device_1['installationParam']['latitude'] = 37.6161
     device_1['installationParam']['longitude'] = -106.95261
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Moving device_2 to a location outside 40 meters of GWPZ zone
-    device_2['installationParam']['latitude'] = 37.61599
-    device_2['installationParam']['longitude'] = -106.95356
+    # Moving device_2 to a location outside 40 KMs of GWPZ zone
+    device_2['installationParam']['latitude'] = 37.83075
+    device_2['installationParam']['longitude'] = -107.65025
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
-    device_3['installationParam']['latitude'] = 37.61547
-    device_3['installationParam']['longitude'] = -106.95043
+    device_3['installationParam']['latitude'], \
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    # Moving device_4 to a location outside 40 meters of GWPZ zone
-    device_4['installationParam']['latitude'] = 37.61639
-    device_4['installationParam']['longitude'] = -106.9552
+    # Moving device_4 to a location outside 40 KMs of GWPZ zone
+    device_4['installationParam']['latitude'] = 38.0934
+    device_4['installationParam']['longitude'] = -106.91676
 
     # Load Grant requests
     grant_request_1 = json.load(
@@ -365,18 +365,22 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
   def generate_GPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for GPR.3 """
 
+    # Load GWPZ Record
+    gwpz_record_1 = json.load(
+      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+
     # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location inside GWPZ zone
-    device_1['installationParam']['latitude'] = 37.61547
-    device_1['installationParam']['longitude'] = -106.95043
+    device_1['installationParam']['latitude'], \
+    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2 to a location inside GWPZ zone
-    device_2['installationParam']['latitude'] = 37.6144
-    device_2['installationParam']['longitude'] = -106.94629
+    device_2['installationParam']['latitude'], \
+    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     # Load Grant requests
     grant_request_1 = json.load(
