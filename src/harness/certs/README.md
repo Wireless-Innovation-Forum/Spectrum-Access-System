@@ -13,31 +13,31 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
 
 ```
              ------------------root_ca ------------------
-            /                     |         	         \                 
-           /                      |          	          \            
-       sas_ca--------          cbsd_ca   	        proxy_ca
-       /    \        \            |			    \
-      /      \        \           |                   	     \
+            /                     |                      \
+           /                      |                       \
+       sas_ca--------          cbsd_ca                  proxy_ca
+       /    \        \            |                         \
+      /      \        \           |                          \
 admin_client sas    server     client                   domain_proxy
               |                corrupted_client         corrupted_domain_proxy
- 	  corrupted_sas        wrong_type_client        wrong_type_domain_proxy
+          corrupted_sas        wrong_type_client        wrong_type_domain_proxy
           sas_expired          client_expired           domain_proxy_expired
-          blacklisted_sas      client_inapplicable      domain_proxy_inapplicable                  
-                               blacklisted_client       blacklisted_domain_proxy                
-                                                         
-  
+          blacklisted_sas      client_inapplicable      domain_proxy_inapplicable
+                               blacklisted_client       blacklisted_domain_proxy
+
+
             ------------------non_cbrs_root_ca----------------------
-           /                          |        	                    \
+           /                          |                             \
 non_cbrs_root_signed_cbsd_ca   non_cbrs_root_signed_sas_ca  non_cbrs_root_signed_oper_ca
           |                           |                              |
 non_cbrs_signed_device         non_cbrs_root_signed_sas     non_cbrs_signed_domain_proxy
 
 
-                             unrecognized_ca             
-                                   |                  
-                          unrecognized_device        
-                          unrecognized_sas            
-                          unrecognized_domain_proxy   
+                             unrecognized_ca
+                                   |
+                          unrecognized_device
+                          unrecognized_sas
+                          unrecognized_domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
