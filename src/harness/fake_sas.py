@@ -358,10 +358,10 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().GetDailyActivitiesStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
       try:
-	    response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+        response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
-	    self.send_response(400)
-      return 	  
+        self.send_response(400)
+      return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
@@ -409,44 +409,30 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
+def RunFakeServer(version, is_ecc, ca_cert_path, verify_crl):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
-  if ca_cert is not None:
-    try:
-      with open(os.path.join('certs', ca_cert)) as file_handle:
-        ca_cert_data = file_handle.read()
-    except IOError:
-      print "%s is not exist in certs path"
-    return
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
+  try:
+    with open(ca_cert_path) as file_handle:
+      ca_cert_data = file_handle.read()
+  except IOError:
+    print "%s does not exist in certs path" % ca_cert_path
+  ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+  ssl_context.options |= ssl.CERT_REQUIRED
 
+  # If verify CRL flag is set then load the ca chain with CRLs and verify that
+  # the client certificate is not revoked.
   if verify_crl:
-    # If verify CRL flag is set then load the ca chain with CRLs and verify that
-    # the client certificate is not revoked.
-    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_context.options |= ssl.CERT_REQUIRED
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
-    ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
-    ssl_context.load_cert_chain(
-        certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-        keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
-    ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
-    ssl_context.verify_mode = ssl.CERT_REQUIRED
-    server.socket = ssl_context.wrap_socket(server.socket,
-                                            server_side=True)
-  else:
-    server.socket = ssl.wrap_socket(
-      server.socket,
+  ssl_context.load_verify_locations(cafile=ca_cert_path)
+  ssl_context.load_cert_chain(
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT if not ca_cert else os.path.join('certs', ca_cert),
-
-      cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
-      ssl_version=ssl.PROTOCOL_TLSv1_2,
-      ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
-      server_side=True)
+      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
+  ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+  ssl_context.verify_mode = ssl.CERT_REQUIRED
+  server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
   print 'Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT
   server.serve_forever()
 
@@ -464,5 +450,6 @@ if __name__ == '__main__':
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc, args.ca_cert, args.verify_crl)
+  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
+  RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)
 
