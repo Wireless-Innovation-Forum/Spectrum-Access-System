@@ -47,11 +47,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.55
+    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    # Moving device_3(Cat A) to a location outisde 40 KMs of ESC sensor
+    # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
     device_3['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
 
     device_4 = json.load(
@@ -182,7 +182,7 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.55
+    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
