@@ -42,8 +42,8 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location within 40 KMs of GWPZ zone
-    device_1['installationParam']['latitude'] = 37.6161
-    device_1['installationParam']['longitude'] = -106.95261
+    device_1['installationParam']['latitude'] = 39.10448
+    device_1['installationParam']['longitude'] = -99.7792
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
@@ -174,8 +174,8 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location within 40 KMs of GWPZ zone
-    device_1['installationParam']['latitude'] = 37.6161
-    device_1['installationParam']['longitude'] = -106.95261
+    device_1['installationParam']['latitude'] = 39.10448
+    device_1['installationParam']['longitude'] = -99.7792
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
@@ -412,10 +412,6 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     del device_2['airInterface']
     del device_2['installationParam']
     del device_2['measCapability']
-
-    # Load GWPZ Record
-    gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
 
     devices = [device_1, device_2]
     grants = [grant_request_1, grant_request_2]
