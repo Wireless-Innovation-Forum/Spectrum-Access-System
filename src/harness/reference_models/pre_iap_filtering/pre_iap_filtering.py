@@ -18,17 +18,17 @@
   models to filter out grants and CBSDs before IAP model is invoked.
 ==================================================================================
 """
-
 from reference_models.fss_purge import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 from reference_models.ppa_gwpz_fss_gwbl_purge import ppa_gwpz_fss_gwbl_purge
 from reference_models.pre_iap_filtering import pre_iap_util
 
 FSS_GWBL_PROTECTION_DISTANCE = 150
+
 def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads):
   """ The main function that invokes all pre-IAP filtering models.
   The grants/CBSDs to be purged are removed from the input parameters.
-  
+
   Args:
     protected_entities: A dictionary containing the list of protected entities. The key
       is a protected enity type and the value is a list of corresponding protected
@@ -38,14 +38,13 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
       from SAS test harnesses.
   """    
 
-
   # Invoke Inter SAS duplicate grant purge list reference model
-  inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel\
-                                               (sas_uut_fad, sas_test_harness_fads)
+  inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad,
+                                                          sas_test_harness_fads)
 
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
-  list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']
-                              ,protected_entities['fssRecords'], FSS_GWBL_PROTECTION_DISTANCE)
+  list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords'],
+                                     protected_entities['fssRecords'], FSS_GWBL_PROTECTION_DISTANCE)
   ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad,
       sas_test_harness_fads, protected_entities['ppaRecords'], 
       protected_entities['palRecords'], protected_entities['gwpzRecords'], 
@@ -55,3 +54,4 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
   if 'fssRecords' in protected_entities:
     fss_purge.fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
                                 protected_entities['fssRecords'])
+

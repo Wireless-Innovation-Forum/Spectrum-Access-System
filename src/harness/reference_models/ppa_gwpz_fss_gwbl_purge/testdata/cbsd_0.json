@@ -1,6 +1,6 @@
 {
         "_comment":"FSS - Inband Blocking CBSD partial overlap",
-	"id": "device_0_id",
+	"id": "cbsd_0",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_a",
 		            "cbsdCategory": "B",
@@ -34,8 +34,8 @@
 					"operationParam": {
 						"maxEirp": 37.0,
 						"operationFrequencyRange": {
-							"highFrequency": 3603000000,
-							"lowFrequency": 3593000000
+							"highFrequency": 3663000000,
+							"lowFrequency": 3653000000
 						}
 					},
 					"terminated": false

@@ -41,21 +41,26 @@ class TestFssPurge(unittest.TestCase):
      open(os.path.join('testdata', 'gwpz_0.json')))
    ppa_record = json.load(
      open(os.path.join('testdata', 'ppa_0.json')))
-   pal_record = json.load(
+   pal_record_0 = json.load(
      open(os.path.join('testdata', 'pal_0.json')))
+   pal_record_1 = json.load(
+     open(os.path.join('testdata', 'pal_1.json')))
+   pal_record_2 = json.load(
+     open(os.path.join('testdata', 'pal_2.json')))
+
+   pal_record_list = [pal_record_0, pal_record_1, pal_record_2]
    fss_record = json.load(
      open(os.path.join('testdata', 'fss_0.json')))
    gwbl_record = json.load(
      open(os.path.join('testdata', 'gwbl_0.json')))
-
-   pal_low_frequency = pal_record['channelAssignment']['primaryAssignment']['lowFrequency']
-   pal_high_frequency = pal_record['channelAssignment']['primaryAssignment']['highFrequency']
-   ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record,
-                                                                [pal_record],
-                                                                pal_low_frequency,
-                                                                pal_high_frequency,
-                                                                'test_user_1')
-
+    
+   ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record, pal_record_list,
+                                                                  'test_user_1')
+   ppa_record['ppaInfo']['cbsdReferenceId'] = ["cbsd_5", "cbsd_3"]
+   #ppa_record['ppaInfo']['palId'][0] = "palx"
+   #ppa_record['ppaInfo']['palId'][1] = "palx"
+   #ppa_record['ppaInfo']['palId'][2] = "palx"
+   #pal_records[0]["channelAssignment"]["primaryAssignment"]["lowFrequency"] = 1234
    fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
    fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
    fad_object_3 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_4, cbsd_5]})
@@ -75,11 +80,9 @@ class TestFssPurge(unittest.TestCase):
        for grants in rec['grants']:
          print " ",json.dumps(grants['id'])
    print "===================================================================="
-   fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']\
-                                                     ,protected_entities['fssRecords'], 150)
    ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
              protected_entities['ppaRecords'], protected_entities['palRecords'],\
-             protected_entities['gwpzRecords'], fss_neighboring_gwbl)
+             protected_entities['gwpzRecords'], protected_entities['fssRecords'])
    print "================CBSD Grants received as output======================"
    for records in sas_uut_fad.getCbsdRecords():
      for grants in records['grants']:

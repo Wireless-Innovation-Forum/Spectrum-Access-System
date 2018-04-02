@@ -1,6 +1,6 @@
 {
         "_comment":"FSS - TT&C Blocking CBSD",
-	"id": "device_2_id",
+	"id": "cbsd_2",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_c",
 		            "cbsdCategory": "B",

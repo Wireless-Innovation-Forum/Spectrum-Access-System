@@ -23,12 +23,13 @@ from shapely.geometry import shape, Point, Polygon
 from reference_models.geo import vincenty
 from reference_models.pre_iap_filtering import pre_iap_util
 
-FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency' : 3650000000,
+FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650000000,
                              'highFrequency': 3700000000}
+
 
 def ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
                      ppa_records, pal_records, gwpz_records, fss_records):
-  """ Entry method for PPA, GWPZ and FSS+GWPZ purge reference model.
+  """ Entry method for PPA, GWPZ and FSS+GWBL purge reference model.
 
   CBSDs from the FAD objects of SAS UUT and SAS test harnesses that lie within the
   PPA area or GWPZ area or within 150 KMs from the FSS site will have their grant
@@ -40,36 +41,46 @@ def ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
     sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
     sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
       from SAS test harnesses.
-    ppa_records: List PPA record dictionaries.
-    pal_records: List PAL record dictionaries.
-    gwpz_records: List GWPZ record dictionaries.
-    fss_records: A list of FSS record dictionary. All the FSSs in this list should have
-      atleast one GWBL within 150KMs
+    ppa_records: List of PPA record dictionaries.
+    pal_records: List of PAL record dictionaries.
+    gwpz_records: List of GWPZ record dictionaries.
+    fss_records: List of FSS record dictionaries. All the FSSs in this list should have
+      at least one GWBL within 150KMs.
   """
   # Get the list of all CBSDs from the FAD objects of UUT and test harness
   cbsds = []
   cbsds.extend(sas_uut_fad.getCbsdRecords())
   for fad in sas_test_harness_fads:
     cbsds.extend(fad.getCbsdRecords()) 
-  
-  # Perform purge for PPA
+
+  # Perform purge for each PPA
   for ppa_record in ppa_records:
+    # Get all the CBSDs within the PPA polygon
     cbsds_within_ppa = pre_iap_util.getCbsdsWithinPolygon(cbsds, ppa_record['zone'])
     if cbsds_within_ppa:
-      ppa_frequency_range = pre_iap_util.getPpaFrequencyRange(ppa_record, pal_records)
+      # Get all the cbsds that are not part of the PPA cluster list
+      cbsds_not_part_of_ppa_cluster = pre_iap_util.getCbsdsNotPartOfPpaCluster(
+                                                   cbsds_within_ppa, ppa_record)
+      if cbsds_not_part_of_ppa_cluster:
+        # Get the frequency of the PPA
+        ppa_frequency_range = pre_iap_util.getPpaFrequencyRange(ppa_record, pal_records)
+        # Purge the grants of CBSDs that are overlapping PPA frequency
+        pre_iap_util.purgeOverlappingGrants(cbsds_within_ppa, ppa_frequency_range)
 
-      pre_iap_util.purgeOverlappingGrants(cbsds_within_ppa, ppa_frequency_range)
- 
   # Perform purge for each GWPZ 
   for gwpz_record in gwpz_records:
+   # Get the CBSDs that are witin the GWPZ polygon
    cbsds_within_gwpz = pre_iap_util.getCbsdsWithinPolygon(cbsds, gwpz_record['zone'])
    if cbsds_within_gwpz:
+     # Purge the overlapping grants 
      pre_iap_util.purgeOverlappingGrants(cbsds_within_gwpz, gwpz_record['deploymentParam']\
                   ['operationParam']['operationFrequencyRange'])
 
   # Perform GWBL+FSS purge for each FSS
   for fss_record in fss_records:
-    cbsds_neighboring_fss = pre_iap_util.getFssNeighboringCbsdsWithGrants(cbsds, fss_record,150)
+    # Get the CBSDs that are present within 150kms of FSS entity
+    cbsds_neighboring_fss = pre_iap_util.getFssNeighboringCbsdsWithGrants(cbsds, fss_record, 150)
     if cbsds_neighboring_fss:
+      # Purge the overlapping grants 
       pre_iap_util.purgeOverlappingGrants(cbsds_neighboring_fss, FSS_GWBL_PROTECTION_FREQ_RANGE)
 

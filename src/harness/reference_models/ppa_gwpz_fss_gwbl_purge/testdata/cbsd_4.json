@@ -1,6 +1,6 @@
 {
         "_comment":"ESC- Category A CBSD",
-	"id": "device_4_id",
+	"id": "cbsd_4",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_e",
 		            "cbsdCategory": "A",

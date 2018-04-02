@@ -1,6 +1,6 @@
 {
         "_comment":"FSS - Co-Channel/GWPZ CBSD",
-	"id": "device_1_id",
+	"id": "cbsd_1",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_b",
 		            "cbsdCategory": "A",

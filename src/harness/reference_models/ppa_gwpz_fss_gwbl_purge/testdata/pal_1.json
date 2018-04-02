@@ -1,16 +1,16 @@
 {
-  "palId": "pal_0",
-  "fipsCode":20041084200,
+  "palId": "pal_1",
+  "fipsCode":10020042100,
   "censusYear": 2010,
-  "licensee": "CBSD Operator No.0",
-  "userID": "user_0",
+  "licensee": "CBSD Operator No.1",
+  "userID": "user_1",
   "registrationInformation": {
-    "frn": "test_fcc_frn_pal_0",
-    "callSign": "call_sign_pal_0",
-    "licenseConditions": "license_pal_0"
+    "frn": "test_fcc_frn_pal_1",
+    "callSign": "call_sign_pal_1",
+    "licenseConditions": "license_pal_1"
   },
   "license": {
-    "id": "test_fcc_id_pal_0"
+    "id": "test_fcc_id_pal_1"
   },
   "licenseStatus": "VALID",
   "channelAssignment": {

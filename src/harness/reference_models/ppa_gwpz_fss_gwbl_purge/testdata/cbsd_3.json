@@ -1,6 +1,6 @@
 {
         "_comment":"PPA - CBSD and Category B - ESC CBSD",
-	"id": "device_3_id",
+	"id": "cbsd_3",
 	"registrationRequest": {
 					"fccId": "test_fcc_id_d",
 		            "cbsdCategory": "B",
