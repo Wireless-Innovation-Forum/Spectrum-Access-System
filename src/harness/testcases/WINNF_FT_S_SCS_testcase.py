@@ -88,7 +88,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
 
   def generate_SCS_7_default_config(self, filename):
@@ -108,7 +108,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
 
   def generate_SCS_8_default_config(self, filename):
@@ -128,7 +128,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
 
   def generate_SCS_9_default_config(self, filename):
@@ -148,7 +148,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
 
   def generate_SCS_10_default_config(self, filename):
@@ -170,7 +170,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     config = loadConfig(config_filename)
     try:
-      self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+      self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                      client_key=config['clientKey'])
     except AssertionError as e:
       self.SasReset()
@@ -202,7 +202,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
 
   @winnforum_testcase
@@ -299,7 +299,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
@@ -346,7 +346,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
@@ -397,5 +397,5 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")

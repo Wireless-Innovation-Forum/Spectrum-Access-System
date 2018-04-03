@@ -247,10 +247,28 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       logging.debug('TLS handshake: succeed')
       self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
-      logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:
       client_ssl.close()
+
+  def assertTlsHandshakeOrHttpsFailure(self, client_cert=None, client_key=None):
+    """
+      Checks that the TLS handshake failure by varying the given parameters
+      if handshake not failed make sure the next https request return error code 403
+    """
+    try:
+      self.assertTlsHandshakeFailure(client_cert, client_key)
+    except AssertionError as e:
+      try:
+        device_a = json.load(
+          open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        request = {'registrationRequest': [device_a]}
+        response = self._sas.Registration(request, ssl_cert=client_cert,
+                                          ssl_key=client_key)['registrationResponse']
+      except AssertionError as e:
+        self.assertEqual(e.args[0], 403)
+      else:
+        self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
 
   def createShortLivedCertificate(self, client_type, cert_name, cert_duration_minutes):
     """Generates short lived certificate for SCS/SDS 17,18 & 19
