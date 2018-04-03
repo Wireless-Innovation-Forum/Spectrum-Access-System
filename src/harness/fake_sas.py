@@ -56,6 +56,7 @@ from datetime import timedelta
 import uuid
 import json
 import ssl
+import sys
 import os
 import sas_interface
 
@@ -419,6 +420,7 @@ def RunFakeServer(version, is_ecc, ca_cert_path, verify_crl):
       ca_cert_data = file_handle.read()
   except IOError:
     print "%s does not exist in certs path" % ca_cert_path
+    return
   ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   ssl_context.options |= ssl.CERT_REQUIRED
 
@@ -442,14 +444,21 @@ if __name__ == '__main__':
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
   parser.add_argument(
-      '--ca', help='Use CA certificate', dest='ca_cert', action='store')
-  parser.add_argument(
-      '--verify_crl', help='Use revoke and CRL', dest='verify_crl', action='store_true')
-  args = parser.parse_args()
-
+      '--verify_crl', help='Enable CRL verification.If this flag is set then '
+                           '--ca <cert_file> argument is mandatory.The <cert_file> '
+                           'should contain the certificate chain and CRL chain.',
+      dest='verify_crl', action='store_true')
+  parser.add_argument('--ca', required='--verify_crl' in sys.argv,
+                      help='CA certiicate chain with or without CRL chain.',
+                      dest='ca_cert', action='store')
+  try:
+    args = parser.parse_args()
+  except:
+    parser.print_help()
+    sys.exit(0)
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
   ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
+  print "\nCA chain is loaded into fake_sas:%s" %ca_cert_path
   RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)
-

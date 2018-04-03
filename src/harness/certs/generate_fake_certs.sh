@@ -8,8 +8,10 @@ rm -rf crl/
 mkdir private
 mkdir root
 mkdir crl
-touch index.txt
-echo -n 'unique_subject = no' >> index.txt.attr
+
+# Empty the index.txt to avoid to old certificates index.
+cat /dev/null > index.txt
+echo -n 'unique_subject = no' > index.txt.attr
 
 function gen_corrupt_cert()
 {
@@ -284,23 +286,23 @@ openssl ca -revoke blacklisted_sas.cert -keyfile private/sas_ca.key -cert sas_ca
 #Create a CRL for root CA containing the revoked CBSD CA certificate
 echo "\n\nGenerate CRL for root_ca"
 openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-    -config ../../../cert/openssl.cnf  -crlhours 1\
+    -config ../../../cert/openssl.cnf  -crlhours 365 \
     -out crl/root_ca.crl
 
 #Creating CRL for blacklisted certificates xxS.11 test cases
 echo "\n\nGenerate CRL for sas_ca"
 openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -config ../../../cert/openssl.cnf -crldays 365 \
     -out crl/sas_ca.crl
 
 echo "\n\nGenerate CRL for proxy_ca"
 openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -config ../../../cert/openssl.cnf -crlhours 365 \
     -out crl/proxy_ca.crl
 
 echo "\n\nGenerate CRL for cbsd_ca"
 openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-    -config ../../../cert/openssl.cnf -crlhours 1 \
+    -config ../../../cert/openssl.cnf -crlhours 365 \
     -out crl/cbsd_ca.crl
 
 #Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
@@ -471,6 +473,8 @@ cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc
 
 #Create CA certificate chain containing the  CRLs with revoked leaf certificates
 cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca.crl
+cat ca.cert crl/ca.crl > ca_crl_chain_sxs11.cert
+
 
 # Note: following server implementation, we could also put only the root_ca.cert
 # on ca.cert, then append the intermediate on each leaf certificate:
