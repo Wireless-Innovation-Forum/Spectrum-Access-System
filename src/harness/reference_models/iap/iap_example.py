@@ -24,6 +24,11 @@ import os
 import iap
 import time
 from reference_models.interference import interference as interf
+import multiprocessing
+from multiprocessing import Pool
+
+# Number of processes for parallel execution
+NUM_OF_PROCESS = 30
 
 cbsd_0 = json.load(open(os.path.join('test_data', 'cbsd_0.json')))
 cbsd_1 = json.load(open(os.path.join('test_data', 'cbsd_1.json')))
@@ -116,11 +121,13 @@ for esc_record in esc_records:
   print('$$$$ IAP Reference Model Output for ESC: AP_IAP_Ref (mW/IAPBW)$$$$' +
                                                   str(esc_allowed_interference))
 for gwpz_record in gwpz_records:
+  pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
   gwpz_allowed_interference = iap.performIapForGwpz(gwpz_record, sas_uut, sas_th_fad_objects)
   print('$$$$ IAP Reference Model Output for GWPZ: AP_IAP_Ref (mW/IAPBW)$$$$' +
                                                   str(gwpz_allowed_interference))
 for ppa_record in ppa_records:
-  ppa_allowed_interference = iap.performIapForPpa(ppa_record, sas_uut, sas_th_fad_objects, pal_records)
+  pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
+  ppa_allowed_interference = iap.performIapForPpa(ppa_record, sas_uut, sas_th_fad_objects, pal_records, pool)
   print('$$$$ IAP Reference Model Output for PPA: AP_IAP_Ref (mW/IAPBW)$$$$' +
                                                   str(ppa_allowed_interference))
 
