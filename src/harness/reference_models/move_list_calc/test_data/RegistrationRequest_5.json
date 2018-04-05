@@ -15,6 +15,7 @@
   "installationParam": {
     "latitude": 37.7720,
     "longitude": -75.5977,
+    "heightType": "AGL",
     "height": 6,
     "indoorDeployment": true,
     "antennaAzimuth": 90,

@@ -25,14 +25,15 @@ Notes:
 """
 # TODO(sbdt): add reporting for memory usage
 from collections import namedtuple
-import multiprocessing
 import time
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reference_models.move_list_calc import move_list
+from reference_models.move_list_calc import dpa_mgr
+from reference_models.common import data
+from reference_models.common import mpool
 from reference_models.geo import zones
 from reference_models.geo import drive
 from reference_models.geo import utils
@@ -83,9 +84,6 @@ ratio_cat_a_outdoor = 1.0 - ratio_cat_b - ratio_cat_a_indoor
 # Define the Protection points and specification
 ProtectionPoint = namedtuple('ProtectionPoint',
                              ['latitude', 'longitude'])
-ProtectionSpecs = namedtuple('ProtectionSpecs',
-                             ['lowFreq', 'highFreq',
-                              'antHeight', 'beamwidth', 'threshold'])
 
 #----------------------------------------
 # Configure the geo drivers to avoid swap
@@ -218,44 +216,46 @@ if __name__ == '__main__':
   # reset the random seed
   np.random.seed(12345)
 
-  # Create the pool of process
-  # Done externally from the move_list function to keep terrains in cache
-  if num_processes < 0: # auto mode
-    num_processes = int(round(0.5 * multiprocessing.cpu_count()))
-  pool = multiprocessing.Pool(num_processes)
+  # Configure the global pool of processes
+  mpool.Configure(num_processes)
+  pool = mpool.Pool()
+  num_processes = pool._max_workers
 
   (protection_points, all_cbsds,
    reg_requests, grant_requests, protection_zone,
    (n_a_indoor, n_a_outdoor, n_b), ax) = PrepareSimulation()
 
-  # The protection specification
-  protection_spec = ProtectionSpecs(lowFreq=fmin*1e6, highFreq=fmax*1e6,
-                                    antHeight=50, beamwidth=3, threshold=-144)
+  # Build the grants
+  grants = data.getGrantsFromRequests(reg_requests, grant_requests)
+
+  # Build the DPA manager
+  dpa = dpa_mgr.Dpa(protection_points,
+                    radar_height=50,
+                    beamwidth=3,
+                    threshold=-144,
+                    freq_ranges_mhz=[(fmin, fmax)])
 
   # Run the move list algorithm a first time to fill up geo cache
   print 'Running Move List algorithm (%d processes)' % num_processes
   print '  + once to populate the terrain cache'
-  result = move_list.findMoveList(protection_spec, protection_points[:num_processes],
-                                  reg_requests[0:100], grant_requests[0:100],
-                                  num_montecarlo_iter, num_processes,
-                                  protection_zone, pool)
+  dpa.SetGrantsFromList(grants[0:50])
+  dpa.CalcMoveLists()
 
   # Run it for real and measure time
   print '  + actual run (timed)'
+  dpa.SetGrantsFromList(grants)
   start_time = time.time()
-  result = move_list.findMoveList(protection_spec, protection_points,
-                                  reg_requests, grant_requests,
-                                  num_montecarlo_iter, num_processes,
-                                  protection_zone, pool)
+  dpa.CalcMoveLists()
   end_time = time.time()
 
   # Print results
-  len_move_list = np.sum(result)
+  print dpa.GetMoveListMask((fmin, fmax))
+  len_move_list = len(dpa.move_lists[0])
   print ''
   print 'Num Cores (Parallelization): %d' % num_processes
   print 'Num Protection Points: %d' % len(protection_points)
   print 'Num CBSD: %d (A: %d %d - B %d)' % (
-      len(reg_requests), n_a_indoor, n_a_outdoor, n_b)
+      len(grants), n_a_indoor, n_a_outdoor, n_b)
   print 'Distribution: %s' % ('uniform' if not do_inside_urban_area
                               else 'urban areas only')
   print 'Move list size: %d' % len_move_list
@@ -263,18 +263,20 @@ if __name__ == '__main__':
 
   # Check tiles cache well behaved
   print  ''
-  tile_stats = pool.map(getTileStats, [None]*num_processes)
+  tile_stats = list(pool.map(getTileStats, [None]*num_processes))
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    pool.apply_async(printTileStats, ())
+    future = pool.submit(printTileStats, ())
+    future.result()
   else:
     print '-- Cache tile: OK (no swapping)'
 
   # Plot the move list
   if len_move_list:
+    result = dpa.GetMoveListMask((fmin, fmax))
     ax.scatter([cbsd.longitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                [cbsd.latitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                color='r', marker='.')

@@ -33,11 +33,16 @@
 
 import json
 import os
+import time
 from pykml import parser
 from collections import namedtuple
+
 # from shapely.geometry import Polygon as SPolygon
-import move_list
-import time
+from reference_models.geo import zones
+from reference_models.common import data
+from reference_models.common import mpool
+from reference_models.move_list_calc import move_list
+from reference_models.move_list_calc import dpa_mgr
 
 # Define protection point, i.e., a tuple with named fields of
 # 'latitude', 'longitude'
@@ -50,79 +55,66 @@ ProtectionSpecs = namedtuple('ProtectionSpecs', ['lowFreq', 'highFreq',
     'antHeight', 'beamwidth', 'threshold'])
 
 if __name__ == '__main__':
+  # Number of Monte Carlo iterations
+  num_iter = 2000
 
-    # Populate protection specifications
-    protection_specs = ProtectionSpecs(lowFreq=3600000000, highFreq=3610000000,
-                                       antHeight=50, beamwidth=3, threshold=-144)
+  # Congigure the global pool manager
+  num_processes = 4
+  mpool.Configure(num_processes) # Note: shall not be run in child process
+                                 # so protect it.
 
-    # Populate protection points
-    protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
-                         ProtectionPoint(latitude=37.7579, longitude=-75.4105),
-                         ProtectionPoint(latitude=36.1044, longitude=-73.3147),
-                         ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
+  # Populate protection points
+  protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
+                       ProtectionPoint(latitude=37.7579, longitude=-75.4105),
+                       ProtectionPoint(latitude=36.1044, longitude=-73.3147),
+                       ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
 
-    # Number of Monte Carlo iterations
-    num_iter = 2000
+  # Configure operating parameters
+  dpa_mgr.Dpa.Configure(num_iteration=num_iter)
 
-    # Number of parallel processes to use
-    num_processes = 6
+  dpa = dpa_mgr.Dpa(protection_points,
+                    threshold=-144,
+                    beamwidth=3,
+                    radar_height=50,
+                    freq_ranges_mhz=[(3600, 3610)])
 
-    # Data directory
-    current_dir = os.getcwd()
-    _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
+  # Read all grants
+  current_dir = os.getcwd()
+  _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
 
-    # Populate a list of CBSD registration requests 		
-    reg_request_filename = ['RegistrationRequest_1.json',
-                            'RegistrationRequest_2.json',
-                            'RegistrationRequest_3.json',
-                            'RegistrationRequest_4.json',
-                            'RegistrationRequest_5.json',
-                            'RegistrationRequest_6.json']
-    reg_request_list = []
-    for reg_file in reg_request_filename:
-        reg_request = json.load(open(os.path.join(_BASE_DATA_DIR, reg_file)))
-        reg_request_list.append(reg_request)
+  # Populate a list of CBSD registration requests
+  reg_request_filename = ['RegistrationRequest_1.json',
+                          'RegistrationRequest_2.json',
+                          'RegistrationRequest_3.json',
+                          'RegistrationRequest_4.json',
+                          'RegistrationRequest_5.json',
+                          'RegistrationRequest_6.json']
+  reg_request_list = []
+  for reg_file in reg_request_filename:
+    reg_request = json.load(open(os.path.join(_BASE_DATA_DIR, reg_file)))
+    reg_request_list.append(reg_request)
 
-    # Populate a list of grant requests
-    grant_request_filename = ['GrantRequest_1.json',
-                              'GrantRequest_2.json',
-                              'GrantRequest_3.json',
-                              'GrantRequest_4.json',
-                              'GrantRequest_5.json',
-                              'GrantRequest_6.json']
-    grant_request_list = []
-    for grant_file in grant_request_filename:
-        grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
-        grant_request_list.append(grant_request)
+  # Populate a list of grant requests
+  grant_request_filename = ['GrantRequest_1.json',
+                            'GrantRequest_2.json',
+                            'GrantRequest_3.json',
+                            'GrantRequest_4.json',
+                            'GrantRequest_5.json',
+                            'GrantRequest_6.json']
+  grant_request_list = []
+  for grant_file in grant_request_filename:
+    grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
+    grant_request_list.append(grant_request)
 
-    # Get east-gulf coastal exclusion zones (enclosed with U.S. border)
-    filename = os.path.join(_BASE_DATA_DIR, 'protection_zones.kml')
-    with open(filename, 'r') as kml_file:
-        coastalZoneDoc = parser.parse(kml_file).getroot()
-    placemarks = list(coastalZoneDoc.Document.Placemark)
-    exclusion_zone = []
-    for pm in placemarks:
-        name = pm.name.text
-        if name == 'East-Gulf Combined Contour':
-            # Get long_lat
-            line = pm.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
-            coords = line.split(' ')
-            long_lat = []
-            for c in coords:
-                if c.strip():
-                    xy = c.strip().split(',')
-                    long_lat.append([float(xy[0]), float(xy[1])])
-                    exclusion_zone = long_lat
-            # Create an exclusion zone polygon object, if desired
-            # exclusion_zone = SPolygon(exclusion_zone)
+  grants = data.getGrantsFromRequests(reg_request_list, grant_request_list)
 
-    # Determine which CBSD grants are on the move list
-    start_time = time.time()
-    res = move_list.findMoveList(protection_specs, protection_points,
-                                 reg_request_list, grant_request_list,
-                                 num_iter, num_processes, exclusion_zone)
+  # Set the grants
+  dpa.SetGrantsFromList(grants)
 
-    end_time = time.time()
-    print 'Move list output: ' + str(res)
-    print 'Computation time: ' + str(end_time - start_time)
+  # Determine which CBSD grants are on the move list
+  start_time = time.time()
+  res = dpa.CalcMoveLists()
+  end_time = time.time()
+  print 'Move list output: ' + str(dpa.GetMoveListMask((3600, 3610)))
+  print 'Computation time: ' + str(end_time - start_time)
 
