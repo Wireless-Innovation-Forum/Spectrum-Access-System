@@ -5,6 +5,8 @@
     "longitude": -100.25,
     "height": 9.3,
     "heightType": "AGL",
+    "antennaAzimuth": 0,
+    "antennaDowntilt": 0,
     "azimuthRadiationPattern": [
       {
        "angle": 0,
