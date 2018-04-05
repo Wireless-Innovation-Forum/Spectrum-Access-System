@@ -27,13 +27,11 @@ import logging
 import os.path
 import random
 import sas_interface
-from request_handler import TlsConfig, RequestGet
 import ssl
 import threading
 import time
 import traceback
 from datetime import datetime, timedelta
-from urllib import quote
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
