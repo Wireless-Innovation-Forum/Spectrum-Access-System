@@ -409,13 +409,13 @@ def filterChannelsByFrequencyRange(channels, freq_range):
       channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
   ]
 
-  def _orderAttributes(obj):
-    if isinstance(obj, dict):
-        return sorted((k, _orderAttributes(v)) for k, v in obj.items())
-    if isinstance(obj, list):
-        return sorted(_orderAttributes(x) for x in obj)
-    else:
-        return obj
+def _orderAttributes(obj):
+  if isinstance(obj, dict):
+      return sorted((k, _orderAttributes(v)) for k, v in obj.items())
+  if isinstance(obj, list):
+      return sorted(_orderAttributes(x) for x in obj)
+  else:
+      return obj
 
 def compareDictWithUnorderedLists(first_dict, second_dict):
   """ Deep comparison of two dictionaries
