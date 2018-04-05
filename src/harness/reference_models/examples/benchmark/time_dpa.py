@@ -44,7 +44,7 @@ from reference_models.examples import entities
 dpa_name = 'east_dpa_7'
 
 # - Number of sites to distribute within a given range of the DPA
-num_sites = 45000
+num_sites = 100
 max_dist_cat_a = 160
 max_dist_cat_b = 320
 
@@ -150,7 +150,7 @@ def PrepareSimulation():
 
   # Distribute points in DPA.
   print 'Distributing protection points in DPA'
-  # The idea is to keep a good ratio  typical of what would be used with the
+  # The idea is to keep a good ratio typical of what would be used with the
   # actual implementation, so that the timing number can be scaled up.
   def SampleLine(line, num_points):
     step = line.length / (num_points-1)
@@ -206,10 +206,10 @@ def PrepareSimulation():
           ax)
 
 # Useful functions
-def get_tile_stats(dummy):
+def getTileStats(dummy):
   return drive.terrain_driver.stats.ActiveTilesCount()
 
-def print_tile_stats():
+def printTileStats():
   drive.terrain_driver.stats.Report()
 
 #--------------------------------------------------
@@ -263,13 +263,13 @@ if __name__ == '__main__':
 
   # Check tiles cache well behaved
   print  ''
-  tile_stats = pool.map(get_tile_stats, [None]*num_processes)
+  tile_stats = pool.map(getTileStats, [None]*num_processes)
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    pool.apply_async(print_tile_stats, ())
+    pool.apply_async(printTileStats, ())
   else:
     print '-- Cache tile: OK (no swapping)'
 
@@ -278,4 +278,4 @@ if __name__ == '__main__':
     ax.scatter([cbsd.longitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                [cbsd.latitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                color='r', marker='.')
-    plt.show()
+  plt.show()
