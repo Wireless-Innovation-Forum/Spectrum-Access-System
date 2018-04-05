@@ -323,8 +323,8 @@ class SasHttpServer(HTTPServer):
       return json.load(dump_file)
 
 class SasTestHarnessServerHandler(SimpleHTTPRequestHandler):
-  """SasTestHarnessServerHandler class is inherited with BaseHTTPRequestHandler
-  to serve HTTP Response.
+  """SasTestHarnessServerHandler class inherits from SimpleHTTPRequestHandler
+  to serve a HTTP Response.
   """
 
   def translate_path(self, path):
