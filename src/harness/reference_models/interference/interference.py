@@ -158,7 +158,7 @@ FssInformation = namedtuple('FssInformation',
 # 'antenna_height', 'antenna_azimuth', 'antenna_gain', 'antenna_pattern_gain'
 EscInformation = namedtuple('EscInformation',
                             ['antenna_height', 'antenna_azimuth',
-                             'antenna_gain_pattern'])
+                             'antenna_pattern_gain'])
 
 
 class AggregateInterferenceOutputFormat:
@@ -454,7 +454,7 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   esc_ant_gain = antenna.GetAntennaPatternGains(
       incidence_angles.hor_rx,
       esc_antenna_info.antenna_azimuth,
-      esc_antenna_info.antenna_gain_pattern)
+      esc_antenna_info.antenna_pattern_gain)
 
   # Get the total antenna gain by summing the antenna gains from CBSD to ESC
   # and ESC to CBSD

@@ -29,12 +29,12 @@
     calculateAggregateInterferenceForPpa
 
   The routines returns a nested dictionary in the format of
-  {latitude : {longitude : [interference1, interference2]}}. interference 
+  {latitude : {longitude : [interference1, interference2]}}. interference
   is the aggregate interference value in mW for each of the protection constraint.
 ==================================================================================
 """
 
-import numpy as np 
+import numpy as np
 import logging
 from reference_models.interference import interference as interf
 from reference_models.geo import utils
@@ -45,9 +45,9 @@ from functools import partial
 
 def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
   """Calculates aggregate interference for FSS co-channel.
-  
+
   Calculates aggregate interference for each protection constraint in the FSS
-  co-channel based on the interferences caused by CBSD's grants in the 
+  co-channel based on the interferences caused by CBSD's grants in the
   neighborhood of the FSS co-channel protection entity.
 
   Args:
@@ -78,21 +78,21 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
   protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
   aggregate_interference = interf.getInterferenceObject()
-  interf.aggregateInterferenceForPoint(protection_point, 
-    protection_channels, fss_low_freq, interf.CBRS_HIGH_FREQ_HZ, 
-    grant_list, fss_info, None, 
+  interf.aggregateInterferenceForPoint(protection_point,
+    protection_channels, fss_low_freq, interf.CBRS_HIGH_FREQ_HZ,
+    grant_list, fss_info, None,
     interf.ProtectedEntityType.FSS_CO_CHANNEL, None,
-    aggregate_interference) 
+    aggregate_interference)
 
   # Extract dictionary from DictProxy object using _getvalue() object method
-  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue() 
+  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
 
 
 def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
   """Calculates aggregate interference for FSS blocking.
-  
-  Calculates aggregate interference for FSS blocking pass band based on the 
-  interferences caused by CBSD's grants in the neighborhood of the FSS 
+
+  Calculates aggregate interference for FSS blocking pass band based on the
+  interferences caused by CBSD's grants in the neighborhood of the FSS
   blocking protection entity.
 
   Args:
@@ -121,7 +121,7 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
                pointing_azimuth=fss_point['antennaAzimuth'],
                pointing_elevation=fss_point['antennaDowntilt'])
 
-  if(fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
+  if(fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and
        fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
        fss_ttc_flag is False):
     logging.debug('Aggregate interference is not calculated for FSS Pass band'
@@ -132,23 +132,23 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
     protection_channels = [(interf.CBRS_LOW_FREQ_HZ, fss_low_freq)]
 
     aggregate_interference = interf.getInterferenceObject()
-    interf.aggregateInterferenceForPoint(protection_point, 
-      protection_channels, interf.CBRS_LOW_FREQ_HZ, 
-      fss_low_freq, grant_list, fss_info, None, 
+    interf.aggregateInterferenceForPoint(protection_point,
+      protection_channels, interf.CBRS_LOW_FREQ_HZ,
+      fss_low_freq, grant_list, fss_info, None,
       interf.ProtectedEntityType.FSS_BLOCKING, None,
       aggregate_interference)
- 
+
   # Extract dictionary from DictProxy object using _getvalue() object method
   return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
 
 
 def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
   """Calculates aggregate interference for ESC.
-  
+
   Calculates aggregate interference for each protection constraint in the ESC
   based on the interferences caused by CBSD's grants in the neighborhood of
   the ESC protection entity.
-  
+
   Args:
     esc_record: ESC protection entity
     cbsd_list: list of CBSD objects containing registrations and grants
@@ -158,7 +158,7 @@ def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
   """
 
   grant_list = interf.getAllGrantInformationFromCbsdDataDump(cbsd_list)
-  
+
   # Get the protection point of the ESC
   esc_point = esc_record['installationParam']
   protection_point = (esc_point['longitude'], esc_point['latitude'])
@@ -172,29 +172,29 @@ def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
     ant_pattern_gain[i] = pattern['gain']
 
   # Get ESC antenna information
-  esc_antenna_info = interf.EscInformation(antenna_height=esc_point['height'],
-                       antenna_azimuth=esc_point['antennaAzimuth'],
-                       antenna_gain=esc_point['antennaGain'],
-                       antenna_pattern_gain=ant_pattern_gain)
+  esc_antenna_info = interf.EscInformation(
+      antenna_height=esc_point['height'],
+      antenna_azimuth=esc_point['antennaAzimuth'],
+      antenna_pattern_gain=ant_pattern_gain)
 
   # Get ESC passband 3550-3680 MHz protection channels
-  protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ, 
+  protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ,
                           interf.ESC_HIGH_FREQ_HZ)
 
   aggregate_interference = interf.getInterferenceObject()
-  interf.aggregateInterferenceForPoint(protection_point, 
-    protection_channels, interf.ESC_LOW_FREQ_HZ, 
-    interf.ESC_HIGH_FREQ_HZ, grant_list, None, 
+  interf.aggregateInterferenceForPoint(protection_point,
+    protection_channels, interf.ESC_LOW_FREQ_HZ,
+    interf.ESC_HIGH_FREQ_HZ, grant_list, None,
     esc_antenna_info, interf.ProtectedEntityType.ESC, None,
     aggregate_interference)
-  
+
   # Extract dictionary from DictProxy object using _getvalue() object method
   return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
 
 
 def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool=None):
   """Calculates aggregate interference for GWPZ.
-  
+
   Calculates aggregate interference for each protection constraint in the GWPZ
   based on the interferences caused by CBSD's grants in the neighborhood of
   the GWPZ protection entity.
@@ -202,8 +202,8 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool=None):
   Args:
     gwpz_record: GWPZ protection entity
     cbsd_list: list of CBSD objects containing registrations and grants
-    pool: object of type Pool to distribute execution of a 
-    aggregateInterferenceForPoint function across multiple input values, 
+    pool: object of type Pool to distribute execution of a
+    aggregateInterferenceForPoint function across multiple input values,
     distributing the input data across processes
   Returns:
     Aggregate interference to GWPZ in the nested dictionary format.
@@ -221,32 +221,32 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool=None):
 
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(gwpz_low_freq, gwpz_high_freq)
-  
-  # Calculate aggregate interference from each protection constraint with a 
+
+  # Calculate aggregate interference from each protection constraint with a
   # pool of parallel processes.
   if not pool:
     pool = Pool(processes=min(multiprocessing.cpu_count(), len(protection_points)))
 
   aggregate_interference = interf.getInterferenceObject()
 
-  interfCalculator = partial(interf.aggregateInterferenceForPoint, 
-                     channels=protection_channels, 
-                     low_freq=gwpz_low_freq, high_freq=gwpz_high_freq, 
-                     grant_objects=grant_list, fss_info=None, 
-                     esc_antenna_info=None, 
+  interfCalculator = partial(interf.aggregateInterferenceForPoint,
+                     channels=protection_channels,
+                     low_freq=gwpz_low_freq, high_freq=gwpz_high_freq,
+                     grant_objects=grant_list, fss_info=None,
+                     esc_antenna_info=None,
                      protection_ent_type=interf.ProtectedEntityType.GWPZ_AREA,
                      region_type=gwpz_region,
                      aggregate_interference=aggregate_interference)
 
   pool.map(interfCalculator, protection_points)
-  
+
   # Extract dictionary from DictProxy object using _getvalue() object method
-  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue() 
+  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
 
 
 def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool=None):
   """Calculates aggregate interference for PPA.
-  
+
   Calculates aggregate interference for each protection constraint in the PPA
   based on the interferences caused by CBSD's grants in the neighborhood of
   the PPA protection entity.
@@ -255,8 +255,8 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool=N
     ppa_record: PPA protection entity
     pal_list: list of PAL records
     cbsd_list: list of CBSD objects containing registrations and grants
-    pool: object of type Pool to distribute execution of a 
-    aggregateInterferenceForPoint function across multiple input values, 
+    pool: object of type Pool to distribute execution of a
+    aggregateInterferenceForPoint function across multiple input values,
     distributing the input data across processes
   Returns:
     Aggregate interference to PPA in the nested dictionary format.
@@ -272,10 +272,10 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool=N
 
   # Find the PAL records for the PAL_IDs defined in PPA records
   ppa_pal_ids = ppa_record['ppaInfo']['palId']
-  
+
   for pal_record in pal_list:
-    # Frequency range of all the PAL records within a PPA is same 
-    # Considering frequency range from first PAL record for 
+    # Frequency range of all the PAL records within a PPA is same
+    # Considering frequency range from first PAL record for
     # aggregate interference calculation
     if pal_record['palId'] == ppa_pal_ids[0]:
       # Get the frequencies from the PAL records
@@ -288,22 +288,22 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool=N
 
       aggregate_interference = interf.getInterferenceObject()
 
-      # Calculate aggregate interference from each protection constraint with a 
+      # Calculate aggregate interference from each protection constraint with a
       # pool of parallel processes.
       if not pool:
         pool = Pool(processes=min(multiprocessing.cpu_count(), len(protection_points)))
 
-      interfCalculator = partial(interf.aggregateInterferenceForPoint, 
-                           channels=protection_channels, 
-                           low_freq=ppa_low_freq, high_freq=ppa_high_freq, 
-                           grant_objects=grant_list, fss_info=None, 
-                           esc_antenna_info=None, 
+      interfCalculator = partial(interf.aggregateInterferenceForPoint,
+                           channels=protection_channels,
+                           low_freq=ppa_low_freq, high_freq=ppa_high_freq,
+                           grant_objects=grant_list, fss_info=None,
+                           esc_antenna_info=None,
                            protection_ent_type=interf.ProtectedEntityType.PPA_AREA,
                            region_type=ppa_region,
                            aggregate_interference=aggregate_interference)
 
       pool.map(interfCalculator, protection_points)
       break
-  
+
   # Extract dictionary from DictProxy object using _getvalue() object method
-  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue() 
+  return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
