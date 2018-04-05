@@ -22,6 +22,7 @@ from util import makePpaAndPalRecordsConsistent
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from functools import partial
 from datetime import datetime
+from sas import SasImpl
 
 
 class FullActivityDumpIntegrationTest(unittest.TestCase):
@@ -69,23 +70,20 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     self._test_data = [cbsd_fad_records, ppa_fad_records, esc_fad_records]
 
   @staticmethod
-  def getFullActivityDumpHelper(ssl_cert, ssl_key, sas_interface):
+  def getFullActivityDumpHelper(sas_interface):
     """Method to get the full activity dump but with timestamp modified to now."""
-    output = sas_interface.GetFullActivityDump(ssl_cert, ssl_key)
+    output = sas_interface.GetFullActivityDump()
     output['generationDateTime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     return output
 
   def test_download_from_test_harness_gets_data(self):
-    ssl_cert = 'certs/client.cert'
-    ssl_key = 'certs/client.key'
-
     sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9001,
                                             'certs/server.cert',
                                             'certs/server.key', 'certs/ca.cert')
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
     fad = getFullActivityDumpSasTestHarness(
-        sas_test_harness.getSasTestHarnessInterface(), ssl_cert, ssl_key)
+        sas_test_harness.getSasTestHarnessInterface())
 
     # Testing for exact contents would be long and verbose, and also handled by
     # the FAD object, just test all the fields have something.
@@ -98,8 +96,6 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
 
   def test_download_from_sas_uut_gets_data(self):
     """Tests fetching from the SAS UUT """
-    ssl_cert = 'certs/client.cert'
-    ssl_key = 'certs/client.key'
 
     # Use a test harness as a fake SAS UUT.
     sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9002,
@@ -108,13 +104,16 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
     sas_admin = mock.MagicMock()
-    sas_interface = sas_test_harness.getSasTestHarnessInterface()
-     # GetFullActivityDump must be mocked to give timestamp at current time.
+    sas_interface = SasImpl(sas_test_harness.getSasBaseUrl(),
+                            sas_test_harness.getSasTestHarnessVersion())
+    # GetFullActivityDump must be mocked to give timestamp at current time.
     sas_interface.GetFullActivityDump = mock.MagicMock()
     sas_interface.GetFullActivityDump.side_effect = partial(
         FullActivityDumpIntegrationTest.getFullActivityDumpHelper,
-        sas_interface=sas_test_harness.getSasTestHarnessInterface())
-    fad = getFullActivityDumpSasUut(sas_interface, sas_admin, ssl_cert, ssl_key)
+        sas_interface=SasImpl(
+            sas_test_harness.getSasBaseUrl(),
+            sas_test_harness.getSasTestHarnessVersion()))
+    fad = getFullActivityDumpSasUut(sas_interface, sas_admin)
 
     sas_admin.TriggerFullActivityDump.assert_called_once()
     # Testing for exact contents would be long and verbose, and also handled by
@@ -129,9 +128,6 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
   def test_download_functions_equivalent(self):
     """When the SAS UUT and test harness have the same data the FAD content should be equal."""
 
-    ssl_cert = 'certs/client.cert'
-    ssl_key = 'certs/client.key'
-
     # Get SAS UUT FAD.
     # Use a test harness as a fake SAS UUT.
     sas_uut = SasTestHarnessServer('SAS-TH-1', 'localhost', 9003,
@@ -141,13 +137,14 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     sas_uut.start()
     sas_admin = mock.MagicMock()
     # sas_interface must be mocked to give timestamp at current time.
-    sas_interface = sas_uut.getSasTestHarnessInterface()
+    sas_interface = SasImpl(sas_uut.getSasBaseUrl(),
+                            sas_uut.getSasTestHarnessVersion())
     sas_interface.GetFullActivityDump = mock.MagicMock()
     sas_interface.GetFullActivityDump.side_effect = partial(
         FullActivityDumpIntegrationTest.getFullActivityDumpHelper,
-        sas_interface=sas_uut.getSasTestHarnessInterface())
-    uut_fad = getFullActivityDumpSasUut(sas_interface, sas_admin, ssl_cert,
-                                        ssl_key)
+        sas_interface=SasImpl(sas_uut.getSasBaseUrl(),
+                              sas_uut.getSasTestHarnessVersion()))
+    uut_fad = getFullActivityDumpSasUut(sas_interface, sas_admin)
 
     # Get SAS test harness FAD.
     sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9004,
@@ -156,7 +153,7 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
     test_harness_fad = getFullActivityDumpSasTestHarness(
-        sas_test_harness.getSasTestHarnessInterface(), ssl_cert, ssl_key)
+        sas_test_harness.getSasTestHarnessInterface())
 
     self.assertDictEqual(uut_fad.getData(), test_harness_fad.getData())
 

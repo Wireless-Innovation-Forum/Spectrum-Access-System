@@ -18,6 +18,7 @@ A SAS Test Harness server could be run by creating the object for the class
 SasTestHarnessServer and by invoking the API start().
 """
 
+import codecs
 import ConfigParser
 import hashlib
 import inspect
@@ -33,7 +34,8 @@ import time
 import traceback
 from datetime import datetime, timedelta
 from urllib import quote
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from BaseHTTPServer import HTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 DEFAULT_CERT_FILE = 'certs/server.cert'
 DEFAULT_KEY_FILE = 'certs/server.key'
@@ -79,6 +81,7 @@ class SasTestHarnessServer(threading.Thread):
     self.sas_version = self.getSasTestHarnessVersion()
 
     #BaseURL format should be https: // < hostname >: < port > / versionX.Y
+    self.base_url = host_name + ':' + str(port)
     self.http_server_url = 'https://' + host_name + ':' + str(port) + '/' + self.sas_version
     self.dump_path = self.__generateTempDirectory()
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
@@ -129,6 +132,10 @@ class SasTestHarnessServer(threading.Thread):
     config_parser.read(['sas.cfg'])
     sas_harness_version = config_parser.get('SasConfig', 'Version')
     return sas_harness_version
+
+  def getSasBaseUrl(self):
+    """Provides the base_url in the form expected for a SasInterface"""
+    return self.base_url
 
   def getBaseUrl(self):
     return self.http_server_url
@@ -189,14 +196,18 @@ class SasTestHarnessServer(threading.Thread):
     full_activity_dump['description'] = 'Load {} FAD to SAS UUT'.format(self.host_name)
     return full_activity_dump
 
-  def __createFadRecord(self, encoded_url, record, file_name):
+  def __getFullDumpFilePath(self, file_name):
+    return os.path.join(self.getDumpFileDirectory(), file_name)
+
+  def __createFadRecord(self, encoded_url, file_name):
     """ Creates the files object that includes url,checksum,size,version and recordtype of record
         required to be packed in FAD.
     """
     fad_record = {}
     fad_record['url'] = encoded_url
-    fad_record['checksum'] = hashlib.sha1(json.dumps(record)).hexdigest()
-    fad_record['size'] = os.path.getsize(os.path.join(self.getDumpFileDirectory(), file_name))
+    with codecs.open(self.__getFullDumpFilePath(file_name), 'r', 'utf-8') as file:
+      fad_record['checksum'] = hashlib.sha1(file.read()).hexdigest()
+    fad_record['size'] = os.path.getsize(self.__getFullDumpFilePath(file_name))
     fad_record['version'] = self.sas_version
     if 'cbsd' in encoded_url:
       fad_record['recordType'] = 'cbsd'
@@ -210,8 +221,7 @@ class SasTestHarnessServer(threading.Thread):
 
   def __writeDumpFile(self, file_name, data):
     """ Write JSON data to specified file. """
-    dump_file_path = os.path.join(self.getDumpFileDirectory(), file_name)
-    with open(dump_file_path, 'w') as file_handler:
+    with codecs.open(self.__getFullDumpFilePath(file_name), 'w', 'utf-8') as file_handler:
       file_handler.writelines(json.dumps(data, sort_keys=True, indent=4))
 
   def __verifyRecords(self, dump_records_list):
@@ -285,7 +295,7 @@ class SasTestHarnessServer(threading.Thread):
         }
 
         self.__writeDumpFile(generated_file_name, dump_records_wrapped)
-        fad_record = self.__createFadRecord(record_url, dump_records_wrapped, generated_file_name)
+        fad_record = self.__createFadRecord(record_url, generated_file_name)
         fad_record_list.append(fad_record)
 
     # create full activity dump file
@@ -314,30 +324,16 @@ class SasHttpServer(HTTPServer):
     with open(dump_file_path) as dump_file:
       return json.load(dump_file)
 
-class SasTestHarnessServerHandler(BaseHTTPRequestHandler):
+class SasTestHarnessServerHandler(SimpleHTTPRequestHandler):
   """SasTestHarnessServerHandler class is inherited with BaseHTTPRequestHandler
   to serve HTTP Response.
   """
 
-  def __checkDumpFileExist(self, url_id):
-    """Check the url_id received in GET request passed as argument to check corresponding
-    dump file exist in that path.
-    """
-    return os.path.exists(os.path.join(self.server.base_path, url_id))
-
-  def do_GET(self):
-    """Handles Pull/GET Request and returns Path of the Request to callback Method."""
-    url_encoded_id = self.path.split('/')[-1]
+  def translate_path(self, path):
+    url_encoded_id = path.split('/')[-1]
     if url_encoded_id == 'dump':
       url_encoded_id = 'FAD.json'
-    if not self.__checkDumpFileExist(url_encoded_id):
-      self.send_error(error_code)
-      return
-    self.send_response(200)
-    self.send_header('Content-type', 'application/json')
-    self.end_headers()
-    self.wfile.write(
-        json.dumps(self.server.readDumpFile(url_encoded_id)).encode('utf-8'))
+    return os.path.join(self.server.base_path, url_encoded_id)
 
 # Helper functions for FAD related tests.
 def generateCbsdReferenceId(fcc_id, serial_number):

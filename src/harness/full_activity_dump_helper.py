@@ -19,9 +19,10 @@ import signal
 import time
 from full_activity_dump import FullActivityDump
 import util
+import traceback
 
 
-def getFullActivityDumpSasUut(sas, sas_admin, ssl_cert, ssl_key):
+def getFullActivityDumpSasUut(sas, sas_admin, ssl_cert=None, ssl_key=None):
   """Returns a FullActivityDump object from the SAS UUT in its current state.
 
   Args:
@@ -34,10 +35,10 @@ def getFullActivityDumpSasUut(sas, sas_admin, ssl_cert, ssl_key):
   """
   dump = _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
                                                       ssl_key)
-  return _processDump(sas, ssl_cert, ssl_key, dump)
+  return _processDump(sas, dump, ssl_cert, ssl_key)
 
 
-def getFullActivityDumpSasTestHarness(sas, ssl_cert, ssl_key):
+def getFullActivityDumpSasTestHarness(sas):
   """Returns a FullActivityDump object for the current state of a SAS test harness.
 
   Args:
@@ -52,12 +53,13 @@ def getFullActivityDumpSasTestHarness(sas, ssl_cert, ssl_key):
       TestComponentError. This signifies that a non-SAS UUT error occurred.
   """
   try:
-    dump = sas.GetFullActivityDump(ssl_cert, ssl_key)
-    return _processDump(sas, ssl_cert, ssl_key, dump)
-  except:
+    dump = sas.GetFullActivityDump()
+    return _processDump(sas, dump)
+  except Exception as e:
     # Any exception caused in reading and processing a FAD from a test
     # harness is not the fault of the SAS UUT.
-    raise util.TestComponentError('Test Harness Failed. See above stack trace')
+    traceback.print_exc()
+    raise util.TestComponentError('Test Harness Failed')
 
 
 def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
@@ -89,7 +91,7 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   signal.alarm(7200)
   # Check generation date of full activity dump.
   while True:
-    dump_message = sas.GetFullActivityDump(ssl_cert, ssl_key)
+    dump_message = sas.GetFullActivityDump()
     dump_time = datetime.strptime(dump_message['generationDateTime'],
                                   '%Y-%m-%dT%H:%M:%SZ')
     if request_time <= dump_time:
@@ -99,7 +101,7 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   return dump_message
 
 
-def _processDump(sas, ssl_cert, ssl_key, dump):
+def _processDump(sas, dump, ssl_cert=None, ssl_key=None):
   """Clears any existing dump data and downloads current data.
 
   Args:
