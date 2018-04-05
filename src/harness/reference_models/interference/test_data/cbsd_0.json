@@ -1,0 +1,44 @@
+{
+	"id": "device_1_id",
+	"registration": {
+					"fccId": "fccId1",
+		            "cbsdCategory": "B",
+		            "callSign": "KPPP",
+		            "userId": "G83kdd",
+		            "airInterface": {
+    				  "radioTechnology": "E_UTRA",
+                      "supportedSpec": "LTE-Rel10"
+                    },
+		            "cbsdInfo": {
+                      "vendor": "Equipment Maker C"
+                    },
+
+					"cbsdSerialNumber": "serial1",
+                    "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
+                    "installationParam": {
+                      "latitude": 37.7,
+                      "longitude": -76.7,
+                      "height": 75,
+                      "heightType": "AGL",
+                      "indoorDeployment": false,
+                      "antennaAzimuth": 170,
+                      "antennaDowntilt": -5,
+                      "antennaGain": 0,
+                      "antennaBeamwidth": 60
+                    }
+			    	},
+    "grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "SAMPLE_1_12345",
+					"operationParam": {
+						"maxEirp": 37.0,
+						"operationFrequencyRange": {
+							"highFrequency": 3610000000,
+							"lowFrequency": 3600000000
+						}
+					},
+					"terminated": false
+				}]
+
+}
