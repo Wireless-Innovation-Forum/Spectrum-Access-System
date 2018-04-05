@@ -78,8 +78,8 @@ class SasTestHarnessServer(threading.Thread):
     self.port = port
     self.sas_version = self.getSasTestHarnessVersion()
 
-    #BaseURL format should be https: // < hostname >: < port > / versionX.Y
     self.base_url = host_name + ':' + str(port)
+    #BaseURL format should be https: // < hostname >: < port > / versionX.Y
     self.http_server_url = 'https://' + host_name + ':' + str(port) + '/' + self.sas_version
     self.dump_path = self.__generateTempDirectory()
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
@@ -328,6 +328,7 @@ class SasTestHarnessServerHandler(SimpleHTTPRequestHandler):
   """
 
   def translate_path(self, path):
+    """Translate URL paths into filepaths."""
     url_encoded_id = path.split('/')[-1]
     if url_encoded_id == 'dump':
       url_encoded_id = 'FAD.json'

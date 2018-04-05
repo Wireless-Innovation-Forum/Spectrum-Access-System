@@ -57,7 +57,7 @@ def getFullActivityDumpSasTestHarness(sas):
     # Any exception caused in reading and processing a FAD from a test
     # harness is not the fault of the SAS UUT.
     traceback.print_exc()
-    raise util.TestComponentError('Test Harness Failed')
+    raise util.TestComponentError('SAS Test Harness Failed')
 
 
 def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
