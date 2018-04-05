@@ -17,27 +17,28 @@
   APIs in this file are used by IAP and Aggregate Interference Reference Models
 
   The main routines are:
-   
+
     computeInterference
-    computeInterferencePpaGwpzPoint 
-    computeInterferenceEsc 
-    computeInterferenceFssCochannel 
-    computeInterferenceFssBlocking 
-    getEffectiveSystemEirp 
+    computeInterferencePpaGwpzPoint
+    computeInterferenceEsc
+    computeInterferenceFssCochannel
+    computeInterferenceFssBlocking
+    getEffectiveSystemEirp
 
   The common utility APIs are:
-    
+
     getGrantObjectsFromFAD
-    getAllGrantInformationFromCbsdDataDump 
+    getAllGrantInformationFromCbsdDataDump
     findOverlappingGrantsInsideNeighborhood
     getProtectedChannels
 
-  The routines return a interference caused by a grant in the neighborhood of 
+  The routines return a interference caused by a grant in the neighborhood of
   FSS/GWPZ/PPA/ESC incumbent types
 ==================================================================================
 """
-import numpy as np 
+import numpy as np
 import multiprocessing
+from multiprocessing.managers import BaseManager
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
@@ -65,7 +66,6 @@ FSS_BLOCKING_NEIGHBORHOOD_DIST = 40  # neighborhood distance from a CBSD to FSS
 ESC_NEIGHBORHOOD_DIST_A = 40  # neighborhood distance from a ESC to category A CBSD
 
 ESC_NEIGHBORHOOD_DIST_B = 80  # neighborhood distance from a ESC to category B CBSD
-
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
 FREQ_PROP_MODEL_MHZ = 3625.0
@@ -121,7 +121,7 @@ class ProtectedEntityType(Enum):
   FSS_BLOCKING = 4
   ESC = 5
 
-# Global container to store neighborhood distance type of all the protection 
+# Global container to store neighborhood distance type of all the protection
 _DISTANCE_PER_PROTECTION_TYPE = {
    ProtectedEntityType.GWPZ_AREA :  (GWPZ_NEIGHBORHOOD_DIST, GWPZ_NEIGHBORHOOD_DIST),
    ProtectedEntityType.PPA_AREA : ( PPA_NEIGHBORHOOD_DIST,  PPA_NEIGHBORHOOD_DIST),
@@ -132,13 +132,13 @@ _DISTANCE_PER_PROTECTION_TYPE = {
 
 # Define CBSD grant, i.e., a tuple with named fields of 'latitude',
 # 'longitude', 'height_agl', 'indoor_deployment', 'antenna_azimuth',
-# 'antenna_gain', 'antenna_beamwidth', 'cbsd_category', 
+# 'antenna_gain', 'antenna_beamwidth', 'cbsd_category',
 # 'max_eirp', 'low_frequency', 'high_frequency', 'is_managed_grant'
 CbsdGrantInformation = namedtuple('CbsdGrantInformation',
-                       ['latitude', 'longitude', 'height_agl', 
+                       ['latitude', 'longitude', 'height_agl',
                         'indoor_deployment', 'antenna_azimuth', 'antenna_gain',
-                        'antenna_beamwidth', 'cbsd_category', 
-                        'max_eirp', 'low_frequency', 'high_frequency', 
+                        'antenna_beamwidth', 'cbsd_category',
+                        'max_eirp', 'low_frequency', 'high_frequency',
                         'is_managed_grant'])
 
 # Define protection constraint, i.e., a tuple with named fields of
@@ -149,27 +149,26 @@ ProtectionConstraint = namedtuple('ProtectionConstraint',
 
 # Define FSS Protection Point, i.e., a tuple with named fields of
 # 'latitude', 'longitude', 'height_agl', 'max_gain_dbi', 'pointing_azimuth',
-# 'pointing_elevation' 
-FssProtectionPoint = namedtuple('FssProtectionPoint',
-                                   ['latitude', 'longitude',
-                                    'height_agl', 'max_gain_dbi',
-                                    'pointing_azimuth', 'pointing_elevation'])
-
+# 'pointing_elevation'
+FssInformation = namedtuple('FssInformation',
+                            ['height_agl', 'max_gain_dbi',
+                             'pointing_azimuth', 'pointing_elevation'])
 
 # Define ESC information, i.e., a tuple with named fields of
 # 'antenna_height', 'antenna_azimuth', 'antenna_gain', 'antenna_pattern_gain'
 EscInformation = namedtuple('EscInformation',
-                                 ['antenna_height', 'antenna_azimuth',
-                                  'antenna_gain', 'antenna_pattern_gain'])
+                            ['antenna_height', 'antenna_azimuth',
+                             'antenna_gain_pattern'])
+
 
 class AggregateInterferenceOutputFormat:
-  """Implementation of output format of aggregate interference 
+  """Implementation of output format of aggregate interference
 
-  This class is used to generate specified output format for post IAP 
+  This class is used to generate specified output format for post IAP
   allowed interference or for aggregate interference to non-DPAs
-  
-  Creates a data structure to store post IAP allowed interference or 
-  aggregate interference to non-DPAs output in the format of 
+
+  Creates a data structure to store post IAP allowed interference or
+  aggregate interference to non-DPAs output in the format of
   {latitude : {longitude : [ output_first_5MHz_segment, output_first_5MHz_segment ]}}
   """
   def __init__(self):
@@ -177,11 +176,11 @@ class AggregateInterferenceOutputFormat:
     self.aggregate_interference_info = self.manager.dict()
     self.lock = multiprocessing.Lock()
 
-  def SetAggregateInterferenceInfo(self, latitude, longitude, interference):
-    with self.lock():
+  def UpdateAggregateInterferenceInfo(self, latitude, longitude, interference):
+    with self.lock:
       if latitude not in self.aggregate_interference_info:
         self.aggregate_interference_info[latitude] = self.manager.dict()
-   
+
       # Creating a proxy container for mutable dictionary
       aggregate_interference_proxy = self.aggregate_interference_info[latitude]
 
@@ -190,9 +189,13 @@ class AggregateInterferenceOutputFormat:
 
       aggregate_interference_proxy[longitude].append(interference)
       self.aggregate_interference_info[latitude] = aggregate_interference_proxy
-      
+
   def GetAggregateInterferenceInfo(self):
     return self.aggregate_interference_info
+
+
+class AggregateInterferenceManager(BaseManager):
+  pass
 
 
 def dbToLinear(x):
@@ -206,17 +209,17 @@ def linearToDb(x):
 
 
 def getProtectedChannels(low_freq_hz, high_freq_hz):
-  """Gets protected channels list 
+  """Gets protected channels list
 
-  Performs 5MHz IAP channelization and returns a list of tuple containing 
+  Performs 5MHz IAP channelization and returns a list of tuple containing
   (low_freq,high_freq)
 
   Args:
     low_freq_hz: Low frequency of the protected entity(Hz).
     high_freq_hz: High frequency of the protected entity(Hz)
   Returns:
-    An array of protected channel frequency range tuple 
-    (low_freq_hz,high_freq_hz). 
+    An array of protected channel frequency range tuple
+    (low_freq_hz,high_freq_hz).
   """
   assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
@@ -229,11 +232,11 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
   Args:
     grants: an iterator of grants with attributes latitude and longitude
-    protection_point: tuple containing (latitude,longitude) of a protection entity 
-    entity_type: enum of type ProtectedEntityType 
+    protection_point: location of a protected entity as (longitude,latitude) tuple
+    entity_type: enum of type ProtectedEntityType
   Returns:
     grants_inside: a list of grants, each one being a namedtuple of type
-                   CbsdGrantInformation, of all CBSDs inside the neighborhood 
+                   CbsdGrantInformation, of all CBSDs inside the neighborhood
                    of the protection constraint.
   """
   # Initialize an empty list
@@ -242,8 +245,8 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
   # Loop over each CBSD grant
   for grant in grants:
     # Compute distance from CBSD location to protection constraint location
-    dist_km, _, _ = vincenty.GeodesicDistanceBearing(grant.latitude, 
-                      grant.longitude, protection_point[0], protection_point[1])
+    dist_km, _, _ = vincenty.GeodesicDistanceBearing(grant.latitude,
+                      grant.longitude, protection_point[1], protection_point[0])
 
     # Check if CBSD is inside the neighborhood of protection constraint
     if dist_km <= _DISTANCE_PER_PROTECTION_TYPE[entity_type][grant.cbsd_category == 'B']:
@@ -254,16 +257,16 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
 def findOverlappingGrants(grants, constraint):
   """Finds grants overlapping with protection entity
-   
-  Grants overlapping with frequency range of the protection entity are 
-  considered as overlapping grants 
+
+  Grants overlapping with frequency range of the protection entity are
+  considered as overlapping grants
 
   Args:
     grants: an iterator of grants with attributes latitude and longitude
     constraint: protection constraint of type ProtectionConstraint
   Returns:
     grants_inside: a list of grants, each one being a namedtuple of type
-                   CbsdGrantInformation, of all CBSDs inside the neighborhood 
+                   CbsdGrantInformation, of all CBSDs inside the neighborhood
                    of the protection constraint.
   """
 
@@ -276,12 +279,12 @@ def findOverlappingGrants(grants, constraint):
     overlapping_bw = min(grant.high_frequency, constraint.high_frequency) \
                         - max(grant.low_frequency, constraint.low_frequency)
     freq_check = (overlapping_bw > 0)
-    
+
     # ESC Passband is 3550-3680MHz
-    # Category A CBSD grants are considered in the neighborhood only for 
+    # Category A CBSD grants are considered in the neighborhood only for
     # constraint frequency range 3550-3660MHz
     if (constraint.entity_type == ProtectedEntityType.ESC and
-          grant.cbsd_category == 'A' and 
+          grant.cbsd_category == 'A' and
           constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ):
           freq_check = False
 
@@ -308,32 +311,32 @@ def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
 
   grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
                         sas_uut_fad_object.getCbsdRecords(), True)
-   
+
   grant_objects_test_harness = []
 
   for fad in sas_th_fad_objects:
     grant_objects_test_harness.extend(getAllGrantInformationFromCbsdDataDump(
                                      fad.getCbsdRecords(), False))
-  
+
   grant_objects = grant_objects_uut + grant_objects_test_harness
 
-  return grant_objects 
+  return grant_objects
 
 
 def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
   """Extracts list of CbsdGrantInformation namedtuple
 
-  Routine to extract CbsdGrantInformation tuple from CBSD data records from 
+  Routine to extract CbsdGrantInformation tuple from CBSD data records from
   FAD objects
 
   Args:
     cbsd_data_records: A list CbsdData object retrieved from FAD records.
-    is_managing_sas: flag indicating cbsd data record is from managing SAS or 
+    is_managing_sas: flag indicating cbsd data record is from managing SAS or
                      peer SAS
                      True - Managing SAS, False - Peer SAS
   Returns:
-    grant_objects: a list of grants, each one being a namedtuple of type 
-                   CBSDGrantInformation, of all CBSDs from SAS UUT FAD and 
+    grant_objects: a list of grants, each one being a namedtuple of type
+                   CBSDGrantInformation, of all CBSDs from SAS UUT FAD and
                    SAS Test Harness FAD
   """
 
@@ -373,11 +376,11 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
   return grant_objects
 
 
-def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant, 
+def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                                   max_eirp, region='SUBURBAN'):
   """Compute interference grant causes to GWPZ or PPA protection area
-  
-  Routine to compute interference neighborhood grant causes to protection 
+
+  Routine to compute interference neighborhood grant causes to protection
   point within GWPZ or PPA protection area
 
   Args:
@@ -391,17 +394,17 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   """
 
   if (cbsd_grant.latitude == constraint.latitude and
-        cbsd_grant.longitude == constraint.longitude): 
+        cbsd_grant.longitude == constraint.longitude):
     db_loss = 0
     incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
   else:
-    # Get the propagation loss and incident angles for area entity 
+    # Get the propagation loss and incident angles for area entity
     db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
                                      cbsd_grant.latitude, cbsd_grant.longitude,
                                      cbsd_grant.height_agl, constraint.latitude,
                                      constraint.longitude, h_inc_ant,
                                      cbsd_grant.indoor_deployment,
-                                     reliability=-1, 
+                                     reliability=-1,
                                      freq_mhz=FREQ_PROP_MODEL_MHZ,
                                      region=region)
 
@@ -420,8 +423,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
 
 def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   """Compute interference grant causes to a ESC protection point
-  
-  Routine to compute interference neighborhood grant causes to ESC protection 
+
+  Routine to compute interference neighborhood grant causes to ESC protection
   point
 
   Args:
@@ -435,9 +438,9 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   """
 
   # Get the propagation loss and incident angles for ESC entity
-  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude, 
-                                   cbsd_grant.longitude, cbsd_grant.height_agl, 
-                                   constraint.latitude, constraint.longitude, 
+  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
+                                   cbsd_grant.longitude, cbsd_grant.height_agl,
+                                   constraint.latitude, constraint.longitude,
                                    esc_antenna_info.antenna_height,
                                    cbsd_grant.indoor_deployment, reliability=-1,
                                    freq_mhz=FREQ_PROP_MODEL_MHZ)
@@ -448,10 +451,10 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
                cbsd_grant.antenna_gain)
 
   # Compute ESC antenna gain in the direction of CBSD
-  esc_ant_gain = antenna.GetAntennaPatternGains(incidence_angles.hor_rx,
-                   esc_antenna_info.antenna_azimuth, 
-                   esc_antenna_info.antenna_pattern_gain,
-                   esc_antenna_info.antenna_gain)
+  esc_ant_gain = antenna.GetAntennaPatternGains(
+      incidence_angles.hor_rx,
+      esc_antenna_info.antenna_azimuth,
+      esc_antenna_info.antenna_gain_pattern)
 
   # Get the total antenna gain by summing the antenna gains from CBSD to ESC
   # and ESC to CBSD
@@ -466,8 +469,8 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
 
 def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   """Compute interference grant causes to a FSS protection point
-  
-  Routine to compute interference neighborhood grant causes to FSS protection 
+
+  Routine to compute interference neighborhood grant causes to FSS protection
   point for co-channel passband
   Args:
     cbsd_grant: a namedtuple of type CbsdGrantInformation
@@ -479,10 +482,10 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   """
 
   # Get the propagation loss and incident angles for FSS entity_type
-  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude, 
-                                   cbsd_grant.longitude, cbsd_grant.height_agl, 
-                                   constraint.latitude, constraint.longitude, 
-                                   fss_info.height_agl, cbsd_grant.indoor_deployment, 
+  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
+                                   cbsd_grant.longitude, cbsd_grant.height_agl,
+                                   constraint.latitude, constraint.longitude,
+                                   fss_info.height_agl, cbsd_grant.indoor_deployment,
                                    reliability=-1, freq_mhz=FREQ_PROP_MODEL_MHZ)
 
   # Compute CBSD antenna gain in the direction of protection point
@@ -491,7 +494,7 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
                cbsd_grant.antenna_gain)
 
   # Compute FSS antenna gain in the direction of CBSD
-  fss_ant_gain = antenna.GetFssAntennaGains(incidence_angles.hor_rx, 
+  fss_ant_gain = antenna.GetFssAntennaGains(incidence_angles.hor_rx,
                    incidence_angles.ver_rx, fss_info.pointing_azimuth,
                    fss_info.pointing_elevation, fss_info.max_gain_dbi)
 
@@ -520,7 +523,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   # lowFrequency and highFrequency
   if (constraint.low_frequency < cbsd_grant.low_frequency and
          constraint.low_frequency < cbsd_grant.high_frequency):
-    fss_mask_loss = 0.5 
+    fss_mask_loss = 0.5
 
   # if CBSD grant lowFrequency and highFrequency is less than
   # 50MHz offset from the FSS passband lower edge
@@ -534,14 +537,14 @@ def getFssMaskLoss(cbsd_grant, constraint):
             cbsd_grant.high_frequency > offset):
     low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) /
                                                      MHZ) * 0.25)
-    fss_mask_loss = low_freq_mask_loss + linearToDb(((cbsd_grant.high_frequency - offset) / 
-                                              MHZ) * 0.6)
+    fss_mask_loss = low_freq_mask_loss + linearToDb(((
+        cbsd_grant.high_frequency - offset) / MHZ) * 0.6)
 
   # if FSS Passband lower edge frequency is grater than CBSD grant
   # lowFrequency and highFrequency and
   # CBSD grand low and high frequencies are greater than 50MHz offset
   elif (constraint.low_frequency > cbsd_grant.low_frequency and
-      constraint.low_frequency > cbsd_grant.high_frequency and 
+      constraint.low_frequency > cbsd_grant.high_frequency and
       cbsd_grant.low_frequency > offset and
              cbsd_grant.high_frequency > offset):
     fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.6)
@@ -551,20 +554,20 @@ def getFssMaskLoss(cbsd_grant, constraint):
 
 def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   """Compute interference grant causes to a FSS protection point
-  
-  Routine to compute interference neighborhood grant causes to FSS protection 
+
+  Routine to compute interference neighborhood grant causes to FSS protection
   point for blocking passband
 
   Args:
     cbsd_grant: a namedtuple of type CbsdGrantInformation
     constraint: protection constraint of type ProtectionConstraint
-    fss_info: contains fss point and antenna information 
+    fss_info: contains fss point and antenna information
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
     interference: interference contribution(dBm)
   """
 
-  # Get the propagation loss and incident angles for FSS entity 
+  # Get the propagation loss and incident angles for FSS entity
   # blocking channels
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(
                                    cbsd_grant.latitude, cbsd_grant.longitude,
@@ -579,8 +582,8 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
                cbsd_grant.antenna_gain)
 
   # Compute FSS antenna gain in the direction of CBSD
-  fss_ant_gain = antenna.GetFssAntennaGains(incidence_angles.hor_rx, 
-                   incidence_angles.ver_rx, fss_info.pointing_azimuth, 
+  fss_ant_gain = antenna.GetFssAntennaGains(incidence_angles.hor_rx,
+                   incidence_angles.ver_rx, fss_info.pointing_azimuth,
                    fss_info.pointing_elevation, fss_info.max_gain_dbi)
 
 
@@ -588,9 +591,9 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   # and FSS to CBSD
   effective_ant_gain = ant_gain + fss_ant_gain
 
-  # Compute EIRP of CBSD grant inside the frequency range of 
+  # Compute EIRP of CBSD grant inside the frequency range of
   # protection constraint
-  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain, 
+  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
            effective_ant_gain, (cbsd_grant.high_frequency - cbsd_grant.low_frequency))
   # Calculate the interference contribution
   interference = eirp - getFssMaskLoss(cbsd_grant, constraint) - db_loss
@@ -598,20 +601,19 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   return interference
 
 
-def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain, 
+def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
                            reference_bandwidth=IAPBW_HZ):
-  """Calculates effective EIRP caused by a grant 
-  
-  Utility API to get effective EIRP caused by a grant in the 
+  """Calculates effective EIRP caused by a grant
+
+  Utility API to get effective EIRP caused by a grant in the
   neighborhood of the protected entity FSS/ESC/PPA/GWPZ.
 
   Args:
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
     cbsd_max_ant_gain: The nominal antenna gain of the CBSD.
-    effective_ant_gain: The actual total antenna gains at the CBSD and protected entity. 
-      This takes into account the actual antenna patterns.
-    reference_bandwidth: Reference bandwidth over which effective EIRP is 
-                         calculated
+    effective_ant_gain: The actual total antenna gains at the CBSD and protected
+      entity. This takes into account the actual antenna patterns.
+    reference_bandwidth: Reference bandwidth over which effective EIRP is calculated
   Returns:
     eirp_cbsd: Effective EIRP of the CBSD(dBm)
   """
@@ -621,20 +623,21 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
 
   return eirp_cbsd
 
-def computeInterference(grant, eirp, channel_constraint, fss_info=None, 
+
+def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   esc_antenna_info=None, region_type=None):
-  """Calculates interference caused by a grant 
-  
-  Utility API to get interference caused by a grant in the 
+  """Calculates interference caused by a grant
+
+  Utility API to get interference caused by a grant in the
   neighborhood of the protected entity FSS/ESC/PPA/GWPZ.
 
   Args:
     grant : namedtuple of type CbsdGrantInformation
-    eirp : EIRP of the grant 
+    eirp : EIRP of the grant
     channel_constraint: namedtuple of type ProtectionConstraint
     fss_info: contains fss point and antenna information
-    esc_antenna_info: contains information on ESC antenna height, azimuth, 
-                      gain and pattern gain 
+    esc_antenna_info: contains information on ESC antenna height, azimuth,
+                      gain and pattern gain
     region_type: region type of protection PPA/GWPZ area.
   Returns:
     interference: Interference caused by a grant(dBm)
@@ -658,8 +661,91 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   # Compute interference to GWPZ or PPA protection constraint
   else:
     interference = computeInterferencePpaGwpzPoint(
-                     grant, channel_constraint, GWPZ_PPA_HEIGHT, 
-                           eirp, region_type)
-  
+                     grant, channel_constraint, GWPZ_PPA_HEIGHT,
+                     eirp, region_type)
+
   return interference
 
+
+def convertAndSumInterference(cbsd_interference_list):
+  """Converts interference in dBm to mW to calculate aggregate interference"""
+  interferences_in_dbm = np.array(cbsd_interference_list)
+  return np.sum(dbToLinear(interferences_in_dbm))
+
+
+def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_freq,
+      grant_objects, fss_info, esc_antenna_info, protection_ent_type,
+      region_type, aggregate_interference):
+  """Algorithm to compute aggregate interference for protection point
+
+  This method is invoked to calculate aggregate interference for FSS(Co-channel
+  and blocing passband) and ESC protection points.It is also invoked for
+  protection points within PPA and GWPZ protection areas.
+
+  Args:
+   protection_point: Protection point as a tuple (longitude, latitude)
+   channels: A sequence of channels as tuple (low_freq_hz, high_freq_hz)
+   low_freq: Low frequency of protection constraint (Hz)
+   high_freq: High frequency of protection constraint (Hz)
+   grant_objects: A list of grant requests, each one being a namedtuple
+                  containing grant information
+   fss_info: Contains fss point and antenna information
+   esc_antenna_info: Contains information on ESC antenna height, azimuth,
+                     gain and pattern gain
+   protection_ent_type: An enum member of class ProtectedEntityType
+   region_type: Region type of the protection point
+   aggregate_interference : object of class type AggregateInterferenceOutputFormat
+   Returns:
+      Updates aggregate_interference object for a aggregate interference(mW)
+      per protection channel of a protection point.
+      Dictionary in the format of
+      {latitude : {longitude : [aggr_interference(mW), aggr_interference(mW)]}},
+      aggr_interference is a aggregate interference(mW) in a particular protection
+      channel of protection point
+  """
+  # Get all the grants inside neighborhood of the protection entity
+  grants_inside = findGrantsInsideNeighborhood(
+                    grant_objects, protection_point, protection_ent_type)
+
+  if len(grants_inside) > 0:
+    for channel in channels:
+      # Get protection constraint over 5MHz channel range
+      protection_constraint = ProtectionConstraint(
+          latitude=protection_point[1], longitude=protection_point[0],
+          low_frequency=channel[0], high_frequency=channel[1],
+          entity_type=protection_ent_type)
+
+      # Identify CBSD grants overlapping with frequency range of the protection entity
+      # in the neighborhood of the protection point and channel
+      neighborhood_grants = findOverlappingGrants(
+                              grants_inside, protection_constraint)
+
+      if not neighborhood_grants:
+        # As number of neighborhood grants are zero, setting
+        # aggregate_interference to '0' for a protection_constraint
+        aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+          protection_point[0], 0)
+        continue
+
+      cbsd_interference_list = []
+
+      for grant in neighborhood_grants:
+        cbsd_interference_list.append(computeInterference(
+          grant, grant.max_eirp, protection_constraint, fss_info,
+          esc_antenna_info, region_type))
+
+      aggr_interference = convertAndSumInterference(cbsd_interference_list)
+      aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+          protection_point[0], aggr_interference)
+
+
+def getInterferenceObject():
+  """ Creates the AggregateInterferenceOutputFormat class object, which will
+  be shared across multiple processes using AggregateInterferenceManager
+  customized manager"""
+  AggregateInterferenceManager.register('AggregateInterferenceOutputFormat',
+                                        AggregateInterferenceOutputFormat)
+  manager = AggregateInterferenceManager()
+  manager.start()
+
+  return manager.AggregateInterferenceOutputFormat()
