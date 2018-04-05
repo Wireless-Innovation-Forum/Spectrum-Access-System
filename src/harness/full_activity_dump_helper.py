@@ -28,8 +28,8 @@ def getFullActivityDumpSasUut(sas, sas_admin, ssl_cert=None, ssl_key=None):
   Args:
     sas: SasInterface to request FAD data from.
     sas_admin: SasAdminInterface to trigger FAD creation over.
-    ssl_cert: ssl certificate to use when making get/post requests.
-    ssl_key: ssl key to use when making get/post requests.
+    ssl_cert: Optional. ssl certificate to use when making get/post requests.
+    ssl_key: Optional. ssl key to use when making get/post requests.
   Returns:
     A Full Activity Dump object containing FAD data from the given SAS.
   """
@@ -43,8 +43,6 @@ def getFullActivityDumpSasTestHarness(sas):
 
   Args:
     sas: SasInterface to request FAD data from.
-    ssl_cert: ssl certificate to use when making get requests.
-    ssl_key: ssl key to use when making get requests.
   Returns:
     A Full Activity Dump object containing FAD data from the given SAS test
     harness.
@@ -106,10 +104,10 @@ def _processDump(sas, dump, ssl_cert=None, ssl_key=None):
 
   Args:
     sas: A SasInterface object to request
-    ssl_cert: ssl certificate to use when making get requests.
-    ssl_key: ssl key to use when making get requests.
     dump: The https://base_url/version/dump message response, used to extract
       the files to be downloaded.
+    ssl_cert: Optional. ssl certificate to use when making get requests.
+    ssl_key: Optional. ssl key to use when making get requests.
   Returns:
     A Full Activity Dump with the FAD data from the given SAS as a dictionary
     with the fields: cbsd, esc_sensor, zone. Each field is a list of the
