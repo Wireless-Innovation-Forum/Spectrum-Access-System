@@ -26,6 +26,7 @@ Plus a few other useful zones for evaluation/simulation purpose:
 import os
 import numpy as np
 import shapely.geometry as sgeo
+import shapely.ops as ops
 from pykml import parser
 import zipfile
 
@@ -122,8 +123,8 @@ def GetCoastalProtectionZone():
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
   zones = _ReadKmlZones(kml_file)
-  coastal_zone = sgeo.MultiPolygon(zones[name]
-                                   for name in _COASTAL_PROTECTION_ZONES)
+  coastal_zone = ops.unary_union([zones[name]
+                                  for name in _COASTAL_PROTECTION_ZONES])
   return coastal_zone
 
 
@@ -135,8 +136,8 @@ def GetExclusionZones():
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
   zones = _ReadKmlZones(kml_file)
-  exclusion_zones = sgeo.MultiPolygon(zones[name] for name in zones
-                                      if name not in _COASTAL_PROTECTION_ZONES)
+  exclusion_zones = ops.unary_union([zones[name] for name in zones
+                                     if name not in _COASTAL_PROTECTION_ZONES])
   return exclusion_zones
 
 
@@ -159,12 +160,12 @@ def GetUsBorder(simplify_deg=1e-3):
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
   zones = _ReadKmlZones(kml_file, simplify=simplify_deg)
-  border_zone = sgeo.MultiPolygon(zones.values())
+  border_zone = ops.unary_union(zones.values())
   return border_zone
 
 
 def GetUrbanAreas(simplify_deg=1e-3):
-  """Gets the US urban area as a |shapely.MultiPolygon|.
+  """Gets the US urban area as a |shapely.GeometryCollection|.
 
   Args:
     simplify_deg: if defined, simplify the zone with given tolerance (degrees).
@@ -172,7 +173,5 @@ def GetUrbanAreas(simplify_deg=1e-3):
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), URBAN_AREAS_FILE)
   zones = _ReadKmlZones(kml_file, root_id_zone='Document', simplify=simplify_deg)
-  urban_areas = sgeo.MultiPolygon(zones.values())
-  urban_areas = urban_areas.buffer(0)
-  # TODO(sbdt): verify that read properly or if a cascaded_union is necessary
+  urban_areas = sgeo.GeometryCollection(zones.values())  # ops.unary_union(zones.values())
   return urban_areas

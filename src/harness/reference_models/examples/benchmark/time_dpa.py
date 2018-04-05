@@ -44,7 +44,7 @@ from reference_models.examples import entities
 dpa_name = 'east_dpa_7'
 
 # - Number of sites to distribute within a given range of the DPA
-num_sites = 500
+num_sites = 100
 max_dist_cat_a = 160
 max_dist_cat_b = 320
 
@@ -52,15 +52,15 @@ max_dist_cat_b = 320
 # We divide the DPA in 4 buckets: front and back contour, front and back zone
 # The front and back are separeted by the us border with some buffering.
 # Note:  Keep a ratio as expected in final to get accurate timing estimate
-npts_front_dpa_contour = 250    # The mainland facing contour
-npts_back_dpa_contour = 100     # The back contour
-npts_within_dpa_front = 100     # The front zone
-npts_within_dpa_back = 50       # The back zone
+npts_front_dpa_contour = 50    # The mainland facing contour
+npts_back_dpa_contour = 20     # The back contour
+npts_within_dpa_front = 20     # The front zone
+npts_within_dpa_back = 10       # The back zone
 front_usborder_buffer_km = 40   # Front contour defined by the extension of the
-                                # front border.
+                                # us border.
 
-# - Do we restrict the sites to be within the census-defined urban areas
-do_inside_urban_area = False
+# - Do we restrict the sites to be within the census-defined urban areas ?
+do_inside_urban_area = True
 
 # - Ratio of cat B and different catA
 ratio_cat_b = 0.2
@@ -69,7 +69,7 @@ ratio_cat_a_indoor = 0.4
 # - Simulation setup
 #   + Number of parallel processes -
 #     do not exceed your workstation parallel capabilities (number of core minus 2)
-#     Auto mode: -1 => will derive a proper setup as 75% of your workstation capabilities
+#     Auto mode: -1 => will derive a proper setup as 50% of your workstation capabilities
 num_processes = -1
 #   + Number of cached tiles (per process)
 num_cached_tiles = 32
@@ -114,23 +114,25 @@ def PrepareSimulation():
   zone_catb = dpa_zone.buffer(extend_catb_deg).intersection(us_border)
 
   if urban_areas is not None:
+    # simplify the huge urban_areas for quicker inclusion tests
     urban_areas = urban_areas.intersection(zone_catb)
 
   # - Distribute the CBSDs
+  print ' - Cat A indoor'
   cbsds_cat_a_indoor = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_a_indoor,
       entities.CBSD_TEMPLATE_CAT_A_INDOOR,
       zone_cata,
       drive.nlcd_driver,
       urban_areas)
-
+  print ' - Cat A outdoor'
   cbsds_cat_a_outdoor = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_a_outdoor,
       entities.CBSD_TEMPLATE_CAT_A_OUTDOOR,
       zone_cata,
       drive.nlcd_driver,
       urban_areas)
-
+  print ' - Cat B'
   cbsds_cat_b = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_b,
       entities.CBSD_TEMPLATE_CAT_B,
@@ -147,7 +149,8 @@ def PrepareSimulation():
                     for cbsd in all_cbsds]
 
   # Distribute points in DPA.
-  # The idea is to keep a good ratio  typical of what would be used with the
+  print 'Distributing protection points in DPA'
+  # The idea is to keep a good ratio typical of what would be used with the
   # actual implementation, so that the timing number can be scaled up.
   def SampleLine(line, num_points):
     step = line.length / (num_points-1)
@@ -199,13 +202,14 @@ def PrepareSimulation():
           reg_requests,
           grant_requests,
           protection_zone,
+          (len(cbsds_cat_a_indoor), len(cbsds_cat_a_outdoor), len(cbsds_cat_b)),
           ax)
 
 # Useful functions
-def get_tile_stats(dummy):
+def getTileStats(dummy):
   return drive.terrain_driver.stats.ActiveTilesCount()
 
-def print_tile_stats():
+def printTileStats():
   drive.terrain_driver.stats.Report()
 
 #--------------------------------------------------
@@ -217,19 +221,19 @@ if __name__ == '__main__':
   # Create the pool of process
   # Done externally from the move_list function to keep terrains in cache
   if num_processes < 0: # auto mode
-    num_processes = round(0.75 * multiprocessing.cpu_count())
+    num_processes = int(round(0.5 * multiprocessing.cpu_count()))
   pool = multiprocessing.Pool(num_processes)
 
   (protection_points, all_cbsds,
-   reg_requests, grant_requests,
-   protection_zone, ax) = PrepareSimulation()
+   reg_requests, grant_requests, protection_zone,
+   (n_a_indoor, n_a_outdoor, n_b), ax) = PrepareSimulation()
 
   # The protection specification
   protection_spec = ProtectionSpecs(lowFreq=fmin*1e6, highFreq=fmax*1e6,
                                     antHeight=50, beamwidth=3, threshold=-144)
 
   # Run the move list algorithm a first time to fill up geo cache
-  print 'Running Move List algorithm'
+  print 'Running Move List algorithm (%d processes)' % num_processes
   print '  + once to populate the terrain cache'
   result = move_list.findMoveList(protection_spec, protection_points[:num_processes],
                                   reg_requests[0:100], grant_requests[0:100],
@@ -237,7 +241,7 @@ if __name__ == '__main__':
                                   protection_zone, pool)
 
   # Run it for real and measure time
-  print '  + actual run'
+  print '  + actual run (timed)'
   start_time = time.time()
   result = move_list.findMoveList(protection_spec, protection_points,
                                   reg_requests, grant_requests,
@@ -250,19 +254,22 @@ if __name__ == '__main__':
   print ''
   print 'Num Cores (Parallelization): %d' % num_processes
   print 'Num Protection Points: %d' % len(protection_points)
-  print 'Num CBSD: %d' % len(reg_requests)
+  print 'Num CBSD: %d (A: %d %d - B %d)' % (
+      len(reg_requests), n_a_indoor, n_a_outdoor, n_b)
+  print 'Distribution: %s' % ('uniform' if not do_inside_urban_area
+                              else 'urban areas only')
   print 'Move list size: %d' % len_move_list
   print 'Computation time: %.1fs' % (end_time - start_time)
 
   # Check tiles cache well behaved
   print  ''
-  tile_stats = pool.map(get_tile_stats, [None]*num_processes)
+  tile_stats = pool.map(getTileStats, [None]*num_processes)
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    pool.apply_async(print_tile_stats, ())
+    pool.apply_async(printTileStats, ())
   else:
     print '-- Cache tile: OK (no swapping)'
 
@@ -271,4 +278,4 @@ if __name__ == '__main__':
     ax.scatter([cbsd.longitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                [cbsd.latitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                color='r', marker='.')
-    plt.show()
+  plt.show()
