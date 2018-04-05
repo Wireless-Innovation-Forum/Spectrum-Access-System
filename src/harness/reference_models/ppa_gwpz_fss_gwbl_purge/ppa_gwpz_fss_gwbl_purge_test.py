@@ -19,10 +19,12 @@ import full_activity_dump
 from util import makePpaAndPalRecordsConsistent
 from reference_models.ppa_gwpz_fss_gwbl_purge import ppa_gwpz_fss_gwbl_purge
 from reference_models.pre_iap_filtering import pre_iap_util
-class TestFssPurge(unittest.TestCase):
+
+
+class TestPpaGwpzFssPlusGwblPurge(unittest.TestCase):
 
   def test_ppaGwpzFssPlusGwblPurgeReferenceModel_default(self):
-    
+
    # TEST DATA
    cbsd_0 = json.load(
      open(os.path.join('testdata', 'cbsd_0.json')))
@@ -57,10 +59,6 @@ class TestFssPurge(unittest.TestCase):
    ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record, pal_record_list,
                                                                   'test_user_1')
    ppa_record['ppaInfo']['cbsdReferenceId'] = ["cbsd_5", "cbsd_3"]
-   #ppa_record['ppaInfo']['palId'][0] = "palx"
-   #ppa_record['ppaInfo']['palId'][1] = "palx"
-   #ppa_record['ppaInfo']['palId'][2] = "palx"
-   #pal_records[0]["channelAssignment"]["primaryAssignment"]["lowFrequency"] = 1234
    fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
    fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
    fad_object_3 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_4, cbsd_5]})
@@ -72,26 +70,33 @@ class TestFssPurge(unittest.TestCase):
                          'ppaRecords': [ppa_record], 'fssRecords':[fss_record],
                          'gwblRecords':[gwbl_record]}
    print "================CBSD Grants passed as input======================"
+   initial_grants = 0
    for records in sas_uut_fad.getCbsdRecords():
     for grants in records['grants']:
       print " ",json.dumps(grants['id'])
+      initial_grants = initial_grants + 1
    for fad in sas_test_harness_fads:
      for rec in fad.getCbsdRecords():
        for grants in rec['grants']:
          print " ",json.dumps(grants['id'])
+         initial_grants = initial_grants + 1
    print "===================================================================="
    ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
              protected_entities['ppaRecords'], protected_entities['palRecords'],\
              protected_entities['gwpzRecords'], protected_entities['fssRecords'])
    print "================CBSD Grants received as output======================"
+   final_grants = 0
    for records in sas_uut_fad.getCbsdRecords():
      for grants in records['grants']:
        print " ",json.dumps(grants['id'])
+       final_grants = final_grants + 1
    for fad in sas_test_harness_fads:
      for rec in fad.getCbsdRecords():
        for grants in rec['grants']:
          print " ",json.dumps(grants['id'])
+         final_grants = final_grants + 1
    print "===================================================================="
+   self.assertLess(final_grants, initial_grants)
 
 if __name__ == '__main__':
   unittest.main()

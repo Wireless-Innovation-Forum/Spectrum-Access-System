@@ -14,7 +14,7 @@
 
 from shapely.geometry import shape, Point, Polygon
 from reference_models.geo import vincenty
-
+from sas_test_harness import generateCbsdReferenceId
 
 def purgeOverlappingGrants(cbsds, frequency_range):
   """Removes Grants from CBSDs that overlap with the given frequency range.
@@ -178,8 +178,9 @@ def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
   cbsds_not_part_of_ppa_cluster = []
   # Compare the list of CBSDs with the PPA cluster list
   for cbsd in cbsds:
-    for ppa_cluster_cbsd_id in ppa_record['ppaInfo']['cbsdReferenceId']:
-      if cbsd['id'] != ppa_cluster_cbsd_id:
+    cbsd_reference_id = generateCbsdReferenceId(cbsd['registrationRequest']['fccId'],
+                                                cbsd['registrationRequest']['cbsdSerialNumber'])
+    if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
         cbsds_not_part_of_ppa_cluster.append(cbsd)
 
   return cbsds_not_part_of_ppa_cluster
