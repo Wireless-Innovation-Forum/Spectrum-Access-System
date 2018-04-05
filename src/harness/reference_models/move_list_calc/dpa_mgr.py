@@ -117,6 +117,7 @@ class Dpa(object):
     """
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self.grants = data.getGrantObjectsFromFAD(sas_uut_fad, sas_th_fads)
+    self.ResetLists()
     # TEMP: Embed an index to every grant as required by the move_list internals.
     #       Remove this as this does not support multi DPA processing in parallel.
     for k, grant in enumerate(self.grants):
@@ -126,6 +127,7 @@ class Dpa(object):
     """Sets the list of grants from a list |data.CbsdGrantInfo|."""
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self.grants = grants
+    self.ResetLists()
     # TEMP: Embed an index to every grant as required by the move_list internals.
     #       Remove this as this does not support multi DPA processing in parallel.
     for k, grant in enumerate(self.grants):
@@ -135,6 +137,7 @@ class Dpa(object):
     """Calculate move/keep lists.
     """
     pool = mpool.Pool()
+    self.ResetLists()
     for low_freq, high_freq in self.channels:
       moveListConstraint = partial(
           ml.moveListConstraint,

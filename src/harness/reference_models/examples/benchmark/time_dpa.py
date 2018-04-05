@@ -217,7 +217,7 @@ if __name__ == '__main__':
   np.random.seed(12345)
 
   # Configure the global pool of processes
-  mpool.Configure(num_processes)
+  #mpool.Configure(num_processes)
   pool = mpool.Pool()
   num_processes = pool._max_workers
 

@@ -445,7 +445,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                        num_iter, threshold, beamwidth):
     """Returns the move list for a given protection constraint.
 
-    The move listsNote that the returned indexes corresponds to the grant.grant_index
+    Note that the returned indexes corresponds to the grant.grant_index
 
     Inputs:
         protection_point:  A protection point location, having attributes 'latitude' and
