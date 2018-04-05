@@ -180,7 +180,6 @@ class AggregateInterferenceOutputFormat:
     with self.lock:
       if latitude not in self.aggregate_interference_info:
         self.aggregate_interference_info[latitude] = self.manager.dict()
-
       # Creating a proxy container for mutable dictionary
       aggregate_interference_proxy = self.aggregate_interference_info[latitude]
 
@@ -245,8 +244,8 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
   # Loop over each CBSD grant
   for grant in grants:
     # Compute distance from CBSD location to protection constraint location
-    dist_km, _, _ = vincenty.GeodesicDistanceBearing(grant.latitude,
-                      grant.longitude, protection_point[1], protection_point[0])
+    dist_km, _, _ = vincenty.GeodesicDistanceBearing(
+        grant.latitude, grant.longitude, protection_point[1], protection_point[0])
 
     # Check if CBSD is inside the neighborhood of protection constraint
     if dist_km <= _DISTANCE_PER_PROTECTION_TYPE[entity_type][grant.cbsd_category == 'B']:
@@ -284,9 +283,9 @@ def findOverlappingGrants(grants, constraint):
     # Category A CBSD grants are considered in the neighborhood only for
     # constraint frequency range 3550-3660MHz
     if (constraint.entity_type == ProtectedEntityType.ESC and
-          grant.cbsd_category == 'A' and
-          constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ):
-          freq_check = False
+        grant.cbsd_category == 'A' and
+        constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ):
+      freq_check = False
 
     # Append the grants information if it is inside the neighborhood of
     # protection constraint
@@ -311,7 +310,6 @@ def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
 
   grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
                         sas_uut_fad_object.getCbsdRecords(), True)
-
   grant_objects_test_harness = []
 
   for fad in sas_th_fad_objects:
@@ -394,7 +392,7 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   """
 
   if (cbsd_grant.latitude == constraint.latitude and
-        cbsd_grant.longitude == constraint.longitude):
+      cbsd_grant.longitude == constraint.longitude):
     db_loss = 0
     incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
   else:
@@ -566,7 +564,6 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   Returns:
     interference: interference contribution(dBm)
   """
-
   # Get the propagation loss and incident angles for FSS entity
   # blocking channels
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(
@@ -726,7 +723,6 @@ def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_fre
         aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
           protection_point[0], 0)
         continue
-
       cbsd_interference_list = []
 
       for grant in neighborhood_grants:

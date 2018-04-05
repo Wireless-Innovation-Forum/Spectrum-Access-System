@@ -121,9 +121,9 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
                pointing_azimuth=fss_point['antennaAzimuth'],
                pointing_elevation=fss_point['antennaDowntilt'])
 
-  if(fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and
-       fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
-       fss_ttc_flag is False):
+  if (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and
+      fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
+      fss_ttc_flag is False):
     logging.debug('Aggregate interference is not calculated for FSS Pass band'
     '3700 to 4200 and TT&C flag set to false')
   else:
@@ -203,8 +203,8 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool=None):
     gwpz_record: GWPZ protection entity
     cbsd_list: list of CBSD objects containing registrations and grants
     pool: object of type Pool to distribute execution of a
-    aggregateInterferenceForPoint function across multiple input values,
-    distributing the input data across processes
+      aggregateInterferenceForPoint function across multiple input values,
+      distributing the input data across processes
   Returns:
     Aggregate interference to GWPZ in the nested dictionary format.
     {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
@@ -256,8 +256,8 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool=N
     pal_list: list of PAL records
     cbsd_list: list of CBSD objects containing registrations and grants
     pool: object of type Pool to distribute execution of a
-    aggregateInterferenceForPoint function across multiple input values,
-    distributing the input data across processes
+      aggregateInterferenceForPoint function across multiple input values,
+      distributing the input data across processes
   Returns:
     Aggregate interference to PPA in the nested dictionary format.
     {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
