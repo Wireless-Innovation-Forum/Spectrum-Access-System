@@ -19,8 +19,6 @@
   grant frequency range overlaps with the protected entity's frequency range.
 ===================================================================================
 """
-from shapely.geometry import shape, Point, Polygon
-from reference_models.geo import vincenty
 from reference_models.pre_iap_filtering import pre_iap_util
 
 FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650000000,
