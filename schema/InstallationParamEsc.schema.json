@@ -6,7 +6,8 @@
     "latitude",
     "longitude",
     "height",
-    "heightType"
+    "heightType",
+    "antennaAzimuth"
   ],
   "additionalProperties": false,
   "properties": {
