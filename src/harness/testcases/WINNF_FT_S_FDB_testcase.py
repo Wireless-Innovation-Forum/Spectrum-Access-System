@@ -16,7 +16,6 @@ import json
 import os
 import sas
 import sas_testcase
-from fake_db_server import FakeDatabaseTestHarness
 from util import configurable_testcase, writeConfig, loadConfig
 
 
@@ -37,15 +36,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_1', 'FDB_1_ground_based_exclusion_zones.kml'),
-        'modifiedDatabaseFile': os.path.join('testcases', 'testdata', 'fdb_1', 'modified_FDB_1_ground_based_exclusion_zones.kml')
-    }
-
-    # Load grant requests 'G1', 'G2' and 'G3'.
+    # Load grant request.
     grant_g1 = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the exclusion zone 'Yuma Proving Ground'
@@ -56,7 +47,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
     grant_g2 = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the exclusion zone 
+    # Set the grant frequency to overlap with the exclusion zone
     # 'Yuma Proving Ground' frequency range 'F1' which is.
     grant_g2['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
@@ -97,8 +88,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'grantRequests': [grant_g1, grant_g2, grant_g3],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'conditionalRegistrationData': conditionals
       }
     writeConfig(filename, config)
 
@@ -114,20 +104,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
-
+    # TODO
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
-
-    # Inject the exclusion zone database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -148,7 +127,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(heartbeat_response[0]['grantId'], grant_ids[0])
     self.assertIn(heartbeat_response[0]['response']['responseCode'], [500, 501])
 
-    # Step 5: Consolidating the relinquishment request for the Grant
+    # Step 5: Sending relinquishment request for the Grant
     # if the responseCode was 501 for heartbeat response
     relq_request = {'relinquishmentRequest': []}
     if heartbeat_response[0]['response']['responseCode'] == 501:
@@ -159,13 +138,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }
       relq_request['relinquishmentRequest'].append(content)
 
-    # Send Consolidated Relinquishment Request for all the grants,
-    # if the grant responseCode was 501
-    if len(relq_request['relinquishmentRequest']) != 0:
-        relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-        self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-        self.assertEqual(relq_response[0]['response']['responseCode'], 0)
-        del relq_request, relq_response
+      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
+      self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
+      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+      del relq_request, relq_response
 
     del heartbeat_request, heartbeat_response
 
@@ -183,9 +159,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(grant_response_g2[0]['response']['responseCode'], 400)
 
     del grant_request_g2, grant_response_g2
-
+    # TODO
     # Step 7: Modify exclusion zone database record frequency range from 'F1' to 'F2'
-    fake_database_server.changeDatabaseFile(config['fakeDatabaseInfo']['modifiedDatabaseFile'])
 
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -205,29 +180,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del grant_request_g3, grant_response_g3
 
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
-
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
     # Load device info
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-
-
-   # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_2', 'FDB_2_dpas_12-7-2017.kml'),
-        'modifiedDatabaseFile': os.path.join('testcases', 'testdata', 'fdb_2', 'modified_FDB_2_dpas_12-7-2017.kml')
-    }
-
-   # Load grant requests 'G1' and 'G2'
+    # Load grant request
     grant_g1 = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4' which is .
@@ -272,8 +231,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'grantRequests': [grant_g1, grant_g2, grant_g3],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -289,19 +247,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
-
+    # TODO...
     # Step 2: Create DPA database which includes at least one inland DPA
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
-
-    # Inject the DPA database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -316,13 +263,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }]
     }
     heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
-   
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     # or 501 (SUSPENDED_GRANT)
     self.assertEqual(heartbeat_response[0]['grantId'], grant_ids[0])
     self.assertIn(heartbeat_response[0]['response']['responseCode'], [500, 501])
 
-    # Step 5: Consolidating the relinquishment request for the Grants
+    # Step 5: Sending relinquishment request for the Grant
     # if the responseCode was 501 for heartbeat response
     relq_request = {'relinquishmentRequest': []}
     if heartbeat_response[0]['response']['responseCode'] == 501:
@@ -333,13 +279,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }
       relq_request['relinquishmentRequest'].append(content)
 
-    # Send Consolidated Relinquishment Request for all the grants,
-    # if the grant responseCode was 501
-    if len(relq_request['relinquishmentRequest']) != 0:
-        relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-        self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-        self.assertEqual(relq_response[0]['response']['responseCode'], 0)
-        del relq_request, relq_response
+      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
+      self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
+      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+      del relq_request, relq_response
 
     del heartbeat_request, heartbeat_response
 
@@ -360,18 +303,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # if the responseCode was 0 in grant response
     heartbeat_request = {'heartbeatRequest': []}
     if self.assertEqual(grant_response_g2[0]['response']['responseCode'], 0):
-      self.assertTrue('grantId' in grant_response_g2[0])    
+      self.assertTrue('grantId' in grant_response_g2[0])
       # Construct heartbeat message.
       # Update heartbeat request content
-      content = {                   
+      content = {
           'cbsdId': cbsd_ids[0],
           'grantId': grant_response_g2[0]['grantId'],
           'operationState': 'GRANTED'
       }
       heartbeat_request['heartbeatRequest'].append(content)
-
-    # Send Heartbeat Request
-    if len(heartbeat_request['heartbeatRequest']) != 0:
       heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
 
       self.assertEqual(len(heartbeat_response), len(heartbeat_request['heartbeatRequest']))
@@ -391,23 +331,20 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }
       relq_request['relinquishmentRequest'].append(content)
 
-      # Send Consolidated Relinquishment Request for all the grant 'G2',
-      # if the grant responseCode was 501
-      if len(relq_request['relinquishmentRequest']) != 0:
-        relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-        # Check the relinquishment response
-        self.assertEqual(len(relq_response), len(relq_request['relinquishmentRequest']))
-        self.assertTrue('grantId' in relq_response[0])
-        self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+      # Send Relinquishment Request for grant 'G2',
+      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
+      # Check the relinquishment response
+      self.assertEqual(len(relq_response), len(relq_request['relinquishmentRequest']))
+      self.assertTrue('grantId' in relq_response[0])
+      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
 
-        del relq_request, relq_response
-
+      del relq_request, relq_response
       del heartbeat_request, heartbeat_response
-    
+
     del grant_request_g2, grant_response_g2
 
+    # TODO
     # Step 8: Modify DPA database record frequency range from 'F1' to 'F2'
-    fake_database_server.changeDatabaseFile(config['fakeDatabaseInfo']['modifiedDatabaseFile'])
 
     # Step 9: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -429,18 +366,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # if the responseCode was 0 in grant response
     heartbeat_request = {'heartbeatRequest': []}
     if self.assertEqual(grant_response_g3[0]['response']['responseCode'], 0):
-      self.assertTrue('grantId' in grant_response_g3[0])    
+      self.assertTrue('grantId' in grant_response_g3[0])
       # Construct heartbeat message.
       # Update heartbeat request content
-      content = {                   
+      content = {
           'cbsdId': cbsd_ids[0],
           'grantId': grant_response_g3[0]['grantId'],
           'operationState': 'GRANTED'
       }
       heartbeat_request['heartbeatRequest'].append(content)
-
-    # Send Heartbeat Request
-    if len(heartbeat_request['heartbeatRequest']) != 0:
       heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
 
       self.assertEqual(len(heartbeat_response), len(heartbeat_request['heartbeatRequest']))
@@ -450,14 +384,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       self.assertEqual(heartbeat_response[0]['response']['responseCode'], 501)
 
       del heartbeat_request, heartbeat_response
-    
     del grant_request_g3, grant_response_g3
-
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
 
   def generate_FDB_3_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.3"""
@@ -465,13 +392,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load device info
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-
-    # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_DOC-333151A1.xlsx')
-    }
 
     # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
     device_b['installationParam']['latitude'] = 39.57327
@@ -507,9 +427,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'grantRequest': [grant_g],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
-   }
+        'conditionalRegistrationData': conditionals
+    }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_FDB_3_default_config)
@@ -519,7 +438,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     Checks SAS UUT responds with Heartbeat Response 500 (TERMINATED_GRANT) for
     CBSD location X near FSS site
     """
-  
+
     # Load the configuration file
     config = loadConfig(config_filename)
 
@@ -528,18 +447,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                     config['grantRequest'],
                                     config['conditionalRegistrationData'])
 
+    # TODO
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
-
-    # Loading the FSS database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -560,12 +469,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del heartbeat_request, heartbeat_response
 
-    # As Python garbage collector is not very consistent,
-    # hence, explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
-
   def generate_FDB_4_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.4"""
 
@@ -573,19 +476,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-   # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_4', 'FDB_4_DOC-333151A1.xlsx'),
-        'modifiedDatabaseFile': os.path.join('testcases', 'testdata', 'fdb_4', 'modified_fdb_4_DOC-333151A1.xlsx')
-    }
-
     # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
     device_b['installationParam']['latitude'] = 39.57327
     device_b['installationParam']['longitude'] = -79.61903
 
-    # Load grant requests 'G1' and 'G2' 
+    # Load grant requests 'G1' and 'G2'
     grant_g1 = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
@@ -617,13 +512,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     del device_b['measCapability']
 
     conditionals = [conditionals_b]
-                    
+
     # Create the actual config.
     config = {
         'registrationRequest': device_b,
         'grantRequests': [grant_g1, grant_g2],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config,
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -631,8 +525,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_FDB_4(self, config_filename):
     """FSS Database Update: FSS Site Modification.
 
-    Check SAS UUT responds with HeartbeatResponse either SUCCESS or 
-    SUSPENDED_GRANT for CBSD C's location X near FSS site before and 
+    Check SAS UUT responds with HeartbeatResponse either SUCCESS or
+    SUSPENDED_GRANT for CBSD C's location X near FSS site before and
     after FSS database record modification.
     """
 
@@ -645,18 +539,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered([device_c],
                                      config['conditionalRegistrationData'])
 
+    # TODO
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
-
-    # Inject the FSS database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -687,33 +571,28 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       }]
     }
     heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
-
-    relq_request = {'relinquishmentRequest': []}
     # Check the heartbeat response code is either 0(SUCCESS) or
     # 501(SUSPENDED_GRANT)
     self.assertIn(heartbeat_response[0]['response']['responseCode'], [0, 501])
 
-    # Consolidating the relinquishment request for the grants 'G1'.
+    # Sending relinquishment request for the grant 'G1'.
+    relq_request = {'relinquishmentRequest': []}
     content = {
         'cbsdId': cbsd_ids[0],
         'grantId': grant_ids[0]
     }
     relq_request['relinquishmentRequest'].append(content)
 
-    # Step 5.2: Send consolidated relinquishment request for all the grants 'G1'.
-    if len(relq_request['relinquishmentRequest']) != 0:
-      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-      # Check relinquishment response
-      self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+    relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
+    # Check relinquishment response
+    self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
+    self.assertEqual(relq_response[0]['response']['responseCode'], 0)
 
-      del relq_request, relq_response
-
+    del relq_request, relq_response
     del heartbeat_request, heartbeat_response
 
-    # Step 6: Modify the FSS database to include modified version of 
-    # the FSS site 'S'.
-    fake_database_server.changeDatabaseFile(config['fakeDatabaseInfo']['modifiedDatabaseFile'])
+    # TODO
+    # Step 6: Modify the FSS database to include modified version of FSS site S
 
     # Step 7: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -751,12 +630,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del heartbeat_request, heartbeat_response
 
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
-
   def generate_FDB_5_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.5"""
 
@@ -764,28 +637,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Fake FSS database test harness configuration.
-    # The databaseFile FDB_5_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.
-    fake_fss_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_5', 'FDB_5_DOC-333151A1.xlsx')
-    }
-
-    # Fake GWBL database test harness configuration.
-    # The GWBL database file fdb_5_gwbl_db.json has one GWBL information within 150 KMs
-    # from FSS site 'KA413'.
-    fake_gwbl_database_config = {
-        'hostName': 'localhost',
-        'port': 9091,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_5', 'fdb_5_gwbl_db.json')
-    }
-
-    # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
-
-    # Load grant request info
+    # Load grant request 'G'.
     grant_g = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
@@ -793,6 +645,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
+
+    # Update the location 'X' of CBSD near FSS site 'KA413' at Albright,WV
+    device_b['installationParam']['latitude'] = 39.57327
+    device_b['installationParam']['longitude'] = -79.61903
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -815,9 +671,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'grantRequest': [grant_g],
-        'conditionalRegistrationData': conditionals,
-        'fakeGwblDatabaseInfo': fake_gwbl_database_config,
-        'fakeFssDatabaseInfo': fake_fss_database_config
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -832,38 +686,17 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Step 1: Register device (at location 'X') and request grant 'G' with SAS UUT.
+    # Step 1: Register device 'C'(at location 'X') and request grant 'G' with SAS UUT.
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
                                    config['registrationRequest'],
                                    config['grantRequest'],
                                    config['conditionalRegistrationData'])
 
-    # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
-    # Create fake FSS database server.
-    fake_fss_database_server = FakeDatabaseTestHarness(
-        config['fakeFssDatabaseInfo']['databaseFile'],
-        config['fakeFssDatabaseInfo']['hostName'],
-        config['fakeFssDatabaseInfo']['port'])
-    # Start fake database server
-    fake_fss_database_server.start()
+    # TODO
+    # Step 2: Create FSS database which includes at least one FSS site near
 
-    # Loading the FSS database URL into the UUT
-    database_url = fake_fss_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
-
-    # Step 3: Create GWBL database which includes at least one GWBL site near location 'X'.
-    # Create fake GWBL database server.
-    fake_gwbl_database_server = FakeDatabaseTestHarness(
-        config['fakeGwblDatabaseInfo']['databaseFile'],
-        config['fakeGwblDatabaseInfo']['hostName'],
-        config['fakeGwblDatabaseInfo']['port'])
-
-    # Start fake GWBL database server.
-    fake_gwbl_database_server.start()
-
-    # Loading the GWBL database URL into the UUT
-    database_url = fake_gwbl_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
+    # TODO
+    # Step 3: Create GWBL database which includes at least one GWBL site near
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -883,16 +716,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(heartbeat_response[0]['response']['responseCode'], 500)
 
     del heartbeat_request, heartbeat_response
-
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping database test harnesses and cleaning up.
-    fake_fss_database_server.shutdown()
-    del fake_fss_database_server
-
-    fake_gwbl_database_server.shutdown()
-    del fake_gwbl_database_server
-
-
+ 
   def generate_FDB_6_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.6"""
 
@@ -900,45 +724,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Fake fss database test harness configuration.
-    # The databaseFile FDB_6_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.
-    fake_fss_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_6', 'FDB_6_DOC-333151A1.xlsx')
-    }
-
-    # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
-
-    # Fake GWBL database test harness configuration.
-    # The GWBL database file fdb_6_gwbl_db.json has one GWBL W information near device_b
-    # The GWBL database file fdb_6_gwbl_db_updated.json an updated location for the GWBL W.
-    fake_gwbl_database_config = {
-        'hostName': 'localhost',
-        'port': 9091,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_6', 'fdb_6_gwbl_db.json'),
-        'modifiedDatabaseFile': os.path.join('testcases', 'testdata', 'fdb_6', 'fdb_6_gwbl_db_updated.json')
-    }
-
-    # Load grant request info
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_0['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
-    }
-
-    # Load grant request info
+    # Load grant requests 'G1' and 'G2'.
     grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
+    grant_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    grant_2['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
+    }
+   
+    # Update the location 'X' of CBSD near FSS site 'KA413' at Albright,WV
+    device_b['installationParam']['latitude'] = 39.57327
+    device_b['installationParam']['longitude'] = -79.61903
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -960,11 +764,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Create the actual config.
     config = {
         'registrationRequest': [device_b],
-        'grantRequest': [grant_0, grant_1],
-        'expectedResponseCodes': [(400,), (0,)]
-        'conditionalRegistrationData': conditionals,
-        'fakeGwblDatabaseInfo': fake_gwbl_database_config,
-        'fakeFssDatabaseInfo': fake_fss_database_config
+        'grantRequests': [grant_1, grant_2],
+        'expectedResponseCodes': [(400,), (0,)],
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -975,80 +777,64 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
     # Very light checking of the config file.
-    self.assertEqual( len(config['grantRequest']), len(config['expectedResponseCodes']))
-        
+    self.assertEqual(len(config['grantRequests']),
+                     len(config['expectedResponseCodes']))
 
-    # Step 1: Register device (at location 'X') and request grant 'G' with SAS UUT.
+    # Step 1: Register device 'C'(at location 'X') with SAS UUT.
     cbsd_ids = self.assertRegistered(config['registrationRequest'],
-                                                          config['conditionalRegistrationData'])
+                                     config['conditionalRegistrationData'])
 
-    # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
-    # Create fake FSS database server.
-    fake_fss_database_server = FakeDatabaseTestHarness(
-        config['fakeFssDatabaseInfo']['databaseFile'],
-        config['fakeFssDatabaseInfo']['hostName'],
-        config['fakeFssDatabaseInfo']['port'])
-    
-    # Start fake fss database server
-    fake_fss_database_server.start()
+    # TODO
+    # Step 2: Create FSS database which includes at least one FSS site near
+    # CBSD location 'X'.
 
-    # Loading the FSS database URL into the UUT
-    database_url = fake_fss_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
-
-    # Step 3: Create GWBL database which includes at least one GWBL site near location 'X'.
-    # Create fake GWBL database server.
-    fake_gwbl_database_server = FakeDatabaseTestHarness(
-        config['fakeGwblDatabaseInfo']['databaseFile'],
-        config['fakeGwblDatabaseInfo']['hostName'],
-        config['fakeGwblDatabaseInfo']['port'])
-
-    # Start fake GWBL database server.
-    fake_gwbl_database_server.start()
-
-    # Loading the FSS database URL into the UUT
-    database_url = fake_gwbl_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
+    # TODO
+    # Step 3: Create GWBL database which includes at least one GWBL site near
+    # CBSD location 'X'.
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 5: Sending Grant request
-    grant_request = {'grantRequest': [config['grantRequest'][0]]}
-    grant_response = self._sas.Grant(grant_request)['grantResponse']
+    # Step 5: Request grant 'G1'
+    config['grantRequests'][0]['cbsdId'] = cbsd_ids[0]
+
+    grant_request_g1 = {'grantRequest': [config['grantRequests'][0]]}
+    grant_response_g1 = self._sas.Grant(grant_request_g1)['grantResponse']
 
     # Check the heartbeat response code is as expected (SUCCESS or INTERFERENCE)
-    self.assertIn(grant_response[0]['response']['responseCode'],
+    self.assertIn(grant_response_g1[0]['response']['responseCode'],
                       config['expectedResponseCodes'][0])
 
-    # Step 6: Sending Relinquishment request
-    relinquishment_request = {'relinquishmentRequest': [{'cbsdId': cbsd_ids[0],
-                                                         'grantId': grant_response['grantId']}]}
-    relinquishment_response = self._sas.Relinquishment(relinquishment_request)['relinquishmentResponse']
+    # Step 6: Construct relinquishment request for grant 'G1'.
+    relq_request = {
+        'relinquishmentRequest': [{
+            'cbsdId': cbsd_ids[0],
+            'grantId': grant_response_g1[0]['grantId']
+        }]
+    }
 
-    # Step 7: Modify the GWBL database to include a modified version of the GWBL W, where the
-    # location of GWBL has changed. Change to the database file with the updated information.
-    fake_gwbl_database_server.setDatabaseFile(config['fakeGwblDatabaseInfo']['modifiedDatabaseFile'])
+    # Send relinquishment request for grant 'G1'.
+    relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
+    self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+
+    del relq_request, relq_response
+
+    # TOD0
+    # Step 7: Modify the GWBL database to include a modified version of the GWBL 'W'.
+    # 'W' is moved further than 150 kms from FSS site.
 
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 9: Grant Request for G2
-    grant_request = {'grantRequest': [config['grantRequest'][1]]}
-    grant_response = self._sas.Grant(grant_request)['grantResponse']
+    # Step 9: Request grant 'G2'.
+    config['grantRequests'][1]['cbsdId'] = cbsd_ids[0]
 
-    # Check the grant response code is as expected (SUCCESS or INTERFERENCE)
-    self.assertIn(grant_response[0]['response']['responseCode'],
+    grant_request_g2 = {'grantRequest': [config['grantRequests'][1]]}
+    grant_response_g2 = self._sas.Grant(grant_request_g2)['grantResponse']
+
+    # Check the grant response code is as expected (SUCCESS or INTERFERENCE).
+    self.assertIn(grant_response_g2[0]['response']['responseCode'],
                       config['expectedResponseCodes'][1])
-
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping database test harnesses and cleaning up.
-    fake_fss_database_server.shutdown()
-    del fake_fss_database_server
-
-    fake_gwbl_database_server.shutdown()
-    del fake_gwbl_database_server
-
 
   def generate_FDB_7_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.7"""
@@ -1056,14 +842,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load device info
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-
-   # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_7', 'FDB_7_fcc_id.xlsx'),
-        'modifiedDatabaseFile': os.path.join('testcases', 'testdata', 'fdb_7', 'modified_FDB_7_fcc_id.xlsx')
-    }
 
     # Update the FCC ID of CBSD 'C' with the FCC ID 'F_ID' from FCC ID database.
     device_b['fccId'] = "F_ID"
@@ -1089,8 +867,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'expectedResponseCodes': [(103,), (0,)],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -1122,18 +899,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # responseCode should be 103(INVALID_VALUE)
     self.assertEqual(registration_response[0]['response']['responseCode'], 103)
 
+    # TODO
     # Step 2: Create FCC ID database which includes at least one FCC ID 'F_ID'.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
-
-    # Inject the FCC ID database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1146,13 +913,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # responseCode should be 0(SUCCESS)
     self.assertEqual(registration_response[0]['response']['responseCode'], 0)
 
+    # TODO
     # Step 5: Modify FCC ID database record with FCC ID 'F_ID'.
-    fake_database_server.changeDatabaseFile(config['fakeDatabaseInfo']['modifiedDatabaseFile'])
 
     # Step 6: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 7: Send again the same registration request for CBSD 'C' 
+    # Step 7: Send again the same registration request for CBSD 'C'
     # with FCC ID 'F_ID' to SAS UUT.
     registration_response = self._sas.Registration(registration_request)['registrationResponse']
 
@@ -1160,25 +927,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertIn(registration_response[0]['response']['responseCode'],
                       config['expectedResponseCodes'][1])
 
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
-
   def generate_FDB_8_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.8"""
 
     # Load device info
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-
-    # Fake database test harness configuration
-    fake_database_config = {
-        'hostName': 'localhost',
-        'port': 9090,
-        'databaseFile': os.path.join('testcases', 'testdata', 'fdb_8', 'fdb_8_DOC-333151A1.xlsx')
-    }
 
     # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
     device_b['installationParam']['latitude'] = 39.57327
@@ -1214,8 +968,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequest': [device_b],
         'grantRequest': [grant_g],
-        'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'conditionalRegistrationData': conditionals
     }
     writeConfig(filename, config)
 
@@ -1234,18 +987,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                    config['grantRequest'],
                                    config['conditionalRegistrationData'])
 
+    # TODO
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
-    # Create fake database server
-    fake_database_server = FakeDatabaseTestHarness(
-                              config['fakeDatabaseInfo']['databaseFile'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'])
-    # Start fake database server
-    fake_database_server.start()
 
+    # TODO
     # Step 4: Inject the FSS database URL into the UUT
-    database_url = fake_database_server.getBaseUrl()
-    self._sas_admin.InjectDatabaseUrl(database_url)
 
     # Step 5: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1266,9 +1012,3 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(heartbeat_response[0]['response']['responseCode'], 500)
 
     del heartbeat_request, heartbeat_response
-
-    # As Python garbage collector is not very consistent,
-    # explicitly stopping Database Test Harness and cleaning up.
-    fake_database_server.shutdown()
-    del fake_database_server
-
