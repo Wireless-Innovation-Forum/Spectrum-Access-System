@@ -302,7 +302,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def QueryPropagationAndAntennaModel(self, request):
     from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
     return computePropagationAntennaModel(request)
-	
+
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
@@ -421,6 +421,7 @@ def RunFakeServer(version, is_ecc, ca_cert_path, verify_crl):
   except IOError:
     print "%s does not exist in certs path" % ca_cert_path
     return
+  print "\nCA chain is loaded into fake_sas:%s" % ca_cert_path
   ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   ssl_context.options |= ssl.CERT_REQUIRED
 
@@ -444,8 +445,8 @@ if __name__ == '__main__':
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
   parser.add_argument(
-      '--verify_crl', help='Enable CRL verification.If this flag is set then '
-                           '--ca <cert_file> argument is mandatory.The <cert_file> '
+      '--verify_crl', help='Enable CRL verification. If this flag is set then '
+                           '--ca <cert_file> argument is mandatory. The <cert_file> '
                            'should contain the certificate chain and CRL chain.',
       dest='verify_crl', action='store_true')
   parser.add_argument('--ca', required='--verify_crl' in sys.argv,
@@ -460,5 +461,4 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
   ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
-  print "\nCA chain is loaded into fake_sas:%s" %ca_cert_path
   RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)
