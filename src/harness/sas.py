@@ -24,16 +24,17 @@ def GetTestingSas():
   config_parser.read(['sas.cfg'])
   base_url = config_parser.get('SasConfig', 'BaseUrl')
   version = config_parser.get('SasConfig', 'Version')
-  return SasImpl(base_url, version), SasAdminImpl(base_url)
-
+  sas_admin_id = config_parser.get('SasConfig', 'AdminId')
+  return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, base_url, sas_version):
+  def __init__(self, base_url, sas_version, sas_admin_id):
     self._base_url = base_url
     self._sas_version = sas_version
     self._tls_config = TlsConfig()
+    self._sas_admin_id = sas_admin_id
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('registration', request, ssl_cert, ssl_key)
@@ -55,7 +56,7 @@ class SasImpl(sas_interface.SasInterface):
 
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
-
+    
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
@@ -74,7 +75,7 @@ class SasImpl(sas_interface.SasInterface):
                        self._tls_config.WithClientCertificate(
                            ssl_cert or self._GetDefaultCbsdSSLCertPath(),
                            ssl_key or self._GetDefaultCbsdSSLKeyPath()))
-
+    
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
@@ -220,7 +221,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
-
+    
   def TriggerFullActivityDump(self):
     RequestPost(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,

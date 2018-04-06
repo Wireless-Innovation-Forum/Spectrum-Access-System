@@ -1,0 +1,30 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+  	"description": "Describe the CbsdData object",
+	"type": "object",
+	"required": [
+    	"id",
+    	"registration",
+    	"grants"
+	],
+	"properties":{
+		"id":{
+			"type": "string",
+			"description": "Format cbsd/$CBSD_REFERENCE_ID where $CBSD_REFERENCE_ID is defined as UTF-8($FCC_ID + '/' + sha1($SERIAL_NUMBER)), the SHA-1 hash of the device manufacturer serial number that is unique within the FCC ID namespace scope "
+		},
+		"registration":{
+			"type": "object",
+			"description" : "Contains device installation parameters.",
+			"items" : {
+				"$ref" : "file:CbsdRecordData.schema.json"
+			}
+		},
+		"grants":{
+			"type" : "array",
+			"description" : "Contains one or more GrantData object. Contains [all] active [and pending (for purposes of margin allocation)] grants of the CBSD.",
+			"items":{
+				"$ref" : "file:GrantRecord.schema.json"
+			} 
+		}
+	}
+}

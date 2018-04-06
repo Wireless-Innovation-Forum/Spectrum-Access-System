@@ -191,38 +191,26 @@ class FakeSas(sas_interface.SasInterface):
     else:
       # Return Empty if invalid Id
       return {}
-
+      
   def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
-    response = json.loads(json.dumps({
-        'files': [
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'cbsd'},
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'zone'},
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'esc_sensor'},
-             {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-              'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-              'size': 19,
-              'version': version,
-              'recordType': 'coordination'}
+    response = json.loads(json.dumps({'files':[
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709",'size':19, 'version': version,'recordType': "cbsd" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "zone" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "esc_sensor" },        
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "coordination" }
             ],
-        'generationDateTime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'description': 'Full activity dump files'}))
-    return response
+            'generationDateTime': datetime.utcnow().strftime(
+                                      '%Y-%m-%dT%H:%M:%SZ'),
+            'description':"Full activity dump files" }))
+    return response;
 
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
@@ -304,10 +292,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
 	
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
-
-  def TriggerFullActivityDump(self):
-    pass
-
   def TriggerLoadDpas(self):
     pass
 

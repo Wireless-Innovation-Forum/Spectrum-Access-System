@@ -7,7 +7,7 @@
     "longitude",
     "height",
     "heightType",
-    "antennaGain"
+    "antennaAzimuth"
   ],
   "additionalProperties": false,
   "properties": {
@@ -34,17 +34,30 @@
       ],
       "description": "The reference for the height parameter. AMSL indicates the height is measured relative to mean sea level. AGL indicates the height is measured relative to local ground level at latitude, longitude."
     },
-    "antennaGain": {
+	"antennaAzimuth": {
+      "type": "number",
+      "description": "the boresight direction of the horizontal plane of the ESC antenna in degrees with respect to true north",
+      "minimum": 0,
+      "maximum": 359
+    },
+	"antennaDowntilt": {
+      "type": "number",
+      "description": "the ESC antenna down tilt in degrees",
+      "minimum": -90,
+      "maximum": 90
+    },
+	"azimuthRadiationPattern":
+	{
       "type": "array",
-      "description": "Maximum antenna gain in all horizontal directions, specified at 1 degree increments referenced to true north",
-      "items": {
-        "type": "number",
-        "minimum": -127,
-        "maximum": 128
-      },
-      "minItems": 360,
-      "maxItems": 360
-    }
+      "description": "an ESC antenna radiation pattern or an effective ESC antenna radiation pattern in any direction in the azimuthal plane, specified at 1 degree increments referenced to the true north",
+      "items": { "$ref": "file:RadiationPattern.schema.json" }
+    },
+	"elevationRadiationPattern":
+	{
+      "type": "array",
+      "description": "ESC antenna radiation pattern or an effective ESC antenna radiation pattern in any direction in the elevation plane",
+      "items": { "$ref": "file:RadiationPattern.schema.json" }
+    }	
   }
 }
 
