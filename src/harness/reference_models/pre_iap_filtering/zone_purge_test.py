@@ -17,44 +17,44 @@ import os
 import unittest
 import full_activity_dump
 from util import makePpaAndPalRecordsConsistent
-from reference_models.ppa_gwpz_fss_gwbl_purge import ppa_gwpz_fss_gwbl_purge
-from reference_models.pre_iap_filtering import pre_iap_util
+import zone_purge
+import pre_iap_util
 
 
-class TestPpaGwpzFssPlusGwblPurge(unittest.TestCase):
+class TestZonePurge(unittest.TestCase):
 
-  def test_ppaGwpzFssPlusGwblPurgeReferenceModel_default(self):
+  def test_zone_PurgeModel_default(self):
 
    # TEST DATA
    cbsd_0 = json.load(
-     open(os.path.join('testdata', 'cbsd_0.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_0.json')))
    cbsd_1 = json.load(
-     open(os.path.join('testdata', 'cbsd_1.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_1.json')))
    cbsd_2 = json.load(
-     open(os.path.join('testdata', 'cbsd_2.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_2.json')))
    cbsd_3 = json.load(
-     open(os.path.join('testdata', 'cbsd_3.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_3.json')))
    cbsd_4 = json.load(
-     open(os.path.join('testdata', 'cbsd_4.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_4.json')))
    cbsd_5 = json.load(
-     open(os.path.join('testdata', 'cbsd_5.json')))
+     open(os.path.join('testdata', 'testset1', 'cbsd_5.json')))
    # Load PPA record
    gwpz_record = json.load(
-     open(os.path.join('testdata', 'gwpz_0.json')))
+     open(os.path.join('testdata', 'testset1', 'gwpz_0.json')))
    ppa_record = json.load(
-     open(os.path.join('testdata', 'ppa_0.json')))
+     open(os.path.join('testdata', 'testset1', 'ppa_0.json')))
    pal_record_0 = json.load(
-     open(os.path.join('testdata', 'pal_0.json')))
+     open(os.path.join('testdata', 'testset1', 'pal_0.json')))
    pal_record_1 = json.load(
-     open(os.path.join('testdata', 'pal_1.json')))
+     open(os.path.join('testdata', 'testset1', 'pal_1.json')))
    pal_record_2 = json.load(
-     open(os.path.join('testdata', 'pal_2.json')))
+     open(os.path.join('testdata', 'testset1', 'pal_2.json')))
 
    pal_record_list = [pal_record_0, pal_record_1, pal_record_2]
    fss_record = json.load(
-     open(os.path.join('testdata', 'fss_0.json')))
+     open(os.path.join('testdata', 'testset1', 'fss_0.json')))
    gwbl_record = json.load(
-     open(os.path.join('testdata', 'gwbl_0.json')))
+     open(os.path.join('testdata', 'testset1', 'gwbl_0.json')))
     
    ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record, pal_record_list,
                                                                   'test_user_1')
@@ -81,7 +81,7 @@ class TestPpaGwpzFssPlusGwblPurge(unittest.TestCase):
          print " ",json.dumps(grants['id'])
          initial_grants = initial_grants + 1
    print "===================================================================="
-   ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
+   zone_purge.zonePurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
              protected_entities['ppaRecords'], protected_entities['palRecords'],\
              protected_entities['gwpzRecords'], protected_entities['fssRecords'])
    print "================CBSD Grants received as output======================"

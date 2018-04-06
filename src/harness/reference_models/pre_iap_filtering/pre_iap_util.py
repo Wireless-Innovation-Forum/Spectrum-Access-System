@@ -12,9 +12,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from shapely.geometry import shape, Point, Polygon
+import shapely.geometry as sgeo
 from reference_models.geo import vincenty
 from sas_test_harness import generateCbsdReferenceId
+from reference_models.geo import utils
+
 
 def purgeOverlappingGrants(cbsds, frequency_range):
   """Removes Grants from CBSDs that overlap with the given frequency range.
@@ -24,14 +26,10 @@ def purgeOverlappingGrants(cbsds, frequency_range):
   frequency_range: A dictionary with keys 'lowFrequency' and 'highFrequency'
   """
   for cbsd in cbsds:
-    grants_to_purge = []
-    if cbsd['grants']:
-      for grant in cbsd['grants']:
-        if checkForOverlappingGrants(grant, frequency_range):
-          grants_to_purge.append(grant)
-    for grant in grants_to_purge:
-        cbsd['grants'].remove(grant)
-
+    if not cbsd['grants']:
+      continue
+    cbsd['grants'] = [grant for grant in cbsd['grants']
+                            if not checkForOverlappingGrants(grant, frequency_range)]
 
 def checkForOverlappingGrants(grant, frequency_range):
   """Check if a grant overlaps with a given frequency range
@@ -66,11 +64,12 @@ def getCbsdsWithinPolygon(cbsds, polygon):
     List of CBSDs lying within or on the boundary of the protectionn area.
   """ 
   cbsds_within_polygon = []
-  polygon = shape(polygon['features'][0]['geometry'])
+  #polygon = sgeo.shape(polygon['features'][0]['geometry'])
+  polygon = utils.ToShapely(polygon['features'][0]['geometry'])
   for cbsd in cbsds:
     cbsd_lat = cbsd['registrationRequest']['installationParam']['latitude']
     cbsd_long = cbsd['registrationRequest']['installationParam']['longitude']
-    point = Point(cbsd_lat, cbsd_long)
+    point = sgeo.Point(cbsd_lat, cbsd_long)
 
     # If the CBSD is within the polygon and has grants then add it to the list
     if (polygon.contains(point) or polygon.touches(point)) and cbsd['grants']:
@@ -169,8 +168,8 @@ def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
   """Returns the CBSDs that are not part of a PPA cluster list.
 
   Args:
-    cbsds : List of CBSDs.
-    ppa_record : A PPA record dictionary.
+    cbsds: List of CbsdData objects.
+    ppa_record: A PPA record dictionary.
   Returns:
     List of CBSDs that are not part of the PPA cluster list.
   """

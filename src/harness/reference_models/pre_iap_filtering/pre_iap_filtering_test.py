@@ -21,10 +21,10 @@
 import full_activity_dump
 import json
 import os
-from reference_models.fss_purge import fss_purge
+import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
-from reference_models.ppa_gwpz_fss_gwbl_purge import ppa_gwpz_fss_gwbl_purge
-from reference_models.pre_iap_filtering import pre_iap_util
+import zone_purge
+import pre_iap_util
 from util import makePpaAndPalRecordsConsistent
 
 FSS_GWBL_PROTECTION_DISTANCE = 150
@@ -62,10 +62,7 @@ pal_low_frequency = pal_record['channelAssignment']['primaryAssignment']['lowFre
 pal_high_frequency = pal_record['channelAssignment']['primaryAssignment']['highFrequency']
 ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record,
                                                              [pal_record],
-                                                             pal_low_frequency,
-                                                             pal_high_frequency,
                                                              'test_user_1')
-
 sas_uut_fad = fd1
 sas_test_harness_fads = [fd2,fd3]
 protected_entities = {'fssRecords':[fss_entity_0, fss_entity_1], 'gwpzRecords':[gwpz_record],
@@ -100,7 +97,7 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
   fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']
                               ,protected_entities['fssRecords'], FSS_GWBL_PROTECTION_DISTANCE)
-  ppa_gwpz_fss_gwbl_purge.ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad,
+  zone_purge.zonePurgeReferenceModel(sas_uut_fad,
       sas_test_harness_fads, protected_entities['ppaRecords'], 
       protected_entities['palRecords'], protected_entities['gwpzRecords'], 
       fss_neighboring_gwbl) 

@@ -13,20 +13,21 @@
 #    limitations under the License.
 """
 ===================================================================================
-  The main function is ppaGwpzFssPlusGwblPurgeReferenceModel(). The grants from FAD
+  The main function is zonePurgeReferenceModel(). The grants from FAD
   CBSD objects of SAS UUT and SAS test harnesses are purged if the CBSD lies within
   a list of PPA areas or GWPZ areas or within 150 KMs from a list of FSSs and the
   grant frequency range overlaps with the protected entity's frequency range.
 ===================================================================================
 """
-from reference_models.pre_iap_filtering import pre_iap_util
+from reference_models.geo import vincenty
+import pre_iap_util
 
 FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650000000,
                              'highFrequency': 3700000000}
 
 
-def ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
-                     ppa_records, pal_records, gwpz_records, fss_records):
+def zonePurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
+                   ppa_records, pal_records, gwpz_records, fss_records):
   """ Entry method for PPA, GWPZ and FSS+GWBL purge reference model.
 
   CBSDs from the FAD objects of SAS UUT and SAS test harnesses that lie within the
@@ -43,7 +44,7 @@ def ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
     pal_records: List of PAL record dictionaries.
     gwpz_records: List of GWPZ record dictionaries.
     fss_records: List of FSS record dictionaries. All the FSSs in this list should have
-      at least one GWBL within 150KMs.
+      atleast one GWBL within 150KMs.
   """
   # Get the list of all CBSDs from the FAD objects of UUT and test harness
   cbsds = []
