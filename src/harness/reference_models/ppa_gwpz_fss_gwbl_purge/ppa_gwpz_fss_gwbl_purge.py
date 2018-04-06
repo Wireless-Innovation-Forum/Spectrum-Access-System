@@ -65,7 +65,7 @@ def ppaGwpzFssPlusGwblPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,\
         # Get the frequency of the PPA
         ppa_frequency_range = pre_iap_util.getPpaFrequencyRange(ppa_record, pal_records)
         # Purge the grants of CBSDs that are overlapping PPA frequency
-        pre_iap_util.purgeOverlappingGrants(cbsds_within_ppa, ppa_frequency_range)
+        pre_iap_util.purgeOverlappingGrants(cbsds_not_part_of_ppa_cluster, ppa_frequency_range)
 
   # Perform purge for each GWPZ 
   for gwpz_record in gwpz_records:

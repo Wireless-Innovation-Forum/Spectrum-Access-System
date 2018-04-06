@@ -1,43 +1,46 @@
 {
-	"_comment": "FSS - Inband Blocking CBSD partial overlap",
-	"id": "cbsd_0",
-	"registrationRequest": {
-		"fccId": "test_fcc_id_a",
-		"cbsdCategory": "B",
-		"callSign": "KPPP",
-		"userId": "test_user_id_a",
-		"airInterface": {
-			"radioTechnology": "E_UTRA",
-			"supportedSpec": "LTE-Rel10"
-		},
-		"cbsdInfo": {
-			"vendor": "Equipment Maker C"
-		},
-
-		"cbsdSerialNumber": "4321dcba_1",
-		"measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
-		"installationParam": {
-			"latitude": 40.49954,
-			"longitude": -101.49869,
-			"height": 3,
-			"indoorDeployment": true,
-			"antennaAzimuth": 72,
-			"antennaDowntilt": 3,
-			"antennaGain": 16,
-			"antennaBeamwidth": 30
-		}
-	},
-	"grants": [{
-		"channelType": "GAA",
-		"grantExpireTime": "calculated at runtime",
-		"id": "cbsd_0_grant_0",
-		"operationParam": {
-			"maxEirp": 37.0,
-			"operationFrequencyRange": {
-				"highFrequency": 3663000000,
-				"lowFrequency": 3653000000
-			}
-		},
-		"terminated": false
-	}]
+  "_comment": "FSS - Inband Blocking CBSD partial overlap",
+  "id": "cbsd_0",
+  "registrationRequest": {
+    "fccId": "test_fcc_id_a",
+    "cbsdCategory": "B",
+    "callSign": "KPPP",
+    "userId": "test_user_id_a",
+    "airInterface": {
+      "radioTechnology": "E_UTRA",
+      "supportedSpec": "LTE-Rel10"
+    },
+    "cbsdInfo": {
+      "vendor": "Equipment Maker C"
+    },
+    "cbsdSerialNumber": "4321dcba_1",
+    "measCapability": [
+      "EUTRA_CARRIER_RSSI_ALWAYS"
+    ],
+    "installationParam": {
+      "latitude": 40.49954,
+      "longitude": -101.49869,
+      "height": 3,
+      "indoorDeployment": true,
+      "antennaAzimuth": 72,
+      "antennaDowntilt": 3,
+      "antennaGain": 16,
+      "antennaBeamwidth": 30
+    }
+  },
+  "grants": [
+    {
+      "channelType": "GAA",
+      "grantExpireTime": "calculated at runtime",
+      "id": "cbsd_0_grant_0",
+      "operationParam": {
+        "maxEirp": 37.0,
+        "operationFrequencyRange": {
+          "highFrequency": 3663000000,
+          "lowFrequency": 3653000000
+        }
+      },
+      "terminated": false
+    }
+  ]
 }

@@ -1,44 +1,46 @@
 {
-	"_comment": "PPA - CBSD for URBAN and SUBURBAN regions",
-	"id": "cbsd_5",
-	"registrationRequest": {
-		"fccId": "test_fcc_id_d",
-		"cbsdCategory": "A",
-		"callSign": "KPPP",
-		"userId": "test_user_id_d",
-		"airInterface": {
-			"radioTechnology": "E_UTRA",
-			"supportedSpec": "LTE-Rel10"
-		},
-		"cbsdInfo": {
-			"vendor": "Equipment Maker C"
-		},
-
-		"cbsdSerialNumber": "5321dcba_1",
-		"measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
-		"installationParam": {
-			"latitude": 40.50179,
-			"longitude": -101.52422,
-			"height": 3,
-			"indoorDeployment": true,
-			"antennaAzimuth": 72,
-			"antennaDowntilt": 3,
-			"antennaGain": 16,
-			"antennaBeamwidth": 30
-		}
-	},
-	"grants": [{
-		"channelType": "GAA",
-		"grantExpireTime": "calculated at runtime",
-		"id": "cbsd_5_grant_0",
-		"operationParam": {
-			"maxEirp": 20.0,
-			"operationFrequencyRange": {
-				"highFrequency": 3660000000,
-				"lowFrequency": 3650000000
-			}
-		},
-		"terminated": false
-	}]
-
+  "_comment": "PPA - CBSD for URBAN and SUBURBAN regions",
+  "id": "cbsd_5",
+  "registrationRequest": {
+    "fccId": "test_fcc_id_d",
+    "cbsdCategory": "A",
+    "callSign": "KPPP",
+    "userId": "test_user_id_d",
+    "airInterface": {
+      "radioTechnology": "E_UTRA",
+      "supportedSpec": "LTE-Rel10"
+    },
+    "cbsdInfo": {
+      "vendor": "Equipment Maker C"
+    },
+    "cbsdSerialNumber": "5321dcba_1",
+    "measCapability": [
+      "EUTRA_CARRIER_RSSI_ALWAYS"
+    ],
+    "installationParam": {
+      "latitude": 40.50179,
+      "longitude": -101.52422,
+      "height": 3,
+      "indoorDeployment": true,
+      "antennaAzimuth": 72,
+      "antennaDowntilt": 3,
+      "antennaGain": 16,
+      "antennaBeamwidth": 30
+    }
+  },
+  "grants": [
+    {
+      "channelType": "GAA",
+      "grantExpireTime": "calculated at runtime",
+      "id": "cbsd_5_grant_0",
+      "operationParam": {
+        "maxEirp": 20.0,
+        "operationFrequencyRange": {
+          "highFrequency": 3660000000,
+          "lowFrequency": 3650000000
+        }
+      },
+      "terminated": false
+    }
+  ]
 }
