@@ -217,8 +217,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_11_default_config(self, filename):
-    """Generates the WinnForum configuration for SSS_11."""
-    # Create the configuration for blacklisted SAS cert/key path
+    """Generate the WinnForum configuration for SSS_11."""
+    # Create the configuration for blacklisted SAS cert/key path.
 
     config = {
         'sasCert': self.getCertFilename("blacklisted_sas.cert"),

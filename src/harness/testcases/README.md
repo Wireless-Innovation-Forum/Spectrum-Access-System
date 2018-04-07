@@ -10,7 +10,7 @@ The SCS.11/16, SDS.11/16 and SSS.11/16 TCs just expect the handshake failure and
 The correct way to run the fake_sas for these test cases is
 <pre>
 <code>
-<b> $python fake_sas.py --verify_crl --ca ca_crl_chain.cert </b>
+<b> $ python fake_sas.py --verify_crl --ca ca_crl_chain_sxs11.cert </b>
 </code>
 </pre>
 
@@ -25,7 +25,7 @@ The steps are
 3. Use wget on the simple CRL server URL to get the CRL chain file.
 <b> wget http://localhost:9007/ca.crl </b>
 4. Concatenate the CA chain file and the CRL file to create a combined CA chain and CRL chain file.
-<b> cat certs/ca.cert ca.crl > ca_crl_chain.cert </b>
+<b> cat certs/ca.cert ca.crl > certs/ca_crl_chain.cert </b>
 5. Run the fake_sas with the <b>--verify_crl</b> and <b>--ca ca_crl_chain.cert</b> option.
 
 The details of using the <b>simple CRL server</b> is documented under <b>harness/CRLServer-README.md file</b>. 

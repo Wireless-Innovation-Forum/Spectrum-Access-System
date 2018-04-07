@@ -186,7 +186,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       self.assertEqual(response[0]['response']['responseCode'], 104)
 
   def generate_SCS_11_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_11."""
+    """Generate the WinnForum configuration for SCS_11."""
     # Create the configuration for blacklisted client cert/key path
 
     config = {
@@ -201,7 +201,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-
     # Read the configuration
     config = loadConfig(config_filename)
 

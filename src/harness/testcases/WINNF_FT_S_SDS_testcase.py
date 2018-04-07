@@ -196,8 +196,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
       self.assertEqual(response[0]['response']['responseCode'], 104)
 
   def generate_SDS_11_default_config(self, filename):
-    """Generates the WinnForum configuration for SDS_11."""
-    # Create the configuration for blacklisted domain proxy cert/key path
+    """Generate the WinnForum configuration for SDS_11."""
+    # Create the configuration for blacklisted domain proxy cert/key path.
 
     config = {
         'domainProxyCert': self.getCertFilename("blacklisted_domain_proxy.cert"),
@@ -207,7 +207,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
   @configurable_testcase(generate_SDS_11_default_config)
   def test_WINNF_FT_S_SDS_11(self, config_filename):
-    """Blacklisted certificate presented during registration..
+    """Blacklisted certificate presented during registration.
 
     Checks that SAS UUT response with fatal alert message.
     """

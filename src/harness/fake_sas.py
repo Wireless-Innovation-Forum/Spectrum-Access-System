@@ -419,7 +419,7 @@ def RunFakeServer(version, is_ecc, ca_cert_path, verify_crl):
     with open(ca_cert_path) as file_handle:
       ca_cert_data = file_handle.read()
   except IOError:
-    print "%s does not exist in certs path" % ca_cert_path
+    print "%s does not exist" % ca_cert_path
     return
   print "\nCA chain is loaded into fake_sas:%s" % ca_cert_path
   ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
