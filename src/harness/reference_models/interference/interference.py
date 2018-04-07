@@ -1,5 +1,3 @@
-#    Copyright 2018 SAS Project Authors. All Rights Reserved.
-#
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -45,6 +43,7 @@ from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
+from sas_test_harness import generateCbsdReferenceId
 from collections import namedtuple
 from enum import Enum
 
@@ -97,14 +96,9 @@ ESC_CH21_CF_HZ = 36525.e5
 # One Mega Hertz
 MHZ = 1.e6
 
-# Channel bandwidth over which SASs execute the IAP process
-IAPBW_HZ = 5.e6
-
-# GWPZ Area Protection reference bandwidth for the IAP process
-GWPZ_RBW_HZ = 10.e6
-
-# PPA Area Protection reference bandwidth for the IAP process
-PPA_RBW_HZ = 10.e6
+# Channel bandwidth over which SASs execute the aggregate interference and 
+# IAP process
+RBW_HZ = 5.e6
 
 # GWPZ and PPA height (m)
 GWPZ_PPA_HEIGHT = 1.5
@@ -157,10 +151,10 @@ FssInformation = namedtuple('FssInformation',
                              'pointing_azimuth', 'pointing_elevation'])
 
 # Define ESC information, i.e., a tuple with named fields of
-# 'antenna_height', 'antenna_azimuth', 'antenna_gain', 'antenna_pattern_gain'
+# 'antenna_height', 'antenna_azimuth', 'antenna_gain_pattern'
 EscInformation = namedtuple('EscInformation',
                             ['antenna_height', 'antenna_azimuth',
-                             'antenna_pattern_gain'])
+                             'antenna_gain_pattern'])
 
 
 class AggregateInterferenceOutputFormat:
@@ -298,44 +292,68 @@ def findOverlappingGrants(grants, constraint):
   return grants_inside
 
 
-def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
-  """Extracts CBSD grant objects from FAD object
+def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
+    """Returns the CBSDs that are not part of a PPA cluster list.
+
+    Args:
+      cbsds : List of CBSDData objects.
+      ppa_record : A PPA record dictionary.
+    Returns:
+      List of CBSDs that are not part of the PPA cluster list.
+    """
+    cbsds_not_part_of_ppa_cluster = []
+    # Compare the list of CBSDs with the PPA cluster list
+    for cbsd in cbsds:
+      cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
+                            cbsd['registration']['cbsdSerialNumber'])
+      if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
+        cbsds_not_part_of_ppa_cluster.append(cbsd)
+
+    return cbsds_not_part_of_ppa_cluster
+
+
+def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects, ppa_record=None): 
+  """Extracts CBSD grant objects from FAD objects
+
 
   Args:
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_object: a list of FAD objects from SAS Test Harness
+    ppa_record: A PPA record dictionary.
   Returns:
     grant_objects: a list of CBSD grants dictionary containing registration
     and grants
   """
   # List of CBSD grant tuples extracted from FAD record
   grant_objects = []
-
+ 
   grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
-                        sas_uut_fad_object.getCbsdRecords(), True)
+                        sas_uut_fad_object.getCbsdRecords(), True, ppa_record)
 
   grant_objects_test_harness = []
 
   for fad in sas_th_fad_objects:
     grant_objects_test_harness.extend(getAllGrantInformationFromCbsdDataDump(
-                                     fad.getCbsdRecords(), False))
+                                   fad.getCbsdRecords(), False, ppa_record))
 
   grant_objects = grant_objects_uut + grant_objects_test_harness
 
   return grant_objects
 
 
-def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
+def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True, ppa_record=None):
   """Extracts list of CbsdGrantInformation namedtuple
 
   Routine to extract CbsdGrantInformation tuple from CBSD data records from
-  FAD objects
+  FAD objects. For protected entity of type PPA, CBSDs, which belong to the PPA cluster
+  list are not taken into consideration
 
   Args:
     cbsd_data_records: A list CbsdData object retrieved from FAD records.
     is_managing_sas: flag indicating cbsd data record is from managing SAS or
                      peer SAS
                      True - Managing SAS, False - Peer SAS
+    ppa_record: A PPA record dictionary.
   Returns:
     grant_objects: a list of grants, each one being a namedtuple of type
                    CBSDGrantInformation, of all CBSDs from SAS UUT FAD and
@@ -343,6 +361,9 @@ def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=Tr
   """
 
   grant_objects = []
+  
+  if ppa_record is not None:
+    cbsd_data_records = getCbsdsNotPartOfPpaCluster(cbsd_data_records, ppa_record)
 
   # Loop over each CBSD grant
   for cbsd_data_record in cbsd_data_records:
@@ -456,7 +477,7 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   esc_ant_gain = antenna.GetAntennaPatternGains(
       incidence_angles.hor_rx,
       esc_antenna_info.antenna_azimuth,
-      esc_antenna_info.antenna_pattern_gain)
+      esc_antenna_info.antenna_gain_pattern)
 
   # Get the total antenna gain by summing the antenna gains from CBSD to ESC
   # and ESC to CBSD
@@ -604,7 +625,7 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
 
 
 def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
-                           reference_bandwidth=IAPBW_HZ):
+                           reference_bandwidth=RBW_HZ):
   """Calculates effective EIRP caused by a grant
 
   Utility API to get effective EIRP caused by a grant in the

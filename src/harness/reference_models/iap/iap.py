@@ -256,7 +256,6 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   # Get ESC antenna information
   esc_antenna_info = interf.EscInformation(antenna_height=esc_point['height'],
                        antenna_azimuth=esc_point['antennaAzimuth'],
-                       antenna_gain=0,
                        antenna_gain_pattern=ant_gain_pattern)
 
   # Get ESC passband 3550-3680 MHz protection channels
@@ -368,8 +367,9 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects,
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
   ppa_iap_threshold = interf.dbToLinear(ppa_thresh_q - MARGIN_PPA_DB)
 
-  grant_objects = interf.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
-  
+  grant_objects = interf.getGrantObjectsFromFAD(sas_uut_fad_object, 
+                    sas_th_fad_objects, protected_entity)
+
   # Get number of SAS 
   num_sas = len(sas_th_fad_objects) + 1
 

@@ -6,9 +6,12 @@
       "latitude":42.30,
       "longitude":-107.85,
       "antennaDowntilt":0,
-      "antennaGain":0,
-      "antennaAzimuth":0,
+      "antennaAzimuth":180,
       "azimuthRadiationPattern":[  
+         {  
+            "angle":0,
+            "gain":-10
+         },
          {  
             "angle":1,
             "gain":-10
@@ -535,163 +538,163 @@
          },
          {  
             "angle":132,
-            "gain":-10
-         },
-         {  
-            "angle":133,
             "gain":-10.031
          },
          {  
-            "angle":134,
+            "angle":133,
             "gain":-9.802
          },
          {  
-            "angle":135,
+            "angle":134,
             "gain":-9.569
          },
          {  
-            "angle":136,
+            "angle":135,
             "gain":-9.33
          },
          {  
-            "angle":137,
+            "angle":136,
             "gain":-9.086
          },
          {  
-            "angle":138,
+            "angle":137,
             "gain":-8.837
          },
          {  
-            "angle":139,
+            "angle":138,
             "gain":-8.581
          },
          {  
-            "angle":140,
+            "angle":139,
             "gain":-8.32
          },
          {  
-            "angle":141,
+            "angle":140,
             "gain":-8.051
          },
          {  
-            "angle":142,
+            "angle":141,
             "gain":-7.777
          },
          {  
-            "angle":143,
+            "angle":142,
             "gain":-7.495
          },
          {  
-            "angle":144,
+            "angle":143,
             "gain":-7.205
          },
          {  
-            "angle":145,
+            "angle":144,
             "gain":-6.908
          },
          {  
-            "angle":146,
+            "angle":145,
             "gain":-6.602
          },
          {  
-            "angle":147,
+            "angle":146,
             "gain":-6.287
          },
          {  
-            "angle":148,
+            "angle":147,
             "gain":-5.963
          },
          {  
-            "angle":149,
+            "angle":148,
             "gain":-5.629
          },
          {  
-            "angle":150,
+            "angle":149,
             "gain":-5.284
          },
          {  
-            "angle":151,
+            "angle":150,
             "gain":-4.928
          },
          {  
-            "angle":152,
+            "angle":151,
             "gain":-4.56
          },
          {  
-            "angle":153,
+            "angle":152,
             "gain":-4.179
          },
          {  
-            "angle":154,
+            "angle":153,
             "gain":-3.784
          },
          {  
-            "angle":155,
+            "angle":154,
             "gain":-3.374
          },
          {  
-            "angle":156,
+            "angle":155,
             "gain":-2.949
          },
          {  
-            "angle":157,
+            "angle":156,
             "gain":-2.505
          },
          {  
-            "angle":158,
+            "angle":157,
             "gain":-2.043
          },
          {  
-            "angle":159,
+            "angle":158,
             "gain":-1.561
          },
          {  
-            "angle":160,
+            "angle":159,
             "gain":-1.055
          },
          {  
-            "angle":161,
+            "angle":160,
             "gain":-0.526
          },
          {  
-            "angle":162,
+            "angle":161,
             "gain":0.031
          },
          {  
-            "angle":163,
+            "angle":162,
             "gain":0.618
          },
          {  
-            "angle":164,
+            "angle":163,
             "gain":1.239
          },
          {  
-            "angle":165,
+            "angle":164,
             "gain":1.897
          },
          {  
-            "angle":166,
+            "angle":165,
             "gain":2.598
          },
          {  
-            "angle":167,
+            "angle":166,
             "gain":3.347
          },
          {  
-            "angle":168,
+            "angle":167,
             "gain":4.151
          },
          {  
-            "angle":169,
+            "angle":168,
             "gain":5.02
          },
          {  
-            "angle":170,
+            "angle":169,
             "gain":5.965
          },
          {  
-            "angle":171,
+            "angle":170,
             "gain":7
+         },
+         {  
+            "angle":171,
+            "gain":8
          },
          {  
             "angle":172,
@@ -699,31 +702,31 @@
          },
          {  
             "angle":173,
-            "gain":8
-         },
-         {  
-            "angle":174,
             "gain":7.873
          },
          {  
-            "angle":175,
+            "angle":174,
             "gain":9.546
          },
          {  
-            "angle":176,
+            "angle":175,
             "gain":11.526
          },
          {  
-            "angle":177,
+            "angle":176,
             "gain":13.949
          },
          {  
-            "angle":178,
+            "angle":177,
             "gain":17.072
          },
          {  
-            "angle":179,
+            "angle":178,
             "gain":21.474
+         },
+         {  
+            "angle":179,
+            "gain":24.598
          },
          {  
             "angle":180,
@@ -735,31 +738,31 @@
          },
          {  
             "angle":182,
-            "gain":24.598
-         },
-         {  
-            "angle":183,
             "gain":21.474
          },
          {  
-            "angle":184,
+            "angle":183,
             "gain":17.072
          },
          {  
-            "angle":185,
+            "angle":184,
             "gain":13.949
          },
          {  
-            "angle":186,
+            "angle":185,
             "gain":11.526
          },
          {  
-            "angle":187,
+            "angle":186,
             "gain":9.546
          },
          {  
-            "angle":188,
+            "angle":187,
             "gain":7.873
+         },
+         {  
+            "angle":188,
+            "gain":8
          },
          {  
             "angle":189,
@@ -767,163 +770,163 @@
          },
          {  
             "angle":190,
-            "gain":8
-         },
-         {  
-            "angle":191,
             "gain":7
          },
          {  
-            "angle":192,
+            "angle":191,
             "gain":5.965
          },
          {  
-            "angle":193,
+            "angle":192,
             "gain":5.02
          },
          {  
-            "angle":194,
+            "angle":193,
             "gain":4.151
          },
          {  
-            "angle":195,
+            "angle":194,
             "gain":3.347
          },
          {  
-            "angle":196,
+            "angle":195,
             "gain":2.598
          },
          {  
-            "angle":197,
+            "angle":196,
             "gain":1.897
          },
          {  
-            "angle":198,
+            "angle":197,
             "gain":1.239
          },
          {  
-            "angle":199,
+            "angle":198,
             "gain":0.618
          },
          {  
-            "angle":200,
+            "angle":199,
             "gain":0.031
          },
          {  
-            "angle":201,
+            "angle":200,
             "gain":-0.526
          },
          {  
-            "angle":202,
+            "angle":201,
             "gain":-1.055
          },
          {  
-            "angle":203,
+            "angle":202,
             "gain":-1.561
          },
          {  
-            "angle":204,
+            "angle":203,
             "gain":-2.043
          },
          {  
-            "angle":205,
+            "angle":204,
             "gain":-2.505
          },
          {  
-            "angle":206,
+            "angle":205,
             "gain":-2.949
          },
          {  
-            "angle":207,
+            "angle":206,
             "gain":-3.374
          },
          {  
-            "angle":208,
+            "angle":207,
             "gain":-3.784
          },
          {  
-            "angle":209,
+            "angle":208,
             "gain":-4.179
          },
          {  
-            "angle":210,
+            "angle":209,
             "gain":-4.56
          },
          {  
-            "angle":211,
+            "angle":210,
             "gain":-4.928
          },
          {  
-            "angle":212,
+            "angle":211,
             "gain":-5.284
          },
          {  
-            "angle":213,
+            "angle":212,
             "gain":-5.629
          },
          {  
-            "angle":214,
+            "angle":213,
             "gain":-5.963
          },
          {  
-            "angle":215,
+            "angle":214,
             "gain":-6.287
          },
          {  
-            "angle":216,
+            "angle":215,
             "gain":-6.602
          },
          {  
-            "angle":217,
+            "angle":216,
             "gain":-6.908
          },
          {  
-            "angle":218,
+            "angle":217,
             "gain":-7.205
          },
          {  
-            "angle":219,
+            "angle":218,
             "gain":-7.495
          },
          {  
-            "angle":220,
+            "angle":219,
             "gain":-7.777
          },
          {  
-            "angle":221,
+            "angle":220,
             "gain":-8.051
          },
          {  
-            "angle":222,
+            "angle":221,
             "gain":-8.32
          },
          {  
-            "angle":223,
+            "angle":222,
             "gain":-8.581
          },
          {  
-            "angle":224,
+            "angle":223,
             "gain":-8.837
          },
          {  
-            "angle":225,
+            "angle":224,
             "gain":-9.086
          },
          {  
-            "angle":226,
+            "angle":225,
             "gain":-9.33
          },
          {  
-            "angle":227,
+            "angle":226,
             "gain":-9.569
          },
          {  
-            "angle":228,
+            "angle":227,
             "gain":-9.802
          },
          {  
-            "angle":229,
+            "angle":228,
             "gain":-10.031
+         },
+         {  
+            "angle":229,
+            "gain":-10
          },
          {  
             "angle":230,
@@ -1443,10 +1446,6 @@
          },
          {  
             "angle":359,
-            "gain":-10
-         },
-         {  
-            "angle":360,
             "gain":-10
          }
       ]
