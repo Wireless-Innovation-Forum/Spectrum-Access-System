@@ -266,7 +266,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         response = self._sas.Registration(request, ssl_cert=client_cert,
                                           ssl_key=client_key)['registrationResponse']
       except AssertionError as e:
-        logging.debug('HTTPS forbidden: 403')
+        logging.debug("TLS session established, expecting HTTP error 403; received HTTP error %d", e.args[0])
         self.assertEqual(e.args[0], 403)
       else:
         self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
