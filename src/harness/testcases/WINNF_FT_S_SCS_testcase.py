@@ -170,7 +170,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     config = loadConfig(config_filename)
     try:
-      self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
+      self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
                                      client_key=config['clientKey'])
     except AssertionError as e:
       self.SasReset()
@@ -211,7 +211,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeOrHttpsFailure(ssl_method=SSL.TLSv1_1_METHOD)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_14(self):
@@ -219,7 +219,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeOrHttpsFailure(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
 
   def generate_SCS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SCS.15 """

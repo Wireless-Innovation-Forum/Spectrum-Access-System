@@ -251,13 +251,13 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     finally:
       client_ssl.close()
 
-  def assertTlsHandshakeOrHttpsFailure(self, client_cert=None, client_key=None):
+  def assertTlsHandshakeOrHttpsFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """
       Checks that the TLS handshake failure by varying the given parameters
       if handshake not failed make sure the next https request return error code 403
     """
     try:
-      self.assertTlsHandshakeFailure(client_cert, client_key)
+      self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
     except AssertionError as e:
       try:
         device_a = json.load(
@@ -266,6 +266,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         response = self._sas.Registration(request, ssl_cert=client_cert,
                                           ssl_key=client_key)['registrationResponse']
       except AssertionError as e:
+        logging.debug('HTTPS forbidden: 403')
         self.assertEqual(e.args[0], 403)
       else:
         self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
