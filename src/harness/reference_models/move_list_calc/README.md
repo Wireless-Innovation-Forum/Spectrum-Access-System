@@ -6,28 +6,31 @@ according to the R2-SGN-24 requirement in the WINNF-TS-0112 document, Version V1
 
 ## Main Interface 
 
-The main routine to find which CBSD grants are on the move-list is 
-`move_list.findMoveList()`. 
+The main routine to find which CBSD grants are on the move-list is:
+
+    `Dpa.CalcMoveList()`
 
 ## Code Prerequisites
 
 Reference models:
 
-   - WInnForum ITM propagation reference model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/propagation)   
-   - WInnForum geo modules and geo data (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/geo)
-   - WInnForum antenna gain models (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/antenna)
+   - WinnForum ITM propagation reference model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/propagation)   
+   - WinnForum geo modules and geo data (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/geo)
+   - WinnForum antenna gain models (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/antenna)
 
 Python software and packages:
+
    - python 2.7 (https://www.python.org/download/releases/2.7/)
    - shapely (https://pypi.python.org/pypi/Shapely)
    - numpy (http://www.scipy.org/scipylib/download.html)
    
 ## Test Data
 
-To test the `move_list.findMoveList()` routine for a co-channel offshore DPA protection, 
-one can use the example given in the `move_list_example.py` file along with the test 
-data stored in the `\test_data` sub-folder. To run the example, use the command 
-`python move_list_example.py`.
+To test the Move List for a co-channel offshore DPA protection, one can use
+the example given in the `move_list_example.py` file along with the test data 
+stored in the `\test_data` sub-folder. To run the example, use the command:
+
+    `python move_list_example.py`.
 
 ## Copyrights and Disclaimers
 

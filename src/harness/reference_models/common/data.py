@@ -39,7 +39,14 @@ ProtectionConstraint = namedtuple('ProtectionConstraint',
                                    'low_frequency', 'high_frequency',
                                    'entity_type'])
 
-class CbsdGrantInfo(object):
+# A CBSD Grant.
+class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
+                               ['latitude', 'longitude', 'height_agl',
+                                'indoor_deployment',
+                                'antenna_azimuth', 'antenna_gain','antenna_beamwidth',
+                                'cbsd_category', 'max_eirp',
+                                'low_frequency', 'high_frequency',
+                                'is_managed_grant'])):
   """CbsdGrantInfo.
 
   Holds all parameters of a CBSD grant.
@@ -59,19 +66,7 @@ class CbsdGrantInfo(object):
     high_frequency: The gran max frequency (Hz).
     is_managed_grant: True iff the grant belongs to the managing SAS.
   """
-  __slots__ = ('latitude', 'longitude', 'height_agl', 'indoor_deployment',
-               'antenna_azimuth', 'antenna_gain','antenna_beamwidth',
-               'cbsd_category', 'max_eirp', 'low_frequency', 'high_frequency',
-               'is_managed_grant', 'grant_index')
-  def __init__(self, is_managed_grant=True, grant_index=None, **kwargs):
-    for attr in self.__slots__[:-2]:
-      setattr(self, attr, kwargs[attr])
-    self.is_managed_grant = is_managed_grant
-    self.grant_index = grant_index
-
-  def __repr__(self):
-    attrs = ('%s=%r' % (attr, getattr(self, attr)) for attr in self.__slots__)
-    return 'CbsdGrantInfo(%s)' % ', '.join(attrs)
+  __slots__ = ()
 
 
 def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):

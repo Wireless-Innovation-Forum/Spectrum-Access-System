@@ -58,7 +58,7 @@ if __name__ == '__main__':
   # Number of Monte Carlo iterations
   num_iter = 2000
 
-  # Congigure the global pool manager
+  # Configure the global pool manager
   num_processes = 4
   mpool.Configure(num_processes) # Note: shall not be run in child process
                                  # so protect it.
@@ -113,8 +113,8 @@ if __name__ == '__main__':
 
   # Determine which CBSD grants are on the move list
   start_time = time.time()
+  #import ipdb; ipdb.set_trace()
   res = dpa.CalcMoveLists()
   end_time = time.time()
   print 'Move list output: ' + str(dpa.GetMoveListMask((3600, 3610)))
   print 'Computation time: ' + str(end_time - start_time)
-

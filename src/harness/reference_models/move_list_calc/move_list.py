@@ -28,9 +28,10 @@
 #==================================================================================
 # DPA Move List Reference Model.
 # Based on WINNF-TS-0112, Version V1.4.1, 16 January 2018.
-
-# The main routine is 'moveListConstraint()' which calculates the move list
-# for a single protection point.
+#
+# The main routines are:
+#   - 'moveListConstraint()': calculates the move list for one point
+#   - 'calcInterference()': calculates the 95% quantile interference for one point
 #==================================================================================
 
 import numpy as np
@@ -76,8 +77,7 @@ OOB_POWER_BELOW_3530MHZ = -40
 # Define interference contribution, i.e., a tuple with named fields of
 # 'grantIndex', 'medianInterference', 'randomInterference', 'bearing_c_cbsd'
 InterferenceContribution = namedtuple('InterferenceContribution',
-                                      ['grantIndex', 'medianInterference',
-                                       'randomInterference', 'bearing_c_cbsd'])
+                                      ['randomInterference', 'bearing_c_cbsd'])
 
 
 # Define an enumeration class named DpaType with members
@@ -104,6 +104,7 @@ def findDpaType(low_freq, high_freq):
   raise ValueError('Invalid DPA frequency range')
 
 
+# TODO(sbdt): move the Haat caching outside and with multiprocess support
 # A Cache for storing the height-above-average-terrain computed for neighborhood
 # determination.
 HaatCache = {}
@@ -136,12 +137,14 @@ def findGrantsInsideNeighborhood(grants, constraint,
         dpa_type:       an enum member of class DpaType
 
     Returns:
-        grants_inside:  a list of grants, each one being a namedtuple of type CBSDGrant,
-                        of all CBSDs inside the neighborhood of the protection constraint.
+      A tuple of:
+        grants_inside:  a list of |data.CbsdGrantInfo| grants, being inside the
+                        neighborhood of that protection `constraint`.
+        idxs_inside:    the indices of `grants_inside` in original `grant` list.
     """
     # Initialize an empty list
     grants_inside = []
-
+    idxs_inside = []
     # For co-channel offshore/inland DPAs, make sure exclusion zone is a polygon
     if dpa_type is not DpaType.OUT_OF_BAND:
         if isinstance(exclusion_zone, SPolygon) or isinstance(exclusion_zone, MPolygon):
@@ -150,9 +153,7 @@ def findGrantsInsideNeighborhood(grants, constraint,
             polygon_ex_zone = SPolygon(exclusion_zone)
 
     # Loop over each CBSD grant and filter the ones inside the neighborhood
-    for grant in grants:
-        freq_check = True
-        cbsd_in_nbrhd = False
+    for k, grant in enumerate(grants):
         # Check frequency range
         low_freq_cbsd = grant.low_frequency
         high_freq_cbsd = grant.high_frequency
@@ -161,24 +162,19 @@ def findGrantsInsideNeighborhood(grants, constraint,
             high_freq_c = constraint.high_frequency
             overlapping_bw = min(high_freq_cbsd, high_freq_c) \
                              - max(low_freq_cbsd, low_freq_c)
-            freq_check = (overlapping_bw > 0)
-        else:
-            freq_check = True
+            if overlapping_bw <= 0:
+              continue
 
-        if not freq_check:
-          continue
-
-        # Check CBSD location
+        # Compute distance from CBSD location to protection constraint location
         lat_cbsd = grant.latitude
         lon_cbsd = grant.longitude
         height_cbsd = grant.height_agl
-
-        # Compute distance from CBSD location to protection constraint location
         lat_c = constraint.latitude
         lon_c = constraint.longitude
         dist_km, bearing, _ = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd,
                                                                lat_c, lon_c)
         # Check if CBSD is inside the neighborhood of protection constraint
+        cbsd_in_nbrhd = False
         if grant.cbsd_category == 'A':
             if dpa_type is not DpaType.OUT_OF_BAND:
                 point_cbsd = SPoint(lon_cbsd, lat_cbsd)
@@ -202,8 +198,9 @@ def findGrantsInsideNeighborhood(grants, constraint,
           continue
 
         grants_inside.append(grant)
+        idxs_inside.append(k)
 
-    return grants_inside
+    return grants_inside, idxs_inside
 
 
 def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
@@ -261,11 +258,12 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
         dpa_type:       an enum member of class DpaType
 
     Returns:
+      A tuple of
         interference: 	interference contribution, a tuple with named fields
-                        'grantIndex', 'medianInterference', 'randomInterference'
-                        (K random interference contributions of the grant to
-                        protection constraint c), and 'bearing_c_cbsd'
+                        'randomInterference' (K random interference contributions
+                        of the grant to protection constraint c), and 'bearing_c_cbsd'
                         (bearing from c to CBSD grant location).
+        medianInterference: the median interference.
     """
     # Get frequency information
     low_freq_cbsd = grant.low_frequency
@@ -328,20 +326,20 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     K_interf = interf[:-1]          # first 'K' interference
 
     # Store interference contributions
-    interference = InterferenceContribution(grantIndex=grant.grant_index,
-                                            medianInterference=median_interf,
-                                            randomInterference=K_interf,
+    interference = InterferenceContribution(randomInterference=K_interf,
                                             bearing_c_cbsd=results.incidence_angles.hor_rx)
-    return interference
+    return interference, median_interf
 
 
-def formInterferenceMatrix(grants, constraint, inc_ant_height, num_iter, dpa_type):
+def formInterferenceMatrix(grants, grants_ids, constraint,
+                           inc_ant_height, num_iter, dpa_type):
     """
     Form the matrix of interference contributions to protection constraint c.
 
     Inputs:
-        grants:             a list of |CbsdGrantInfo| grants of all CBSDs inside the
+        grants:             a list of |data.CbsdGrantInfo| grants of all CBSDs inside the
                             neighborhood of the protection constraint.
+        grants_ids:         the list of grants ids corresponding to `grants` list.
         constraint:         protection constraint of type |data.ProtectionConstraint|
         inc_ant_height:     reference incumbent antenna height (in meters)
         num_iter:           number of random iterations
@@ -350,26 +348,29 @@ def formInterferenceMatrix(grants, constraint, inc_ant_height, num_iter, dpa_typ
     Returns:
         I:                  a matrix of interference contributions to protection
                             constraint (c) with dimensions (num_iter . len(grants))
-        sorted_grant_indices: a list of indices of the sorted grant list
+        sorted_grant_ids:   the list of IDs of the sorted grant list
         sorted_bearings:    a list of bearings from protection point to CBSDs of the
                             sorted grant list
     """
     # Compute interference contributions of each grant to the protection constraint
     interf_list = []
+    median_interf = []
     for cbsd_grant in grants:
-        interf = computeInterference(cbsd_grant, constraint, inc_ant_height,
-                                     num_iter, dpa_type)
+        interf, median = computeInterference(cbsd_grant, constraint, inc_ant_height,
+                                             num_iter, dpa_type)
         interf_list.append(interf)
-
+        median_interf.append(median)
     # Sort grants by their median interference contribution, smallest to largest
-    interf_list.sort(key=attrgetter('medianInterference'))
-
+    sorted_idxs = sorted(range(len(median_interf)), key=median_interf.__getitem__)
+    I = np.array([interf_list[k].randomInterference for k in sorted_idxs]).transpose()
+    sorted_bearings = np.array([interf_list[k].bearing_c_cbsd for k in sorted_idxs])
+    sorted_grant_ids = [grants_ids[k] for k in sorted_idxs]
+    #interf_list.sort(key=attrgetter('medianInterference'))
     # Get indices, bearings, interference contributions of the sorted grants
-    sorted_grant_indices = [interf.grantIndex for interf in interf_list]
-    sorted_bearings = [interf.bearing_c_cbsd for interf in interf_list]
-    I = np.array([interf.randomInterference for interf in interf_list]).transpose()
-
-    return I, sorted_grant_indices, sorted_bearings
+    #sorted_grant_indices = [interf.grantIndex for interf in interf_list]
+    #sorted_bearings = [interf.bearing_c_cbsd for interf in interf_list]
+    #I = np.array([interf.randomInterference for interf in interf_list]).transpose()
+    return I, sorted_grant_ids, sorted_bearings
 
 
 def find_nc(I, bearings, t, beamwidth):
@@ -416,7 +417,6 @@ def find_nc(I, bearings, t, beamwidth):
         # grants until the protection threshold is met or all grants are moved.
         agg_interf = np.percentile(np.sum(IG[:, 0:nc], axis=1),
                                    PROTECTION_PERCENTILE, interpolation='lower')
-
         if agg_interf <= t_mW:
             continue
 
@@ -475,14 +475,15 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                                            entity_type=data.ProtectedEntityType.DPA)
 
     # Identify CBSD grants in the neighborhood of the protection constraint
-    neighbor_grants = findGrantsInsideNeighborhood(grants, constraint,
-                                                   exclusion_zone, dpa_type)
-    neighbor_idx = [grant.grant_index for grant in neighbor_grants]
+    neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(grants,
+                                                                  constraint,
+                                                                  exclusion_zone, dpa_type)
+    #import ipdb; ipdb.set_trace()
 
     if len(neighbor_grants):  # Found CBSDs in the neighborhood
         # Form the matrix of interference contributions
-        I, sorted_grant_indices, bearings = formInterferenceMatrix(
-            neighbor_grants, constraint, inc_ant_height, num_iter, dpa_type)
+        I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
+            neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type)
 
         # Find the index (nc) of the grant in the ordered list of grants such that
         # the protection percentile of the interference from the first nc grants is below
@@ -490,10 +491,10 @@ def moveListConstraint(protection_point, low_freq, high_freq,
         nc = find_nc(I, bearings, threshold, beamwidth)
 
         # Determine the associated move list (Mc)
-        movelist_idx = sorted_grant_indices[nc:]
-        return (movelist_idx, neighbor_idx)
+        movelist_idxs = sorted_neighbor_idxs[nc:]
+        return (movelist_idxs, neighbor_idxs)
 
-    return ([], neighbor_idx)
+    return ([], neighbor_idxs)
 
 
 def calcInterference(protection_point, low_freq, high_freq,
@@ -529,7 +530,7 @@ def calcInterference(protection_point, low_freq, high_freq,
                                          entity_type=data.ProtectedEntityType.DPA)
 
   # Identify CBSD grants in the neighborhood of the protection constraint
-  neighbor_grants = findGrantsInsideNeighborhood(grants, constraint,
+  neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
                                                  exclusion_zone, dpa_type)
   interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
   bearings = np.zeros(len(neighbor_grants))
@@ -556,3 +557,69 @@ def calcInterference(protection_point, low_freq, high_freq,
                                   PROTECTION_PERCENTILE, interpolation='lower')
 
   return 10 * np.log10(agg_interf)
+
+
+#----------------------------------
+# Legacy routine, just to support existing client code using old interface.
+from reference_models.common import mpool
+from reference_models.common import data
+from functools import partial
+def findMoveList(protection_specs, protection_points, registration_requests,
+                 grant_requests, num_iter, num_processes, exclusion_zone=None,
+                 pool=None):
+    """
+    Main routine to find CBSD indices on the move list.
+
+    Inputs:
+        protection_specs:   protection specifications, an object with attributes
+                            'lowFreq' (in Hz), 'highFreq' (in Hz),
+                            'antHeight' (in meters), 'beamwidth' (in degrees),
+                            'threshold' (in dBm/10MHz)
+        protection_points:  a list of protection points, each one being an object
+                            providing attributes 'latitude' and 'longitude'
+        registration_requests: a list of CBSD registration requests, each one being
+                            a dictionary containing CBSD registration information
+        grant_requests:     a list of grant requests, each one being a dictionary
+                            containing grant information; there is a one-to-one
+                            mapping between items in registration_requests and
+                            grant_requests; a CBSD with more than one grant will
+                            have corresponding duplicate items in registration_requests
+        num_iter:           number of Monte Carlo iterations
+        num_processes:      number of parallel processes to use
+        exclusion_zone:     a polygon object or a list of locations.
+                            If it is a list of locations, each one is a tuple
+                            with fields 'latitude' and 'longitude'.
+                            Default value is 'None'.
+        pool:               optional |multiprocessing.Pool| to use
+
+    Returns:
+        result:             a Boolean list (same size as registration_requests/
+                            grant_requests) with TRUE elements at indices having
+                            grants on the move list
+    """
+    grants = data.getGrantsFromRequests(registration_requests, grant_requests)
+    # Find the move list of each protection constraint with a pool of parallel processes.
+    if pool is None:
+      mpool.Configure(num_processes)
+      pool = mpool.Pool()
+    moveListC = partial(moveListConstraint,
+                        low_freq=protection_specs.lowFreq,
+                        high_freq=protection_specs.highFreq,
+                        grants=grants,
+                        exclusion_zone=exclusion_zone,
+                        inc_ant_height=protection_specs.antHeight,
+                        num_iter=num_iter,
+                        threshold=protection_specs.threshold,
+                        beamwidth=protection_specs.beamwidth)
+    M_c, _ = zip(*pool.map(moveListC, protection_points))
+
+    # Find the unique CBSD indices in the M_c list of lists.
+    M = set().union(*M_c)
+    M = np.array(list(M))
+
+    # Set to TRUE the elements of the output Boolean array that have grant_index in
+    # the move list.
+    result = np.zeros(len(grants), bool)
+    if M.size:
+        result[M] = True
+    return result.tolist()
