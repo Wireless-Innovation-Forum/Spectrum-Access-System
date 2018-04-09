@@ -64,7 +64,8 @@ def Configure(num_processes=-1, pool=None):
   """Configure multiprocessing pool.
 
   WARNING: do not call this function in the code executed by the child
-  processes.
+  processes. For example do it in a function only reachable by the parent process,
+  or inside a block `if __name__ == '__main__':`.
 
   Args:
     num_processes: The number of processes to use for the calculation. If -1, use
@@ -73,6 +74,7 @@ def Configure(num_processes=-1, pool=None):
       automatically created with `num_processes`.
   """
   global _pool
+  global _num_processes
   if pool is not None:
     _pool = pool
   else:
