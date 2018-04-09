@@ -74,7 +74,7 @@ class TestPpa(unittest.TestCase):
     ppa_zone = json.loads(ppa_zone)
 
     self.assertAlmostSamePolygon(
-        utils.GeoJsonToShapelyGeometry(ppa_zone), expected_ppa, 0.001)
+        utils.ToShapely(ppa_zone), expected_ppa, 0.001)
 
   def test_ClippedPpaByCensus(self):
     # Configuring for -96dBm circle above 40km
@@ -87,7 +87,7 @@ class TestPpa(unittest.TestCase):
     ppa_zone = json.loads(ppa_zone)
 
     self.assertAlmostSamePolygon(
-        utils.GeoJsonToShapelyGeometry(ppa_zone), expected_ppa, 0.001)
+        utils.ToShapely(ppa_zone), expected_ppa, 0.001)
 
 
 if __name__ == '__main__':

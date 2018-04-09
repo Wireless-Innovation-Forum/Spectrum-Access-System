@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Describe all the PPA Information included in the ZoneData object",
+  "type": "object",
+  "required": [
+    "palId",
+    "cbsdReferenceId",
+    "ppaBeginDate",
+    "ppaExpirationDate"
+  ],
+  "properties": {
+    "palId": {
+      "type": "array",
+      "description": "List of one or more PAL Database record IDs.",
+      "items": {
+        "type": "string",
+		"pattern" : "pal/[0|1][0-9]-[0-9]{4}/.+/.+"
+    }
+	},
+	"cbsdReferenceId": {
+      "type": "array",
+      "description": "List of one or more CBSD Reference IDs in the cluster list of the PPA.",
+      "items": {
+        "type": "string",
+        "pattern" : "cbsd/.+/.+"
+    }
+	},
+    "ppaBeginDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of the start of the PPA protection period, in format YYYY-MM-DD"
+    },
+    "ppaExpirationDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date of the PPA expiration date, in format YYYY-MM-DD"
+    }
+  }
+}
+

@@ -38,26 +38,38 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     esc_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
 
-    # Load devices info 
+    # Load devices info
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
-    device_1['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
-    device_3['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
-    device_4['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     # Load Grant requests
     # Loading grant_request_1 for device_1 with In-band frequency range of 3620 to 3630 MHz
@@ -177,22 +189,34 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
-    device_1['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
-    device_3['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
-    device_4['installationParam']['latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam']['
+        latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam']['
+        longitude'] = esc_record_1['installationParam']['longitude']
 
     # Load Grant requests with In-band frequency range for all devices
     grant_request_1 = json.load(

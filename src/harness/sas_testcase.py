@@ -283,11 +283,14 @@ class SasTestCase(unittest.TestCase):
     signal.alarm(7200)
     # Check generation date of full activity dump
     while True:
-      dump_message = self._sas.GetFullActivityDump(server_cert, server_key)
-      dump_time = datetime.strptime(dump_message['generationDateTime'],
-                                    '%Y-%m-%dT%H:%M:%SZ')
-      if request_time <= dump_time:
-        break
+      try:
+        dump_message = self._sas.GetFullActivityDump( server_cert, server_key)
+        dump_time = datetime.strptime(dump_message['generationDateTime'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+        if request_time <= dump_time:
+          break
+      except AssertionError:
+        pass
       time.sleep(10)
     signal.alarm(0)
     return dump_message

@@ -12,7 +12,7 @@ This folder contains code and testcases for SAS certification test as defined in
 *   jsonschema 2.6.0 (https://pypi.python.org/pypi/jsonschema)
 *   shapely (https://pypi.python.org/pypi/Shapely)
 *   mock (https://pypi.python.org/pypi/mock)
-
+*   validators (https://pypi.python.org/pypi/validators)
 ## Code location
 
 *   **.**: Test framework.
