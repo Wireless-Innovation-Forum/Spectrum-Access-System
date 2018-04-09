@@ -61,7 +61,7 @@ def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
 
 
 def assertRegConditionalsForPpaRefModel(registration_requests,
-                                        conditional_registration_datas):
+                                        conditional_registration_data):
   """Check the REG Conditionals for PPA creation model and raises an exception.
 
   Performs the assert to check installationParam present in
@@ -75,8 +75,7 @@ def assertRegConditionalsForPpaRefModel(registration_requests,
   Args:
     registration_requests: A list of individual CBSD registration
       requests (each of which is itself a dictionary).
-    conditional_registration_datas: A list of individual CBSD registration
-      data that need to be preloaded into SAS (each of which is a dictionary).
+    conditional_registration_data: A list of individual CBSD registration
       data that need to be preloaded into SAS (each of which is a dictionary).
       the fccId and cbsdSerialNumber fields are required, other fields are
       optional but required for ppa reference model.
@@ -90,7 +89,7 @@ def assertRegConditionalsForPpaRefModel(registration_requests,
   for device in registration_requests:
     if 'installationParam' not in device:
       install_param_assigned = False
-      for conditional_params in conditional_registration_datas:
+      for conditional_params in conditional_registration_data:
         # Check if FCC_ID+Serial_Number present in registrationRequest
         # and conditional_params match and add the 'installationParam'.
         if (conditional_params['fccId'] == device['fccId'] and
@@ -100,8 +99,7 @@ def assertRegConditionalsForPpaRefModel(registration_requests,
           # If the cbsdCategory is not present in registration request then
           # assign it to the cbsdCategory in conditional_params.
           if 'cbsdCategory' not in device:
-            device.update({'cbsdCategory': conditional_params.get('cbsdCategory',
-                                                                  'B')})
+            break
       # Raise an exception if InstallationParam is not found in the conditionals.
       if not install_param_assigned:
         raise Exception("InstallationParam not found in conditionals for device "
