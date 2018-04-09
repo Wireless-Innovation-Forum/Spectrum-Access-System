@@ -195,7 +195,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def QueryPropagationAndAntennaModel(self, request):
     return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
-                 self._base_url, request, self._tls_config)
+                       self._base_url, request, self._tls_config)
 
   def GetDailyActivitiesStatus(self):
     return RequestPost(
@@ -236,3 +236,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def InjectPeerSas(self, request):
     RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
                 request, self._tls_config)
+
+  def GetPpaCreationStatus(self):
+    return RequestPost(
+      'https://%s/admin/get_ppa_status' % self._base_url, None,
+      self._tls_config)
+                request, self._tls_config)
+    

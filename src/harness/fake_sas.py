@@ -217,7 +217,7 @@ class FakeSas(sas_interface.SasInterface):
 
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
-
+  
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     """SAS-SAS Get data from json files after generate the
      Full Activity Dump Message
@@ -280,7 +280,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerPpaCreation(self, request, ssl_cert=None, ssl_key=None):
-    return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
+    return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0],
                                         uuid.uuid4().hex)
 
   def TriggerDailyActivitiesImmediately(self):
@@ -289,7 +289,11 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def QueryPropagationAndAntennaModel(self, request):
     from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
     return computePropagationAntennaModel(request)
-	
+
+  def GetPpaCreationStatus(self):
+    return {'completed': True, 'withError': False}
+
+
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
   def TriggerLoadDpas(self):
@@ -340,12 +344,16 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path == '/admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
+    elif self.path == '/admin/get_daily_activities_status':
+      response = FakeSasAdmin().GetDailyActivitiesStatus()
+    elif self.path == '/admin/get_ppa_status':
+      response = FakeSasAdmin().GetPpaCreationStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
       try:
-	    response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+        response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
-	    self.send_response(400)
-      return 	  
+        self.send_response(400)
+      return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',

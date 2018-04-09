@@ -111,7 +111,7 @@ def _ClipPpaByCensusTract(contour_union, pal_records):
   """ Clip a PPA 'contour_union' zone (shapely.MultiPolygon) 
   with the census tracts defined by a sequence of 'pal_records'."""
 
-  # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry
+  # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry.
   census_tracts_for_pal = [geometry.shape(
       drive.census_tract_driver.GetCensusTract(pal['license']['licenseAreaIdentifier'])
       ['features'][0]['geometry']).buffer(0) for pal in pal_records]
@@ -141,12 +141,10 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
-
   if ppa_polygon.is_empty:
     raise Exception("Empty Polygon is generated, please check the inputs.")
   if ppa_polygon.geom_type == "MultiPolygon":
     raise Exception("Multi Polygon is not supported, please check the inputs.")
-
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
   # Convert Shapely Object to GeoJSON geometry string
   return utils.ToGeoJson(ppa_without_small_holes)
