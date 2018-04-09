@@ -26,7 +26,6 @@ from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint
-TEST_CONFIG_COMMAND = 'cd reference_models;python test_config.py'
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 
@@ -61,8 +60,8 @@ def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
   return ppa_zone_shapely_geometry.buffer(-1e-6).within(pal_service_area)
 
 
-def assertRegConditionalsForPpaRefModel(registration_request,
-                                        conditional_registration_data):
+def assertRegConditionalsForPpaRefModel(registration_requests,
+                                        conditional_registration_datas):
   """Check the REG Conditionals for PPA creation model and raises an exception.
 
   Performs the assert to check installationParam present in
@@ -74,24 +73,24 @@ def assertRegConditionalsForPpaRefModel(registration_request,
   conditionalRegistrationData.
 
   Args:
-    registration_request: A list of individual CBSD registration
+    registration_requests: A list of individual CBSD registration
       requests (each of which is itself a dictionary).
-    conditional_registration_data: A list of individual CBSD registration
+    conditional_registration_datas: A list of individual CBSD registration
       data that need to be preloaded into SAS (each of which is a dictionary).
       data that need to be preloaded into SAS (each of which is a dictionary).
       the fccId and cbsdSerialNumber fields are required, other fields are
       optional but required for ppa reference model.
 
   Raises:
-    It will throws an exception if the installationParam object and required
+    Exception: If the installationParam object and required
       fields is not found in conditionalRegistrationData and registrationRequests
-      for category B.
+      for category B then raises an exception.
 
   """
-  for device in registration_request:
+  for device in registration_requests:
     if 'installationParam' not in device:
       install_param_assigned = False
-      for conditional_params in conditional_registration_data:
+      for conditional_params in conditional_registration_datas:
         # Check if FCC_ID+Serial_Number present in registrationRequest
         # and conditional_params match and add the 'installationParam'.
         if (conditional_params['fccId'] == device['fccId'] and
@@ -117,22 +116,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   created by the Reference Model for different varying condition and verify the SAS UUT
   is able to create PPA zone or error.
   """
-
-  @classmethod
-  def setUpClass(cls):
-    """Verify the reference model configuration is proper for the test setup."""
-    # Verify reference model configuration by executing the test_config.py to
-    # determine success or failure based on the verification result to proceed the
-    # test case execution.
-
-    test_config_setup_verification = subprocess.check_output(TEST_CONFIG_COMMAND,
-                                                             shell=True)
-    logging.debug("test_config_setup_verification:%s", test_config_setup_verification)
-    assert 'SUCCESS' in test_config_setup_verification, test_config_setup_verification
-
-  @classmethod
-  def tearDownClass(cls):
-    pass
 
   def triggerPpaCreationAndWaitUntilComplete(self, ppa_creation_request):
     """Triggers PPA Creation Admin API and returns PPA ID if the creation status is completed.
@@ -236,9 +219,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+      open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
     # Set the same user ID for all devices
     device_b['userId'] = device_a['userId']
+    device_c['userId'] = device_a['userId']
 
     # Device_a is Category A.
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -252,11 +238,15 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                                            pal_low_frequency, pal_high_frequency,
                                            device_a['userId'])
 
-    # Set the locations of devices to reside with in service area
+    # Set the locations of devices to reside with in service area.
     device_a['installationParam']['latitude'], device_a['installationParam'][
         'longitude'] = 39.0373, -100.4184
     device_b['installationParam']['latitude'], device_b['installationParam'][
         'longitude'] = 39.0378, -100.4785
+
+    # placed the device_c in between device_a and device_b within service area.
+    device_c['installationParam']['latitude'], device_c['installationParam'][
+      'longitude'] = 39.0378, -100.4463
 
     # Set the AntennaGain and EIRP capability.
     device_a['installationParam']['eirpCapability'] = 30
@@ -279,7 +269,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     del device_b['measCapability']
 
     # Create the actual config.
-    devices = [device_a, device_b]
+    devices = [device_a, device_b, device_c]
     config = {
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
