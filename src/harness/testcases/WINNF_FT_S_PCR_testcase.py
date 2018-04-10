@@ -99,8 +99,10 @@ def assertRegConditionalsForPpaRefModel(registration_requests,
           # If the cbsdCategory is not present in registration request then
           # assign it to the cbsdCategory in conditional_params.
           if 'cbsdCategory' not in device:
-            device.update({'cbsdCategory': conditional_params.get('cbsdCategory',
-                                                                  'B')})
+            if not conditional_params.get('cbsdCategory'):
+              raise Exception("cbsdCategory not found in conditionals for device "
+                              "%s:%s" % (device['fccId'], device['cbsdSerialNumber']))
+            device.update({'cbsdCategory': conditional_params.get('cbsdCategory')})
           break
       # Raise an exception if InstallationParam is not found in the conditionals.
       if not install_param_assigned:
