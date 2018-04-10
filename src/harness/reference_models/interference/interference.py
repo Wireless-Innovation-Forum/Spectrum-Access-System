@@ -1,4 +1,3 @@
-#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -251,6 +250,33 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
   return grants_inside
 
+def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_type):
+  """Checks if grant frequency overlaps with protection constraint frequency range
+
+  Args:
+    grant: namedtuple of type CbsdGrantInformation 
+    ch_low_freq: low frequency of protection channel 
+    ch_high_freq: high frequency of protection channel 
+    protection_ent_type: enum of type ProtectedEntityType
+  Returns:
+    True, if grant frequency overlaps with protection constraint frequency
+    range else False
+  """
+  # Check frequency range
+  overlapping_bw = min(grant.high_frequency, ch_high_freq) \
+                      - max(grant.low_frequency, ch_low_freq)
+  freq_check = (overlapping_bw > 0)
+
+  # ESC Passband is 3550-3680MHz
+  # Category A CBSD grants are considered in the neighborhood only for
+  # constraint frequency range 3550-3660MHz
+  if (protection_ent_type == ProtectedEntityType.ESC and
+        grant.cbsd_category == 'A' and
+        ch_high_freq > ESC_CAT_A_HIGH_FREQ_HZ):
+        freq_check = False 
+
+  return freq_check
+
 
 def findOverlappingGrants(grants, constraint):
   """Finds grants overlapping with protection entity
@@ -262,35 +288,25 @@ def findOverlappingGrants(grants, constraint):
     grants: an iterator of grants with attributes latitude and longitude
     constraint: protection constraint of type ProtectionConstraint
   Returns:
-    grants_inside: a list of grants, each one being a namedtuple of type
+    grants_overlap: a list of grants, each one being a namedtuple of type
                    CbsdGrantInformation, of all CBSDs inside the neighborhood
                    of the protection constraint.
   """
 
   # Initialize an empty list
-  grants_inside = []
+  grants_overlap = []
 
   # Loop over each CBSD grant
   for grant in grants:
-    # Check frequency range
-    overlapping_bw = min(grant.high_frequency, constraint.high_frequency) \
-                        - max(grant.low_frequency, constraint.low_frequency)
-    freq_check = (overlapping_bw > 0)
-
-    # ESC Passband is 3550-3680MHz
-    # Category A CBSD grants are considered in the neighborhood only for
-    # constraint frequency range 3550-3660MHz
-    if (constraint.entity_type == ProtectedEntityType.ESC and
-          grant.cbsd_category == 'A' and
-          constraint.high_frequency > ESC_CAT_A_HIGH_FREQ_HZ):
-          freq_check = False
-
+   
+    freq_check = grantFrequencyOverlapCheck(grant, constraint.low_frequency, 
+                   constraint.high_frequency, constraint.entity_type)
     # Append the grants information if it is inside the neighborhood of
     # protection constraint
     if freq_check:
-      grants_inside.append(grant)
+      grants_overlap.append(grant)
 
-  return grants_inside
+  return grants_overlap 
 
 
 def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):

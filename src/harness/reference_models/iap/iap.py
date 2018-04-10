@@ -116,104 +116,137 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
   # Get all the grants inside neighborhood of the protection entity
   grants_inside = interf.findGrantsInsideNeighborhood(
                     grant_objects, protection_point, protection_ent_type)
-    
+   
   if len(grants_inside) > 0:
+    # Get protection constraint of protected entity
+    protection_constraint = interf.ProtectionConstraint(latitude=protection_point[1],
+                               longitude=protection_point[0], low_frequency=low_freq,
+                               high_frequency=high_freq, entity_type=protection_ent_type)
 
-    for channel in channels:
-      # Get protection constraint over 5MHz channel range
-      channel_constraint = interf.ProtectionConstraint(latitude=protection_point[1],
-                             longitude=protection_point[0], low_frequency=channel[0],
-                             high_frequency=channel[1], entity_type=protection_ent_type)
+    # Get all the grants fully/partially overlap with protection point,p
+    neighborhood_grants = interf.findOverlappingGrants(
+                            grants_inside, protection_constraint)
 
-      # Identify CBSD grants overlapping with frequency range of the protection entity 
-      # in the neighborhood of the protection point and channel
-      neighborhood_grants = interf.findOverlappingGrants(
-                              grants_inside, channel_constraint)
-      num_unsatisfied_grants = len(neighborhood_grants)
+    num_unsatisfied_grants = len(neighborhood_grants)
+    
+    # Get number of grants, IAP protection threshold and fairshare per channel 
+    if num_unsatisfied_grants > 0:
+      # algorithm to calculate interference within IAPBW using EIRP obtained for all 
+      # the grants through application of IAP
 
-      if not neighborhood_grants:
-        # As number of neighborhood grants are zero, setting asas_interference and 
-        # aggregate_interference to '0' for a channel_constraint
-        asas_interference.UpdateAggregateInterferenceInfo(channel_constraint.latitude, 
-                channel_constraint.longitude, 0)
+      # Initialize list of aggregate interference from all the grants 
+      # ( including grants from managing and peer SAS )
+      aggr_interf = [0] * len(channels)
+      # Initialize list of aggregate interference from all the grants 
+      # ( including only grants from managing SAS )
+      asas_interf = [0] * len(channels)
 
-        aggregate_interference.UpdateAggregateInterferenceInfo(channel_constraint.latitude,
-            channel_constraint.longitude, 0)
-        continue
+      num_unsatisfied_grants_channel = []
+      iap_threshold_channel = []
+      fairshare_channel = []
 
-      # Set interference quota for protection_point, channel combination
-      # Calculate Roll of Attenuation for ESC Sensor Protection entity
-      if protection_ent_type is interf.ProtectedEntityType.ESC:
-        if channel[0] >= 3650.e6:
-          center_freq = (channel[0] + channel[1]) / 2
-          interference_quota = interf.dbToLinear(interf.linearToDb(threshold) - 
-                (2.5 + ((center_freq - interf.ESC_CH21_CF_HZ) / MHZ)))
+      for index, channel in enumerate(channels):
+        # Get protection constraint over 5MHz channel range
+        channel_constraint = interf.ProtectionConstraint(latitude=protection_point[1],
+                               longitude=protection_point[0], low_frequency=channel[0],
+                               high_frequency=channel[1], entity_type=protection_ent_type)
+
+        # Identify CBSD grants overlapping with frequency range of the protection entity 
+        # in the neighborhood of the protection point and channel
+        channel_neighborhood_grants = interf.findOverlappingGrants(
+                                        neighborhood_grants, channel_constraint)
+
+        num_unsatisfied_grants_channel.append(len(channel_neighborhood_grants))
+        
+        # Set interference quota for protection_point, channel combination
+        # Calculate Roll of Attenuation for ESC Sensor Protection entity
+        if protection_ent_type is interf.ProtectedEntityType.ESC:
+          if channel[0] >= 3650.e6:
+            center_freq = (channel[0] + channel[1]) / 2
+            iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) - 
+              (2.5 + ((center_freq - interf.ESC_CH21_CF_HZ) / MHZ))))
+          else:
+            iap_threshold_channel.append(threshold)
         else:
-          interference_quota = threshold
-      else:
-        interference_quota = threshold
+          iap_threshold_channel.append(threshold)
 
-      # calculate the fair share
-      fair_share = float(interference_quota) / num_unsatisfied_grants 
+        # calculate the fair share per channel based on unsatisfied grants
+        if num_unsatisfied_grants_channel[index] > 0:
+          fairshare_channel.append(float(iap_threshold_channel[index]) / 
+            num_unsatisfied_grants_channel[index] )
+        else:
+          fairshare_channel.append(0)
 
-      # Empty list of final IAP EIRP and interference assigned to the grant
-      grants_eirp = []
-
-      aggr_interference = 0
-
-      a_sas_p_interference = 0
-
-      # Initialize flag to False for all the grants. 
-      # False indicates grant is unsatisfied
-      grant_initialize_flag = [False] * num_unsatisfied_grants 
-
-      # Initialize grant EIRP to maxEirp for all the grants 
+      # List of grants initialized with max EIRP
       grants_eirp = [grant.max_eirp for grant in neighborhood_grants]
+      
+      # Initialize list of grants_satisfied to False
+      grants_satisfied = [False] * num_unsatisfied_grants
+      
+      while num_unsatisfied_grants > 0:
 
-      while (num_unsatisfied_grants > 0):
-        for index, grant in enumerate(neighborhood_grants):
-          if grant_initialize_flag[index] is False:
-            # Compute interference grant causes to protection point over channel
-            interference = interf.dbToLinear(interf.computeInterference(grant, 
-                             grants_eirp[index], channel_constraint, fss_info, 
-                             esc_antenna_info, region_type))
-            # if calculated interference is less than fair share of
-            # interference to which the grants are entitled then 
-            # grant is considered satisfied
-            if interference < fair_share:
-              # Remove satisfied CBSD grant from consideration
-              interference_quota = interference_quota - interference
+        for g_idx, grant in enumerate(neighborhood_grants):
+
+          if grants_satisfied[g_idx] is False:
+            grant_good_over_all_channels = True
+
+            # Set to True if grant frequency range overlaps with a channel, 
+            # otherwise, set to False
+            grants_overlap_flag = [False] * len(channels)
+
+            # Initialize interference per channel list 
+            interference_list = [0] * len(channels) 
+
+            for idx, channel in enumerate(channels):
+              # check if grant interferes with protection point, channel
+              grant_overlap_check = interf.grantFrequencyOverlapCheck(grant, 
+                                           channel[0], channel[1], protection_ent_type)
+          
+              # Update True or False for a particular channel index
+              grants_overlap_flag[idx] = grant_overlap_check 
+              # if grant overlaps with protection point over channel 
+              if grant_overlap_check:
+                # Compute interference grant causes to protection point over channel
+                interference = interf.dbToLinear(interf.computeInterference(grant, 
+                                 grants_eirp[g_idx], channel_constraint, fss_info, 
+                                 esc_antenna_info, region_type))
+                # if calculated interference is more than fair share of
+                # interference to which the grants are entitled then 
+                # grant is considered unsatisfied
+                if interference > fairshare_channel[idx]:
+                  grant_good_over_all_channels = False
+                  break
+                else:
+                  interference_list[idx] = interference
+       
+          if grant_good_over_all_channels is True:
+            grants_satisfied[g_idx] = True
+            if num_unsatisfied_grants > 0:
               num_unsatisfied_grants = num_unsatisfied_grants - 1
-             
-              # Grant satisfied, set the flag to True.
-              # Satisfied grants are not considered for future iterations
-              grant_initialize_flag[index] = True
-
-              # Ap: Updates aggregate interference calculated within IAPBW by managing SAS 
-              # using the EIRP obtained by all CBSDs(including CBSDs managed by other SASs) 
-              # through application of IAP for protected entity
-              aggr_interference += interference
-
-              # ASASp: Updates aggregate interference calculated within IAPBW by managing SAS 
-              # using the EIRP obtained from IAP results for the point p for CBSD 
-              # managed by the managing SAS
-              if grant.is_managed_grant:
-                a_sas_p_interference += interference
-
-            else:
-              # Grant is unsastisafied. Reduce allocated EIRP level 
-              # by 1dB
-              grants_eirp[index] = grants_eirp[index] - 1
-
-        # re-calculate the fair share if number of unsastisafied grants are not zero
-        if num_unsatisfied_grants != 0:
-          fair_share = float (interference_quota) / num_unsatisfied_grants
-
-      asas_interference.UpdateAggregateInterferenceInfo(channel_constraint.latitude, 
-                channel_constraint.longitude, a_sas_p_interference)
-
-      aggregate_interference.UpdateAggregateInterferenceInfo(channel_constraint.latitude,
-            channel_constraint.longitude, aggr_interference)
+            for ch_idx, g_ch_flag in enumerate(grants_overlap_flag):
+              # Grant interferes with protection point over channel 
+              if g_ch_flag:
+                iap_threshold_channel[ch_idx] = iap_threshold_channel[ch_idx] - \
+                                                  interference_list[ch_idx]
+                num_unsatisfied_grants_channel[ch_idx] = num_unsatisfied_grants_channel[ch_idx] - 1
+                # Re-calculate fairshare for a channel
+                if num_unsatisfied_grants_channel[ch_idx] > 0:
+                  fairshare_channel[ch_idx] = float (iap_threshold_channel[ch_idx]) /  \
+                                         num_unsatisfied_grants_channel[ch_idx]
+              if grant.is_managed_grant is True:
+                asas_interf[ch_idx] += interference_list[ch_idx]
+              
+              aggr_interf[ch_idx] += interference_list[ch_idx]
+          else:
+            grants_eirp[g_idx] = grants_eirp[g_idx] - 1
+     
+    # Update aggregate interference and asas_interference from all the grants 
+    # at a protection point, channel
+    for j, interf_val in enumerate(aggr_interf):
+      asas_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+        protection_point[0], asas_interf[j])
+      aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+        protection_point[0], interf_val)
 
 
 def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
@@ -577,7 +610,7 @@ def calculatePostIapAggregateInterference(q_p, num_sas, asas_interference,
   # Extract dictionary from DictProxy object using _getvalue object method
   asas_info = asas_interference.GetAggregateInterferenceInfo()._getvalue()
   a_p_info = aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
-
+  
   # Compute AP_IAP_Ref 
   for latitude, a_p_ch in a_p_info.items():
     for longitude, a_p_list in a_p_ch.items():
