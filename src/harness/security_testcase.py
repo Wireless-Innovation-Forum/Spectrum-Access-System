@@ -251,10 +251,17 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     finally:
       client_ssl.close()
 
-  def assertTlsHandshakeOrHttpsFailure(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
+  def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """
       Checks that the TLS handshake failure by varying the given parameters
       if handshake not failed make sure the next https request return error code 403
+      Args:
+        client_cert: optional client certificate file in PEM format to use.
+          If 'None' the default CBSD certificate will be used.
+        client_key: associated key file in PEM format to use with the optionally
+          given |client_cert|. If 'None' the default CBSD key file will be used.
+        ciphers: optional cipher method
+        ssl_method: optional ssl_method
     """
     try:
       self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)

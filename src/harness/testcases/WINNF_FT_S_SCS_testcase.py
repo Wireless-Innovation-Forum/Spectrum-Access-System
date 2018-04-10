@@ -88,8 +88,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_7"""
@@ -108,8 +108,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_8"""
@@ -128,8 +128,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_9"""
@@ -148,8 +148,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_10. """
@@ -202,8 +202,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_13(self):
@@ -211,7 +211,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeOrHttpsFailure(ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailureOrHttp403(ssl_method=SSL.TLSv1_1_METHOD)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_14(self):
@@ -219,7 +219,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeOrHttpsFailure(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeFailureOrHttp403(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
 
   def generate_SCS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SCS.15 """
@@ -299,7 +299,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
@@ -346,7 +346,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
 
   @winnforum_testcase
@@ -397,5 +397,5 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeOrHttpsFailure(client_cert=device_cert, client_key=device_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
     logging.info("TLS handshake failed as the client certificate is invalid")
