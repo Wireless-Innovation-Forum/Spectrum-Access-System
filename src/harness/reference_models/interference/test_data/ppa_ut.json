@@ -1,0 +1,50 @@
+{
+  "id": "PPA_P_01",
+  "name": "PPA Zone 0",
+  "creator": "admin_0",
+  "usage": "PPA",
+  "terminated": false,
+  "ppaInfo": {
+        "ppaRegionType": "RURAL",
+        "cbsdReferenceId": [
+          "cbsd/fccId6/0f47fabe5aae48fabde5fa9f7af0a9807f9ce79d"
+        ],
+        "palId": [
+          "pal_111"
+        ],
+        "ppaBeginDate": "2016-01-02 08:26:55",
+        "ppaExpirationDate": "2036-01-02 08:26:55" 
+      },
+  "zone": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+          "type": "polygon",
+          "coordinates": [
+              [
+              [
+                        -100.5728,
+                        34.40965
+                     ],
+                     [
+                        -100.57271,
+                        34.40839
+                     ],
+                     [
+                        -100.57132,
+                        34.40927
+                     ],
+                     [
+                        -100.5728, 
+                        34.40965
+                     ]
+                ]
+          ]
+        }
+      }
+    ]
+  }
+}
