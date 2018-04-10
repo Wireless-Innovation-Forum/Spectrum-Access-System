@@ -112,6 +112,6 @@ def _Request(url, request, config, is_post_method):
   conn.close()
   body = response.getvalue()
   logging.info('Response:\n' + body)
-  assert http_code == 200, http_code
+  assert http_code == 200, [http_code, 'http_error']
   if body:
     return json.loads(body.decode('utf-8'))
