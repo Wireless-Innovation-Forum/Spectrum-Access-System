@@ -56,6 +56,7 @@ from datetime import timedelta
 import uuid
 import json
 import ssl
+import sys
 import os
 import sas_interface
 
@@ -409,40 +410,32 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.wfile.write(json.dumps(response))
 
 
-def RunFakeServer(version, is_ecc, ca_cert, verify_crl):
+def RunFakeServer(version, is_ecc, ca_cert_path, verify_crl):
   FakeSasHandler.SetVersion(version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
+  try:
+    with open(ca_cert_path) as file_handle:
+      ca_cert_data = file_handle.read()
+  except IOError:
+    print "%s does not exist" % ca_cert_path
+    return
+  print "\nCA chain is loaded into fake_sas:%s" % ca_cert_path
+  ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+  ssl_context.options |= ssl.CERT_REQUIRED
 
-  if ca_cert is not None:
-    assert os.path.exists(os.path.join('certs', ca_cert)), "%s is not exist in certs path" % ca_cert
-
+  # If verify CRL flag is set then load the ca chain with CRLs and verify that
+  # the client certificate is not revoked.
   if verify_crl:
-    # If verify CRL flag is set then load the ca chain with CRLs and verify that
-    # the client certificate is not revoked.
-    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_context.options &= ssl.CERT_REQUIRED
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
-    ssl_context.load_verify_locations(cafile=os.path.join('certs', ca_cert))
-    ssl_context.load_cert_chain(
+  ssl_context.load_verify_locations(cafile=ca_cert_path)
+  ssl_context.load_cert_chain(
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE
-    )
-    ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
-    ssl_context.verify_mode = ssl.CERT_REQUIRED
-    server.socket = ssl_context.wrap_socket(server.socket,
-                                            server_side=True)
-  else:
-    server.socket = ssl.wrap_socket(
-      server.socket,
-      certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
-      cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
-      ssl_version=ssl.PROTOCOL_TLSv1_2,
-      ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
-      server_side=True)
+      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
+  ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+  ssl_context.verify_mode = ssl.CERT_REQUIRED
+  server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
   print 'Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT
   server.serve_forever()
 
@@ -452,13 +445,20 @@ if __name__ == '__main__':
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
   parser.add_argument(
-    '--ca', help='Use CA certificate', dest='ca_cert', action='store')
-  parser.add_argument(
-    '--verify_crl', help='Use revoke and CRL', dest='verify_crl', action='store_true')
-  args = parser.parse_args()
-
+      '--verify_crl', help='Enable CRL verification. If this flag is set then '
+                           '--ca <cert_file> argument is mandatory. The <cert_file> '
+                           'should contain the certificate chain and CRL chain.',
+      dest='verify_crl', action='store_true')
+  parser.add_argument('--ca', required='--verify_crl' in sys.argv,
+                      help='CA certiicate chain with or without CRL chain.',
+                      dest='ca_cert', action='store')
+  try:
+    args = parser.parse_args()
+  except:
+    parser.print_help()
+    sys.exit(0)
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   version = config_parser.get('SasConfig', 'Version')
-  RunFakeServer(version, args.ecc, args.ca_cert, args.verify_crl)
-
+  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
+  RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)

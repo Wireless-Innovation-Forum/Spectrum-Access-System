@@ -258,21 +258,21 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     self.assertEqual(response['response']['responseCode'],104)
 
   def generate_SCS_16_default_config(self, filename):
-    """Generates the WinnForum configuration for SCS_16. """
+    """Generate the WinnForum configuration for SCS_16."""
     # Create the configuration for client cert/key path.
 
     config = {
-      'clientCert': self.getCertFilename("client.cert"),
-      'clientKey': self.getCertFilename("client.key")
+        'clientCert': self.getCertFilename("client_revoked_by_ca.cert"),
+        'clientKey': self.getCertFilename("client_revoked_by_ca.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SCS_16_default_config)
   def test_WINNF_FT_S_SCS_16(self, config_filename):
     """Certificate signed by a revoked CA presented during registration.
-       Checks that SAS UUT response with fatal alert message.
-    """
 
+    Checks that SAS UUT response with fatal alert message.
+    """
     # Read the configuration
     config = loadConfig(config_filename)
 

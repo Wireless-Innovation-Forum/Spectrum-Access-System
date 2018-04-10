@@ -266,23 +266,23 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
-	
+
   def generate_SDS_16_default_config(self, filename):
-    """Generates the WinnForum configuration for SDS_16. """
+    """Generate the WinnForum configuration for SDS_16."""
     # Create the configuration for domain proxy cert/key path.
 
     config = {
-      'domainProxyCert': self.getCertFilename("domain_proxy.cert"),
-      'domainProxyKey': self.getCertFilename("domain_proxy.key")
+        'domainProxyCert': self.getCertFilename("domain_proxy_revoked_by_ca.cert"),
+        'domainProxyKey': self.getCertFilename("domain_proxy_revoked_by_ca.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SDS_16_default_config)
   def test_WINNF_FT_S_SDS_16(self, config_filename):
     """Certificate signed by a revoked CA presented during registration.
-       Checks that SAS UUT response with fatal alert message.
-    """
 
+    Checks that SAS UUT response with fatal alert message.
+    """
     # Read the configuration
     config = loadConfig(config_filename)
 

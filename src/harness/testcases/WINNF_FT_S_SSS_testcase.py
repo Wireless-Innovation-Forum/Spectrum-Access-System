@@ -333,19 +333,20 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_16_default_config(self, filename):
-    """Generates the WinnForum configuration for SSS_16. """
+    """Generate the WinnForum configuration for SSS_16."""
     # Create the configuration for SAS cert/key path.
 
     config = {
-      'sasCert': self.getCertFilename("sas.cert"),
-      'sasKey': self.getCertFilename("sas.key")
+        'sasCert': self.getCertFilename("sas_revoked_by_ca.cert"),
+        'sasKey': self.getCertFilename("sas_revoked_by_ca.key")
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_SSS_16_default_config)
   def test_WINNF_FT_S_SSS_16(self, config_filename):
     """Certificate signed by a revoked CA presented by SAS Test Harness.
-       Checks that SAS UUT response with fatal alert message.
+
+    Checks that SAS UUT response with fatal alert message.
     """
     # Read the configuration
     config = loadConfig(config_filename)

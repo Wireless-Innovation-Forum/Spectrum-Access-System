@@ -17,6 +17,12 @@ function revoke_certificate()
       CA=sas_ca
   elif [ "$CN" == "WInnForum RSA Root CA-1" ]; then
       CA=root_ca
+  elif [ "$CN" == "WInnForum CBSD CA-1 - Blacklisted" ]; then
+      CA=blacklisted_cbsd_ca
+  elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Blacklisted" ]; then
+      CA=blacklisted_proxy_ca
+  elif [ "$CN" == "WInnForum RSA SAS CA-1 - Blacklisted" ]; then
+      CA=blacklisted_sas_ca
   else
       echo "Unknown issuer CN=$CN for certificate $1"
       exit -1
@@ -29,28 +35,39 @@ function revoke_certificate()
 
 function generate_crl_chain()
 {
-  #Create a CRL for root CA containing the revoked intermediate CA certificate.
+  # Create a CRL for root CA containing the revoked intermediate CA certificate.
   echo -e "\n\n Generate CRL for root_ca"
   openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-      -config ../../../cert/openssl.cnf -crlhours 1 \
+      -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/root_ca.crl
-
-  #Creating CRL for blacklisted certificates SxS.11 test cases.
   echo -e "\n\n Generate CRL for sas_ca"
   openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-      -config ../../../cert/openssl.cnf -crlhours 1 \
+      -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/sas_ca.crl
   echo -e "\n\n Generate CRL for proxy_ca"
   openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-      -config ../../../cert/openssl.cnf -crlhours 1 \
+      -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/proxy_ca.crl
   echo -e "\n\n Generate CRL for cbsd_ca"
   openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-      -config ../../../cert/openssl.cnf -crlhours 1 \
+      -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/cbsd_ca.crl
+  echo -e "\n\n Generate CRL for blacklisted_cbsd_ca"
+  openssl ca -gencrl -keyfile private/blacklisted_cbsd_ca.key -cert blacklisted_cbsd_ca.cert \
+      -config ../../../cert/openssl.cnf -crldays 365 \
+      -out crl/blacklisted_cbsd_ca.crl
+  echo -e "\n\n Generate CRL for blacklisted_sas_ca"
+  openssl ca -gencrl -keyfile private/blacklisted_sas_ca.key -cert blacklisted_sas_ca.cert \
+      -config ../../../cert/openssl.cnf -crldays 365 \
+      -out crl/blacklisted_sas_ca.crl
+  echo -e "\n\n Generate CRL for blacklisted_proxy_ca"
+  openssl ca -gencrl -keyfile private/blacklisted_proxy_ca.key -cert blacklisted_proxy_ca.cert \
+      -config ../../../cert/openssl.cnf -crldays 365 \
+      -out crl/blacklisted_proxy_ca.crl
 
-  #Create CA certificate chain containing the CRLs of revoked leaf certificates.
-  cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca.crl
+  # Create CA certificate chain containing the CRLs of revoked leaf certificates.
+  cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl \
+      crl/blacklisted_cbsd_ca.crl crl/blacklisted_sas_ca.crl crl/blacklisted_proxy_ca.crl > crl/ca.crl
 }
 #Argument1 : Type (-r,-u)
 if [ "$1" == "-r" ]; then
