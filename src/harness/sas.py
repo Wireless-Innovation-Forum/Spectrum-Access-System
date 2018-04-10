@@ -241,5 +241,4 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost(
       'https://%s/admin/get_ppa_status' % self._base_url, None,
       self._tls_config)
-                request, self._tls_config)
     
