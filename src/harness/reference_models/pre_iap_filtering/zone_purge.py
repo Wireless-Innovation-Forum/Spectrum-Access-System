@@ -20,7 +20,7 @@
 ===================================================================================
 """
 from reference_models.geo import vincenty
-import pre_iap_util
+from reference_models.pre_iap_filtering import pre_iap_util
 
 FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650000000,
                              'highFrequency': 3700000000}

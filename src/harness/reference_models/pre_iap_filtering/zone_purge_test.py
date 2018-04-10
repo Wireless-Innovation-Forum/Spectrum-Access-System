@@ -17,8 +17,8 @@ import os
 import unittest
 import full_activity_dump
 from util import makePpaAndPalRecordsConsistent
-import zone_purge
-import pre_iap_util
+from reference_models.pre_iap_filtering import zone_purge
+from reference_models.pre_iap_filtering import pre_iap_util
 
 
 class TestZonePurge(unittest.TestCase):

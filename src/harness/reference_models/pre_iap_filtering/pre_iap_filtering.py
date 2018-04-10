@@ -18,10 +18,10 @@
   models to filter out grants and CBSDs before IAP model is invoked.
 ==================================================================================
 """
-import fss_purge
+from reference_models.pre_iap_filtering import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
-import zone_purge
-import pre_iap_util
+from reference_models.pre_iap_filtering import zone_purge
+from reference_models.pre_iap_filtering import pre_iap_util
 
 FSS_GWBL_PROTECTION_DISTANCE = 150
 
