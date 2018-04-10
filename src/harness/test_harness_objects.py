@@ -15,6 +15,7 @@
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
 import logging
+from sas import getDefaultSasSSLCertPath, getDefaultSasSSLKeyPath
 from common_types import ResponseCodes
 
 class Grant(object):
@@ -98,6 +99,13 @@ class Cbsd(object):
         return True
     return False
 
+  def getAuthorizedGrants(self):
+    grants = []
+    for grant_object in self.grant_objects.itervalues():
+      if grant_object.isGrantAuthorizedInLastHeartbeat():
+        grants.append(grant_object)
+    return grants
+
   def constructHeartbeatRequestForAllActiveGrants(self):
     """Construct list of heartbeat requests of all active grants."""
     heartbeat_requests = []
@@ -122,33 +130,44 @@ class DomainProxy(object):
   CBSD objects belonging to this Domain Proxy. Bulk operations like registration, grant and heartbeat
   procedures are performed on all of the CBSDs belonging to this Domain Proxy.
   """
-  def __init__(self, ssl_cert, ssl_key, testcase):
+  def __init__(self, testcase, ssl_cert=None, ssl_key=None):
     """
     Args:
       ssl_cert: Path to SSL cert file.
       ssl_key: Path to SSL key file.
       testcase: test case object from the caller.
     """
-    self.ssl_cert = ssl_cert
-    self.ssl_key = ssl_key
+    self.ssl_cert = ssl_cert if ssl_cert else getDefaultSasSSLCertPath()
+    self.ssl_key = ssl_key if ssl_key else getDefaultSasSSLKeyPath()
     self.cbsd_objects = {}
     self.testcase = testcase
 
-  def registerCbsdsAndRequestGrants(self, registration_requests, grant_requests):
+  def registerCbsdsAndRequestGrants(self,
+                                    registration_requests,
+                                    grant_requests,
+                                    conditional_registration_data=None):
     """Construct CBSD object based on the result of registration and
     grant requests.
 
     Args
-      registration_requests: A list of dictionary elements ,where each list elements is
-        individual CBSD registration requests (each of which is itself a dictionary).
-      grant_requests: A list of dictionary elements,where each list elements is
-        individual CBSD grant requests (each of which is itself a dictionary).
+      registration_requests: A list of dictionary elements, where each list
+        element is an individual CBSD registration request (which is itself a
+        dictionary).
+      grant_requests: A list of dictionary elements, where each list element is
+        an individual CBSD grant request (which is itself a dictionary).
+      conditional_registration_data: A list of individual CBSD registration
+        data that need to be preloaded into SAS (each of which is a dictionary).
+        The dictionary is a RegistrationRequest object, the fccId and
+        cbsdSerialNumber fields are required, other fields are optional.
     """
     # Checking if the number of registration requests matches number of grant requests.
     # There should be exactly one grant request per registration request.
     self.testcase.assertEqual(len(grant_requests), len(registration_requests))
-    cbsd_ids = self.testcase.assertRegistered(registration_requests,
-                                              cert=self.ssl_cert, key=self.ssl_key)
+    cbsd_ids = self.testcase.assertRegistered(
+        registration_requests,
+        conditional_registration_data=conditional_registration_data,
+        cert=self.ssl_cert,
+        key=self.ssl_key)
 
     # Copy the cbsdId from Registration response to grant requests.
     for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):

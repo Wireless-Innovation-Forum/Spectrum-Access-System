@@ -160,8 +160,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use with the optionally
         given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
 
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
@@ -204,12 +204,12 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_cert: optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
       client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.  
+        given |client_cert|. If 'None' the default CBSD key file will be used.
       ciphers: optional cipher method
       ssl_method: optional ssl_method
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
     client = socket.socket()
@@ -231,7 +231,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
-    
+
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
       client_ssl_informations.append(conn.get_state_string())
@@ -242,7 +242,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
-    
+
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
