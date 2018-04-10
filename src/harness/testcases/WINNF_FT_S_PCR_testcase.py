@@ -99,7 +99,9 @@ def assertRegConditionalsForPpaRefModel(registration_requests,
           # If the cbsdCategory is not present in registration request then
           # assign it to the cbsdCategory in conditional_params.
           if 'cbsdCategory' not in device:
-            break
+            # Causes KeyError: 'cbsdCategory' if 'cbsdCategory' does not exist
+            device['cbsdCategory'] = conditional_params['cbsdCategory']
+          break
       # Raise an exception if InstallationParam is not found in the conditionals.
       if not install_param_assigned:
         raise Exception("InstallationParam not found in conditionals for device "
