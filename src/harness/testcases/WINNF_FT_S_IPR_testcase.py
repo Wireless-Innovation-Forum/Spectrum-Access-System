@@ -139,7 +139,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     # Steps 2 & 3 can be interleaved.
     test_harnesses = []
-    test_harness_sas_interfaces = []
     for test_harness_config in config['sasTestHarnessConfigs']:
       # Create test harness, notify the SAS UUT, and load FAD records.
       test_harness = SasTestHarnessServer(
