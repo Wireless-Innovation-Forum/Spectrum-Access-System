@@ -350,6 +350,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_g1 = config['grantRequestG1']
     grant_g2 = config['grantRequestG2']
     sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords']]
+    
+    # Inserting FCC IDs on SUUT before CPAS so SUUT will know about them
+    self._sas_admin.InjectFccId({'fccId': device_c1['fccId']})
+    self._sas_admin.InjectFccId({'fccId': device_c2['fccId']})
+
+
 
     # Create the SAS Test Harness.
     sas_test_harness_server = SasTestHarnessServer(
