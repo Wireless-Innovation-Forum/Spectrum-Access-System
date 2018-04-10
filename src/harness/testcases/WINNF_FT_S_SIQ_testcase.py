@@ -89,11 +89,11 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     fss['deploymentParam'][0]['installationParam']['longitude'] = -98.9
     self._sas_admin.InjectFss(fss_data)
 
-    # Inject GWBL station operating at range 3650 - 3700 MHz and associated
-    # GWPZ, within 150 km of FSS (approx. 100 km from FSS location set above).
-    gwpz = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
-    self._sas_admin.InjectWisp(gwpz)
+    # Inject GWBL station operating at range 3650 - 3700 MHz within 150 km of
+    # FSS (approx. 100 km from FSS location set above).
+    gwbl = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    self._sas_admin.InjectWisp(gwbl)
 
     # Load PAL/PPA data, operating channel 3620 - 3630 MHz.
     pal_record = json.load(
@@ -137,7 +137,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_4['installationParam']['latitude'] = 39.0
     device_4['installationParam']['longitude'] = -98.6
 
-    # Move device_5 outside PPA and outside 150kms range of FSS
+    # Move device_5 outside PPA and inside 150kms range of FSS
     device_5['installationParam']['latitude'] = 38.2
     device_5['installationParam']['longitude'] = -99.5
 
