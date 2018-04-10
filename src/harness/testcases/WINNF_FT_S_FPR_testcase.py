@@ -17,7 +17,8 @@ import os
 import sas
 import sas_testcase
 import logging
-from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase
+from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
+ addCbsdIdsToRequests
 
 class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
@@ -99,17 +100,16 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     del device_1['cbsdCategory']
     del device_1['airInterface']
     del device_1['installationParam']
+    del device_1['measCapability']
 
     # Create the actual config.
-    conditionals = {
-        'registrationData': [conditionalParameters]
-    }
+    conditionals = [conditionalParameters]
     config = {
       'registrationRequests': [device_1, device_2, device_3],
       'conditionalRegistrationData': conditionals,
-      'grantRecords': [grant_1, grant_2, grant_3],
-      'gwblRecords': [gwbl],
-      'fssRecords': [fss]
+      'grantRequests': [grant_1, grant_2, grant_3],
+      'gwblRecord': gwbl,
+      'fssRecord': fss
     }
     writeConfig(filename, config)
 
@@ -120,19 +120,16 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
         
     # Light checking of the config file
-    self.assertEqual( len(config['registrationRequests']), 3)
-    self.assertEqual( len(config['fssRecords']), 1)
-    self.assertEqual( len(config['gwblRecords']), 1)
+    self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
 
     # Load the FSS
-    self._sas_admin.InjectFss({'record': config['fssRecords']})
+    self._sas_admin.InjectFss({'record': config['fssRecord']})
 
     # Load the GWBL
-    self._sas_admin.InjectWisp(config['gwblRecords'])
+    self._sas_admin.InjectWisp(config['gwblRecord'])
 
-    # Trigger CPAS activity if GWBL > 0
-    if (len(config['gwblRecords'])):
-      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
+    # Trigger CPAS activity
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Register N > 0 CBSDs
     # Check registration response
@@ -142,20 +139,12 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     else:
       cbsd_ids = self.assertRegistered(config['registrationRequests'])
 
-    # number of grants and devices should match
-    self.assertEqual(len(config['registrationRequests']), len(config['grantRecords']))
-
     # Add cbsdIds to grants
-    grant_request = []
-    i = 0
-    while i < len(config['grantRecords']):
-      grant = config['grantRecords'][i]
-      grant['cbsdId'] = cbsd_ids[i]
-      grant_request.append(grant)
-      i = i + 1
-    request = {'grantRequest': grant_request}
+    grant_request = config['grantRequests']
+    addCbsdIdsToRequests(cbsd_ids, grant_request)
 
     # Send grant request and get response
+    request = {'grantRequest': grant_request}
     response = self._sas.Grant(request)['grantResponse']
 
     # Check grant response
