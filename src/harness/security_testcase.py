@@ -27,6 +27,7 @@ import inspect
 
 from OpenSSL import SSL, crypto
 from util import getCertificateFingerprint
+from request_handler import HTTPError
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -253,15 +254,16 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
   def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
     """
-      Checks that the TLS handshake failure by varying the given parameters
-      if handshake not failed make sure the next https request return error code 403
-      Args:
-        client_cert: optional client certificate file in PEM format to use.
-          If 'None' the default CBSD certificate will be used.
-        client_key: associated key file in PEM format to use with the optionally
-          given |client_cert|. If 'None' the default CBSD key file will be used.
-        ciphers: optional cipher method
-        ssl_method: optional ssl_method
+    Checks that the TLS handshake failure by varying the given parameters
+    if handshake not failed make sure the next https request return error code 403
+
+    Args:
+      client_cert: optional client certificate file in PEM format to use.
+        If 'None' the default CBSD certificate will be used.
+      client_key: associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' the default CBSD key file will be used.
+      ciphers: optional cipher method
+      ssl_method: optional ssl_method
     """
     try:
       self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
@@ -272,10 +274,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         request = {'registrationRequest': [device_a]}
         response = self._sas.Registration(request, ssl_cert=client_cert,
                                           ssl_key=client_key)['registrationResponse']
-      except AssertionError as e:
+      except HTTPError as e:
         logging.debug("TLS session established, expecting HTTP error 403; received HTTP error %d", e.args[0])
-        self.assertEqual(e.args[0][0], 403)
-        self.assertEqual(e.args[0][1], 'http_error')
+        self.assertEqual(e.error_code, 403)
+        self.assertEqual(e.message, 'http_error')
       else:
         self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
 

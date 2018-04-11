@@ -112,6 +112,14 @@ def _Request(url, request, config, is_post_method):
   conn.close()
   body = response.getvalue()
   logging.info('Response:\n' + body)
-  assert http_code == 200, [http_code, 'http_error']
+
+  if http_code != 200:
+    raise HTTPError("http_error", http_code)
   if body:
     return json.loads(body.decode('utf-8'))
+
+class HTTPError(Exception):
+  def __init__(self, message, error_code):
+    self.message = message
+    self.error_code  = error_code
+    super(HTTPError, self).__init__(message, error_code)
