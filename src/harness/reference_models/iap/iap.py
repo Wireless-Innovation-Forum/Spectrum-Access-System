@@ -163,7 +163,7 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
         if protection_ent_type is interf.ProtectedEntityType.ESC:
           if channel[0] >= 3650.e6:
             center_freq = (channel[0] + channel[1]) / 2
-            iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) - 
+            iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) + 
               (2.5 + ((center_freq - interf.ESC_CH21_CF_HZ) / MHZ))))
           else:
             iap_threshold_channel.append(threshold)
@@ -240,13 +240,13 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
           else:
             grants_eirp[g_idx] = grants_eirp[g_idx] - 1
      
-    # Update aggregate interference and asas_interference from all the grants 
-    # at a protection point, channel
-    for j, interf_val in enumerate(aggr_interf):
-      asas_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-        protection_point[0], asas_interf[j])
-      aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-        protection_point[0], interf_val)
+      # Update aggregate interference and asas_interference from all the grants 
+      # at a protection point, channel
+      for j, interf_val in enumerate(aggr_interf):
+        asas_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+          protection_point[0], asas_interf[j])
+        aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+          protection_point[0], interf_val)
 
 
 def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
