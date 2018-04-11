@@ -337,8 +337,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for SAS cert/key path.
 
     config = {
-        'sasCert': self.getCertFilename("sas_revoked_by_ca.cert"),
-        'sasKey': self.getCertFilename("sas_revoked_by_ca.key")
+        'sasCert': self.getCertFilename("sas_cert_from_revoked_ca.cert"),
+        'sasKey': self.getCertFilename("sas_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 

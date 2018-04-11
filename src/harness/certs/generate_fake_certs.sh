@@ -9,8 +9,9 @@ mkdir private
 mkdir root
 mkdir crl
 
-# Empty the index.txt to avoid to old certificates index.
-cat /dev/null > index.txt
+# Empty the index.txt to avoid to old certificates index
+rm index.txt
+touch index.txt
 echo -n 'unique_subject = no' > index.txt.attr
 
 function gen_corrupt_cert()
@@ -401,82 +402,82 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SCS.16 - Certificate signed by a revoked CA presented during registration
-echo -e "\n\nGenerate 'blacklisted_cbsd_ca' certificate/key to revoke intermediate CA"
+echo -e "\n\nGenerate 'revoked_cbsd_ca' certificate/key to revoke intermediate CA"
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
-    -out blacklisted_cbsd_ca.csr -keyout private/blacklisted_cbsd_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum CBSD CA-1 - Blacklisted"
-openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in blacklisted_cbsd_ca.csr \
+    -out revoked_cbsd_ca.csr -keyout private/revoked_cbsd_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum CBSD CA-1 - Revoked"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_cbsd_ca.csr \
     -policy policy_anything -extensions cbsd_ca_sign -config ../../../cert/openssl.cnf \
-    -out blacklisted_cbsd_ca.cert -outdir ./root \
+    -out revoked_cbsd_ca.cert -outdir ./root \
     -batch -notext -create_serial -utf8 -days 5475 -md sha384
 
 # Generate client certificate/key signed by valid CA.
-echo -e "\n\nGenerate 'client' certificate/key signed by blacklisted_cbsd_ca"
+echo -e "\n\nGenerate 'client' certificate/key signed by revoked_cbsd_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out client_revoked_by_ca.csr -keyout client_revoked_by_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD - Blacklisted"
-openssl ca -cert blacklisted_cbsd_ca.cert -keyfile private/blacklisted_cbsd_ca.key -in client_revoked_by_ca.csr \
-    -out client_revoked_by_ca.cert -outdir ./root \
+    -out client_cert_from_revoked_ca.csr -keyout client_cert_from_revoked_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS CBSD - Revoked"
+openssl ca -cert revoked_cbsd_ca.cert -keyfile private/revoked_cbsd_ca.key -in client_cert_from_revoked_ca.csr \
+    -out client_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Revoke the CBSD CA Certificate.
-echo -e "\n\nRevoke intermediate CA (blacklisted_cbsd_ca) who already signed client certificate."
-openssl ca -revoke blacklisted_cbsd_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+echo -e "\n\nRevoke intermediate CA (revoked_cbsd_ca) who already signed client certificate."
+openssl ca -revoke revoked_cbsd_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
      -config ../../../cert/openssl.cnf
 
 # Certificate for test case WINNF.FT.S.SDS.16 - Certificate signed by a revoked CA presented during registration.
-echo -e "\n\nGenerate 'blacklisted_proxy_ca' certificate/key to revoke intermediate CA."
+echo -e "\n\nGenerate 'revoked_proxy_ca' certificate/key to revoke intermediate CA."
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts oper_ca  -config ../../../cert/openssl.cnf \
-    -out blacklisted_proxy_ca.csr -keyout private/blacklisted_proxy_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA - Blacklisted"
-openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in blacklisted_proxy_ca.csr \
+    -out revoked_proxy_ca.csr -keyout private/revoked_proxy_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA Domain Proxy CA - Revoked"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_proxy_ca.csr \
     -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
-    -out blacklisted_proxy_ca.cert -outdir ./root \
+    -out revoked_proxy_ca.cert -outdir ./root \
     -batch -notext -create_serial -utf8 -days 5475 -md sha384
 
-echo -e "\n\nGenerate 'domain_proxy' certificate/key signed by blacklisted_proxy_ca"
+echo -e "\n\nGenerate 'domain_proxy' certificate/key signed by revoked_proxy_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out domain_proxy_revoked_by_ca.csr -keyout domain_proxy_revoked_by_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a - Blacklisted"
-openssl ca -cert blacklisted_proxy_ca.cert -keyfile private/blacklisted_proxy_ca.key -in domain_proxy_revoked_by_ca.csr \
-    -out domain_proxy_revoked_by_ca.cert -outdir ./root \
+    -out domain_proxy_cert_from_revoked_ca.csr -keyout domain_proxy_cert_from_revoked_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=domainProxy_a - Revoked"
+openssl ca -cert revoked_proxy_ca.cert -keyfile private/revoked_proxy_ca.key -in domain_proxy_cert_from_revoked_ca.csr \
+    -out domain_proxy_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Revoke the Domain Proxy CA Certificate.
-echo -e "\n\nRevoke intermediate CA (blacklisted_proxy_ca) who already signed domain proxy certificate."
-openssl ca -revoke blacklisted_proxy_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+echo -e "\n\nRevoke intermediate CA (revoked_proxy_ca) who already signed domain proxy certificate."
+openssl ca -revoke revoked_proxy_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
     -config ../../../cert/openssl.cnf
 
 # Certificate for test case WINNF.FT.S.SSS.16 - Certificate signed by a revoked CA presented during registration
 echo -e "\n\nGenerate 'sas_ca' certificate/key to revoke intermediate CA."
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts sas_ca  -config ../../../cert/openssl.cnf \
-    -out blacklisted_sas_ca.csr -keyout private/blacklisted_sas_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA SAS CA-1 - Blacklisted"
-openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in blacklisted_sas_ca.csr \
+    -out revoked_sas_ca.csr -keyout private/revoked_sas_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=WInnForum RSA SAS CA-1 - Revoked"
+openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_sas_ca.csr \
     -policy policy_anything -extensions sas_ca_sign -config ../../../cert/openssl.cnf \
-    -out blacklisted_sas_ca.cert -outdir ./root \
+    -out revoked_sas_ca.cert -outdir ./root \
     -batch -notext -create_serial -utf8 -days 5475 -md sha384
 
 # Generate sas server certificate/key.
-echo -e "\n\nGenerate 'sas server' certificate/key signed by blacklisted_sas_ca"
+echo -e "\n\nGenerate 'sas server' certificate/key signed by revoked_sas_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
-    -out sas_revoked_by_ca.csr -keyout sas_revoked_by_ca.key \
-    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS - Blacklisted"
-openssl ca -cert blacklisted_sas_ca.cert -keyfile private/blacklisted_sas_ca.key -in sas_revoked_by_ca.csr \
-    -out sas_revoked_by_ca.cert -outdir ./root \
+    -out sas_cert_from_revoked_ca.csr -keyout sas_cert_from_revoked_ca.key \
+    -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=SAS - Revoked"
+openssl ca -cert revoked_sas_ca.cert -keyfile private/revoked_sas_ca.key -in sas_cert_from_revoked_ca.csr \
+    -out sas_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Revoke the SAS CA Certificate.
-openssl ca -revoke blacklisted_sas_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
+openssl ca -revoke revoked_sas_ca.cert -keyfile private/root_ca.key -cert root_ca.cert \
     -config ../../../cert/openssl.cnf
 
 # Creating CRL for revoked CA xxS.16 test cases
@@ -485,28 +486,28 @@ openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
      -config ../../../cert/openssl.cnf  -crldays 365 \
      -out crl/root_ca.crl
 
-echo -e "\n\n Generate CRL for blacklisted_cbsd_ca"
-openssl ca -gencrl -keyfile private/blacklisted_cbsd_ca.key -cert blacklisted_cbsd_ca.cert \
+echo -e "\n\n Generate CRL for revoked_cbsd_ca"
+openssl ca -gencrl -keyfile private/revoked_cbsd_ca.key -cert revoked_cbsd_ca.cert \
      -config ../../../cert/openssl.cnf -crldays 365 \
-     -out crl/blacklisted_cbsd_ca.crl
+     -out crl/revoked_cbsd_ca.crl
 
-echo -e "\n\n Generate CRL for blacklisted_sas_ca"
-openssl ca -gencrl -keyfile private/blacklisted_sas_ca.key -cert blacklisted_sas_ca.cert \
+echo -e "\n\n Generate CRL for revoked_sas_ca"
+openssl ca -gencrl -keyfile private/revoked_sas_ca.key -cert revoked_sas_ca.cert \
      -config ../../../cert/openssl.cnf -crldays 365 \
-     -out crl/blacklisted_sas_ca.crl
+     -out crl/revoked_sas_ca.crl
 
-echo -e "\n\n Generate CRL for blacklisted_proxy_ca"
-openssl ca -gencrl -keyfile private/blacklisted_proxy_ca.key -cert blacklisted_proxy_ca.cert \
+echo -e "\n\n Generate CRL for revoked_proxy_ca"
+openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.cert \
      -config ../../../cert/openssl.cnf -crldays 365 \
-     -out crl/blacklisted_proxy_ca.crl
+     -out crl/revoked_proxy_ca.crl
 
 # Generate trusted CA bundle.
 echo -e "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert \
-    blacklisted_cbsd_ca.cert blacklisted_sas_ca.cert blacklisted_proxy_ca.cert > ca.cert
+    revoked_cbsd_ca.cert revoked_sas_ca.cert revoked_proxy_ca.cert > ca.cert
 
 # Create CA certificate chain containing the CRLs with revoked leaf certificates.
-cat crl/blacklisted_cbsd_ca.crl crl/blacklisted_sas_ca.crl crl/blacklisted_proxy_ca.crl crl/root_ca.crl > crl/ca.crl
+cat crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl crl/root_ca.crl > crl/ca.crl
 cat ca.cert crl/ca.crl > ca_crl_chain_sxs16.cert
 
 # Note: following server implementation, we could also put only the root_ca.cert

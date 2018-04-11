@@ -17,12 +17,12 @@ function revoke_certificate()
       CA=sas_ca
   elif [ "$CN" == "WInnForum RSA Root CA-1" ]; then
       CA=root_ca
-  elif [ "$CN" == "WInnForum CBSD CA-1 - Blacklisted" ]; then
-      CA=blacklisted_cbsd_ca
-  elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Blacklisted" ]; then
-      CA=blacklisted_proxy_ca
-  elif [ "$CN" == "WInnForum RSA SAS CA-1 - Blacklisted" ]; then
-      CA=blacklisted_sas_ca
+  elif [ "$CN" == "WInnForum CBSD CA-1 - Revoked" ]; then
+      CA=revoked_cbsd_ca
+  elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Revoked" ]; then
+      CA=revoked_proxy_ca
+  elif [ "$CN" == "WInnForum RSA SAS CA-1 - Revoked" ]; then
+      CA=revoked_sas_ca
   else
       echo "Unknown issuer CN=$CN for certificate $1"
       exit -1

@@ -262,8 +262,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for client cert/key path.
 
     config = {
-        'clientCert': self.getCertFilename("client_revoked_by_ca.cert"),
-        'clientKey': self.getCertFilename("client_revoked_by_ca.key")
+        'clientCert': self.getCertFilename("client_cert_from_revoked_ca.cert"),
+        'clientKey': self.getCertFilename("client_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 
@@ -280,7 +280,6 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
                                    client_key=config['clientKey'])
     logging.info("TLS handshake failed as the CA certificate has been revoked")
-	
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_17(self):

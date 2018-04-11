@@ -177,7 +177,7 @@ def revokeCertificate():
   # Retrives the all certificates from certs directory.
   cert_name = getCertificateNameToBlacklist()
   logging.info('Certificate selected to blacklist is:%s', cert_name)
-  revoke_cert_command = "cd {0} && ./revoke_and_generate_crl.sh " \
+  revoke_cert_command = "cd {0} && bash ./revoke_and_generate_crl.sh " \
                         "-r {1}".format(getCertsDirectoryAbsolutePath(),
                                          cert_name)
   command_exit_status = subprocess.call(revoke_cert_command, shell=True)
@@ -205,7 +205,7 @@ def updateCrlUrlAndRegenerateCertificates():
   logging.info('CRL URL has been updated correctly in openssl.cnf')
 
   # Re-generate certificates.
-  script_name = './generate_fake_certs.sh'
+  script_name = 'bash ./generate_fake_certs.sh'
   command = 'cd {0} && {1}'.format(getCertsDirectoryAbsolutePath(), script_name)
   command_exit_status = subprocess.call(command, shell=True)
   if command_exit_status:
@@ -225,7 +225,7 @@ def generateCrlChain():
   placed in the 'harness/certs/crl/' directory.
   """
 
-  create_crl_chain_command = "cd {0} && ./revoke_and_generate_crl.sh -u".format(
+  create_crl_chain_command = "cd {0} && bash ./revoke_and_generate_crl.sh -u".format(
       getCertsDirectoryAbsolutePath())
   command_exit_status = subprocess.call(create_crl_chain_command, shell=True)
   if command_exit_status:

@@ -272,8 +272,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for domain proxy cert/key path.
 
     config = {
-        'domainProxyCert': self.getCertFilename("domain_proxy_revoked_by_ca.cert"),
-        'domainProxyKey': self.getCertFilename("domain_proxy_revoked_by_ca.key")
+        'domainProxyCert': self.getCertFilename("domain_proxy_cert_from_revoked_ca.cert"),
+        'domainProxyKey': self.getCertFilename("domain_proxy_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 
