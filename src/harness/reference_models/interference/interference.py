@@ -27,6 +27,8 @@
 
   The common utility APIs are:
 
+    getGrantObjectsFromFAD
+    getAllGrantInformationFromCbsdDataDump
     findOverlappingGrantsInsideNeighborhood
     getProtectedChannels
 
@@ -34,18 +36,19 @@
   FSS/GWPZ/PPA/ESC incumbent types
 ==================================================================================
 """
-
-from collections import namedtuple
+import numpy as np
 import multiprocessing
 from multiprocessing.managers import BaseManager
-
-import numpy as np
-
-from reference_models.common import data
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
+from collections import namedtuple
+from enum import Enum
+
+# Initialize terrain driver
+# terrainDriver = terrain.TerrainDriver()
+terrainDriver = wf_itm.terrainDriver
 
 # Set constant parameters based on requirements in the WINNF-TS-0112
 # [R2-SGN-16]
@@ -107,16 +110,42 @@ GWPZ_PPA_HEIGHT = 1.5
 # In-band insertion loss
 IN_BAND_INSERTION_LOSS = 0.5
 
+# Define an enumeration class named ProtectedEntityType with members
+# 'GWPZ_AREA', 'PPA_AREA', 'FSS_CO_CHANNEL', 'FSS_BLOCKING', 'ESC'
+
+
+class ProtectedEntityType(Enum):
+  GWPZ_AREA = 1
+  PPA_AREA = 2
+  FSS_CO_CHANNEL = 3
+  FSS_BLOCKING = 4
+  ESC = 5
 
 # Global container to store neighborhood distance type of all the protection
 _DISTANCE_PER_PROTECTION_TYPE = {
-    data.ProtectedEntityType.GWPZ_AREA :  (GWPZ_NEIGHBORHOOD_DIST, GWPZ_NEIGHBORHOOD_DIST),
-    data.ProtectedEntityType.PPA_AREA : ( PPA_NEIGHBORHOOD_DIST,  PPA_NEIGHBORHOOD_DIST),
-    data.ProtectedEntityType.FSS_CO_CHANNEL : ( FSS_CO_CHANNEL_NEIGHBORHOOD_DIST,  FSS_CO_CHANNEL_NEIGHBORHOOD_DIST),
-    data.ProtectedEntityType.FSS_BLOCKING : ( FSS_BLOCKING_NEIGHBORHOOD_DIST,  FSS_BLOCKING_NEIGHBORHOOD_DIST),
-    data.ProtectedEntityType.ESC: (ESC_NEIGHBORHOOD_DIST_A, ESC_NEIGHBORHOOD_DIST_B)
-}
+   ProtectedEntityType.GWPZ_AREA :  (GWPZ_NEIGHBORHOOD_DIST, GWPZ_NEIGHBORHOOD_DIST),
+   ProtectedEntityType.PPA_AREA : ( PPA_NEIGHBORHOOD_DIST,  PPA_NEIGHBORHOOD_DIST),
+   ProtectedEntityType.FSS_CO_CHANNEL : ( FSS_CO_CHANNEL_NEIGHBORHOOD_DIST,  FSS_CO_CHANNEL_NEIGHBORHOOD_DIST),
+   ProtectedEntityType.FSS_BLOCKING : ( FSS_BLOCKING_NEIGHBORHOOD_DIST,  FSS_BLOCKING_NEIGHBORHOOD_DIST),
+   ProtectedEntityType.ESC: (ESC_NEIGHBORHOOD_DIST_A, ESC_NEIGHBORHOOD_DIST_B)
+    }
 
+# Define CBSD grant, i.e., a tuple with named fields of 'latitude',
+# 'longitude', 'height_agl', 'indoor_deployment', 'antenna_azimuth',
+# 'antenna_gain', 'antenna_beamwidth', 'cbsd_category',
+# 'max_eirp', 'low_frequency', 'high_frequency', 'is_managed_grant'
+CbsdGrantInformation = namedtuple('CbsdGrantInformation',
+                       ['latitude', 'longitude', 'height_agl',
+                        'indoor_deployment', 'antenna_azimuth', 'antenna_gain',
+                        'antenna_beamwidth', 'cbsd_category',
+                        'max_eirp', 'low_frequency', 'high_frequency',
+                        'is_managed_grant'])
+
+# Define protection constraint, i.e., a tuple with named fields of
+# 'latitude', 'longitude', 'low_frequency', 'high_frequency'
+ProtectionConstraint = namedtuple('ProtectionConstraint',
+                                  ['latitude', 'longitude', 'low_frequency',
+                                   'high_frequency', 'entity_type'])
 
 # Define FSS Protection Point, i.e., a tuple with named fields of
 # 'latitude', 'longitude', 'height_agl', 'max_gain_dbi', 'pointing_azimuth',
@@ -267,6 +296,86 @@ def findOverlappingGrants(grants, constraint):
   return grants_inside
 
 
+def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
+  """Extracts CBSD grant objects from FAD object
+
+  Args:
+    sas_uut_fad_object: FAD object from SAS UUT
+    sas_th_fad_object: a list of FAD objects from SAS Test Harness
+  Returns:
+    grant_objects: a list of CBSD grants dictionary containing registration
+    and grants
+  """
+  # List of CBSD grant tuples extracted from FAD record
+  grant_objects = []
+
+  grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
+                        sas_uut_fad_object.getCbsdRecords(), True)
+
+  grant_objects_test_harness = []
+
+  for fad in sas_th_fad_objects:
+    grant_objects_test_harness.extend(getAllGrantInformationFromCbsdDataDump(
+                                     fad.getCbsdRecords(), False))
+
+  grant_objects = grant_objects_uut + grant_objects_test_harness
+
+  return grant_objects
+
+
+def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
+  """Extracts list of CbsdGrantInformation namedtuple
+
+  Routine to extract CbsdGrantInformation tuple from CBSD data records from
+  FAD objects
+
+  Args:
+    cbsd_data_records: A list CbsdData object retrieved from FAD records.
+    is_managing_sas: flag indicating cbsd data record is from managing SAS or
+                     peer SAS
+                     True - Managing SAS, False - Peer SAS
+  Returns:
+    grant_objects: a list of grants, each one being a namedtuple of type
+                   CBSDGrantInformation, of all CBSDs from SAS UUT FAD and
+                   SAS Test Harness FAD
+  """
+
+  grant_objects = []
+
+  # Loop over each CBSD grant
+  for cbsd_data_record in cbsd_data_records:
+    registration = cbsd_data_record['registration']
+    grants = cbsd_data_record['grants']
+
+    # Check CBSD location
+    lat_cbsd = registration['installationParam']['latitude']
+    lon_cbsd = registration['installationParam']['longitude']
+    height_cbsd = registration['installationParam']['height']
+    height_type_cbsd = registration['installationParam']['heightType']
+    if height_type_cbsd == 'AMSL':
+      altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+      height_cbsd = height_cbsd - altitude_cbsd
+
+    for grant in grants:
+      # Return CBSD information
+      cbsd_grant = CbsdGrantInformation(
+        # Get information from the registration
+        latitude=lat_cbsd,
+        longitude=lon_cbsd,
+        height_agl=height_cbsd,
+        indoor_deployment=registration['installationParam']['indoorDeployment'],
+        antenna_azimuth=registration['installationParam']['antennaAzimuth'],
+        antenna_gain=registration['installationParam']['antennaGain'],
+        antenna_beamwidth=registration['installationParam']['antennaBeamwidth'],
+        cbsd_category=registration['cbsdCategory'],
+        max_eirp=grant['operationParam']['maxEirp'],
+        low_frequency=grant['operationParam']['operationFrequencyRange']['lowFrequency'],
+        high_frequency=grant['operationParam']['operationFrequencyRange']['highFrequency'],
+        is_managed_grant=is_managing_sas)
+      grant_objects.append(cbsd_grant)
+  return grant_objects
+
+
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                                   max_eirp, region='SUBURBAN'):
   """Compute interference grant causes to GWPZ or PPA protection area
@@ -346,7 +455,6 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
       incidence_angles.hor_rx,
       esc_antenna_info.antenna_azimuth,
       esc_antenna_info.antenna_pattern_gain)
-
 
   # Get the total antenna gain by summing the antenna gains from CBSD to ESC
   # and ESC to CBSD
@@ -639,4 +747,5 @@ def getInterferenceObject():
                                         AggregateInterferenceOutputFormat)
   manager = AggregateInterferenceManager()
   manager.start()
+
   return manager.AggregateInterferenceOutputFormat()

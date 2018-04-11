@@ -219,7 +219,7 @@ if __name__ == '__main__':
   # Configure the global pool of processes
   mpool.Configure(num_processes)
   pool = mpool.Pool()
-  num_processes = pool._max_workers
+  num_processes = pool._max_workers  # actual number of processes
 
   (protection_points, all_cbsds,
    reg_requests, grant_requests, protection_zone,
@@ -239,16 +239,17 @@ if __name__ == '__main__':
   print 'Running Move List algorithm (%d processes)' % num_processes
   print '  + once to populate the terrain cache'
   dpa.SetGrantsFromList(grants[0:50])
-  dpa.CalcMoveLists()
+  dpa.ComputeMoveLists()
 
   # Run it for real and measure time
   print '  + actual run (timed)'
   dpa.SetGrantsFromList(grants)
   start_time = time.time()
-  dpa.CalcMoveLists()
+  dpa.ComputeMoveLists()
   end_time = time.time()
 
   # Print results
+  print 'Move List mask:'
   print dpa.GetMoveListMask((fmin, fmax))
   len_move_list = len(dpa.move_lists[0])
   print ''

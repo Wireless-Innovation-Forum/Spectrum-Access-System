@@ -34,18 +34,20 @@
 #   - 'calcInterference()': calculates the 95% quantile interference for one point
 #==================================================================================
 
+import functools
+from collections import namedtuple
+from enum import Enum
+
 import numpy as np
-from operator import attrgetter, iadd
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
 from shapely.geometry import MultiPolygon as MPolygon
-from collections import namedtuple
-from enum import Enum
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 from reference_models.propagation import wf_itm
 from reference_models.geo import drive
 from reference_models.geo import vincenty
+from reference_models.common import cache
 from reference_models.common import data
 from reference_models.antenna import antenna
 
@@ -75,7 +77,7 @@ OOB_POWER_BELOW_3530MHZ = -40
 
 
 # Define interference contribution, i.e., a tuple with named fields of
-# 'grantIndex', 'medianInterference', 'randomInterference', 'bearing_c_cbsd'
+# 'randomInterference', 'bearing_c_cbsd'
 InterferenceContribution = namedtuple('InterferenceContribution',
                                       ['randomInterference', 'bearing_c_cbsd'])
 
@@ -251,7 +253,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     the protection constraint c.
 
     Inputs:
-        cbsd_grant:     a |CbsdGrantInfo| grant
+        cbsd_grant:     a |data.CbsdGrantInfo| grant
         constraint: 	protection constraint of type |data.ProtectionConstraint|
         inc_ant_height: reference incumbent antenna height (in meters)
         num_iteration:  a number of Monte Carlo iterations
@@ -365,11 +367,6 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     I = np.array([interf_list[k].randomInterference for k in sorted_idxs]).transpose()
     sorted_bearings = np.array([interf_list[k].bearing_c_cbsd for k in sorted_idxs])
     sorted_grant_ids = [grants_ids[k] for k in sorted_idxs]
-    #interf_list.sort(key=attrgetter('medianInterference'))
-    # Get indices, bearings, interference contributions of the sorted grants
-    #sorted_grant_indices = [interf.grantIndex for interf in interf_list]
-    #sorted_bearings = [interf.bearing_c_cbsd for interf in interf_list]
-    #I = np.array([interf.randomInterference for interf in interf_list]).transpose()
     return I, sorted_grant_ids, sorted_bearings
 
 
@@ -438,7 +435,8 @@ def find_nc(I, bearings, t, beamwidth):
 
     return nc
 
-
+#------------------------------------------
+# Public interface below
 def moveListConstraint(protection_point, low_freq, high_freq,
                        grants,
                        exclusion_zone, inc_ant_height,
@@ -478,8 +476,6 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(grants,
                                                                   constraint,
                                                                   exclusion_zone, dpa_type)
-    #import ipdb; ipdb.set_trace()
-
     if len(neighbor_grants):  # Found CBSDs in the neighborhood
         # Form the matrix of interference contributions
         I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
@@ -497,11 +493,11 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     return ([], neighbor_idxs)
 
 
-def calcInterference(protection_point, low_freq, high_freq,
-                     grants,
-                     exclusion_zone, inc_ant_height,
-                     num_iter, beamwidth):
-  """Computes the 95% interference quantile on a protected point.
+def calcAggregatedInterference(protection_point, low_freq, high_freq,
+                               grants,
+                               exclusion_zone, inc_ant_height,
+                               num_iter, beamwidth, do_max=False):
+  """Computes the 95% aggregated interference quantile on a protected point.
 
     Inputs:
         protection_point:  A protection point location, having attributes 'latitude' and
@@ -514,13 +510,15 @@ def calcInterference(protection_point, low_freq, high_freq,
         inc_ant_height:    The reference incumbent antenna height (meters).
         num_iter:          The number of Monte Carlo iterations.
         beamwidth:         The protection antenna beamwidth (degree).
-
+        do_max:            If True, returns the maximum interference over all radar azimuth,
     Returns:
-        A vector of interference values (ndarray) of length N, where the element k
-        corresponds to azimuth k * (beamwith/2).
-        The length N is thus equal to 2 * 360 / beamwith.
+        The 95% aggregated interference (dB) either:
+          - as a vector (ndarray) of length N, where the element k corresponds to
+              azimuth k * (beamwith/2). The length N is thus equal to 2 * 360 / beamwith.
+          - the maximum over all radar azimuth, if `do_max` is set to True.
   """
   dpa_type = findDpaType(low_freq, high_freq)
+  if not beamwidth: beamwidth = 360
 
   # Assign values to the protection constraint
   constraint = data.ProtectionConstraint(latitude=protection_point.latitude,
@@ -531,21 +529,19 @@ def calcInterference(protection_point, low_freq, high_freq,
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
-                                                 exclusion_zone, dpa_type)
+                                                    exclusion_zone, dpa_type)
+  if not neighbor_grants:
+    return np.asarray(-1000)
   interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
   bearings = np.zeros(len(neighbor_grants))
-  for grant in neighbor_grants:
-    interf = computeInterference(grant, constraint, inc_ant_height,
-                                 num_iter, dpa_type)
-    interf_matrix[:,k] = inter.randomInterference
+  for k, grant in enumerate(neighbor_grants):
+    interf, _ = computeInterference(grant, constraint, inc_ant_height,
+                                    num_iter, dpa_type)
+    interf_matrix[:,k] = interf.randomInterference
     bearings[k] = interf.bearing_c_cbsd
 
   interf_matrix = 10**(interf_matrix / 10.)
-  if beamwidth == 360.0:
-    azimuths = [0]
-  else:
-    azimuths = np.arange(0.0, 360.0, beamwidth/2.0)
-
+  azimuths = [0] if beamwidth == 360 else np.arange(0.0, 360.0, beamwidth/2.0)
   agg_interf = np.zeros(len(azimuths))
   for k, azi in enumerate(azimuths):
     if beamwidth == 360.0:
@@ -555,9 +551,14 @@ def calcInterference(protection_point, low_freq, high_freq,
     dpa_interf = interf_matrix * 10**(dpa_gains / 10.0)
     agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
                                   PROTECTION_PERCENTILE, interpolation='lower')
+  agg_interf = 10 * np.log10(agg_interf)
+  return np.max(agg_interf) if do_max else agg_interf
 
-  return 10 * np.log10(agg_interf)
-
+# Cache management
+class InterferenceCacheManager(cache.CacheManager):
+  """Interference cache context manager."""
+  def __init__(self, maxsize=None):
+    super(InterferenceCacheManager, self).__init__(computeInterference, maxsize)
 
 #----------------------------------
 # Legacy routine, just to support existing client code using old interface.
