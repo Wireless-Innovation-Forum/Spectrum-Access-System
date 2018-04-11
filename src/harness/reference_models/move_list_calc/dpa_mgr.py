@@ -64,10 +64,15 @@ class Dpa(object):
     # Setup the DPA
     dpa = Dpa(protected_points)
     dpa.SetGrantsFromFad(sas_uut_fad, sas_th_fads)
+
     # Compute the move list
     dpa.ComputeMoveLists()
+
     # Calculate the keep list interference for a given channel
     interf_per_point = dpa.CalcKeepListInterference(channel)
+
+    # Check the interference according to Winnforum IPR tests
+    status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=1)
   """
   # TODO(sbdt): add internal support for azimuth range, since it is used by some
   # inland DPAs.
@@ -153,11 +158,11 @@ class Dpa(object):
       # Combine the individual point move lists
       move_list = set().union(*move_list)
       nbor_list = set().union(*nbor_list)
-      # TODO(sbdt): store as set() once immutability restored
       self.move_lists.append(set(self.grants[k] for k in move_list))
       self.nbor_lists.append(set(self.grants[k] for k in nbor_list))
 
   def _GetChanIdx(self, channel):
+    """Gets the channel idx for a given channel."""
     try:
       chan_idx = self.channels.index(channel)
     except ValueError:
@@ -212,7 +217,7 @@ class Dpa(object):
 
     Returns:
       The 95% aggregate interference per protected point, as a list.
-      Each element is the maximum aggregate interference over all radar direction.
+      Each element is the maximum aggregate interference over all radar directions.
     """
     if num_iter is None:
       num_iter = Dpa.num_iteration
@@ -343,7 +348,7 @@ def _CalcTestPointInterfDiff(point,
     num_iteration: The number of iteration to use in the Monte Carlo simulation.
 
   Returns:
-    The maximum aggregated difference across all the radar pointing direction between
+    The maximum aggregated difference across all the radar pointing directions between
     the blended and the reference models.
   """
   # Perform caching of the per device interference, as to reduce the Monte-Carlo
