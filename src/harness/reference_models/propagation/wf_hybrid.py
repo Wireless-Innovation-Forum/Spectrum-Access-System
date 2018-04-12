@@ -160,6 +160,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                           Value in [0,1]: returns the CDF quantile
                           -1: returns the mean path loss
     region:             Region type among 'URBAN', 'SUBURBAN, 'RURAL'
+    is_height_cbsd_amsl: If True, the CBSD height shall be considered as AMSL (Average
+                         mean sea level).
 
   Returns:
     A namedtuple of:
@@ -202,7 +204,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                                                  lat2=lat_rx, lon2=lon_rx,
                                                  target_res_meter=30.,
                                                  do_interp=True, max_points=1501)
-
 
   # Structural CBSD and mobile height corrections
   height_cbsd = max(height_cbsd, 20.)

@@ -100,7 +100,8 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     freq_mhz:            Frequency (MHz). Default is mid-point of band.
     its_elev:            Optional profile to use (in ITM format). Default=None
                            If not specified, it is extracted from the terrain.
-
+    is_height_cbsd_amsl: If True, the CBSD height shall be considered as AMSL (Average
+                         mean sea level).
   Returns:
     A namedtuple of:
       db_loss            Path Loss in dB, either a scalar if reliability is scalar
