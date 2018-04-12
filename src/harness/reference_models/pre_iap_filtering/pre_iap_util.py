@@ -17,6 +17,8 @@ from reference_models.geo import vincenty
 from sas_test_harness import generateCbsdReferenceId
 from reference_models.geo import utils
 
+FSS_GWBL_PROTECTION_DISTANCE = 150
+
 
 def purgeOverlappingGrants(cbsds, frequency_range):
   """Removes Grants from CBSDs that overlap with the given frequency range.
@@ -64,7 +66,6 @@ def getCbsdsWithinPolygon(cbsds, polygon):
     List of CBSDs lying within or on the boundary of the protectionn area.
   """ 
   cbsds_within_polygon = []
-  #polygon = sgeo.shape(polygon['features'][0]['geometry'])
   polygon = utils.ToShapely(polygon['features'][0]['geometry'])
   for cbsd in cbsds:
     cbsd_lat = cbsd['registrationRequest']['installationParam']['latitude']
@@ -137,7 +138,7 @@ def getFssNeighboringCbsdsWithGrants(cbsds, fss_record, distance):
   return neighboring_cbsds_with_grants
 
 
-def getFssNeighboringGwbl(gwbl_records, fss_records, distance): 
+def getFssNeighboringGwbl(gwbl_records, fss_records): 
   """Get the list of all fss that lie within 150 KMs of GWBL and operating below 3700 MHz
 
   Args:
@@ -157,7 +158,7 @@ def getFssNeighboringGwbl(gwbl_records, fss_records, distance):
           gwbl_record['record']['deploymentParam'][0]['installationParam']['latitude'],
           gwbl_record['record']['deploymentParam'][0]['installationParam']['longitude']) 
       # Get the list of FSS entity that are 150kms from the GWBL area
-      if distance_km <= distance and fss_record['record']['deploymentParam'][0]\
+      if distance_km <= FSS_GWBL_PROTECTION_DISTANCE and fss_record['record']['deploymentParam'][0]\
              ['operationParam']['operationFrequencyRange']['highFrequency'] < 3700000000:
         list_of_fss_neighboring_gwbl.append(fss_record)
         break

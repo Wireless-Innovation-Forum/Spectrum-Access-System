@@ -86,8 +86,7 @@ class preIapFilteringTest(unittest.TestCase):
 
         # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
         fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']
-                                                                  , protected_entities['fssRecords'],
-                                                                  FSS_GWBL_PROTECTION_DISTANCE)
+                                                                  , protected_entities['fssRecords'])
         zone_purge.zonePurgeReferenceModel(sas_uut_fad,
                                            sas_test_harness_fads, protected_entities['ppaRecords'],
                                            protected_entities['palRecords'], protected_entities['gwpzRecords'],
@@ -107,7 +106,6 @@ class preIapFilteringTest(unittest.TestCase):
                 for grants in rec['grants']:
                     print " ", json.dumps(grants['id'])
         print "===================================================================="
-        #preIapReferenceModel(protected_entities,sas_uut_fad,sas_test_harness_fads)
 
 if __name__ == '__main__':
     unittest.main()

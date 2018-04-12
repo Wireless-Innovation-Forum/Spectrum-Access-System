@@ -23,7 +23,6 @@ from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 from reference_models.pre_iap_filtering import zone_purge
 from reference_models.pre_iap_filtering import pre_iap_util
 
-FSS_GWBL_PROTECTION_DISTANCE = 150
 
 def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads):
   """ The main function that invokes all pre-IAP filtering models.
@@ -44,7 +43,7 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
 
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
   list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords'],
-                                     protected_entities['fssRecords'], FSS_GWBL_PROTECTION_DISTANCE)
+                                     protected_entities['fssRecords'])
   zone_purge.zonePurgeReferenceModel(sas_uut_fad,
       sas_test_harness_fads, protected_entities['ppaRecords'], 
       protected_entities['palRecords'], protected_entities['gwpzRecords'], 
