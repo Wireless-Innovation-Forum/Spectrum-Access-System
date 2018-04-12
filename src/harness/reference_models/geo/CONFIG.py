@@ -29,6 +29,7 @@ CENSUS_TRACTS_DIR = os.path.join(_BASE_DATA_DIR, 'census_tracts')
 TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'ned')
 LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
 NTIA_DIR = os.path.join(_BASE_DATA_DIR, 'ntia')
+FCC_DIR = os.path.join(_BASE_DATA_DIR, 'fcc')
 
 # If not using the standard location for the data files,
 # define the absolute path of your data directories
@@ -52,3 +53,6 @@ def GetCensusTractsDir():
 
 def GetNtiaDir():
   return NTIA_DIR
+
+def GetFccDir():
+  return FCC_DIR

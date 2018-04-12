@@ -37,6 +37,7 @@ from reference_models.geo import CONFIG
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
 EXCLUSION_ZONE_FILE = 'protection_zones.kml'
 DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
+FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 
 # The reference files for extra zones.
 USBORDER_FILE = 'usborder.kmz'
@@ -175,3 +176,17 @@ def GetUrbanAreas(simplify_deg=1e-3):
   zones = _ReadKmlZones(kml_file, root_id_zone='Document', simplify=simplify_deg)
   urban_areas = sgeo.GeometryCollection(zones.values())  # ops.unary_union(zones.values())
   return urban_areas
+
+
+def GetFccOfficeLocations():
+  """Returns FCC Office location lat/long as a list of dictionaries.
+
+  14 FCC field offices that require protection are defined in the
+  fcc_field_office_locations.csv file.
+  """
+  fcc_file = os.path.join(CONFIG.GetFccDir(), FCC_FIELD_OFFICES_FILE)
+  fcc_offices = [{
+      'latitude': lat,
+      'longitude': lng
+  } for lat, lng in np.loadtxt(fcc_file, delimiter=',', usecols=(1, 2))]
+  return fcc_offices
