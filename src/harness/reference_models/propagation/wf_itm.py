@@ -74,8 +74,10 @@ _IncidenceAngles = namedtuple('_IncidenceAngles',
 def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                            lat_rx, lon_rx, height_rx,
                            cbsd_indoor=False,
-                           reliability=0.5, freq_mhz=3625.,
-                           its_elev=None):
+                           reliability=0.5,
+                           freq_mhz=3625.,
+                           its_elev=None,
+                           is_height_cbsd_amsl=False):
   """Implements the WinnForum-compliant ITM point-to-point propagation model.
 
   According to WinnForum spec R2-SGN-17, R2-SGN-22 and R2-SGN-5 to 10.
@@ -121,12 +123,18 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     Exception if input parameters invalid or out of range.
   """
   # Sanity checks on input parameters
-  if height_cbsd < 1 or height_rx < 1:
-    raise Exception('Endpoint height less than 1m')
-  if height_cbsd > 1000 or height_rx > 1000:
-    raise Exception('Endpoint height greater than 1000m')
   if freq_mhz < 40.0 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz]')
+
+  if is_height_cbsd_amsl:
+    altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+    height_cbsd = height_cbsd - altitude_cbsd
+
+  # Ensure minimum height of 1 meter
+  if height_cbsd < 1:
+    height_cbsd = 1
+  if height_rx < 1:
+    height_rx = 1
 
   # Internal ITM parameters are always set to following values in WF version:
   confidence = 0.5     # Confidence (always 0.5)
