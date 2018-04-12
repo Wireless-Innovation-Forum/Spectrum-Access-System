@@ -25,9 +25,9 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
                                                                              domain_proxy_inapplicable
 
                   -------------root_ca (same as above, separate graph for the clarity)--------------------
-                 /                    \         		     \
-                /                      \         		      \
-       revoked_sas_ca              revoked_cbsd_ca   		   revoked_proxy_ca
+                 /                    \                            \
+                /                      \                            \
+       revoked_sas_ca              revoked_cbsd_ca                revoked_proxy_ca
                 \                        \                                   \
                  \                        \                                   \
          sas_cert_from_revoked_ca      client_cert_from_revoked_ca          domain_proxy_cert_from_revoked_ca

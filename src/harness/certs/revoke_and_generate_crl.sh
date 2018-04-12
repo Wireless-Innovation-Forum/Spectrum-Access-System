@@ -7,26 +7,26 @@ function revoke_certificate()
   #Argument1: Name of the certificate to be revoked.
 
   #Fetch the Common Name to find out the issuer
-  CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
-
+  local CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
+  local CA=''
   if [ "$CN" == "WInnForum RSA CBSD CA-1" ]; then
-      CA=cbsd_ca
+    CA=cbsd_ca
   elif [ "$CN" == "WInnForum RSA Domain Proxy CA" ]; then
-      CA=proxy_ca
+    CA=proxy_ca
   elif [ "$CN" == "WInnForum RSA SAS CA-1" ]; then
-      CA=sas_ca
+    CA=sas_ca
   elif [ "$CN" == "WInnForum RSA Root CA-1" ]; then
-      CA=root_ca
+    CA=root_ca
   elif [ "$CN" == "WInnForum CBSD CA-1 - Revoked" ]; then
-      CA=revoked_cbsd_ca
+    CA=revoked_cbsd_ca
   elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Revoked" ]; then
-      CA=revoked_proxy_ca
+    CA=revoked_proxy_ca
   elif [ "$CN" == "WInnForum RSA SAS CA-1 - Revoked" ]; then
-      CA=revoked_sas_ca
+    CA=revoked_sas_ca
   else
-      echo "Unknown issuer CN=$CN for certificate $1"
-      exit -1
-   fi
+    echo "Unknown issuer CN=$CN for certificate $1"
+    exit -1
+  fi
   # Revoke certificate.
   openssl ca -revoke $1 -keyfile private/$CA.key -cert $CA.cert \
       -config ../../../cert/openssl.cnf
