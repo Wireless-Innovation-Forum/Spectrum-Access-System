@@ -275,9 +275,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         response = self._sas.Registration(request, ssl_cert=client_cert,
                                           ssl_key=client_key)['registrationResponse']
       except HTTPError as e:
-        logging.debug("TLS session established, expecting HTTP error 403; received HTTP error %d", e.args[0])
+        logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
         self.assertEqual(e.error_code, 403)
-        self.assertEqual(e.message, 'http_error')
       else:
         self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
 
