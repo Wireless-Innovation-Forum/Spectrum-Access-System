@@ -33,8 +33,8 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FPR.5."""
 
     # Load FSS station operating at range 3600 - 3700 MHz.
-    fss = json.load(
-        open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_data = json.load(open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss = fss_data['record']
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
         ['lowFrequency'] = 3600000000
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
@@ -109,7 +109,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       'conditionalRegistrationData': conditionals,
       'grantRequests': [grant_1, grant_2, grant_3],
       'gwblRecord': gwbl,
-      'fssRecord': fss
+      'fssRecord': fss_data
     }
     writeConfig(filename, config)
 
@@ -123,7 +123,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
 
     # Load the FSS
-    self._sas_admin.InjectFss({'record': config['fssRecord']})
+    self._sas_admin.InjectFss(config['fssRecord'])
 
     # Load the GWBL
     self._sas_admin.InjectWisp(config['gwblRecord'])
@@ -132,12 +132,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
 
     # Register N > 0 CBSDs
-    # Check registration response
-    # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
-      cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
-    else:
-      cbsd_ids = self.assertRegistered(config['registrationRequests'])
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
 
     # Add cbsdIds to grants
     grant_request = config['grantRequests']
