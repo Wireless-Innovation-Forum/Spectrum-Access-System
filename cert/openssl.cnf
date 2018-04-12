@@ -94,7 +94,7 @@ commonName				= supplied
 [ req ]
 default_bits			= 2048
 distinguished_name		= req_distinguished_name
-x509_extensions			= v3_ca	
+x509_extensions			= v3_ca
 string_mask 			= utf8only
 default_md				= sha384
 
@@ -136,7 +136,7 @@ URI.0 = http://localhost:9007/ca.crl
 
 ####################################################################
 #Not used yet
-[ ocsp_section ] 
+[ ocsp_section ]
 
 caIssuers;URI.0 = http://cacerts.digicert.com/WinnForumCA.crt
 OCSP;URI.0 = http://ocsp.digicert.com
@@ -312,7 +312,7 @@ certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
 policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
 
- 
+
 ####################################################################
 [ sas_req ]
 
@@ -326,7 +326,7 @@ crlDistributionPoints=@crl_section
 
 policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
- 
+
 [ sas_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -458,7 +458,7 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_PAL
 #ZONE = ASN1:UTF8String:
-#FREQUENCY = 
+#FREQUENCY =
 
 [ cps ]
 
@@ -474,13 +474,13 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_PAL
 #ZONE = ASN1:UTF8String:
-#FREQUENCY = 
+#FREQUENCY =
 
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
- 
+
 ####################################################################
 [ cbsd_req ]
 
@@ -530,7 +530,7 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_SAS
 ####################################################################
- 
+
 [ cbsd_oem_req ]
 
 subjectKeyIdentifier = hash
@@ -559,7 +559,7 @@ certificatePolicies=@cps,ROLE_CBSD
 
 policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
- 
+
 ####################################################################
 [ crl_ext ]
 

@@ -267,6 +267,31 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
 
+  def generate_SDS_16_default_config(self, filename):
+    """Generate the WinnForum configuration for SDS_16."""
+    # Create the configuration for domain proxy cert/key path.
+
+    config = {
+        'domainProxyCert': self.getCertFilename("domain_proxy_cert_from_revoked_ca.cert"),
+        'domainProxyKey': self.getCertFilename("domain_proxy_cert_from_revoked_ca.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SDS_16_default_config)
+  def test_WINNF_FT_S_SDS_16(self, config_filename):
+    """Certificate signed by a revoked CA presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    # Tls handshake fails since CA is revoked
+    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
+                                   client_key=config['domainProxyKey'])
+
+    logging.info("TLS handshake failed as the CA certificate has been revoked")
+
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_17(self):
     """Invalid certificate following an approved registration request.
