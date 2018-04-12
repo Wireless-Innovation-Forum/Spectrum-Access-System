@@ -13,16 +13,15 @@
 #    limitations under the License.
 
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-from full_activity_dump_integration_test import FullActivityDumpIntegrationTest
 from functools import partial
 import json
 import os
 import sas
 import sas_testcase
-import sas_objects
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 import time    
+import test_harness_objects
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
   loadConfig, makePpaAndPalRecordsConsistent
 
@@ -104,7 +103,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'measCapability': device_8['measCapability']
     }
 
-    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_4, conditionals_device_8]}
+    conditionals = [conditionals_device_2, conditionals_device_4, conditionals_device_8]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -311,7 +310,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
        to 3700 MHz to protect configurable IAP-protected entities and DPAs
     """
     config = loadConfig(config_filename)
-    test_type = "MCP"
+    test_type = 'MCP'
     # Invoke MCP test steps
     self.executeMcpTestSteps(config, test_type)
 
@@ -330,9 +329,16 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     sas_uut_cert = os.path.join('certs/sas.cert')
     sas_uut_key = os.path.join('certs/sas.key')
 
-    for index in range(len(config['domainProxyConfigs'])):
-      domain_proxy_objects.append(sas_objects.DomainProxy(config['domainProxyConfigs'][index]['cert'], \
-                                                            config['domainProxyConfigs'][index]['key'], self))
+    # Load conditionals
+    if config['conditionalRegistrationData']:
+      self._sas_admin.PreloadRegistrationData({
+          'registrationData': config['conditionalRegistrationData']
+      })
+
+    for domain_proxy in config['domainProxyConfigs']:
+      domain_proxy_objects.append(test_harness_objects.DomainProxy(domain_proxy['cert'],\
+                                                                   domain_proxy['key'],
+                                                                   self))
     # Step 1 : Load DPAs
     self._sas_admin.TriggerLoadDpas()
 
@@ -340,22 +346,23 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
 
     # Step 3 : creates multiple SAS TH, and Load predefined FAD,CBSD
-    for index, test_harness in enumerate(config['sasTestHarnessConfigs']):
+    for test_harness in config['sasTestHarnessConfigs']:
       # Initialize SAS Test Harness Server instance to dump FAD records
-      sas_test_harness_objects.append(SasTestHarnessServer(test_harness['sasTestHarnessName'],
+      sas_test_harness_object = SasTestHarnessServer(test_harness['sasTestHarnessName'],
                                                            test_harness['hostName'],
                                                            test_harness['port'],
                                                            test_harness['serverCert'],
                                                            test_harness['serverKey'],
-                                                           test_harness['caCert']))
+                                                           test_harness['caCert'])
       # Start the server
-      sas_test_harness_objects[index].start()
+      sas_test_harness_object.start()
 
       # informing SAS UUT about SAS Test Harnesses
       certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
       self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                     'url': sas_test_harness_objects[index].getBaseUrl()})
-
+                                     'url': sas_test_harness_object.getBaseUrl()})
+      sas_test_harness_objects.append(sas_test_harness_object)
+   
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
       protected_entity_records = iteration_content['protectedEntities']
@@ -378,18 +385,12 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
       if len(iteration_content['sasTestHarnessData']) > 0:
         fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                   self._sas_admin,
-                                                   sas_uut_cert,
-                                                   sas_uut_key)
+                                                   self._sas_admin)
 
-        # Pull FAD from SAS Test Harnesses and FAD objects are created for each SAS Test Harnesses
-        for index, test_harness in enumerate(sas_test_harness_objects):
+        # Pull FAD from SAS Test Harnesses and fad objects are created for each SAS Test Harnesses
+        for test_harness in sas_test_harness_objects:
           fad_test_harnesses_objects.append(getFullActivityDumpSasTestHarness(
-                                  test_harness.getSasTestHarnessInterface(),
-                                  config['sasTestHarnessConfigs'][index]['serverCert'],
-                                  config['sasTestHarnessConfigs'][index]['serverKey']
-                              )
-          )
+                                             test_harness.getSasTestHarnessInterface()))
 
       # Step 8 : Trigger CPAS and wait until completion
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -404,15 +405,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
       # Use DP objects to get CBSD registered
       for domain_proxy_object in domain_proxy_objects:
-        for index, cbsdRequestsWithDomainProxys in enumerate(iteration_content['cbsdRequestsWithDomainProxies']):
-          registration_requests = cbsdRequestsWithDomainProxys['registrationRequests']
-          grant_requests = cbsdRequestsWithDomainProxys['grantRequests']
+        for cbsdRequestsWithDomainProxy in iteration_content['cbsdRequestsWithDomainProxies']:
+          registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
+          grant_requests = cbsdRequestsWithDomainProxy['grantRequests']
 
           # domain_proxy_object.initialize triggers the registration and grant for the records passes as parameters
-          domain_proxy_object.initialize(registration_requests, grant_requests)
+          domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
 
           # Step 11 : Send heartbeat request
-          domain_proxy_object.heartbeatRequestForAllGrants()
+          domain_proxy_object.heartbeatForAllActiveGrants()
 
           # Get the list of CBSDs
           cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
@@ -421,7 +422,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       for cbsd_record in iteration_content['cbsdRecords']:
         cbsd_ids, grant_ids = self.assertRegisteredAndGranted([cbsd_record['registrationRequest']],
                                                               [cbsd_record['grantRequest']])
-        cbsd_agg_list.append(cbsd_ids)
+        #cbsd_agg_list.append(cbsd_ids)
 
       # Step 12 : Invoke Aggregate Interference Model
       # TODO: To invoke Aggregate Interference Model
@@ -430,15 +431,13 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # TODO: To invoke checkMcpIap method
 
       # Step 13 : Configure SAS Harness with FAD,trigger FAD generation
-      for index, test_harness in enumerate(sas_test_harness_objects):
-        sas_test_harness_dump_records = [iteration_content['sasTestHarnessData'][index]['cbsdRecords']]
+      for test_harness, test_harness_data in zip(sas_test_harness_objects, iteration_content['sasTestHarnessData']):
+        sas_test_harness_dump_records = [test_harness_data['cbsdRecords']]
         test_harness.writeFadRecords(sas_test_harness_dump_records)
 
       # Step 14,15 : Trigger Full Activty Dump and Pull FAD records from SAS UUT
       fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                 self._sas_admin,
-                                                 sas_uut_cert,
-                                                 sas_uut_key)
+                                                 self._sas_admin)
 
       # Step 16 : Trigger CPAS and wait for its completion
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -502,9 +501,9 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         # check MCP.1 DPA
         # TODO: need to invoke the DPA checkperformHeartbeatAndUpdateGrants
 
-      for test_harness in sas_test_harness_objects:
-        test_harness.shutdown()
-        del test_harness
+    for test_harness in sas_test_harness_objects:
+      test_harness.shutdown()
+      del test_harness
 
   def checkMcpIap(self, protected_entity, agg_interference_list, iap_refmodel_margin_list, delta_iap):
     """Calculating IAP for each FSS and ESC sensor protection point,
