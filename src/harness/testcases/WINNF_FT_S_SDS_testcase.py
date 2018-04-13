@@ -98,8 +98,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
   def generate_SDS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_7"""
@@ -118,8 +118,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
   def generate_SDS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_8"""
@@ -138,8 +138,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
   def generate_SDS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_9"""
@@ -158,8 +158,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
   def generate_SDS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SDS_10. """
@@ -212,8 +212,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_13(self):
@@ -221,7 +221,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(DOMAIN_PROXY_CERT, DOMAIN_PROXY_KEY, ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailureOrHttp403(DOMAIN_PROXY_CERT, DOMAIN_PROXY_KEY, ssl_method=SSL.TLSv1_1_METHOD)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SDS_14(self):
@@ -229,7 +229,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(DOMAIN_PROXY_CERT, DOMAIN_PROXY_KEY, ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeFailureOrHttp403(DOMAIN_PROXY_CERT, DOMAIN_PROXY_KEY, ciphers='ECDHE-RSA-AES256-GCM-SHA384')
 
   def generate_SDS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SDS.15 """
@@ -332,7 +332,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
     logging.info("TLS handshake failed as the domain proxy certificate is invalid")
 
   @winnforum_testcase
@@ -378,7 +378,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
     logging.info("TLS handshake failed as the domain proxy certificate is invalid")
 
   @winnforum_testcase
@@ -430,5 +430,5 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Verify TLS handshake fails.
     logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
-    self.assertTlsHandshakeFailure(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=domain_proxy_cert, client_key=domain_proxy_key)
     logging.info("TLS handshake failed as the domain proxy certificate is invalid")
