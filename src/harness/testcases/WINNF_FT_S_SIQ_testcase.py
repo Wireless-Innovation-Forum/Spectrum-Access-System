@@ -453,8 +453,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
     # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
-    self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 104)
+    self.assertTrue(response['response']['responseCode'] == 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_8(self):
