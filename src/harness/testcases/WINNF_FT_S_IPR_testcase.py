@@ -19,6 +19,7 @@ import time
 
 import sas
 import sas_testcase
+import time
 
 from util import buildDpaActivationMessage, configurable_testcase, writeConfig, loadConfig, getCertificateFingerprint
 from test_harness_objects import DomainProxy
@@ -26,6 +27,8 @@ from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFull
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 from reference_models.dpa import dpa_mgr
 from reference_models.common import data
+from common_types import ResponseCodes
+from datetime import datetime, timedelta
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
@@ -605,3 +608,243 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin']))
+
+  def generate_IPR_3_default_config(self, filename):
+    """Generates the WinnForum configuration for IPR_3"""
+
+    # Load Device in DPA neighborhood.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['installationParam']['latitude'] = 30.71570
+    device_a['installationParam']['longitude'] = -88.09350
+    # Pre-load conditionals and remove reg conditional fields from registration
+    # request.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_a = {key: device_a[key] for key in conditional_keys}
+    device_a = {
+        key: device_a[key]
+        for key in device_a
+        if key not in reg_conditional_keys
+    }
+
+    # Load grant request.
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    frequency_range = grant_a['operationParam']['operationFrequencyRange']
+    dpa_1 = {
+        'dpaId': 'east_dpa_4',
+        'frequencyRange': {
+            'lowFrequency': frequency_range['lowFrequency'],
+            'highFrequency': frequency_range['highFrequency']
+        }
+    }
+
+    config = {
+        'registrationRequest': device_a,
+        'grantRequest': grant_a,
+        'conditionalRegistrationData': conditionals_a,
+        'dpa': dpa_1
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_IPR_3_default_config)
+  def test_WINNF_FT_S_IPR_3(self, config_filename):
+    """CBSD Grant Request in the Neighborhood of an Activated Offshore DPA."""
+    config = loadConfig(config_filename)
+    self.assertValidConfig(
+        config, {
+            'registrationRequest': dict,
+            'grantRequest': dict,
+            'conditionalRegistrationData': dict,
+            'dpa': dict
+        })
+    self.assertTrue(config['dpa']['frequencyRange']['lowFrequency'] < config['dpa']['frequencyRange']['highFrequency'])
+    self.assertTrue(config['dpa']['frequencyRange']['highFrequency'] <= 3650000000)
+    self.GrantRequestInActiveDpaNeighborhood(config)
+
+  def generate_IPR_4_default_config(self, filename):
+    """Generates the WinnForum configuration for IPR_4"""
+
+    # Load Device.
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    # Move the CBSD to be nearby the St. Inigoes site.
+    device_b['installationParam']['latitude'] = 38.200465
+    device_b['installationParam']['longitude'] = -76.409756
+    # Pre-load conditionals and remove reg conditional fields from registration
+    # request.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_b = {key: device_b[key] for key in conditional_keys}
+    device_b = {
+        key: device_b[key]
+        for key in device_b
+        if key not in reg_conditional_keys
+    }
+
+    # Load grant request.
+    grant_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    config = {
+        'registrationRequest': device_b,
+        'grantRequest': grant_b,
+        'conditionalRegistrationData': conditionals_b
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_IPR_4_default_config)
+  def test_WINNF_FT_S_IPR_4(self, config_filename):
+    """CBSD Grant Request in the Neighborhood of an Activated Inland Co-channel DPA."""
+    config = loadConfig(config_filename)
+    self.assertValidConfig(
+        config, {
+            'registrationRequest': dict,
+            'grantRequest': dict,
+            'conditionalRegistrationData': dict,
+        })
+    self.GrantRequestInActiveDpaNeighborhood(config)
+
+  def GrantRequestInActiveDpaNeighborhood(self, config):
+    # SAS UUT loads DPAs and is informed they are all inactive.
+    self._sas_admin.TriggerLoadDpas()
+    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
+
+    # Only inform SAS UUT of DPA activation in IPR.3, in IPR.4 all the
+    # relevant DPAs are always active.
+    if 'dpa' in config:
+      # Inform the SAS UUT that the given DPA is active.
+      self._sas_admin.TriggerDpaActivation(config['dpa'])
+    # Wait till SAS UUT must not authorize grants.
+    time.sleep(240)
+    # Register CBSD in the active DPAs neighborhood.
+    grant_request = config['grantRequest']
+    grant_request['cbsdId'] = self.assertRegistered([config['registrationRequest']], conditional_registration_data=[config['conditionalRegistrationData']])[0]
+    # Request grant for the CBSD.
+    grant_response = self._sas.Grant({'grantRequest': [grant_request]})['grantResponse'][0]
+    # It is only necessary to heartbeat if the initial grant request succeeds.
+    if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+      # Heartbeat grant and check the CBSD is not authorized.
+      heartbeat_request = {'cbsdId': grant_request['cbsdId'], 'grantId': grant_response['grantId'], 'operationState': 'GRANTED'}
+      heartbeat_response = self._sas.Heartbeat({'heartbeatRequest': [heartbeat_request]})['heartbeatResponse'][0]
+      self.assertNotEqual(heartbeat_response['response']['responseCode'], ResponseCodes.SUCCESS.value)
+
+  def generate_IPR_5_default_config(self, filename):
+    """Generates the WinnForum configuration for IPR_5"""
+
+     # Load Device in DPA neighborhood.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['installationParam']['latitude'] = 30.71570
+    device_a['installationParam']['longitude'] = -88.09350
+    # Pre-load conditionals and remove reg conditional fields from registration
+    # request.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_a = {key: device_a[key] for key in conditional_keys}
+    device_a = {
+        key: device_a[key]
+        for key in device_a
+        if key not in reg_conditional_keys
+    }
+
+    # Load grant request.
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    frequency_range = grant_a['operationParam']['operationFrequencyRange']
+    dpa_1 = {
+        'dpaId': 'east_dpa_4',
+        'frequencyRange': {
+            'lowFrequency': frequency_range['lowFrequency'],
+            'highFrequency': frequency_range['highFrequency']
+        }
+    }
+
+    domain_proxy = {
+        'registrationRequests': [device_a],
+        'grantRequests': [grant_a],
+        'conditionalRegistrationData': [conditionals_a],
+        'sslCert': 'domain_proxy.cert',
+        'sslKey': 'domain_proxy.key'
+    }
+
+    config = {
+        'domainProxies': [domain_proxy],
+        'dpa': dpa_1,
+        'pauseTime': 10,
+        'iterations': 10
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_IPR_5_default_config)
+  def test_WINNF_FT_S_IPR_5(self, config_filename):
+    """CBSD Grant Requests in the Neighborhood of Inactive DPAs followed by DPA Activation ."""
+    config = loadConfig(config_filename)
+    self.assertValidConfig(
+        config, {
+            'domainProxies': list,
+            'dpa': dict,
+            'pauseTime': int,
+            'iterations': int
+        })
+    self.assertTrue(config['dpa']['frequencyRange']['lowFrequency'] < config['dpa']['frequencyRange']['highFrequency'])
+    self.assertTrue(config['dpa']['frequencyRange']['highFrequency'] <= 3650000000)
+
+    # SAS UUT loads DPAs and is informed all fully monitored DPAs are inactive.
+    self._sas_admin.TriggerLoadDpas()
+    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
+    # Trigger CPAS.
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Create Domain Proxies and register CBSDs with SAS UUT.
+    domain_proxies = []
+    for domain_proxy_config in config['domainProxies']:
+      domain_proxy = DomainProxy(self)
+      domain_proxy.registerCbsdsAndRequestGrants(
+          domain_proxy_config['registrationRequests'],
+          domain_proxy_config['grantRequests'],
+          ssl_cert=domain_proxy_config['sslCert'],
+          ssl_key=domain_proxy_config['sslKey'],
+          conditional_registration_data=domain_proxy_config['conditionalRegistrationData'])
+      domain_proxies.append(domain_proxy)
+
+    # Heartbeat each grant and check the timestamp is within the allowed range.
+    for domain_proxy in domain_proxies:
+      _, heartbeat_responses = domain_proxy.heartbeatForAllActiveGrants()
+      t_now = datetime.utcnow()
+      for response in heartbeat_responses:
+        transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+        if response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+          self.assertTrue(transmit_expire_time <= t_now + timedelta(seconds=240))
+
+    # Inform the SAS UUT that the given DPA is active.
+    self._sas_admin.TriggerDpaActivation(config['dpa'])
+    t_esc = datetime.utcnow()
+
+    # Check heartbeat expiration time is valid
+    for _ in range(config['iterations']):
+      for domain_proxy in domain_proxies:
+        _, heartbeat_responses = domain_proxy.heartbeatForAllActiveGrants()
+        for response in heartbeat_responses:
+          transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
+          if response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+            self.assertTrue(transmit_expire_time <= t_esc + timedelta(seconds=240))
+      time.sleep(config['pauseTime'])
