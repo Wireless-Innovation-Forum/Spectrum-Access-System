@@ -47,8 +47,7 @@ def zonePurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
       atleast one GWBL within 150KMs.
   """
   # Get the list of all CBSDs from the FAD objects of UUT and test harness
-  cbsds = []
-  cbsds.extend(sas_uut_fad.getCbsdRecords())
+  cbsds = sas_uut_fad.getCbsdRecords()
   for fad in sas_test_harness_fads:
     cbsds.extend(fad.getCbsdRecords()) 
 

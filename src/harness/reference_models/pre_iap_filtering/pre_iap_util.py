@@ -28,8 +28,6 @@ def purgeOverlappingGrants(cbsds, frequency_range):
   frequency_range: A dictionary with keys 'lowFrequency' and 'highFrequency'
   """
   for cbsd in cbsds:
-    if not cbsd['grants']:
-      continue
     cbsd['grants'] = [grant for grant in cbsd['grants']
                             if not checkForOverlappingGrants(grant, frequency_range)]
 
@@ -68,12 +66,14 @@ def getCbsdsWithinPolygon(cbsds, polygon):
   cbsds_within_polygon = []
   polygon = utils.ToShapely(polygon['features'][0]['geometry'])
   for cbsd in cbsds:
+    if not cbsd['grants']:
+      continue
     cbsd_lat = cbsd['registrationRequest']['installationParam']['latitude']
     cbsd_long = cbsd['registrationRequest']['installationParam']['longitude']
-    point = sgeo.Point(cbsd_lat, cbsd_long)
+    point = sgeo.Point(cbsd_long, cbsd_lat)
 
     # If the CBSD is within the polygon and has grants then add it to the list
-    if (polygon.contains(point) or polygon.touches(point)) and cbsd['grants']:
+    if (polygon.contains(point) or polygon.touches(point)):
       cbsds_within_polygon.append(cbsd)
   return cbsds_within_polygon
 
@@ -121,12 +121,12 @@ def getFssNeighboringCbsdsWithGrants(cbsds, fss_record, distance):
   Args:
     cbsds :  List of CbsdData dictionaries as defined in the SAS-SAS specification.
     fss_record: A FSS record dictionary.
-  Returns:
-    List of CBSDs lying within 150 KMs of FSS and having at least one grant.
   """
 
   neighboring_cbsds_with_grants = []
   for cbsd in cbsds:
+    if not cbsd['grants']:
+      continue
     distance_km, _, _ = vincenty.GeodesicDistanceBearing(
         fss_record['record']['deploymentParam'][0]['installationParam']['latitude'],
         fss_record['record']['deploymentParam'][0]['installationParam']['longitude'],
@@ -139,18 +139,18 @@ def getFssNeighboringCbsdsWithGrants(cbsds, fss_record, distance):
 
 
 def getFssNeighboringGwbl(gwbl_records, fss_records): 
-  """Get the list of all fss that lie within 150 KMs of GWBL and operating below 3700 MHz
-
+  """Returns the list of all FSS within 150km of GWBL and operating below 3700MHz.
   Args:
     fss_records:  List of FSS records dictionary.
     gwbl_records: List of GWBL record dictionary.
-  Returns:
-    List of FSSs lying within 150 KMs of GWBL and operating below 3700000000.
   """
 
   list_of_fss_neighboring_gwbl = []
   for fss_record in fss_records:
     for gwbl_record in gwbl_records:
+      if (fss_record['record']['deploymentParam'][0]
+           ['operationParam']['operationFrequencyRange']['highFrequency'] >= 3700000000):
+        continue
       # Get the distance of the FSS entity from the GWBL polygon
       distance_km, _, _ = vincenty.GeodesicDistanceBearing(
           fss_record['record']['deploymentParam'][0]['installationParam']['latitude'],
@@ -158,8 +158,7 @@ def getFssNeighboringGwbl(gwbl_records, fss_records):
           gwbl_record['record']['deploymentParam'][0]['installationParam']['latitude'],
           gwbl_record['record']['deploymentParam'][0]['installationParam']['longitude']) 
       # Get the list of FSS entity that are 150kms from the GWBL area
-      if distance_km <= FSS_GWBL_PROTECTION_DISTANCE and fss_record['record']['deploymentParam'][0]\
-             ['operationParam']['operationFrequencyRange']['highFrequency'] < 3700000000:
+      if distance_km <= FSS_GWBL_PROTECTION_DISTANCE:
         list_of_fss_neighboring_gwbl.append(fss_record)
         break
   return list_of_fss_neighboring_gwbl
