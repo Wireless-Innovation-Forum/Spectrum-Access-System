@@ -287,8 +287,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
 
     # Tls handshake fails since CA is revoked
-    self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
+                                            client_key=config['domainProxyKey'])
 
     logging.info("TLS handshake failed as the CA certificate has been revoked")
 
