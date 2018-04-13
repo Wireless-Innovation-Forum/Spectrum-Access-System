@@ -43,7 +43,7 @@ def getSasUutClaimedPpaBoundaryFilePath(config_filename):
   ppa_zone_data_dir_path = os.path.join('testcases', 'output',
                                         'test_WINNF_FT_S_PCR_1')
   ppa_zone_data_file_name = 'sas_uut_claimed_ppa_boundary_' + \
-                            config_filename.split('/')[-1] + '.jsons'
+                            config_filename.split('/')[-1] + '.json'
   ppa_zone_data_file_path = os.path.join(ppa_zone_data_dir_path,
                                          ppa_zone_data_file_name)
   return ppa_zone_data_file_path
