@@ -120,5 +120,5 @@ def _Request(url, request, config, is_post_method):
 
 class HTTPError(Exception):
   def __init__(self, error_code):
-    self.error_code  = error_code
-    super(HTTPError, self).__init__( error_code)
+    self.error_code = error_code
+    super(HTTPError, self).__init__(error_code)
