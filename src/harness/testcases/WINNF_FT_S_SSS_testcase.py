@@ -219,7 +219,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
          trigger_succeed = True
       except HTTPError as e:
          # Check if HTTP status is 403
-         self.assertEqual(e.args[0], 403)
+         self.assertEqual(e.error_code, 403)
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_12_default_config(self, filename):
@@ -338,7 +338,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
        trigger_succeed = True
     except HTTPError as e:
        # Check if HTTP status is 403
-       self.assertEqual(e.args[0], 403)
+       self.assertEqual(e.error_code, 403)
     self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_16_default_config(self, filename):
@@ -441,10 +441,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
                                      client_key=config['invalidCertKeyPair']['key'])
     except AssertionError as e:
       try:
-        downloadFile = self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
+        self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
                                                 config['invalidCertKeyPair']['key'])
       except HTTPError as e:
-        # Check if HTTP status is 401
-        self.assertEqual(e.args[0], 401)
+        self.assertEqual(e.error_code, 403)
       else:
         self.fail("FAD record file download should have failed")

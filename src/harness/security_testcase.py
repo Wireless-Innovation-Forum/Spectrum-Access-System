@@ -264,7 +264,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         given |client_cert|. If 'None' the default CBSD key file will be used.
       ciphers: optional cipher method
       ssl_method: optional ssl_method
-      is_sas: boolean to determinate next request
+      is_sas: boolean to determine next request
     """
     try:
       self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
@@ -276,8 +276,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
           device_a = json.load(
             open(os.path.join('testcases', 'testdata', 'device_a.json')))
           request = {'registrationRequest': [device_a]}
-          response = self._sas.Registration(request, ssl_cert=client_cert,
-                                            ssl_key=client_key)['registrationResponse']
+          self._sas.Registration(request, ssl_cert=client_cert, ssl_key=client_key)
       except HTTPError as e:
         logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
         self.assertEqual(e.error_code, 403)
