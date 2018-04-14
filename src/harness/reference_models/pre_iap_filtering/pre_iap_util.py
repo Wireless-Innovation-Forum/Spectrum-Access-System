@@ -73,6 +73,7 @@ def getCbsdsWithinPolygon(cbsds, polygon):
     point = sgeo.Point(cbsd_long, cbsd_lat)
 
     # If the CBSD is within the polygon and has grants then add it to the list
+    # TODO: check the need for touches() check
     if (polygon.contains(point) or polygon.touches(point)):
       cbsds_within_polygon.append(cbsd)
   return cbsds_within_polygon
