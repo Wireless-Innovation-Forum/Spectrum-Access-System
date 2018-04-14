@@ -12,31 +12,40 @@ WINNF-15-S-0065" document. Naming and base configuration are issued from
 https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/cert
 
 ```
-                  -------------root_ca --------------------------------------                
-                 /                   \         				     \                 
-                /                     \         			      \            
-          sas_ca--------              cbsd_ca   			   proxy_ca
-          /    \        \                \              	  		\
-         /      \        \                \              	  		 \
-   admin_client  server  sas     client|device_[a|c]|corrupted_client        domain_proxy
-		          |       wrong_type_client|client_expired           corrupted_domain_proxy
-                   corrupted_sas  client_inapplicable                        wrong_type_domain_proxy
-                   sas_expired                                               domain_proxy_expired
-                                                                             domain_proxy_inapplicable
+             ------------------root_ca ------------------
+            /                     |                      \
+           /                      |                       \
+       sas_ca--------          cbsd_ca                  proxy_ca
+       /    \        \            |                         \
+      /      \        \           |                          \
+admin_client sas    server     client                   domain_proxy
+              |                corrupted_client         corrupted_domain_proxy
+          corrupted_sas        wrong_type_client        wrong_type_domain_proxy
+          sas_expired          client_expired           domain_proxy_expired
+          blacklisted_sas      client_inapplicable      domain_proxy_inapplicable
+                               blacklisted_client       blacklisted_domain_proxy
 
-                  -------------root_ca (same as above, separate graph for the clarity)--------------------
-                 /                    \                            \
-                /                      \                            \
-       revoked_sas_ca              revoked_cbsd_ca                revoked_proxy_ca
-                \                        \                                   \
-                 \                        \                                   \
-         sas_cert_from_revoked_ca      client_cert_from_revoked_ca          domain_proxy_cert_from_revoked_ca
+
+           --------root_ca (same as above, continued)---------
+          /                       |                           \
+         /                        |                            \
+  revoked_sas_ca           revoked_cbsd_ca                revoked_proxy_ca
+        |                         |                              \
+        |                         |                               \
+sas_cert_from_revoked_ca  client_cert_from_revoked_ca  domain_proxy_cert_from_revoked_ca
  
-unrecognized_ca             non_cbrs_root_ca----------------------------------------------
-         |                     |                                 \	                  \
-unrecognized_device|        non_cbrs_root_signed_cbsd_ca   non_cbrs_root_signed_sas_ca  non_cbrs_root_signed_oper_ca
-unrecognized_sas               |                                  |                        |
-unrecognized_domain_proxy   non_cbrs_signed_device         non_cbrs_root_signed_sas     non_cbrs_signed_domain_proxy
+            ------------------non_cbrs_root_ca----------------------
+           /                          |                             \
+non_cbrs_root_signed_cbsd_ca   non_cbrs_root_signed_sas_ca  non_cbrs_root_signed_oper_ca
+          |                           |                              |
+non_cbrs_signed_device         non_cbrs_root_signed_sas     non_cbrs_signed_domain_proxy
+
+
+                             unrecognized_ca
+                                   |
+                          unrecognized_device
+                          unrecognized_sas
+                          unrecognized_domain_proxy
 ```
 
 Refer to the `generate_fake_certs.py` script and `../../cert/openssl.cnf` file
@@ -119,6 +128,9 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
 * `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.
   
+* `blacklisted_client.[cert|key]`: A leaf CBSD device certificate that is blacklisted using CRL. 
+  Used on security test test_WINNF_FT_S_SCS_11.
+  
 * `client_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.
 
@@ -134,6 +146,9 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
 
 * `wrong_type_domain_proxy.cert`: domain_proxy certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SDS_10.
+  
+* `blacklisted_domain_proxy.[cert|key]`: A leaf domain proxy certificate that is blacklisted using CRL. 
+  Used on security test test_WINNF_FT_S_SDS_11.
   
 * `domain_proxy_expired.[cert|key]`: domain_proxy device expired certificate
   Used on security test test_WINNF_FT_S_SDS_12.
@@ -162,6 +177,9 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
 * `non_cbrs_signed_sas.[cert|key]`: leaf SAS certificate signed by
   `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SSS_9.
+  
+* `blacklisted_sas.[cert|key]`: A leaf SAS certificate that is blacklisted using CRL.
+  Used on security test test_WINNF_FT_S_SSS_11.
 
 * `sas_expired.[cert|key]`: leaf SAS expired certificate
   Used on security test test_WINNF_FT_S_SSS_12.

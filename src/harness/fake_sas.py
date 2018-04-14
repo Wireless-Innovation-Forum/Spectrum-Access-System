@@ -291,6 +291,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
     return computePropagationAntennaModel(request)
 
+  def GetDailyActivitiesStatus(self):
+    return {'completed': True}
+
   def GetPpaCreationStatus(self):
     return {'completed': True, 'withError': False}
 
