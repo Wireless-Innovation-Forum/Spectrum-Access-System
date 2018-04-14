@@ -36,7 +36,7 @@ def HasCorrectGeoJsonWinding(geometry):
   Raises:
     ValueError: If invalid input or GeoJSON geometry type.
   """
-  if isinstance(geometry, str):
+  if isinstance(geometry, basestring):
     geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
@@ -85,7 +85,7 @@ def InsureGeoJsonWinding(geometry):
     return geometry
 
   is_str = False
-  if isinstance(geometry, str):
+  if isinstance(geometry, basestring):
     geometry = json.loads(geometry)
     is_str = True
   if not isinstance(geometry, dict) or 'type' not in geometry:
@@ -130,7 +130,7 @@ def _GeoJsonToShapelyGeometry(geometry):
   Raises:
     ValueError: If invalid GeoJSON geometry is passed.
   """
-  if isinstance(geometry, str):
+  if isinstance(geometry, basestring):
     geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')

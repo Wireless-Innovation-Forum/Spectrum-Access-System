@@ -17,11 +17,35 @@
 This DPA manager manages the move list and interference calculation for a DPA.
 DPA differs from other protection entities as the aggregated interference is
 computed at specific percentile of the combined interference random variable.
+
+Example usage:
+  # Create a DPA
+  # - either with a simple default protection points builder
+  dpa = BuildDpa('east_dpa_1', 'default (25,10,10,5)')
+  # - or from a geojson MultiPoint geometry file
+  dpa = BuildDpa('east_dpa_1', 'east_dpa_1_points.json')
+  # Set the grants
+  dpa.SetGrantsFromFad(sas_uut_fad, sas_th_fads)
+  # Compute the move list
+  dpa.ComputeMoveLists()
+
+  # Calculate the keep list interference for a given channel
+  channel = (3650, 3660)
+  interf_per_point = dpa.CalcKeepListInterference(channel)
+
+  # Check the interference according to Winnforum IPR tests
+  status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=2)
 """
+import ast
+from collections import namedtuple
 import functools
+import os
 
+import json
 import numpy as np
+import shapely.geometry as sgeo
 
+from reference_models.geo import utils
 from reference_models.geo import zones
 from reference_models.common import data
 from reference_models.common import mpool
@@ -55,10 +79,9 @@ class Dpa(object):
     beamwidth: The radar antenna beamwidth (degrees).
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north. UNUSED for now
-
     grants: The list of registered grants.
-    move_lists: A list of move list (list of |CbsdGrantInfo|) per channel.
-    keep_lists: A list of keep list (list of |CbsdGrantInfo|) per channel.
+    move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
+    keep_lists: A list of keep list (set of |CbsdGrantInfo|) per channel.
 
   Usage:
     # Setup the DPA
@@ -98,7 +121,7 @@ class Dpa(object):
                radar_height=50,
                beamwidth=3,
                azimuth_range=(0, 360),
-               freq_ranges_mhz=(3550, 3650)):
+               freq_ranges_mhz=[(3550, 3650)]):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
     self.threshold = threshold
@@ -375,3 +398,125 @@ def _CalcTestPointInterfDiff(point,
         num_iter=num_iter,
         beamwidth=beamwidth)
     return np.max(uut_interferences - th_interferences)
+
+
+# DPA builder routines
+ProtectionPoint = namedtuple('ProtectionPoint',
+                             ['latitude', 'longitude'])
+_dpa_zones = None
+_us_border = None
+
+def _DefaultProtectionPoints(name,
+                             num_pts_front_border=25,
+                             num_pts_back_border=10,
+                             num_pts_front_zone=10,
+                             num_pts_back_zone=5,
+                             front_us_border_buffer_km=40):
+  """Returns a default list of DPA protection points.
+
+  This creates a default set of points by regular sampling of the contour and gridding
+  the interior of the DPA zone. The contour and zone are separated in front and back,
+  using the US border (with a buffer) as the delimitation.
+
+  Args:
+    num_pts_front_border: number of points in the front border
+    num_pts_back_border: number of points in the back border
+    num_pts_front_zone: number of points in the front zone
+    num_pts_back_zone: number of points in the back zone
+    front_us_border_buffer_km: buffering of US border for delimiting front/back.
+  """
+  global _dpa_zones
+  global _us_border
+  if not _dpa_zones:
+    _dpa_zones = zones.GetDpaZones()
+  if not _us_border:
+    _us_border = zones.GetUsBorder()
+
+  dpa_zone = _dpa_zones[name]
+  # Case of DPA points
+  if isinstance(dpa_zone, sgeo.Point):
+    return [ProtectionPoint(longitude=dpa_zone.x,
+                            latitude=dpa_zone.y)]
+
+  us_border_ext = _us_border.buffer(front_us_border_buffer_km / 111.)
+  front_border = dpa_zone.exterior.intersection(us_border_ext)
+  back_border = dpa_zone.exterior.difference(us_border_ext)
+  front_zone = dpa_zone.intersection(us_border_ext)
+  back_zone = dpa_zone.difference(us_border_ext)
+
+  step_front_dpa_arcsec = np.sqrt(front_zone.area / num_pts_front_zone) * 3600.
+  step_back_dpa_arcsec = np.sqrt(back_zone.area / num_pts_back_zone) * 3600.
+  def SampleLine(line, num_points):
+    step = line.length / (num_points-1)
+    return [line.interpolate(dist) for dist in np.arange(0, line.length, step)]
+  return (
+      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
+       for pt in SampleLine(front_border, num_pts_front_border)] +
+      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
+       for pt in SampleLine(back_border, num_pts_back_border)] +
+      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
+       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)] +
+      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
+       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)])
+
+
+def BuildDpa(dpa_name, protection_points_method=None):
+  """Builds a DPA parameterized correctly.
+
+  The DPA special parameters are obtained from the DPA database.
+  The DPA protection points are generated either from a file, or using a provided default
+  method.
+
+  Args:
+    dpa_name: The DPA official name.
+    protection_points_method: Two methods are supported for getting the protection points:
+      + a path pointing to the file holding the protected points location defined as a
+        geojson MultiPoint or Point geometry. The path can be either absolute or relative
+        to the running script (normally the `harness/` directory).
+      + 'default <parameters>': a simple default method. Parameters is a tuple defining
+        the number of points to use for different part of the DPA:
+          num_pts_front_border: number of points in the front border
+          num_pts_back_border: number of points in the back border
+          num_pts_front_zone: number of points in the front zone
+          num_pts_back_zone: number of points in the back zone
+          front_us_border_buffer_km: buffering of US border for delimiting front/back.
+        Example of encoding:
+          'default (200,50,20,5)'
+          Note the default values are (25, 10, 10, 5, 40). Only the passed parameters will
+          be redefined.
+  Returns:
+    A Dpa object.
+  """
+  if not protection_points_method:
+    protection_points = _DefaultProtectionPoints(dpa_name)
+  elif protection_points_method.strip().lower().startswith('default'):
+    # extract optional parameters
+    params = protection_points_method.strip().lower()[len('defaults'):].strip()
+    params = ast.literal_eval(params)
+    protection_points = _DefaultProtectionPoints(dpa_name, *params)
+  else:
+    protection_points_file = protection_points_method
+    if not os.path.isfile(protection_points_file):
+      raise IOError('Protected point definition file for DPA `%s` not found at location: '
+                    '%s' % protection_points_file)
+    with open(protection_points_file, 'r') as fd:
+      mpoints = utils.ToShapely(json.load(fd))
+    if isinstance(mpoints, sgeo.Point):
+      mpoints = sgeo.MultiPoint([mpoints])
+    if not isinstance(mpoints, sgeo.MultiPoint):
+      raise ValueError('Protected point definition file for DPA `%s` not a valid MultiPoint'
+                       ' geoJSON file')
+    protection_points = [ProtectionPoint(longitude=pt.x, latitude=pt.y)
+                         for pt in mpoints]
+  # TODO(sbdt): read these parameters from the newest DPA databases once published.
+  protection_threshold = DPA_DEFAULT_THRESHOLD_PER_10MHZ
+  radar_height = 50
+  radar_beamwidth = 3
+  azimuth_range = (0, 360)
+  freq_ranges_mhz = [(3550, 3650)]
+  return Dpa(protection_points,
+             threshold=protection_threshold,
+             radar_height=radar_height,
+             beamwidth=radar_beamwidth,
+             azimuth_range=azimuth_range,
+             freq_ranges_mhz=freq_ranges_mhz)
