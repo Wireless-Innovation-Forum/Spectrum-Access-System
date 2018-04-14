@@ -22,10 +22,12 @@ Example usage:
   # Create a DPA
   # - either with a simple default protection points builder
   dpa = BuildDpa('east_dpa_1', 'default (25,10,10,5)')
-  # - or from a geojson MultiPoint geometry file
+  # - or from a GeoJson file holding a MultiPoint geometry
   dpa = BuildDpa('east_dpa_1', 'east_dpa_1_points.json')
+
   # Set the grants
   dpa.SetGrantsFromFad(sas_uut_fad, sas_th_fads)
+
   # Compute the move list
   dpa.ComputeMoveLists()
 
@@ -131,6 +133,18 @@ class Dpa(object):
     self.channels = GetDpaProtectedChannels(freq_ranges_mhz)
     self.grants = []
     self.ResetLists()
+
+  def ResetFreqRange(self, freq_ranges_mhz):
+    """Reset the frequency ranges of the DPA.
+
+    Args:
+      freq_ranges_mhz: The protection frequencies (MHz) as a list of tuple
+        (freq_min_mhz, freq_max_mhz) of the DPA protected frequency ranges.
+    """
+    channels = GetDpaProtectedChannels(freq_ranges_mhz)
+    if channels != self.channels:
+      self.ResetLists()
+    self.channels = channels
 
   def ResetLists(self):
     """Reset move list and keep list."""
@@ -486,6 +500,9 @@ def BuildDpa(dpa_name, protection_points_method=None):
           be redefined.
   Returns:
     A Dpa object.
+  Raises:
+    IOError: if the provided file cannot be found.
+    ValueError: if the provided file is not a valid GeoJSON MultiPoint geometry.
   """
   if not protection_points_method:
     protection_points = _DefaultProtectionPoints(dpa_name)
