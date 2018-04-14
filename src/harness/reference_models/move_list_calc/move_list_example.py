@@ -104,15 +104,15 @@ if __name__ == '__main__':
     for pm in placemarks:
         name = pm.name.text
         if name == 'East-Gulf Combined Contour':
-            # Get lat_long
+            # Get long_lat
             line = pm.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
             coords = line.split(' ')
-            lat_long = []
+            long_lat = []
             for c in coords:
                 if c.strip():
                     xy = c.strip().split(',')
-                    lat_long.append([float(xy[1]), float(xy[0])])
-                    exclusion_zone = lat_long
+                    long_lat.append([float(xy[0]), float(xy[1])])
+                    exclusion_zone = long_lat
             # Create an exclusion zone polygon object, if desired
             # exclusion_zone = SPolygon(exclusion_zone)
 

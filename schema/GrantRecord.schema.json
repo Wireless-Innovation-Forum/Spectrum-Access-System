@@ -1,0 +1,44 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+  	"description": "Describe the GrantData object",
+    "type": "object",
+  "required": [  
+    "id",
+    "channelType",
+    "grantExpireTime",
+    "operationParam",
+    "requestedOperationParam"
+  ],
+	"properties":{
+		"id":{
+			"type": "string",
+			"description": "A grant identifier unique to this grant and CBSD allowing peer SASs to identify the grant."
+		},
+		"terminated":{
+			"type": "boolean",
+			"description": "Indicates whether the grant is currently terminated or not." 
+		},
+		"operationParam":{
+			"type": "object",
+			"description": "When present, includes operation parameters of the successfully requested grant.",
+			"items":{
+				"$ref": "file:OperationParam.schema.json"
+			}
+		},
+		"requestedOperationParam":{
+			"type": "object",
+			"description": "Same as operationParam.If only this field is present (and not the operationParam field), there is no active grant associated with the request.",
+			"items":{
+				"$ref": "file:OperationParam.schema.json"
+			}
+		},
+		"channelType":{
+			"type": "string",
+			"description": "Either 'PAL' or 'GAA'."
+		},
+		"grantExpireTime":{
+			"type": "string",
+			"description": "Indicates the UTC time when the grant expires."
+		}
+	}
+}

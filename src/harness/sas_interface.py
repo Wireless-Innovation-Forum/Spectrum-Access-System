@@ -492,3 +492,14 @@ class SasAdminInterface(object):
     """
     pass
 
+  @abc.abstractmethod
+  def GetPpaCreationStatus(self):
+    """SAS admin interface to get the most recent PPA creation status
+    Returns:
+      A dictionary with a two key-value pairs where the keys are "completed" and
+      "withError". The values are of boolean type. The value for "completed" flag
+      set to True if the ppa creation(for the most recent ppa creation) has completed or
+      to False if the PPA creation is still in progress. The value for "withError" flag is
+      is set to True if the PPA creation has completed with error(s) else it is set to False.
+    """
+    pass

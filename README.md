@@ -93,6 +93,10 @@ JSON schema validation support.
 This Python library can be installed with <code>pip</code>. It provides
 support for the OpenSSL library for Python.
 
+* mock (https://pypi.python.org/pypi/mock)
+This Python library can be installed with <code>pip</code>. It provides
+support for creating testing mocks.
+
 
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,

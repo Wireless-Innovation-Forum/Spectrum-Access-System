@@ -33,8 +33,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 import jwt
-
 from shapely.geometry import shape, Point, LineString
+from reference_models.geo import utils
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -176,7 +176,7 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
       one year after the current date
     Returns:
       A list containing individual PAL records in the form of dictionary
-    Note: The PAL Dictionary must contain censusYear(number) and 
+    Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1) \
@@ -230,9 +230,9 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
       fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
 
     Returns:
-      A tuple containing PPA record which itself is a dictionary and PAL records 
+      A tuple containing PPA record which itself is a dictionary and PAL records
       list which contains individual PAL records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear(number) and 
+    Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1)
@@ -408,3 +408,59 @@ def filterChannelsByFrequencyRange(channels, freq_range):
       and
       channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
   ]
+
+def _orderAttributes(obj):
+  if isinstance(obj, dict):
+      return sorted((k, _orderAttributes(v)) for k, v in obj.items())
+  if isinstance(obj, list):
+      return sorted(_orderAttributes(x) for x in obj)
+  else:
+      return obj
+
+def compareDictWithUnorderedLists(first_dict, second_dict):
+  """ Deep comparison of two dictionaries
+
+  Args:
+    first_dict: first dictionary to be compared.
+    second_dict: second dictionary to be compared.
+ Returns: boolean set to true if the dictionaries are equal and false otherwise.
+  """
+  return _orderAttributes(first_dict) == _orderAttributes(second_dict)
+
+def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
+  """ Deep comparison of two PPAs considering
+
+  Args:
+    first_ppa: a dictionary contains  the firt PPA data.
+    second_ppa: a dictionary contains the second PPA data.
+    delta: an accepted margin for comparing the polygons of PPAs
+
+ Returns: boolean set to true if the PPAs are equal and false otherwise.
+ Note: the PPA should contain a key 'zone' holding a GeoJSON feature collection with first feature
+     defining the PPA zone as a polygon (or multipolygon) geometry
+  """
+  geometry_of_first_ppa = first_ppa['zone']['features'][0]['geometry']
+  geometry_of_second_ppa = second_ppa['zone']['features'][0]['geometry']
+
+  if not utils.PolygonsAlmostEqual(geometry_of_first_ppa, geometry_of_second_ppa, delta):
+    return False
+  if geometry_of_first_ppa['type'] != geometry_of_second_ppa['type']:
+    return False
+  # check other Ppa parameters
+  del first_ppa['zone']['features'][0]['geometry']
+  del second_ppa['zone']['features'][0]['geometry']
+  result = compareDictWithUnorderedLists(first_ppa, second_ppa)
+  first_ppa['zone']['features'][0]['geometry'] = geometry_of_first_ppa
+  second_ppa['zone']['features'][0]['geometry'] = geometry_of_second_ppa
+  return result
+ 
+class TestComponentError(Exception):
+  """Indicates a test component failed due to no fault of the SAS UUT.
+
+  Some test components are theoretically capable of failing through no fault of
+  the SAS UUT. If a failure happens that is clearly not the fault of the SAS UUT
+  this exception may be raised to indicate the test result is invalid and the
+  test should be rerun. Please indicate the component that failed in the
+  message to help with analysis of repeated failures.
+  """
+  pass

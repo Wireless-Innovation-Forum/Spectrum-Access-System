@@ -27,6 +27,7 @@ import inspect
 
 from OpenSSL import SSL, crypto
 from util import getCertificateFingerprint
+from request_handler import HTTPError
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -247,10 +248,37 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       logging.debug('TLS handshake: succeed')
       self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
-      logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:
       client_ssl.close()
+
+  def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
+    """
+    Checks that the TLS handshake failure by varying the given parameters
+    if handshake not failed make sure the next https request return error code 403
+
+    Args:
+      client_cert: optional client certificate file in PEM format to use.
+        If 'None' the default CBSD certificate will be used.
+      client_key: associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' the default CBSD key file will be used.
+      ciphers: optional cipher method
+      ssl_method: optional ssl_method
+    """
+    try:
+      self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
+    except AssertionError as e:
+      try:
+        device_a = json.load(
+          open(os.path.join('testcases', 'testdata', 'device_a.json')))
+        request = {'registrationRequest': [device_a]}
+        response = self._sas.Registration(request, ssl_cert=client_cert,
+                                          ssl_key=client_key)['registrationResponse']
+      except HTTPError as e:
+        logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
+        self.assertEqual(e.error_code, 403)
+      else:
+        self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
 
   def createShortLivedCertificate(self, client_type, cert_name, cert_duration_minutes):
     """Generates short lived certificate for SCS/SDS 17,18 & 19

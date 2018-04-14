@@ -78,21 +78,22 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
 
     # Inject FSS station operating at range 3670 - 4200 MHz.
-    fss = json.load(
+    fss_data = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss =  fss_data['record']
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3670000000
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 4200000000
     fss['deploymentParam'][0]['installationParam']['latitude'] = 38.4
     fss['deploymentParam'][0]['installationParam']['longitude'] = -98.9
-    self._sas_admin.InjectFss({'record': fss})
+    self._sas_admin.InjectFss(fss_data)
 
-    # Inject GWBL station operating at range 3650 - 3700 MHz and associated
-    # GWPZ, within 150 km of FSS (approx. 100 km from FSS location set above).
-    gwpz = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
-    self._sas_admin.InjectWisp(gwpz)
+    # Inject GWBL station operating at range 3650 - 3700 MHz within 150 km of
+    # FSS (approx. 100 km from FSS location set above).
+    gwbl = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    self._sas_admin.InjectWisp(gwbl)
 
     # Load PAL/PPA data, operating channel 3620 - 3630 MHz.
     pal_record = json.load(
@@ -136,7 +137,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_4['installationParam']['latitude'] = 39.0
     device_4['installationParam']['longitude'] = -98.6
 
-    # Move device_5 outside PPA and outside 150kms range of FSS
+    # Move device_5 outside PPA and inside 150kms range of FSS
     device_5['installationParam']['latitude'] = 38.2
     device_5['installationParam']['longitude'] = -99.5
 
@@ -452,8 +453,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
     # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
-    self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 104)
+    self.assertTrue(response['response']['responseCode'] == 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_8(self):

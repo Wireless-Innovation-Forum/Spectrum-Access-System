@@ -26,6 +26,14 @@ admin_client sas    server     client                   domain_proxy
                                blacklisted_client       blacklisted_domain_proxy
 
 
+           --------root_ca (same as above, continued)---------
+          /                       |                           \
+         /                        |                            \
+  revoked_sas_ca           revoked_cbsd_ca                revoked_proxy_ca
+        |                         |                              \
+        |                         |                               \
+sas_cert_from_revoked_ca  client_cert_from_revoked_ca  domain_proxy_cert_from_revoked_ca
+ 
             ------------------non_cbrs_root_ca----------------------
            /                          |                             \
 non_cbrs_root_signed_cbsd_ca   non_cbrs_root_signed_sas_ca  non_cbrs_root_signed_oper_ca
@@ -79,6 +87,15 @@ Required certificates are:
   used to verify the server chain and the client chain. Basically the
   concatenation of all intermediate certificate CA and root CA.
 
+* `revoked_sas_ca.cert`: intermediate SAS certificate authority signed by the same `root_ca` and status is
+revoked. Used on security test test_WINNF_FT_S_SSS_16.
+
+* `revoked_cbsd_ca.cert`: intermediate CBSD certificate authority signed by the same `root_ca` and status is
+revoked. Used on security test test_WINNF_FT_S_SCS_16.
+
+* `revoked_proxy_ca.cert`: intermediate Domain Proxy certificate authority signed by the same `root_ca` and status is
+revoked. Used on security test test_WINNF_FT_S_SDS_16.
+
 * `unrecognized_root_ca.cert`: root certificate authority to generate unrecognized device
   Self signed.
   
@@ -120,6 +137,10 @@ Required certificates are:
 * `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
 
+* `client_cert_from_revoked_ca.[cert|key]`: leaf CBSD device certificate signed by revoked intermediate CA 
+  `revoked_cbsd_ca` and corresponding trusted client certificate bundle.
+   Used on security test test_WINNF_FT_S_SCS_16.
+
 * `corrupted_domain_proxy.cert`: corrupted 'domain_proxy.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SDS_7.
 
@@ -134,6 +155,10 @@ Required certificates are:
 
 * `domain_proxy_inapplicable.[cert|key]`: domain_proxy device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SDS_15.
+  
+* `domain_proxy_cert_from_revoked_ca.[cert|key]`: domain proxy certificate signed by revoked intermediate CA 
+  `revoked_proxy_ca` and corresponding trusted client certificate bundle.
+   Used on security test test_WINNF_FT_S_SDS_16.
 
 * `unrecognized_sas.[cert|key]`: leaf SAS certificate signed by
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
@@ -159,3 +184,6 @@ Required certificates are:
 * `sas_expired.[cert|key]`: leaf SAS expired certificate
   Used on security test test_WINNF_FT_S_SSS_12.
 
+* `sas_cert_from_revoked_ca.[cert|key]`: leaf SAS certificate signed by revoked intermediate CA 
+  `revoked_sas_ca` and corresponding trusted client certificate bundle.
+   Used on security test test_WINNF_FT_S_SSS_16.

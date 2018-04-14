@@ -10,7 +10,7 @@ The SCS.11/16, SDS.11/16 and SSS.11/16 TCs just expect the handshake failure and
 The correct way to run the fake_sas for these test cases is
 <pre>
 <code>
-<b> $ python fake_sas.py --verify_crl --ca ca_crl_chain_sxs11.cert </b>
+<b> $ python fake_sas.py --verify_crl --ca ca_crl_chain_sxs11/16.cert </b>
 </code>
 </pre>
 
@@ -54,4 +54,4 @@ The simple CRL server is also enhanced with simpler menu option and ability to b
 
 However to make it bit more easier to run the SXS.11/16 test cases, a default CRL file containing the CA chain and 
 the CRL chain containing the blacklisted certificates for SXS.11/16 test cases is created. 
-So the fake_sas can be run with the ca file <b>ca_crl_chain_sxs11.cert</b> without running the <b>simple CRL server</b>.
+So the fake_sas can be run with the ca file <b>ca_crl_chain_sxs11/16.cert</b> without running the <b>simple CRL server</b>.

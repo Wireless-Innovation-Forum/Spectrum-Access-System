@@ -15,7 +15,7 @@
 import numpy as np
 import unittest
 
-import antenna
+from reference_models.antenna import antenna
 
 
 class TestAntenna(unittest.TestCase):

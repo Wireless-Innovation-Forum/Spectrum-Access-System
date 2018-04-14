@@ -8,7 +8,9 @@ This includes:
   - propagation_models/: the Winnforum ITM and Hybrid propagation models.
   - antenna/: the antenna gain calculation.
   - move_list/: the DPA move list calculation.
-
+  - ppa/: the PPA zones creation.
+  - fss_purge/: the FSS purge list algorithm.
+  
 The examples/ folder provides an example of using the models for FSS protection,
 which exercise the ITM model, antenna gain calculation and geo routines.
 

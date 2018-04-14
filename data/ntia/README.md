@@ -31,3 +31,17 @@ Copyright on data files is by their creators.
     exclusion zones make use of the US border definition in data/fcc/usborder.kml to bound
     the exclusion zone borders provided by the NTIA.
 
+* DPA_xx_yyyy.kml
+
+    The latest DPA KML file defining the coastal DPAs.
+    
+* usborder.kmz
+
+    This is a KMZ file defining the US border. 
+    Used only for simulation and benchmark purposes.
+
+* UrbanAreas_3601.kmz
+    
+    This is a KMZ file defining the US urban areas as provided by the Census bureau. 
+    Used only for simulation and benchmark purposes.
+    

@@ -41,12 +41,50 @@ from reference_models.geo import tiles
 from reference_models.geo import CONFIG
 
 
+class LandCoverCodes:
+  """Defines the land cover codes from USGS NLCD database.
+
+  Original NLCD codes from USGS are described at:
+    https://www.mrlc.gov/nlcd11_leg.php
+  """
+  UNDEFINED = 0
+  # Water
+  OPEN_WATER = 11
+  PERENNIAL_SNOW = 12
+  # Developed
+  DEVELOPED_OPEN = 21
+  DEVELOPED_LOW = 22
+  DEVELOPED_MEDIUM = 23
+  DEVELOPED_HIGH = 24
+  # Barren
+  BARREN_LAND = 31
+  # Forest
+  DECIDUOUS_FOREST = 41
+  EVERGREEN_FOREST = 42
+  MIXED_FOREST = 43
+  # Shrubland
+  DWARF_SCRUB = 51
+  SHRUB_SCRUB = 52
+  # Herbaceous
+  GRASSLAND = 71
+  SEDGE = 72
+  LICHENS = 73
+  MOSS = 74
+  # Planted/ Cultivated
+  PASTURE_HAY = 81
+  CULTIVATED_CROPS = 82
+  # Wetlands
+  WOODY_WETLANDS = 90
+  EMERGENT_HERBACEOUS_WETLANDS = 95
+
+
+# Tiles dimension
 _TILE_DIM = 3600
 _TILES_KEYS = tiles.NLCD_TILES
 
 
 def GetRegionType(code):
-  """Get the region type for a code
+  """Get the region type for a code.
 
   Inputs:
     lat,lon: coordinates of a point.
@@ -54,9 +92,10 @@ def GetRegionType(code):
   Returns:
     the region type among 'URBAN', 'SUBURBAN', 'RURAL'
     """
-  if code == 22:
+  if code == LandCoverCodes.DEVELOPED_LOW:
     return 'SUBURBAN'
-  elif code == 23 or code == 24:
+  elif (code == LandCoverCodes.DEVELOPED_MEDIUM or
+        code == LandCoverCodes.DEVELOPED_HIGH):
     return 'URBAN'
 
   return 'RURAL'
@@ -224,9 +263,9 @@ class NlcdDriver:
     avg_code = 0
     lat, lon = zip(*points)
     codes = self.GetLandCoverCodes(lat, lon)
-    codes22 = np.where(codes==22)[0]
-    codes23 = np.where(codes==23)[0]
-    codes24 = np.where(codes==24)[0]
+    codes22 = np.where(codes==LandCoverCodes.DEVELOPED_LOW)[0]
+    codes23 = np.where(codes==LandCoverCodes.DEVELOPED_MEDIUM)[0]
+    codes24 = np.where(codes==LandCoverCodes.DEVELOPED_HIGH)[0]
     if out_forbid:
       codes0 = np.where(codes==0)[0]
       if len(codes0):
