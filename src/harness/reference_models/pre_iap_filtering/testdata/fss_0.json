@@ -9,13 +9,11 @@
         "latitude": 40.5029,
         "longitude":  -101.47015,
         "height": 7.6,
-        "elevation": 100.0,
         "heightType": "AGL",
         "antennaGain": 16,
         "antennaBeamwidth": 30,
         "antennaAzimuth": 270,
-        "antennaDowntilt": -90,
-        "antennaElevationAngle":39
+        "antennaDowntilt": -90
       },
       "operationParam": {
         "operationFrequencyRange": {
