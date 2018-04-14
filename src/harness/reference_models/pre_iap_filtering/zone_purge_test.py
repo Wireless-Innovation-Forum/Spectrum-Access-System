@@ -97,6 +97,7 @@ class TestZonePurge(unittest.TestCase):
          final_grants = final_grants + 1
    print "===================================================================="
    self.assertLess(final_grants, initial_grants)
-
+   # TODO: convert this in to proper unit test with assert
+  
 if __name__ == '__main__':
   unittest.main()
