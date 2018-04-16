@@ -20,6 +20,7 @@
 ==================================================================================
 """
 import numpy as np
+from collections import namedtuple
 from reference_models.antenna import antenna
 from reference_models.interference import interference
 from reference_models.geo import vincenty
@@ -32,6 +33,9 @@ REF_BW = 5.e6
 
 # OOBE Margin
 FSS_OOBE_MARGIN = 1
+
+# Define named tuple
+grants_cbsds_namedtuple = namedtuple('grants_cbsds_namedtuple', ['grant', 'cbsd'])
 
 def getFssInfo(fss_record):
   """ Create a FssProtectionPoint tuple from the fss_record.
@@ -68,7 +72,7 @@ def getFssInfo(fss_record):
                                                pointing_elevation=fss_pointing_elevation)
   return fss_entity
 
-def performPurge(cbsds, fss_entity):
+def generatePurgeListForFssPoint(cbsds, fss_entity):
   """ Implementation of algorithm described in R2-SGN-29.
 
   The list of grants to be purged based on the interference caused by their
@@ -84,26 +88,27 @@ def performPurge(cbsds, fss_entity):
   final_purge_list = []
 
   # List of dictionaries containing the highest grant of the CBSD and a reference to the CBSD.
-  grants_for_oobe_calculation = getHighestGrantOfCbsds(cbsds)
+  grants_cbsds_info_for_oobe_calculation = getHighestGrantOfCbsds(cbsds)
 
   # Calculate the threshold value in dBm for the OOBE interference
   oobe_threshold_value = -129 + 10 * (np.log10(REF_BW/interference.ONE_MHZ) - FSS_OOBE_MARGIN)
 
   while True:
     # Calculate the OOBE interference value for each grant.
-    calculateOobeInterference(grants_for_oobe_calculation, fss_entity)
+    calculateOobeInterference(grants_cbsds_info_for_oobe_calculation, fss_entity)
 
     # Sort the grants based on the calculated interference value.
-    sorted_grants = sorted(grants_for_oobe_calculation, key=lambda grant: grant['oobe_interference'])
+    sorted_grants_cbsds_info = sorted(grants_cbsds_info_for_oobe_calculation, key=lambda grant: grant['oobe_interference'])
 
     # Find the largest index such that aggregation of the interferences do not cross
     # the OOBE threshold.
-    oobe_interferences = [interference.dbToLinear(grant['oobe_interference']) for grant in sorted_grants]
+    oobe_interferences = [interference.dbToLinear(grant['oobe_interference']) for grant in sorted_grants_cbsds_info]
     cumulated_interference = np.cumsum(oobe_interferences)
     index = np.searchsorted(cumulated_interference, interference.dbToLinear(oobe_threshold_value))
-    grants_to_purge = sorted_grants[index:]
-    grants_for_oobe_calculation = sorted_grants[:index]
-    final_purge_list.extend(grants_to_purge)
+    grants_to_purge = sorted_grants_cbsds_info[index:]
+    grants_cbsds_info_for_oobe_calculation = sorted_grants_cbsds_info[:index]
+    for grants_cbsds in grants_to_purge:
+      final_purge_list.append(grants_cbsds_namedtuple(grants_cbsds['grantData'], grants_cbsds['cbsd']))
 
     # Add the identified grants to be purged from this iteration to the final list of grants to be purged
     if grants_to_purge:
@@ -115,17 +120,17 @@ def performPurge(cbsds, fss_entity):
         for grant in purged_grant['cbsd']['grants']:
           # Check that we are not comapring the same grant as the pruged grant
           if grant != purged_grant['grantData']:
-            if (getMcbsdValue (purged_grant['grantData']) == getMcbsdValue (grant)):
-              final_purge_list.append({'grantData': grant, 'cbsd': purged_grant['cbsd']})
+            if (getMcbsdValue(purged_grant['grantData']) == getMcbsdValue(grant)):
+              final_purge_list.append(grants_cbsds_namedtuple(grant, purged_grant['cbsd']))
             else:
               remaining_grants.append(grant)
 
         # Identify the grant with the highest highFrequncy value among the remaining grants for the
-        # CBSD and add it to the grants_for_oobe_calculation list for next iteration.
+        # CBSD and add it to the grants_cbsds_info_for_oobe_calculation list for next iteration.
         if len(remaining_grants) > 0:
           max_grant = max(remaining_grants,\
                            key=lambda x: x['operationParam']['operationFrequencyRange']['highFrequency'])
-          grants_for_oobe_calculation.append({'grantData': max_grant, 'cbsd': purged_grant['cbsd']})
+          grants_cbsds_info_for_oobe_calculation.append({'grantData': max_grant, 'cbsd': purged_grant['cbsd']})
 
     # If no grants are identified for purging in this iteration then break the loop
     else:
@@ -133,7 +138,7 @@ def performPurge(cbsds, fss_entity):
 
   return final_purge_list
 
-def calculateOobeInterference(grants, fss_entity):
+def calculateOobeInterference(grants_cbsds_oobe_info, fss_entity):
   """Calculate the OOBE interference value (MCBSDi,ch + GCBSDi + PLinvi + GFSSi).
 
   The interference values are calculated based on the grant with the highest highFrequency value.
@@ -143,14 +148,14 @@ def calculateOobeInterference(grants, fss_entity):
     fss_entity: The FssProtectionPoint tuple of the FSS for which the interference is calculated.
   """
   # Get values of MCBSD,GCBSD,GFSS and LCBSD for each CBSD.
-  for grant in grants:
-    if grant['cbsd']['grants']:
-      lcbsd, incidence_angle = getMeanPathLossFromCbsdToFss(grant['cbsd'], fss_entity)
-      mcbsd = getMcbsdValue(grant['grantData'])
-      gcbsd = getAntennaGainTowardsFss(incidence_angle, grant['cbsd'])
+  for grant_cbsds_oobe_info in grants_cbsds_oobe_info:
+    if grant_cbsds_oobe_info['cbsd']['grants']:
+      lcbsd, incidence_angle = getMeanPathLossFromCbsdToFss(grant_cbsds_oobe_info['cbsd'], fss_entity)
+      mcbsd = getMcbsdValue(grant_cbsds_oobe_info['grantData'])
+      gcbsd = getAntennaGainTowardsFss(incidence_angle, grant_cbsds_oobe_info['cbsd'])
       gfss = getAntennaGainFssReceiver(fss_entity, incidence_angle)
       oobe_interference = mcbsd + gcbsd - lcbsd + gfss
-      grant['oobe_interference'] = oobe_interference
+      grant_cbsds_oobe_info['oobe_interference'] = oobe_interference
 
 def getMcbsdValue(grant):
   """ Identifies the MCBSD (OOBE emission mask) value for a grant.
@@ -162,12 +167,7 @@ def getMcbsdValue(grant):
   Returns:
     MCBSD (OOBE emission mask) value. 
   """
-  if grant['operationParam']['operationFrequencyRange']['highFrequency'] > 3690000000:
-      mcbsd = -13
-  else:
-      mcbsd = -25
-
-  return mcbsd
+  return -13 if grant['operationParam']['operationFrequencyRange']['highFrequency'] > 3690000000 else -25
 
 def getAntennaGainTowardsFss(incidence_angle, cbsd):
   """Get antenna gain of CBSD in direction of FSS protection point [R2-SGN-20]
@@ -203,9 +203,9 @@ def getMeanPathLossFromCbsdToFss(cbsd, fss):
   cbsd_height_type = cbsd['registrationRequest']['installationParam']['heightType']
   cbsd_indoor_dep = cbsd['registrationRequest']['installationParam']['indoorDeployment']
   if cbsd_height_type == 'AMSL':
-      cbsd_height_agl = convertAmslToAgl(cbsd_latitude, cbsd_longitude, cbsd_height)
+    cbsd_height_agl = convertAmslToAgl(cbsd_latitude, cbsd_longitude, cbsd_height)
   else:
-      cbsd_height_agl = cbsd_height
+    cbsd_height_agl = cbsd_height
 
   # Invoking ITM propagation model
   db_loss, incidence_angle, _ = wf_itm.CalcItmPropagationLoss(
@@ -246,7 +246,7 @@ def getAntennaGainFssReceiver(fss_entity, incidence_angle):
   return fss_ant_gain
 
 def getHighestGrantOfCbsds(cbsds):
-  """Creates a new list of grants for oobe_calculation
+  """Creates a new list of grants,cbsds for oobe_calculation
 
   Args:
     cbsds: A CbsdData objects
@@ -254,7 +254,7 @@ def getHighestGrantOfCbsds(cbsds):
     List of multiple key-value pairs with keys 'grantData', 'cbsd' and values as max_grant and
       corresponding cbsd data object respectively
   """
-  grants_for_oobe_calculation = []
+  grants_cbsds_info_for_oobe_calculation = []
   for cbsd in cbsds:
     max_grant = max(cbsd['grants'],\
                     key=lambda x: x['operationParam']['operationFrequencyRange']['highFrequency'])
@@ -262,9 +262,9 @@ def getHighestGrantOfCbsds(cbsds):
         'grantData': max_grant,
         'cbsd': cbsd
     }
-    grants_for_oobe_calculation.append(grant_info)
+    grants_cbsds_info_for_oobe_calculation.append(grant_info)
 
-  return grants_for_oobe_calculation
+  return grants_cbsds_info_for_oobe_calculation
 
 def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   """Entry point function to execute FSS purge list model.
@@ -291,11 +291,11 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
       neighboring_cbsds_with_grants = pre_iap_util.getFssNeighboringCbsdsWithGrants(cbsds, fss_record, 40)
       if neighboring_cbsds_with_grants:
         fss_entity = getFssInfo(fss_record)
-        grants_to_purge_for_fss = performPurge(neighboring_cbsds_with_grants, fss_entity)
+        grants_to_purge_for_fss = generatePurgeListForFssPoint(neighboring_cbsds_with_grants, fss_entity)
         grants_to_purged_for_all_fss.extend(purge_data for purge_data in grants_to_purge_for_fss
                                                      if purge_data not in grants_to_purged_for_all_fss)
 
   # Removing grant requests that are in the grants to purge list from the CBSDs.
   for purge_data in grants_to_purged_for_all_fss:
-    purge_data['cbsd']['grants'].remove(purge_data['grantData'])
+    purge_data.cbsd['grants'].remove(purge_data.grant)
 
