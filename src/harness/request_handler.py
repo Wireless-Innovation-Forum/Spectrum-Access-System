@@ -137,7 +137,7 @@ def _Request(url, request, config, is_post_method):
   body = response.getvalue()
   logging.info('Response:\n' + body)
 
-  if http_code not in (200, 299):
+  if http_code not in xrange(200, 299):
     raise HTTPError(http_code)
   if body:
     return json.loads(body.decode('utf-8'))
