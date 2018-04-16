@@ -16,7 +16,7 @@ import json
 import os
 import sas
 import sas_testcase
-from util import configurable_testcase, writeConfig, loadConfig
+from util import configurable_testcase, writeConfig, loadConfig, addCbsdIdsToRequests
 
 
 class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
@@ -32,40 +32,70 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
   def generate_FDB_1_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.1"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Load grant request.
-    grant_g1 = json.load(
+    # Load grant requests.
+    grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the exclusion zone 'Yuma Proving Ground'
-    #  frequency range 'F1' which is .
-    grant_g1['operationParam']['operationFrequencyRange'] = {
+    # Set the grant frequency to overlap with the exclusion zone
+    # 'Yuma Proving Ground' frequency range 'F1'.
+    grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g2 = json.load(
+    grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the exclusion zone
-    # 'Yuma Proving Ground' frequency range 'F1' which is.
-    grant_g2['operationParam']['operationFrequencyRange'] = {
+    # 'Yuma Proving Ground' frequency range 'F1'.
+    grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
-    grant_g3 = json.load(
+    grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the modified
-    # exclusion zone 'Yuma Proving Ground' frequency range 'F2' which is.
-    grant_g3['operationParam']['operationFrequencyRange'] = {
+    # exclusion zone 'Yuma Proving Ground' frequency range 'F2'.
+    grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
     }
 
-    # Update the location 'X' of CBSD contained witin the exclusion zone
-    # 'Yuma Proving Ground'.
-    device_b['installationParam']['latitude'] = 32.94414
-    device_b['installationParam']['longitude'] = -113.85681
+    grant_g1_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the exclusion zone
+    # 'Yakima Firing Center' frequency range 'F1'.
+    grant_g1_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
+    }
+    grant_g2_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the exclusion zone
+    # 'Yakima Firing Center' frequency range 'F1'.
+    grant_g2_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3675000000,
+        'highFrequency': 3685000000
+    }
+    grant_g3_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the modified
+    # exclusion zone 'Yakima Firing Center' frequency range 'F2'.
+    grant_g3_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3575000000,
+        'highFrequency': 3585000000
+    }
+
+    # Update the location 'X' of CBSD devices contained witin the exclusion zones
+    # 'Yuma Proving Ground'
+    device_a['installationParam']['latitude'] = 33.01805
+    device_a['installationParam']['longitude'] = -114.25253
+    # 'Yakima Firing Center'
+    device_b['installationParam']['latitude'] = 46.67553
+    device_b['installationParam']['longitude'] = -120.43033
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -86,9 +116,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequests': [grant_g1, grant_g2, grant_g3],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [
+            [grant_g1_a, grant_g1_b],
+            [grant_g2_a, grant_g2_b],
+            [grant_g3_a, grant_g3_b]],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations.
       }
     writeConfig(filename, config)
 
@@ -99,11 +134,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Step 1: Register device C and request grant 'G1' with SAS UUT.
-    grant_request_g1 = [config['grantRequests'][0]]
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
+    # Step 1: Registration of CBSDs and requesting for grants.
+    # Forming of 'G1' grants for all the configured grants
+    grant_request_g1 = config['grantRequests'][0]
+
+    # Register device(s) 'C' and request grant 'G1' with SAS UUT.
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
+
     # TODO
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
@@ -113,52 +152,60 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 4: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-      }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
-    # Check the heartbeat response code is 500(TERMINATED_GRANT)
-    # or 501 (SUSPENDED_GRANT)
-    self.assertEqual(heartbeat_response[0]['grantId'], grant_ids[0])
-    self.assertIn(heartbeat_response[0]['response']['responseCode'], [500, 501])
+    relq_requests = {'relinquishmentRequest': []}
+    for resp in heartbeat_responses:
+      # Check the heartbeat response code is 500(TERMINATED_GRANT)
+      # or 501 (SUSPENDED_GRANT)
+      self.assertIn(resp['response']['responseCode'], [500, 501])
 
-    # Step 5: Sending relinquishment request for the Grant
-    # if the responseCode was 501 for heartbeat response
-    relq_request = {'relinquishmentRequest': []}
-    if heartbeat_response[0]['response']['responseCode'] == 501:
-      # Update Relinquishment Request content
-      content = {
-           'cbsdId': cbsd_ids[0],
-           'grantId': grant_ids[0]
-      }
-      relq_request['relinquishmentRequest'].append(content)
+      # Step 5: Consolidating the relinquishment request for the Grants
+      # if the responseCode was 501 for heartbeat response
+      if resp['response']['responseCode'] == 501:
+        # Update Relinquishment Request content
+        relq_requests['relinquishmentRequest'].append({
+             'cbsdId': resp['cbsdId'],
+             'grantId': resp['grantId']
+        })
 
-      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-      self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
-      del relq_request, relq_response
+    # Send Consolidated Relinquishment Request for all the grants,
+    # if the grant responseCode was 501
+    if len(relq_requests['relinquishmentRequest']) != 0:
+        relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
+        self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
+        for relq_resp in relq_responses:
+          # Check the relinquishment response
+          self.assertEqual(relq_resp['response']['responseCode'], 0)
 
-    del heartbeat_request, heartbeat_response
+        del relq_requests, relq_responses
+
+    del heartbeat_requests, heartbeat_responses
 
     # Step 6: Request grant 'G2' with another frequency range which partially or fully
     # overlaps with Exclusion zone protected frequency range 'F1'.
-    config['grantRequests'][1]['cbsdId'] = cbsd_ids[0]
+    # Forming of 'G2' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][1])
+    grant_request_g2 = {'grantRequest': config['grantRequests'][1]}
 
     # Send grant request 'G2'
-    grant_request_g2 = {'grantRequest': [config['grantRequests'][1]]}
     grant_response_g2 = self._sas.Grant(grant_request_g2)['grantResponse']
-    self.assertEqual(len(grant_response_g2), len(grant_request_g2))
+    self.assertEqual(len(grant_response_g2), len(grant_request_g2['grantRequest']))
 
     # Check grant response,
     # responseCode should be 400 (INTERFERENCE).
-    self.assertEqual(grant_response_g2[0]['response']['responseCode'], 400)
+    for resp in grant_response_g2:
+      self.assertEqual(resp['response']['responseCode'], 400)
 
     del grant_request_g2, grant_response_g2
+
     # TODO
     # Step 7: Modify exclusion zone database record frequency range from 'F1' to 'F2'
 
@@ -167,45 +214,71 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 9: Request grant 'G3' with frequency range which partially or fully
     # overlaps with Exclusion zone protected frequency range 'F2'.
-    config['grantRequests'][2]['cbsdId'] = cbsd_ids[0]
+    # Forming of 'G3' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][2])
+    grant_request_g3 = {'grantRequest': config['grantRequests'][2]}
 
     # Send grant request 'G3'
-    grant_request_g3 = {'grantRequest': [config['grantRequests'][2]]}
     grant_response_g3 = self._sas.Grant(grant_request_g3)['grantResponse']
-    self.assertEqual(len(grant_response_g3), len(grant_request_g3))
+    self.assertEqual(len(grant_response_g3), len(grant_request_g3['grantRequest']))
 
     # Check grant response,
     # responseCode should be 400 (INTERFERENCE).
-    self.assertEqual(grant_response_g3[0]['response']['responseCode'], 400)
+    for resp in grant_response_g3:
+      self.assertEqual(resp['response']['responseCode'], 400)
 
     del grant_request_g3, grant_response_g3
 
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    # Load grant request
-    grant_g1 = json.load(
+
+    # Load grant requests
+    grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4' which is .
-    grant_g1['operationParam']['operationFrequencyRange'] = {
+    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g2 = json.load(
+    grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4' which is.
-    grant_g2['operationParam']['operationFrequencyRange'] = {
+    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
-
-    grant_g3 = json.load(
+    grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'puerto_rico_ver2_dpa_4' which is.
-    grant_g3['operationParam']['operationFrequencyRange'] = {
+    # Set the grant frequency to overlap with the modified DPA 'puerto_rico_ver2_dpa_4'.
+    grant_g3_a['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3575000000,
+        'highFrequency': 3585000000
+    }
+
+    grant_g1_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    grant_g1_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
+    }
+    grant_g2_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    grant_g2_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3675000000,
+        'highFrequency': 3685000000
+    }
+    grant_g3_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the modified DPA 'alaska_dpa_37'.
+    grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
     }
@@ -229,9 +302,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequests': [grant_g1, grant_g2, grant_g3],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [
+            [grant_g1_a, grant_g1_b],
+            [grant_g2_a, grant_g2_b],
+            [grant_g3_a, grant_g3_b]],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations.
     }
     writeConfig(filename, config)
 
@@ -242,12 +320,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Step 1: Register device and request grant 'G1' with SAS UUT.
-    grant_request_g1 = [config['grantRequests'][0]]
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
+    # Step 1: Registration of CBSDs and requesting for grants.
+    # Forming of 'G1' grants for all the configured grants
+    grant_request_g1 = config['grantRequests'][0]
+
+    # Register device(s) 'C' and request grant 'G1' with SAS UUT.
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
-    # TODO...
+
+    # TODO
     # Step 2: Create DPA database which includes at least one inland DPA
 
     # Step 3: Trigger daily activities
@@ -255,91 +337,96 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 4: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-      }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
-    # Check the heartbeat response code is 500(TERMINATED_GRANT)
-    # or 501 (SUSPENDED_GRANT)
-    self.assertEqual(heartbeat_response[0]['grantId'], grant_ids[0])
-    self.assertIn(heartbeat_response[0]['response']['responseCode'], [500, 501])
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
-    # Step 5: Sending relinquishment request for the Grant
-    # if the responseCode was 501 for heartbeat response
-    relq_request = {'relinquishmentRequest': []}
-    if heartbeat_response[0]['response']['responseCode'] == 501:
-      # Update Relinquishment Request content
-      content = {
-           'cbsdId': cbsd_ids[0],
-           'grantId': grant_ids[0]
-      }
-      relq_request['relinquishmentRequest'].append(content)
+    relq_requests = {'relinquishmentRequest': []}
+    for resp in heartbeat_responses:
+      # Check the heartbeat response code is 500(TERMINATED_GRANT)
+      # or 501 (SUSPENDED_GRANT)
+      self.assertIn(resp['response']['responseCode'], [500, 501])
 
-      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-      self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
-      del relq_request, relq_response
+      # Step 5: Consolidating the relinquishment request for the Grants
+      # if the responseCode was 501 for heartbeat response
+      if resp['response']['responseCode'] == 501:
+        # Update Relinquishment Request content
+        relq_requests['relinquishmentRequest'].append({
+             'cbsdId': resp['cbsdId'],
+             'grantId': resp['grantId']
+        })
 
-    del heartbeat_request, heartbeat_response
+    # Send Consolidated Relinquishment Request for all the grants,
+    # if the grant responseCode was 501
+    if len(relq_requests['relinquishmentRequest']) != 0:
+      relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
+      self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
+
+      # Check the relinquishment response
+      for relq_resp in relq_responses:
+        self.assertEqual(relq_resp['response']['responseCode'], 0)
+
+      del relq_requests, relq_responses
+
+    del heartbeat_requests, heartbeat_responses
 
     # Step 6: Request grant 'G2' with frequency range which partially or fully
-    # overlaps with DPA protected frequency range 'F1'
-    config['grantRequests'][1]['cbsdId'] = cbsd_ids[0]
+    # overlaps with DPA protected frequency range 'F1'.
+    # Forming of 'G2' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][1])
+    grant_request_g2 = {'grantRequest': config['grantRequests'][1]}
 
     # Send grant request 'G2'
-    grant_request_g2 = {'grantRequest': [config['grantRequests'][1]]}
     grant_response_g2 = self._sas.Grant(grant_request_g2)['grantResponse']
-    self.assertEqual(len(grant_response_g2), len(grant_request_g2))
+    self.assertEqual(len(grant_response_g2), len(grant_request_g2['grantRequest']))
 
     # Check grant response,
     # responseCode should be either 400 (INTERFERENCE) or 0 (SUCCESS).
-    self.assertIn(grant_response_g2[0]['response']['responseCode'], [0, 400])
+    heartbeat_requests = {'heartbeatRequest': []}
+    for resp in grant_response_g2:
+      self.assertIn(resp['response']['responseCode'], [0, 400])
 
-    # Consolidating the heartbeat request for the Grant 'G2'
-    # if the responseCode was 0 in grant response
-    heartbeat_request = {'heartbeatRequest': []}
-    if self.assertEqual(grant_response_g2[0]['response']['responseCode'], 0):
-      self.assertTrue('grantId' in grant_response_g2[0])
-      # Construct heartbeat message.
-      # Update heartbeat request content
-      content = {
-          'cbsdId': cbsd_ids[0],
-          'grantId': grant_response_g2[0]['grantId'],
-          'operationState': 'GRANTED'
-      }
-      heartbeat_request['heartbeatRequest'].append(content)
-      heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      # Consolidating the heartbeat request for the Grant 'G2'
+      # if the responseCode was 0 in grant response
+      if resp['response']['responseCode'] == 0:
+        # Update heartbeat request content
+        heartbeat_requests['heartbeatRequest'].append({
+            'cbsdId': resp['cbsdId'],
+            'grantId': resp['grantId'],
+            'operationState': 'GRANTED'
+        })
 
-      self.assertEqual(len(heartbeat_response), len(heartbeat_request['heartbeatRequest']))
+    # Send Heartbeat Request for grant 'G2'
+    if len(heartbeat_requests['heartbeatRequest']) != 0:
+      heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
+      self.assertEqual(len(heartbeat_responses), len(heartbeat_requests['heartbeatRequest']))
 
-      # Step 7: Send Relinquishment Request
-      relq_request = {'relinquishmentRequest': []}
+      # Step 7: Send Relinquishment Request for grant 'G2'
+      relq_requests = {'relinquishmentRequest': []}
 
       # Check the heartbeat response code is 501 (SUSPENDED_GRANT)
-      self.assertTrue('grantId' in heartbeat_response[0])
-      self.assertEqual(heartbeat_response[0]['response']['responseCode'], 501)
+      for resp in heartbeat_responses:
+        self.assertEqual(resp['response']['responseCode'], 501)
+        # Consolidating the relinquishment request for the Grants
+        relq_requests['relinquishmentRequest'].append({
+          'cbsdId': resp['cbsdId'],
+          'grantId': resp['grantId']
+        })
 
-      # Consolidating the relinquishment request for the Grants
-      # Update relinquishment request content
-      content = {
-          'cbsdId': cbsd_ids[0],
-          'grantId': heartbeat_response[0]['grantId']
-      }
-      relq_request['relinquishmentRequest'].append(content)
+      relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
 
-      # Send Relinquishment Request for grant 'G2',
-      relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
       # Check the relinquishment response
-      self.assertEqual(len(relq_response), len(relq_request['relinquishmentRequest']))
-      self.assertTrue('grantId' in relq_response[0])
-      self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+      self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
+      for relq_resp in relq_responses:
+        self.assertEqual(relq_resp['response']['responseCode'], 0)
 
-      del relq_request, relq_response
-      del heartbeat_request, heartbeat_response
+      del relq_requests, relq_responses
+      del heartbeat_requests, heartbeat_responses
 
     del grant_request_g2, grant_response_g2
 
@@ -351,60 +438,77 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 10: Request grant 'G3' with frequency range which partially or fully
     # overlaps with DPA protected frequency range 'F2'.
-    config['grantRequests'][2]['cbsdId'] = cbsd_ids[0]
+    # Forming of 'G3' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][2])
+    grant_request_g3 = {'grantRequest': config['grantRequests'][2]}
 
     # Send grant request 'G3'
-    grant_request_g3 = {'grantRequest': [config['grantRequests'][2]]}
     grant_response_g3 = self._sas.Grant(grant_request_g3)['grantResponse']
-    self.assertEqual(len(grant_response_g3), len(grant_request_g3))
+    self.assertEqual(len(grant_response_g3), len(grant_request_g3['grantRequest']))
 
     # Check grant response,
     # responseCode should be either 400 (INTERFERENCE) or 0 (SUCCESS).
-    self.assertIn(grant_response_g3[0]['response']['responseCode'], [0, 400])
+    heartbeat_requests = {'heartbeatRequest': []}
+    for resp in grant_response_g3:
+      self.assertIn(resp['response']['responseCode'], [0, 400])
 
-    # Consolidating the heartbeat request for the Grant 'G3'
-    # if the responseCode was 0 in grant response
-    heartbeat_request = {'heartbeatRequest': []}
-    if self.assertEqual(grant_response_g3[0]['response']['responseCode'], 0):
-      self.assertTrue('grantId' in grant_response_g3[0])
-      # Construct heartbeat message.
-      # Update heartbeat request content
-      content = {
-          'cbsdId': cbsd_ids[0],
-          'grantId': grant_response_g3[0]['grantId'],
-          'operationState': 'GRANTED'
-      }
-      heartbeat_request['heartbeatRequest'].append(content)
-      heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      # Consolidating the heartbeat request for the Grant 'G3'
+      # if the responseCode was 0 in grant response
+      if resp['response']['responseCode'] == 0:
+        # Update heartbeat request content
+        heartbeat_requests['heartbeatRequest'].append({
+            'cbsdId': resp['cbsdId'],
+            'grantId': resp['grantId'],
+            'operationState': 'GRANTED'
+        })
 
-      self.assertEqual(len(heartbeat_response), len(heartbeat_request['heartbeatRequest']))
+    # Send Heartbeat Request for grant 'G3'
+    if len(heartbeat_requests['heartbeatRequest']) != 0:
+      heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
+      self.assertEqual(len(heartbeat_responses), len(heartbeat_requests['heartbeatRequest']))
 
       # Check the heartbeat response code is 501 (SUSPENDED_GRANT)
-      self.assertTrue('grantId' in heartbeat_response[0])
-      self.assertEqual(heartbeat_response[0]['response']['responseCode'], 501)
+      for resp in heartbeat_responses:
+        self.assertEqual(resp['response']['responseCode'], 501)
 
-      del heartbeat_request, heartbeat_response
+      del heartbeat_requests, heartbeat_responses
+
     del grant_request_g3, grant_response_g3
 
   def generate_FDB_3_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.3"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
-
-    # Load grant request info
-    grant_g = json.load(
+    # Load grant requests
+    grant_g_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g['operationParam']['operationFrequencyRange'] = {
+    grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
+
+    grant_g_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3660000000,
+        'highFrequency': 3670000000
+    }
+
+    # Update the location 'X' of CBSD devices to be near FSS sites
+    # 'KA413' at Albright,WV
+    device_a['installationParam']['latitude'] = 39.57327
+    device_a['installationParam']['longitude'] = -79.61903
+
+    # 'E000306' at Andover,ME
+    device_b['installationParam']['latitude'] = 44.63367
+    device_b['installationParam']['longitude'] = -70.69758
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -425,9 +529,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequest': [grant_g],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [grant_g_a, grant_g_b],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations.
     }
     writeConfig(filename, config)
 
@@ -442,9 +548,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Step 1: Register device (at location 'X') and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
-                                    config['grantRequest'],
+    # Step 1: Registration of CBSDs and requesting for grants.
+    # Forming of 'G' grants for all the configured grants
+    grant_request_g = config['grantRequests']
+
+    # Register device(s) 'C' and request grant 'G' with SAS UUT.
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
+                                    grant_request_g,
                                     config['conditionalRegistrationData'])
 
     # TODO
@@ -455,46 +565,69 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 4: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-        'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-        }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
-    self.assertEqual(heartbeat_response[0]['response']['responseCode'], 500)
+    for resp in heartbeat_responses:
+      self.assertEqual(resp['response']['responseCode'], 500)
 
-    del heartbeat_request, heartbeat_response
+    del heartbeat_requests, heartbeat_responses
 
   def generate_FDB_4_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.4"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
-
-    # Load grant requests 'G1' and 'G2'
-    grant_g1 = json.load(
+   # Load grant requests
+    grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g1['operationParam']['operationFrequencyRange'] = {
+    grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g2 = json.load(
+    grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g2['operationParam']['operationFrequencyRange'] = {
+    grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
+
+    grant_g1_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g1_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3660000000,
+        'highFrequency': 3670000000
+    }
+    grant_g2_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g2_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3685000000,
+        'highFrequency': 3695000000
+    }
+
+    # Update the location 'X' of CBSD devices to be near FSS sites
+    # 'KA413' at Albright,WV
+    device_a['installationParam']['latitude'] = 39.57327
+    device_a['installationParam']['longitude'] = -79.61903
+
+    # 'E000306' at Andover,ME
+    device_b['installationParam']['latitude'] = 44.63367
+    device_b['installationParam']['longitude'] = -70.69758
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -515,9 +648,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': device_b,
-        'grantRequests': [grant_g1, grant_g2],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [
+            [grant_g1_a, grant_g1_b],
+            [grant_g2_a, grant_g2_b]],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations
     }
     writeConfig(filename, config)
 
@@ -533,10 +670,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    device_c = config['registrationRequest']
-
-    # Step 1: Register device(s) (at location 'X') with conditional registration data
-    cbsd_ids = self.assertRegistered([device_c],
+    # Step 1: Register device(s) 'C' (at location 'X') with conditional registration data
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
 
     # TODO
@@ -545,51 +680,54 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 4: Sending Grant Request 'G1'
-    grant_request_g1 = {
-        'grantRequest': [config['grantRequests'][0]]
-    }
-    grant_request_g1['grantRequest'][0]['cbsdId'] = cbsd_ids[0]
+    # Step 4: Send Grant Request 'G1'
+    # Forming of 'G1' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][0])
+    grant_request_g1 = {'grantRequest': config['grantRequests'][0]}
+
+    # Send grant request 'G1'
     grant_response_g1 = self._sas.Grant(grant_request_g1)['grantResponse']
 
     # Check grant 'G1' response (responseCode should be SUCCESS(0))
     grant_ids = []
-    self.assertEqual(grant_response_g1[0]['response']['responseCode'], 0)
-    self.assertTrue('cbsdId' in grant_response_g1[0])
-    self.assertTrue('grantId' in grant_response_g1[0])
-    grant_ids.append(grant_response_g1[0]['grantId'])
+    for resp in grant_response_g1:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      grant_ids.append(resp['grantId'])
 
     del grant_request_g1, grant_response_g1
 
     # Step 5.1: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-      }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
+
     # Check the heartbeat response code is either 0(SUCCESS) or
     # 501(SUSPENDED_GRANT)
-    self.assertIn(heartbeat_response[0]['response']['responseCode'], [0, 501])
+    for resp in heartbeat_responses:
+      self.assertIn(resp['response']['responseCode'], [0, 501])
 
     # Sending relinquishment request for the grant 'G1'.
-    relq_request = {'relinquishmentRequest': []}
-    content = {
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0]
-    }
-    relq_request['relinquishmentRequest'].append(content)
+    relq_requests = {'relinquishmentRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      relq_requests['relinquishmentRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id
+      })
+    relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
+    self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
 
-    relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
     # Check relinquishment response
-    self.assertEqual(relq_response[0]['grantId'], grant_ids[0])
-    self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+    for relq_resp in relq_responses:
+      self.assertEqual(relq_resp['response']['responseCode'], 0)
 
-    del relq_request, relq_response
-    del heartbeat_request, heartbeat_response
+    del relq_requests, relq_responses
+    del heartbeat_requests, heartbeat_responses
 
     # TODO
     # Step 6: Modify the FSS database to include modified version of FSS site S
@@ -597,58 +735,73 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 7: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 8: Sending grant request 'G2'
-    grant_request_g2 = {
-        'grantRequest': [config['grantRequests'][1]]
-    }
-    grant_request_g2['grantRequest'][0]['cbsdId'] = cbsd_ids[0]
+    # Step 8: Send Grant Request 'G2'.
+    # Forming of 'G2' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][1])
+    grant_request_g2 = {'grantRequest': config['grantRequests'][1]}
+
     grant_response_g2 = self._sas.Grant(grant_request_g2)['grantResponse']
 
     # Check grant 'G2' response (responseCode should be SUCCESS(0))
     grant_ids = []
-    self.assertEqual(grant_response_g2[0]['response']['responseCode'], 0)
-    self.assertTrue('cbsdId' in grant_response_g2[0])
-    self.assertTrue('grantId' in grant_response_g2[0])
-    grant_ids.append(grant_response_g2[0]['grantId'])
+    for resp in grant_response_g2:
+      self.assertEqual(resp['response']['responseCode'], 0)
+      grant_ids.append(resp['grantId'])
 
-    del grant_request_g2,grant_response_g2
+    del grant_request_g2, grant_response_g2
 
     # Step 9: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-      }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
     # Check the heartbeat response code is either 0(SUCCESS) or
     # 501(SUSPENDED_GRANT)
-    self.assertIn(heartbeat_response[0]['response']['responseCode'], [0, 501])
+    for resp in heartbeat_responses:
+      self.assertIn(resp['response']['responseCode'], [0, 501])
 
-    del heartbeat_request, heartbeat_response
+    del heartbeat_requests, heartbeat_responses
 
   def generate_FDB_5_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.5"""
 
-    # Load device info.
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Load grant request 'G'.
-    grant_g = json.load(
+    # Load grant requests
+    grant_g_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g['operationParam']['operationFrequencyRange'] = {
+    grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
 
-    # Update the location 'X' of CBSD near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
+    grant_g_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3670000000,
+        'highFrequency': 3680000000
+    }
+
+    # Update the location 'X' of CBSD devices to be near FSS sites
+    # 'KA413' at Albright,WV
+    device_a['installationParam']['latitude'] = 39.57327
+    device_a['installationParam']['longitude'] = -79.61903
+
+    # 'E000306' at Andover,ME
+    device_b['installationParam']['latitude'] = 44.63367
+    device_b['installationParam']['longitude'] = -70.69758
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -669,9 +822,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequest': [grant_g],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [grant_g_a, grant_g_b],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations
     }
     writeConfig(filename, config)
 
@@ -686,10 +841,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Step 1: Register device 'C'(at location 'X') and request grant 'G' with SAS UUT.
+    # Step 1: Registration of CBSDs and requesting for grants.
+    # Forming of 'G' grants for all the configured grants
+    grant_request_g = config['grantRequests']
+
+    # Register device(s) 'C' and request grant 'G' with SAS UUT.
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-                                   config['registrationRequest'],
-                                   config['grantRequest'],
+                                   config['registrationRequests'],
+                                   grant_request_g,
                                    config['conditionalRegistrationData'])
 
     # TODO
@@ -703,46 +862,69 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 5: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-        'heartbeatRequest': [{
-            'cbsdId': cbsd_ids[0],
-            'grantId': grant_ids[0],
-            'operationState': 'GRANTED'
-        }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
+        'operationState': 'GRANTED'
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
-    self.assertEqual(heartbeat_response[0]['response']['responseCode'], 500)
+    for resp in heartbeat_responses:
+      self.assertEqual(resp['response']['responseCode'], 500)
 
-    del heartbeat_request, heartbeat_response
- 
+    del heartbeat_requests, heartbeat_responses
+
   def generate_FDB_6_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.6"""
 
-    # Load device info.
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Load grant requests 'G1' and 'G2'.
-    grant_1 = json.load(
+    # Load grant requests
+    grant_g1_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_1['operationParam']['operationFrequencyRange'] = {
+    grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_2 = json.load(
+    grant_g2_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_2['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+    grant_g2_a['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3675000000,
+        'highFrequency': 3685000000
     }
-   
-    # Update the location 'X' of CBSD near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
+
+    grant_g1_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g1_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3660000000,
+        'highFrequency': 3670000000
+    }
+    grant_g2_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g2_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3685000000,
+        'highFrequency': 3695000000
+    }
+
+    # Update the location 'X' of CBSD devices to be near FSS sites
+    # 'KA413' at Albright,WV
+    device_a['installationParam']['latitude'] = 39.57327
+    device_a['installationParam']['longitude'] = -79.61903
+
+    # 'E000306' at Andover,ME
+    device_b['installationParam']['latitude'] = 44.63367
+    device_b['installationParam']['longitude'] = -70.69758
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -763,10 +945,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequests': [grant_1, grant_2],
+        'registrationRequest': [device_a, device_b],
+        'grantRequests': [
+            [grant_g1_a, grant_g1_b],
+            [grant_g2_a, grant_g2_b]],
         'expectedResponseCodes': [(400,), (0,)],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations
     }
     writeConfig(filename, config)
 
@@ -780,7 +966,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(config['grantRequests']),
                      len(config['expectedResponseCodes']))
 
-    # Step 1: Register device 'C'(at location 'X') with SAS UUT.
+    # Step 1: Register device(s) 'C'(at location 'X') with conditional registration data
     cbsd_ids = self.assertRegistered(config['registrationRequest'],
                                      config['conditionalRegistrationData'])
 
@@ -795,29 +981,36 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 5: Request grant 'G1'
-    config['grantRequests'][0]['cbsdId'] = cbsd_ids[0]
+    # Step 5: Send Grant Request 'G1'.
+    # Forming of 'G1' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids, config['grantRequests'][0])
+    grant_request_g1 = {'grantRequest': config['grantRequests'][0]}
 
-    grant_request_g1 = {'grantRequest': [config['grantRequests'][0]]}
     grant_response_g1 = self._sas.Grant(grant_request_g1)['grantResponse']
 
-    # Check the heartbeat response code is as expected (SUCCESS or INTERFERENCE)
-    self.assertIn(grant_response_g1[0]['response']['responseCode'],
-                      config['expectedResponseCodes'][0])
+    # Check the grant response code is as expected (SUCCESS or INTERFERENCE)
+    grant_ids = []
+    for resp in grant_response_g1:
+      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][0])
+      grant_ids.append(resp['grantId'])
 
-    # Step 6: Construct relinquishment request for grant 'G1'.
-    relq_request = {
-        'relinquishmentRequest': [{
-            'cbsdId': cbsd_ids[0],
-            'grantId': grant_response_g1[0]['grantId']
-        }]
-    }
+    # Step 6: Send relinquishment request for grant 'G1'
+    relq_requests = {'relinquishmentRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      # Update Relinquishment Request content
+      relq_requests['relinquishmentRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id
+      })
+    relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
+    self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
 
-    # Send relinquishment request for grant 'G1'.
-    relq_response = self._sas.Relinquishment(relq_request)['relinquishmentResponse']
-    self.assertEqual(relq_response[0]['response']['responseCode'], 0)
+    # Check relinquishment response
+    for relq_resp in relq_responses:
+      self.assertEqual(relq_resp['response']['responseCode'], 0)
 
-    del relq_request, relq_response
+    del relq_requests, relq_responses
+    del grant_request_g1, grant_response_g1
 
     # TOD0
     # Step 7: Modify the GWBL database to include a modified version of the GWBL 'W'.
@@ -826,24 +1019,30 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 9: Request grant 'G2'.
-    config['grantRequests'][1]['cbsdId'] = cbsd_ids[0]
+    # Step 9: Send Grant Request 'G2'
+    # Forming of 'G2' grants for all the configured grants
+    addCbsdIdsToRequests(cbsd_ids,config['grantRequests'][1])
+    grant_request_g2 = {'grantRequest': config['grantRequests'][1]}
 
-    grant_request_g2 = {'grantRequest': [config['grantRequests'][1]]}
     grant_response_g2 = self._sas.Grant(grant_request_g2)['grantResponse']
 
     # Check the grant response code is as expected (SUCCESS or INTERFERENCE).
-    self.assertIn(grant_response_g2[0]['response']['responseCode'],
-                      config['expectedResponseCodes'][1])
+    for resp in grant_response_g2:
+      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][1])
+
+    del grant_request_g2, grant_response_g2
 
   def generate_FDB_7_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.7"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Update the FCC ID of CBSD 'C' with the FCC ID 'F_ID' from FCC ID database.
+    # Update the FCC ID of CBSDs with the FCC ID 'F_ID' from FCC ID database.
+    device_a['fccId'] = "F_ID"
     device_b['fccId'] = "F_ID"
 
     # Creating conditionals for Cat B devices
@@ -865,39 +1064,40 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
+        'registrationRequests': [device_a, device_b],
         'expectedResponseCodes': [(103,), (0,)],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations
     }
     writeConfig(filename, config)
 
   @configurable_testcase(generate_FDB_7_default_config)
   def test_WINNF_FT_S_FDB_7(self, config_filename):
-    """DPA Database Update for DPAs which cannot be monitored by an ESC."""
+    """FCC ID Database Update."""
 
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    registration_request = {
-        'registrationRequest': config['registrationRequest']
+    registration_requests = {
+        'registrationRequest': config['registrationRequests']
     }
 
-    # Step 1: Inject FCC ID and User Id of the devices into UUT.
-    self._sas_admin.InjectFccId({'fccId': registration_request['registrationRequest'][0]['fccId']})
-    self._sas_admin.InjectUserId({'userId': registration_request['registrationRequest'][0]['userId']})
-
-    # Pre-load conditional registration data for CBSD.
+    # Step 1: Pre-load conditional registration data for CBSD.
     if ('conditionalRegistrationData' in config)\
       and (config['conditionalRegistrationData']):
       self._sas_admin.PreloadRegistrationData(
           config['conditionalRegistrationData'])
 
     # Send registration request for CBSD 'C' with FCC ID 'F_ID' to SAS UUT.
-    registration_response = self._sas.Registration(registration_request)['registrationResponse']
+    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
     # Check registration response,
     # responseCode should be 103(INVALID_VALUE)
-    self.assertEqual(registration_response[0]['response']['responseCode'], 103)
+    for resp in registration_responses:
+      self.assertEqual(resp['response']['responseCode'], 103)
+
+    del registration_responses
 
     # TODO
     # Step 2: Create FCC ID database which includes at least one FCC ID 'F_ID'.
@@ -907,11 +1107,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 4: Send again the same registration request for CBSD 'C'
     # with FCC ID 'F_ID' to SAS UUT.
-    registration_response = self._sas.Registration(registration_request)['registrationResponse']
+    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
     # Check registration response,
     # responseCode should be 0(SUCCESS)
-    self.assertEqual(registration_response[0]['response']['responseCode'], 0)
+    for resp in registration_responses:
+      self.assertEqual(resp['response']['responseCode'], 0)
+
+    del registration_responses
 
     # TODO
     # Step 5: Modify FCC ID database record with FCC ID 'F_ID'.
@@ -921,31 +1124,48 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 7: Send again the same registration request for CBSD 'C'
     # with FCC ID 'F_ID' to SAS UUT.
-    registration_response = self._sas.Registration(registration_request)['registrationResponse']
+    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
     # Check the registration response code is as expected (SUCCESS or INVALID_VALUE).
-    self.assertIn(registration_response[0]['response']['responseCode'],
-                      config['expectedResponseCodes'][1])
+    for resp in registration_responses:
+      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][1])
+
+    del registration_requests, registration_responses
 
   def generate_FDB_8_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.8"""
 
-    # Load device info
+    # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Update the location of CBSD to be near FSS site 'KA413' at Albright,WV
-    device_b['installationParam']['latitude'] = 39.57327
-    device_b['installationParam']['longitude'] = -79.61903
-
-    # Load grant request info
-    grant_g = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Load grant requests
+    grant_g_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g['operationParam']['operationFrequencyRange'] = {
+    grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
+
+    grant_g_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    grant_g_b['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3670000000,
+        'highFrequency': 3680000000
+    }
+
+    # Update the location 'X' of CBSD devices to be near FSS sites
+    # 'KA413' at Albright,WV
+    device_a['installationParam']['latitude'] = 39.57327
+    device_a['installationParam']['longitude'] = -79.61903
+
+    # 'E000306' at Andover,ME
+    device_b['installationParam']['latitude'] = 44.63367
+    device_b['installationParam']['longitude'] = -70.69758
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -966,9 +1186,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
-        'grantRequest': [grant_g],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [grant_g_a, grant_g_b],
         'conditionalRegistrationData': conditionals
+        # TODO
+        # Need to add data base configurations
     }
     writeConfig(filename, config)
 
@@ -982,10 +1204,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 1: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Step 2: Register device (at location 'X') and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequest'],
-                                   config['grantRequest'],
-                                   config['conditionalRegistrationData'])
+    # Step 2: Registration of CBSDs and requesting for grants.
+    # Forming of 'G' grants for all the configured grants
+    grant_request_g = config['grantRequests']
+
+    # Register device(s) 'C' and request grant 'G' with SAS UUT.
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
+                                    grant_request_g,
+                                    config['conditionalRegistrationData'])
 
     # TODO
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
@@ -998,17 +1224,17 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 6: Sending Heartbeat Request
     # Construct heartbeat message
-    heartbeat_request = {
-      'heartbeatRequest': [{
-        'cbsdId': cbsd_ids[0],
-        'grantId': grant_ids[0],
+    heartbeat_requests = {'heartbeatRequest': []}
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
+      heartbeat_requests['heartbeatRequest'].append({
+        'cbsdId': cbsd_id,
+        'grantId': grant_id,
         'operationState': 'GRANTED'
-      }]
-    }
-    heartbeat_response = self._sas.Heartbeat(heartbeat_request)['heartbeatResponse']
+      })
+    heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
-    self.assertEqual(heartbeat_response[0]['grantId'], grant_ids[0])
-    self.assertEqual(heartbeat_response[0]['response']['responseCode'], 500)
+    for resp in heartbeat_responses:
+      self.assertEqual(resp['response']['responseCode'], 500)
 
-    del heartbeat_request, heartbeat_response
+    del heartbeat_requests, heartbeat_responses
