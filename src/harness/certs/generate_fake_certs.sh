@@ -573,13 +573,14 @@ openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.
 
 # Generate trusted CA bundle.
 echo "\n\nGenerate 'ca' bundle"
-cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert > ca.cert
-# Note: following server implementation, we could also put only the root_ca.cert
-# on ca.cert, then append the intermediate on each leaf certificate:
-#   cat root_ca.cert > ca.cert
-#   cat cbsd_ca.cert >> client.cert
-#   cat cbsd_ca.cert >> admin_client.cert
-#   cat sas_ca.cert >>  server.cert
+cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert \
+    revoked_cbsd_ca.cert revoked_sas_ca.cert revoked_proxy_ca.cert > ca.cert
+
+# Create CA certificate chain containing the CRLs with revoked leaf certificates.
+cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca_sxs11.crl
+cat ca.cert crl/ca_sxs11.crl > ca_crl_chain_sxs11.cert
+cat crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl crl/root_ca.crl > crl/ca_sxs16.crl
+cat ca.cert crl/ca_sxs16.crl > ca_crl_chain_sxs16.cert
 
 # Cleanup: remove all files not directly used by the testcases.
 rm -rf root
