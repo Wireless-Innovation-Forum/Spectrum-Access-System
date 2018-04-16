@@ -454,11 +454,6 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
-  def InjectDatabaseUrl(self, request):
-    """Inject the Database URL into SAS."""
-    pass
-
-  @abc.abstractmethod
   def TriggerFullActivityDump(self):
     """SAS admin interface to trigger generation of a Full Activity Dump.
 
@@ -477,7 +472,7 @@ class SasAdminInterface(object):
         "url": base URL of the peer SAS.
     """
     pass
-
+  
   @abc.abstractmethod
   def QueryPropagationAndAntennaModel(self, request):
     """SAS admin interface to query propagation and antenna gains for CBSD and FSS  or Provided PPA Contour

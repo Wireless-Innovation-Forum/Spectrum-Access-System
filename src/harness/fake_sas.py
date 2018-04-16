@@ -315,8 +315,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     pass
 
-  def InjectPeerSas(self, request):
-    pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
@@ -332,6 +330,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
 
   def do_POST(self):
     """Handles POST requests."""
+
     length = int(self.headers.getheader('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
@@ -384,8 +383,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
                        '/admin/injectdata/exclusion_zone',
-                       '/admin/trigger/create_full_activity_dump',
-                       '/admin/injectdata/peer_sas'):
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)

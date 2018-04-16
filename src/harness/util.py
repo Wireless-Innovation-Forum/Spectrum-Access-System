@@ -119,17 +119,6 @@ def loadConfig(config_filename):
     return json.loads(f.read())
 
 
-def writeDB(db_filename, data):
-  """Writes a fake database file."""
-  dir_name = os.path.dirname(db_filename)
-  if not os.path.exists(dir_name):
-    os.makedirs(dir_name)
-
-  with open(db_filename, 'w') as f:
-    f.write(
-        json.dumps(data, indent=2, sort_keys=False, separators=(',', ': ')))
-
-
 def writeConfig(config_filename, config):
   """Writes a configuration file."""
   dir_name = os.path.dirname(config_filename)
