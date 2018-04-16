@@ -322,12 +322,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
        test_type: A string which indicates the type of testcase to be invoked("MCP"/"XPR")
     Return: None
     """
-    cbsd_agg_list = []
-    fad_test_harnesses_objects = []
     sas_test_harness_objects = []
     domain_proxy_objects = []
-    sas_uut_cert = os.path.join('certs/sas.cert')
-    sas_uut_key = os.path.join('certs/sas.key')
 
     # Load conditionals
     if config['conditionalRegistrationData']:
@@ -365,6 +361,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
    
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
+      fad_test_harnesses_objects = []
+      cbsd_agg_list = []
       protected_entity_records = iteration_content['protectedEntities']
       if 'fssRecords' in protected_entity_records:
         for fss_record in protected_entity_records['fssRecords']:
@@ -404,25 +402,24 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
       # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
       # Use DP objects to get CBSD registered
-      for domain_proxy_object in domain_proxy_objects:
-        for cbsdRequestsWithDomainProxy in iteration_content['cbsdRequestsWithDomainProxies']:
-          registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
-          grant_requests = cbsdRequestsWithDomainProxy['grantRequests']
+      for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
+                                                    iteration_content['cbsdRequestsWithDomainProxies']):
+        registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
+        grant_requests = cbsdRequestsWithDomainProxy['grantRequests']
 
-          # domain_proxy_object.initialize triggers the registration and grant for the records passes as parameters
-          domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
+        #  Initiation of Registration and Grant procedures for the configured records
+        domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
 
-          # Step 11 : Send heartbeat request
-          domain_proxy_object.heartbeatForAllActiveGrants()
+        # Step 11 : Send heartbeat request
+        domain_proxy_object.heartbeatForAllActiveGrants()
 
-          # Get the list of CBSDs
-          cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+        # Get the list of CBSDs
+        cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
       # Register individual Cbsds
       for cbsd_record in iteration_content['cbsdRecords']:
         cbsd_ids, grant_ids = self.assertRegisteredAndGranted([cbsd_record['registrationRequest']],
                                                               [cbsd_record['grantRequest']])
-        #cbsd_agg_list.append(cbsd_ids)
 
       # Step 12 : Invoke Aggregate Interference Model
       # TODO: To invoke Aggregate Interference Model
@@ -466,7 +463,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # TODO: To invoke checkMcpIap method
 
       # Execute from Step23 to Step30 only for MCP testcase
-      if test_type == "MCP":
+      if test_type == 'MCP':
         # Step 23: ESC Test harness enables DPA activations
         # deactivated the dpaDeactivationList DPA IDs
         for dpa in iteration_content['dpaActivationList']:
@@ -476,7 +473,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         # step 24: wait for 240 sec if DPA is activated in step 23 else 15 sec
         for dpa in iteration_content['dpaActivationList']:
           self._sas_admin.TriggerDpaActivation(dpa)
-        if len(iteration_content['dpaActivationList']):
+        if iteration_content['dpaActivationList']:
           time.sleep(240)
         else:
           time.sleep(15)
