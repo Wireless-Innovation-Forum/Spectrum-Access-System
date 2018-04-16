@@ -19,6 +19,7 @@ import logging
 import os
 import time
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 
@@ -281,9 +282,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual(transmit_expire_time, datetime.utcnow())
 
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404.
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_4(self):

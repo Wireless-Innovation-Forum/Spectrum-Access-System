@@ -16,6 +16,8 @@ import logging
 import os
 from OpenSSL import SSL
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
+
+from request_handler import HTTPError
 import security_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
 getCertificateFingerprint
@@ -209,11 +211,11 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     except AssertionError:
       trigger_succeed = False
       try:
-         self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
-         trigger_succeed = True
-      except AssertionError as e:
-         # Check if HTTP status is 403
-         self.assertEqual(e.args[0], 403)
+        self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
+        trigger_succeed = True
+      except HTTPError as e:
+        # Check if HTTP status is 403
+        self.assertEqual(e.error_code, 403)
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_11_default_config(self, filename):
@@ -359,9 +361,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     try:
        self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
        trigger_succeed = True
-    except AssertionError as e:
+    except HTTPError as e:
        # Check if HTTP status is 403
-       self.assertEqual(e.args[0], 403)
+       self.assertEqual(e.error_code, 403)
     self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_16_default_config(self, filename):
@@ -417,9 +419,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
         # Initiate Full Activity Dump
         self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
         trigger_succeed = True
-      except AssertionError as e:
+      except HTTPError as e:
         # Check if HTTP status is 401
-        self.assertEqual(e.args[0], 401)
+        self.assertEqual(e.error_code, 401)
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_18_default_config(self, filename):
@@ -475,6 +477,6 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
         downloadFile = self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
                                                 config['invalidCertKeyPair']['key'])
         self.fail("FAD record file download should have failed")
-      except AssertionError as e:
+      except HTTPError as e:
         # Check if HTTP status is 401
-        self.assertEqual(e.args[0], 401)
+        self.assertEqual(e.error_code, 401)

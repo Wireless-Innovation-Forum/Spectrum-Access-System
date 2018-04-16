@@ -22,6 +22,32 @@ import os
 import pycurl
 
 
+class HTTPError(Exception):
+  """HTTP error, ie. any HTTP code not in range [200, 299].
+
+  Attributes:
+    error_code: integer code representing the HTTP error code. Refer to:
+        https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+  """
+
+  def __init__(self, error_code):
+    super(HTTPError, self).__init__('HTTP code %d' % error_code)
+    self.error_code = error_code
+
+
+class TLSError(Exception):
+  """TLS error, as defined in https://curl.haxx.se/libcurl/c/libcurl-errors.html.
+
+  Attributes:
+    error_code: integer code representing the pycurl TLS error code. Refer to:
+        https://curl.haxx.se/libcurl/c/libcurl-errors.html
+  """
+
+  def __init__(self, message, error_code):
+    super(TLSError, self).__init__(message)
+    self.error_code = error_code
+
+
 class TlsConfig(object):
   """Holds all TLS/HTTPS parameters."""
 
@@ -68,11 +94,11 @@ def _Request(url, request, config, is_post_method):
   Returns:
     A dictionary represents the JSON response received from server.
   Raises:
-    AssertionError: with args[0] is an integer code representing:
-      * libcurl SSL code response, if code < 100:
-        https://curl.haxx.se/libcurl/c/libcurl-errors.html
-      * HTTP code response, if code >= 100:
-        https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+    TLSError: with args[0] is an integer code representing the libcurl
+      SSL code response (value < 100). Refer to:
+      https://curl.haxx.se/libcurl/c/libcurl-errors.html
+    HTTPError: for any HTTP code not in the range [200, 299]. Refer to:
+      https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   """
   response = StringIO.StringIO()
   conn = pycurl.Curl()
@@ -105,18 +131,13 @@ def _Request(url, request, config, is_post_method):
   except pycurl.error as e:
     # e contains a tuple (libcurl_error_code, string_description).
     # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    raise AssertionError(e.args[0], e.args[1])
+    raise TLSError(e.args[1], e.args[0])
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
   logging.info('Response:\n' + body)
 
-  if http_code != 200:
+  if http_code not in (200, 299):
     raise HTTPError(http_code)
   if body:
     return json.loads(body.decode('utf-8'))
-
-class HTTPError(Exception):
-  def __init__(self, error_code):
-    self.error_code = error_code
-    super(HTTPError, self).__init__(error_code)
