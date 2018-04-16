@@ -35,16 +35,16 @@ class HTTPError(Exception):
     self.error_code = error_code
 
 
-class TLSError(Exception):
-  """TLS error, as defined in https://curl.haxx.se/libcurl/c/libcurl-errors.html.
+class CurlError(Exception):
+  """Curl error, as defined in https://curl.haxx.se/libcurl/c/libcurl-errors.html.
 
   Attributes:
-    error_code: integer code representing the pycurl TLS error code. Refer to:
+    error_code: integer code representing the pycurl error code. Refer to:
         https://curl.haxx.se/libcurl/c/libcurl-errors.html
   """
 
   def __init__(self, message, error_code):
-    super(TLSError, self).__init__(message)
+    super(CurlError, self).__init__(message)
     self.error_code = error_code
 
 
@@ -131,13 +131,13 @@ def _Request(url, request, config, is_post_method):
   except pycurl.error as e:
     # e contains a tuple (libcurl_error_code, string_description).
     # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    raise TLSError(e.args[1], e.args[0])
+    raise CurlError(e.args[1], e.args[0])
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
   logging.info('Response:\n' + body)
 
-  if http_code not in xrange(200, 299):
+  if not (200 <= http_code <= 299):
     raise HTTPError(http_code)
   if body:
     return json.loads(body.decode('utf-8'))
