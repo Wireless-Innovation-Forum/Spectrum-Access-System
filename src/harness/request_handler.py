@@ -94,7 +94,7 @@ def _Request(url, request, config, is_post_method):
   Returns:
     A dictionary represents the JSON response received from server.
   Raises:
-    TLSError: with args[0] is an integer code representing the libcurl
+    CurlError: with args[0] is an integer code representing the libcurl
       SSL code response (value < 100). Refer to:
       https://curl.haxx.se/libcurl/c/libcurl-errors.html
     HTTPError: for any HTTP code not in the range [200, 299]. Refer to:
