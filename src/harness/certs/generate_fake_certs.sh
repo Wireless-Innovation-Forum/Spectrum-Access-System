@@ -572,7 +572,7 @@ openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.
      -out crl/revoked_proxy_ca.crl
 
 # Generate trusted CA bundle.
-echo "\n\nGenerate 'ca' bundle"
+echo -e "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert \
     revoked_cbsd_ca.cert revoked_sas_ca.cert revoked_proxy_ca.cert > ca.cert
 
