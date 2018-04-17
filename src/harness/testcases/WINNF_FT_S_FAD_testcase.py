@@ -288,9 +288,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
               self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
               # check that the grant in config file is not mixed of PAL and GAA channels
-              if grant_frequency_range['lowFrequency'] >= low_freq and grant_frequency_range['lowFrequency'] <= high_freq:
+              if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
                  self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq)
-              if grant_frequency_range['highFrequency'] >= low_freq and grant_frequency_range['highFrequency'] <= high_freq:
+              if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
                  self.assertGreaterEquel(grant_frequency_range['lowFrequency'], low_freq)
       # inject FCC IDs and User IDs of CBSDs   
       for device in config['registrationRequests']:
