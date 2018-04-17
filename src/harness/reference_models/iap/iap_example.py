@@ -18,14 +18,14 @@
 # value at a protection constraint. 
 # =============================================================================
 
-import sas_objects
 import json
 import os
 import iap
 import time
-from reference_models.interference import interference as interf
 import multiprocessing
 from multiprocessing import Pool
+from reference_models.interference import interference as interf
+from full_activity_dump import FullActivityDump
 
 # Number of processes for parallel execution
 NUM_OF_PROCESS = 30
@@ -74,19 +74,28 @@ pal_1 = json.load(open(os.path.join('test_data', 'pal_1.json')))
 pal_2 = json.load(open(os.path.join('test_data', 'pal_2.json')))
 pal_3 = json.load(open(os.path.join('test_data', 'pal_3.json')))
 
-sas_uut = sas_objects.FullActivityDump("", "", "", "")
-sas_th_1 = sas_objects.FullActivityDump("", "", "", "")
-sas_th_2 = sas_objects.FullActivityDump("", "", "", "")
-sas_uut.cbsd_records = [cbsd_0, cbsd_1, cbsd_2, cbsd_3, cbsd_4, cbsd_5, cbsd_6,cbsd_7, cbsd_8, cbsd_9, cbsd_10, cbsd_11, cbsd_12, cbsd_13, cbsd_14, cbsd_15, cbsd_16, cbsd_17, cbsd_18, cbsd_19]
-sas_th_1.cbsd_records = [cbsd_20, cbsd_21]
-sas_th_2.cbsd_records = [cbsd_22, cbsd_23]
+sas_uut = FullActivityDump({
+          'cbsd': [cbsd_0, cbsd_1, cbsd_2, cbsd_3, cbsd_4, cbsd_5, cbsd_6,cbsd_7, cbsd_8, cbsd_9, cbsd_10, cbsd_11, cbsd_12, cbsd_13, cbsd_14, cbsd_15, cbsd_16, cbsd_17, cbsd_18, cbsd_19],
+          'esc_sensor': [], 
+          'zone': []
+        })  
+sas_th1 = FullActivityDump({
+          'cbsd': [cbsd_20], 
+          'esc_sensor': [],
+          'zone': []
+        }) 
+sas_th2 = FullActivityDump({
+          'cbsd': [cbsd_22, cbsd_23], 
+          'esc_sensor': [],
+          'zone': [],
+        })  
 pal_records = [pal_0, pal_1, pal_2, pal_3]
 fss_records = [fss_0, fss_1]
 esc_records = [esc_0]
 gwpz_records = [gwpz_0, gwpz_1]
 ppa_records = [ppa_0, ppa_1, ppa_2, ppa_3]
 
-sas_th_fad_objects = [sas_th_1, sas_th_2]
+sas_th_fad_objects = [sas_th1, sas_th2]
 
 start_time = time.time()
 

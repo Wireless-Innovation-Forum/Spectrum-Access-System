@@ -30,7 +30,7 @@
     calculatePostIapAggregateInterference
 
   The routines return a nested dictionary containing in the format of
-  {latitude : {longitude : [interference1, interference2]}. interference is 
+  {latitude : {longitude : [interference1, interference2, etc...]}. interference is 
   the post IAP aggregate interference value from all the CBSDs managed by the 
   SAS in mW/IAPBW for each of the constraints.
 ==================================================================================
@@ -112,7 +112,13 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     and aggregate_interference instance of class type AggregateInterferenceOutputFormat.
     It is updated in the format of {latitude : { longitude : [a_p(mW/IAPBW),..] }}
   """
-  
+  # Initialize list of aggregate interference from all the grants 
+  # ( including grants from managing and peer SAS )
+  aggr_interf = [0] * len(channels)
+  # Initialize list of aggregate interference from all the grants 
+  # ( including only grants from managing SAS )
+  asas_interf = [0] * len(channels)
+
   # Get all the grants inside neighborhood of the protection entity
   grants_inside = interf.findGrantsInsideNeighborhood(
                     grant_objects, protection_point, protection_ent_type)
@@ -133,14 +139,7 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     if num_unsatisfied_grants > 0:
       # algorithm to calculate interference within IAPBW using EIRP obtained for all 
       # the grants through application of IAP
-
-      # Initialize list of aggregate interference from all the grants 
-      # ( including grants from managing and peer SAS )
-      aggr_interf = [0] * len(channels)
-      # Initialize list of aggregate interference from all the grants 
-      # ( including only grants from managing SAS )
-      asas_interf = [0] * len(channels)
-
+   
       num_unsatisfied_grants_channel = []
       iap_threshold_channel = []
       fairshare_channel = []
@@ -197,7 +196,6 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
       grant_interference = {}
 
       while num_unsatisfied_grants > 0:
-
         for g_idx, grant in enumerate(neighborhood_grants):
 
           if grants_satisfied[g_idx] is False:
@@ -212,6 +210,10 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
               grants_overlap_flag[(g_idx, idx)] = grant_overlap_check 
               # if grant overlaps with protection point over channel 
               if grant_overlap_check:
+                # Get protection constraint over 5MHz channel range
+                channel_constraint = interf.ProtectionConstraint(latitude=protection_point[1],
+                                       longitude=protection_point[0], low_frequency=channel[0],
+                                       high_frequency=channel[1], entity_type=protection_ent_type)
                 # Compute interference grant causes to protection point over channel
                 interference = interf.dbToLinear(interf.computeInterference(grant, 
                                  grants_eirp[g_idx], channel_constraint, fss_info, 
@@ -226,7 +228,9 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
                 else:
                   grants_satisfied[g_idx] = False
                   break
-         
+        
+        num_grants_good_overall_channels = 0
+
         for gr_idx, grant in enumerate(neighborhood_grants):
           if grants_removed[gr_idx] is False:
             if grants_satisfied[gr_idx] is True:
@@ -247,18 +251,25 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
             
                   aggr_interf[ch_idx] += grant_interference[(gr_idx, ch_idx)]
 
-                  # Removing grants from future consideration
-                  grants_removed[gr_idx] = True
-            else:
-              grants_eirp[gr_idx] = grants_eirp[gr_idx] - 1
+              # Removing grants from future consideration
+              grants_removed[gr_idx] = True
+                  
+              # Increase number of grants good over all channels
+              num_grants_good_overall_channels += 1
+        
+        if num_grants_good_overall_channels == 0:
+          for grant_id, grant in enumerate(neighborhood_grants): 
+            # Reduce power level of all the unsatisfied grants
+            if grants_satisfied[grant_id] is False:
+              grants_eirp[grant_id] = grants_eirp[grant_id] - 1
      
-      # Update aggregate interference and asas_interference from all the grants 
-      # at a protection point, channel
-      for j, interf_val in enumerate(aggr_interf):
-        asas_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-          protection_point[0], asas_interf[j])
-        aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-          protection_point[0], interf_val)
+  # Update aggregate interference and asas_interference from all the grants 
+  # at a protection point, channel
+  for j, interf_val in enumerate(aggr_interf):
+    asas_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+      protection_point[0], asas_interf[j])
+    aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
+      protection_point[0], interf_val)
 
 
 def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):

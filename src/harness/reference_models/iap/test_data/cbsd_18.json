@@ -34,8 +34,8 @@
 					"operationParam": {
 						"maxEirp": 37.0,
 						"operationFrequencyRange": {
-							"highFrequency": 3700000000,
-							"lowFrequency": 3660000000
+							"highFrequency": 3695000000,
+							"lowFrequency": 3655000000
 						}
 					},
 					"terminated": false
