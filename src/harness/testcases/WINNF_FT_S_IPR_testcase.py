@@ -29,6 +29,7 @@ LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
 ONE_MHZ = 1000000
 
+
 class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
@@ -39,15 +40,15 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     pass
 
   def frequencyInBand(self, low_frequency, high_frequency):
-    """Returns True iff the given range overlaps with the 3550MHz to 3650MHz range."""
+    """Returns True iff the given range overlaps with the 3550-3650MHz range."""
     return (LOW_FREQUENCY_LIMIT_HZ <= low_frequency <= HIGH_FREQUENCY_LIMIT_HZ
             or
             LOW_FREQUENCY_LIMIT_HZ <= high_frequency <= HIGH_FREQUENCY_LIMIT_HZ)
 
   def generate_IPR_1_default_config(self, filename):
-    """Generates the WinnForum configuration for IPR_1"""
+    """Generates the WinnForum configuration for IPR_1."""
 
-    # Load Devices
+    # Load Devices.
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_a['installationParam']['latitude'] = 30.71570
@@ -111,10 +112,13 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-       'dpaId': 'east_dpa_4',
-       'frequencyRange': {'lowFrequency': 3620000000, 'highFrequency': 3630000000},
-       'points_builder': 'default (25, 10, 10, 10)',
-       'movelistMargin': 10
+        'dpaId': 'east_dpa_4',
+        'frequencyRange': {
+            'lowFrequency': 3620000000,
+            'highFrequency': 3630000000
+        },
+        'points_builder': 'default (25, 10, 10, 10)',
+        'movelistMargin': 10
     }
 
     config = {
@@ -190,12 +194,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     # None of the N3 CBSDS should be authorized.
     for cbsd in n3_domain_proxy.getCbsdsWithAtLeastOneAuthorizedGrant():
-      for operationParam in cbsd.getOperationParamsOfAllAuthorizedGrants():
+      for operation_param in cbsd.getOperationParamsOfAllAuthorizedGrants():
         # By definition the N3 CBSDs are in a DPA neighborhood. Check frequency.
         self.assertFalse(
             self.frequencyInBand(
-                operationParam['operationFrequencyRange']['lowFrequency'],
-                operationParam['operationFrequencyRange']['highFrequency']),
+                operation_param['operationFrequencyRange']['lowFrequency'],
+                operation_param['operationFrequencyRange']['highFrequency']),
             msg='CBSD (cbsd_id=%s, fcc_id=%s, sn=%s) '
             'is authorized after IPR.1 step 7. SAS UUT FAILS this test. '
             '(If this config is new please verify the CBSD is in a DPA)' %
@@ -233,4 +237,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for dpa, dpa_config in zip(dpas, config['dpas']):
       freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
       freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
-      self.assertTrue(dpa.CheckInterference(channel=(freq_range_low, freq_range_high), sas_uut_active_grants=grant_info, margin_db=dpa_config['movelistMargin']))
+      self.assertTrue(dpa.CheckInterference(
+          channel=(freq_range_low, freq_range_high),
+          sas_uut_active_grants=grant_info,
+          margin_db=dpa_config['movelistMargin']))
