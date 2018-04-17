@@ -20,7 +20,7 @@ import sas
 import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
-import time    
+import time
 import test_harness_objects
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
   loadConfig, makePpaAndPalRecordsConsistent
@@ -361,143 +361,13 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
    
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
-      fad_test_harnesses_objects = []
       cbsd_agg_list = []
-      protected_entity_records = iteration_content['protectedEntities']
-      if 'fssRecords' in protected_entity_records:
-        for fss_record in protected_entity_records['fssRecords']:
-          self._sas_admin.InjectFss({'record': fss_record})
 
-      if 'gwpzRecords' in protected_entity_records:
-        for gwpz_record in protected_entity_records['gwpzRecords']:
-          self._sas_admin.InjectWisp({'record': gwpz_record})
+      # Execute steps for single iteration
+      self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects, 
+                                  domain_proxy_objects, cbsd_agg_list)
 
-      if 'escRecords' in protected_entity_records:
-        for esc_record in protected_entity_records['escRecords']:
-          self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
-
-      if 'ppaRecords' in protected_entity_records:
-        for ppa_record in protected_entity_records['ppaRecords']:
-          self._sas_admin.InjectZoneData({'record': ppa_record})
-
-      # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
-      if len(iteration_content['sasTestHarnessData']) > 0:
-        fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                   self._sas_admin)
-
-        # Pull FAD from SAS Test Harnesses and fad objects are created for each SAS Test Harnesses
-        for test_harness in sas_test_harness_objects:
-          fad_test_harnesses_objects.append(getFullActivityDumpSasTestHarness(
-                                             test_harness.getSasTestHarnessInterface()))
-
-      # Step 8 : Trigger CPAS and wait until completion
-      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-
-      # Step 9 : Invoke IAP reference model
-      # Call Pre IAP model
-      # TODO: To invoke pre-iap model
-
-      # Call IAP reference model
-      # TODO: To invoke IAP reference model
-
-      # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
-      # Use DP objects to get CBSD registered
-      for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
-                                                    iteration_content['cbsdRequestsWithDomainProxies']):
-        registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
-        grant_requests = cbsdRequestsWithDomainProxy['grantRequests']
-
-        #  Initiation of Registration and Grant procedures for the configured records
-        domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
-
-        # Step 11 : Send heartbeat request
-        domain_proxy_object.heartbeatForAllActiveGrants()
-
-        # Get the list of CBSDs
-        cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
-
-      # Register individual Cbsds
-      for cbsd_record in iteration_content['cbsdRecords']:
-        cbsd_ids, grant_ids = self.assertRegisteredAndGranted([cbsd_record['registrationRequest']],
-                                                              [cbsd_record['grantRequest']])
-
-      # Step 12 : Invoke Aggregate Interference Model
-      # TODO: To invoke Aggregate Interference Model
-
-      # Check MCP.1
-      # TODO: To invoke checkMcpIap method
-
-      # Step 13 : Configure SAS Harness with FAD,trigger FAD generation
-      for test_harness, test_harness_data in zip(sas_test_harness_objects, iteration_content['sasTestHarnessData']):
-        sas_test_harness_dump_records = [test_harness_data['cbsdRecords']]
-        test_harness.writeFadRecords(sas_test_harness_dump_records)
-
-      # Step 14,15 : Trigger Full Activty Dump and Pull FAD records from SAS UUT
-      fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                 self._sas_admin)
-
-      # Step 16 : Trigger CPAS and wait for its completion
-      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-
-      # Step 17 : Call IAP reference model
-      # TODO: To invoke DPA Move Reference model
-
-      # Call Pre IAP model
-      # TODO: To invoke Pre-iap reference model
-
-      # Call IAP reference model
-      # TODO: To invoke IAP reference model
-
-      # Step 18,19,20 and 21 :
-      # Send heartbeat request for the grants, relinquish the grant, grant request and heartbeat for new grant
-      for domain_proxy_object in domain_proxy_objects:
-        domain_proxy_object.performHeartbeatAndUpdateGrants()
-
-        # Step 22: Calculating the Aggregate interface and IAP reference model invoke.
-        cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
-
-      # Invoke Aggregate Interference Model
-      # TODO: To invoke Aggregate Interference Model
-
-      # Check MCP.1
-      # TODO: To invoke checkMcpIap method
-
-      # Execute from Step23 to Step30 only for MCP testcase
-      if test_type == 'MCP':
-        # Step 23: ESC Test harness enables DPA activations
-        # deactivated the dpaDeactivationList DPA IDs
-        for dpa in iteration_content['dpaActivationList']:
-          self._sas_admin.TriggerDpaDeactivation(dpa)
-
-        # activated the dpaActivationList DPA IDs
-        # step 24: wait for 240 sec if DPA is activated in step 23 else 15 sec
-        for dpa in iteration_content['dpaActivationList']:
-          self._sas_admin.TriggerDpaActivation(dpa)
-        if iteration_content['dpaActivationList']:
-          time.sleep(240)
-        else:
-          time.sleep(15)
-
-        # Step 25,26,27 and 28 :
-        # Send heartbeat request for the grants, relinquish the grant, grant request and heartbeat for new grant
-        for domain_proxy_object in domain_proxy_objects:
-          domain_proxy_object.performHeartbeatAndUpdateGrants()
-
-          # Step 29
-          # TODO: Aggregate interference for DPA
-
-          # Step 30:Invoke Aggregate Interference Model
-          cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
-
-        # Invoke Aggregate Interference Model
-        # TODO: To invoke Aggregate Interference Model
-
-        # Check MCP.1
-        # TODO: To invoke checkMcpIap method
-
-        # check MCP.1 DPA
-        # TODO: need to invoke the DPA checkperformHeartbeatAndUpdateGrants
-
+    # Stopping Test harness servers
     for test_harness in sas_test_harness_objects:
       test_harness.shutdown()
       del test_harness
@@ -518,3 +388,161 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
          Aggregate Interference list
     """
     pass
+
+  def executeSingleMCPIteration(self, test_type, iteration_content, sas_test_harness_objects,
+                                                          domain_proxy_objects, cbsd_agg_list):
+    """Executes the steps from Step1 to Step22 for MCP and XPR testcases  
+
+    Args:
+       test_type: A string which indicates the testcase type
+       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
+       sas_test_harness_objects: SAS Test Harnesses objects
+       domain_proxy_objects: Domain proxy objects
+       cbsd_agg_list: Array containing cbsd objects
+    """
+    fad_test_harnesses_objects = []
+    protected_entity_records = iteration_content['protectedEntities']
+    if 'fssRecords' in protected_entity_records:
+      for fss_record in protected_entity_records['fssRecords']:
+        self._sas_admin.InjectFss({'record': fss_record})
+
+    if 'gwpzRecords' in protected_entity_records:
+      for gwpz_record in protected_entity_records['gwpzRecords']:
+        self._sas_admin.InjectWisp({'record': gwpz_record})
+
+    if 'escRecords' in protected_entity_records:
+      for esc_record in protected_entity_records['escRecords']:
+        self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
+
+    if 'ppaRecords' in protected_entity_records:
+      for ppa_record in protected_entity_records['ppaRecords']:
+        self._sas_admin.InjectZoneData({'record': ppa_record})
+
+    # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
+    if iteration_content['sasTestHarnessData']:
+      fad_uut_object = getFullActivityDumpSasUut(self._sas,
+                                                 self._sas_admin)
+
+      # Pull FAD from SAS Test Harnesses and fad objects are created for each SAS Test Harnesses
+      for test_harness in sas_test_harness_objects:
+        fad_test_harnesses_objects.append(getFullActivityDumpSasTestHarness(
+                                          test_harness.getSasTestHarnessInterface()))
+
+    # Step 8 : Trigger CPAS and wait until completion
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Step 9 : Invoke IAP reference model
+    # Call Pre IAP model
+    # TODO: To invoke pre-iap model
+
+    # Call IAP reference model
+    # TODO: To invoke IAP reference model
+
+    # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
+    # Use DP objects to get CBSD registered
+    for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
+                                                                iteration_content['cbsdRequestsWithDomainProxies']):
+      registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
+      grant_requests = cbsdRequestsWithDomainProxy['grantRequests']
+
+      #  Initiation of Registration and Grant procedures for the configured records
+      domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
+
+      # Step 11 : Send heartbeat request
+      domain_proxy_object.heartbeatForAllActiveGrants()
+
+      # Get the list of CBSDs
+      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+
+    # Register individual Cbsds
+    for cbsd_record in iteration_content['cbsdRecords']:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([cbsd_record['registrationRequest']],
+                                                            [cbsd_record['grantRequest']])
+
+
+    # Step 12 : Invoke Aggregate Interference Model
+    # TODO: To invoke Aggregate Interference Model
+
+    # Check MCP.1
+    # TODO: To invoke checkMcpIap method
+
+    # Step 13 : Configure SAS Harness with FAD,trigger FAD generation
+    for test_harness, test_harness_data in zip(sas_test_harness_objects, iteration_content['sasTestHarnessData']):
+      sas_test_harness_dump_records = [test_harness_data['cbsdRecords']]
+      test_harness.writeFadRecords(sas_test_harness_dump_records)
+ 
+    # Step 14,15 : Trigger Full Activty Dump and Pull FAD records from SAS UUT
+    fad_uut_object = getFullActivityDumpSasUut(self._sas,
+                                               self._sas_admin)
+
+    # Step 16 : Trigger CPAS and wait for its completion
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+    # Step 17 : Call IAP reference model
+    # TODO: To invoke DPA Move Reference model
+
+    # Call Pre IAP model
+    # TODO: To invoke Pre-iap reference model
+
+    # Call IAP reference model
+    # TODO: To invoke IAP reference model
+
+    # Step 18,19,20 and 21 :
+    # Send heartbeat request for the grants, relinquish the grant, grant request and heartbeat for new grant
+    for domain_proxy_object in domain_proxy_objects:
+      domain_proxy_object.performHeartbeatAndUpdateGrants()
+
+      # Step 22: Calculating the Aggregate interface and IAP reference model invoke.
+      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+
+    # Invoke Aggregate Interference Model
+    # TODO: To invoke Aggregate Interference Model
+
+    # Check MCP.1
+    # TODO: To invoke checkMcpIap method
+    # Execute from Step23 to Step30 only for MCP testcase
+    if test_type == 'MCP':
+      self.executeMCPOnlyTestSteps(iteration_content, domain_proxy_objects, cbsd_agg_list)
+
+ 
+  def executeMCPOnlyTestSteps(self, iteration_content, domain_proxy_objects, cbsd_agg_list):
+    """Executes the steps from Step23 to Step30 for MCP testcase  
+
+    Args:
+       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
+       domain_proxy_objects: Domain proxy objects
+       cbsd_agg_list: Array containing cbsd objects
+    """
+    # Step 23: ESC Test harness enables DPA activations
+    # deactivated the dpaDeactivationList DPA IDs
+    for dpa in iteration_content['dpaActivationList']:
+      self._sas_admin.TriggerDpaDeactivation(dpa)
+
+    # activated the dpaActivationList DPA IDs
+    # step 24: wait for 240 sec if DPA is activated in step 23 else 15 sec
+    for dpa in iteration_content['dpaActivationList']:
+      self._sas_admin.TriggerDpaActivation(dpa)
+    if iteration_content['dpaActivationList']:
+      time.sleep(240)
+    else:
+      time.sleep(15)
+
+    # Step 25,26,27 and 28 :
+    # Send heartbeat request for the grants, relinquish the grant, grant request and heartbeat for new grant
+    for domain_proxy_object in domain_proxy_objects:
+      domain_proxy_object.performHeartbeatAndUpdateGrants()
+
+      # Step 29
+      # TODO: Aggregate interference for DPA
+
+      # Step 30:Invoke Aggregate Interference Model
+      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+
+    # Invoke Aggregate Interference Model
+    # TODO: To invoke Aggregate Interference Model
+
+    # Check MCP.1
+    # TODO: To invoke checkMcpIap method
+
+    # check MCP.1 DPA
+    # TODO: need to invoke the DPA checkperformHeartbeatAndUpdateGrants
