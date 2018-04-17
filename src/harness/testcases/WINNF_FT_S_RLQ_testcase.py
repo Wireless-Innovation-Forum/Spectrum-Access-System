@@ -16,6 +16,7 @@ import json
 import logging
 import os
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
@@ -384,9 +385,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         self.assertEqual(resp['cbsdId'], cbsd_id)
         self.assertEqual(resp['grantId'], grant_id[resp_number])
         self.assertEqual(resp['response']['responseCode'], 100)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
     finally:
       # Put sas version back
       self._sas._sas_version = version
