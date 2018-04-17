@@ -308,10 +308,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load the Config file
     config = loadConfig(config_filename)
 
-    # Inject the PAL records.
-    for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record)
-
     # Register devices and  check response.
     cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
@@ -325,6 +321,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # encountered in PPA creation reference model.
     test_harness_ppa_geometry = ppa.PpaCreationModel(config['registrationRequests'],
                                                      config['palRecords'])
+
+    # Inject the PAL records.
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
     # Trigger SAS UUT to create a PPA boundary.
     pal_ids = [record['palId'] for record in config['palRecords']]
@@ -475,10 +475,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load the Config file.
     config = loadConfig(config_filename)
 
-    # Inject the PAL records.
-    for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record)
-
     # Register devices and  check response.
     cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
@@ -492,6 +488,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # encountered in PPA creation reference model.
     test_harness_ppa_geometry = ppa.PpaCreationModel(config['registrationRequests'],
                                                      config['palRecords'])
+
+    # Inject the PAL records.
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
     # Trigger SAS UUT to create a PPA boundary.
     pal_ids = [record['palId'] for record in config['palRecords']]
@@ -530,17 +530,31 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
   def generate_PCR_3_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 3."""
-    # File path where SAS UUT claimed ppa boundary generated in PCR.1 test
-    pcr_1_test_config_file_name = 'default.config'
+    # File path where SAS UUT claimed ppa boundary generated in PCR.1 test.
     pcr_1_test_config_file_path = os.path.join('testcases', 'configs',
                                                'test_WINNF_FT_S_PCR_1',
-                                               pcr_1_test_config_file_name)
+                                               'default.config')
     sas_uut_claimed_ppa_boundary_file_path = getSasUutClaimedPpaBoundaryFilePath(
-        pcr_1_test_config_file_name)
+        'default.config')
+
+    # Load SAS UUT claimed ppa boundary and check if any error while retrieving
+    # SAS UUT claimed ppa boundary generated in PCR.1 test.
+    try:
+      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
+        user_claimed_ppa_contour = json.load(claimed_ppa_file)
+    except IOError:
+      raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
+                         % sas_uut_claimed_ppa_boundary_file_path)
+
+    # Shrink the user claimed ppa boundary by 1 kilometer.
+    user_claimed_ppa_contour_shapely = utils.ToShapely(
+        user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
+    user_claimed_ppa_contour_geometry = json.loads(utils.ToGeoJson(
+        user_claimed_ppa_contour_shapely))
 
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContourFilePath': sas_uut_claimed_ppa_boundary_file_path
+        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
     }
     writeConfig(filename, config)
 
@@ -559,21 +573,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # to those used in the corresponding configuration of PCR.1.
     pcr_1_test_config = loadConfig(config['configPCR_1'])
 
-    # Load SAS UUT claimed ppa boundary and check if any error while retrieving
-    # SAS UUT claimed ppa boundary generated in PCR.1 test.
-    try:
-      with open(config['userClaimedPpaContourFilePath'], 'r') as claimed_ppa_file:
-        user_claimed_ppa_contour = json.load(claimed_ppa_file)
-    except IOError:
-      raise RuntimeError('ConfigError:There is an error in reading path:%s \n'
-                         'Please ensure to execute PCR.1 test first if not already.\n'
-                         % config['userClaimedPpaContourFilePath'])
-
-    # Shrink the user claimed ppa boundary by 1 kilometer.
-    user_claimed_ppa_contour_shapely = utils.ToShapely(
-        user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
-    user_claimed_ppa_contour_geometry = json.loads(utils.ToGeoJson(
-        user_claimed_ppa_contour_shapely))
 
     # Inject the PAL records.
     for pal_record in pcr_1_test_config['palRecords']:
@@ -590,7 +589,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     ppa_creation_request = {
         "cbsdIds": cbsd_ids,
         "palIds": pal_ids,
-        "providedContour": user_claimed_ppa_contour_geometry
+        "providedContour": config['userClaimedPpaContour']
     }
 
     # Trigger PPA Creation to SAS UUT.
@@ -607,7 +606,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                   json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
                              separators=(',', ': ')))
     logging.debug("User claimed PPA boundary:%s",
-                  json.dumps(user_claimed_ppa_contour_geometry, indent=2, sort_keys=False,
+                  json.dumps(config['userClaimedPpaContour'], indent=2, sort_keys=False,
                              separators=(',', ': ')))
     uut_ppa_geometry = uut_ppa_zone_data['zone']['features'][0]['geometry']
     self.assertTrue(isPpaWithinServiceArea(pcr_1_test_config['palRecords'], uut_ppa_geometry),
@@ -615,5 +614,5 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Check the maximum PPA boundary created by SAS UUT is identical with the maximum
     # PPA claimed boundary.
-    test_harness_ppa_geometry = user_claimed_ppa_contour_geometry 
+    test_harness_ppa_geometry = config['userClaimedPpaContour']
     self.assertTrue(utils.PolygonsAlmostEqual(test_harness_ppa_geometry, uut_ppa_geometry))
