@@ -257,6 +257,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     if response[0]['response']['responseCode'] != 0:
       return  # SAS passes immediately in this case.
     cbsd_id = response[0]['cbsdId']
+    del request, response
 
     # Calculate the closest FCC office
     lat_cbsd = config['conditionalRegistrationData'][0]['installationParam'][
