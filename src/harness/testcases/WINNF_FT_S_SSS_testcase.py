@@ -21,6 +21,7 @@ from request_handler import HTTPError
 import security_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
 getCertificateFingerprint
+from request_handler import HTTPError
 
 SAS_CERT = os.path.join('certs', 'sas.cert')
 SAS_KEY = os.path.join('certs', 'sas.key')
@@ -106,8 +107,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
 
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
   def generate_SSS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_7"""
@@ -130,8 +132,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
   def generate_SSS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_8"""
@@ -154,8 +157,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
   def generate_SSS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_9"""
@@ -178,8 +182,10 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
+
   def generate_SSS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_10. """
     # Create the actual config for SAS cert/key path 
@@ -271,8 +277,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
   def generate_SSS_13_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.13"""
@@ -299,9 +306,10 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL})
-    self.assertTlsHandshakeFailure(config['sasCert'],
-                                   config['sasKey'],
-                                   ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            ssl_method=SSL.TLSv1_1_METHOD,
+                                            is_sas=True)
 
   def generate_SSS_14_default_config(self, filename):
     """Generates the WinnForum configuration for SSS.14"""
@@ -328,9 +336,10 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeFailure(config['sasCert'],
-                                   config['sasKey'],
-                                   ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            ciphers='ECDHE-RSA-AES256-GCM-SHA384',
+                                            is_sas=True)
 
   def generate_SSS_15_default_config(self, filename):
     """Generates the WinnForum configuration for SSS_15. """
@@ -386,8 +395,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     config = loadConfig(config_filename)
 
     # Tls handshake fails since CA is revoked
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
     logging.info("TLS handshake failed as the CA certificate has been revoked")
 
@@ -411,18 +421,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self.SasReset()
 
     # Attempt TLS handshake without injecting peer SAS info and verify it fails
-    try:
-      self.assertTlsHandshakeFailure(config['sasCert'], config['sasKey'])
-    except AssertionError:
-      trigger_succeed = False
-      try:
-        # Initiate Full Activity Dump
-        self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
-        trigger_succeed = True
-      except HTTPError as e:
-        # Check if HTTP status is 403
-        self.assertEqual(e.error_code, 403)
-      self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
 
   def generate_SSS_18_default_config(self, filename):
     """ Generates the WinnForum configuration for SSS.18 """
@@ -474,9 +475,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
                                      client_key=config['invalidCertKeyPair']['key'])
     except AssertionError as e:
       try:
-        downloadFile = self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
+        self._sas.DownloadFile(url,config['invalidCertKeyPair']['cert'], \
                                                 config['invalidCertKeyPair']['key'])
-        self.fail("FAD record file download should have failed")
       except HTTPError as e:
-        # Check if HTTP status is 401
-        self.assertEqual(e.error_code, 401)
+        self.assertEqual(e.error_code, 403)
+      else:
+        self.fail("FAD record file download should have failed")
