@@ -420,8 +420,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
         self.TriggerFullActivityDumpAndWaitUntilComplete(config['sasCert'], config['sasKey'])
         trigger_succeed = True
       except HTTPError as e:
-        # Check if HTTP status is 401
-        self.assertEqual(e.error_code, 401)
+        # Check if HTTP status is 403
+        self.assertEqual(e.error_code, 403)
       self.assertFalse(trigger_succeed, "Full Activity Dump is expected to fail")
 
   def generate_SSS_18_default_config(self, filename):
