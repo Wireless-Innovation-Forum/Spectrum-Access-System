@@ -232,8 +232,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
       device_a['installationParam']['latitude'], device_a['installationParam'][
         'longitude'] = getRandomLatLongInPolygon(ppa)
-      ppa['cbsdClusterList'] = [{'cbsdSerialNumber': device_a['cbsdSerialNumber'] , 'fccId': device_a['fccId']}]
-      ppas.append(ppa)
+      # Devices inside and part of the claimed PPA.
+      # Contains the index of devices in the devices list.
+      ppas.append({
+            'ppaRecord': ppa,
+            'ppaClusterList': [0]})
       pals.extend(pal)
       # ESC senosrs
       esc_sensors = []
@@ -273,7 +276,22 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Very light checking of the config file.
       self.assertEqual(len(config['registrationRequests']),
                         len(config['grantRequests']))
-        
+      # check that the codnfig file contains consistent PAL&PPA data 
+      for index, grant in enumerate(config['grantRequests']):
+        grant_frequency_range = grant['operationParam']['operationFrequencyRange']
+        for ppa in config['ppaRecords']:
+            if index in ppa['ppaClusterList']:
+              frequency_ranges_of_pals = [pal['channelAssignment']['primaryAssignment'] \
+                for pal in config['palRecords'] if pal['palId'] in config['ppaRecord']['palId']]
+              self.assertTrue(pals_of_ppa)
+              low_freq = min([freq_range['lowFrequency'] for freq_range in frequency_ranges_of_pals])
+              high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
+              self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
+              # check that the grant in config file is not mixed of PAL and GAA channels
+              if grant_frequency_range['lowFrequency'] >= low_freq and grant_frequency_range['lowFrequency'] <= high_freq:
+                 self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq)
+              if grant_frequency_range['highFrequency'] >= low_freq and grant_frequency_range['highFrequency'] <= high_freq:
+                 self.assertGreaterEquel(grant_frequency_range['lowFrequency'], low_freq)
       # inject FCC IDs and User IDs of CBSDs   
       for device in config['registrationRequests']:
         self._sas_admin.InjectFccId({
@@ -295,55 +313,26 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       cbsd_ids = []
       for response in responses:
         cbsd_ids.append(response['cbsdId'])
-      cbsdIds_of_pal_grant = []
       # inject PALs and N2 PPAs
       ppa_ids = []       
       for pal in config['palRecords']:
           self._sas_admin.InjectPalDatabaseRecord(pal)                  
       for ppa in config['ppaRecords']:
-        ppa['ppaInfo']['cbsdReferenceId'] = []
-        for cluster_list in ppa['cbsdClusterList']:
-          for index, cbsd in enumerate(config['registrationRequests']):
-            if cluster_list['fccId'] == cbsd['fccId'] and  cluster_list['cbsdSerialNumber'] == cbsd ['cbsdSerialNumber']:
-              ppa['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
-              break
-        del ppa['cbsdClusterList']
-        ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+        for index in ppa['ppaClusterList']:
+            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
+        ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
       grants = config['grantRequests']
       for index, response in enumerate(responses):
           self.assertEqual(response['response']['responseCode'], 0)
           grants[index]['cbsdId'] = response['cbsdId']
-          grant_frequency_range = grants[index]['operationParam']['operationFrequencyRange']
-          # Get the cbsdIds whose grant is PAL
-          for ppa in config['ppaRecords']:
-                 if 'cbsdReferenceId' in ppa['ppaInfo'] and  response['cbsdId'] in ppa['ppaInfo']['cbsdReferenceId']:
-                   frequency_ranges_of_pals = [pal['channelAssignment']['primaryAssignment'] \
-                     for pal in config['palRecords'] if pal['palId'] in config['palRecords']]
-                   self.assertTrue(pals_of_ppa)                 
-                   low_freq = min([freq_range['lowFrequency'] for freq_range in frequency_ranges_of_pals])
-                   high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
-                   # check that the codnfig file contains consistent PAL&PPA data
-                   self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
-                   # check if the PAL frequency range contains the grant frequency range
-                   if grant_frequency_range['lowFrequency'] >= low_freq and grant_frequency_range['highFrequency'] <= high_freq:
-                     cbsdIds_of_pal_grant.append(response['cbsdId'])
-                   # check that the grant in config file is not mixed of PAL and GAA channels
-                   elif grant_frequency_range['lowFrequency'] <= low_freq:
-                     self.assertLessEqual(grant_frequency_range['highFrequency'], low_freq)
-                   else:
-                     self.assertGreaterEquel(grant_frequency_range['lowFrequency'], high_freq)
       # send grant request with N1 grants
       del responses
       grant_responses = self._sas.Grant({'grantRequest': grants})['grantResponse']
       # check grant response
       self.assertEqual(len(grant_responses), len(config['grantRequests']))
       for grant_response in grant_responses:
-          self.assertEqual(grant_response['response']['responseCode'], 0)
-          # check grant channel type
-          if grant_response['cbsdId'] in cbsdIds_of_pal_grant:
-            self.assertEqual('PAL', grant_response['channelType'])
-          else:
-            self.assertEqual('GAA', grant_response['channelType'])       
+          self.assertEqual(grant_response['response']['responseCode'], 0)   
       # inject N3 Esc sensor
       for esc_sensor in config['escSensorRecords']:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
@@ -395,7 +384,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         # check GeoJson Winding of PPA record
         utils.HasCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])     
         exist_in_dump = False
-        for ppa in config['ppaRecords']:
+        for ppaConf in config['ppaRecords']:
+          ppa = ppaConf['ppaRecord']
           if 'id' in ppa:
             del ppa['id'] 
             # we exclude the values of the CBSD reference Id, because they are not necessarily the same
