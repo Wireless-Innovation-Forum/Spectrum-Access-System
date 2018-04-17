@@ -281,9 +281,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         grant_frequency_range = grant['operationParam']['operationFrequencyRange']
         for ppa in config['ppaRecords']:
             if index in ppa['ppaClusterList']:
-              frequency_ranges_of_pals = [pal['channelAssignment']['primaryAssignment'] \
-                for pal in config['palRecords'] if pal['palId'] in config['ppaRecord']['palId']]
-              self.assertTrue(pals_of_ppa)
+              frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'], 'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
+                for pal in config['palRecords'] if pal['palId'] in ppa['ppaRecord']['ppaInfo']['palId']]
+              self.assertTrue(frequency_ranges_of_pals)
               low_freq = min([freq_range['lowFrequency'] for freq_range in frequency_ranges_of_pals])
               high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
               self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
@@ -388,18 +388,18 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           ppa = ppaConf['ppaRecord']
           if 'id' in ppa:
             del ppa['id'] 
-            # we exclude the values of the CBSD reference Id, because they are not necessarily the same
-            ppa_cbsd_reference_ids = ppa['cbsdReferenceId']
-            ppa_record_cbsd_reference_ids = ppa_record['cbsdReferenceId']
-            del ppa['cbsdReferenceId']
-            del ppa_record['cbsdReferenceId']
-            exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
-            # check that the record has the same length of the CBSD reference Ids
-            exist_in_dump &= len(ppa_cbsd_reference_ids) == len(ppa_record_cbsd_reference_ids)
-            ppa['cbsdReferenceId'] = ppa_cbsd_reference_ids
-            ppa_record['cbsdReferenceId'] = ppa_record_cbsd_reference_ids
-          if exist_in_dump:
-            break
+          # we exclude the values of the CBSD reference Id, because they are not necessarily the same
+          ppa_cbsd_reference_ids = ppa['cbsdReferenceId']
+          ppa_record_cbsd_reference_ids = ppa_record['cbsdReferenceId']
+          del ppa['cbsdReferenceId']
+          del ppa_record['cbsdReferenceId']
+          exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
+          # check that the record has the same length of the CBSD reference Ids
+          exist_in_dump &= len(ppa_cbsd_reference_ids) == len(ppa_record_cbsd_reference_ids)
+          ppa['cbsdReferenceId'] = ppa_cbsd_reference_ids
+          ppa_record['cbsdReferenceId'] = ppa_record_cbsd_reference_ids
+        if exist_in_dump:
+          break
         self.assertTrue(exist_in_dump)     
       # verify the schema of record and two first parts of esc sensor record  Id
       for esc_record in esc_sensor_dump_data:                    
