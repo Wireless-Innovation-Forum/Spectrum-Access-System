@@ -23,10 +23,11 @@ from util import configurable_testcase, writeConfig, loadConfig, getCertificateF
 from test_harness_objects import DomainProxy
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
+from reference_models.move_list_calc import dpa_mgr
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
-
+ONE_MHZ = 1000000
 
 class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
@@ -49,10 +50,17 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Load Devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['installationParam']['latitude'] = 30.71570
+    device_a['installationParam']['longitude'] = -88.09350
+
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b['installationParam']['latitude'] = 30.71570
+    device_b['installationParam']['longitude'] = -88.09350
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c['installationParam']['latitude'] = 30.71570
+    device_c['installationParam']['longitude'] = -88.09350
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
@@ -104,7 +112,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     dpa_1 = {
        'dpaId': 'east_dpa_4',
-       'frequencyRange': {'lowFrequency': 3550000000, 'highFrequency': 3650000000}
+       'frequencyRange': {'lowFrequency': 3620000000, 'highFrequency': 3630000000},
+       'points_builder': 'default (25, 10, 10, 10)',
+       'movelistMargin': 10
     }
 
     config = {
@@ -132,7 +142,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'grantRequestsN3': list,
             'conditionalRegistrationDataN2': list,
             'conditionalRegistrationDataN3': list,
-            'dpas', list
+            'dpas': list
         })
     # SAS UUT loads DPAs.
     self._sas_admin.TriggerLoadDpas()
@@ -204,11 +214,15 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Initialize DPA objects and calculate movelist for each DPA.
-    # TODO(taran): Update once DPA movelist reference model changes are reviewed.
-    dpas = [Dpa(dpa) for dpa in config['dpas']]
-    for dpa in dpas:
+    dpas = []
+    for dpa_config in config['dpas']:
+      dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
+      freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
+      freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.SetFreqRange([(freq_range_low, freq_range_high)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-      dpa.CalcMoveLists()
+      dpa.ComputeMoveLists()
+      dpas.append(dpa)
     # Heartbeat SAS UUT grants.
     n2_domain_proxy.heartbeatForAllActiveGrants()
     n3_domain_proxy.heartbeatForAllActiveGrants()
@@ -216,5 +230,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     grant_info = getGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
 
     # Check grants do not exceed each DPAs interference threshold.
-    for dpa in dpas:
-      self.assertTrue(dpa.CheckInterference(channel=(3550, 3650), sas_uut_active_grants=grant_info, margin_db=10))
+    for dpa, dpa_config in zip(dpas, config['dpas']):
+      freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
+      freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      self.assertTrue(dpa.CheckInterference(channel=(freq_range_low, freq_range_high), sas_uut_active_grants=grant_info, margin_db=dpa_config['movelistMargin']))

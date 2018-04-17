@@ -292,7 +292,7 @@ class SasTestCase(unittest.TestCase):
     """
     for key, field_type in required_fields.iteritems():
       self.assertTrue(key in config,
-                      'Required config field \'%s\' is not present.')
+                      'Required config field \'%s\' is not present.' % key)
       self.assertTrue(
           isinstance(config[key], field_type),
           'Required config field \'%s\' is of type(%s) when it should be type(%s).'
