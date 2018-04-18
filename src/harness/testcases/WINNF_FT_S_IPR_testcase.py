@@ -223,7 +223,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
       freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
       freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
-      dpa.SetFreqRange([(freq_range_low, freq_range_high)])
+      dpa.ResetFreqRange([(freq_range_low, freq_range_high)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
       dpa.ComputeMoveLists()
       dpas.append(dpa)
@@ -231,6 +231,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     n2_domain_proxy.heartbeatForAllActiveGrants()
     n3_domain_proxy.heartbeatForAllActiveGrants()
     # Get CbsdGrantInfo list of SAS UUT grants that are in an authorized state.
+    # TODO: Update with correct function name/import when it is added.
     grant_info = getGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
 
     # Check grants do not exceed each DPAs interference threshold.
