@@ -237,10 +237,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     # Check grants do not exceed each DPAs interference threshold.
     for dpa, dpa_config in zip(dpas, config['dpas']):
-      freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-      freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
       self.assertTrue(dpa.CheckInterference(
-          channel=(freq_range_low, freq_range_high),
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin']))
 
@@ -450,10 +447,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       grant_info = getGrantsFromDomainProxies(domain_proxies)
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
-        freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-        freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
         self.assertTrue(dpa.CheckInterference(
-            channel=(freq_range_low, freq_range_high),
             sas_uut_active_grants=grant_info,
             margin_db=dpa_config['movelistMargin']))
       if len(current_active_dpas) == len(all_dpas):
