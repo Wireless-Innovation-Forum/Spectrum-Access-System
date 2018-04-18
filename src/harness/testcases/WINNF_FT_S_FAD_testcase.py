@@ -330,7 +330,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                               dump_file)
           downloaded_file = None
-          if dump_file['recordType'] != 'CoordinationEvent':                
+          if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
 				  sas_th_config['serverCert'], sas_th_config['serverKey'])
           if dump_file['recordType'] ==  'cbsd':
@@ -340,7 +340,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           elif dump_file['recordType'] ==  'zone':
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
-              self.assertEqual('CoordinationEvent', dump_file['recordType'])
+              self.assertEqual('coordination', dump_file['recordType'])
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
