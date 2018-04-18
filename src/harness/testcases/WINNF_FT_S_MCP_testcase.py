@@ -398,9 +398,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
        iteration_content: A dictionary with multiple key-value pairs that contain iteration data
        sas_test_harness_objects: SAS Test Harnesses objects
        domain_proxy_objects: Domain proxy objects
-       cbsd_agg_list: Array containing cbsd objects
+       cbsd_agg_list: Array containing cbsd records
     """
     fad_test_harnesses_objects = []
+    cbsds_with_domain_proxies = []
     protected_entity_records = iteration_content['protectedEntities']
     if 'fssRecords' in protected_entity_records:
       for fss_record in protected_entity_records['fssRecords']:
@@ -452,13 +453,13 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       domain_proxy_object.heartbeatForAllActiveGrants()
 
       # Get the list of CBSDs
-      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+      cbsds_with_domain_proxies.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
     # Register individual Cbsds
     for cbsd_record in iteration_content['cbsdRecords']:
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted([cbsd_record['registrationRequest']],
                                                             [cbsd_record['grantRequest']])
-
+      cbsd_agg_list.append(cbsd_record)
 
     # Step 12 : Invoke Aggregate Interference Model
     # TODO: To invoke Aggregate Interference Model
@@ -493,7 +494,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       domain_proxy_object.performHeartbeatAndUpdateGrants()
 
       # Step 22: Calculating the Aggregate interface and IAP reference model invoke.
-      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+      cbsds_with_domain_proxies.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
     # Invoke Aggregate Interference Model
     # TODO: To invoke Aggregate Interference Model
@@ -511,8 +512,9 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     Args:
        iteration_content: A dictionary with multiple key-value pairs that contain iteration data
        domain_proxy_objects: Domain proxy objects
-       cbsd_agg_list: Array containing cbsd objects
+       cbsd_agg_list: Array containing cbsd records
     """
+    cbsds_with_domain_proxies = []
     # Step 23: ESC Test harness enables DPA activations
     # deactivated the dpaDeactivationList DPA IDs
     for dpa in iteration_content['dpaActivationList']:
@@ -536,7 +538,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # TODO: Aggregate interference for DPA
 
       # Step 30:Invoke Aggregate Interference Model
-      cbsd_agg_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+      cbsds_with_domain_proxies.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
     # Invoke Aggregate Interference Model
     # TODO: To invoke Aggregate Interference Model
