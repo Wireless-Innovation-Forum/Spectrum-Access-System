@@ -36,8 +36,9 @@ import os
 from pykml import parser
 from collections import namedtuple
 # from shapely.geometry import Polygon as SPolygon
-import move_list
 import time
+
+from reference_models.dpa import move_list
 
 # Define protection point, i.e., a tuple with named fields of
 # 'latitude', 'longitude'
@@ -46,8 +47,9 @@ ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 # Define DPA protection specifications, i.e., a tuple with named fields of
 # 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
 # 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
-ProtectionSpecs = namedtuple('ProtectionSpecs', ['lowFreq', 'highFreq',
-    'antHeight', 'beamwidth', 'threshold'])
+ProtectionSpecs = namedtuple('ProtectionSpecs',
+                             ['lowFreq', 'highFreq',
+                              'antHeight', 'beamwidth', 'threshold'])
 
 if __name__ == '__main__':
 
@@ -125,4 +127,3 @@ if __name__ == '__main__':
     end_time = time.time()
     print 'Move list output: ' + str(res)
     print 'Computation time: ' + str(end_time - start_time)
-

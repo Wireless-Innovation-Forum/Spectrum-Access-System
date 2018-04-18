@@ -20,7 +20,7 @@ from collections import namedtuple
 
 from reference_models.common import data
 from reference_models.common import mpool
-from reference_models.move_list_calc import dpa_mgr
+from reference_models.dpa import dpa_mgr
 
 # Define protection point, i.e., a tuple with named fields of
 # 'latitude', 'longitude'
@@ -29,8 +29,9 @@ ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 # Define DPA protection specifications, i.e., a tuple with named fields of
 # 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
 # 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
-ProtectionSpecs = namedtuple('ProtectionSpecs', ['lowFreq', 'highFreq',
-    'antHeight', 'beamwidth', 'threshold'])
+ProtectionSpecs = namedtuple('ProtectionSpecs',
+                             ['lowFreq', 'highFreq',
+                              'antHeight', 'beamwidth', 'threshold'])
 
 
 if __name__ == '__main__':

@@ -51,7 +51,7 @@ from reference_models.geo import utils
 from reference_models.geo import zones
 from reference_models.common import data
 from reference_models.common import mpool
-from reference_models.move_list_calc import move_list as ml
+from reference_models.dpa import move_list as ml
 
 # The default protection threshold
 DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
@@ -427,8 +427,7 @@ def _CalcTestPointInterfDiff(point,
 # DPA builder routines
 ProtectionPoint = namedtuple('ProtectionPoint',
                              ['latitude', 'longitude'])
-_dpa_zones = None
-_us_border = None
+
 
 def _DefaultProtectionPoints(name,
                              num_pts_front_border=25,
@@ -449,20 +448,14 @@ def _DefaultProtectionPoints(name,
     num_pts_back_zone: number of points in the back zone
     front_us_border_buffer_km: buffering of US border for delimiting front/back.
   """
-  global _dpa_zones
-  global _us_border
-  if not _dpa_zones:
-    _dpa_zones = zones.GetDpaZones()
-  if not _us_border:
-    _us_border = zones.GetUsBorder()
-
-  dpa_zone = _dpa_zones[name]
+  us_border = zones.GetUsBorder()
+  dpa_zone = zones.GetDpaZones()[name]
   # Case of DPA points
   if isinstance(dpa_zone, sgeo.Point):
     return [ProtectionPoint(longitude=dpa_zone.x,
                             latitude=dpa_zone.y)]
 
-  us_border_ext = _us_border.buffer(front_us_border_buffer_km / 111.)
+  us_border_ext = us_border.buffer(front_us_border_buffer_km / 111.)
   front_border = dpa_zone.exterior.intersection(us_border_ext)
   back_border = dpa_zone.exterior.difference(us_border_ext)
   front_zone = dpa_zone.intersection(us_border_ext)

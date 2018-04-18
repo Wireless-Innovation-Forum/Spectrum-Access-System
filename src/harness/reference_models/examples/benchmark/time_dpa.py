@@ -31,7 +31,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reference_models.move_list_calc import dpa_mgr
+from reference_models.dpa import dpa_mgr
 from reference_models.common import data
 from reference_models.common import mpool
 from reference_models.geo import zones

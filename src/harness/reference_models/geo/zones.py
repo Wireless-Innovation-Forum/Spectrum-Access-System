@@ -50,6 +50,12 @@ _COASTAL_PROTECTION_ZONES = [
 ]
 
 
+# Singleton for operational zones.
+_coastal_zone = None
+_exclusion_zones = None
+_dpa_zones = None
+_border_zone = None
+
 def _SplitCoordinates(coord):
   """Returns lon,lat from 'coord', a KML coordinate string field."""
   lon, lat, _ = coord.strip().split(',')
@@ -121,11 +127,14 @@ def GetCoastalProtectionZone():
 
   The coastal protection zone is used for DPA CatA neighborhood.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file)
-  coastal_zone = ops.unary_union([zones[name]
-                                  for name in _COASTAL_PROTECTION_ZONES])
-  return coastal_zone
+  global _coastal_zone
+  if _coastal_zone is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _coastal_zone = ops.unary_union([zones[name]
+                                     for name in _COASTAL_PROTECTION_ZONES])
+
+  return _coastal_zone
 
 
 def GetExclusionZones():
@@ -134,11 +143,13 @@ def GetExclusionZones():
   The GBS exclusion zone are used for protecting Ground Based Station
   transmitting below 3500MHz.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file)
-  exclusion_zones = ops.unary_union([zones[name] for name in zones
-                                     if name not in _COASTAL_PROTECTION_ZONES])
-  return exclusion_zones
+  global _exclusion_zones
+  if _exclusion_zones is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _exclusion_zones = ops.unary_union([zones[name] for name in zones
+                                       if name not in _COASTAL_PROTECTION_ZONES])
+  return _exclusion_zones
 
 
 def GetDpaZones():
@@ -146,22 +157,25 @@ def GetDpaZones():
 
   DPA zones a Dynamic Protection Area protected through the use of ESC sensors.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), DPA_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file, root_id_zone='Document')
-  return zones
+  global _dpa_zones
+  if _dpa_zones is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), DPA_ZONE_FILE)
+    _dpa_zones = _ReadKmlZones(kml_file, root_id_zone='Document')
+
+  return _dpa_zones
 
 
-def GetUsBorder(simplify_deg=1e-3):
+def GetUsBorder():
   """Gets the US border as a |shapely.MultiPolygon|.
 
-  Args:
-    simplify_deg: if defined, simplify the zone with given tolerance (degrees).
-      Default is 1e-3 which corresponds roughly to 100m in continental US.
+  This is a composite US border.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
-  zones = _ReadKmlZones(kml_file, simplify=simplify_deg)
-  border_zone = ops.unary_union(zones.values())
-  return border_zone
+  global _border_zone
+  if _border_zone is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _border_zone = ops.unary_union(zones.values())
+  return _border_zone
 
 
 def GetUrbanAreas(simplify_deg=1e-3):
