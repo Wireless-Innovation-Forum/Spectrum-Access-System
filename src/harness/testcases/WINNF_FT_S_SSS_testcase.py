@@ -450,7 +450,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self.SasReset()
 
     # Notify SAS UUT about peer SAS
-    certificate_hash = getCertificateFingerprint(SAS_CERT)
+    certificate_hash = getCertificateFingerprint(config['validCertKeyPair']['cert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL })
     # Load a Device
