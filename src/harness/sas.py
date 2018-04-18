@@ -27,6 +27,22 @@ def GetTestingSas():
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
   return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
 
+def getDefaultCbsdSSLCertPath():
+  return os.path.join('certs', 'client.cert')
+
+
+def getDefaultCbsdSSLKeyPath():
+  return os.path.join('certs', 'client.key')
+
+
+def getDefaultSasSSLCertPath():
+  return os.path.join('certs', 'client.cert')
+
+
+def getDefaultSasSSLKeyPath():
+  return os.path.join('certs', 'client.key')
+
+
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -56,7 +72,7 @@ class SasImpl(sas_interface.SasInterface):
 
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
-    
+
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
@@ -66,35 +82,22 @@ class SasImpl(sas_interface.SasInterface):
       url += '/%s' % request
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
-                          ssl_cert or self._GetDefaultSasSSLCertPath(),
-                          ssl_key or self._GetDefaultSasSSLKeyPath()))
+                          ssl_cert or GetDefaultSasSSLCertPath(),
+                          ssl_key or GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return RequestPost('https://%s/%s/%s' % (self._base_url, self._sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
-                           ssl_cert or self._GetDefaultCbsdSSLCertPath(),
-                           ssl_key or self._GetDefaultCbsdSSLKeyPath()))
-    
+                           ssl_cert or GetDefaultCbsdSSLCertPath(),
+                           ssl_key or GetDefaultCbsdSSLKeyPath()))
+
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
-                          self._GetDefaultSasSSLCertPath(), ssl_key
-                          if ssl_key else self._GetDefaultSasSSLKeyPath()))
-
-  def _GetDefaultCbsdSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
-
-  def _GetDefaultCbsdSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
-
-  def _GetDefaultSasSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
-
-  def _GetDefaultSasSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
-
+                          GetDefaultSasSSLCertPath(), ssl_key
+                          if ssl_key else GetDefaultSasSSLKeyPath()))
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -221,7 +224,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
-    
+
   def TriggerFullActivityDump(self):
     RequestPost(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
@@ -241,4 +244,3 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost(
       'https://%s/admin/get_ppa_status' % self._base_url, None,
       self._tls_config)
-    
