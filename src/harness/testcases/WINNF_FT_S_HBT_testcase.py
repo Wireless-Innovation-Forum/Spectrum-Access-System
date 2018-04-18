@@ -19,6 +19,7 @@ import logging
 import os
 import time
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 
@@ -281,9 +282,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual(transmit_expire_time, datetime.utcnow())
 
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404.
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_4(self):
@@ -760,7 +761,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # load and inject FSS data with Overlapping Frequency of CBSD
     fss_e = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
-    self._sas_admin.InjectFss({'record': fss_e})
+    self._sas_admin.InjectFss(fss_e)
     # load and inject GWBL data with Overlapping Frequency of CBSD
     gwbl_e = json.load(
         open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
@@ -1062,14 +1063,13 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['grantId'], grant_id)
-    if response['response']['responseCode'] == 500:
+    if response[0]['response']['responseCode'] == 500:
       return
 
-    # Sleep 240 seconds
-    time.sleep(240)
+    # Step 8
+    time.sleep(300)
     self.assertLess(datetime.utcnow(), grant_expire_time)
-
-    # Step 8 - Heartbeat request with operationState = GRANTED
+    # Step 9 - Heartbeat request with operationState = GRANTED
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],
         'grantId': grant_id,

@@ -146,8 +146,9 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     open(os.path.join('testcases', 'testdata', 'device_a.json')))
 
     # load FSS
-    fss_record_0 = json.load(
+    fss_data = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_record_0 = fss_data['record']
     fss_record_0['rxAntennaGainRequired'] = True
     reliability_level = -1
     config = []

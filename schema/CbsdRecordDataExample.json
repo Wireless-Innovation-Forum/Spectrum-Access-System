@@ -1,0 +1,23 @@
+{
+  "fccId": "abc123",
+  "cbsdCategory": "B",
+  "callSign": "KQQQ",
+  "userId": "Red User",
+  "airInterface": {
+    "radioTechnology": "E_UTRA"
+  },
+  "measCapability":[ "RECEIVED_POWER_WITHOUT_GRANT"],
+  "installationParam": {
+    "latitude": 37.419735,
+    "longitude": -122.072205,
+    "height": 6,
+    "indoorDeployment": false,
+    "eirpCapability": 20,
+    "antennaAzimuth": 270,
+    "antennaDowntilt":90,
+    "antennaGain": 16,
+    "antennaBeamwidth": 30,
+    "heightType":"AGL"
+  }
+}
+

@@ -15,11 +15,14 @@
 """Simple data model for SAS entities, and utility routines.
 
 Used solely for running various examples of the protection logic.
+This is *NOT* to be used for actual test harness.
 """
 
 from collections import namedtuple
 import numpy as np
+import shapely.geometry as sgeo
 
+from reference_models.geo import nlcd
 from reference_models.geo import vincenty
 
 # CBSD devices
@@ -29,9 +32,10 @@ Cbsd = namedtuple('Cbsd',
                    'height_agl',
                    'is_indoor',
                    'category',
-                   'eirp_dbm',
+                   'eirp_dbm_mhz',
                    'antenna_azimuth',
-                   'antenna_beamwidth'])
+                   'antenna_beamwidth',
+                   'antenna_gain'])
 
 # Typical CBSD templates
 # - Cat A Indoor - Omni - 23dBm EIRP
@@ -39,27 +43,30 @@ CBSD_TEMPLATE_CAT_A_INDOOR = Cbsd(latitude=0,longitude=0,
                                   height_agl=3,
                                   is_indoor=True,
                                   category='A',
-                                  eirp_dbm=23,
+                                  eirp_dbm_mhz=13,
                                   antenna_azimuth=0,
-                                  antenna_beamwidth=None)
+                                  antenna_beamwidth=None,
+                                  antenna_gain=0)
 
 # - Cat A Outdoor - Omni - 30dBm  EIRP
 CBSD_TEMPLATE_CAT_A_OUTDOOR = Cbsd(latitude=0,longitude=0,
                                    height_agl=6,
                                    is_indoor=False,
                                    category='A',
-                                   eirp_dbm=30,
+                                   eirp_dbm_mhz=20,
                                    antenna_azimuth=0,
-                                   antenna_beamwidth=None)
+                                   antenna_beamwidth=None,
+                                   antenna_gain=6)
 
 # - Cat B Outdoor - Sectorized - 47dBm EIRP
 CBSD_TEMPLATE_CAT_B = Cbsd(latitude=0,longitude=0,
-                           height_agl=6,
+                           height_agl=10,
                            is_indoor=False,
                            category='B',
-                           eirp_dbm=47,
+                           eirp_dbm_mhz=37,
                            antenna_azimuth=[0, 120, 240],
-                           antenna_beamwidth=90)
+                           antenna_beamwidth=90,
+                           antenna_gain=15)
 
 # FSS earth station
 FssLicenseInfo = namedtuple('FssLicenseInfo',
@@ -116,24 +123,100 @@ def GenerateCbsdList(n_cbsd, template_cbsd,
   distances = np.random.uniform(min_distance_km, max_distance_km, n_cbsd)
   bearings = np.random.uniform(min_angle, max_angle, n_cbsd)
   t = template_cbsd
-  multi_sectored = False
-  if isinstance(t.antenna_azimuth, list):
-    multi_sectored = t.antenna_azimuth
-
+  azimuths = (t.antenna_azimuth if isinstance(t.antenna_azimuth, list)
+              else [t.antenna_azimuth])
   cbsds = []
   for k in xrange(n_cbsd):
     lat, lng, _ = vincenty.GeodesicPoint(ref_latitude, ref_longitude,
                                          distances[k], bearings[k])
-    if multi_sectored:
-      for azimuth in multi_sectored:
-        cbsd = Cbsd(lat, lng,
-                    t.height_agl, t.is_indoor, t.category, t.eirp_dbm,
-                    azimuth, t.antenna_beamwidth)
-        cbsds.append(cbsd)
-    else:
+    for azimuth in azimuths:
       cbsd = Cbsd(lat, lng,
-                  t.height_agl, t.is_indoor, t.category, t.eirp_dbm,
-                  np.random.uniform(0, 360, 1)[0], t.antenna_beamwidth)
+                  t.height_agl, t.is_indoor, t.category, t.eirp_dbm_mhz,
+                  int(azimuth + np.random.uniform(0, 360)) % 360,
+                  t.antenna_beamwidth, t.antenna_gain)
       cbsds.append(cbsd)
 
   return cbsds
+
+
+def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
+                           nlcd_driver=None, urban_areas=None):
+  """Returns a number of inland |Cbsd| within polygon, possibly in urban area.
+
+  Args:
+    template_cbsd: A |Cbsd| used as a template.
+    polygon: A |shapely.Polygon| where to put the Cbsd.
+    nlcd_driver: The land cover driver for detecting inland positions (optional).
+    urban_areas: An optional  |shapely.MultiPolygon| defining the urban areas.
+      If not specified, do not enforce the Cbsd to be in urban areas.
+  """
+  t = template_cbsd
+  bounds = polygon.bounds
+  cbsds = []
+  total_asked, total_got = 0, 0
+  ratio = 0.5
+  while len(cbsds) < num_cbsds:
+    n_block = int((num_cbsds - len(cbsds)) / ratio * 1.2)
+    lngs = np.random.uniform(bounds[0], bounds[2], n_block)
+    lats = np.random.uniform(bounds[1], bounds[3], n_block)
+    in_points = sgeo.MultiPoint(zip(lngs, lats))
+    in_points = polygon.intersection(in_points)
+    if urban_areas is not None:
+      in_points = urban_areas.intersection(in_points)
+    if isinstance(in_points, sgeo.Point):
+      in_points = [in_points]
+    total_asked += n_block
+    total_got += len(in_points)
+    if not in_points:
+      continue
+    ratio = total_got / float(total_asked)
+    for point in in_points:
+      if len(cbsds) > num_cbsds: break
+      if nlcd_driver is not None:
+        land_cover = nlcd_driver.GetLandCoverCodes(point.y, point.x)
+        if land_cover < nlcd.LandCoverCodes.PERENNIAL_SNOW:
+          continue
+
+      azimuth_offset = np.random.uniform(0, 360)
+      azimuths = (t.antenna_azimuth if isinstance(t.antenna_azimuth, list)
+                  else [t.antenna_azimuth])
+      for azimuth in azimuths:
+        cbsds.append(Cbsd(point.y, point.x, t.height_agl, t.is_indoor, t.category,
+                          t.eirp_dbm_mhz, azimuth,
+                          t.antenna_beamwidth, t.antenna_gain))
+
+
+  return cbsds
+
+
+# Utility routines to convert Cbsd object into registration and grant requests.
+def GetCbsdRegistrationRequest(cbsd):
+  """Returns a CBSD registration request from the |Cbsd| object.
+  """
+  return {
+      'cbsdCategory': cbsd.category,
+      'installationParam': {
+          'latitude': cbsd.latitude,
+          'longitude': cbsd.longitude,
+          'height': cbsd.height_agl,
+          'heightType': 'AGL',
+          'indoorDeployment': cbsd.is_indoor,
+          'antennaBeamwidth': cbsd.antenna_beamwidth,
+          'antennaAzimuth': cbsd.antenna_azimuth,
+          'antennaGain': cbsd.antenna_gain,
+      }
+  }
+
+
+def GetCbsdGrantRequest(cbsd, min_freq_mhz, max_freq_mhz):
+  """Returns a CBSD grant request from a |Cbsd| object and a min/max frequency.
+  """
+  return {
+      'operationParam': {
+          'operationFrequencyRange': {
+              'lowFrequency': int(min_freq_mhz * 1e6),
+              'highFrequency': int(max_freq_mhz * 1e6)
+          },
+          'maxEirp': cbsd.eirp_dbm_mhz
+      }
+  }

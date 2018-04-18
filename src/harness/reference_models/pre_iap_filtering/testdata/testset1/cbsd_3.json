@@ -1,0 +1,44 @@
+{
+	"_comment": "PPA - CBSD and Category B - ESC CBSD",
+	"id": "cbsd_3",
+	"registrationRequest": {
+		"fccId": "test_fcc_id_d",
+		"cbsdCategory": "B",
+		"callSign": "KPPP",
+		"userId": "test_user_id_d",
+		"airInterface": {
+			"radioTechnology": "E_UTRA",
+			"supportedSpec": "LTE-Rel10"
+		},
+		"cbsdInfo": {
+			"vendor": "Equipment Maker C"
+		},
+
+		"cbsdSerialNumber": "5321dcba_1",
+		"measCapability": ["EUTRA_CARRIER_RSSI_ALWAYS"],
+		"installationParam": {
+			"latitude": 40.50084,
+			"longitude": -101.50174,
+			"height": 3,
+			"indoorDeployment": true,
+			"antennaAzimuth": 72,
+			"antennaDowntilt": 3,
+			"antennaGain": 16,
+			"antennaBeamwidth": 30
+		}
+	},
+	"grants": [{
+		"channelType": "GAA",
+		"grantExpireTime": "calculated at runtime",
+		"id": "cbsd_3_grant_0",
+		"operationParam": {
+			"maxEirp": 20.0,
+			"operationFrequencyRange": {
+				"highFrequency": 3590000000,
+				"lowFrequency": 3580000000
+			}
+		},
+		"terminated": false
+	}]
+
+}

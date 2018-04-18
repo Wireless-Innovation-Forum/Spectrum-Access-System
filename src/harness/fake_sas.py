@@ -56,6 +56,7 @@ from datetime import timedelta
 import uuid
 import json
 import ssl
+import sys
 import os
 import sas_interface
 
@@ -191,45 +192,33 @@ class FakeSas(sas_interface.SasInterface):
     else:
       # Return Empty if invalid Id
       return {}
-
+      
   def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
-    response = json.loads(json.dumps({
-        'files': [
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'cbsd'},
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'zone'},
-            {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-             'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-             'size': 19,
-             'version': version,
-             'recordType': 'esc_sensor'},
-             {'url': 'https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
-                 Spectrum-Access-System/master/schema/empty_activity_dump_file.json',
-              'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
-              'size': 19,
-              'version': version,
-              'recordType': 'coordination'}
+    response = json.loads(json.dumps({'files':[
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709",'size':19, 'version': version,'recordType': "cbsd" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "zone" },
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "esc_sensor" },        
+             {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
+             Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "coordination" }
             ],
-        'generationDateTime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'description': 'Full activity dump files'}))
-    return response
+            'generationDateTime': datetime.utcnow().strftime(
+                                      '%Y-%m-%dT%H:%M:%SZ'),
+            'description':"Full activity dump files" }))
+    return response;
 
   def _GetSuccessResponse(self):
     return {'responseCode': 0}
 
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
-
+  
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     """SAS-SAS Get data from json files after generate the
      Full Activity Dump Message
@@ -292,7 +281,7 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerPpaCreation(self, request, ssl_cert=None, ssl_key=None):
-    return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0]['palId'],
+    return 'zone/ppa/fake_sas/%s/%s' % (request['palIds'][0],
                                         uuid.uuid4().hex)
 
   def TriggerDailyActivitiesImmediately(self):
@@ -301,13 +290,16 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def QueryPropagationAndAntennaModel(self, request):
     from testcases.WINNF_FT_S_PAT_testcase import computePropagationAntennaModel
     return computePropagationAntennaModel(request)
-	
+
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
-  def TriggerFullActivityDump(self):
-    pass
+  def GetPpaCreationStatus(self):
+    return {'completed': True, 'withError': False}
 
+
+  def GetDailyActivitiesStatus(self):
+    return {'completed': True}
   def TriggerLoadDpas(self):
     pass
 
@@ -357,12 +349,16 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSasAdmin().TriggerPpaCreation(request)
     elif self.path == '/admin/get_daily_activities_status':
       response = FakeSasAdmin().GetDailyActivitiesStatus()
+    elif self.path == '/admin/get_daily_activities_status':
+      response = FakeSasAdmin().GetDailyActivitiesStatus()
+    elif self.path == '/admin/get_ppa_status':
+      response = FakeSasAdmin().GetPpaCreationStatus()
     elif self.path == '/admin/query/propagation_and_antenna_model':
       try:
-	    response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
+        response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
-	    self.send_response(400)
-      return 	  
+        self.send_response(400)
+      return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
@@ -409,21 +405,33 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
-
-def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc):
+    
+def RunFakeServer(cbsd_sas_version, sas_sas_version, ca_cert_path, verify_crl):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-  server.socket = ssl.wrap_socket(
-      server.socket,
+  try:
+    with open(ca_cert_path) as file_handle:
+      ca_cert_data = file_handle.read()
+  except IOError:
+    print "%s does not exist" % ca_cert_path
+    return
+  print "\nCA chain is loaded into fake_sas:%s" % ca_cert_path
+  ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+  ssl_context.options |= ssl.CERT_REQUIRED
+
+  # If verify CRL flag is set then load the ca chain with CRLs and verify that
+  # the client certificate is not revoked.
+  if verify_crl:
+    ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
+  ssl_context.load_verify_locations(cafile=ca_cert_path)
+  ssl_context.load_cert_chain(
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE,
-      ca_certs=CA_CERT,
-      cert_reqs=ssl.CERT_REQUIRED,  # CERT_NONE to disable client certificate check
-      ssl_version=ssl.PROTOCOL_TLSv1_2,
-      ciphers=':'.join(ECC_CIPHERS if is_ecc else CIPHERS),
-      server_side=True)
+      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
+  ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+  ssl_context.verify_mode = ssl.CERT_REQUIRED
+  server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
   print 'Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT
   server.serve_forever()
 
@@ -432,11 +440,22 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
-  args = parser.parse_args()
-
+  parser.add_argument(
+      '--verify_crl', help='Enable CRL verification. If this flag is set then '
+                           '--ca <cert_file> argument is mandatory. The <cert_file> '
+                           'should contain the certificate chain and CRL chain.',
+      dest='verify_crl', action='store_true')
+  parser.add_argument('--ca', required='--verify_crl' in sys.argv,
+                      help='CA certiicate chain with or without CRL chain.',
+                      dest='ca_cert', action='store')
+  try:
+    args = parser.parse_args()
+  except:
+    parser.print_help()
+    sys.exit(0)
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc)
-
+  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
+  RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)

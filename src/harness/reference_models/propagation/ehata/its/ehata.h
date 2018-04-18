@@ -4,14 +4,12 @@
 #ifdef _WIN32
 // Export the DLL functions as "C" and not C++
 #define DLLEXPORT extern "C" __declspec(dllexport)
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
-#ifdef __linux__
+#else
 #define DLLEXPORT
+#endif
+
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
 
 // ******* WinnForum extension *******
 // Change all inputs and intermediate value from float to double
