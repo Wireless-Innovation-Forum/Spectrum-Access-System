@@ -276,7 +276,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Very light checking of the config file.
       self.assertEqual(len(config['registrationRequests']),
                         len(config['grantRequests']))
-      # check that the codnfig file contains consistent PAL&PPA data 
+      # check that the config file contains consistent PAL&PPA data 
       for index, grant in enumerate(config['grantRequests']):
         grant_frequency_range = grant['operationParam']['operationFrequencyRange']
         for ppa in config['ppaRecords']:
@@ -291,7 +291,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
                  self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq)
               if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
-                 self.assertGreaterEquel(grant_frequency_range['lowFrequency'], low_freq)
+                 self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq)
       # inject FCC IDs and User IDs of CBSDs   
       for device in config['registrationRequests']:
         self._sas_admin.InjectFccId({
@@ -318,10 +318,16 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       for pal in config['palRecords']:
           self._sas_admin.InjectPalDatabaseRecord(pal)                  
       for ppa in config['ppaRecords']:
+        # fill the PPA cbsdReferenceIds with values according to admin testing API spec
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
         for index in ppa['ppaClusterList']:
             ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
         ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
+        # re-fill the PPA cbsdReferenceIds with the values expected in the dump according to SAS-SAS TS
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+        for index in ppa['ppaClusterList']:
+            cbsd = config['registrationRequests'][index]
+            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(generateCbsdReferenceId(cbsd['fccId'], cbsd['cbsdSerialNumber']))
       grants = config['grantRequests']
       for index, response in enumerate(responses):
           self.assertEqual(response['response']['responseCode'], 0)
@@ -384,20 +390,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         # check GeoJson Winding of PPA record
         utils.HasCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])     
         exist_in_dump = False
-        for ppaConf in config['ppaRecords']:
-          ppa = ppaConf['ppaRecord']
+        for ppa_conf in config['ppaRecords']:
+          ppa = ppa_conf['ppaRecord']
           if 'id' in ppa:
             del ppa['id'] 
-          # we exclude the values of the CBSD reference Id, because they are not necessarily the same
-          ppa_cbsd_reference_ids = ppa['cbsdReferenceId']
-          ppa_record_cbsd_reference_ids = ppa_record['cbsdReferenceId']
-          del ppa['cbsdReferenceId']
-          del ppa_record['cbsdReferenceId']
           exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
-          # check that the record has the same length of the CBSD reference Ids
-          exist_in_dump &= len(ppa_cbsd_reference_ids) == len(ppa_record_cbsd_reference_ids)
-          ppa['cbsdReferenceId'] = ppa_cbsd_reference_ids
-          ppa_record['cbsdReferenceId'] = ppa_record_cbsd_reference_ids
         if exist_in_dump:
           break
         self.assertTrue(exist_in_dump)     
