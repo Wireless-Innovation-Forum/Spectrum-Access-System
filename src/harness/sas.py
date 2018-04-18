@@ -21,25 +21,26 @@ import sas_interface
 def GetTestingSas():
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
-  admin_and_cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'AdminAndCbsdSasRsaBaseUrl')
+  admin_api_base_url = config_parser.get('SasConfig', 'AdminApiBaseUrl')
+  cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'CbsdSasRsaBaseUrl')
   cbsd_sas_ec_base_url = config_parser.get('SasConfig', 'CbsdSasEcBaseUrl')
   sas_sas_rsa_base_url = config_parser.get('SasConfig', 'SasSasRsaBaseUrl')
   sas_sas_ec_base_url = config_parser.get('SasConfig', 'SasSasEcBaseUrl')
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  return SasImpl(admin_and_cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
-    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version), SasAdminImpl(admin_and_cbsd_sas_rsa_base_url)
+  return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
+    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version), SasAdminImpl(admin_api_base_url)
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, admin_and_cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
+  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
     sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version):
-    self._cbsd_sas_rsa_base_url = admin_and_cbsd_sas_rsa_base_url
+    self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
     self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
     self._sas_sas_rsa_base_url = sas_sas_rsa_base_url
     self._sas_sas_ec_base_url = sas_sas_ec_base_url
-    self.cbsd_sas_active_base_url = admin_and_cbsd_sas_rsa_base_url
+    self.cbsd_sas_active_base_url = cbsd_sas_rsa_base_url
     self.sas_sas_active_base_url = sas_sas_rsa_base_url
     self.cbsd_sas_version = cbsd_sas_version
     self.sas_sas_version = sas_sas_version
@@ -101,9 +102,9 @@ class SasImpl(sas_interface.SasInterface):
 
   def UpdateCbsdRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
-      cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
+      self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
     else:
-      cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
+      self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
 
   def _GetDefaultCbsdSSLCertPath(self):
     return os.path.join('certs', 'client.cert')
