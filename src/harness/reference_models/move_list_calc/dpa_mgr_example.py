@@ -125,8 +125,7 @@ if __name__ == '__main__':
   keep_list = dpa_uut.GetKeepList(channel)
   active_uut_grants = [grant for grant in grants_uut
                        if grant in keep_list]
-  check = dpa_ref.CheckInterference(channel,
-                                    active_uut_grants,
+  check = dpa_ref.CheckInterference(active_uut_grants,
                                     margin_db=margin_db)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
