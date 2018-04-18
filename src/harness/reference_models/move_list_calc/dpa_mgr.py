@@ -36,7 +36,7 @@ Example usage:
   interf_per_point = dpa.CalcKeepListInterference(channel)
 
   # Check the interference according to Winnforum IPR tests
-  status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=2)
+  status = dpa.CheckInterference(sas_uut_keep_list, margin_db=2)
 """
 import ast
 from collections import namedtuple
@@ -72,7 +72,8 @@ class Dpa(object):
   for which special protection logic is run.
 
   Attributes:
-    channels: The list of (freq_min_mhz, freq_max_mhz) to protect for that DPA.
+    channels: The list of 10MHz channels (freq_min_mhz, freq_max_mhz) to protect for
+      that DPA.
     protected_points: A list of namedtuple (latitude, longitude) defining the actual
       points to protect within the DPA.
     threshold: The protection threshold (in dBm per 10MHz). The 95% quantile of the
