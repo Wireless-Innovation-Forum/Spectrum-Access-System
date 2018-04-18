@@ -318,6 +318,8 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     pass
 
+  def TriggerEscDisconnect(self):
+    pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
   @classmethod
