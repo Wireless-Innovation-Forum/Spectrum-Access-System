@@ -27,19 +27,19 @@ def GetTestingSas():
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
   return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
 
-def getDefaultCbsdSSLCertPath():
+def GetDefaultCbsdSSLCertPath():
   return os.path.join('certs', 'client.cert')
 
 
-def getDefaultCbsdSSLKeyPath():
+def GetDefaultCbsdSSLKeyPath():
   return os.path.join('certs', 'client.key')
 
 
-def getDefaultSasSSLCertPath():
+def GetDefaultSasSSLCertPath():
   return os.path.join('certs', 'client.cert')
 
 
-def getDefaultSasSSLKeyPath():
+def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'client.key')
 
 
