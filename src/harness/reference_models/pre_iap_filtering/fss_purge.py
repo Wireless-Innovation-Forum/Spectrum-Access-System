@@ -113,16 +113,12 @@ def generatePurgeListForFssPoint(cbsds, fss_entity):
         remaining_grants = []
         for cbsd_grant in purged_grant['cbsd']['grants']:
           # Find the grants matching mcbsd value and add it to the purge list
-          if (purged_grant['mcbsd']) == getMcbsdValue(cbsd_grant):
+          if purged_grant['mcbsd'] == getMcbsdValue(cbsd_grant):
             final_purge_list.append(grants_cbsds_namedtuple(cbsd_grant, purged_grant['cbsd']))
-          else:
-            # Find the grants not matching the mcbsd values and not present in the purge list
+          elif purged_grant['mcbsd'] > getMcbsdValue(cbsd_grant):
+            # Find the grants with mcbsd value less than the max_grant mcbsd value
             # and add it to the remaining grants list
-            for final_grant in final_purge_list:
-              if cbsd_grant is final_grant.grant:
-                break
-            else:
-              remaining_grants.append(cbsd_grant)
+            remaining_grants.append(cbsd_grant)
 
         # Identify the grant with the highest highFrequncy value among the remaining grants for the
         # CBSD and add it to the grants_cbsds_info_for_oobe_calculation list for next iteration.
