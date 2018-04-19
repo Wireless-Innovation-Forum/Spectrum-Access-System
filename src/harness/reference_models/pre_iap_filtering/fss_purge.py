@@ -112,17 +112,11 @@ def generatePurgeListForFssPoint(cbsds, fss_entity):
       for purged_grant in grants_to_purge:
         remaining_grants = []
         for cbsd_grant in purged_grant['cbsd']['grants']:
-          # Find the grants matching mcbsd value and add it to the purge list
-          if (purged_grant['mcbsd']) == getMcbsdValue(cbsd_grant):
-            final_purge_list.append(grants_cbsds_namedtuple(cbsd_grant, purged_grant['cbsd']))
-          else:
-            # Find the grants not matching the mcbsd values and not present in the purge list
-            # and add it to the remaining grants list
-            for final_grant in final_purge_list:
-              if cbsd_grant is final_grant.grant:
-                break
-            else:
-              remaining_grants.append(cbsd_grant)
+          # Ignore the grant unless the grants mcbsd is lower than the mcbsd in purged_grant.
+          if purged_grant['mcbsd'] == getMcbsdValue(cbsd_grant):
+            break
+          elif purged_grant['mcbsd'] > getMcbsdValue(cbsd_grant):
+            remaining_grants.append(cbsd_grant)
 
         # Identify the grant with the highest highFrequncy value among the remaining grants for the
         # CBSD and add it to the grants_cbsds_info_for_oobe_calculation list for next iteration.
@@ -283,7 +277,7 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   for fad in sas_test_harness_fads:
     cbsds.extend(fad.getCbsdRecords())
 
-  grants_to_purged_for_all_fss = []
+  grants_to_purged_for_all_fss = set()
   for fss_record in fss_records:
     # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
     if fss_record['ttc']:
@@ -291,8 +285,7 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
       if neighboring_cbsds_with_grants:
         fss_entity = getFssInfo(fss_record)
         grants_to_purge_for_fss = generatePurgeListForFssPoint(neighboring_cbsds_with_grants, fss_entity)
-        grants_to_purged_for_all_fss.extend(purge_data for purge_data in grants_to_purge_for_fss
-                                                     if purge_data not in grants_to_purged_for_all_fss)
+        grants_to_purged_for_all_fss.update(grants_to_purge_for_fss)
 
   # Removing grant requests that are in the grants to purge list from the CBSDs.
   for purge_data in grants_to_purged_for_all_fss:
