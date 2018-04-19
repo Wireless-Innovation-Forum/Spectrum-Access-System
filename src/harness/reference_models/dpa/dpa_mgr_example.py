@@ -26,13 +26,6 @@ from reference_models.dpa import dpa_mgr
 # 'latitude', 'longitude'
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
-# Define DPA protection specifications, i.e., a tuple with named fields of
-# 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
-# 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
-ProtectionSpecs = namedtuple('ProtectionSpecs',
-                             ['lowFreq', 'highFreq',
-                              'antHeight', 'beamwidth', 'threshold'])
-
 
 if __name__ == '__main__':
   # Number of Monte Carlo iterations

@@ -45,8 +45,10 @@ from reference_models.dpa import move_list
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
 # Define DPA protection specifications, i.e., a tuple with named fields of
-# 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
-# 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
+#  'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
+#  'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
+# Note that other parameter can be passed optionally:
+#  'min_azimuth', max_azimuth', 'catb_neighbor_dist'
 ProtectionSpecs = namedtuple('ProtectionSpecs',
                              ['lowFreq', 'highFreq',
                               'antHeight', 'beamwidth', 'threshold'])

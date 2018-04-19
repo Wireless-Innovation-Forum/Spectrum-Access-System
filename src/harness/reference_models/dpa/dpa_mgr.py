@@ -81,7 +81,8 @@ class Dpa(object):
     radar_height: The radar height (meters).
     beamwidth: The radar antenna beamwidth (degrees).
     azimuth_range: The radar azimuth range (degrees) as a tuple of
-      (min_azimuth, max_azimuth) relative to true north. UNUSED for now
+      (min_azimuth, max_azimuth) relative to true north.
+    catb_neighbor_dist: The CatB neighbording distance (km).
     grants: The list of registered grants.
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
     keep_lists: A list of keep list (set of |CbsdGrantInfo|) per channel.
@@ -100,8 +101,6 @@ class Dpa(object):
     # Check the interference according to Winnforum IPR tests
     status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=1)
   """
-  # TODO(sbdt): add internal support for azimuth range, since it is used by some
-  # inland DPAs.
   num_iteration = 2000
   protection_zone = zones.GetCoastalProtectionZone()
 
@@ -124,7 +123,8 @@ class Dpa(object):
                radar_height=50,
                beamwidth=3,
                azimuth_range=(0, 360),
-               freq_ranges_mhz=[(3550, 3650)]):
+               freq_ranges_mhz=[(3550, 3650)],
+               catb_neighbor_dist=ml.CAT_B_NBRHD_DIST_DEFAULT):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
     self.threshold = threshold
@@ -132,6 +132,7 @@ class Dpa(object):
     self.azimuth_range = azimuth_range
     self.beamwidth = beamwidth
     self.channels = GetDpaProtectedChannels(freq_ranges_mhz)
+    self.catb_neighbor_dist = catb_neighbor_dist
     self.grants = []
     self.ResetLists()
 
@@ -189,7 +190,10 @@ class Dpa(object):
           inc_ant_height=self.radar_height,
           num_iter=Dpa.num_iteration,
           threshold=self.threshold,
-          beamwidth=self.beamwidth)
+          beamwidth=self.beamwidth,
+          min_azimuth=self.azimuth_range[0],
+          max_azimuth=self.azimuth_range[1],
+          catb_neighbor_dist=self.catb_neighbor_dist)
 
       move_list, nbor_list = zip(*pool.map(moveListConstraint,
                                            self.protected_points))
@@ -269,6 +273,9 @@ class Dpa(object):
         inc_ant_height=self.radar_height,
         num_iter=num_iter,
         beamwidth=self.beamwidth,
+        min_azimuth=self.azimuth_range[0],
+        max_azimuth=self.azimuth_range[1],
+        catb_neighbor_dist=self.catb_neighbor_dist,
         do_max=True)
 
     pool = mpool.Pool()
@@ -331,7 +338,9 @@ class Dpa(object):
         radar_height=self.radar_height,
         beamwidth=self.beamwidth,
         protection_zone=Dpa.protection_zone,
-        num_iter=num_iter)
+        num_iter=num_iter,
+        azimuth_range=self.azimuth_range,
+        catb_neighbor_dist=self.catb_neighbor_dist)
 
     # TODO(sbdt): could do early stop as soon as one fails, although I expect
     # the criteria to be changed into checking 99.x% of success instead of 100%.
@@ -369,7 +378,9 @@ def _CalcTestPointInterfDiff(point,
                              radar_height,
                              beamwidth,
                              protection_zone,
-                             num_iter):
+                             num_iter,
+                             azimuth_range,
+                             catb_neighbor_dist):
   """Calculate difference of aggregate interference between reference and SAS UUT.
 
   This implements the check required by the IPR certification tests, comparing the
@@ -393,6 +404,9 @@ def _CalcTestPointInterfDiff(point,
     beamwidth: The radar antenna beamwidth (degrees).
     protection_zone: A |shapely.Polygon/MultiPolygon| defining the CatA protection zone.
     num_iteration: The number of iteration to use in the Monte Carlo simulation.
+    azimuth_range: The radar azimuth range (degrees) as a tuple of
+      (min_azimuth, max_azimuth) relative to true north.
+    catb_neighbor_dist: The CatB neighbor distance (km).
 
   Returns:
     The maximum aggregated difference across all the radar pointing directions between
@@ -411,7 +425,10 @@ def _CalcTestPointInterfDiff(point,
         exclusion_zone=protection_zone,
         inc_ant_height=radar_height,
         num_iter=num_iter,
-        beamwidth=beamwidth)
+        beamwidth=beamwidth,
+        min_azimuth=azimuth_range[0],
+        max_azimuth=azimuth_range[1],
+        catb_neighbor_dist=catb_neighbor_dist)
     uut_interferences = ml.calcAggregatedInterference(
         point,
         low_freq=channel[0] * 1e6,
@@ -420,7 +437,10 @@ def _CalcTestPointInterfDiff(point,
         exclusion_zone=protection_zone,
         inc_ant_height=radar_height,
         num_iter=num_iter,
-        beamwidth=beamwidth)
+        beamwidth=beamwidth,
+        min_azimuth=azimuth_range[0],
+        max_azimuth=azimuth_range[1],
+        catb_neighbor_dist=catb_neighbor_dist)
     return np.max(uut_interferences - th_interferences)
 
 
@@ -534,9 +554,11 @@ def BuildDpa(dpa_name, protection_points_method=None):
   radar_beamwidth = 3
   azimuth_range = (0, 360)
   freq_ranges_mhz = [(3550, 3650)]
+  catb_neighbor_dist = ml.CAT_B_NBRHD_DIST_DEFAULT
   return Dpa(protection_points,
              threshold=protection_threshold,
              radar_height=radar_height,
              beamwidth=radar_beamwidth,
              azimuth_range=azimuth_range,
-             freq_ranges_mhz=freq_ranges_mhz)
+             freq_ranges_mhz=freq_ranges_mhz,
+             catb_neighbor_dist=catb_neighbor_dist)
