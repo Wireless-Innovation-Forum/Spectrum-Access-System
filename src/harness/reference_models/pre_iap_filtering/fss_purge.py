@@ -100,7 +100,7 @@ def generatePurgeListForFssPoint(cbsds, fss_entity):
 
     # Sort the grants based on the calculated interference value.
     sorted_grants_cbsds_info = sorted(grants_cbsds_info_for_oobe_calculation, key=lambda grant: grant['oobe_interference'])
-    # Find the largest index such that aggregation of the interferences are not equal or higher than
+    # Find the largest index such that aggregation of the interferences are not equal to or higher than
     # the OOBE threshold.
     oobe_interferences = [interference.dbToLinear(grant['oobe_interference']) for grant in sorted_grants_cbsds_info]
     cumulated_interference = np.cumsum(oobe_interferences)
