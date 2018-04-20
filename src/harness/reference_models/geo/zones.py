@@ -173,7 +173,7 @@ def GetUsBorder():
   """
   global _border_zone
   if _border_zone is None:
-    kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
+    kml_file = os.path.join(CONFIG.GetFccDir(), USBORDER_FILE)
     zones = _ReadKmlZones(kml_file)
     _border_zone = ops.unary_union(zones.values())
   return _border_zone
