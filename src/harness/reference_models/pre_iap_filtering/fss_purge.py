@@ -280,6 +280,8 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
     cbsds.extend(fad.getCbsdRecords())
 
   grants_to_purged_for_all_fss = []
+  ids_to_purge = set()
+
   for fss_record in fss_records:
     # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
     if fss_record['ttc']:
@@ -287,8 +289,12 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
       if neighboring_cbsds_with_grants:
         fss_entity = getFssInfo(fss_record)
         grants_to_purge_for_fss = generatePurgeListForFssPoint(neighboring_cbsds_with_grants, fss_entity)
+        # Grants to be purged is updated checking against the cbsd id and grant id to eliminate the 
+        # duplicate entries
         grants_to_purged_for_all_fss.extend(purge_data for purge_data in grants_to_purge_for_fss
-                                                     if purge_data not in grants_to_purged_for_all_fss)
+                   if (purge_data.grant['id'], purge_data.cbsd['id']) not in ids_to_purge)
+        ids_to_purge.update([(purge_data.grant['id'], purge_data.cbsd['id'])
+                   for purge_data in grants_to_purge_for_fss])
 
   # Removing grant requests that are in the grants to purge list from the CBSDs.
   for purge_data in grants_to_purged_for_all_fss:
