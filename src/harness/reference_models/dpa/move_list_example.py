@@ -36,18 +36,22 @@ import os
 from pykml import parser
 from collections import namedtuple
 # from shapely.geometry import Polygon as SPolygon
-import move_list
 import time
+
+from reference_models.dpa import move_list
 
 # Define protection point, i.e., a tuple with named fields of
 # 'latitude', 'longitude'
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
 # Define DPA protection specifications, i.e., a tuple with named fields of
-# 'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
-# 'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
-ProtectionSpecs = namedtuple('ProtectionSpecs', ['lowFreq', 'highFreq',
-    'antHeight', 'beamwidth', 'threshold'])
+#  'lowFreq' (in Hz), 'highFreq' (in Hz), 'antHeight' (in meter),
+#  'beamwidth' (in degree), 'threshold' (in dBm/10MHz)
+# Note that other parameter can be passed optionally:
+#  'min_azimuth', max_azimuth', 'catb_neighbor_dist'
+ProtectionSpecs = namedtuple('ProtectionSpecs',
+                             ['lowFreq', 'highFreq',
+                              'antHeight', 'beamwidth', 'threshold'])
 
 if __name__ == '__main__':
 
@@ -71,7 +75,7 @@ if __name__ == '__main__':
     current_dir = os.getcwd()
     _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
 
-    # Populate a list of CBSD registration requests 		
+    # Populate a list of CBSD registration requests
     reg_request_filename = ['RegistrationRequest_1.json',
                             'RegistrationRequest_2.json',
                             'RegistrationRequest_3.json',
@@ -125,4 +129,3 @@ if __name__ == '__main__':
     end_time = time.time()
     print 'Move list output: ' + str(res)
     print 'Computation time: ' + str(end_time - start_time)
-

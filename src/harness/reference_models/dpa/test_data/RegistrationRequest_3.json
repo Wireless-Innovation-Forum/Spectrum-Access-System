@@ -13,11 +13,12 @@
   "cbsdSerialNumber": "4321dcba_2",
   "measCapability": [],
   "installationParam": {
-    "latitude": 37.7720,
-    "longitude": -75.5977,
-    "height": 6,
+    "latitude": 36.9247,
+    "longitude": -76.0267,
+    "heightType": "AGL",
+    "height": 20,
     "indoorDeployment": true,
-    "antennaAzimuth": 90,
+    "antennaAzimuth": 0,
     "antennaDowntilt": 0,
     "antennaGain": 16,
     "antennaBeamwidth": 30
