@@ -130,6 +130,15 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -out sas_1.csr -keyout sas_1.key \
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate 001/CN=localhost"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_1.csr \
+    -out sas_1.cert -outdir ./root \
+    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
 # Generate normal operation client certificate/key.
 echo -e "\n\nGenerate generic 'client' certificate/key based on domainProxy"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -178,6 +187,15 @@ openssl req -new -newkey rsa:2048 -nodes \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0002"
 openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.csr \
     -out domain_proxy.cert -outdir ./root \
+    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+
+openssl req -new -newkey rsa:2048 -nodes \
+    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -out domain_proxy_1.csr -keyout domain_proxy_1.key \
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0003"
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy_1.csr \
+    -out domain_proxy_1.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -263,7 +281,7 @@ echo -e "\n\nGenerate blacklisted domain proxy certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out blacklisted_domain_proxy.csr -keyout blacklisted_domain_proxy.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0005"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0004"
 openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in blacklisted_domain_proxy.csr \
     -out blacklisted_domain_proxy.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
@@ -367,7 +385,7 @@ echo -e "\n\nGenerate domain_proxy certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out non_cbrs_signed_domain_proxy.csr -keyout non_cbrs_signed_domain_proxy.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0003"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0005"
 openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_root_signed_oper_ca.key -in non_cbrs_signed_domain_proxy.csr \
     -out non_cbrs_signed_domain_proxy.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
@@ -386,7 +404,7 @@ echo -e "\n\nGenerate 'domain_proxy_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out domain_proxy_expired.csr -keyout domain_proxy_expired.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0004"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0006"
 openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy_expired.csr \
     -out domain_proxy_expired.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
@@ -585,3 +603,4 @@ cat ca.cert crl/ca_sxs16.crl > ca_crl_chain_sxs16.cert
 # Cleanup: remove all files not directly used by the testcases.
 rm -rf root
 rm *.csr
+

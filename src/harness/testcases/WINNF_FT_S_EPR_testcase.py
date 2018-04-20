@@ -158,11 +158,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
-            'cert': os.path.join('certs', 'dp_1_client.cert'),
-            'key': os.path.join('certs', 'dp_1_client.key')
+            'cert': os.path.join('certs', 'domain_proxy.cert'),
+            'key': os.path.join('certs', 'domain_proxy.key')
          }, {
-            'cert': os.path.join('certs', 'dp_2_client.cert'),
-            'key': os.path.join('certs', 'dp_2_client.key')
+            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+            'key': os.path.join('certs', 'domain_proxy_1.key')
          }],
         'deltaIap': 2
     }
@@ -322,16 +322,16 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
 
@@ -366,11 +366,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
         'domainProxyConfigs': [{
-             'cert': os.path.join('certs', 'dp_1_client.cert'),
-             'key': os.path.join('certs', 'dp_1_client.key')
+             'cert': os.path.join('certs', 'domain_proxy.cert'),
+             'key': os.path.join('certs', 'domain_proxy.key')
         }, {
-            'cert': os.path.join('certs', 'dp_2_client.cert'),
-            'key': os.path.join('certs', 'dp_2_client.key')}
+            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+            'key': os.path.join('certs', 'domain_proxy_1.key')}
         ],
         'deltaIap': 2
     }
@@ -385,3 +385,4 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
       # test_type= enum (MCP, EPR)
       # Invoke MCP test steps 1 through 22.
       # self.executeMcpTestSteps(config, test_type)
+
