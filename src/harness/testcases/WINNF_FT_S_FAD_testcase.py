@@ -25,6 +25,7 @@ from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
 from util import configurable_testcase, writeConfig, loadConfig \
   , getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent \
   , compareDictWithUnorderedLists, winnforum_testcase, areTwoPpasEqual
+import logging
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   """ This class contains all FAD related tests mentioned in SAS TS  """
@@ -139,10 +140,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
             self.assertTrue(is_default_dump_beamwidth)
           else:
               self.assertEqual(registered_antenna_beamwidth, dump_antenna_beamwidth)
-          # TODO: add check that if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
-          # if azimuth is not registered then the value of antenna azimuth should exist in the dump with any value
+          # if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
+          # and the value of antenna azimuth should be set to 0
           if registered_antenna_azimuth is None:
-            self.assertIsNotNone(dump_antenna_azimuth)
+            self.assertEqual(0, dump_antenna_azimuth)
+            self.assertTrue(is_default_dump_beamwidth)
           else:
             self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
 
@@ -243,7 +245,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       esc_sensors.append(json.load(
             open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
       # SAS test harness configuration
-      sas_harness_config = {
+      sas_test_harness_0_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'hostName': 'localhost',
           'url': 'localhost',
@@ -252,6 +254,14 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           'serverKey': "certs/sas.key",
           'caCert': "certs/ca.cert"
       }
+      sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9003,
+        'serverCert': os.path.join('certs', 'server.cert'),
+        'serverKey': os.path.join('certs', 'server.key'),
+        'caCert': os.path.join('certs', 'ca.cert')
+      }
       config = {
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
@@ -259,7 +269,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'ppaRecords': ppas,
         'palRecords': pals,
         'escSensorRecords' : esc_sensors,
-        'sasTestHarnessConfig': sas_harness_config
+        'sasTestHarnessConfigs': [sas_test_harness_0_config,
+                                  sas_test_harness_1_config]
       }
       writeConfig(filename, config)
     
@@ -283,15 +294,15 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
             if index in ppa['ppaClusterList']:
               frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'], 'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
                 for pal in config['palRecords'] if pal['palId'] in ppa['ppaRecord']['ppaInfo']['palId']]
-              self.assertTrue(frequency_ranges_of_pals)
+              self.assertLessEqual(1, frequency_ranges_of_pals, 'Empty list of Frequency Ranges in the PAL config')
               low_freq = min([freq_range['lowFrequency'] for freq_range in frequency_ranges_of_pals])
               high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
               self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
               # check that the grant in config file is not mixed of PAL and GAA channels
               if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
-                 self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq)
+                 self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq, 'incorrect high frequency of the grant with index {0}, makes it GAA&PAL Mixed Grant'.format(index))
               if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
-                 self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq)
+                 self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq, 'incorrect low frequency of the grant with index {0}, makes it a GAA&PAL Mixed Grant'.format(index))
       # inject FCC IDs and User IDs of CBSDs   
       for device in config['registrationRequests']:
         self._sas_admin.InjectFccId({
@@ -311,8 +322,20 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Check registration responses and get cbsd Id
       self.assertEqual(len(responses), len(config['registrationRequests']))
       cbsd_ids = []
-      for response in responses:
-        cbsd_ids.append(response['cbsdId'])
+      for index, response in enumerate(responses):
+        # in case that SAS reject registration request because the azimuth is not provided
+        if response['response']['responseCode'] != 0:
+          logging.warn('SAS UUT rejected the registration for the CBSD with index: {0} in the config file, \
+            the test will delete this CBSD with all related configs'.format(index))
+          self.assertTrue(response['response']['responseCode'] in  [102, 103])
+          # remove configs related to this CBSD 
+          del config['registrationRequests'][index]
+          del config['grantRequests'][index]
+          for ppa in config['ppaRecords']:
+            if index in ppa['ppaClusterList']:
+              ppa['ppaClusterList'].remove(index)
+        else:
+          cbsd_ids.append(response['cbsdId'])
       # inject PALs and N2 PPAs
       ppa_ids = []       
       for pal in config['palRecords']:
@@ -344,28 +367,29 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
       # step 7
       # Notify the SAS UUT about the SAS Test Harness
-      sas_th_config = config['sasTestHarnessConfig']		
-      certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
-      self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                  'url': sas_th_config['url']})
-
+      for sas_th in config['sasTestHarnessConfigs']:
+        certificate_hash = getCertificateFingerprint(sas_th['serverCert'])
+        self._sas_admin.InjectPeerSas({'certificateHash': sas_th,
+                                    'url': sas_th['url']})
+      sas_th_config = config['sasTestHarnessConfigs'][0]
       response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
+      # verify that all the SASes get the same response :
       # check dump message format
       self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
       # an array for each record type
       cbsd_dump_data = []
       ppa_dump_data = []
-      esc_sensor_dump_data = []
-        
+      esc_sensor_dump_data = []    
       # step 8 and check   
       # download dump files and fill corresponding arrays
+      hash_of_dump_file = []
       for dump_file in response['files']:
           self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                               dump_file)
           downloaded_file = None
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
-				  sas_th_config['serverCert'], sas_th_config['serverKey'])
+                sas_th_config['serverCert'], sas_th_config['serverKey'])
           if dump_file['recordType'] ==  'cbsd':
               cbsd_dump_data.extend(downloaded_file['recordData'])   
           elif dump_file['recordType'] ==  'esc_sensor':
@@ -374,6 +398,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
               self.assertEqual('coordination', dump_file['recordType'])
+          hash_of_dump_file.append(hashlib.sha1(downloaded_file).hexdigest() if dump_file is not None else None)
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
@@ -417,10 +442,21 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # verify that retrieved cbsd dump files have correct schema
       for cbsd_record in cbsd_dump_data:
           self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
-          self.assertFalse("cbsdInfo" in cbsd_record)
-            
+          self.assertFalse("cbsdInfo" in cbsd_record)        
       # verify all the previous activities on CBSDs and Grants exist in the dump files
       self.assertCbsdRecord(config['registrationRequests'], grants, grant_responses, cbsd_dump_data, config['conditionalRegistrationData'])
+      # step 10 check all SAS Test Harnesses retrieve all of the data in the Full Activity Dump from the SAS UUT
+      for sas_th in config['sasTestHarnessConfigs'][1:]:
+        dump_message = self._sas.GetFullActivityDump(sas_th['serverCert'], sas_th['serverKey'])
+        # check that dump message is the same as the message retreived by the first SAS TH
+        self.assertEqual(response, dump_message)
+        # check that dump files is the same as the files retreived by the first SAS TH
+        for index, dump_file in enumerate(dump_message['files']):
+          downloaded_file = None
+          if dump_file['recordType'] != 'coordination':                
+              downloaded_file = self._sas.DownloadFile(dump_file['url'],\
+                sas_th['serverCert'], sas_th['serverKey'])
+              self.assertEqual(hash_of_dump_file[index], hashlib.sha1(downloaded_file).hexdigest())
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
