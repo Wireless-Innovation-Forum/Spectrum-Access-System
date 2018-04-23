@@ -18,6 +18,7 @@ import logging
 import os
 import time
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 
@@ -921,9 +922,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       for resp in response['registrationResponse']:
         self.assertEqual(resp['response']['responseCode'], 100)
         self.assertFalse('cbsdId' in resp)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
 
   def generate_REG_11_default_config(self, filename):
     """Generates the WinnForum configuration for REG.11."""
@@ -1171,6 +1172,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         response = responses[i]
         logging.debug('Looking at response number %d', i)
         self.assertEqual(response['response']['responseCode'], 100)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)

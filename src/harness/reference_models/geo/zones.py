@@ -37,6 +37,7 @@ from reference_models.geo import CONFIG
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
 EXCLUSION_ZONE_FILE = 'protection_zones.kml'
 DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
+FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 
 # The reference files for extra zones.
 USBORDER_FILE = 'usborder.kmz'
@@ -49,6 +50,12 @@ _COASTAL_PROTECTION_ZONES = [
     'West Combined Contour', 'East-Gulf Combined Contour'
 ]
 
+
+# Singleton for operational zones.
+_coastal_zone = None
+_exclusion_zones = None
+_dpa_zones = None
+_border_zone = None
 
 def _SplitCoordinates(coord):
   """Returns lon,lat from 'coord', a KML coordinate string field."""
@@ -121,11 +128,14 @@ def GetCoastalProtectionZone():
 
   The coastal protection zone is used for DPA CatA neighborhood.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file)
-  coastal_zone = ops.unary_union([zones[name]
-                                  for name in _COASTAL_PROTECTION_ZONES])
-  return coastal_zone
+  global _coastal_zone
+  if _coastal_zone is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _coastal_zone = ops.unary_union([zones[name]
+                                     for name in _COASTAL_PROTECTION_ZONES])
+
+  return _coastal_zone
 
 
 def GetExclusionZones():
@@ -134,11 +144,13 @@ def GetExclusionZones():
   The GBS exclusion zone are used for protecting Ground Based Station
   transmitting below 3500MHz.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file)
-  exclusion_zones = ops.unary_union([zones[name] for name in zones
-                                     if name not in _COASTAL_PROTECTION_ZONES])
-  return exclusion_zones
+  global _exclusion_zones
+  if _exclusion_zones is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _exclusion_zones = ops.unary_union([zones[name] for name in zones
+                                       if name not in _COASTAL_PROTECTION_ZONES])
+  return _exclusion_zones
 
 
 def GetDpaZones():
@@ -146,22 +158,25 @@ def GetDpaZones():
 
   DPA zones a Dynamic Protection Area protected through the use of ESC sensors.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), DPA_ZONE_FILE)
-  zones = _ReadKmlZones(kml_file, root_id_zone='Document')
-  return zones
+  global _dpa_zones
+  if _dpa_zones is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), DPA_ZONE_FILE)
+    _dpa_zones = _ReadKmlZones(kml_file, root_id_zone='Document')
+
+  return _dpa_zones
 
 
-def GetUsBorder(simplify_deg=1e-3):
+def GetUsBorder():
   """Gets the US border as a |shapely.MultiPolygon|.
 
-  Args:
-    simplify_deg: if defined, simplify the zone with given tolerance (degrees).
-      Default is 1e-3 which corresponds roughly to 100m in continental US.
+  This is a composite US border.
   """
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), USBORDER_FILE)
-  zones = _ReadKmlZones(kml_file, simplify=simplify_deg)
-  border_zone = ops.unary_union(zones.values())
-  return border_zone
+  global _border_zone
+  if _border_zone is None:
+    kml_file = os.path.join(CONFIG.GetFccDir(), USBORDER_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _border_zone = ops.unary_union(zones.values())
+  return _border_zone
 
 
 def GetUrbanAreas(simplify_deg=1e-3):
@@ -175,3 +190,17 @@ def GetUrbanAreas(simplify_deg=1e-3):
   zones = _ReadKmlZones(kml_file, root_id_zone='Document', simplify=simplify_deg)
   urban_areas = sgeo.GeometryCollection(zones.values())  # ops.unary_union(zones.values())
   return urban_areas
+
+
+def GetFccOfficeLocations():
+  """Returns FCC Office location lat/long as a list of dictionaries.
+
+  14 FCC field offices that require protection are defined in the
+  fcc_field_office_locations.csv file.
+  """
+  fcc_file = os.path.join(CONFIG.GetFccDir(), FCC_FIELD_OFFICES_FILE)
+  fcc_offices = [{
+      'latitude': lat,
+      'longitude': lng
+  } for lat, lng in np.loadtxt(fcc_file, delimiter=',', usecols=(1, 2))]
+  return fcc_offices

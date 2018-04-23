@@ -160,11 +160,11 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use with the optionally
         given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
-
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
+    self._sas.UpdateCbsdRequestUrl(cipher)
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url, [cipher],
                                    client_cert, client_key)
 
     # Does a regular CBSD registration
@@ -183,9 +183,9 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use.
       client_url: base URL of the (peer) SAS client.
     """
-
+    self._sas.UpdateSasRequestUrl(cipher)
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
+    self.assertTlsHandshakeSucceed(self._sas.sas_sas_active_base_url, [cipher],
                                    client_cert, client_key)
 
     # Does a regular SAS registration
@@ -204,12 +204,12 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_cert: optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
       client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.  
+        given |client_cert|. If 'None' the default CBSD key file will be used.
       ciphers: optional cipher method
       ssl_method: optional ssl_method
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
     client = socket.socket()
@@ -231,7 +231,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
-    
+
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
       client_ssl_informations.append(conn.get_state_string())
@@ -242,7 +242,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
-    
+
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
@@ -252,7 +252,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     finally:
       client_ssl.close()
 
-  def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None):
+  def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None, is_sas=False):
     """
     Checks that the TLS handshake failure by varying the given parameters
     if handshake not failed make sure the next https request return error code 403
@@ -264,16 +264,19 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         given |client_cert|. If 'None' the default CBSD key file will be used.
       ciphers: optional cipher method
       ssl_method: optional ssl_method
+      is_sas: boolean to determine next request
     """
     try:
       self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
     except AssertionError as e:
       try:
-        device_a = json.load(
-          open(os.path.join('testcases', 'testdata', 'device_a.json')))
-        request = {'registrationRequest': [device_a]}
-        response = self._sas.Registration(request, ssl_cert=client_cert,
-                                          ssl_key=client_key)['registrationResponse']
+        if is_sas:
+          self._sas.GetFullActivityDump(client_cert, client_key)
+        else:
+          device_a = json.load(
+            open(os.path.join('testcases', 'testdata', 'device_a.json')))
+          request = {'registrationRequest': [device_a]}
+          self._sas.Registration(request, ssl_cert=client_cert, ssl_key=client_key)
       except HTTPError as e:
         logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
         self.assertEqual(e.error_code, 403)
