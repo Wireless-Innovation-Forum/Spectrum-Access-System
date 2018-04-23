@@ -535,6 +535,16 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'grantRequests': list,
+            'relinquishmentRequestsFirst': list,
+            'relinquishmentRequestsSecond': list,
+            'expectedResponseCodesFirst': list,
+            'expectedResponseCodesSecond': list
+        })
     self.assertEqual(
         len(config['relinquishmentRequestsFirst']),
         len(config['expectedResponseCodesFirst']))

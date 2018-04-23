@@ -89,6 +89,12 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       Quiet Zone.
     """
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list
+        })
 
     # Whitelist FCC IDs and User IDs.
     for device in config['registrationRequests']:
@@ -162,6 +168,12 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       Field Offices Quiet Zone.
     """
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list
+        })
 
     # Whitelist FCC IDs and User IDs.
     for device in config['registrationRequests']:
@@ -224,9 +236,9 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequest': [device_b],
+        'registrationRequest': device_b,
         'conditionalRegistrationData': [conditionals_b],
-        'grantRequest': [grant_0],
+        'grantRequest': grant_0,
     }
     writeConfig(filename, config)
 
@@ -236,11 +248,21 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       the FCC Field Offices.
     """
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequest': dict,
+            'conditionalRegistrationData': list,
+            'grantRequest': dict
+        })
 
     # Whitelist FCC ID and User ID.
-    for device in config['registrationRequest']:
-      self._sas_admin.InjectFccId({'fccId': device['fccId']})
-      self._sas_admin.InjectUserId({'userId': device['userId']})
+    self._sas_admin.InjectFccId({
+        'fccId': config['registrationRequest']['fccId']
+    })
+    self._sas_admin.InjectUserId({
+        'userId': config['registrationRequest']['userId']
+    })
 
     # Pre-load conditional registration data.
     if config['conditionalRegistrationData']:
@@ -253,7 +275,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response.
-    self.assertEqual(len(response), len(config['registrationRequest']))
+    self.assertEqual(len(response), 1)
     if response[0]['response']['responseCode'] != 0:
       return  # SAS passes immediately in this case.
     cbsd_id = response[0]['cbsdId']
@@ -271,6 +293,9 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     ]
     index_closest = np.argmin(distance_offices)
     closest_fcc_office = self.fcc_offices[index_closest]
+    logging.info('Closest FCC office Lat: %f', closest_fcc_office['latitude'])
+    logging.info('Closest FCC office Long: %f',
+                 closest_fcc_office['longitude'])
     # Calculate bearing and ant_gain
     _, bearing, _ = vincenty.GeodesicDistanceBearing(
         lat_cbsd, lon_cbsd, closest_fcc_office['latitude'],
@@ -284,26 +309,30 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
         config['conditionalRegistrationData'][0]['installationParam'][
             'antennaGain']
     )
+    logging.info('ant_gain is %f dBi', ant_gain)
     # Gather values required for calculating EIRP
-    p = config['grantRequest'][0]['operationParam']['maxEirp']
+    p = config['grantRequest']['operationParam']['maxEirp']
+    logging.info('Grant maxEirp is %f', p)
     max_ant_gain = (
         config['conditionalRegistrationData'][0]['installationParam'][
             'antennaGain'])
+    logging.info('max_ant_gain is %f dBi', max_ant_gain)
     bw = (
-        config['grantRequest'][0]['operationParam']['operationFrequencyRange']
-        ['highFrequency'] - config['grantRequest'][0]['operationParam']
+        config['grantRequest']['operationParam']['operationFrequencyRange']
+        ['highFrequency'] - config['grantRequest']['operationParam']
         ['operationFrequencyRange']['lowFrequency']) / 1.e6
+    logging.info('bw is %f MHz', bw)
     # Calculate EIRP to verify grant response
     eirp = (p - max_ant_gain + ant_gain + (10 * np.log10(bw)))
-    logging.debug('EIRP is %f', eirp)
+    logging.info('EIRP is %f dBm', eirp)
 
     # If successfully registered, CBSD sends a grant request
-    config['grantRequest'][0]['cbsdId'] = cbsd_id
+    config['grantRequest']['cbsdId'] = cbsd_id
     grant_request = config['grantRequest']
     request = {'grantRequest': grant_request}
     response = self._sas.Grant(request)['grantResponse']
     # Check grant response
-    self.assertEqual(len(response), len(config['grantRequest']))
+    self.assertEqual(len(response), 1)
     # If EIRP <= 49.15 dBm = SUCCESS
     if eirp <= 49.15:
       self.assertEqual(response[0]['response']['responseCode'], 0)

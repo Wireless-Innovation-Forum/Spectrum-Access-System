@@ -28,7 +28,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-    
+
   def generate_FPR_5_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.5."""
 
@@ -118,9 +118,18 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     """[Configurable] Grant Requests from one or more CBSDs Inside an FSS-GWBL Exclusion Zone."""
 
     config = loadConfig(config_filename)
-        
+
     # Light checking of the config file
-    self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'grantRequests': list,
+            'gwblRecord': dict,
+            'fssRecord': dict
+        })
+    self.assertEqual(
+        len(config['registrationRequests']), len(config['grantRequests']))
 
     # Load the FSS
     self._sas_admin.InjectFss(config['fssRecord'])
@@ -129,10 +138,11 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectWisp(config['gwblRecord'])
 
     # Trigger CPAS activity
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Register N > 0 CBSDs
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
 
     # Add cbsdIds to grants
     grant_request = config['grantRequests']
@@ -146,4 +156,3 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(response), len(cbsd_ids))
     for response_num in response:
       self.assertEqual(response_num['response']['responseCode'], 400)
-

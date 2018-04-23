@@ -307,6 +307,15 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     """
     # Load the Config file
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'palRecords': list,
+            'sasTestHarnessCert': basestring,
+            'sasTestHarnessKey': basestring
+        })
 
     # Register devices and  check response.
     cbsd_ids = self.assertRegistered(config['registrationRequests'],

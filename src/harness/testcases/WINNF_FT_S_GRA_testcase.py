@@ -312,9 +312,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_g2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    conditionals = {
-        'registrationData': [conditional_parameters]
-    }
+    conditionals = [conditional_parameters]
 
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
@@ -344,6 +342,17 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     """
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequestC1': dict,
+            'registrationRequestC2': dict,
+            'conditionalRegistrationData': list,
+            'grantRequestG1': dict,
+            'grantRequestG2': dict,
+            'sasTestHarnessConfig': dict,
+            'sasTestHarnessDumpRecords': dict
+        })
 
     device_c1 = config['registrationRequestC1']
     device_c2 = config['registrationRequestC2']
@@ -354,8 +363,6 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Inserting FCC IDs on SUUT before CPAS so SUUT will know about them
     self._sas_admin.InjectFccId({'fccId': device_c1['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c2['fccId']})
-
-
 
     # Create the SAS Test Harness.
     sas_test_harness_server = SasTestHarnessServer(
@@ -379,10 +386,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Pre-load conditional registration data for C1 and C2 CBSDs.
-    if ('conditionalRegistrationData' in config) and (
-            config['conditionalRegistrationData']):
-      self._sas_admin.PreloadRegistrationData(
-          config['conditionalRegistrationData'])
+    if config['conditionalRegistrationData']:
+      self._sas_admin.PreloadRegistrationData({
+          'registrationData': config['conditionalRegistrationData']})
 
     # Step 3: Register CBSDs C1 and C2 with SAS UUT
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
@@ -455,6 +461,14 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     config = loadConfig(config_filename)
+    # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequestC1': dict,
+            'grantRequestG1': dict,
+            'sasTestHarnessConfig': dict,
+            'sasTestHarnessDumpRecords': dict
+        })
 
     device_c1 = config['registrationRequestC1']
     grant_g1 = config['grantRequestG1']
@@ -1375,6 +1389,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'palRecords': list,
+            'ppas': list,
+            'grantRequests': list,
+            'expectedResponseCodes': list
+        })
     self.assertEqual(
         len(config['registrationRequests']),
         len(config['grantRequests']))

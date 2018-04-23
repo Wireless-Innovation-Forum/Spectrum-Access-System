@@ -970,6 +970,18 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # Light checking of the config file
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'expectedResponseCodes': list,
+            'palRecords': list,
+            'ppaRecords': list,
+            'spectrumInquiryRequests': list,
+            'gwpzRecords': list,
+            'fr1Cbsd': list,
+            'fr2Cbsd': list
+        })
     self.assertEqual(len(config['spectrumInquiryRequests']),len(config['registrationRequests']))
     self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequests']))
     self.assertEqual(len(config['spectrumInquiryRequests']),len(config['fr1Cbsd']))
