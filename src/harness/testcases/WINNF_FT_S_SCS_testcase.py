@@ -13,10 +13,14 @@
 #    limitations under the License.
 
 import json
+import logging
 import os
 import security_testcase
+import time
 from OpenSSL import SSL
-from util import winnforum_testcase,configurable_testcase, writeConfig,loadConfig
+from util import winnforum_testcase, configurable_testcase,\
+  writeConfig, loadConfig
+
 
 class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
   # Tests changing the SAS UUT state must explicitly call the SasReset().
@@ -84,8 +88,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert with unknown_ca.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_7_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_7"""
@@ -104,8 +108,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_8_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_8"""
@@ -124,8 +128,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_9_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_9"""
@@ -144,8 +148,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   def generate_SCS_10_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_10. """
@@ -181,6 +185,31 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
       # Check Registration Response
       self.assertEqual(response[0]['response']['responseCode'], 104)
 
+  def generate_SCS_11_default_config(self, filename):
+    """Generate the WinnForum configuration for SCS_11."""
+    # Create the configuration for blacklisted client cert/key path
+
+    config = {
+        'clientCert': self.getCertFilename("blacklisted_client.cert"),
+        'clientKey': self.getCertFilename("blacklisted_client.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_11_default_config)
+  def test_WINNF_FT_S_SCS_11(self, config_filename):
+    """Blacklisted certificate presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    # Tls handshake fails
+    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+                                   client_key=config['clientKey'])
+    logging.info("TLS handshake failed as the client certificate has blacklisted")
+
+
   def generate_SCS_12_default_config(self, filename):
     """Generates the WinnForum configuration for SCS.12"""
     # Create the actual config for client cert/key path
@@ -198,8 +227,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response with fatal alert message.
     """
     config = loadConfig(config_filename)
-    self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_13(self):
@@ -207,7 +236,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailureOrHttp403(ssl_method=SSL.TLSv1_1_METHOD)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_14(self):
@@ -215,7 +244,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailure(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeFailureOrHttp403(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
 
   def generate_SCS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SCS.15 """
@@ -252,3 +281,169 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Check registration response
     self.assertEqual(response['response']['responseCode'],104)
+
+  def generate_SCS_16_default_config(self, filename):
+    """Generate the WinnForum configuration for SCS_16."""
+    # Create the configuration for client cert/key path.
+
+    config = {
+        'clientCert': self.getCertFilename("client_cert_from_revoked_ca.cert"),
+        'clientKey': self.getCertFilename("client_cert_from_revoked_ca.key")
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_SCS_16_default_config)
+  def test_WINNF_FT_S_SCS_16(self, config_filename):
+    """Certificate signed by a revoked CA presented during registration.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    # Read the configuration
+    config = loadConfig(config_filename)
+
+    # Tls handshake fails since CA is revoked
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
+                                            client_key=config['clientKey'])
+    logging.info("TLS handshake failed as the CA certificate has been revoked")
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_17(self):
+    """Invalid certificate following an approved registration request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_client"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
+
+    # Get the absolute path of the short lived certificate created.
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+                                   device_cert, device_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
+      self.assertRegistered([device_a])
+
+    logging.info("CBSD device is in registered state")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # Verify TLS handshake fails
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
+    logging.info("TLS handshake failed as the client certificate is invalid")
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_18(self):
+    """Invalid certificate following an approved grant request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_client"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
+
+    # Get the absolute path of the short lived certificate created.
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_cert,
+                                   device_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load the grant_0 file
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+
+    logging.info("CBSD is in Granted State")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
+    logging.info("TLS handshake failed as the client certificate is invalid")
+
+  @winnforum_testcase
+  def test_WINNF_FT_S_SCS_19(self):
+    """Invalid certificate following an approved heartbeat request.
+
+    Checks that SAS UUT response with fatal alert message.
+    """
+    device_cert_name = "short_lived_client"
+    cert_duration_minutes = 1  # in minutes
+
+    # Create a short lived certificate signed by intermediate CBSD CA.
+    self.createShortLivedCertificate("CBSD", device_cert_name, cert_duration_minutes)
+
+    # Get the absolute path of the short lived certificate created.
+    device_cert = self.getCertFilename(device_cert_name + ".cert")
+    device_key = self.getCertFilename(device_cert_name + ".key")
+
+    # Successful TLS Handshake.
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+                                   device_cert, device_key)
+    logging.info("TLS Handshake Succeeded")
+
+    # Load the device_a file.
+    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+
+    # Load the grant_0 file.
+    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # Register device and grant device with certs(short lived certificates) to SAS UUT.
+    # Ensure the registration and grant requests are successful.
+    # The CiphersOverload approach is used in to override the default certificates with
+    # the certificates configured for this test case.
+    with security_testcase.CiphersOverload(self._sas, self._sas._tls_config.ciphers,
+                                           device_cert, device_key):
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
+      operation_states = ['GRANTED']
+
+      # Send the Heartbeat request for the Grant of CBSD to SAS UUT.
+      transmit_expire_time = self.assertHeartbeatsSuccessful(cbsd_ids, grant_ids, operation_states)
+
+    logging.info("CBSD is in HeartBeat Successful State")
+
+    # Wait for the short lived certificate to expire.
+    wait_timer = (cert_duration_minutes * 60) + 5
+    logging.info("Waiting for %s secs so the certificate will become invalid", wait_timer)
+    time.sleep(wait_timer)
+
+    # Verify TLS handshake fails.
+    logging.info("CBSD attempts to re-establish TLS Handshake with SAS UUT")
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=device_cert, client_key=device_key)
+    logging.info("TLS handshake failed as the client certificate is invalid")

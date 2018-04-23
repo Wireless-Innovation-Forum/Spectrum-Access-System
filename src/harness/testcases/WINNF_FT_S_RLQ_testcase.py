@@ -16,6 +16,7 @@ import json
 import logging
 import os
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
@@ -384,9 +385,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         self.assertEqual(resp['cbsdId'], cbsd_id)
         self.assertEqual(resp['grantId'], grant_id[resp_number])
         self.assertEqual(resp['response']['responseCode'], 100)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
     finally:
       # Put sas version back
       self._sas._sas_version = version
@@ -493,7 +494,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         'airInterface': device_b['airInterface'],
         'installationParam': device_b['installationParam']
     }
-    conditionals = {'registrationData': [conditionals_b]}
+    conditionals = [conditionals_b]
     del device_b['installationParam']
     del device_b['cbsdCategory']
     del device_b['airInterface']
@@ -553,14 +554,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices and get grants
-    if ('conditionalRegistrationData' in config) and (
-        config['conditionalRegistrationData']):
-      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequests'], config['grantRequests'],
-          config['conditionalRegistrationData'])
-    else:
-      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequests'], config['grantRequests'])
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+        config['registrationRequests'], config['grantRequests'],
+        config['conditionalRegistrationData'])
 
     # First relinquishment
     relinquishment_request = config['relinquishmentRequestsFirst']

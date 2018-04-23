@@ -29,7 +29,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
-    
+
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_2(self):
     """Response has no available channel
@@ -37,7 +37,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
     # Load GWPZ Record
     gwpz = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))      
+        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
     # Load CBSD info
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -45,13 +45,13 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'], \
     device_a['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz)
     # Register device
-    cbsd_ids = self.assertRegistered([device_a])  
-    
-    # Inject GWPZ in SAS 
-    self._sas_admin.InjectWisp(gwpz)   
+    cbsd_ids = self.assertRegistered([device_a])
+
+    # Inject GWPZ in SAS
+    self._sas_admin.InjectWisp(gwpz)
     # Trigger daily activities
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()  
-     
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
     # Create spectrumInquiry with the frequency range full overlaps with GWPZ frequency
     spectrum_inquiry_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
@@ -78,21 +78,22 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
 
     # Inject FSS station operating at range 3670 - 4200 MHz.
-    fss = json.load(
+    fss_data = json.load(
         open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss =  fss_data['record']
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3670000000
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 4200000000
     fss['deploymentParam'][0]['installationParam']['latitude'] = 38.4
     fss['deploymentParam'][0]['installationParam']['longitude'] = -98.9
-    self._sas_admin.InjectFss({'record': fss})
+    self._sas_admin.InjectFss(fss_data)
 
-    # Inject GWBL station operating at range 3650 - 3700 MHz and associated
-    # GWPZ, within 150 km of FSS (approx. 100 km from FSS location set above).
-    gwpz = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
-    self._sas_admin.InjectWisp(gwpz)
+    # Inject GWBL station operating at range 3650 - 3700 MHz within 150 km of
+    # FSS (approx. 100 km from FSS location set above).
+    gwbl = json.load(
+        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    self._sas_admin.InjectWisp(gwbl)
 
     # Load PAL/PPA data, operating channel 3620 - 3630 MHz.
     pal_record = json.load(
@@ -136,7 +137,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     device_4['installationParam']['latitude'] = 39.0
     device_4['installationParam']['longitude'] = -98.6
 
-    # Move device_5 outside PPA and outside 150kms range of FSS
+    # Move device_5 outside PPA and inside 150kms range of FSS
     device_5['installationParam']['latitude'] = 38.2
     device_5['installationParam']['longitude'] = -99.5
 
@@ -282,15 +283,15 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """
     # Trigger SAS to load DPAs
     self._sas_admin.TriggerLoadDpas()
-    # Trigger SAS to de-active all the DPAs 
-    self._sas_admin.TriggerBulkDpaActivation({'activate':False})
+    # Trigger SAS to de-active all the DPAs
+    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
     # Trigger SAS to active one DPA on channel c
     frequency_range = {
-      'lowFrequency': 3620000000.0,
-      'highFrequency': 3630000000.0
+      'lowFrequency': 3620000000,
+      'highFrequency': 3630000000
     }
-    self._sas_admin.TriggerDpaActivation({'frequencyRange':frequency_range,\
-                                           'dpaId':'east_dpa4'})
+    self._sas_admin.TriggerDpaActivation({'frequencyRange': frequency_range,
+                                          'dpaId': 'east_dpa_4'})
     time.sleep(300)
     # Load and register CBSD
     device_a = json.load(
@@ -298,7 +299,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Change device location to be inside DPA neighborhood
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
-    cbsd_ids = self.assertRegistered([device_a]) 
+    cbsd_ids = self.assertRegistered([device_a])
     # Create and send spectrumInquiry with the same frequency range as DPA Channel
     spectrum_inquiry_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'spectrum_inquiry_0.json')))
@@ -308,14 +309,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     spectrum_inquiry_0['inquiredSpectrum'][0]['highFrequency'] = \
                 frequency_range['highFrequency']
     request = {'spectrumInquiryRequest': [spectrum_inquiry_0]}
-    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0] 
+    response = self._sas.SpectrumInquiry(request)['spectrumInquiryResponse'][0]
     # Check spectrum inquiry response
     self.assertEqual(response['cbsdId'], cbsd_ids[0])
     self.assertTrue('availableChannel' in response)
     self.assertEqual(response['response']['responseCode'], 0)
     # Verify available channels contains the requested range and don't have any missing or repeated channels
     self.assertChannelsContainFrequencyRange(response['availableChannel'], frequency_range)
-    
+
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_5(self):
     """Tests related to PAL Protection Area (PPA)
@@ -452,8 +453,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     response = self._sas.SpectrumInquiry(request, device_c_cert, device_c_key)['spectrumInquiryResponse'][0]
     # Check Spectrum Inquiry Response
     self.assertFalse('cbsdId' in response)
-    self.assertTrue(response['response']['responseCode'] == 103 or
-                    response['response']['responseCode'] == 104)
+    self.assertTrue(response['response']['responseCode'] == 103)
 
   @winnforum_testcase
   def test_WINNF_FT_S_SIQ_8(self):
@@ -866,7 +866,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
     ppa_record2 = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
-    
+
     pal_low_frequency1 = 3570000000
     pal_high_frequency1 = 3580000000
     pal_user_id1 = "pal_user_1"
@@ -883,7 +883,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         pal_user_id2)
     # Merge PAL records lists into one list (may contain duplicates)
     pal_records = pal_records1 + pal_records2
-    
+
     ppa_cluster_list_1 = [0]
     ppa_cluster_list_2 = []
     # Move device_b inside the PPA1 zone
@@ -932,9 +932,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     devices = [device_b, device_c, device_e]
-    conditionals = {
-        'registrationData': [conditionalParameters]
-    }
+    conditionals = [conditionalParameters]
 
     config = {
       'registrationRequests': devices,
@@ -970,7 +968,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     """[Configurable] Spectrum inquiry in the presence of protected entities."""
 
     config = loadConfig(config_filename)
-        
+
     # Light checking of the config file
     self.assertEqual(len(config['spectrumInquiryRequests']),len(config['registrationRequests']))
     self.assertEqual(len(config['expectedResponseCodes']),len(config['spectrumInquiryRequests']))
@@ -985,16 +983,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # 2 & 3. Register N2 CBSDs
     # Check registration response
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
-      cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
-    else:
-      cbsd_ids = self.assertRegistered(config['registrationRequests'])
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
 
     # 4. Load N3 PPAs
     # Inject PAL Records for all PPAs
     for pal_record in config['palRecords']:
       self._sas_admin.InjectPalDatabaseRecord(pal_record)
- 
+
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
       ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
@@ -1002,15 +998,15 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
       # Inject PPA into SAS UUT
       zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
- 
+
     # 5. Trigger CPAS activity if GWPZ > 0 or PPA > 0
     if (len(config['gwpzRecords']) > 0 or len(config['ppaRecords']) > 0):
-      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
+      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # 6. Send N2 spectrum inquiry requests (one per registered CBSD)
     spectrum_inquiry_list = config['spectrumInquiryRequests']
     addCbsdIdsToRequests(cbsd_ids, spectrum_inquiry_list)
- 
+
     spectrum_inquiry_request = {'spectrumInquiryRequest': spectrum_inquiry_list}
     spectrum_inquiry_response = self._sas.SpectrumInquiry(spectrum_inquiry_request)['spectrumInquiryResponse']
 
@@ -1041,7 +1037,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         for channel in response['availableChannel']:
           if channel['channelType'] == 'GAA':
             for fr1_range in config['fr1Cbsd'][index]:
-              # Check if the channel range is lower than the low freq of FR1cbsd range or if it is higher 
+              # Check if the channel range is lower than the low freq of FR1cbsd range or if it is higher
               # than the high freq. If not then it is considered to be overlapping
               self.assertTrue(((channel['frequencyRange']['highFrequency'] <= fr1_range['lowFrequency']) or
                                (channel['frequencyRange']['lowFrequency'] >= fr1_range['highFrequency'])),
@@ -1051,16 +1047,16 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         for channel in response['availableChannel']:
           if channel['channelType'] == 'PAL':
             self.assertChannelIncludedInFrequencyRanges(channel, config['fr2Cbsd'][index])
-  
+
             # Check the PAL channels frequency ranges does not include any frequency range from 3650-3700MHz.
-            self.assertLess(channel['frequencyRange']['lowFrequency'], 3650000000) 
-            self.assertLessEqual(channel['frequencyRange']['highFrequency'], 3650000000) 
+            self.assertLess(channel['frequencyRange']['lowFrequency'], 3650000000)
+            self.assertLessEqual(channel['frequencyRange']['highFrequency'], 3650000000)
 
         # Check the available channels are within the range requested by that CBSD
         for channel in response['availableChannel']:
           isFrequencyIncludedInRange = False
           for inquired_spectrum in spectrum_inquiry_request['spectrumInquiryRequest'][index]['inquiredSpectrum']:
-            if ((channel['frequencyRange']['lowFrequency'] >= inquired_spectrum['lowFrequency']) and 
+            if ((channel['frequencyRange']['lowFrequency'] >= inquired_spectrum['lowFrequency']) and
                 (channel['frequencyRange']['lowFrequency'] < inquired_spectrum['highFrequency']) and
                 (channel['frequencyRange']['highFrequency'] > inquired_spectrum['lowFrequency']) and
                 (channel['frequencyRange']['highFrequency'] <= inquired_spectrum['highFrequency'])):

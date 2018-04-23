@@ -4,12 +4,17 @@
 This folder provides the reference models to be used for SAS testing.
 
 This includes:
-  - geo/: the geo data drivers and distance calculation routines.
-  - propagation_models/: the Winnforum ITM and Hybrid propagation models.
-  - antenna/: the antenna gain calculation.
-  - move_list/: the DPA move list calculation.
 
-The examples/ folder provides an example of using the models for FSS protection,
+  - `geo/`: the geo data drivers and distance calculation routines.
+  - `propagation_models/`: the Winnforum ITM and Hybrid propagation models.
+  - `antenna/`: the antenna gain calculation.
+  - `ppa/`: the PPA zones creation.
+  - `interference/`: interference calculation on protected entities (except dpa).
+  - `move_list_calc/`: the DPA move list calculation.
+  - `iap/`: The IAP (Iterative Allocation Process) algorithm.
+  - `pre_iap_filtering/`: Pre IAP filtering, including purge algorithms.
+  
+The `examples/` folder provides an example of using the models for FSS protection,
 which exercise the ITM model, antenna gain calculation and geo routines.
 
 ### Setup

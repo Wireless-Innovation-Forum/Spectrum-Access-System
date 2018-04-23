@@ -19,9 +19,10 @@ Before use of the models, one should make sure that the required geodata is
 correctly set in the WinnForum/data/ folder for:
 
   - ITU climate and refractivity files (TropClim.txt and n050.txt): in data/itu
-  - USGS 3DEP terrain altitude: in data/geo/ned/
+  - USGS 3DEP DEM terrain altitude: in data/geo/ned/
   - NLCD land cover: in data/geo/nlcd/
 
+Since the DEM and NLCD data is stored in another repository, you can use soft links.
 
 ### Other Location
 
@@ -30,8 +31,10 @@ the absolute path to your folders holding these database.
 For the NED terrain, one can also directly set the proper terrain directory,
 using the routines:
 
-  - `wf_itm.ConfigureTerrainDriver(terrain_dir)`
-  - `wf_hybrid.ConfigureTerrainDriver(terrain_dir)`
+```python
+    from reference_models.geo import drive
+    drive.ConfigureTerrainDriver(terrain_dir)
+```
 
 ### NLCD data
 
@@ -42,8 +45,9 @@ hybrid propagation model.
 To access this region type, use the geo/nlcd.py module which provides two
 methods:
 
- - `GetRegionType(GetLandCoverCodes(lat, lon))`: retrieves the region type for a given lat,lon point
- - `RegionNlcdVote(points)`: retrieves the region type for an area defined by a
+ - `nlcd.GetRegionType(drive.nlcd_driver.GetLandCoverCodes(lat, lon))`: retrieves the region type
+ for a given lat,lon point
+ - `drive.nlcd_driver.RegionNlcdVote(points)`: retrieves the region type for an area defined by a
  list of points.
 
 ### Data caching
@@ -55,22 +59,27 @@ The cache allows to avoid the performance hit of reloading tiles in memory when
 doing repetitive calls in the same geographical area.
 To configure the cache size, use:
 
-  - `wf_itm.ConfigureTerrainDriver(cache_size=4)`
-  - `wf_hybrid.ConfigureTerrainDriver(cache_size=4)`
+```python
+    from reference_models.geo import drive
+    drive.ConfigureTerrainDriver(cache_size=16)
+```
 
 Note that each model uses its own terrain driver, and cache.
 The memory use is about 50MB * cache_size.
 
-For the NLCD driver, the cache size can be configured directly as following:
+For the NLCD driver, the cache size can be configured as following:
 
-     `nlcd_driver.SetCacheSize(cache_size=8)`
+```python
+    from reference_models.geo import drive
+    drive.ConfigureNlcdDriver(cache_size=16)
+```
 
 The NLCD driver cache takes about 12MB * cache_size.
 
 ## Thread Safety
 
-The models are not thread-safe. Do *not* try to run several calculations in parallel
-(multiprocessing should be fine).
+The models are *not* thread-safe. Do *not* try to run several calculations in parallel
+(multiprocessing is fine though).
 
 ## Core models implementation
 
@@ -78,7 +87,7 @@ The models make uses of the core model implementation found in the `itm` and
 `ehata` folders.
 
 These implementations are derived from the original ITS C++ source code, with 
-minimal modifications when required for the WinnForum extensions.
+minimal modifications when required for the WinnForum extensions or bug fixes.
 They are wrapped as python extension modules.
 
 ### Compilation in Linux

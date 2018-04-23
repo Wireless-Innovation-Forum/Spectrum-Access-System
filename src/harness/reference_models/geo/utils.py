@@ -15,32 +15,128 @@
 """Utility geometry routines.
 """
 
+import json
 import shapely.geometry as sgeo
-from shapely import ops
+import shapely.ops as ops
 import numpy as np
 
 WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 WGS_POLAR_RADIUS_KM2 = 6356.753
 
 
-def GeoJsonToShapelyGeometry(geometry):
-  """Returns a |shapely| geometry from a GeoJSON geometry.
+def HasCorrectGeoJsonWinding(geometry):
+  """Returns True if a GeoJSON geometry has correct windings.
 
-  The structure of the GeoJSON is kept and both Geometry collections
-  and MultiPolygons are kept as is. To dissolve them, use the
-  `shapely.ops.unary_union()` routine.
+  A GeoJSON polygon should follow the right-hand rule with respect to the area it
+  bounds, ie exterior rings are CCW and holes are CW.
 
   Args:
-    geometry: a dict representing a GeoJSON geometry.
+    geometry: A dict or string representing a GeoJSON geometry.
+
+  Raises:
+    ValueError: If invalid input or GeoJSON geometry type.
+  """
+  if isinstance(geometry, basestring):
+    geometry = json.loads(geometry)
+  if not isinstance(geometry, dict) or 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+
+  def _HasSinglePolygonCorrectWinding(coords):
+    exterior = coords[0]
+    if not sgeo.LinearRing(exterior).is_ccw:
+      return False
+    for hole in coords[1:]:
+      if sgeo.LinearRing(hole).is_ccw:
+        return False
+    return True
+
+  if geometry['type'] == 'Polygon':
+    coords = geometry['coordinates']
+    return _HasSinglePolygonCorrectWinding(coords)
+  elif geometry['type'] == 'MultiPolygon':
+    for coords in geometry['coordinates']:
+      if not _HasSinglePolygonCorrectWinding(coords):
+        return False
+    return True
+  elif geometry['type'] == 'GeometryCollection':
+    for subgeo in geometry['geometries']:
+      if not HasCorrectGeoJsonWinding(subgeo):
+        return False
+    return True
+  else:
+    return True
+
+
+def InsureGeoJsonWinding(geometry):
+  """Returns the input GeoJSON geometry with windings corrected.
+
+  A GeoJSON polygon should follow the right-hand rule with respect to the area it
+  bounds, ie exterior rings are CCW and holes are CW.
+  Note that the input geometry may be modified in place (case of a dict).
+
+  Args:
+    geometry: A dict or string representing a GeoJSON geometry. The returned
+      corrected geometry is in same format as the input (dict or str).
+
+  Raises:
+    ValueError: If invalid input or GeoJSON geometry type.
+  """
+  if HasCorrectGeoJsonWinding(geometry):
+    return geometry
+
+  is_str = False
+  if isinstance(geometry, basestring):
+    geometry = json.loads(geometry)
+    is_str = True
+  if not isinstance(geometry, dict) or 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+
+  def _InsureSinglePolygonCorrectWinding(coords):
+    """Modifies in place the coords for correct windings."""
+    exterior = coords[0]
+    if not sgeo.LinearRing(exterior).is_ccw:
+      exterior.reverse()
+    for hole in coords[1:]:
+      if sgeo.LinearRing(hole).is_ccw:
+        hole.reverse()
+
+  def _list_convert(x):
+    # shapely mapping returns a nested tuple.
+    return map(_list_convert, x) if isinstance(x, (tuple, list)) else x
+
+  if 'coordinates' in geometry:
+    geometry['coordinates'] = _list_convert(geometry['coordinates'])
+
+  if geometry['type'] == 'Polygon':
+    _InsureSinglePolygonCorrectWinding(geometry['coordinates'])
+  elif geometry['type'] == 'MultiPolygon':
+    for coords in geometry['coordinates']:
+      _InsureSinglePolygonCorrectWinding(coords)
+  elif geometry['type'] == 'GeometryCollection':
+    for subgeo in geometry['geometries']:
+      InsureGeoJsonWinding(subgeo)
+
+  if is_str:
+    geometry = json.dumps(geometry)
+  return geometry
+
+
+def _GeoJsonToShapelyGeometry(geometry):
+  """Returns a |shapely| geometry from a GeoJSON geometry.
+
+  Args:
+    geometry: A dict or string representing a GeoJSON geometry.
 
   Raises:
     ValueError: If invalid GeoJSON geometry is passed.
   """
+  if isinstance(geometry, basestring):
+    geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
 
   if 'geometries' in geometry:
-    return sgeo.GeometryCollection([GeoJsonToShapelyGeometry(g)
+    return sgeo.GeometryCollection([_GeoJsonToShapelyGeometry(g)
                                     for g in geometry['geometries']])
   geometry = sgeo.shape(geometry)
   if isinstance(geometry, sgeo.Polygon) or isinstance(geometry, sgeo.MultiPolygon):
@@ -48,6 +144,40 @@ def GeoJsonToShapelyGeometry(geometry):
   return geometry
 
 
+def ToShapely(geometry):
+  """Returns a |shapely| geometry from a generic geometry or a GeoJSON.
+
+  The original geometry structure is maintained, for example GeometryCollections
+  and MultiPolygons are kept as is. To dissolve them, apply the
+  `shapely.ops.unary_union()` routine on the output.
+
+  Args:
+    geometry: A generic geometry or a GeoJSON geometry (dict or str). A generic
+      geometry is any object implementing the __geo_interface__ supported by all
+      major geometry libraries (shapely, ..)
+  """
+  if isinstance(geometry, sgeo.base.BaseGeometry):
+    return geometry
+  try:
+    return _GeoJsonToShapelyGeometry(geometry.__geo_interface__)
+  except AttributeError:
+    return _GeoJsonToShapelyGeometry(geometry)
+
+
+def ToGeoJson(geometry, as_dict=False):
+  """Returns a GeoJSON geometry from a generic geometry.
+
+  A generic geometry implements the __geo_interface__ as supported by all major
+  geometry libraries, such as shapely, etc...
+
+  Args:
+    geometry: A generic geometry, for example a shapely geometry.
+    as_dict: If True returns the GeoJSON as a dict, otherwise as a string.
+  """
+  json_geometry = json.dumps(InsureGeoJsonWinding(geometry.__geo_interface__))
+  return json.loads(json_geometry) if as_dict else json_geometry
+
+
 def GridPolygon(poly, res_arcsec):
   """Grids a polygon or multi-polygon.
 
@@ -56,61 +186,18 @@ def GridPolygon(poly, res_arcsec):
   Points falling in the boundary of polygon will be included.
 
   Args:
-    poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either
-      as a `shapely` or GeoJSON dict geometry.
+    poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either as a
+      shapely, GeoJSON (dict or str) or generic  geometry.
+      A generic geometry is any object implementing the __geo_interface__ protocol.
     res_arcsec: The resolution (in arcsec) used for regular gridding.
 
   Returns:
     A list of (lon, lat) defining the grid points.
   """
-  if isinstance(poly, dict):
-    poly = GeoJsonToShapelyGeometry(poly)
-    return GridPolygon(poly, res_arcsec)
-
-  if isinstance(poly, sgeo.MultiPolygon):
-    # Optional block: for MultiPolygons, we process per polygon
-    # to avoid inefficiencies if polygons largely disjoint.
-    pts = ops.unary_union(
-        [sgeo.asMultiPoint(GridPolygon(p, res_arcsec))
-         for p in poly])
-    return [(p.x, p.y) for p in pts]
-
-  res = res_arcsec / 3600.
-  bounds = poly.bounds
-  lng_min = np.floor(bounds[0] / res) * res
-  lat_min = np.floor(bounds[1] / res) * res
-  lng_max = np.ceil(bounds[2] / res) * res + res/2
-  lat_max = np.ceil(bounds[3] / res) * res + res/2
-  mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res,
-                                lat_min:lat_max:res]
-  points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
-  pts = poly.intersection(sgeo.asMultiPoint(points))
-  if isinstance(pts, sgeo.Point):
-    return [(pts.x, pts.y)]
-  return [(p.x, p.y) for p in pts]
-
-
-def GridPolygon(poly, res_arcsec):
-  """Grids a polygon or multi-polygon.
-
-  This performs regular gridding of a polygon in PlateCarree (equirectangular)
-  projection (ie with fixed step in degrees in lat/lon space).
-  Points falling in the boundary of polygon will be included.
-
-  Args:
-    poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either
-      as a `shapely` or GeoJSON dict geometries.
-    res_arcsec: The resolution (in arcsec) used for regular gridding.
-
-  Returns:
-    A list of (lon, lat) defining the grid points.
-  """
-  if isinstance(poly, dict):
-    poly = GeoJsonToShapelyGeometry(poly)
-    return GridPolygon(poly, res_arcsec)
-
-  if isinstance(poly, sgeo.MultiPolygon):
-    # Optional block: for MultiPolygons, we process per polygon
+  poly = ToShapely(poly)
+  bound_area = (poly.bounds[2] - poly.bounds[0]) * (poly.bounds[3] - poly.bounds[1])
+  if isinstance(poly, sgeo.MultiPolygon) and poly.area < bound_area * 0.01:
+    # For largely disjoint polygons, we process per polygon
     # to avoid inefficiencies if polygons largely disjoint.
     pts = ops.unary_union(
         [sgeo.asMultiPoint(GridPolygon(p, res_arcsec))
@@ -176,25 +263,20 @@ def GeometryArea(geometry, merge_geometries=False):
   ellipsoid.
 
   Args:
-    geometry: A geometry defined in WGS84 or NAD83 coordinates (degrees) either:
-      - a shapely geometry (Polygon, MultiPolygon, etc..)
-      - a GeoJSON geometry (dict), representing either a basic geometry or
-        a GeometryCollection.
+    geometry: A geometry defined in WGS84 or NAD83 coordinates (degrees) and
+      encoded either as shapely, GeoJson (dict or str) or a generic geometry.
+      A generic geometry is any object implementing the __geo_interface__ protocol.
     merge_geometries (bool): If True, then multi geometries will be unioned to
      dissolve intersection prior to the area calculation.
 
   Returns:
-    (float) The approximate area within the geometry (in square kilometers).
+    The approximate area within the geometry (in square kilometers).
   """
-  if isinstance(geometry, dict):
-    geometry = GeoJsonToShapelyGeometry(geometry)
-    if merge_geometries:
-      geometry = ops.unary_union(geometry)
-    return GeometryArea(geometry)
-  elif (isinstance(geometry, sgeo.Point) or
-        isinstance(geometry, sgeo.LineString) or
-        isinstance(geometry, sgeo.LinearRing)):
-        # Lines, rings and points have null area
+  geometry = ToShapely(geometry)
+  if (isinstance(geometry, sgeo.Point) or
+      isinstance(geometry, sgeo.LineString) or
+      isinstance(geometry, sgeo.LinearRing)):
+    # Lines, rings and points have null area
     return 0.
   elif isinstance(geometry, sgeo.Polygon):
     return (_RingArea(geometry.exterior.xy[1], geometry.exterior.xy[0])
@@ -210,7 +292,6 @@ def GeometryArea(geometry, merge_geometries=False):
       except TypeError:
         return GeometryArea(geometry)
     return sum(GeometryArea(simple_shape) for simple_shape in geometry)
-
 
 def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
   """Returns input |shapely| geometry with small internal holes removed.
@@ -236,3 +317,25 @@ def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
                               for p in poly])
   else:
     raise ValueError('Input geometry is not a shapely Polygon or MultiPolygon')
+
+
+def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
+  """Checks similarity of a polygon to a reference polygon within some tolerance.
+
+  The check is done using method defined in WG4 Test and Certification spec,
+  equation 8.3.1.
+
+  Args:
+    poly_ref, poly: Two polygons or multipolygons defined  either as shapely,
+      GeoJson (dict or str) or generic geometry. A generic geometry is any
+      object implementing the __geo_interface__ protocol.
+
+  Returns:
+    True if the two polygons are equal (within the tolerance), False otherwise.
+  """
+  poly_ref = ToShapely(poly_ref)
+  poly = ToShapely(poly)
+  union_polys = poly_ref.union(poly)
+  intersection_polys = poly_ref.intersection(poly)
+  return ((GeometryArea(union_polys) - GeometryArea(intersection_polys))
+          < tol_perc/100. * GeometryArea(poly_ref))

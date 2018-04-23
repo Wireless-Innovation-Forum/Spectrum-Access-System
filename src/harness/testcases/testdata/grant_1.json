@@ -1,0 +1,9 @@
+{
+  "operationParam": {
+    "maxEirp": 10,
+    "operationFrequencyRange": {
+      "lowFrequency": 3630000000,
+      "highFrequency": 3640000000
+    }
+  }
+}

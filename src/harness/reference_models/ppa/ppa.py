@@ -12,29 +12,29 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import multiprocessing
-from collections import namedtuple
-import geojson
 import logging
 import multiprocessing
+from collections import namedtuple
+
 import numpy as np
 from concurrent import futures
 from reference_models.antenna import antenna
-from reference_models.geo import census_tract, vincenty, nlcd
+from reference_models.geo import drive
+from reference_models.geo import vincenty, nlcd
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
-from shapely import geometry, ops
 
+from shapely import geometry, ops
+import json
 import util
 
 THRESHOLD_PER_10MHZ = -96
 RX_HEIGHT = 1.5
 MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A = 30.
 MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_B = 47.
-census_tract_driver = census_tract.CensusTractDriver()
-nlcd_driver = nlcd.NlcdDriver()
 
-_PpaPolygon = namedtuple('_PpaPolygon', ['geojson', 'shapely'])
+# TEMPORARY to avoid breaking code under PR
+nlcd_driver = drive.nlcd_driver
 
 
 def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, antenna_gain,
@@ -88,8 +88,8 @@ def _GetPolygon(device):
                                                   install_param['antennaBeamwidth'],
                                                   install_param['antennaGain'])
   # Get the Nlcd Region Type for Cbsd
-  cbsd_region_code = nlcd_driver.GetLandCoverCodes(install_param['latitude'],
-                                                   install_param['longitude'])
+  cbsd_region_code = drive.nlcd_driver.GetLandCoverCodes(install_param['latitude'],
+                                                         install_param['longitude'])
   cbsd_region_type = nlcd.GetRegionType(cbsd_region_code)
   # Compute the Path Loss, and contour based on Gain and Path Loss Comparing with Threshold
   # Smoothing Contour using Hamming Filter
@@ -111,48 +111,12 @@ def _ClipPpaByCensusTract(contour_union, pal_records):
   """ Clip a PPA 'contour_union' zone (shapely.MultiPolygon) 
   with the census tracts defined by a sequence of 'pal_records'."""
 
-  # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry
-  census_tracts_for_pal = [geometry.shape(census_tract_driver.GetCensusTract(pal['license']
-                                                                             ['licenseAreaIdentifier'])
-                                          ['features'][0]['geometry']).buffer(0) for pal in pal_records]
+  # Get the Census Tract for Each Pal Record and Convert it to Shapely Geometry.
+  census_tracts_for_pal = [geometry.shape(
+      drive.census_tract_driver.GetCensusTract(pal['license']['licenseAreaIdentifier'])
+      ['features'][0]['geometry']).buffer(0) for pal in pal_records]
   census_tracts_union = ops.cascaded_union(census_tracts_for_pal)
   return contour_union.intersection(census_tracts_union)
-
-
-def _ConvertToGeoJson(ppa_polygon):
-  """Converts a shapely Polygon or MultiPolygon into a GeoJSON feature collection"""
-  if ppa_polygon.type == 'MultiPolygon':
-    ppa_geojson = geojson.FeatureCollection(
-      [geojson.Feature(geometry=[polygon for polygon in ppa_polygon])])
-  else:
-    ppa_geojson = geojson.FeatureCollection(
-      [geojson.Feature(geometry=ppa_polygon)])
-  return ppa_geojson
-
-
-def ConfigureCensusTractDriver(census_tract_dir=None):
-  """Configure the Census Tract driver.
-
-  Inputs:
-    census_tract_dir: if specified, changes the census tract default directory.
-  """
-  if census_tract_dir is not None:
-    census_tract_driver.SetCensusTractDirectory(census_tract_dir)
-
-
-def ConfigureNlcdDriver(nlcd_dir=None, cache_size=None):
-  """Configure the NLCD driver.
-
-  Inputs:
-    nlcd_dir: if specified, changes the NLCD Data default directory.
-    cache_size:  if specified, change the NLCD tile cache size.
-  Note: The memory usage is about cache_size * 12MB.
-
-  """
-  if nlcd_dir is not None:
-    nlcd_driver.SetTerrainDirectory(nlcd_dir)
-  if cache_size is not None:
-    nlcd_driver.SetCacheSize(cache_size)
 
 
 def PpaCreationModel(devices, pal_records):
@@ -161,7 +125,7 @@ def PpaCreationModel(devices, pal_records):
     devices: (List) A list containing device information.
     pal_records: (List) A list containing pal records.
   Returns:
-    A Named Tuple of PPA Polygon in shapely and geojson format
+    A PPA Polygon Dictionary in GeoJSON format
   """
   # Validation for Inputs
   for device in devices:
@@ -177,6 +141,10 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
+  if ppa_polygon.is_empty:
+    raise Exception("Empty Polygon is generated, please check the inputs.")
+  if ppa_polygon.geom_type == "MultiPolygon":
+    raise Exception("Multi Polygon is not supported, please check the inputs.")
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
-  return _PpaPolygon(geojson=_ConvertToGeoJson(ppa_without_small_holes),
-                     shapely=ppa_without_small_holes)
+  # Convert Shapely Object to GeoJSON geometry string
+  return utils.ToGeoJson(ppa_without_small_holes)

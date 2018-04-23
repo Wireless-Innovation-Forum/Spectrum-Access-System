@@ -14,7 +14,8 @@
     "heightType": "AMSL",
     "indoorDeployment": false,
     "antennaGain": -127,
-    "antennaBeamwidth": 0
+    "antennaBeamwidth": 0,
+    "antennaAzimuth": 270
   },
   "measCapability": [
   ]

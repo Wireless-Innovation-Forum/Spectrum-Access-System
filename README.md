@@ -93,9 +93,13 @@ JSON schema validation support.
 This Python library can be installed with <code>pip</code>. It provides
 support for the OpenSSL library for Python.
 
-*   geojson (https://pypi.python.org/pypi/geojson)
+* mock (https://pypi.python.org/pypi/mock)
 This Python library can be installed with <code>pip</code>. It provides
-functions for encoding and decoding GeoJSON formatted data.
+support for creating testing mocks.
+
+* functools32 (https://pypi.python.org/pypi/functools32)
+This Python library can be installed with <code>pip</code>. It provides
+support for advanced functools such as OrderedDict and lru_cache memoization.
 
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,

@@ -1,4 +1,4 @@
-#    Copyright 2016 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -14,122 +14,54 @@
 """Implementation of SasInterface."""
 
 import ConfigParser
-import copy
-import json
-import logging
-import StringIO
-import urlparse
+from request_handler import TlsConfig, RequestPost, RequestGet
 import os
-
-import pycurl
 import sas_interface
-
-HTTP_TIMEOUT_SECS = 30
-
-
-class TlsConfig(object):
-  """Holds all TLS/HTTPS parameters."""
-
-  def __init__(self):
-    self.ssl_version = pycurl.Curl().SSLVERSION_TLSv1_2
-    self.ciphers = [
-        'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
-        'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
-        'ECDHE-ECDSA-AES128-GCM-SHA256',  # TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-        'ECDHE-ECDSA-AES256-GCM-SHA384',  # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-        'ECDHE-RSA-AES128-GCM-SHA256',    # TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-    ]
-    self.ca_cert = os.path.join('certs', 'ca.cert')
-    self.client_cert = None
-    self.client_key = None
-
-  def WithClientCertificate(self, client_cert, client_key):
-    ret = copy.copy(self)
-    ret.client_key = client_key
-    ret.client_cert = client_cert
-    return ret
-
 
 def GetTestingSas():
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
-  base_url = config_parser.get('SasConfig', 'BaseUrl')
-  version = config_parser.get('SasConfig', 'Version')
-  return SasImpl(base_url, version), SasAdminImpl(base_url)
+  admin_api_base_url = config_parser.get('SasConfig', 'AdminApiBaseUrl')
+  cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'CbsdSasRsaBaseUrl')
+  cbsd_sas_ec_base_url = config_parser.get('SasConfig', 'CbsdSasEcBaseUrl')
+  sas_sas_rsa_base_url = config_parser.get('SasConfig', 'SasSasRsaBaseUrl')
+  sas_sas_ec_base_url = config_parser.get('SasConfig', 'SasSasEcBaseUrl')
+  cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
+  sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
+  sas_admin_id = config_parser.get('SasConfig', 'AdminId')
+  return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
+    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
+
+def GetDefaultCbsdSSLCertPath():
+  return os.path.join('certs', 'client.cert')
 
 
-def _RequestPost(url, request, config):
-  return _Request(url, request, config, True)
+def GetDefaultCbsdSSLKeyPath():
+  return os.path.join('certs', 'client.key')
 
 
-def _RequestGet(url, config):
-  return _Request(url, None, config, False)
+def GetDefaultSasSSLCertPath():
+  return os.path.join('certs', 'client.cert')
 
 
-def _Request(url, request, config, is_post_method):
-  """Sends HTTPS request.
-
-  Args:
-    url: Destination of the HTTPS request.
-    request: Content of the request. (Can be None)
-    config: a |TlsConfig| object defining the TLS/HTTPS configuration.
-    is_post_method (bool): If True, use POST, else GET.
-  Returns:
-    A dictionary represents the JSON response received from server.
-  Raises:
-    AssertionError: with args[0] is an integer code representing:
-      * libcurl SSL code response, if code < 100:
-        https://curl.haxx.se/libcurl/c/libcurl-errors.html
-      * HTTP code response, if code >= 100:
-        https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-  """
-  response = StringIO.StringIO()
-  conn = pycurl.Curl()
-  conn.setopt(conn.URL, url)
-  conn.setopt(conn.WRITEFUNCTION, response.write)
-  header = [
-      'Host: %s' % urlparse.urlparse(url).hostname,
-      'content-type: application/json'
-  ]
-  conn.setopt(conn.VERBOSE, 3  # Improve readability.
-              if logging.getLogger().isEnabledFor(logging.DEBUG) else False)
-  conn.setopt(conn.SSLVERSION, config.ssl_version)
-  conn.setopt(conn.SSLCERTTYPE, 'PEM')
-  conn.setopt(conn.SSLCERT, config.client_cert)
-  conn.setopt(conn.SSLKEY, config.client_key)
-  conn.setopt(conn.CAINFO, config.ca_cert)
-  conn.setopt(conn.HTTPHEADER, header)
-  conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
-  conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
-  request = json.dumps(request) if request else ''
-  if is_post_method:
-    conn.setopt(conn.POST, True)
-    conn.setopt(conn.POSTFIELDS, request)
-    logging.info('POST Request to URL %s :\n%s', url, request)
-  else:
-    logging.info('GET Request to URL %s', url)
-  try:
-    conn.perform()
-  except pycurl.error as e:
-    # e contains a tuple (libcurl_error_code, string_description).
-    # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    raise AssertionError(e.args[0], e.args[1])
-  http_code = conn.getinfo(pycurl.HTTP_CODE)
-  conn.close()
-  body = response.getvalue()
-  logging.info('Response:\n' + body)
-  assert http_code == 200, http_code
-  if body:
-    return json.loads(body)
-
+def GetDefaultSasSSLKeyPath():
+  return os.path.join('certs', 'client.key')
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, base_url, sas_version):
-    self._base_url = base_url
-    self._sas_version = sas_version
+  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
+    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id):
+    self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
+    self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
+    self._sas_sas_rsa_base_url = sas_sas_rsa_base_url
+    self._sas_sas_ec_base_url = sas_sas_ec_base_url
+    self.cbsd_sas_active_base_url = cbsd_sas_rsa_base_url
+    self.sas_sas_active_base_url = sas_sas_rsa_base_url
+    self.cbsd_sas_version = cbsd_sas_version
+    self.sas_sas_version = sas_sas_version
     self._tls_config = TlsConfig()
+    self._sas_admin_id = sas_admin_id
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('registration', request, ssl_cert, ssl_key)
@@ -149,9 +81,6 @@ class SasImpl(sas_interface.SasInterface):
   def Deregistration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('deregistration', request, ssl_cert, ssl_key)
 
-  def GetSasImplementationRecord(self, request, ssl_cert=None, ssl_key=None):
-    return self._SasRequest('sas_impl', request, ssl_cert, ssl_key)
-
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
 
@@ -159,63 +88,40 @@ class SasImpl(sas_interface.SasInterface):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    url = 'https://%s/%s/%s' % (self._base_url, self._sas_version, method_name)
+
+    url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
-    return _RequestGet(url,
-                       self._tls_config.WithClientCertificate(
-                           ssl_cert or self._GetDefaultSasSSLCertPath(),
-                           ssl_key or self._GetDefaultSasSSLKeyPath()))
+    return RequestGet(url,
+                      self._tls_config.WithClientCertificate(
+                          ssl_cert or GetDefaultSasSSLCertPath(),
+                          ssl_key or GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return _RequestPost('https://%s/%s/%s' %
-                        (self._base_url, self._sas_version, method_name), request,
-                        self._tls_config.WithClientCertificate(
-                            ssl_cert or self._GetDefaultCbsdSSLCertPath(),
-                            ssl_key or self._GetDefaultCbsdSSLKeyPath()))
+    return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
+                                             method_name), request,
+                       self._tls_config.WithClientCertificate(
+                           ssl_cert or GetDefaultCbsdSSLCertPath(),
+                           ssl_key or GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return self._DownloadFile('%s' % url,
-                 self._tls_config.WithClientCertificate(ssl_cert if ssl_cert else self._GetDefaultSasSSLCertPath(),
-                 ssl_key if ssl_key else self._GetDefaultSasSSLKeyPath()))
-    
-  def _GetDefaultCbsdSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
+    return RequestGet(url,
+                      self._tls_config.WithClientCertificate(
+                          ssl_cert if ssl_cert else
+                          GetDefaultSasSSLCertPath(), ssl_key
+                          if ssl_key else GetDefaultSasSSLKeyPath()))
 
-  def _GetDefaultCbsdSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
+  def UpdateSasRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      sas_sas_active_base_url = self._sas_sas_ec_base_url
+    else:
+      sas_sas_active_base_url = self._sas_sas_rsa_base_url
 
-  def _GetDefaultSasSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
-
-  def _GetDefaultSasSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
-
-  def _DownloadFile(self, url, config):
-    response = StringIO.StringIO()
-    conn = pycurl.Curl()
-    conn.setopt(conn.URL, url)
-    conn.setopt(conn.WRITEFUNCTION, response.write)
-    header = [
-          'Host: %s' % urlparse.urlparse(url).hostname,
-          'content-type: application/json'
-    ]
-    conn.setopt(conn.VERBOSE, 3)
-    conn.setopt(conn.SSLVERSION, conn.SSLVERSION_TLSv1_2)
-    conn.setopt(conn.SSLCERTTYPE, 'PEM')
-    conn.setopt(conn.SSLCERT, config.client_cert)
-    conn.setopt(conn.SSLKEY, config.client_key)
-    conn.setopt(conn.CAINFO, config.ca_cert)
-    conn.setopt(conn.HTTPHEADER, header)
-    conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
-    logging.debug('Request to URL ' + url)
-    conn.setopt(conn.TIMEOUT, HTTP_TIMEOUT_SECS)
-    conn.perform()
-    assert conn.getinfo(pycurl.HTTP_CODE) == 200, conn.getinfo(pycurl.HTTP_CODE)
-    conn.close()
-    body = response.getvalue()
-    logging.debug('Response:\n' + body)
-    return json.loads(body)
+  def UpdateCbsdRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
+    else:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -226,117 +132,127 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
         self._GetDefaultAdminSSLCertPath(), self._GetDefaultAdminSSLKeyPath())
 
   def Reset(self):
-    _RequestPost('https://%s/admin/reset' % self._base_url, None, self._tls_config)
+    RequestPost('https://%s/admin/reset' % self._base_url, None,
+                self._tls_config)
 
   def InjectFccId(self, request):
     if 'fccMaxEirp' not in request:
       request['fccMaxEirp'] = 47
-    _RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
-                 self._tls_config)
+    RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
+                self._tls_config)
 
   def InjectUserId(self, request):
-    _RequestPost('https://%s/admin/injectdata/user_id' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/user_id' % self._base_url, request,
+                self._tls_config)
 
   def InjectEscZone(self, request):
-    return _RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
-                        request, self._tls_config)
+    return RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
+                       request, self._tls_config)
+
+  def InjectExclusionZone(self, request):
+    return RequestPost(
+        'https://%s/admin/injectdata/exclusion_zone' % self._base_url, request,
+        self._tls_config)
 
   def InjectZoneData(self, request):
-    return _RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
-                        request, self._tls_config)
+    return RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
+                       request, self._tls_config)
 
   def InjectPalDatabaseRecord(self, request):
-    _RequestPost('https://%s/admin/injectdata/pal_database_record' %
-                 self._base_url, request, self._tls_config)
+    RequestPost(
+        'https://%s/admin/injectdata/pal_database_record' % self._base_url,
+        request, self._tls_config)
 
   def InjectClusterList(self, request):
-    _RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
+                request, self._tls_config)
 
   def BlacklistByFccId(self, request):
-    _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url,
+                request, self._tls_config)
 
   def BlacklistByFccIdAndSerialNumber(self, request):
-    _RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number' %
-                 self._base_url, request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number'
+                % self._base_url, request, self._tls_config)
 
   def TriggerEscZone(self, request):
-    _RequestPost('https://%s/admin/trigger/esc_detection' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/trigger/esc_detection' % self._base_url,
+                request, self._tls_config)
 
   def ResetEscZone(self, request):
-    _RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
-                 self._tls_config)
+    RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
+                self._tls_config)
 
   def PreloadRegistrationData(self, request):
-    _RequestPost('https://%s/admin/injectdata/conditional_registration' %
-                 self._base_url, request, self._tls_config)
+    RequestPost(
+        'https://%s/admin/injectdata/conditional_registration' % self._base_url,
+        request, self._tls_config)
 
   def InjectFss(self, request):
-    _RequestPost('https://%s/admin/injectdata/fss' % self._base_url, request,
-                 self._tls_config)
+    RequestPost('https://%s/admin/injectdata/fss' % self._base_url, request,
+                self._tls_config)
 
   def InjectWisp(self, request):
-    _RequestPost('https://%s/admin/injectdata/wisp' % self._base_url, request,
-                 self._tls_config)
+    RequestPost('https://%s/admin/injectdata/wisp' % self._base_url, request,
+                self._tls_config)
 
   def InjectSasAdministratorRecord(self, request):
-    _RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url,
+                request, self._tls_config)
 
   def TriggerMeasurementReportRegistration(self):
-    _RequestPost('https://%s/admin/trigger/meas_report_in_registration_response' %
-                 self._base_url, None, self._tls_config)
+    RequestPost('https://%s/admin/trigger/meas_report_in_registration_response'
+                % self._base_url, None, self._tls_config)
 
   def TriggerMeasurementReportHeartbeat(self):
-    _RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                 self._base_url, None, self._tls_config)
-
-  def InjectSasImplementationRecord(self, request):
-    _RequestPost('https://%s/admin/injectdata/sas_impl' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
+                self._base_url, None, self._tls_config)
 
   def InjectEscSensorDataRecord(self, request):
-    _RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url, request,
-                 self._tls_config)
+    RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url,
+                request, self._tls_config)
 
   def TriggerPpaCreation(self, request):
-    return _RequestPost('https://%s/admin/trigger/create_ppa' % self._base_url,
-                        request, self._tls_config)
+    return RequestPost('https://%s/admin/trigger/create_ppa' % self._base_url,
+                       request, self._tls_config)
 
   def TriggerDailyActivitiesImmediately(self):
-    _RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
-                 self._base_url, None, self._tls_config)
+    RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
+                self._base_url, None, self._tls_config)
+
+  def QueryPropagationAndAntennaModel(self, request):
+    return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
+                       self._base_url, request, self._tls_config)
 
   def GetDailyActivitiesStatus(self):
-    return _RequestPost('https://%s/admin/get_daily_activities_status' %
-                        self._base_url, None, self._tls_config)
+    return RequestPost(
+        'https://%s/admin/get_daily_activities_status' % self._base_url, None,
+        self._tls_config)
 
   def InjectCpiUser(self, request):
-    _RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
-                 request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
+                request, self._tls_config)
 
   def TriggerLoadDpas(self):
-    _RequestPost('https://%s/admin/trigger/load_dpas' %
-                 self._base_url, None, self._tls_config)
+    RequestPost('https://%s/admin/trigger/load_dpas' % self._base_url, None,
+                self._tls_config)
 
   def TriggerBulkDpaActivation(self, request):
-    _RequestPost('https://%s/admin/trigger/bulk_dpa_activation' %
-                 self._base_url, request, self._tls_config)
+    RequestPost('https://%s/admin/trigger/bulk_dpa_activation' % self._base_url,
+                request, self._tls_config)
 
   def TriggerDpaActivation(self, request):
-    _RequestPost('https://%s/admin/trigger/dpa_activation' %
-                 self._base_url, request, self._tls_config)
+    RequestPost('https://%s/admin/trigger/dpa_activation' % self._base_url,
+                request, self._tls_config)
 
   def TriggerDpaDeactivation(self, request):
-    _RequestPost('https://%s/admin/trigger/dpa_deactivation' %
-                 self._base_url, request, self._tls_config)
+    RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
+                request, self._tls_config)
 
   def TriggerFullActivityDump(self):
-    _RequestPost('https://%s/admin/trigger/create_full_activity_dump' %
-                 self._base_url, None, self._tls_config)
+    RequestPost(
+        'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
+        None, self._tls_config)
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
@@ -345,5 +261,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return os.path.join('certs', 'admin_client.key')
 
   def InjectPeerSas(self, request):
-    _RequestPost('https://%s/admin/injectdata/peer_sas' %
-                 self._base_url, request, self._tls_config)
+    RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+                request, self._tls_config)
+
+  def GetPpaCreationStatus(self):
+    return RequestPost(
+      'https://%s/admin/get_ppa_status' % self._base_url, None,
+      self._tls_config)

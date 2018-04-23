@@ -34,7 +34,6 @@ class CensusTractDriver:
     """Returns the census tract (as a Python object) for the given fips code (as a str)."""
     fips_code = str(fips_code)
     census_tract_file_path = os.path.join(self._census_tract_dir, "%s.json" % fips_code)
-    print census_tract_file_path
     if os.path.exists(census_tract_file_path):
       with open(census_tract_file_path, 'r') as census_tract_file:
         try:

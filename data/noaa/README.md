@@ -1,4 +1,4 @@
-This directory contains raw and processed data files from the NOAA
+This directory contains raw data files from the NOAA
 defining certain aspects of the 3.5GHz band operation context. Copyright
 on data files is by their creators.
 
@@ -10,3 +10,5 @@ on data files is by their creators.
     and can be retrieved here:
     http://maritimeboundaries.noaa.gov/downloads/USMaritimeLimitsAndBoundariesKML.kmz
 
+    This file is only use by the `usborder.py` script, which produces a composite US
+    border file.
