@@ -206,7 +206,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Tls handshake fails or http 403 response
     self.assertTlsHandshakeFailureOrHttp403(client_cert=config['clientCert'],
-                                   client_key=config['clientKey'])
+                                            client_key=config['clientKey'])
     logging.info("TLS handshake failed as the client certificate has blacklisted")
 
 
