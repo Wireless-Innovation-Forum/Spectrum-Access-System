@@ -160,8 +160,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use with the optionally
         given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
-    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
-    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or self._sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or self._sas.GetDefaultCbsdSSLKeyPath()
     self._sas.UpdateCbsdRequestUrl(cipher)
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
     self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url, [cipher],
@@ -208,8 +208,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       ciphers: optional cipher method
       ssl_method: optional ssl_method
     """
-    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
-    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or self._sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or self._sas.GetDefaultCbsdSSLKeyPath()
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
     client = socket.socket()

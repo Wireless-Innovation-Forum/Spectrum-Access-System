@@ -32,21 +32,6 @@ def GetTestingSas():
   return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
     sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
 
-def GetDefaultCbsdSSLCertPath():
-  return os.path.join('certs', 'client.cert')
-
-
-def GetDefaultCbsdSSLKeyPath():
-  return os.path.join('certs', 'client.key')
-
-
-def GetDefaultSasSSLCertPath():
-  return os.path.join('certs', 'client.cert')
-
-
-def GetDefaultSasSSLKeyPath():
-  return os.path.join('certs', 'client.key')
-
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -94,22 +79,34 @@ class SasImpl(sas_interface.SasInterface):
       url += '/%s' % request
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
-                          ssl_cert or GetDefaultSasSSLCertPath(),
-                          ssl_key or GetDefaultSasSSLKeyPath()))
+                          ssl_cert or self.GetDefaultSasSSLCertPath(),
+                          ssl_key or self.GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
     return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
-                           ssl_cert or GetDefaultCbsdSSLCertPath(),
-                           ssl_key or GetDefaultCbsdSSLKeyPath()))
+                           ssl_cert or self.GetDefaultCbsdSSLCertPath(),
+                           ssl_key or self.GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
-                          GetDefaultSasSSLCertPath(), ssl_key
-                          if ssl_key else GetDefaultSasSSLKeyPath()))
+                          self.GetDefaultSasSSLCertPath(), ssl_key
+                          if ssl_key else self.GetDefaultSasSSLKeyPath()))
+
+  def GetDefaultCbsdSSLCertPath():
+    return os.path.join('certs', 'client.cert')
+
+  def GetDefaultCbsdSSLKeyPath():
+    return os.path.join('certs', 'client.key')
+
+  def GetDefaultSasSSLCertPath():
+    return os.path.join('certs', 'sas.cert')
+
+  def GetDefaultSasSSLKeyPath():
+    return os.path.join('certs', 'sas.key')
 
   def UpdateSasRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
