@@ -41,6 +41,9 @@ struct prop_type
   double he[2];
   double dl[2];
   double the[2];
+  // Winnforum extension
+  double theta[2];  // Vertical incidence angles in degrees
+  // End winnforum extension
   int kwx;
   int mdp;
 };
@@ -279,8 +282,8 @@ double qerfi( double q )
 
   // *** WinnForum modification:
   //  Avoid floating points error on the median value
-  // *** End winnForum modification:
   if ( q == 0.5 ) return 0.;
+  // *** End winnForum modification:
   x = 0.5 - q;
   t = mymax(0.5 - fabs(x), 0.000001);
   t = sqrt(-2.0 * log(t));
@@ -715,7 +718,7 @@ void hzns (double pfl[], prop_type &prop)
 	    }
     }
 }
-  
+
 void z1sq1 (double z[], const double &x1, const double &x2,
             double& z0, double& zn)
 { double xn, xa, xb, x, a, b;
@@ -763,7 +766,7 @@ double qtile (const int &nn, double a[], const int &ir)
   n=nn;
   k=mymin(mymax(0,ir),n);
   double q = a[k];
-  double r; 
+  double r;
   while(!done)
       {
       if(goto10)
@@ -873,6 +876,14 @@ void qlrpfl( double pfl[], int klimx, int mdvarx,
   prop.dist=pfl[0]*pfl[1];
   np=(int)pfl[0];
   hzns(pfl,prop);
+
+  // Winnforum extension
+  // Storing the vertical incidence angles before they get modified below to actually
+  // find the horizon (like in area mode) when LOS
+  prop.theta[0] = atan(prop.the[0]) * 180. / M_PI;
+  prop.theta[1] = atan(prop.the[1]) * 180. / M_PI;
+  // End Winnforum extension
+
   for(j=0;j<2;j++)
     xl[j]=mymin(15.0*prop.hg[j],0.1*prop.dl[j]);
   xl[1]=prop.dist-xl[1];
@@ -935,7 +946,8 @@ void point_to_point(double elev[], double tht_m, double rht_m,
                     double eps_dielect, double sgm_conductivity, double eno_ns_surfref,
                     double frq_mhz, int radio_climate, int pol, double conf, double rel,
                     int mdvar, bool eno_is_final,
-                    double &dbloss, char *strmode, int &errnum)
+                    double &dbloss, char *strmode, int &errnum,
+                    double& ver0, double& ver1)
 	// pol: 0-Horizontal, 1-Vertical
 	// radio_climate: 1-Equatorial, 2-Continental Subtropical, 3-Maritime Tropical,
 	//                4-Desert, 5-Continental Temperate, 6-Maritime Temperate, Over Land,
@@ -1018,7 +1030,10 @@ void point_to_point(double elev[], double tht_m, double rht_m,
         strcat(strmode, ", Troposcatter Dominant");
     }
   dbloss = avar(zr,0.0,zc,prop,propv) + fs;
-
+  //*** WinnForum modification
+  ver0 = prop.theta[0];
+  ver1 = prop.theta[1];
+  //*** End WinnForum modification
   errnum = prop.kwx;
 }
 
@@ -1033,7 +1048,8 @@ void point_to_point_rels(double elev[], double tht_m, double rht_m,
                     double frq_mhz, int radio_climate, int pol, double conf,
                     double rel[], int num_rel,
                     int mdvar, bool eno_is_final,
-                    double dbloss[], char *strmode, int &errnum)
+                    double dbloss[], char *strmode, int &errnum,
+                    double& ver0, double& ver1)
 	// pol: 0-Horizontal, 1-Vertical
 	// radio_climate: 1-Equatorial, 2-Continental Subtropical, 3-Maritime Tropical,
 	//                4-Desert, 5-Continental Temperate, 6-Maritime Temperate, Over Land,
@@ -1118,7 +1134,10 @@ void point_to_point_rels(double elev[], double tht_m, double rht_m,
     zr = qerfi(rel[k]);
     dbloss[k] = avar(zr,0.0,zc,prop,propv) + fs;
   }
-
+  //*** WinnForum modification
+  ver0 = prop.theta[0];
+  ver1 = prop.theta[1];
+  //*** End WinnForum modification
   errnum = prop.kwx;
 }
 // *** End WinnForum addition ***

@@ -52,6 +52,7 @@ class TestWfItm(unittest.TestCase):
     res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
                                         reliability=reliability, freq_mhz=3625.)
     self.assertAlmostEqual(res.db_loss, 78.7408, 4)
+    self.assertAlmostEqual(res.incidence_angles.ver_cbsd, -res.incidence_angles.ver_rx, 3)
     self.assertEqual(res.internals['itm_err_num'], wf_itm.ItmErrorCode.OTHER)  # LOS mode
 
   def test_op_mode(self):
@@ -123,27 +124,6 @@ class TestWfItm(unittest.TestCase):
                                                  reliability=0.5, freq_mhz=3625.)
     self.assertEqual(res_bad.db_loss, res_expected.db_loss)
     self.assertEqual(res_bad.incidence_angles, res_expected.incidence_angles)
-
-  def test_hor_angles(self):
-    # Using the ITM test profile Path2200
-    PROFILE = [156, 77800./156.,
-           96.,  84.,  65.,  46.,  46.,  46.,  61.,  41.,  33.,  27.,  23.,  19.,  15.,  15.,  15.,
-           15.,  15.,  15.,  15.,  15.,  15.,  15.,  15.,  15.,  17.,  19.,  21.,  23.,  25.,  27.,
-           29.,  35.,  46.,  41.,  35.,  30.,  33.,  35.,  37.,  40.,  35.,  30.,  51.,  62.,  76.,
-           46.,  46.,  46.,  46.,  46.,  46.,  50.,  56.,  67., 106.,  83.,  95., 112., 137., 137.,
-           76., 103., 122., 122.,  83.,  71.,  61.,  64.,  67.,  71.,  74.,  77.,  79.,  86.,  91.,
-           83.,  76.,  68.,  63.,  76., 107., 107., 107., 119., 127., 133., 135., 137., 142., 148.,
-           152., 152., 107., 137., 104.,  91.,  99., 120., 152., 152., 137., 168., 168., 122., 137.,
-           137., 170., 183., 183., 187., 194., 201., 192., 152., 152., 166., 177., 198., 156., 127.,
-           116., 107., 104., 101.,  98.,  95., 103.,  91.,  97., 102., 107., 107., 107., 103.,  98.,
-           94.,  91., 105., 122., 122., 122., 122., 122., 137., 137., 137., 137., 137., 137., 137.,
-           137., 140., 144., 147., 150., 152., 159.,]
-    refractivity = 314.
-    a0, a1, d0, d1 = wf_itm.GetHorizonAngles(PROFILE, 143.9, 8.5, refractivity)
-    self.assertAlmostEqual(a0, np.arctan(-0.003900)*180./np.pi, 4)
-    self.assertAlmostEqual(a1, np.arctan(0.000444)*180./np.pi, 4)
-    self.assertAlmostEqual(d0, 55357.7, 1)
-    self.assertAlmostEqual(d1, 19450.0, 1)
 
   def test_haat(self):
     # Twin Peaks

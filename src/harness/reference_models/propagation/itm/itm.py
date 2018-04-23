@@ -56,7 +56,7 @@ def point_to_point(its_elev, height_tx, height_rx,
                     0: horizontal
                     1: vertical
     confidence: Confidence factor [0.01..0.99].
-    reliabilities: Reliability factor [0.01..0.99].
+    reliabilities: Reliability factor [0.001..0.999].
                    Two type of input supported:
                      - scalar value: will return a scalar path_loss output
                      - sequence of values: will return a list of corresponding
@@ -67,10 +67,12 @@ def point_to_point(its_elev, height_tx, height_rx,
 
   Returns:
      a tuple of:
-       path_loss : the path loss in dB,
-                   either a scalar (if reliability is scalar) or a list
+       path_loss: the path loss in dB,
+                  either a scalar (if reliability is scalar) or a list
+       ver_cbsd: the vertical departure angle at CBSD.
+       ver_rx: the vertical incidence angle at Rx.
        str_mode: A string information on the operating conditions among:
-           "Line-Od-Sight Mode"
+           "Line-Of-Sight Mode"
            "Single Horizon, Diffraction Dominant"
            "Double Horizon, Diffraction Dominant"
            "Single Horizon, Troposcatter Dominant"
