@@ -18,14 +18,19 @@ from request_handler import TlsConfig, RequestPost, RequestGet
 import os
 import sas_interface
 
-
 def GetTestingSas():
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
-  base_url = config_parser.get('SasConfig', 'BaseUrl')
-  version = config_parser.get('SasConfig', 'Version')
+  admin_api_base_url = config_parser.get('SasConfig', 'AdminApiBaseUrl')
+  cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'CbsdSasRsaBaseUrl')
+  cbsd_sas_ec_base_url = config_parser.get('SasConfig', 'CbsdSasEcBaseUrl')
+  sas_sas_rsa_base_url = config_parser.get('SasConfig', 'SasSasRsaBaseUrl')
+  sas_sas_ec_base_url = config_parser.get('SasConfig', 'SasSasEcBaseUrl')
+  cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
+  sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
-  return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
+  return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
+    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
 
 def GetDefaultCbsdSSLCertPath():
   return os.path.join('certs', 'client.cert')
@@ -42,13 +47,19 @@ def GetDefaultSasSSLCertPath():
 def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'client.key')
 
-
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, base_url, sas_version, sas_admin_id):
-    self._base_url = base_url
-    self._sas_version = sas_version
+  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
+    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id):
+    self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
+    self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
+    self._sas_sas_rsa_base_url = sas_sas_rsa_base_url
+    self._sas_sas_ec_base_url = sas_sas_ec_base_url
+    self.cbsd_sas_active_base_url = cbsd_sas_rsa_base_url
+    self.sas_sas_active_base_url = sas_sas_rsa_base_url
+    self.cbsd_sas_version = cbsd_sas_version
+    self.sas_sas_version = sas_sas_version
     self._tls_config = TlsConfig()
     self._sas_admin_id = sas_admin_id
 
@@ -77,7 +88,8 @@ class SasImpl(sas_interface.SasInterface):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    url = 'https://%s/%s/%s' % (self._base_url, self._sas_version, method_name)
+
+    url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
     return RequestGet(url,
@@ -86,7 +98,7 @@ class SasImpl(sas_interface.SasInterface):
                           ssl_key or GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return RequestPost('https://%s/%s/%s' % (self._base_url, self._sas_version,
+    return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
                            ssl_cert or GetDefaultCbsdSSLCertPath(),
@@ -98,6 +110,18 @@ class SasImpl(sas_interface.SasInterface):
                           ssl_cert if ssl_cert else
                           GetDefaultSasSSLCertPath(), ssl_key
                           if ssl_key else GetDefaultSasSSLKeyPath()))
+
+  def UpdateSasRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      sas_sas_active_base_url = self._sas_sas_ec_base_url
+    else:
+      sas_sas_active_base_url = self._sas_sas_rsa_base_url
+
+  def UpdateCbsdRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
+    else:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
