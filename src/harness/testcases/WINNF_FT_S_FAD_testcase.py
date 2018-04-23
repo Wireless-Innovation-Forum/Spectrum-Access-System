@@ -450,7 +450,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         dump_message = self._sas.GetFullActivityDump(sas_th['serverCert'], sas_th['serverKey'])
         # check that dump message is the same as the message retreived by the first SAS TH
         self.assertEqual(response, dump_message)
-        # check that dump files is the same as the files retreived by the first SAS TH
+        # check that dump files are the same as the files retreived by the first SAS TH
         for index, dump_file in enumerate(dump_message['files']):
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
