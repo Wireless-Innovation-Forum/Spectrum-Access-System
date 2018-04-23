@@ -89,7 +89,7 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   signal.alarm(7200)
   # Check generation date of full activity dump.
   while True:
-    dump_message = sas.GetFullActivityDump()
+    dump_message = sas.GetFullActivityDump(ssl_cert, ssl_key)
     dump_time = datetime.strptime(dump_message['generationDateTime'],
                                   '%Y-%m-%dT%H:%M:%SZ')
     if request_time <= dump_time:
