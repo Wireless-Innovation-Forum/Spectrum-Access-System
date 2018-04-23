@@ -251,9 +251,11 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': SAS_TEST_HARNESS_URL})
 
-    # Tls handshake fails
-    self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
-                                   client_key=config['sasKey'])
+    # Tls handshake fails or Http 403
+    self.assertTlsHandshakeFailureOrHttp403(client_cert=config['sasCert'],
+                                            client_key=config['sasKey'],
+                                            is_sas=True)
+
     logging.info("TLS handshake failed as the sas certificate has blacklisted")
 
   def generate_SSS_12_default_config(self, filename):
