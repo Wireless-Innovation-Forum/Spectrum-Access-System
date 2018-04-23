@@ -49,10 +49,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band.
     device_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_1['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 0.20
-    device_1['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude']
+    device_1['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude']
     grant_request_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_1['operationParam'][
@@ -64,10 +64,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band, overlapping device 1 band.
     device_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_2['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude']
-    device_2['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] + 0.20
+    device_2['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude']
+    device_2['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] + 0.20
     grant_request_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_2['operationParam'][
@@ -79,10 +79,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band.
     device_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 0.05
-    device_3['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] + 0.05
+    device_3['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 0.05
+    device_3['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] + 0.05
     grant_request_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_3['operationParam'][
@@ -94,10 +94,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range overlapping FSS band.
     device_4 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_4['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] - 0.05
-    device_4['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] - 0.05
+    device_4['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] - 0.05
+    device_4['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] - 0.05
     grant_request_4 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_4['operationParam'][
@@ -109,10 +109,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range inside of FSS band.
     device_5 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_5['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 0.05
-    device_5['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] - 0.05
+    device_5['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 0.05
+    device_5['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] - 0.05
     grant_request_5 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_5['operationParam'][
@@ -124,10 +124,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range inside of FSS band.
     device_6 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_6['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 1.0
-    device_6['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude']
+    device_6['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 1.00
+    device_6['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude']
     grant_request_6 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_6['operationParam'][
@@ -139,10 +139,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range inside of FSS band.
     device_7 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_g.json')))
-    device_7['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 1.5
-    device_7['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] + 0.5
+    device_7['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 1.50
+    device_7['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] + 0.50
     grant_request_7 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_7['operationParam'][
@@ -310,10 +310,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band.
     device_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_1['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 0.20
-    device_1['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude']
+    device_1['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 0.20
+    device_1['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude']
     grant_request_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_1['operationParam'][
@@ -325,10 +325,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band, overlapping device 1 band.
     device_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_2['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude']
-    device_2['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] + 0.20
+    device_2['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude']
+    device_2['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] + 0.20
     grant_request_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_2['operationParam'][
@@ -340,10 +340,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range outside of FSS band.
     device_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] + 0.05
-    device_3['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] + 0.05
+    device_3['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] + 0.05
+    device_3['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] + 0.05
     grant_request_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_3['operationParam'][
@@ -355,10 +355,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # frequency range overlapping FSS band.
     device_4 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_4['installationParam'][
-        'latitude'] = fss_record['installationParam']['latitude'] - 0.05
-    device_4['installationParam'][
-        'longitude'] = fss_record['installationParam']['longitude'] - 0.05
+    device_4['installationParam']['latitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['latitude'] - 0.05
+    device_4['installationParam']['longitude'] = fss_record[
+        'deploymentParam'][0]['installationParam']['longitude'] - 0.05
     grant_request_4 = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_4['operationParam'][
