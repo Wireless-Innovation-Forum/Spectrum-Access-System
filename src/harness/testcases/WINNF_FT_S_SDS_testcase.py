@@ -217,7 +217,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     # Tls handshake fails or Http 403
     self.assertTlsHandshakeFailureOrHttp403(client_cert=config['domainProxyCert'],
-                                   client_key=config['domainProxyKey'])
+                                            client_key=config['domainProxyKey'])
 
     logging.info("TLS handshake failed as the domain proxy certificate has blacklisted")
 
