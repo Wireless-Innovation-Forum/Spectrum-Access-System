@@ -272,7 +272,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Use the FIPS codes of adjacent census tracts..
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -430,7 +430,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Use the FIPS codes of adjacent census tracts..
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -668,7 +668,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Use the FIPS codes of adjacent census tracts..
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_1['fipsCode'] = 20063955100
     pal_record_2['fipsCode'] = 20063955200
 
@@ -774,7 +774,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Use the FIPS codes of adjacent census tracts..
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_1['fipsCode'] = 20063955100
     pal_record_2['fipsCode'] = 20063955200
 
