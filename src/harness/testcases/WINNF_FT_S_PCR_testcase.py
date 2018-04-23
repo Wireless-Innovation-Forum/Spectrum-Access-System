@@ -272,7 +272,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and pal_records_b.
+    # Use the FIPS codes of adjacent census tracts..
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -430,7 +430,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and pal_records_b.
+    # Use the FIPS codes of adjacent census tracts..
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -668,7 +668,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and pal_records_b.
+    # Use the FIPS codes of adjacent census tracts..
     pal_record_1['fipsCode'] = 20063955100
     pal_record_2['fipsCode'] = 20063955200
 
@@ -774,7 +774,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and pal_records_b.
+    # Use the FIPS codes of adjacent census tracts..
     pal_record_1['fipsCode'] = 20063955100
     pal_record_2['fipsCode'] = 20063955200
 
@@ -789,7 +789,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # light check to ensure CBSD userId is not same.
-    self.assertNotEquals(device_a['userId'], device_b['userId'])
+    self.assertNotEqual(device_a['userId'], device_b['userId'])
 
     # The userId of at least one of the CBSDs is not associated to the userId of
     # the PAL Holder configured in the PAL record for this service area.
@@ -935,47 +935,29 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
-        user_claimed_ppa_contour = json.load(claimed_ppa_file)
+      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as overlapped_ppa_file:
+        overlapping_ppa_contour = json.load(overlapped_ppa_file)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
 
     # Shrink the user claimed ppa boundary by approximately 1 kilometer.
-    user_claimed_ppa_contour_shapely = utils.ToShapely(
-      user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
-    user_claimed_ppa_contour_geometry = utils.ToGeoJson(
-       user_claimed_ppa_contour_shapely, as_dict=True)
+    overlapping_ppa_contour_shapely = utils.ToShapely(
+      overlapping_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
+    overlapping_ppa_contour_geometry = utils.ToGeoJson(
+      overlapping_ppa_contour_shapely, as_dict=True)
 
     # Create ppa_record where user claimed PPA contour will be replaced.
-    ppa_record = json.load(
+    overlapping_ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
     # Update the user_claimed ppa contour geometry required for overlaps ppa.
-    ppa_record['zone'] = user_claimed_ppa_contour
+    overlapping_ppa_record['zone'] = overlapping_ppa_contour_geometry
 
-    # Load the test_WINNF_FT_S_PCR_1 config. All other inputs must be identical
-    # to those used in the corresponding configuration of PCR.1.
-    pcr_1_test_config = loadConfig(pcr_1_test_config_file_path)
-
-    # Use the same frequency PCR 1 test used.
-    pal_low_frequency = pcr_1_test_config['palRecords'][0]['channelAssignment'][
-        'primaryAssignment']['lowFrequency']
-    pal_high_frequency = pcr_1_test_config['palRecords'][0]['channelAssignment'][
-        'primaryAssignment']['highFrequency']
-
-    user_id = pcr_1_test_config['registrationRequests'][0]['userId']
-
-    # Make the PPA record consistent.
-    overlap_ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
-                                                                    pcr_1_test_config['palRecords'],
-                                                                    pal_low_frequency,
-                                                                    pal_high_frequency,
-                                                                    user_id)
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'overlapPpaRecord': overlap_ppa_record
+        'overlapPpaRecord': overlapping_ppa_record
     }
     writeConfig(filename, config)
 
