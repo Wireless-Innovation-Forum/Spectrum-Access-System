@@ -16,9 +16,12 @@ import json
 import os
 import sas
 import sas_testcase
-from time import sleep
+from datetime import datetime
+from time import sleep 
 from util import configurable_testcase, writeConfig, loadConfig, addCbsdIdsToRequests
 
+#SAS UUT executes its daily activities at configured time ex- 2, means 2 AM everyday
+SCHEDULED_CPAS_TIMER = 2
 
 class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
   """SAS federal government database update test cases"""
@@ -137,6 +140,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']), 3)
+    for grant_bundle in config['grantRequests']:
+      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))    
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G1' grants for all the configured grants
@@ -326,6 +331,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
    
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']),3)
+    for grant_bundle in config['grantRequests']:
+      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))    
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G1' grants for all the configured grants
@@ -556,7 +563,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # Very light checking of the config file.
-    self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
+    self.assertEqual(len(config['registrationRequests']),
+                     len(config['grantRequests']))
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G' grants for all the configured grants
@@ -662,7 +670,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'grantRequests': [
             [grant_g1_a, grant_g1_b],
             [grant_g2_a, grant_g2_b]],
-        'expectedResponseCodes': [0, 501],
+        'expectedResponseCodes': [
+            [(0, ), (0,)],
+            [(501, ), (501, )]],
         'conditionalRegistrationData': conditionals
         # TODO
         # Need to add data base configurations
@@ -683,6 +693,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']), 2)
+    for grant_bundle in config['grantRequests']:
+      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))
 
     # Step 1: Register device(s) 'C' (at location 'X') with conditional registration data
     cbsd_ids = self.assertRegistered(config['registrationRequests'],
@@ -721,10 +733,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       })
     heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
-    # Check the heartbeat response code is either 0(SUCCESS) or
-    # 501(SUSPENDED_GRANT)
-    for resp in heartbeat_responses:
-      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'])
+    # Check responseCode of Heartbeat Response for grant 'G1' matches the
+    # responseCode in the configuration file (SUCCESS '0' or SUSPENDED_GRANT '501')
+    for resp_num, resp in enumerate(heartbeat_responses):
+      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][0][resp_num])
 
     # Sending relinquishment request for the grant 'G1'.
     relq_requests = {'relinquishmentRequest': []}
@@ -775,11 +787,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       })
     heartbeat_responses = self._sas.Heartbeat(heartbeat_requests)['heartbeatResponse']
 
-    # Check the heartbeat response code is either 0(SUCCESS) or
-    # 501(SUSPENDED_GRANT)
-    for resp in heartbeat_responses:
-      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'])
-
+    # Check responseCode of Heartbeat Response for grant 'G2' matches the
+    # responseCode in the configuration file (SUCCESS '0' or SUSPENDED_GRANT '501')
+    for resp_num, resp in enumerate(heartbeat_responses):
+      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][1][resp_num])
+    
     del heartbeat_requests, heartbeat_responses
 
   def generate_FDB_5_default_config(self, filename):
@@ -787,7 +799,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load devices info
     device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
@@ -856,7 +868,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # Very light checking of the config file.
-    self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
+    self.assertEqual(len(config['registrationRequests']),
+                     len(config['grantRequests']))
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G' grants for all the configured grants
@@ -967,13 +980,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             [grant_g1_a, grant_g1_b],
             [grant_g2_a, grant_g2_b]],
         'expectedResponseCodes': [
-            [(400,), (0, 400)],
-            [(0,), (0, 400)]],
+            [(400,), (400,)],
+            [(0,), (0,)]],
         'conditionalRegistrationData': conditionals
         # TODO
         # Need to add data base configurations
     }
-    writeConfig(filename, config)
+    writcases/WINNF_FT_S_FDB_testcase.pyeConfig(filename, config)
 
   @configurable_testcase(generate_FDB_6_default_config)
   def test_WINNF_FT_S_FDB_6(self, config_filename):
@@ -1060,20 +1073,21 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.7"""
 
     # Load devices info
-    device_a_0 = json.load(
+    device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a_1 = device_a_0
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
     # Update the FCC ID of CBSDs from FCC ID database.
-    device_a_0['fccId'] = "F_ID_a_0"
-    device_a_1['fccId'] = "F_ID_a_1"
+    device_a['fccId'] = "F_ID_a"
+    device_c['fccId'] = "F_ID_c"
 
-    self.assertEqual(device_a_0['cbsdCategory'], 'A')
-    self.assertEqual(device_a_1['cbsdCategory'], 'A')
+    self.assertEqual(device_a['cbsdCategory'], 'A')
+    self.assertEqual(device_c['cbsdCategory'], 'A')
 
     # Create the actual config.
     config = {
-        'registrationRequests': [device_a_0, device_a_1],
+        'registrationRequests': [device_a, device_c],
         'expectedResponseCodes': [(103,), (0,)]
         # TODO
         # Need to add data base configurations
@@ -1088,7 +1102,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
     
     # Very light checking of the config file.
-    self.assertEqual(len(config['expectedResponseCodes']), 2)
+    self.assertEqual(len(config['registrationRequests']),
+                     len(config['expectedResponseCodes']))
 
     registration_requests = {
         'registrationRequest': config['registrationRequests']
@@ -1193,7 +1208,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'cpasInitiateTimer': 100,
         'conditionalRegistrationData': conditionals
         # TODO
         # Need to add data base configurations
@@ -1211,8 +1225,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(config['registrationRequests']),
                      len(config['grantRequests']))
 
-    # Step 1: Trigger daily activities
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    # Step 1: Trigger for enabling "schedule daily activities"
+    self._sas_admin.TriggerEnableScheduledDailyActivities()
 
     # Step 2: Registration of CBSDs and requesting for grants.
     # Forming of 'G' grants for all the configured grants
@@ -1230,10 +1244,18 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 4: Inject the FSS database URL into the UUT
 
     # Step 5: Wait until after the completion of scheduled CPAS
-    sleep(config['cpasInitiateTimer'])
-
-    # Trigger daily activities
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    current_time = datetime.now()
+    if current_time.hour < SCHEDULED_CPAS_TIMER:
+      scheduled_cpas_time = current_time.replace(day=current_time.day,
+                               hour=SCHEDULED_CPAS_TIMER,
+                               minute=0, second=0, microsecond=0)
+    else :
+      scheduled_cpas_time = current_time.replace(day=current_time.day+1,
+                               hour=SCHEDULED_CPAS_TIMER,
+                               minute=0, second=0, microsecond=0)
+    
+    waiting_time_in_secs = (scheduled_cpas_time - current_time).seconds
+    sleep(waiting_time_in_secs)
 
     # Step 6: Sending Heartbeat Request
     # Construct heartbeat message
