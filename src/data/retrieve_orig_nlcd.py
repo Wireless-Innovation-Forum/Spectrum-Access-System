@@ -54,6 +54,13 @@ def RetrieveNlcdConus(directory):
                    write_file='nlcd_2011_landcover_2011_edition_2014_10_10.zip')
   print 'Retrieved NLCD for CONUS'
 
+def RetrieveNlcdAlaska(directory):
+  os.chdir(directory)
+  print 'Retrieving NLCD for CONUS...'
+  RetrieveHTTPFile('http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=ak_nlcd_2011_landcover_1_15_15.zip',
+                   write_file='ak_nlcd_2011_landcover_1_15_15.zip')
+  print 'Retrieved NLCD for Alaska'
+
 
 # Find the directory of this script.
 cur_dir = os.path.dirname(os.path.realpath(__file__))
@@ -65,3 +72,4 @@ if not os.path.exists(dest_dir):
   os.makedirs(dest_dir)
 
 RetrieveNlcdConus(dest_dir)
+RetrieveNlcdAlaska(dest_dir)
