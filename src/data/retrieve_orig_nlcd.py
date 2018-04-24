@@ -18,6 +18,7 @@ This is to be used in combination with `retile_nlcd.py` if ones want to recreate
 the NLCD tiles from scratch.
 """
 import os
+import ssl
 import urllib2
 
 
@@ -33,7 +34,8 @@ def RetrieveHTTPFile(resource, force=False, write_file=''):
     print 'Resource %s already retrieved' % resource
     return
 
-  f = urllib2.urlopen(resource)
+  context = ssl._create_unverified_context()
+  f = urllib2.urlopen(resource, context=context)
   if f.getcode() != 200:
     raise Exception('Could not find resource %s' % resource)
   with open(write_file, 'wb') as out:

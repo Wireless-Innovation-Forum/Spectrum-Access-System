@@ -42,7 +42,8 @@ def RetrieveURL(url):
 
 # Retrieve all the FCC data files into the current directory.
 def RetrieveFCC():
-  RetrieveURL('https://transition.fcc.gov/oet/info/maps/uscabdry/uscabdry.zip')
+  # The following US/Canada forder file cannot be found anymore in this site.
+  # RetrieveURL('https://transition.fcc.gov/oet/info/maps/uscabdry/uscabdry.zip')
   RetrieveURL('http://www.ibwc.gov/GIS_Maps/downloads/us_mex_boundary.zip')
   # The following files are legacy unused files
   #RetrieveURL('http://transition.fcc.gov/ib/sd/3650/grandftr.pdf')
