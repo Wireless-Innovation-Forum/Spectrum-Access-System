@@ -134,16 +134,14 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
             if 'antennaBeamwidth' in cbsd_record[0]['installationParam'] else None
           dump_antenna_azimuth = cbsd_record[0]['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in cbsd_record[0]['installationParam'] else None
-          is_default_dump_beamwidth = dump_antenna_beamwidth == 360 or dump_antenna_beamwidth == 0
+          is_default_dump_beamwidth = dump_antenna_beamwidth == 360
           # beamwidth should be equal to registered value or default value
           if registered_antenna_beamwidth is None:
             self.assertTrue(is_default_dump_beamwidth)
           else:
               self.assertEqual(registered_antenna_beamwidth, dump_antenna_beamwidth)
           # if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
-          # and the value of antenna azimuth should be set to 0
           if registered_antenna_azimuth is None:
-            self.assertEqual(0, dump_antenna_azimuth)
             self.assertTrue(is_default_dump_beamwidth)
           else:
             self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
@@ -304,14 +302,19 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
                  self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq, 'incorrect low frequency of the grant with index {0}, makes it a GAA&PAL Mixed Grant'.format(index))
       for index, device  in enumerate(config['registrationRequests']):
-        # check azimuth in all CBSD configs
-        if 'antennaAzimuth' not in config['registrationRequests'][index]['installationParam']:
-          reg_conditional_device_data_list = [reg for reg in \
-              reg_conditional_data['registrationData'] if reg['fccId'] == config['registrationRequests'][index]['fccId'] and \
-              reg['cbsdSerialNumber'] == config['registrationRequests'][index]['cbsdSerialNumber'] ]
-          if len(reg_conditional_device_data_list) == 0 or\
-            'antennaAzimuth' not in reg_conditional_device_data_list[0]['installationParam']:
-            self.fail('invalid config, missing azimuth value for CBSD config with index: {0} '.format(index))
+        # check azimuth in the CBSD config, if the beamwidth is not 0 or 360 and the azimuth is not provided, CBSD registration may be rejected
+        reg_conditional_installation_param = config['conditionalRegistrationData']['installationParam']
+        registeration_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
+            if 'antennaAzimuth' in device['installationParam'] \
+            else reg_conditional_installation_param['antennaAzimuth'] \
+            if 'antennaAzimuth' in reg_conditional_installation_param else None
+        registeration_antenna_beamwidth = device['installationParam']['antennaBeamwidth'] \
+            if 'antennaBeamwidth' in device['installationParam'] \
+            else reg_conditional_installation_param['antennaBeamwidth'] \
+            if 'antennaBeamwidth' in reg_conditional_installation_param else None
+        if registeration_antenna_beamwidth != None and registeration_antenna_beamwidth not in [0, 360]\
+          and registeration_antenna_azimuth is None:
+           self.fail('invalid config, missing azimuth value for CBSD config with index: {0} '.format(index))
         # inject FCC ID and User ID of CBSD 
         self._sas_admin.InjectFccId({
             'fccId': device['fccId'],
