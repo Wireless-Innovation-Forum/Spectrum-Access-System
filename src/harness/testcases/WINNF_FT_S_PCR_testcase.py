@@ -25,7 +25,7 @@ from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
-     getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
+     makePpaAndPalRecordsConsistent
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 def getSasUutClaimedPpaBoundaryFilePath(config_filename):
@@ -930,7 +930,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                                                'test_WINNF_FT_S_PCR_1',
                                                'default.config')
     sas_uut_claimed_ppa_boundary_file_path = getSasUutClaimedPpaBoundaryFilePath(
-      'default.config')
+        'default.config')
 
     # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
@@ -943,21 +943,54 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Shrink the user claimed ppa boundary by approximately 1 kilometer.
     overlapping_ppa_contour_shapely = utils.ToShapely(
-      overlapping_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
+        overlapping_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
     overlapping_ppa_contour_geometry = utils.ToGeoJson(
-      overlapping_ppa_contour_shapely, as_dict=True)
+        overlapping_ppa_contour_shapely, as_dict=True)
 
     # Create ppa_record where user claimed PPA contour will be replaced.
     overlapping_ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
     # Update the user_claimed ppa contour geometry required for overlaps ppa.
     overlapping_ppa_record['zone'] = overlapping_ppa_contour_geometry
 
+    # Load PCR.1 configuration.
+    pcr_1_test_config = loadConfig(pcr_1_test_config_file_path)
+
+    # Set the pal_record used in PCR.1 tests.
+    pcr_1_pal_records = pcr_1_test_config['palRecords']
+
+    # Use the same frequency PCR 1 test used.
+    pcr_1_pal_low_frequency = pcr_1_pal_records[0]['channelAssignment'][
+        'primaryAssignment']['lowFrequency']
+    pcr_1_pal_high_frequency = pcr_1_pal_records[0]['channelAssignment'][
+        'primaryAssignment']['highFrequency']
+
+    # Set the user_id used in registration request.
+    pcr_1_user_id = pcr_1_test_config['registrationRequests'][0]['userId']
+
+    # palRecords received from PCR.1 test configuration doesn't have fipsCode and censusYear fields.
+    # Extract these values from licenseAreaExtent in license.licenseAreaExtent is formed with
+    # the format zone/census_tract/census/$YEAR/$FIPS that includes fispCode and censusYear.
+    for pcr_1_pal_record in pcr_1_pal_records:
+      # Extract fispCode and CensusYear from licenseAreaExtent and update in pal_records
+      pcr_1_pal_record['fipsCode'] = str(pcr_1_pal_record['license'][
+          'licenseAreaExtent']).split('/')[-1]
+      pcr_1_pal_record['censusYear'] = str(pcr_1_pal_record['license'][
+          'licenseAreaExtent']).split('/')[-2]
+
+    # Make the PPA record consistent and correct pal_id is updated.
+    overlapping_ppa_record_updated, pal_record = makePpaAndPalRecordsConsistent(
+        overlapping_ppa_record,
+        pcr_1_pal_records,
+        pcr_1_pal_low_frequency,
+        pcr_1_pal_high_frequency,
+        pcr_1_user_id)
+
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'overlapPpaRecord': overlapping_ppa_record
+        'overlapPpaRecord': overlapping_ppa_record_updated
     }
     writeConfig(filename, config)
 
@@ -1002,4 +1035,3 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Trigger PPA Creation to SAS UUT and check SAS UUT should not create PPA boundary
     # claimed by PAL holder was overlapped by PPA zone.
     self.assertPpaCreationFailure(ppa_creation_request)
-
