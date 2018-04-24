@@ -267,8 +267,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_7,
             'grantRequest': grant_request_7,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
@@ -280,8 +280,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_8,
             'grantRequest': grant_request_8,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],
@@ -292,10 +292,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'iterationData': [iteration0_config, iteration1_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': os.path.join('certs', 'dp_1_client.cert'),
-                                'key': os.path.join('certs', 'dp_1_client.key')},
-                               {'cert': os.path.join('certs', 'dp_2_client.cert'),
-                                'key': os.path.join('certs', 'dp_2_client.key')}],
+        'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
+                                'key': os.path.join('certs', 'domain_proxy.key')},
+                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
         'deltaIap': 2
     }
     writeConfig(filename, config)
