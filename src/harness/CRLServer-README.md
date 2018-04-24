@@ -74,15 +74,15 @@ Please select the options:
 CRL Server> <b>1</b>
 Certificates present in directory path: **/harness/certs**
 Select the certificate to blacklist:
-[0] admin_client.cert
+[0] admin.cert
 [1] ca.cert
 [2] cbsd-ecc_ca.cert
 [3] cbsd_ca.cert
-<b>[4] client.cert</b>
-[5] client_expired.cert
+<b>[4] device.cert</b>
+[5] device_expired.cert
 
 CRL Server> <b>4</b>
-[INFO] 2018-03-19 16:48:01,372 Certificate selected to blacklist is:client.cert
+[INFO] 2018-03-19 16:48:01,372 Certificate selected to blacklist is:device.cert
 Select the certificate type:
 <b>[1] CBSD</b>
 [2] DP
@@ -100,7 +100,7 @@ Using configuration from ../../../cert/openssl.cnf
 Using configuration from ../../../cert/openssl.cnf
 \n\n Generate CRL for cbsd_ca
 Using configuration from ../../../cert/openssl.cnf
-<b>[INFO] 2018-03-19 16:48:48,923 client.cert is blacklisted successfully</b>
+<b>[INFO] 2018-03-19 16:48:48,923 device.cert is blacklisted successfully</b>
 </code>
 </pre> 
 

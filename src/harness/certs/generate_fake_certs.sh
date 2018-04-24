@@ -139,18 +139,17 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_1.csr \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Generate normal operation client certificate/key.
-echo -e "\n\nGenerate generic 'client' certificate/key based on domainProxy"
+# Generate normal operation device certificate/key.
+echo -e "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out client.csr -keyout client.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0001"
-openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in client.csr \
-    -out client.cert -outdir ./root \
-    -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
+    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -out device.csr -keyout device.key \
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:test_serial_number"
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
+    -out device.cert -outdir ./root \
+    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-echo -e "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_a.csr -keyout device_a.key \
@@ -169,13 +168,13 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-echo -e "\n\nGenerate 'admin_client' certificate/key"
+echo -e "\n\nGenerate 'admin' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out admin_client.csr -keyout admin_client.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Admin Certificate/CN=SAS client admin Example"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin_client.csr \
-    -out admin_client.cert -outdir ./root \
+    -out admin.csr -keyout admin.key \
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Admin Certificate/CN=SAS admin Example"
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in admin.csr \
+    -out admin.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -215,15 +214,15 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Certificates for test case WINNF.FT.S.SCS.7 - corrupted certificate, based on client.cert
-echo -e "\n\nGenerate 'corrupted_client' certificate/key"
-gen_corrupt_cert client.key client.cert corrupted_client.key corrupted_client.cert
+# Certificates for test case WINNF.FT.S.SCS.7 - corrupted certificate, based on device.cert
+echo -e "\n\nGenerate 'device_corrupted' certificate/key"
+gen_corrupt_cert device.key device.cert device_corrupted.key device_corrupted.cert
 
 # Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
 # Using the same CSR that was created for normal operation
-echo -e "\n\nGenerate 'self_signed_client' certificate/key"
-openssl x509 -signkey client.key -in client.csr \
-    -out self_signed_client.cert \
+echo -e "\n\nGenerate 'device_self_signed' certificate/key"
+openssl x509 -signkey device.key -in device.csr \
+    -out device_self_signed.cert \
     -req -days 1185
 
 # Certificate for test case WINNF.FT.S.SCS.9 - Non-CBRS trust root signed certificate presented during registration
@@ -257,7 +256,7 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
 # Creating a wrong type certificate by reusing the server.csr and creating a server certificate.
 echo -e "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
-    -out wrong_type_client.cert -outdir ./root \
+    -out device_wrong_type.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -265,45 +264,45 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
 echo -e "\n\nGenerate blacklisted client certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_client.csr -keyout blacklisted_client.key \
+    -out device_blacklisted.csr -keyout device_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:sn_0001"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in blacklisted_client.csr \
-    -out blacklisted_client.cert -outdir ./root \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_blacklisted.csr \
+    -out device_blacklisted.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Revoke the blacklisted_client.cert for WINNF.FT.S.SCS.11
-openssl ca -revoke blacklisted_client.cert -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
+# Revoke the device_blacklisted.cert for WINNF.FT.S.SCS.11
+openssl ca -revoke device_blacklisted.cert -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
      -config ../../../cert/openssl.cnf
 
 # Certificate for test case WINNF.FT.S.SDS.11
 echo -e "\n\nGenerate blacklisted domain proxy certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_domain_proxy.csr -keyout blacklisted_domain_proxy.key \
+    -out domain_proxy_blacklisted.csr -keyout domain_proxy_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0004"
-openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in blacklisted_domain_proxy.csr \
-    -out blacklisted_domain_proxy.cert -outdir ./root \
+openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy_blacklisted.csr \
+    -out domain_proxy_blacklisted.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Revoke the blacklisted_domain_proxy.cert for WINNF.FT.S.SDS.11
-openssl ca -revoke blacklisted_domain_proxy.cert -keyfile private/proxy_ca.key -cert proxy_ca.cert \
+# Revoke the domain_proxy_blacklisted.cert for WINNF.FT.S.SDS.11
+openssl ca -revoke domain_proxy_blacklisted.cert -keyfile private/proxy_ca.key -cert proxy_ca.cert \
      -config ../../../cert/openssl.cnf
 
 # Certificate for test case WINNF.FT.S.SSS.11
 echo -e "\n\nGenerate blacklisted sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
-    -out blacklisted_sas.csr -keyout blacklisted_sas.key \
+    -out sas_blacklisted.csr -keyout sas_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in blacklisted_sas.csr \
-    -out blacklisted_sas.cert -outdir ./root \
+openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_blacklisted.csr \
+    -out sas_blacklisted.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Revoke the blacklisted_sas.cert for WINNF.FT.S.SSS.11
-openssl ca -revoke blacklisted_sas.cert -keyfile private/sas_ca.key -cert sas_ca.cert \
+# Revoke the sas_blacklisted.cert for WINNF.FT.S.SSS.11
+openssl ca -revoke sas_blacklisted.cert -keyfile private/sas_ca.key -cert sas_ca.cert \
     -config ../../../cert/openssl.cnf
 
 # Create a CRL for root CA containing the revoked CBSD CA certificate
@@ -329,20 +328,20 @@ openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
     -out crl/cbsd_ca.crl
 
 # Certificate for test case WINNF.FT.S.SCS.12 - Expired certificate presented during registration
-echo -e "\n\nGenerate 'client_expired' certificate/key"
+echo -e "\n\nGenerate 'device_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out client_expired.csr -keyout client_expired.key \
+    -out device_expired.csr -keyout device_expired.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:0002"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client_expired.csr \
-    -out client_expired.cert -outdir ./root \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_expired.csr \
+    -out device_expired.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
 # Certificate for test case WINNF.FT.S.SCS.15 - Certificate with inapplicable fields presented during registration
 echo -e "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SCS.15' certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
-    -out client_inapplicable.cert -outdir ./root \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
+    -out device_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -358,14 +357,14 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificates for test case WINN.FT.S.SDS.7 - corrupted certificate, based on domain_proxy.cert
-echo -e "\n\nGenerate 'corrupted_domain_proxy' certificate/key"
-gen_corrupt_cert domain_proxy.key domain_proxy.cert corrupted_domain_proxy.key corrupted_domain_proxy.cert
+echo -e "\n\nGenerate 'domain_proxy_corrupted' certificate/key"
+gen_corrupt_cert domain_proxy.key domain_proxy.cert domain_proxy_corrupted.key domain_proxy_corrupted.cert
 
 # Certificate for test case WINNF.FT.S.SDS.8 - Self-signed certificate presented during registration
 # Using the same CSR that was created for normal operation
-echo -e "\n\nGenerate 'self_signed_domain_proxy' certificate/key"
+echo -e "\n\nGenerate 'domain_proxy_self_signed' certificate/key"
 openssl x509 -signkey domain_proxy.key -in domain_proxy.csr \
-    -out self_signed_domain_proxy.cert \
+    -out domain_proxy_self_signed.cert \
     -req -days 1185
 
 # Certificate for test case WINNF.FT.S.SDS.9 - Non-CBRS trust root signed certificate presented during registration
@@ -395,7 +394,7 @@ openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_roo
 # Creating a wrong type certificate by reusing the server.csr and creating a server certificate.
 echo -e "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
-    -out wrong_type_domain_proxy.cert -outdir ./root \
+    -out domain_proxy_wrong_type.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -429,14 +428,14 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificates for test case WINN.FT.S.SSS.7 - corrupted certificate, based on sas.cert
-echo -e "\n\nGenerate 'corrupted_sas' certificate/key"
-gen_corrupt_cert sas.key sas.cert corrupted_sas.key corrupted_sas.cert
+echo -e "\n\nGenerate 'sas_corrupted' certificate/key"
+gen_corrupt_cert sas.key sas.cert sas_corrupted.key sas_corrupted.cert
 
 # Certificate for test case WINNF.FT.S.SSS.8 - Self-signed certificate presented during registration
 # Using the same CSR that was created for normal operation
-echo -e "\n\nGenerate 'self_signed_sas' certificate/key"
+echo -e "\n\nGenerate 'sas_self_signed' certificate/key"
 openssl x509 -signkey sas.key -in sas.csr \
-    -out self_signed_sas.cert \
+    -out sas_self_signed.cert \
     -req -days 1185
 
 # Certificate for test case WINNF.FT.S.SSS.9 - Non-CBRS trust root signed certificate presented during registration
@@ -464,10 +463,10 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
-# Creating a wrong type certificate by reusing the client.csr and creating a client certificate.
+# Creating a wrong type certificate by reusing the device.csr and creating a client certificate.
 echo -e "\n\nGenerate wrong type certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in client.csr \
-    -out wrong_type_sas.cert -outdir ./root \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
+    -out sas_wrong_type.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -494,7 +493,7 @@ echo -e "\n\nGenerate 'revoked_cbsd_ca' certificate/key to revoke intermediate C
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
     -out revoked_cbsd_ca.csr -keyout private/revoked_cbsd_ca.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA CBSD OEM CA0002/CN=WInnForum RSA CBSD OEM CA revoked"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA CBSD OEM CA0002/CN=WInnForum RSA CBSD OEM CA - Revoked"
 openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_cbsd_ca.csr \
     -policy policy_anything -extensions cbsd_ca_sign -config ../../../cert/openssl.cnf \
     -out revoked_cbsd_ca.cert -outdir ./root \
@@ -504,10 +503,10 @@ openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_cbsd_ca.c
 echo -e "\n\nGenerate 'client' certificate/key signed by revoked_cbsd_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out client_cert_from_revoked_ca.csr -keyout client_cert_from_revoked_ca.key \
+    -out device_cert_from_revoked_ca.csr -keyout device_cert_from_revoked_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:revoked"
-openssl ca -cert revoked_cbsd_ca.cert -keyfile private/revoked_cbsd_ca.key -in client_cert_from_revoked_ca.csr \
-    -out client_cert_from_revoked_ca.cert -outdir ./root \
+openssl ca -cert revoked_cbsd_ca.cert -keyfile private/revoked_cbsd_ca.key -in device_cert_from_revoked_ca.csr \
+    -out device_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -521,7 +520,7 @@ echo -e "\n\nGenerate 'revoked_proxy_ca' certificate/key to revoke intermediate 
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts oper_ca  -config ../../../cert/openssl.cnf \
     -out revoked_proxy_ca.csr -keyout private/revoked_proxy_ca.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA Domain Proxy CA0002/CN=WInnForum RSA Domain Proxy CA revoked"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA Domain Proxy CA0002/CN=WInnForum RSA Domain Proxy CA - Revoked"
 openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_proxy_ca.csr \
     -policy policy_anything -extensions oper_ca_sign -config ../../../cert/openssl.cnf \
     -out revoked_proxy_ca.cert -outdir ./root \
@@ -531,7 +530,7 @@ echo -e "\n\nGenerate 'domain_proxy' certificate/key signed by revoked_proxy_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts oper_req -config ../../../cert/openssl.cnf \
     -out domain_proxy_cert_from_revoked_ca.csr -keyout domain_proxy_cert_from_revoked_ca.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0010 revoked"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0010 - Revoked"
 openssl ca -cert revoked_proxy_ca.cert -keyfile private/revoked_proxy_ca.key -in domain_proxy_cert_from_revoked_ca.csr \
     -out domain_proxy_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
@@ -547,7 +546,7 @@ echo -e "\n\nGenerate 'sas_ca' certificate/key to revoke intermediate CA."
 openssl req -new -newkey rsa:4096 -nodes \
     -reqexts sas_ca  -config ../../../cert/openssl.cnf \
     -out revoked_sas_ca.csr -keyout private/revoked_sas_ca.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA SAS Provider CA0002/CN=WInnForum RSA SAS Provider CA revoked"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=RSA SAS Provider CA0002/CN=WInnForum RSA SAS Provider CA - Revoked"
 openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_sas_ca.csr \
     -policy policy_anything -extensions sas_ca_sign -config ../../../cert/openssl.cnf \
     -out revoked_sas_ca.cert -outdir ./root \
@@ -558,7 +557,7 @@ echo -e "\n\nGenerate 'sas server' certificate/key signed by revoked_sas_ca"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
     -out sas_cert_from_revoked_ca.csr -keyout sas_cert_from_revoked_ca.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost revoked"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost - Revoked"
 openssl ca -cert revoked_sas_ca.cert -keyfile private/revoked_sas_ca.key -in sas_cert_from_revoked_ca.csr \
     -out sas_cert_from_revoked_ca.cert -outdir ./root \
     -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \

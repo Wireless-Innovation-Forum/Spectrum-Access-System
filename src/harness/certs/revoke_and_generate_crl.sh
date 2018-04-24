@@ -9,19 +9,19 @@ function revoke_certificate()
   #Fetch the Common Name to find out the issuer
   local CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
   local CA=''
-  if [ "$CN" == "WInnForum RSA CBSD CA-1" ]; then
+  if [ "$CN" == "WInnForum RSA CBSD OEM CA" ]; then
     CA=cbsd_ca
   elif [ "$CN" == "WInnForum RSA Domain Proxy CA" ]; then
     CA=proxy_ca
-  elif [ "$CN" == "WInnForum RSA SAS CA-1" ]; then
+  elif [ "$CN" == "WInnForum RSA SAS Provider CA" ]; then
     CA=sas_ca
-  elif [ "$CN" == "WInnForum RSA Root CA-1" ]; then
+  elif [ "$CN" == "WInnForum RSA Root CA" ]; then
     CA=root_ca
-  elif [ "$CN" == "WInnForum CBSD CA-1 - Revoked" ]; then
+  elif [ "$CN" == "WInnForum RSA CBSD OEM CA - Revoked" ]; then
     CA=revoked_cbsd_ca
   elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Revoked" ]; then
     CA=revoked_proxy_ca
-  elif [ "$CN" == "WInnForum RSA SAS CA-1 - Revoked" ]; then
+  elif [ "$CN" == "WInnForum RSA SAS Provider CA - Revoked" ]; then
     CA=revoked_sas_ca
   else
     echo "Unknown issuer CN=$CN for certificate $1"
@@ -56,10 +56,10 @@ function generate_crl_chain()
   openssl ca -gencrl -keyfile private/blacklisted_cbsd_ca.key -cert blacklisted_cbsd_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/blacklisted_cbsd_ca.crl
-  echo -e "\n\n Generate CRL for blacklisted_sas_ca"
-  openssl ca -gencrl -keyfile private/blacklisted_sas_ca.key -cert blacklisted_sas_ca.cert \
+  echo -e "\n\n Generate CRL for sas_blacklisted_ca"
+  openssl ca -gencrl -keyfile private/sas_blacklisted_ca.key -cert sas_blacklisted_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/blacklisted_sas_ca.crl
+      -out crl/sas_blacklisted_ca.crl
   echo -e "\n\n Generate CRL for blacklisted_proxy_ca"
   openssl ca -gencrl -keyfile private/blacklisted_proxy_ca.key -cert blacklisted_proxy_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
@@ -67,7 +67,7 @@ function generate_crl_chain()
 
   # Create CA certificate chain containing the CRLs of revoked leaf certificates.
   cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl \
-      crl/blacklisted_cbsd_ca.crl crl/blacklisted_sas_ca.crl crl/blacklisted_proxy_ca.crl > crl/ca.crl
+      crl/blacklisted_cbsd_ca.crl crl/sas_blacklisted_ca.crl crl/blacklisted_proxy_ca.crl > crl/ca.crl
 }
 #Argument1 : Type (-r,-u)
 if [ "$1" == "-r" ]; then

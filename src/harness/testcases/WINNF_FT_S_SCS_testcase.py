@@ -32,7 +32,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy cipher security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('AES128-GCM-SHA256')
+    self.doCbsdTestCipher('AES128-GCM-SHA256',
+                          self.getCertFilename('device.cert'),
+                          self.getCertFilename('device.key'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_2(self):
@@ -41,7 +43,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('AES256-GCM-SHA384')
+    self.doCbsdTestCipher('AES256-GCM-SHA384',
+                          self.getCertFilename('device.cert'),
+                          self.getCertFilename('device.key'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_3(self):
@@ -51,7 +55,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that a CBSD registration with this configuration succeed.
     Note that the test require a SAS UUT
     """
-    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
+                          self.getCertFilename('device.cert'),
+                          self.getCertFilename('device.key'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_4(self):
@@ -60,7 +66,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
+                          self.getCertFilename('device.cert'),
+                          self.getCertFilename('device.key'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_5(self):
@@ -69,7 +77,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
+                          self.getCertFilename('device.cert'),
+                          self.getCertFilename('device.key'))
 
   def generate_SCS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_6"""
@@ -96,8 +106,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for client cert/key path
 
     config = {
-      'clientCert': self.getCertFilename("corrupted_client.cert"),
-      'clientKey': self.getCertFilename("corrupted_client.key")
+      'clientCert': self.getCertFilename("device_corrupted.cert"),
+      'clientKey': self.getCertFilename("device_corrupted.key")
     }
     writeConfig(filename, config)
 
@@ -116,8 +126,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for client cert/key path
 
     config = {
-      'clientCert': self.getCertFilename("self_signed_client.cert"),
-      'clientKey': self.getCertFilename("client.key")
+      'clientCert': self.getCertFilename("device_self_signed.cert"),
+      'clientKey': self.getCertFilename("device.key")
     }
     writeConfig(filename, config)
 
@@ -156,7 +166,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for client cert/key path
 
     config = {
-      'clientCert': self.getCertFilename("wrong_type_client.cert"),
+      'clientCert': self.getCertFilename("device_wrong_type.cert"),
       'clientKey': self.getCertFilename("server.key")
 
     }
@@ -190,8 +200,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for blacklisted client cert/key path
 
     config = {
-        'clientCert': self.getCertFilename("blacklisted_client.cert"),
-        'clientKey': self.getCertFilename("blacklisted_client.key")
+        'clientCert': self.getCertFilename("device_blacklisted.cert"),
+        'clientKey': self.getCertFilename("device_blacklisted.key")
     }
     writeConfig(filename, config)
 
@@ -215,8 +225,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for client cert/key path
     
     config = { 
-        'clientCert': self.getCertFilename("client_expired.cert"),
-        'clientKey': self.getCertFilename("client_expired.key")
+        'clientCert': self.getCertFilename("device_expired.cert"),
+        'clientKey': self.getCertFilename("device_expired.key")
     }
     writeConfig(filename, config)
   
@@ -251,8 +261,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for client cert/key path
     
     config = {
-        'clientCert': self.getCertFilename("client_inapplicable.cert"),
-        'clientKey': self.getCertFilename("client.key")
+        'clientCert': self.getCertFilename("device_inapplicable.cert"),
+        'clientKey': self.getCertFilename("device.key")
     }
     writeConfig(filename, config)
 
@@ -287,8 +297,8 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for client cert/key path.
 
     config = {
-        'clientCert': self.getCertFilename("client_cert_from_revoked_ca.cert"),
-        'clientKey': self.getCertFilename("client_cert_from_revoked_ca.key")
+        'clientCert': self.getCertFilename("device_cert_from_revoked_ca.cert"),
+        'clientKey': self.getCertFilename("device_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 

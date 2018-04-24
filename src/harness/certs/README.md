@@ -18,13 +18,14 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
        sas_ca--------          cbsd_ca                  proxy_ca
        /    \        \            |                         \
       /      \        \           |                          \
-admin_client sas    server     client                   domain_proxy
-              |                corrupted_client         corrupted_domain_proxy
-          corrupted_sas        wrong_type_client        wrong_type_domain_proxy
-          sas_expired          client_expired           domain_proxy_expired
-          blacklisted_sas      client_inapplicable      domain_proxy_inapplicable
-                               blacklisted_client       blacklisted_domain_proxy
-
+   admin     sas    server     device                   domain_proxy
+              |                device_a, device_c       domain_proxy_1
+          sas_corrupted        device_corrupted         domain_proxy_corrupted
+          sas_wrong_type       device_wrong_type        domain_proxy_wrong_type
+          sas_expired          device_expired           domain_proxy_expired
+          sas_inapplicable     device_inapplicable      domain_proxy_inapplicable
+          sas_blacklisted      device_blacklisted       domain_proxy_blacklisted
+          sas_self_signed      device_self_signed       domain_proxy_self_signed
 
            --------root_ca (same as above, continued)---------
           /                       |                           \
@@ -32,7 +33,7 @@ admin_client sas    server     client                   domain_proxy
   revoked_sas_ca           revoked_cbsd_ca                revoked_proxy_ca
         |                         |                              \
         |                         |                               \
-sas_cert_from_revoked_ca  client_cert_from_revoked_ca  domain_proxy_cert_from_revoked_ca
+sas_cert_from_revoked_ca  device_cert_from_revoked_ca  domain_proxy_cert_from_revoked_ca
  
             ------------------non_cbrs_root_ca----------------------
            /                          |                             \
@@ -73,7 +74,7 @@ Required certificates are:
 * `device_c.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
   Used to authenticate the device_c when connecting to a SAS server.
 
-* `admin_client.[cert|key]`: leaf certificate signed by `sas_ca`.
+* `admin.[cert|key]`: leaf certificate signed by `sas_ca`.
   Used to authenticate the test harness when connecting to the SAS testing API.
 
 * `proxy_ca.cert`: intermediate Domain Proxy certificate authority for
@@ -107,10 +108,10 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SDS_6.
 
-* `corrupted_client.cert`: corrupted 'client.cert' certificate where the 20th character have been changed.
+* `device_corrupted.cert`: corrupted 'device.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SCS_7.
   
-* `self_signed_client.cert`: self signed certificate of client (CBSD) signed by client.key
+* `device_self_signed.cert`: self signed certificate of client (CBSD) signed by device.key
   Used on security test test_WINNF_FT_S_SCS_8.
   
 * `non_cbrs_root_ca.cert`: a root certificate authority that is not approved as a CBRS root CA
@@ -125,29 +126,29 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
   `non_cbrs_root_signed_cbsd_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SCS_9.
   
-* `wrong_type_client.cert`: leaf CBSD certificate signed using server.csr 
+* `device_wrong_type.cert`: leaf CBSD certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SCS_10.
   
-* `blacklisted_client.[cert|key]`: A leaf CBSD device certificate that is blacklisted using CRL. 
+* `device_blacklisted.[cert|key]`: A leaf CBSD device certificate that is blacklisted using CRL. 
   Used on security test test_WINNF_FT_S_SCS_11.
   
-* `client_expired.[cert|key]`: leaf CBSD device expired certificate
+* `device_expired.[cert|key]`: leaf CBSD device expired certificate
   Used on security test test_WINNF_FT_S_SCS_12.
 
-* `client_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
+* `device_inapplicable.[cert|key]`: leaf CBSD device inapplicable fields certificate
   Used on security test test_WINNF_FT_S_SCS_15.
 
-* `client_cert_from_revoked_ca.[cert|key]`: leaf CBSD device certificate signed by revoked intermediate CA 
+* `device_cert_from_revoked_ca.[cert|key]`: leaf CBSD device certificate signed by revoked intermediate CA 
   `revoked_cbsd_ca` and corresponding trusted client certificate bundle.
    Used on security test test_WINNF_FT_S_SCS_16.
 
-* `corrupted_domain_proxy.cert`: corrupted 'domain_proxy.cert' certificate where the 20th character have been changed.
+* `domain_proxy_corrupted.cert`: corrupted 'domain_proxy.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SDS_7.
 
-* `wrong_type_domain_proxy.cert`: domain_proxy certificate signed using server.csr 
+* `domain_proxy_wrong_type.cert`: domain_proxy certificate signed using server.csr 
   Used on security test test_WINNF_FT_S_SDS_10.
   
-* `blacklisted_domain_proxy.[cert|key]`: A leaf domain proxy certificate that is blacklisted using CRL. 
+* `domain_proxy_blacklisted.[cert|key]`: A leaf domain proxy certificate that is blacklisted using CRL. 
   Used on security test test_WINNF_FT_S_SDS_11.
   
 * `domain_proxy_expired.[cert|key]`: domain_proxy device expired certificate
@@ -164,10 +165,10 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SSS_6.
   
-* `corrupted_sas.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
+* `sas_corrupted.cert`: corrupted 'sas.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SSS_7.
   
-* `self_signed_sas.cert`: self signed certificate of SAS signed by sas.key
+* `sas_self_signed.cert`: self signed certificate of SAS signed by sas.key
   Used on security test test_WINNF_FT_S_SSS_8.
   
 * `non_cbrs_root_signed_sas_ca.cert`: an intermediate SAS certificate authority for SAS,
@@ -178,7 +179,7 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
   `non_cbrs_root_signed_sas_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SSS_9.
   
-* `blacklisted_sas.[cert|key]`: A leaf SAS certificate that is blacklisted using CRL.
+* `sas_blacklisted.[cert|key]`: A leaf SAS certificate that is blacklisted using CRL.
   Used on security test test_WINNF_FT_S_SSS_11.
 
 * `sas_expired.[cert|key]`: leaf SAS expired certificate

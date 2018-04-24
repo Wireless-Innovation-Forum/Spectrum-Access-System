@@ -106,8 +106,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("corrupted_domain_proxy.cert"),
-      'domainProxyKey': self.getCertFilename("corrupted_domain_proxy.key")
+      'domainProxyCert': self.getCertFilename("domain_proxy_corrupted.cert"),
+      'domainProxyKey': self.getCertFilename("domain_proxy_corrupted.key")
     }
     writeConfig(filename, config)
 
@@ -126,7 +126,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("self_signed_domain_proxy.cert"),
+      'domainProxyCert': self.getCertFilename("domain_proxy_self_signed.cert"),
       'domainProxyKey': self.getCertFilename("domain_proxy.key")
     }
     writeConfig(filename, config)
@@ -166,7 +166,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("wrong_type_domain_proxy.cert"),
+      'domainProxyCert': self.getCertFilename("domain_proxy_wrong_type.cert"),
       'domainProxyKey': self.getCertFilename("server.key")
 
     }
@@ -200,8 +200,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for blacklisted domain proxy cert/key path.
 
     config = {
-        'domainProxyCert': self.getCertFilename("blacklisted_domain_proxy.cert"),
-        'domainProxyKey': self.getCertFilename("blacklisted_domain_proxy.key")
+        'domainProxyCert': self.getCertFilename("domain_proxy_blacklisted.cert"),
+        'domainProxyKey': self.getCertFilename("domain_proxy_blacklisted.key")
     }
     writeConfig(filename, config)
 

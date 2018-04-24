@@ -2,4 +2,7 @@
 # See README.md for information on how to generate them.
 *.cert
 *.key
+*.csr
+*.crl
+index.txt*
 
