@@ -303,8 +303,16 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                  self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq, 'incorrect high frequency of the grant with index {0}, makes it GAA&PAL Mixed Grant'.format(index))
               if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
                  self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq, 'incorrect low frequency of the grant with index {0}, makes it a GAA&PAL Mixed Grant'.format(index))
-      # inject FCC IDs and User IDs of CBSDs   
-      for device in config['registrationRequests']:
+      for index, device  in enumerate(config['registrationRequests']):
+        # check azimuth in all CBSD configs
+        if 'antennaAzimuth' not in config['registrationRequests'][index]['installationParam']:
+          reg_conditional_device_data_list = [reg for reg in \
+              reg_conditional_data['registrationData'] if reg['fccId'] == config['registrationRequests'][index]['fccId'] and \
+              reg['cbsdSerialNumber'] == config['registrationRequests'][index]['cbsdSerialNumber'] ]
+          if len(reg_conditional_device_data_list) == 0 or\
+            'antennaAzimuth' not in reg_conditional_device_data_list[0]['installationParam']:
+            self.fail('invalid config, missing azimuth value for CBSD config with index: {0} '.format(index))
+        # inject FCC ID and User ID of CBSD 
         self._sas_admin.InjectFccId({
             'fccId': device['fccId'],
             'fccMaxEirp': 47
@@ -322,20 +330,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Check registration responses and get cbsd Id
       self.assertEqual(len(responses), len(config['registrationRequests']))
       cbsd_ids = []
-      for index, response in enumerate(responses):
-        # in case that SAS reject registration request because the azimuth is not provided
-        if response['response']['responseCode'] != 0:
-          logging.warn('SAS UUT rejected the registration for the CBSD with index: {0} in the config file, \
-            the test will delete this CBSD with all related configs'.format(index))
-          self.assertTrue(response['response']['responseCode'] in  [102, 103])
-          # remove configs related to this CBSD 
-          del config['registrationRequests'][index]
-          del config['grantRequests'][index]
-          for ppa in config['ppaRecords']:
-            if index in ppa['ppaClusterList']:
-              ppa['ppaClusterList'].remove(index)
-        else:
-          cbsd_ids.append(response['cbsdId'])
+      for response in responses:
+        self.assertEqual(response['response']['responseCode'], 0)
+        cbsd_ids.append(response['cbsdId'])
       # inject PALs and N2 PPAs
       ppa_ids = []       
       for pal in config['palRecords']:
@@ -398,7 +395,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
               self.assertEqual('coordination', dump_file['recordType'])
-          hash_of_dump_file.append(hashlib.sha1(downloaded_file).hexdigest() if dump_file is not None else None)
+          hash_of_dump_file.append({'url':dump_file['url'], 'hashValue' : hashlib.sha1(downloaded_file).hexdigest()} if dump_file is not None else None)
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
@@ -449,13 +446,14 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       for sas_th in config['sasTestHarnessConfigs'][1:]:
         dump_message = self._sas.GetFullActivityDump(sas_th['serverCert'], sas_th['serverKey'])
         # check that dump message is the same as the message retreived by the first SAS TH
-        self.assertEqual(response, dump_message)
+        compareDictWithUnorderedLists(response, dump_message)
         # check that dump files are the same as the files retreived by the first SAS TH
-        for index, dump_file in enumerate(dump_message['files']):
+        for dump_file in dump_message['files']:
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th['serverCert'], sas_th['serverKey'])
-              self.assertEqual(hash_of_dump_file[index], hashlib.sha1(downloaded_file).hexdigest())
+              hash_of_same_url = [hash['hashValue'] for hash in hash_of_dump_file if hash['url'] == dump_file['url']]
+              self.assertEqual(hash_of_same_url[0], hashlib.sha1(downloaded_file).hexdigest())
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
