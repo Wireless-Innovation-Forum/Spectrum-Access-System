@@ -15,9 +15,10 @@
 """Provides a driver for reading original NLCD (National Land Cover) database
 provided by USGS.
 
-This driver works with the original untiled file of 16GB provided by
+This driver works with the original untiled files provided by
 USGS, under name:
    nlcd_2011_landcover_2011_edition_2014_10_10.XXX
+   ak_nlcd_2011_landcover_2011_xxx.XXX
 
 Typical usage:
 

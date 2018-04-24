@@ -27,18 +27,18 @@ import zipfile
 import nlcd_origin
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
-data_dir = os.path.join(os.path.dirname(os.path.dirname(cur_dir)), 'data')
+data_dir = os.path.join(cur_dir, '..', '..', 'data')
 
 # ***** Start Configuration *****
 # If needed, modify these directories to fit your local directory structure:
 #  - where the NED terrain tiles are stored
-TERRAIN_DIR = os.path.join(data_dir, 'ned')
+TERRAIN_DIR = os.path.join(data_dir, 'geo', 'ned')
 
-#  - where the original USGS NLCD 16GB file is stored.
-NLCD_ORIG_DIR = os.path.join(data_dir, 'nlcd_orig')
+#  - where the original USGS NLCD file is stored.
+NLCD_ORIG_DIR = os.path.join(data_dir, 'geo', 'orig_nlcd')
 
 #  - where to put the generated tiles.
-OUT_DIR = os.path.join(data_dir, 'nlcd')
+OUT_DIR = os.path.join(data_dir, 'geo', 'nlcd')
 
 # If set to True, will create a jpg file per tile.
 create_jpg = True
