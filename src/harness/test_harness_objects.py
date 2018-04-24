@@ -15,7 +15,6 @@
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
 import logging
-from sas import GetDefaultSasSSLCertPath, GetDefaultSasSSLKeyPath
 from common_types import ResponseCodes
 
 class Grant(object):
@@ -137,8 +136,8 @@ class DomainProxy(object):
       ssl_key: Path to SSL key file.
       testcase: test case object from the caller.
     """
-    self.ssl_cert = ssl_cert if ssl_cert else GetDefaultSasSSLCertPath()
-    self.ssl_key = ssl_key if ssl_key else GetDefaultSasSSLKeyPath()
+    self.ssl_cert = ssl_cert if ssl_cert else self.GetDefaultDomainProxySSLCertPath()
+    self.ssl_key = ssl_key if ssl_key else self.GetDefaultDomainProxySSLKeyPath()
     self.cbsd_objects = {}
     self.testcase = testcase
 
@@ -351,3 +350,9 @@ class DomainProxy(object):
       if cbsd_object.hasAuthorizedGrant():
         cbsd_objects.append(cbsd_object)
     return cbsd_objects
+
+  def GetDefaultDomainProxySSLCertPath(self):
+  return os.path.join('certs', 'client.cert')
+
+  def GetDefaultDomainProxySSLKeyPath(self):
+    return os.path.join('certs', 'client.key')
