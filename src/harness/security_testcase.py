@@ -269,6 +269,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     try:
       self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
     except AssertionError as e:
+      self.SasReset()
       try:
         if is_sas:
           self._sas.GetFullActivityDump(client_cert, client_key)
