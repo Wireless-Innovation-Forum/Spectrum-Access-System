@@ -128,7 +128,7 @@ class SasTestHarnessServer(threading.Thread):
     """
     config_parser = ConfigParser.RawConfigParser()
     config_parser.read(['sas.cfg'])
-    sas_harness_version = config_parser.get('SasConfig', 'Version')
+    sas_harness_version = config_parser.get('SasConfig', 'SasSasVersion')
     return sas_harness_version
 
   def getSasBaseUrl(self):
