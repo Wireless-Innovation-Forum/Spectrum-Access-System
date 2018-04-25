@@ -971,9 +971,9 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # palRecords received from PCR.1 test configuration doesn't have fipsCode and censusYear fields.
     # Extract these values from licenseAreaExtent in license.licenseAreaExtent is formed with
-    # the format zone/census_tract/census/$YEAR/$FIPS that includes fispCode and censusYear.
+    # the format zone/census_tract/census/$YEAR/$FIPS that includes fipsCode and censusYear.
     for pcr_1_pal_record in pcr_1_pal_records:
-      # Extract fispCode and CensusYear from licenseAreaExtent and update in pal_records
+      # Extract fipsCode and CensusYear from licenseAreaExtent and update in pal_records
       pcr_1_pal_record['fipsCode'] = str(pcr_1_pal_record['license'][
           'licenseAreaExtent']).split('/')[-1]
       pcr_1_pal_record['censusYear'] = str(pcr_1_pal_record['license'][
