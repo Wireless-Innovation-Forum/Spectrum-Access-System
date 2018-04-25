@@ -290,12 +290,13 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         grant_frequency_range = grant['operationParam']['operationFrequencyRange']
         for ppa in config['ppaRecords']:
             if index in ppa['ppaClusterList']:
-              frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'], 'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
+              frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'],\
+                'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
                 for pal in config['palRecords'] if pal['palId'] in ppa['ppaRecord']['ppaInfo']['palId']]
               self.assertLessEqual(1, frequency_ranges_of_pals, 'Empty list of Frequency Ranges in the PAL config')
               low_freq = min([freq_range['frequencyRange']['lowFrequency'] for freq_range in frequency_ranges_of_pals])
               high_freq = max([freq_range['frequencyRange']['highFrequency'] for freq_range in frequency_ranges_of_pals])
-              self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
+              self.assertChannelsContainFrequencyRange(frequency_ranges_of_pals, {'lowFrequency': low_freq, 'highFrequency':high_freq })
               # check that the grant in config file is not mixed of PAL and GAA channels
               if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
                  self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq, 'incorrect high frequency of the grant with index {0}, makes it GAA&PAL Mixed Grant'.format(index))
@@ -303,13 +304,19 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                  self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq, 'incorrect low frequency of the grant with index {0}, makes it a GAA&PAL Mixed Grant'.format(index))
       for index, device  in enumerate(config['registrationRequests']):
         # check azimuth in the CBSD config, if the beamwidth is not 0 or 360 and the azimuth is not provided, CBSD registration may be rejected
-        reg_conditional_installation_param = config['conditionalRegistrationData']['installationParam']
+        reg_conditional_device_data_list = [reg for reg in \
+              config['conditionalRegistrationData']['registrationData'] if reg['fccId'] == device['fccId'] and \
+              reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
+        if len(reg_conditional_device_data_list) == 1:
+          reg_conditional_installation_param = reg_conditional_device_data_list[0]['installationParam']
+        else:
+          reg_conditional_installation_param = {}
         registeration_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
-            if 'antennaAzimuth' in device['installationParam'] \
+            if 'installationParam' in device and 'antennaAzimuth' in device['installationParam'] \
             else reg_conditional_installation_param['antennaAzimuth'] \
             if 'antennaAzimuth' in reg_conditional_installation_param else None
         registeration_antenna_beamwidth = device['installationParam']['antennaBeamwidth'] \
-            if 'antennaBeamwidth' in device['installationParam'] \
+            if  'installationParam' in device and 'antennaBeamwidth' in device['installationParam'] \
             else reg_conditional_installation_param['antennaBeamwidth'] \
             if 'antennaBeamwidth' in reg_conditional_installation_param else None
         if registeration_antenna_beamwidth != None and registeration_antenna_beamwidth not in [0, 360]\
