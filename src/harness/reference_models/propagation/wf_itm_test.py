@@ -111,6 +111,18 @@ class TestWfItm(unittest.TestCase):
     self.assertEqual(np.max(np.abs(
         np.array(res_indoor.db_loss) - np.array(res_outdoor.db_loss) - 15)), 0)
 
+  def test_small_height(self):
+    lat1, lng1 = 37.756672, -122.508512
+    lat2, lng2 = 37.754406, -122.388342
+
+    res_bad = wf_itm.CalcItmPropagationLoss(lat1, lng1, 0, lat2, lng2, -1,
+                                            cbsd_indoor=False,
+                                            reliability=0.5, freq_mhz=3625.)
+    res_expected = wf_itm.CalcItmPropagationLoss(lat1, lng1, 1, lat2, lng2, 1,
+                                                 cbsd_indoor=False,
+                                                 reliability=0.5, freq_mhz=3625.)
+    self.assertEqual(res_bad.db_loss, res_expected.db_loss)
+    self.assertEqual(res_bad.incidence_angles, res_expected.incidence_angles)
 
   def test_hor_angles(self):
     # Using the ITM test profile Path2200
