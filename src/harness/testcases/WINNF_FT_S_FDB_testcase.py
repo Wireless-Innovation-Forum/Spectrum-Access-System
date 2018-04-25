@@ -17,11 +17,15 @@ import os
 import sas
 import sas_testcase
 from datetime import datetime
-from time import sleep 
+from time import sleep
 from util import configurable_testcase, writeConfig, loadConfig, addCbsdIdsToRequests
 
-#SAS UUT executes its daily activities at configured time ex- 2, means 2 AM everyday
-SCHEDULED_CPAS_TIMER = 2
+# START_TIME indicates the schedule start time
+CPAS_START_TIME = 2
+
+# END_TIME corresponds to the time "T3 + 300 seconds" as defined in the WinnForum CPAS policy doc.
+CPAS_END_TIME = 4
+
 
 class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
   """SAS federal government database update test cases"""
@@ -141,7 +145,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']), 3)
     for grant_bundle in config['grantRequests']:
-      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))    
+      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G1' grants for all the configured grants
@@ -328,11 +332,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load the configuration file
     config = loadConfig(config_filename)
-   
+
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']),3)
     for grant_bundle in config['grantRequests']:
-      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))    
+      self.assertEqual(len(grant_bundle), len(config['registrationRequests']))
 
     # Step 1: Registration of CBSDs and requesting for grants.
     # Forming of 'G1' grants for all the configured grants
@@ -986,7 +990,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         # TODO
         # Need to add data base configurations
     }
-    writcases/WINNF_FT_S_FDB_testcase.pyeConfig(filename, config)
+    writeConfig(filename, config)
 
   @configurable_testcase(generate_FDB_6_default_config)
   def test_WINNF_FT_S_FDB_6(self, config_filename):
@@ -1233,9 +1237,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g = config['grantRequests']
 
     # Register device(s) 'C' and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
-                                    grant_request_g,
-                                    config['conditionalRegistrationData'])
+    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+                              config['registrationRequests'],
+                              grant_request_g,
+                              config['conditionalRegistrationData'])
 
     # TODO
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
@@ -1245,17 +1250,35 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 5: Wait until after the completion of scheduled CPAS
     current_time = datetime.now()
-    if current_time.hour < SCHEDULED_CPAS_TIMER:
-      scheduled_cpas_time = current_time.replace(day=current_time.day,
-                               hour=SCHEDULED_CPAS_TIMER,
-                               minute=0, second=0, microsecond=0)
-    else :
-      scheduled_cpas_time = current_time.replace(day=current_time.day+1,
-                               hour=SCHEDULED_CPAS_TIMER,
-                               minute=0, second=0, microsecond=0)
-    
-    waiting_time_in_secs = (scheduled_cpas_time - current_time).seconds
+    if current_time.hour < CPAS_START_TIME:
+      scheduled_cpas_start_time = current_time.replace(day=current_time.day,
+                                                       hour=CPAS_START_TIME,
+                                                       minute=0, second=0,
+                                                       microsecond=0)
+    else:
+      scheduled_cpas_start_time = current_time.replace(day=current_time.day + 1,
+                                                       hour=CPAS_START_TIME,
+                                                       minute=0, second=0,
+                                                       microsecond=0)
+    waiting_time_in_secs = (scheduled_cpas_start_time - current_time).seconds
+
+    if CPAS_START_TIME < CPAS_END_TIME:
+      scheduled_cpas_end_time = scheduled_cpas_start_time.replace(
+                                    day=scheduled_cpas_start_time.day,
+                                    hour=CPAS_END_TIME,
+                                    minute=0, second=0, microsecond=0)
+    else:
+      scheduled_cpas_end_time = scheduled_cpas_start_time.replace(
+                                    day=scheduled_cpas_start_time.day + 1,
+                                    hour=CPAS_END_TIME,
+                                    minute=0, second=0, microsecond=0)
+    completion_time_in_secs = (scheduled_cpas_end_time - scheduled_cpas_start_time).seconds
+
+    # Wait until CPAS is scheduled to start
     sleep(waiting_time_in_secs)
+
+    # Wait until CPAS completes
+    sleep(completion_time_in_secs)
 
     # Step 6: Sending Heartbeat Request
     # Construct heartbeat message
@@ -1271,5 +1294,3 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     for resp in heartbeat_responses:
       self.assertEqual(resp['response']['responseCode'], 500)
-
-    del heartbeat_requests, heartbeat_responses
