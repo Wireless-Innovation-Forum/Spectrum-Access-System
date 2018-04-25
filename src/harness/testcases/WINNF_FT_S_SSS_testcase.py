@@ -366,7 +366,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], SAS_CERT, SAS_KEY)
+    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], config['sasCert'], config['sasKey'])
     trigger_succeed = False
     # Initiate Full Activity Dump
     try:
