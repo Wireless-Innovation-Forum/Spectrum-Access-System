@@ -255,6 +255,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
+        'url': 'localhost',
         'port': 9003,
         'serverCert': os.path.join('certs', 'server.cert'),
         'serverKey': os.path.join('certs', 'server.key'),
@@ -376,7 +377,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Notify the SAS UUT about the SAS Test Harness
       for sas_th in config['sasTestHarnessConfigs']:
         certificate_hash = getCertificateFingerprint(sas_th['serverCert'])
-        self._sas_admin.InjectPeerSas({'certificateHash': sas_th,
+        self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                     'url': sas_th['url']})
       sas_th_config = config['sasTestHarnessConfigs'][0]
       response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
