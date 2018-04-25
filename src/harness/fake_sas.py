@@ -259,9 +259,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def InjectPalDatabaseRecord(self, request):
     pass
 
-  def InjectCpiUser(self, request):
-    pass
-
   def InjectFss(self, request):
     pass
 
@@ -300,10 +297,10 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetPpaCreationStatus(self):
     return {'completed': True, 'withError': False}
 
+
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
-
-  def TriggerLoadDpas(self):  
+  def TriggerLoadDpas(self):
     pass
 
   def TriggerBulkDpaActivation(self, request):
@@ -313,9 +310,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerDpaDeactivation(self, request):
-    pass
-
-  def InjectDatabaseUrl(self, request):
     pass
 
 
@@ -386,9 +380,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
                        '/admin/injectdata/exclusion_zone',
-                       '/admin/injectdata/database_url',
-                       '/admin/trigger/create_full_activity_dump',
-                       '/admin/injectdata/peer_sas'):
+                       '/admin/trigger/create_full_activity_dump'):
       response = ''
     else:
       self.send_response(404)
