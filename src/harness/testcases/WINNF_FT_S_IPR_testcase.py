@@ -251,8 +251,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['longitude'] = -88.09350
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 30.71570
-    device_b['installationParam']['longitude'] = -88.09350
+    device_b['installationParam']['latitude'] = 30.71571
+    device_b['installationParam']['longitude'] = -88.09351
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
@@ -443,8 +443,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       time.sleep(240)
       for domain_proxy in domain_proxies:
         domain_proxy.heartbeatForAllActiveGrants()
-      # TODO: Update with correct function name/import when it is added.
-      grant_info = getGrantsFromDomainProxies(domain_proxies)
+      grant_info = data.getAuthorizedGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
         self.assertTrue(dpa.CheckInterference(
