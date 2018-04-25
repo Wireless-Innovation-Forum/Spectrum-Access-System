@@ -782,8 +782,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'registrationRequests': [device_a],
         'grantRequests': [grant_a],
         'conditionalRegistrationData': [conditionals_a],
-        'sslCert': 'domain_proxy.cert',
-        'sslKey': 'domain_proxy.key'
+        'sslCert': os.path.join('certs', 'domain_proxy.cert'),
+        'sslKey': os.path.join('certs', 'domain_proxy.key')
     }
 
     config = {
