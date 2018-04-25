@@ -293,8 +293,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'], 'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
                 for pal in config['palRecords'] if pal['palId'] in ppa['ppaRecord']['ppaInfo']['palId']]
               self.assertLessEqual(1, frequency_ranges_of_pals, 'Empty list of Frequency Ranges in the PAL config')
-              low_freq = min([freq_range['lowFrequency'] for freq_range in frequency_ranges_of_pals])
-              high_freq = max([freq_range['highFrequency'] for freq_range in frequency_ranges_of_pals])
+              low_freq = min([freq_range['frequencyRange']['lowFrequency'] for freq_range in frequency_ranges_of_pals])
+              high_freq = max([freq_range['frequencyRange']['highFrequency'] for freq_range in frequency_ranges_of_pals])
               self.assertChannelsContainFrequencyRange( {'lowFrequency': low_freq, 'highFrequency':high_freq }, frequency_ranges_of_pals)
               # check that the grant in config file is not mixed of PAL and GAA channels
               if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
@@ -382,7 +382,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       esc_sensor_dump_data = []    
       # step 8 and check   
       # download dump files and fill corresponding arrays
-      hash_of_dump_file = []
+      hash_of_dump_file = {}
       for dump_file in response['files']:
           self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                               dump_file)
@@ -398,7 +398,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
               self.assertEqual('coordination', dump_file['recordType'])
-          hash_of_dump_file.append({'url':dump_file['url'], 'hashValue' : hashlib.sha1(downloaded_file).hexdigest()} if dump_file is not None else None)
+          hash_of_dump_file[dump_file['url']] =  hashlib.sha1(downloaded_file).hexdigest() if dump_file is not None else None
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
@@ -455,8 +455,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th['serverCert'], sas_th['serverKey'])
-              hash_of_same_url = [hash['hashValue'] for hash in hash_of_dump_file if hash['url'] == dump_file['url']]
-              self.assertEqual(hash_of_same_url[0], hashlib.sha1(downloaded_file).hexdigest())
+              self.assertEqual(hash_of_dump_file[dump_file['url']], hashlib.sha1(downloaded_file).hexdigest())
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
