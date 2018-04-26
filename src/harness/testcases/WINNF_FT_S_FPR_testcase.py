@@ -12,11 +12,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+　
+import logging
 import json
 import os
 import sas
 import sas_testcase
-import logging
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
+    generatePpaRecords
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
  addCbsdIdsToRequests
 
@@ -35,43 +38,56 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         # Load FSS record
     fss_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
-    fss_record_1['ttc'] = 'false'
+    fss_record_1['ttc'] = False
     
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
         # Moving device_1 to a location within 40 KMs of FSS zone (9.596km)
-    device_1['installationParam']['latitude'] =  fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.08  
-    device_1['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.08  
+    device_1['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.08  
+    device_1['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.08  
    
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
-    device_2['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1   
-    device_2['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1
+    device_2['installationParam']['latitude'] = \
+       fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1   
+    device_2['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
         # Moving device_3 to a location outside 40 KMs of FSS zone(60.861km)
-    device_3['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5 
-    device_3['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5 
+    device_3['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5 
+    device_3['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5 
  
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
-    device_4['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude']  +  1.2 
-    device_4['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2  
+    device_4['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude']  +  1.2 
+    
+    device_4['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2  
     device_5 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_e.json')))
         # Moving device_5 to a location within 40 KMs of FSS zone (5.425km)
-    device_5['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.02
-    device_5['installationParam']['longitude'] =-fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.02
+    device_5['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.02
+    device_5['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.02
     
     device_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_f.json')))
         # Moving device_6 to a location outside 40 KMs of FSS zone (44.504km)
-    device_6['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] +0.3
-    device_6['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.3
+    device_6['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] +0.3
+    device_6['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.3
     
     # Load Grant requests
     grant_request_1 = json.load(
@@ -120,7 +136,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'measCapability': device_4['measCapability']
     }
     
-    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_4]}
+    conditionals =  [conditionals_device_2, conditionals_device_4]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -132,7 +148,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     del device_4['measCapability']
   
 
-
+　
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_3,device_4],
@@ -154,38 +170,42 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_g"
     sas_test_harness_device_1['userId'] = "test_user_id_g"
-    sas_test_harness_device_1['installationParam']['latitude'] =  fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.2
-    sas_test_harness_device_1['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
+    sas_test_harness_device_1['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.2
+    sas_test_harness_device_1['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
 
     sas_test_harness_device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
     sas_test_harness_device_2['userId'] = "test_user_id_h"
-    sas_test_harness_device_2['installationParam']['latitude'] =  fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
-    sas_test_harness_device_2['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] - 1.5 
+    sas_test_harness_device_2['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
+    sas_test_harness_device_2['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] - 1.5 
 
-
+　
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1],[[grant_request_1]])
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-
+　
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
 
@@ -216,10 +236,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': os.path.join('certs', 'dp_1_client.cert'),
-                                'key': os.path.join('certs', 'dp_1_client.key')},
-                               {'cert': os.path.join('certs', 'dp_2_client.cert'),
-                                'key': os.path.join('certs', 'dp_2_client.key')}],
+        'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
+                                'key': os.path.join('certs', 'domain_proxy.key')},
+                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
         'deltaIap': 2
     }
     writeConfig(filename, config)
@@ -241,21 +261,25 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       # Load FSS record
     fss_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
-    fss_record_1['ttc'] = 'false'
+    fss_record_1['ttc'] = False
     fss_record_1['record']['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']  = 3700000000
     
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
         # Moving device_1 to a location within 40 KMs of FSS zone (9.596km)
-    device_1['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 0.02
-    device_1['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +0.02 
+    device_1['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 0.02
+    device_1['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +0.02 
    
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
-    device_2['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1  
-    device_2['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +1
+    device_2['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1  
+    device_2['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +1
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
@@ -266,8 +290,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
-    device_4['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1.2  
-    device_4['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2 
+    device_4['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1.2  
+    device_4['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2 
 
      
     # Load Grant requests
@@ -288,7 +314,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000  
   
-    # device_b device_d and device_h are of Category B
+    # device_b and device_d are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B')
     conditionals_device_2 = {
@@ -309,7 +335,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'measCapability': device_4['measCapability']
     }
     
-    conditionals = {'registrationData': [conditionals_device_2, conditionals_device_4]}
+    conditionals = [conditionals_device_2, conditionals_device_4]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -343,37 +369,41 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_e"
     sas_test_harness_device_1['userId'] = "test_user_id_e"
-    sas_test_harness_device_1['installationParam']['latitude'] =  fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.2
-    sas_test_harness_device_1['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
+    sas_test_harness_device_1['installationParam']['latitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.2
+    sas_test_harness_device_1['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
 
     sas_test_harness_device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
-    sas_test_harness_device_2['installationParam']['latitude'] =  fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
-    sas_test_harness_device_2['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude']  -1.5
+    sas_test_harness_device_2['installationParam']['latitude'] =  \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
+    sas_test_harness_device_2['installationParam']['longitude'] = \
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude']  -1.5
 
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1],[[grant_request_1]])
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-
+　
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
 
@@ -404,10 +434,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'conditionalRegistrationData': conditionals,
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': os.path.join('certs', 'dp_1_client.cert'),
-                                'key': os.path.join('certs', 'dp_1_client.key')},
-                               {'cert': os.path.join('certs', 'dp_2_client.cert'),
-                                'key': os.path.join('certs', 'dp_2_client.key')}],
+        'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
+                                'key': os.path.join('certs', 'domain_proxy.key')},
+                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
         'deltaIap': 2
     }
     writeConfig(filename, config)
@@ -514,31 +544,30 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
         
-    # Light checking of the config file
+    #Light checking of the config file
     self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
-
+ 
     # Load the FSS
     self._sas_admin.InjectFss(config['fssRecord'])
-
+ 
     # Load the GWBL
     self._sas_admin.InjectWisp(config['gwblRecord'])
-
+ 
     # Trigger CPAS activity
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
-
+ 
     # Register N > 0 CBSDs
     cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])
-
+ 
     # Add cbsdIds to grants
     grant_request = config['grantRequests']
     addCbsdIdsToRequests(cbsd_ids, grant_request)
-
+ 
     # Send grant request and get response
     request = {'grantRequest': grant_request}
     response = self._sas.Grant(request)['grantResponse']
-
+ 
     # Check grant response
     self.assertEqual(len(response), len(cbsd_ids))
     for response_num in response:
       self.assertEqual(response_num['response']['responseCode'], 400)
-
