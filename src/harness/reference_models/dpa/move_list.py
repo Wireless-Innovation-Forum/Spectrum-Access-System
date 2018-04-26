@@ -106,23 +106,11 @@ def findDpaType(low_freq, high_freq):
   raise ValueError('Invalid DPA frequency range')
 
 
-# TODO(sbdt): move the Haat caching outside and with multiprocess support
 # A Cache for storing the height-above-average-terrain computed for neighborhood
 # determination.
-HaatCache = {}
+@cache.LruCache(1e5)
 def GetHaat(lat_cbsd, lon_cbsd, height_cbsd):
-
-    global HaatCache
-
-    # Simple technique (non-LRU) to prevent the cache size from increasing forever
-    if len(HaatCache) > 1e7:
-       HaatCache = {}  # Simply restart from scratch
-
-    key = (lat_cbsd, lon_cbsd, height_cbsd)
-    if key not in HaatCache:
-       HaatCache[key] = wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd)
-
-    return HaatCache[key]
+    return wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd)
 
 
 def findGrantsInsideNeighborhood(grants, constraint,
