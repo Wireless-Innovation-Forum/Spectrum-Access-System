@@ -161,9 +161,15 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
         # Calculate Roll of Attenuation for ESC Sensor Protection entity
         if protection_ent_type is interf.ProtectedEntityType.ESC:
           if channel[0] >= 3650.e6:
-            center_freq = (channel[0] + channel[1]) / 2
-            iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) + 
-              (2.5 + ((center_freq - interf.ESC_CH21_CF_HZ) / MHZ))))
+            offset = ((channel[0] - 3650.e6) / 5.e6) * 5
+            lowfreq = channel[0]
+            roll_of_attenuation = 0
+            while lowfreq < channel[1]:
+              roll_of_attenuation += interf.dbToLinear(-offset - 0.5)
+              lowfreq += MHZ
+              offset += 1
+            roll_of_attenuation = 10 * np.log10(roll_of_attenuation / 5) - interf.IN_BAND_INSERTION_LOSS
+            iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) - roll_of_attenuation))
           else:
             iap_threshold_channel.append(threshold)
         else:

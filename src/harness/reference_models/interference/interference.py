@@ -453,9 +453,16 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                cbsd_grant.antenna_azimuth, cbsd_grant.antenna_beamwidth,
                cbsd_grant.antenna_gain)
 
+  # Get the exact overlap of the grant over the GWPZ area channels
+  if constraint.entity_type == ProtectedEntityType.GWPZ_AREA:
+    grant_overlap_bandwidth = min(cbsd_grant.high_frequency, constraint.high_frequency) \
+        - max(cbsd_grant.low_frequency, constraint.low_frequency)
+  else:
+    grant_overlap_bandwidth = RBW_HZ
+
   # Get the interference value for area entity
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
-                   ant_gain)
+                   ant_gain, grant_overlap_bandwidth)
 
   interference = eirp - db_loss
   return interference
@@ -503,7 +510,7 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   # Compute the interference value for ESC entity
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,effective_ant_gain)
 
-  interference = eirp - db_loss - IN_BAND_INSERTION_LOSS
+  interference = eirp - db_loss
   return interference
 
 
