@@ -102,7 +102,7 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
             sum = sum + pfl[i];
         interValues->h_avg__meter[0] = sum / (i_end - i_start + 1);
 
-        i_start = np + 2 - int(15.0 / xi)
+        i_start = np + 2 - int(15.0 / xi);
         // ******* WinnForum extension *******
         if (_WinnForum_Extensions) {
           i_end = np + 2 - int(ceil(3.0 / xi));
