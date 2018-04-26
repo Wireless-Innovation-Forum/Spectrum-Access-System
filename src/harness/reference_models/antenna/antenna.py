@@ -115,7 +115,8 @@ def GetStandardAntennaGains(hor_dirs, ant_azimuth=None, ant_beamwidth=None, ant_
 
 
 def GetRadarNormalizedAntennaGains(hor_dirs,
-                                   radar_azimuth):
+                                   radar_azimuth,
+                                   radar_beamwidth=3):
   """Computes the DPA radar normalized antenna gain.
 
   See R2-SGN-24.
@@ -129,12 +130,15 @@ def GetRadarNormalizedAntennaGains(hor_dirs,
     hor_dirs:       Ray directions in horizontal plane (degrees).
                     Either a scalar or an iterable.
     radar_azimuth:  The radar antenna azimuth (degrees).
+    radar_beamwidth: The radar antenna beamwidth (degrees).
 
   Returns:
     The normalized antenna gains (in dB).
     Either a scalar if hor_dirs is scalar or an ndarray otherwise.
 
   """
+  if radar_beamwidth == 360:
+    return 0.
   is_scalar = np.isscalar(hor_dirs)
   hor_dirs = np.atleast_1d(hor_dirs)
 
@@ -143,7 +147,7 @@ def GetRadarNormalizedAntennaGains(hor_dirs,
   bore_angle[bore_angle < -180] += 360
   bore_angle = np.abs(bore_angle)
   gains = -25 * np.ones(len(bore_angle))
-  gains[bore_angle < 1.5] = 0
+  gains[bore_angle < radar_beamwidth / 2.] = 0
 
   if is_scalar: return gains[0]
   return gains

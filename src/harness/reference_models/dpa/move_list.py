@@ -389,10 +389,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     for azi in azimuths:
 
         # Calculate interference contributions at output of receiver antenna.
-        if beamwidth == 360.0:
-            dpa_gains = 0
-        else:
-            dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi)
+        dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi, beamwidth)
         IG = I_mW * 10**(dpa_gains/10.0)
 
         # Compute the protection percentile of the aggregate interference, and remove
@@ -555,10 +552,7 @@ def calcAggregatedInterference(protection_point, low_freq, high_freq,
 
   agg_interf = np.zeros(len(azimuths))
   for k, azi in enumerate(azimuths):
-    if beamwidth == 360.0:
-      dpa_gains = 0
-    else:
-      dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi)
+    dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi, beamwidth)
     dpa_interf = interf_matrix * 10**(dpa_gains / 10.0)
     agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
                                   PROTECTION_PERCENTILE, interpolation='lower')
