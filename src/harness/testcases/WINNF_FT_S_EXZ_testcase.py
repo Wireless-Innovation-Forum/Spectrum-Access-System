@@ -63,7 +63,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N2_2['installationParam']['latitude'] = 42.42548
     device_N2_2['installationParam']['longitude'] = -99.8767
 
-    # Forming N2 grant request with exz_record_2 overlapping frequency 
+    # Forming N2 grant request with exz_record_2 overlapping frequency
     grant_N2_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_N2_1['operationParam']['operationFrequencyRange'][
@@ -77,23 +77,23 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     grant_N2_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3670000000
 
-    # Load N3_1 device located within exclusion zone exz_record_1 
+    # Load N3_1 device located within exclusion zone exz_record_1
     device_N3_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_N3_1['installationParam']['latitude'] = 39.66068
     device_N3_1['installationParam']['longitude'] = -96.63024
-    device_N3_1['fccId'] = "test_fcc_id_aa" 
-    device_N3_1['cbsdSerialNumber'] = "test_serial_number_aa" 
+    device_N3_1['fccId'] = "test_fcc_id_aa"
+    device_N3_1['cbsdSerialNumber'] = "test_serial_number_aa"
 
-    # Forming N3_1 grant request with exz_record_1 overlapping frequency 
+    # Forming N3_1 grant request with exz_record_1 overlapping frequency
     grant_N3_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3560000000
-   
-    # Load N3_2 device located within exclusion zone exz_record_2 
+
+    # Load N3_2 device located within exclusion zone exz_record_2
     device_N3_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     device_N3_2['installationParam']['latitude'] = 42.65012
@@ -200,10 +200,10 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequestsN2' : devices_N2,
         'registrationRequestsN3' : devices_N3,
-        'registrationRequestsN4' : devices_N4, 
+        'registrationRequestsN4' : devices_N4,
         'exclusionZoneRecords' : [exz_record_1, exz_record_2],
         'grantRequestsN2' : grants_N2,
-        'grantRequestsN3' : grants_N3, 
+        'grantRequestsN3' : grants_N3,
         'grantRequestsN4' : grants_N4,
         'conditionalRegistrationData': conditionals
       }
@@ -213,10 +213,10 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_EXZ_1(self,config_filename):
     """Injected Exclusion Zones
 
-    The response should be SUCCESS for CBSDs located outside 50meters of all 
+    The response should be SUCCESS for CBSDs located outside 50meters of all
     Exclusion Zones.
-    The responseCode = 400 for CBSDs located within 50meters of all Exclusion Zones 
-    or inside Exclusion Zones. 
+    The responseCode = 400 for CBSDs located within 50meters of all Exclusion Zones
+    or inside Exclusion Zones.
     """
     config = loadConfig(config_filename)
 
@@ -228,7 +228,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     # Inject EXZ database records
     for exclusion_zone in config['exclusionZoneRecords']:
-      self._sas_admin.InjectExclusionZone(exclusion_zone)   
+      self._sas_admin.InjectExclusionZone(exclusion_zone)
 
     # Pre-load conditional registration data for N2,N3 and N4 CBSDs.
     if ('conditionalRegistrationData' in config) and (config['conditionalRegistrationData']):
@@ -251,15 +251,10 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     for index,grants in enumerate(config['grantRequestsN2']):
       grants['cbsdId'] = cbsd_ids_N2[index]
       grant_request_N2.append(grants)
- 
+
     request_N2 = {'grantRequest': grant_request_N2}
     response_N2 = self._sas.Grant(request_N2)['grantResponse']
     self.assertEqual(len(response_N2), len(grant_request_N2))
-
-    for response_num, response in enumerate(response_N2):
-      self.assertEqual(response['cbsdId'], request_N2['grantRequest'][response_num]['cbsdId'])
-      self.assertTrue('grantId' in response)
-      self.assertEqual(response['response']['responseCode'], 0)
 
 
     # Sending grant requests for N3 and validating the response code is 400
@@ -460,7 +455,7 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     del device_N3_2['airInterface']
     del device_N3_2['installationParam']
     del device_N3_2['measCapability']
-  
+
     # Create the actual config.
     grants_N1 = [grant_N1_1, grant_N1_2, grant_N1_3]
     grants_N2 = [grant_N2_1, grant_N2_2]
@@ -537,11 +532,6 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     response_N2 = self._sas.Grant(request_N2)['grantResponse']
     self.assertEqual(len(response_N2), len(grant_request_N2))
 
-    for response_num, response in enumerate(response_N2):
-      self.assertEqual(response['cbsdId'], request_N2['grantRequest'][response_num]['cbsdId'])
-      self.assertFalse('grantId' in response)
-      self.assertEqual(response['response']['responseCode'], 400)
-
     # Generating grant requests for N3 and validating responses
     grant_request_N3 = config['grantRequestsN3']
     addCbsdIdsToRequests(cbsd_ids_N3, grant_request_N3)
@@ -554,4 +544,3 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response['cbsdId'], request_N3['grantRequest'][response_num]['cbsdId'])
       self.assertFalse('grantId' in response)
       self.assertEqual(response['response']['responseCode'], 400)
-
