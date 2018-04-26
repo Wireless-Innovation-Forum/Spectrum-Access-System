@@ -21,7 +21,7 @@ from util import configurable_testcase, writeConfig, loadConfig,\
     convertRequestToRequestWithCpiSignature, makePalRecordsConsistent
 
 
-class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
+class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -44,6 +44,10 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
     pal_record_a_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+
+    # FIPS codes of adjacent census tracts
+    pal_record_a_0['fipsCode'] = 20063955100
+    pal_record_a_1['fipsCode'] = 20063955200
 
     pal_record_b_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
@@ -133,39 +137,39 @@ class WinnfDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for WDB.2"""
 
     # Load category B devices info
-    device_b_0 = json.load(
+    device_b = json.load(
          open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b_1 = json.load(
-         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_d = json.load(
+         open(os.path.join('testcases', 'testdata', 'device_d.json')))
 
-    # Device_b_0 and Device_b_1 are of Category B
-    self.assertEqual(device_b_0['cbsdCategory'], 'B')
-    self.assertEqual(device_b_1['cbsdCategory'], 'B')
+    # Device_b and Device_d are of Category B
+    self.assertEqual(device_b['cbsdCategory'], 'B')
+    self.assertEqual(device_d['cbsdCategory'], 'B')
 
     # Load CPI users info
-    cpi_id_b_0 = 'professional_installer_id_1'
-    cpi_name_b_0 = 'b1_name'
-    cpi_id_b_1 = 'professional_installer_id_2'
-    cpi_name_b_1 = 'b2_name'
+    cpi_id_b = 'professional_installer_id_1'
+    cpi_name_b = 'b_name'
+    cpi_id_d = 'professional_installer_id_2'
+    cpi_name_d = 'd_name'
 
     # Read private keys for the CPI users
     with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
-      cpi_private_key_b_0 = file_handle.read()
+      cpi_private_key_b = file_handle.read()
 
     with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
-      cpi_private_key_b_1 = file_handle.read()
+      cpi_private_key_d = file_handle.read()
 
     # Convert CBSDs registration requests to embed cpiSignatureData
-    convertRequestToRequestWithCpiSignature(cpi_private_key_b_0, cpi_id_b_0,
-                                            cpi_name_b_0, device_b_0)
-    convertRequestToRequestWithCpiSignature(cpi_private_key_b_1, cpi_id_b_1,
-                                            cpi_name_b_1, device_b_1)
+    convertRequestToRequestWithCpiSignature(cpi_private_key_b, cpi_id_b,
+                                            cpi_name_b, device_b)
+    convertRequestToRequestWithCpiSignature(cpi_private_key_d, cpi_id_d,
+                                            cpi_name_d, device_d)
 
     # Create the actual config.
     config = {
-      'registrationRequests': [device_b_0, device_b_1]
+      'registrationRequests': [device_b, device_d]
       # TODO
       # Need to add data base configurations.
     }
