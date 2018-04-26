@@ -451,6 +451,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
           + the list of indices of grants in the neighborhood list.
     """
     dpa_type = findDpaType(low_freq, high_freq)
+    if not beamwidth: beamwidth = 360
 
     # Assign values to the protection constraint
     constraint = data.ProtectionConstraint(latitude=protection_point.latitude,
