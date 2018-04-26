@@ -101,6 +101,8 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
         for (int i = i_start; i <= i_end; i++)
             sum = sum + pfl[i];
         interValues->h_avg__meter[0] = sum / (i_end - i_start + 1);
+
+        i_start = np + 2 - int(15.0 / xi)
         // ******* WinnForum extension *******
         if (_WinnForum_Extensions) {
           i_end = np + 2 - int(ceil(3.0 / xi));
@@ -108,8 +110,6 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
           i_end = np + 2 - int(3.0 / xi);
         }
         // ******* End WinnForum extension *******
-        i_start = np + 2 - int(15.0 / xi);
-        i_end = np + 2 - int(3.0 / xi);
         sum = 0.0;
         for (int i = i_start; i <= i_end; i++)
             sum = sum + pfl[i];
