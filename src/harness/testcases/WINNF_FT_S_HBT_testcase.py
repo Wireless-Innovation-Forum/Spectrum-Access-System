@@ -259,8 +259,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       grant_ids.append(resp['grantId'])
     del request, response
 
-    # Save sas version
-    version = self._sas.cbsd_sas_version
     # Use higher than supported version.
     self._sas.cbsd_sas_version = 'v5.0'
 
@@ -286,9 +284,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     except HTTPError as e:
       # Allow HTTP status 404.
       self.assertEqual(e.error_code, 404)
-    finally:
-      # Put sas version back
-      self._sas.cbsd_sas_version = version
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_4(self):

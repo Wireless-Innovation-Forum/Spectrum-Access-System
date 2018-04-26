@@ -901,8 +901,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     The response should be FAILURE 100.
     """
 
-    # Save sas version
-    version = self._sas.cbsd_sas_version
     # Use higher than supported version
     self._sas.cbsd_sas_version = 'v5.0'
 
@@ -927,9 +925,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     except HTTPError as e:
       # Allow HTTP status 404
       self.assertEqual(e.error_code, 404)
-    finally:
-      # Put sas version back
-      self._sas.cbsd_sas_version = version
 
   def generate_REG_11_default_config(self, filename):
     """Generates the WinnForum configuration for REG.11."""
@@ -1153,8 +1148,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     # Very light checking of the config file.
     self.assertEqual(len(config['fccIds']), len(config['userIds']))
     self.assertEqual(len(config['fccIds']), len(config['registrationRequests']))
-    # Save sas version
-    version = self._sas.cbsd_sas_version
     # Use the (higher) SAS version set in the config file.
     self._sas.cbsd_sas_version  = config['sasVersion']
 
@@ -1182,6 +1175,3 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     except HTTPError as e:
       # Allow HTTP status 404
       self.assertEqual(e.error_code, 404)
-    finally:
-      # Put sas version back
-      self._sas.cbsd_sas_version = version
