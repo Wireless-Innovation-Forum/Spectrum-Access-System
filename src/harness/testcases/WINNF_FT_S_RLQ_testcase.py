@@ -365,9 +365,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Save sas version
-    version = self._sas._sas_version
+    version = self._sas.cbsd_sas_version
     # Use higher than supported version
-    self._sas._sas_version = 'v5.0'
+    self._sas.cbsd_sas_version = 'v5.0'
 
     # Relinquish the grants
     request = {'relinquishmentRequest': [
@@ -390,7 +390,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self.assertEqual(e.error_code, 404)
     finally:
       # Put sas version back
-      self._sas._sas_version = version
+      self._sas.cbsd_sas_version = version
 
   @winnforum_testcase
   def test_WINNF_FT_S_RLQ_5(self):
