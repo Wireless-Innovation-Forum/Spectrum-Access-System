@@ -247,16 +247,16 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           'sasTestHarnessName': 'SAS-TH-2',
           'hostName': 'localhost',
           'port': 9002,
-          'serverCert': "certs/sas.cert",
-          'serverKey': "certs/sas.key",
+          'serverCert': os.path.join('certs', 'sas.cert'),
+          'serverKey': os.path.join('certs', 'sas.key'),
           'caCert': "certs/ca.cert"
       }
       sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9003,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert')
       }
       config = {
