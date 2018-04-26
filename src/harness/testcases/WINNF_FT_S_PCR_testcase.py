@@ -19,6 +19,7 @@ import os
 import signal
 import time
 import sas_testcase
+import uuid
 from shapely import ops
 from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
@@ -960,37 +961,19 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Set the pal_record used in PCR.1 tests.
     pcr_1_pal_records = pcr_1_test_config['palRecords']
 
-    # Use the same frequency PCR 1 test used.
-    pcr_1_pal_low_frequency = pcr_1_pal_records[0]['channelAssignment'][
-        'primaryAssignment']['lowFrequency']
-    pcr_1_pal_high_frequency = pcr_1_pal_records[0]['channelAssignment'][
-        'primaryAssignment']['highFrequency']
+    #updating the PPA record based on the PAL records
+    overlapping_ppa_record ['ppaInfo']['palId'] = [pal['palId'] for pal in pcr_1_pal_records]
+    overlapping_ppa_record ['id'] = 'zone/ppa/%s/%s/%s' % (overlapping_ppa_record['creator'],
+                                                           overlapping_ppa_record['ppaInfo']['palId'][0],
+                                                           uuid.uuid4().hex)
 
-    # Set the user_id used in registration request.
-    pcr_1_user_id = pcr_1_test_config['registrationRequests'][0]['userId']
-
-    # palRecords received from PCR.1 test configuration doesn't have fipsCode and censusYear fields.
-    # Extract these values from licenseAreaExtent in license.licenseAreaExtent is formed with
-    # the format zone/census_tract/census/$YEAR/$FIPS that includes fipsCode and censusYear.
-    for pcr_1_pal_record in pcr_1_pal_records:
-      # Extract fipsCode and CensusYear from licenseAreaExtent and update in pal_records
-      pcr_1_pal_record['fipsCode'] = str(pcr_1_pal_record['license'][
-          'licenseAreaExtent']).split('/')[-1]
-      pcr_1_pal_record['censusYear'] = str(pcr_1_pal_record['license'][
-          'licenseAreaExtent']).split('/')[-2]
-
-    # Make the PPA record consistent and correct pal_id is updated.
-    overlapping_ppa_record_updated, pal_record = makePpaAndPalRecordsConsistent(
-        overlapping_ppa_record,
-        pcr_1_pal_records,
-        pcr_1_pal_low_frequency,
-        pcr_1_pal_high_frequency,
-        pcr_1_user_id)
+    overlapping_ppa_record ['ppaInfo']['ppaBeginDate'] = pcr_1_pal_records[0]['license']['licenseDate']
+    overlapping_ppa_record ['ppaInfo']['ppaExpirationDate'] = pcr_1_pal_records[0]['license']['licenseExpiration']
 
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'overlapPpaRecord': overlapping_ppa_record_updated
+        'overlapPpaRecord': overlapping_ppa_record
     }
     writeConfig(filename, config)
 
