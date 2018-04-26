@@ -150,7 +150,8 @@ def findGrantsInsideNeighborhood(grants, constraint,
     grants_inside = []
     idxs_inside = []
     # For co-channel offshore/inland DPAs, make sure exclusion zone is a polygon
-    if dpa_type is not DpaType.OUT_OF_BAND:
+    polygon_ex_zone = None
+    if dpa_type is not DpaType.OUT_OF_BAND and exclusion_zone is not None:
         if isinstance(exclusion_zone, SPolygon) or isinstance(exclusion_zone, MPolygon):
             polygon_ex_zone = exclusion_zone
         else:
@@ -182,7 +183,8 @@ def findGrantsInsideNeighborhood(grants, constraint,
         if grant.cbsd_category == 'A':
             if dpa_type is not DpaType.OUT_OF_BAND:
                 point_cbsd = SPoint(lon_cbsd, lat_cbsd)
-                if dist_km <= CAT_A_NBRHD_DIST and polygon_ex_zone.contains(point_cbsd):
+                if (dist_km <= CAT_A_NBRHD_DIST and
+                    (polygon_ex_zone is None or polygon_ex_zone.contains(point_cbsd))):
                     cbsd_in_nbrhd = True
         elif grant.cbsd_category == 'B':
             if dpa_type is not DpaType.OUT_OF_BAND:

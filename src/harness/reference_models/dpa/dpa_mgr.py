@@ -102,7 +102,7 @@ class Dpa(object):
     status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=1)
   """
   num_iteration = 2000
-  protection_zone = zones.GetCoastalProtectionZone()
+  protection_zone = None
 
   @classmethod
   def Configure(cls,
@@ -117,6 +117,12 @@ class Dpa(object):
     cls.num_iteration = num_iteration
     if protection_zone is not None:
       cls.protection_zone = protection_zone
+
+  @classmethod
+  def ConfigureDefaultProtectionZone(cls):
+    """Configure to use the default protection zone.
+    """
+    cls.protection_zone = zones.GetCoastalProtectionZone()
 
   def __init__(self, protected_points,
                threshold=DPA_DEFAULT_THRESHOLD_PER_10MHZ,
