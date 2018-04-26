@@ -361,11 +361,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
    
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
-      cbsd_as_dp_list = []
 
       # Execute steps for single iteration
       self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects, 
-                                  domain_proxy_objects, cbsd_as_dp_list)
+                                  domain_proxy_objects)
 
     # Stopping Test harness servers
     for test_harness in sas_test_harness_objects:
@@ -390,7 +389,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     pass
 
   def executeSingleMCPIteration(self, test_type, iteration_content, sas_test_harness_objects,
-                                                          domain_proxy_objects, cbsd_as_dp_list):
+                                                          domain_proxy_objects):
     """Executes the steps from Step1 to Step22 for MCP and XPR testcases
 
     Args:
@@ -398,7 +397,6 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
        iteration_content: A dictionary with multiple key-value pairs that contain iteration data
        sas_test_harness_objects: SAS Test Harnesses objects
        domain_proxy_objects: Domain proxy objects
-       cbsd_as_dp_list: list of Domain Proxy objects, which act like individual CBSD
     """
     fad_test_harnesses_objects = []
     cbsds_with_domain_proxies = []
@@ -422,7 +420,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     if iteration_content['sasTestHarnessData']:
       fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                 self._sas_admin)
+                                                self._sas_admin)
 
       # Pull FAD from SAS Test Harnesses and fad objects are created for each SAS Test Harnesses
       for test_harness in sas_test_harness_objects:
@@ -441,6 +439,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
     # Use DP objects to get CBSD registered
+    cbsds=[] #contain all CBSDs with authorized grants
     for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
                                                                 iteration_content['cbsdRequestsWithDomainProxies']):
       registration_requests = cbsdRequestsWithDomainProxy['registrationRequests']
@@ -449,17 +448,16 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       #  Initiation of Registration and Grant procedures for the configured records
       domain_proxy_object.registerCbsdsAndRequestGrants(registration_requests, grant_requests)
 
-      # Step 11 : Send heartbeat request
-      domain_proxy_object.heartbeatForAllActiveGrants()
-
-      # Get the list of CBSDs
-      cbsds_with_domain_proxies.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
-
     # Register individual Cbsds(Domain Proxy with single CBSD)
     for cbsd_record in iteration_content['cbsdRecords']:
       proxy = test_harness_objects.DomainProxy(cbsd_record['clientCert'], cbsd_record['clientKey'], self)
       proxy.registerCbsdsAndRequestGrants([cbsd_record['registrationRequest']], [cbsd_record['grantRequest']])
-      cbsd_as_dp_list.append(proxy)
+      domain_proxy_objects.append(proxy)
+
+    # Step 11 : Send heartbeat request managed by SAS UUT
+    for domain_proxy_object in domain_proxy_objects:
+      domain_proxy_object.heartbeatForAllActiveGrants()
+      cbsds.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
     # Step 12 : Invoke Aggregate Interference Model
     # TODO: To invoke Aggregate Interference Model
@@ -503,18 +501,17 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # TODO: To invoke checkMcpIap method
     # Execute from Step23 to Step30 only for MCP testcase
     if test_type == 'MCP':
-      self.executeMCPOnlyTestSteps(iteration_content, domain_proxy_objects, cbsd_as_dp_list)
+      self.executeMCPOnlyTestSteps(iteration_content, domain_proxy_objects)
 
 
-  def executeMCPOnlyTestSteps(self, iteration_content, domain_proxy_objects, cbsd_as_dp_list):
+  def executeMCPOnlyTestSteps(self, iteration_content, domain_proxy_objects):
     """Executes the steps from Step23 to Step30 for MCP testcase
 
     Args:
        iteration_content: A dictionary with multiple key-value pairs that contain iteration data
        domain_proxy_objects: Domain proxy objects
-       cbsd_as_dp_list: list of Domain Proxy objects, which act like individual CBSD
     """
-    cbsds_with_domain_proxies = []
+    cbsds = []  #contain all CBSDs with authorized grants
     # Step 23: ESC Test harness enables DPA activations
     # deactivated the dpaDeactivationList DPA IDs
     for dpa in iteration_content['dpaActivationList']:
@@ -538,7 +535,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       # TODO: Aggregate interference for DPA
 
       # Step 30:Invoke Aggregate Interference Model
-      cbsds_with_domain_proxies.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+      cbsds.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
     # Invoke Aggregate Interference Model
     # TODO: To invoke Aggregate Interference Model
