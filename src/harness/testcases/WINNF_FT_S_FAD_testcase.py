@@ -398,6 +398,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th_config['serverCert'], sas_th_config['serverKey'])
+              hash_of_dump_file[dump_file['url']] =  hashlib.sha1(json.dumps(downloaded_file)).hexdigest()
           if dump_file['recordType'] ==  'cbsd':
               cbsd_dump_data.extend(downloaded_file['recordData'])   
           elif dump_file['recordType'] ==  'esc_sensor':
@@ -405,9 +406,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           elif dump_file['recordType'] ==  'zone':
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
-              self.assertEqual('coordination', dump_file['recordType'])
-          hash_of_dump_file[dump_file['url']] =  hashlib.sha1(json.dumps(downloaded_file)).hexdigest() if dump_file is not None else None
-        
+              self.assertEqual('coordination', dump_file['recordType'])      
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
       self.assertEqual(len(config['ppaRecords']), len(ppa_dump_data))
