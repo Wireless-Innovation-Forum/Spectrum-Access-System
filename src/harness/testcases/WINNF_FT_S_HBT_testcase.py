@@ -260,7 +260,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Use higher than supported version.
-    self._sas._sas_version = 'v2.0'
+    self._sas.cbsd_sas_version = 'v5.0'
 
     # First Heartbeat with unsupported SAS-CBSD protocol version.
     heartbeat_request = []
@@ -281,7 +281,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
         self.assertLessEqual(transmit_expire_time, datetime.utcnow())
-
     except HTTPError as e:
       # Allow HTTP status 404.
       self.assertEqual(e.error_code, 404)
