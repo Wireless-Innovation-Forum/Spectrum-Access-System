@@ -121,7 +121,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqualToDeviceOrPreloadedConditionalParam('indoorDeployment', \
               device['installationParam'], reg_conditional_device_data['installationParam'],\
                 cbsd_record[0]['installationParam'])
-          #  parameters should equal to device or to default value
+          # parameters should equal to device or to default value
           registered_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in device['installationParam'] \
             else reg_conditional_device_data['installationParam']['antennaAzimuth'] \
@@ -406,7 +406,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
               self.assertEqual('coordination', dump_file['recordType'])
-          hash_of_dump_file[dump_file['url']] =  hashlib.sha1(downloaded_file).hexdigest() if dump_file is not None else None
+          hash_of_dump_file[dump_file['url']] =  hashlib.sha1(json.dumps(downloaded_file)).hexdigest() if dump_file is not None else None
         
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
@@ -463,7 +463,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th['serverCert'], sas_th['serverKey'])
-              self.assertEqual(hash_of_dump_file[dump_file['url']], hashlib.sha1(downloaded_file).hexdigest())
+              self.assertEqual(hash_of_dump_file[dump_file['url']], hashlib.sha1(json.dumps(downloaded_file)).hexdigest())
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
