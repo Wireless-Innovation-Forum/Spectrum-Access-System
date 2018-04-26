@@ -246,7 +246,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       sas_test_harness_0_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'hostName': 'localhost',
-          'url': 'localhost',
           'port': 9002,
           'serverCert': "certs/sas.cert",
           'serverKey': "certs/sas.key",
@@ -255,7 +254,6 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
-        'url': 'localhost',
         'port': 9003,
         'serverCert': os.path.join('certs', 'server.cert'),
         'serverKey': os.path.join('certs', 'server.key'),
@@ -310,6 +308,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
               reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
         if len(reg_conditional_device_data_list) == 1:
           reg_conditional_installation_param = reg_conditional_device_data_list[0]['installationParam']
+        elif len(reg_conditional_device_data_list) > 1:
+           self.fail('invalid conditional Registration Data, multi conditional Registration configs for the cbsd with index: {0} '.format(index))
         else:
           reg_conditional_installation_param = {}
         registeration_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
@@ -377,8 +377,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Notify the SAS UUT about the SAS Test Harness
       for sas_th in config['sasTestHarnessConfigs']:
         certificate_hash = getCertificateFingerprint(sas_th['serverCert'])
+        url = 'https://' + sas_th['hostName'] + ':' + str(sas_th['port'])
         self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                    'url': sas_th['url']})
+                                    'url': url})
       sas_th_config = config['sasTestHarnessConfigs'][0]
       response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
       # verify that all the SASes get the same response :
