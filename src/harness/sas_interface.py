@@ -405,6 +405,13 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def TriggerEnableScheduledDailyActivities(self):
+    """SAS admin interface to trigger the daily activities according to the 
+       schedule agreed upon by SAS admins.                         
+    """
+    pass
+
+  @abc.abstractmethod
   def InjectCpiUser(self, request):
     """SAS admin interface to add a CPI User as if it came directly from the CPI database.
 
