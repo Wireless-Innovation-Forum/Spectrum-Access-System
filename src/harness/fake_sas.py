@@ -294,9 +294,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
 
-  def TriggerFullActivityDump(self):
-    pass
-
   def GetPpaCreationStatus(self):
     return {'completed': True, 'withError': False}
 
@@ -408,8 +405,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
-
-def RunFakeServer(cbsd_sas_version, sas_sas_version, ca_cert_path, verify_crl):
+def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, ca_cert_path, verify_crl):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
@@ -460,5 +456,7 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
-  RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)
+  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join(
+      'certs', args.ca_cert)
+  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc, ca_cert_path,
+                args.verify_crl)
