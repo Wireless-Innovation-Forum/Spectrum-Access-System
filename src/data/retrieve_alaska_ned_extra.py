@@ -134,9 +134,14 @@ def AlreadyExistInDatabase(filename, ref_dir):
 def ExtractArcFloatToZipAndResample(fname, out_dir):
   m = re.search('.*?([ns])(\d{1,3})([ew])(\d{1,3}).*?', fname)
   tile_name = '%s%s%s%s' % (m.group(1), m.group(2), m.group(3), m.group(4))
+  # Ignore the tile if at -180degree, as these ones need special processing
+  # (different padding)
+  if m.group(4) == '180':
+    print '....ignoring west bound 180deg tile %s' % fname
+    return
   if fname.startswith('USGS_NED'):
     basename = 'usgs_ned_2_%s' % (tile_name)
-    out_basename = 'usgs_ned_1_%s_gridfloat_std' % (tilename)
+    out_basename = 'usgs_ned_1_%s_gridfloat_std' % (tile_name)
   else:
     basename = 'float%s' % (tile_name)
     out_basename = '%s_1_std' % (basename)
