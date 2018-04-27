@@ -398,8 +398,6 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
        sas_test_harness_objects: SAS Test Harnesses objects
        domain_proxy_objects: Domain proxy objects
     """
-    fad_test_harnesses_objects = []
-    cbsds_with_domain_proxies = []
     protected_entity_records = iteration_content['protectedEntities']
     if 'fssRecords' in protected_entity_records:
       for fss_record in protected_entity_records['fssRecords']:
@@ -418,6 +416,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         self._sas_admin.InjectZoneData({'record': ppa_record})
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
+    fad_test_harnesses_objects = []
     if iteration_content['sasTestHarnessData']:
       fad_uut_object = getFullActivityDumpSasUut(self._sas,
                                                 self._sas_admin)
@@ -438,7 +437,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # TODO: To invoke IAP reference model
 
     # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
-    # Use DP objects to get CBSD registered
+    # Use DP objects to register CBSDs
     cbsds=[] #contain all CBSDs with authorized grants
     for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
                                                                 iteration_content['cbsdRequestsWithDomainProxies']):
@@ -488,6 +487,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Step 18,19,20 and 21 :
     # Send heartbeat request for the grants, relinquish the grant, grant request and heartbeat for new grant
+    cbsds_with_domain_proxies = []
     for domain_proxy_object in domain_proxy_objects:
       domain_proxy_object.performHeartbeatAndUpdateGrants()
 
