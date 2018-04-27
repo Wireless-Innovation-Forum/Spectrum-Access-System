@@ -509,6 +509,30 @@ crlDistributionPoints=@crl_section
 #FCCID
 #SERIAL
 
+[ cbsd_req_device_a_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+FCCID=ASN1:UTF8String:test_fcc_id_a
+SERIAL=ASN1:UTF8String:test_serial_number_a
+
+[ cbsd_req_device_c_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+FCCID=ASN1:UTF8String:test_fcc_id_c
+SERIAL=ASN1:UTF8String:test_serial_number_c
+
 [ cbsd_req_inapplicable_sign ]
 
 subjectKeyIdentifier = hash

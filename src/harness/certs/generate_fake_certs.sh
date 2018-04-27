@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# Remove the unknown TEST extension to get useable certificate ...
-sed -i '/TEST = critical, ASN1:NULL/d' ../../../cert/openssl.cnf
-
 # Setup: build intermediate directories.
 rm -rf crl/
 mkdir -p private
@@ -144,7 +141,7 @@ echo -e "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device.csr -keyout device.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:test_serial_number"
+    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=Generic Device"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
     -out device.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
@@ -156,7 +153,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id_a:test_serial_number_a"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -out device_a.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions cbsd_req_device_a_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
@@ -165,7 +162,7 @@ openssl req -new -newkey rsa:2048 -nodes \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id_c:test_serial_number_c"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
     -out device_c.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions cbsd_req_device_c_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 echo -e "\n\nGenerate 'admin' certificate/key"
