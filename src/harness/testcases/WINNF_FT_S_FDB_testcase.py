@@ -1261,7 +1261,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     
     # Checks if CPAS start time is over then wait till next day otherwise
     # wait till scheduled CPAS starts
-    scheduled_cpas_start_time = datetime.date.today() @ CPAS_START_TIME
+    scheduled_cpas_start_time = datetime.datetime.combine(datetime.date.today(), datetime.time(CPAS_START_TIME))
     if scheduled_cpas_start_time < current_time:
       scheduled_cpas_start_time += datetime.timedelta(days=1)
 
