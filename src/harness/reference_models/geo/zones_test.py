@@ -43,6 +43,14 @@ class TestZones(unittest.TestCase):
       self.assertTrue(zone.is_valid)
     self.assertAlmostEqual(z['east_dpa_5'].area, 6, 1)
 
+  def test_read_urban_areas(self):
+    z = zones.GetUrbanAreas()
+    exp_area = 275000
+    approx_area = z.area * 110**2 * np.cos(44*np.pi/180)
+    self.assertTrue(z.is_valid)
+    self.assertTrue(approx_area > exp_area * 0.9 and
+                    approx_area < exp_area * 1.1)
+
   def test_read_usborder(self):
     z = zones.GetUsBorder()
     self.assertTrue(z.is_valid)
