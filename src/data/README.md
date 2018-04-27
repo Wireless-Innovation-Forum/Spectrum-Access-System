@@ -12,29 +12,40 @@ on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Inno
 
 The process to plug the data into the environment is:
 
- - Clone that repository.
+ - Clone the [`SAS-Data`]((https://github.com/Wireless-Innovation-Forum/SAS-Data)
+ repository.
  - Unzip the files, by using the `extract_geo.py` script provided in that repository.
- - Point your reference models to that repository, by one of the options:
+ - Point your reference models to that repository, by one of the following options:
    + create soft links for:
       * `data/geo/ned` -> `SAS_Data/ned`
       * `data/geo/nlcd` -> SAS_Data/nlcd`
-   + modify geo directories in file `reference_models/geo/CONFIG.py`
+   + or modify geo pointers in file `reference_models/geo/CONFIG.py`
 
 ### Process for creating NED terrain database
 
+Warning: 
+> this procedure shall not be run for replicating the official NED database to be
+> used by SAS admins, as it would recreate a different snapshot than the official one which
+> was created mainly in July 2017. Use the `SAS-Data/ned` one to have the offical one.
+>
+> Future official update will be done by Winnforum and published in the `SAS-Data` repository.
+
+
 The NED terrain tiles are provided directly from USGS FTP site in 1x1 degrees tiles.
 
-Tiles are simply retrieved using the scripts:
+Tiles are simply retrieved using the two scripts:
 
-  - `retrieve_orig_ned.py`: retrieved all 1 arcsec resolution tiles from USGS FTP site.
+  - `retrieve_orig_ned.py`: retrieves all 1 arcsec resolution tiles from USGS FTP site.
+    Final tiles are put in a folder `data/geo/ned_out/`
   - `retrieve_alaska_ned_extra.py`: complete the previous set with missing Alaska tiles
-    using Alaska 2-arcsec database and a resampling to 1 arcsec.
+    using Alaska 2-arcsec database and a resampling to 1 arcsec. 
+    Final tiles are put in a folder `data/geo/ned_out2/'
+  - add manually the data in SAS-Data repository
+  
+Please note that these 2 scripts keep track of the original downloaded data in 
+directories `data/geo/orig_ned` and `data/geo/orig_ned2`. Subsequent run of the script
+will only download and process new updated tiles.
 
-Warning: this procedure shall not be run for replicating the official NED database to be
-used by SAS admins, as it would recreate a different snapshot than the official one which
-was created mainly in July 2017. Use the `SAS-Data/ned` one to have the offical one.
-
-Future official update will be done by Winnforum and published in the `SAS-Data` repository.
 
 ### Process for recreating NLCD tiles from scratch
 
