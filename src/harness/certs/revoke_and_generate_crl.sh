@@ -1,4 +1,5 @@
 #!/bin/bash 
+set -e
 
 mkdir -p crl
 
@@ -9,20 +10,20 @@ function revoke_certificate()
   #Fetch the Common Name to find out the issuer
   local CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
   local CA=''
-  if [ "$CN" == "WInnForum RSA CBSD OEM CA" ]; then
-    CA=cbsd_ca
-  elif [ "$CN" == "WInnForum RSA Domain Proxy CA" ]; then
-    CA=proxy_ca
-  elif [ "$CN" == "WInnForum RSA SAS Provider CA" ]; then
-    CA=sas_ca
-  elif [ "$CN" == "WInnForum RSA Root CA" ]; then
-    CA=root_ca
-  elif [ "$CN" == "WInnForum RSA CBSD OEM CA - Revoked" ]; then
+  if [[ "$CN" == *"CBSD OEM CA - Revoked"* ]]; then
     CA=revoked_cbsd_ca
-  elif [ "$CN" == "WInnForum RSA Domain Proxy CA - Revoked" ]; then
+  elif [[ "$CN" == *"Domain Proxy CA - Revoked"* ]]; then
     CA=revoked_proxy_ca
-  elif [ "$CN" == "WInnForum RSA SAS Provider CA - Revoked" ]; then
+  elif [[ "$CN" == *"SAS Provider CA - Revoked"* ]]; then
     CA=revoked_sas_ca
+  elif [[ "$CN" == *"CBSD OEM CA"* ]]; then
+    CA=cbsd_ca
+  elif [[ "$CN" == *"Domain Proxy CA"* ]]; then
+    CA=proxy_ca
+  elif [[ "$CN" == *"SAS Provider CA"* ]]; then
+    CA=sas_ca
+  elif [[ "$CN" == *"Root CA"* ]]; then
+    CA=root_ca
   else
     echo "Unknown issuer CN=$CN for certificate $1"
     exit -1
@@ -52,22 +53,22 @@ function generate_crl_chain()
   openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
       -out crl/cbsd_ca.crl
-  echo -e "\n\n Generate CRL for blacklisted_cbsd_ca"
-  openssl ca -gencrl -keyfile private/blacklisted_cbsd_ca.key -cert blacklisted_cbsd_ca.cert \
+  echo -e "\n\n Generate CRL for revoked_cbsd_ca"
+  openssl ca -gencrl -keyfile private/revoked_cbsd_ca.key -cert revoked_cbsd_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/blacklisted_cbsd_ca.crl
-  echo -e "\n\n Generate CRL for sas_blacklisted_ca"
-  openssl ca -gencrl -keyfile private/sas_blacklisted_ca.key -cert sas_blacklisted_ca.cert \
+      -out crl/revoked_cbsd_ca.crl
+  echo -e "\n\n Generate CRL for revoked_sas_ca"
+  openssl ca -gencrl -keyfile private/revoked_sas_ca.key -cert revoked_sas_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/sas_blacklisted_ca.crl
-  echo -e "\n\n Generate CRL for blacklisted_proxy_ca"
-  openssl ca -gencrl -keyfile private/blacklisted_proxy_ca.key -cert blacklisted_proxy_ca.cert \
+      -out crl/revoked_sas_ca.crl
+  echo -e "\n\n Generate CRL for revoked_proxy_ca"
+  openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.cert \
       -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/blacklisted_proxy_ca.crl
+      -out crl/revoked_proxy_ca.crl
 
   # Create CA certificate chain containing the CRLs of revoked leaf certificates.
   cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl \
-      crl/blacklisted_cbsd_ca.crl crl/sas_blacklisted_ca.crl crl/blacklisted_proxy_ca.crl > crl/ca.crl
+      crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl > crl/ca.crl
 }
 #Argument1 : Type (-r,-u)
 if [ "$1" == "-r" ]; then
