@@ -35,7 +35,7 @@ from lxml import etree
 from pykml.factory import KML_ElementMaker as KML
 import numpy as np
 import shapely.geometry as sgeo
-
+import zipfile
 
 from reference_models.geo import vincenty
 from reference_models.geo import zones
@@ -153,6 +153,10 @@ for name, ls in uscabdry_fine.items():
   )
   doc.Document.append(pm)
 
-# Save the output KML
+# Save the output KML and KMZ
+kml_str = etree.tostring(doc, pretty_print=True)
 with open(os.path.join(data_dir, output_kml), 'w') as output_file:
-  output_file.write(etree.tostring(doc, pretty_print=True))
+  output_file.write(kml_str)
+
+with zipfile.ZipFile(os.path.join(data_dir, output_kml), 'w') as output_file:
+  output_file.writestr(output_kml, kml_str)
