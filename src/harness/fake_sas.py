@@ -309,6 +309,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDpaActivation(self, request):
     pass
 
+  def TriggerFullActivityDump(self):
+    pass
+
   def TriggerDpaDeactivation(self, request):
     pass
 
