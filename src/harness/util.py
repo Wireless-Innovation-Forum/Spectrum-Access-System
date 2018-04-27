@@ -288,54 +288,55 @@ def generateCpiRsaKeys():
 
 
 def generateCpiEcKeys():
-  """Generate a private/public EC SECP256R1 key pair.
+    """Generate a private/public EC SECP256R1 key pair.
 
-  Returns:
-    A tuple (private_key, public key) as PEM string encoded.
-  """
-  ec_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-  ec_private_key = ec_key.private_bytes(
-      encoding=serialization.Encoding.PEM,
-      format=serialization.PrivateFormat.TraditionalOpenSSL,
-      encryption_algorithm=serialization.NoEncryption())
-  ec_public_key = ec_key.public_key().public_bytes(
-      encoding=serialization.Encoding.PEM,
-      format=serialization.PublicFormat.SubjectPublicKeyInfo)
-  return ec_private_key, ec_public_key
+    Returns:
+      A tuple (private_key, public key) as PEM string encoded.
+    """
+    ec_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    ec_private_key = ec_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption())
+    ec_public_key = ec_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo)
+    return ec_private_key, ec_public_key
 
 
 def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
                                             cpi_name, request,
                                             jwt_algorithm='RS256'):
-  """Converts a regular registration request to contain cpiSignatureData
-     using the given JWT signature algorithm.
+    """Converts a regular registration request to contain cpiSignatureData
+       using the given JWT signature algorithm.
 
-  Args:
-    private_key: (string) valid PEM encoded string.
-    cpi_id: (string) valid cpiId.
-    cpi_name: (string) valid cpiName.
-    request: individual CBSD registration request (which is a dictionary).
-    jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
-  """
-  cpi_signed_data = {}
-  cpi_signed_data['fccId'] = request['fccId']
-  cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
-  cpi_signed_data['installationParam'] = request['installationParam']
-  del request['installationParam']
-  cpi_signed_data['professionalInstallerData'] = {}
-  if cpi_id:
-    cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
-  cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
-  cpi_signed_data['professionalInstallerData'][
-      'installCertificationTime'] = datetime.utcnow().strftime(
-          '%Y-%m-%dT%H:%M:%SZ')
-  compact_jwt_message = jwt.encode(
-      cpi_signed_data, private_key, jwt_algorithm)
-  jwt_message = compact_jwt_message.split('.')
-  request['cpiSignatureData'] = {}
-  request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
-  request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
-  request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+    Args:
+      private_key: (string) valid PEM encoded string.
+      cpi_id: (string) valid cpiId.
+      cpi_name: (string) valid cpiName.
+      request: individual CBSD registration request (which is a dictionary).
+      jwt_algorithm: (string) algorithm to sign the JWT, defaults to 'RS256'.
+    """
+    cpi_signed_data = {}
+    cpi_signed_data['fccId'] = request['fccId']
+    cpi_signed_data['cbsdSerialNumber'] = request['cbsdSerialNumber']
+    cpi_signed_data['installationParam'] = request['installationParam']
+    del request['installationParam']
+    cpi_signed_data['professionalInstallerData'] = {}
+    if cpi_id:
+        cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
+    cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
+    cpi_signed_data['professionalInstallerData'][
+        'installCertificationTime'] = datetime.utcnow().strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+    compact_jwt_message = jwt.encode(
+        cpi_signed_data, private_key, jwt_algorithm)
+    jwt_message = compact_jwt_message.split('.')
+    request['cpiSignatureData'] = {}
+    request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
+    request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
+    request['cpiSignatureData']['digitalSignature'] = jwt_message[2]
+
 
 def addIdsToRequests(ids, requests, id_field_name):
   """Adds CBSD IDs or Grant IDs to any given request.
@@ -464,3 +465,44 @@ class TestComponentError(Exception):
   message to help with analysis of repeated failures.
   """
   pass
+
+def getFUGPoints(ppa):
+    """This function returns FUG points list
+    Args:
+      ppa: (dictionary) A dictionary containing PPA/GWPZ Record.
+    Returns:
+      An array of tuple (lat, lng).
+    """
+    fug_points = []
+    ppa_polygon = shape(ppa[0]['zone']['features'][0]['geometry'])
+    min_lng, min_lat, max_lng, max_lat = ppa_polygon.bounds
+    upper_boundary_lng = np.ceil(max_lng)
+    lower_boundary_lng = np.floor(min_lng)
+    upper_boundary_lat = np.ceil(max_lat)
+    lower_boundary_lat = np.floor(min_lat)
+    while(upper_boundary_lat >= lower_boundary_lat):
+        while(upper_boundary_lng >= lower_boundary_lng):
+            pointLat = round(upper_boundary_lat, 6)
+            pointLng = round(upper_boundary_lng, 6)
+            if Point([pointLng, pointLat]).within(ppa_polygon):
+                fug_points.append((pointLat, pointLng))
+            upper_boundary_lng = upper_boundary_lng - 2.0 / 3600
+        upper_boundary_lat = upper_boundary_lat - 2.0 / 3600
+        upper_boundary_lng = max_lng + 2.0 / 3600
+    return fug_points
+
+
+def getChannels(lowFrequency, highFrequency):
+    """This function returns protected channels list"""
+    protection_channels = []
+    startFrequency = 3550
+    channel = 0
+    while channel < 30:
+        if ((startFrequency+channel*5 < lowFrequency/1000000 and startFrequency + (channel+1)*5 > lowFrequency/1000000)
+                or (startFrequency+channel*5 >= lowFrequency/1000000 and startFrequency + (channel+1)*5 <= highFrequency/1000000)
+                or (startFrequency+channel*5 < highFrequency/1000000 and startFrequency + (channel+1)*5 > highFrequency/1000000)):
+            ch_low_freq = (startFrequency * 1000000) + (channel * 5000000)
+            ch_high_freq = ch_low_freq + 5000000     
+            protection_channels.append((ch_low_freq, ch_high_freq))
+        channel = channel + 1
+    return protection_channels

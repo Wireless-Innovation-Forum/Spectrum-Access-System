@@ -1,20 +1,15 @@
 {
-  "id": "PPA_P_01",
-  "name": "PPA Zone 0",
-  "creator": "admin_0",
+  "id": "PPA_P_0333",
+  "name": "PPA Zone 2",
+  "creator": "admin_2",
   "usage": "PPA",
   "terminated": false,
   "ppaInfo": {
         "ppaRegionType": "RURAL",
         "cbsdReferenceId": [
-          "cbsd/fccId6/0f47fabe5aae48fabde5fa9f7af0a9807f9ce79d",
-          "cbsd/fccId4/4ad1dfe6a56157033194ea575108f44265a47351",
-          "cbsd/fccId110/03892f99d340b5b73e337e911f231d92eab5f46f",
-          "cbsd/fccId112/add0a4e47d1b21f73e43b4ba662503effd9e1dfa"
         ],
         "palId": [
-          "pal_0"
-        ],
+          "pal_3"        ],
         "ppaBeginDate": "2016-01-02 08:26:55",
         "ppaExpirationDate": "2036-01-02 08:26:55" 
       },
@@ -25,28 +20,28 @@
         "type": "Feature",
         "properties": {},
         "geometry": {
-          "type": "polygon",
+          "type": "Polygon",
           "coordinates": [
               [
               [
-                        -108.05,
-                        42.20
+                        -120.20,
+                        34.75
                      ],
                      [
-                        -107.95,
-                        42.20
+                        -120.15,
+                        34.75
                      ],
                      [
-                        -107.95,
-                        42.05
+                        -120.15,
+                        34.70
                      ],
                      [
-                        -108.05,
-                        42.05
+                        -120.20,
+                        34.70
                      ],
                      [
-                        -108.05,
-                        42.20
+                        -120.20,
+                        34.75
                      ]
                 ]
           ]
