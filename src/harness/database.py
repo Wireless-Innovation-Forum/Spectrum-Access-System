@@ -102,9 +102,21 @@ class DatabaseServer(threading.Thread):
                  self.host_name)
 
   def setFileToServe(self, file_url, file_path):
+    """Add or update a single file url to path mapping.
+
+    Args:
+      file_url: The url to provide the file on.
+      file_path: The file path to provide on the given url.
+    """
     self.server.file_paths[file_url] = file_path
 
   def setFilesToServe(self, file_url_file_path_dict):
+    """Add or update a multiple file url to path mappings.
+
+    Args:
+      file_url_file_path_dict: A dictionary of file_url: file_path as described
+        in the setFileToServe description.
+    """
     self.server.file_paths.update(file_url_file_path_dict)
 
 class DatabaseHTTPServer(HTTPServer):
