@@ -381,15 +381,15 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     grant_N2_1 = json.load(
           open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_N2_1['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3650000000
+        'lowFrequency'] = 3550000000
     grant_N2_1['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3655000000
+        'highFrequency'] = 3555000000
     grant_N2_2 = json.load(
           open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_N2_2['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3650000000
+        'lowFrequency'] = 3550000000
     grant_N2_2['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3655000000
+        'highFrequency'] = 3555000000
 
     # Forming N3 grant request with overlapping frequency
     grant_N3_1 = json.load(
