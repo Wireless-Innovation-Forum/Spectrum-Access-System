@@ -16,8 +16,6 @@
 import json
 import logging
 import os
-import signal
-import time
 import sas_testcase
 import uuid
 from shapely import ops
@@ -138,52 +136,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   created by the Reference Model for different varying condition and verify the SAS UUT
   is able to create PPA zone or error.
   """
-
-  def triggerPpaCreationAndWaitUntilComplete(self, ppa_creation_request):
-    """Triggers PPA Creation Admin API and returns PPA ID if the creation status is completed.
-
-    Triggers PPA creation to the SAS UUT. Checks the status of the PPA creation
-    by invoking the PPA creation status API. If the status is complete then the
-    PPA ID is returned. The status is checked every 10 secs for upto 2 hours.
-    Exception is raised if the PPA creation returns error or times out.
-
-    Args:
-      ppa_creation_request: A dictionary with a multiple key-value pair containing the
-        "cbsdIds", "palIds" and optional "providedContour"(a GeoJSON object).
-
-    Returns:
-      A Return value is string format of the PPA ID.
-
-    """
-    ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
-
-    # Verify ppa_id should not be None.
-    self.assertIsNotNone(ppa_id, msg="PPA ID received from SAS UUT as result of "
-                                     "PPA Creation is None")
-
-    logging.info('TriggerPpaCreation is in progress')
-
-    # Triggers most recent PPA Creation Status immediately and checks for the
-    # status of activity every 10 seconds until it is completed. If the status
-    # is not changed within 2 hours it will throw an exception.
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Most Recent PPA Creation Status Check Timeout')))
-
-    # Timeout after 2 hours if it's not completed.
-    signal.alarm(7200)
-
-    # Check the Status of most recent ppa creation every 10 seconds.
-    while not self._sas_admin.GetPpaCreationStatus()['completed']:
-      time.sleep(10)
-
-    # Additional check to ensure whether PPA creation status has error.
-    self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
-                     msg='There was an error while creating PPA')
-    signal.alarm(0)
-
-    return ppa_id
 
   def triggerFadGenerationAndRetrievePpaZone(self, ssl_cert, ssl_key):
     """Triggers FAD and Retrieves PPA Zone Record.
