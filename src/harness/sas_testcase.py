@@ -19,6 +19,7 @@ import time
 import unittest
 import sas
 import util
+from request_handler import HTTPError
 
 
 class SasTestCase(unittest.TestCase):
@@ -220,7 +221,9 @@ class SasTestCase(unittest.TestCase):
     """
     Triggers daily activities immediately and checks for the status of activity
     every 10 seconds until it is completed.
-    If the status is not changed within 2 hours it will throw an exception.
+    - Fails immediately if the status check returns HTTP 500 (or) if it gives
+    *any other error code* 20 times in a row.
+    - If the status is not changed within 2 hours it will throw an exception.
     """
     self._sas_admin.TriggerDailyActivitiesImmediately()
     signal.signal(signal.SIGALRM,
@@ -231,7 +234,31 @@ class SasTestCase(unittest.TestCase):
     # Timeout after 2 hours if it's not completed
     signal.alarm(7200)
     # Check the Status of Daily Activities every 10 seconds
-    while not self._sas_admin.GetDailyActivitiesStatus()['completed']:
+    error_counter = 0
+    is_completed = False
+    while not is_completed:
+      try:
+        is_completed = self._sas_admin.GetDailyActivitiesStatus()['completed']
+        error_counter = 0
+      except HTTPError as e:
+        # Fail immediately if HTTP 500
+        if e.error_code == 500:
+          self.fail(
+              'Got HTTP %d, indicating a fatal error during CPAS execution in'
+              'SAS UUT. Failing immediately.'
+              % e.error_code)
+        else:
+          logging.info('Got HTTP: %d ', e.error_code)
+          error_counter += 1
+          if error_counter == 20:
+            self.fail('Encountered errors 20 times. Failing immediately.')
+      # If any other error (including HTTP errors other than 500) 20 times in a
+      # row, fail.
+      except Exception as ex:
+        logging.info('Exception: %s ', ex.message)
+        error_counter += 1
+        if error_counter == 20:
+          self.fail('Encountered errors 20 times. Failing immediately.')
       time.sleep(10)
     signal.alarm(0)
 
