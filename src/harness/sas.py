@@ -18,21 +18,48 @@ from request_handler import TlsConfig, RequestPost, RequestGet
 import os
 import sas_interface
 
-
 def GetTestingSas():
   config_parser = ConfigParser.RawConfigParser()
   config_parser.read(['sas.cfg'])
-  base_url = config_parser.get('SasConfig', 'BaseUrl')
-  version = config_parser.get('SasConfig', 'Version')
+  admin_api_base_url = config_parser.get('SasConfig', 'AdminApiBaseUrl')
+  cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'CbsdSasRsaBaseUrl')
+  cbsd_sas_ec_base_url = config_parser.get('SasConfig', 'CbsdSasEcBaseUrl')
+  sas_sas_rsa_base_url = config_parser.get('SasConfig', 'SasSasRsaBaseUrl')
+  sas_sas_ec_base_url = config_parser.get('SasConfig', 'SasSasEcBaseUrl')
+  cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
+  sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
-  return SasImpl(base_url, version, sas_admin_id), SasAdminImpl(base_url)
+  return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
+    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
+
+def GetDefaultCbsdSSLCertPath():
+  return os.path.join('certs', 'client.cert')
+
+
+def GetDefaultCbsdSSLKeyPath():
+  return os.path.join('certs', 'client.key')
+
+
+def GetDefaultSasSSLCertPath():
+  return os.path.join('certs', 'client.cert')
+
+
+def GetDefaultSasSSLKeyPath():
+  return os.path.join('certs', 'client.key')
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, base_url, sas_version, sas_admin_id):
-    self._base_url = base_url
-    self._sas_version = sas_version
+  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
+    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id):
+    self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
+    self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
+    self._sas_sas_rsa_base_url = sas_sas_rsa_base_url
+    self._sas_sas_ec_base_url = sas_sas_ec_base_url
+    self.cbsd_sas_active_base_url = cbsd_sas_rsa_base_url
+    self.sas_sas_active_base_url = sas_sas_rsa_base_url
+    self.cbsd_sas_version = cbsd_sas_version
+    self.sas_sas_version = sas_sas_version
     self._tls_config = TlsConfig()
     self._sas_admin_id = sas_admin_id
 
@@ -56,45 +83,45 @@ class SasImpl(sas_interface.SasInterface):
 
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     return self._SasRequest('esc_sensor', request, ssl_cert, ssl_key)
-    
+
   def GetFullActivityDump(self, ssl_cert=None, ssl_key=None):
     return self._SasRequest('dump', None, ssl_cert, ssl_key)
 
   def _SasRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    url = 'https://%s/%s/%s' % (self._base_url, self._sas_version, method_name)
+
+    url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
-                          ssl_cert or self._GetDefaultSasSSLCertPath(),
-                          ssl_key or self._GetDefaultSasSSLKeyPath()))
+                          ssl_cert or GetDefaultSasSSLCertPath(),
+                          ssl_key or GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return RequestPost('https://%s/%s/%s' % (self._base_url, self._sas_version,
+    return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
-                           ssl_cert or self._GetDefaultCbsdSSLCertPath(),
-                           ssl_key or self._GetDefaultCbsdSSLKeyPath()))
-    
+                           ssl_cert or GetDefaultCbsdSSLCertPath(),
+                           ssl_key or GetDefaultCbsdSSLKeyPath()))
+
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return RequestGet(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
-                          self._GetDefaultSasSSLCertPath(), ssl_key
-                          if ssl_key else self._GetDefaultSasSSLKeyPath()))
+                          GetDefaultSasSSLCertPath(), ssl_key
+                          if ssl_key else GetDefaultSasSSLKeyPath()))
 
-  def _GetDefaultCbsdSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
+  def UpdateSasRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      sas_sas_active_base_url = self._sas_sas_ec_base_url
+    else:
+      sas_sas_active_base_url = self._sas_sas_rsa_base_url
 
-  def _GetDefaultCbsdSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
-
-  def _GetDefaultSasSSLCertPath(self):
-    return os.path.join('certs', 'client.cert')
-
-  def _GetDefaultSasSSLKeyPath(self):
-    return os.path.join('certs', 'client.key')
-
+  def UpdateCbsdRequestUrl(self, cipher):
+    if 'ECDSA' in cipher:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
+    else:
+      self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -103,20 +130,30 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     self._base_url = base_url
     self._tls_config = TlsConfig().WithClientCertificate(
         self._GetDefaultAdminSSLCertPath(), self._GetDefaultAdminSSLKeyPath())
+    self.injected_fcc_ids = set()
+    self.injected_user_ids = set()
 
   def Reset(self):
     RequestPost('https://%s/admin/reset' % self._base_url, None,
                 self._tls_config)
 
   def InjectFccId(self, request):
+    # Avoid injecting the same FCC ID twice in the same test case.
+    if request['fccId'] in self.injected_fcc_ids:
+      return
     if 'fccMaxEirp' not in request:
       request['fccMaxEirp'] = 47
     RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
                 self._tls_config)
+    self.injected_fcc_ids.add(request['fccId'])
 
   def InjectUserId(self, request):
+    # Avoid injecting the same user ID twice in the same test case.
+    if request['userId'] in self.injected_user_ids:
+      return
     RequestPost('https://%s/admin/injectdata/user_id' % self._base_url, request,
                 self._tls_config)
+    self.injected_user_ids.add(request['userId'])
 
   def InjectEscZone(self, request):
     return RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
@@ -221,7 +258,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
   def TriggerDpaDeactivation(self, request):
     RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
-    
+
   def TriggerFullActivityDump(self):
     RequestPost(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
@@ -241,4 +278,3 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost(
       'https://%s/admin/get_ppa_status' % self._base_url, None,
       self._tls_config)
-    

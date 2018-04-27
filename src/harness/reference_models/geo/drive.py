@@ -62,7 +62,7 @@ def ConfigureNlcdDriver(nlcd_dir=None, cache_size=None):
     cache_size:  if specified, change the NLCD tile cache size.
   """
   if nlcd_dir is not None:
-    nlcd_driver.SetTerrainDirectory(nlcd_dir)
+    nlcd_driver.SetNlcdDirectory(nlcd_dir)
   if cache_size is not None:
     nlcd_driver.SetCacheSize(cache_size)
 

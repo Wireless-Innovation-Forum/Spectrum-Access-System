@@ -18,6 +18,7 @@ import logging
 import os
 import time
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 
@@ -901,7 +902,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Use higher than supported version
-    self._sas._sas_version = 'v2.0'
+    self._sas.cbsd_sas_version = 'v5.0'
 
     # Load Devices
     device_a = json.load(
@@ -921,9 +922,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       for resp in response['registrationResponse']:
         self.assertEqual(resp['response']['responseCode'], 100)
         self.assertFalse('cbsdId' in resp)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)
 
   def generate_REG_11_default_config(self, filename):
     """Generates the WinnForum configuration for REG.11."""
@@ -1148,7 +1149,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(config['fccIds']), len(config['userIds']))
     self.assertEqual(len(config['fccIds']), len(config['registrationRequests']))
     # Use the (higher) SAS version set in the config file.
-    self._sas._sas_version  = config['sasVersion']
+    self._sas.cbsd_sas_version  = config['sasVersion']
 
     # Whitelist N1 FCC ID.
     for fcc_id, max_eirp_dbm_per_10_mhz in config['fccIds']:
@@ -1171,6 +1172,6 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
         response = responses[i]
         logging.debug('Looking at response number %d', i)
         self.assertEqual(response['response']['responseCode'], 100)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
+      self.assertEqual(e.error_code, 404)

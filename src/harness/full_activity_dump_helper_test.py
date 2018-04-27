@@ -25,7 +25,7 @@ class FullActivityDumpHelperTest(unittest.TestCase):
   """Full Activity Dump Helper unit tests."""
 
   @staticmethod
-  def getFullActivityDumpHelper(ssl_cert, ssl_key):
+  def getFullActivityDumpHelper(ssl_cert=None, ssl_key=None):
     """Provides a generic dump to use for tests. Setting the generation date to
        now is needed for SAS UUT unit test.
     """
@@ -55,14 +55,13 @@ class FullActivityDumpHelperTest(unittest.TestCase):
             'version': 'some version',
             'recordType': 'cbsd'
         }],
-        'generationDateTime':
-            '%sZ' % datetime.utcnow().replace(microsecond=0).isoformat(),
+        'generationDateTime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'description':
             'mock for testing full activity dump'
     }
 
   @staticmethod
-  def downloadFileHelper(url, ssl_cert, ssl_key):
+  def downloadFileHelper(url, ssl_cert=None, ssl_key=None):
     """Helper to return test dump content."""
     logging.debug('CALLED: %s %s %s', url, ssl_cert, ssl_key)
     if url == 'cbsd/cbsd_test_url.json':
@@ -88,7 +87,7 @@ class FullActivityDumpHelperTest(unittest.TestCase):
     mock_sas = FullActivityDumpHelperTest.getMockSasInterface()
     mock_sas_admin = mock.MagicMock()
     fad = full_activity_dump_helper.getFullActivityDumpSasUut(
-        mock_sas, mock_sas_admin, None, None)
+        mock_sas, mock_sas_admin)
     mock_sas.GetFullActivityDump.assert_called()
     mock_sas.DownloadFile.assert_called()
     self.assertDictEqual(
@@ -102,7 +101,7 @@ class FullActivityDumpHelperTest(unittest.TestCase):
     """Tests that a FullActivityDump can be created for a test harness."""
     mock_sas = FullActivityDumpHelperTest.getMockSasInterface()
     fad = full_activity_dump_helper.getFullActivityDumpSasTestHarness(
-        mock_sas, None, None)
+        mock_sas)
     mock_sas.GetFullActivityDump.assert_called_once()
     mock_sas.DownloadFile.assert_called()
     self.assertDictEqual(

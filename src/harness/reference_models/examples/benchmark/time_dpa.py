@@ -25,14 +25,15 @@ Notes:
 """
 # TODO(sbdt): add reporting for memory usage
 from collections import namedtuple
-import multiprocessing
 import time
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reference_models.move_list_calc import move_list
+from reference_models.dpa import dpa_mgr
+from reference_models.common import data
+from reference_models.common import mpool
 from reference_models.geo import zones
 from reference_models.geo import drive
 from reference_models.geo import utils
@@ -78,14 +79,6 @@ num_cached_tiles = 32
 num_montecarlo_iter = 2000
 fmin, fmax = 3560, 3570
 ratio_cat_a_outdoor = 1.0 - ratio_cat_b - ratio_cat_a_indoor
-
-#----------------------------------
-# Define the Protection points and specification
-ProtectionPoint = namedtuple('ProtectionPoint',
-                             ['latitude', 'longitude'])
-ProtectionSpecs = namedtuple('ProtectionSpecs',
-                             ['lowFreq', 'highFreq',
-                              'antHeight', 'beamwidth', 'threshold'])
 
 #----------------------------------------
 # Configure the geo drivers to avoid swap
@@ -148,32 +141,6 @@ def PrepareSimulation():
   grant_requests = [entities.GetCbsdGrantRequest(cbsd, fmin, fmax)
                     for cbsd in all_cbsds]
 
-  # Distribute points in DPA.
-  print 'Distributing protection points in DPA'
-  # The idea is to keep a good ratio typical of what would be used with the
-  # actual implementation, so that the timing number can be scaled up.
-  def SampleLine(line, num_points):
-    step = line.length / (num_points-1)
-    return [line.interpolate(dist) for dist in np.arange(0, line.length, step)]
-
-  us_border_ext = us_border.buffer(front_usborder_buffer_km / 111.)
-  front_line = dpa_zone.exterior.intersection(us_border_ext)
-  back_line = dpa_zone.exterior.difference(us_border_ext)
-  front_zone = dpa_zone.intersection(us_border_ext)
-  back_zone = dpa_zone.difference(us_border_ext)
-  step_front_dpa_arcsec = np.sqrt(front_zone.area / npts_within_dpa_front) * 3600.
-  step_back_dpa_arcsec = np.sqrt(back_zone.area / npts_within_dpa_back) * 3600.
-
-  protection_points = (
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(front_line, npts_front_dpa_contour)] +
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(back_line, npts_back_dpa_contour)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)])
-
   # Plot on screen the elements of calculation
   ax = plt.axes(projection=ccrs.PlateCarree())
   margin = 0.1
@@ -182,9 +149,6 @@ def PrepareSimulation():
            box.bounds[1]-margin, box.bounds[3]+margin])
   ax.coastlines()
   ax.stock_img()
-  ax.scatter([pt.longitude for pt in protection_points],
-             [pt.latitude for pt in protection_points],
-             color='k', marker='*')
   ax.plot(*dpa_zone.exterior.xy, color='r')
   ax.plot(*zone_cata.exterior.xy, color='b', linestyle='--')
   ax.plot(*zone_catb.exterior.xy, color='g', linestyle='--')
@@ -193,12 +157,10 @@ def PrepareSimulation():
   ax.scatter([cbsd.longitude for cbsd in all_cbsds],
              [cbsd.latitude for cbsd in all_cbsds],
              color='g', marker='.')
-
   ax.set_title('DPA: %s' % dpa_name)
   plt.show(block=False)
 
-  return (protection_points,
-          all_cbsds,
+  return (all_cbsds,
           reg_requests,
           grant_requests,
           protection_zone,
@@ -218,44 +180,55 @@ if __name__ == '__main__':
   # reset the random seed
   np.random.seed(12345)
 
-  # Create the pool of process
-  # Done externally from the move_list function to keep terrains in cache
-  if num_processes < 0: # auto mode
-    num_processes = int(round(0.5 * multiprocessing.cpu_count()))
-  pool = multiprocessing.Pool(num_processes)
+  # Configure the global pool of processes
+  mpool.Configure(num_processes)
+  pool = mpool.Pool()
+  num_processes = pool._max_workers  # actual number of processes
 
-  (protection_points, all_cbsds,
-   reg_requests, grant_requests, protection_zone,
+  (all_cbsds, reg_requests, grant_requests, protection_zone,
    (n_a_indoor, n_a_outdoor, n_b), ax) = PrepareSimulation()
 
-  # The protection specification
-  protection_spec = ProtectionSpecs(lowFreq=fmin*1e6, highFreq=fmax*1e6,
-                                    antHeight=50, beamwidth=3, threshold=-144)
+  # Build the grants
+  grants = data.getGrantsFromRequests(reg_requests, grant_requests)
+
+  # Build the DPA manager
+  dpa = dpa_mgr.BuildDpa(dpa_name,
+                         'default (%d,%d,%d,%d,%d)' % (
+                             npts_front_dpa_contour,
+                             npts_back_dpa_contour,
+                             npts_within_dpa_front,
+                             npts_within_dpa_back,
+                             front_usborder_buffer_km))
+  dpa.ResetFreqRange([(fmin, fmax)])
+
+  # Plot the protection points
+  ax.scatter([pt.longitude for pt in dpa.protected_points],
+             [pt.latitude for pt in dpa.protected_points],
+             color='k', marker='*')
+  plt.show(block=False)
 
   # Run the move list algorithm a first time to fill up geo cache
   print 'Running Move List algorithm (%d processes)' % num_processes
-  print '  + once to populate the terrain cache'
-  result = move_list.findMoveList(protection_spec, protection_points[:num_processes],
-                                  reg_requests[0:100], grant_requests[0:100],
-                                  num_montecarlo_iter, num_processes,
-                                  protection_zone, pool)
+  print '  + once to populate the terrain cache (small run)'
+  dpa.SetGrantsFromList(grants[0:50])
+  dpa.ComputeMoveLists()
 
   # Run it for real and measure time
   print '  + actual run (timed)'
+  dpa.SetGrantsFromList(grants)
   start_time = time.time()
-  result = move_list.findMoveList(protection_spec, protection_points,
-                                  reg_requests, grant_requests,
-                                  num_montecarlo_iter, num_processes,
-                                  protection_zone, pool)
+  dpa.ComputeMoveLists()
   end_time = time.time()
 
   # Print results
-  len_move_list = np.sum(result)
+  print 'Move List mask:'
+  print dpa.GetMoveListMask((fmin, fmax))
+  len_move_list = len(dpa.move_lists[0])
   print ''
   print 'Num Cores (Parallelization): %d' % num_processes
-  print 'Num Protection Points: %d' % len(protection_points)
+  print 'Num Protection Points: %d' % len(dpa.protected_points)
   print 'Num CBSD: %d (A: %d %d - B %d)' % (
-      len(reg_requests), n_a_indoor, n_a_outdoor, n_b)
+      len(grants), n_a_indoor, n_a_outdoor, n_b)
   print 'Distribution: %s' % ('uniform' if not do_inside_urban_area
                               else 'urban areas only')
   print 'Move list size: %d' % len_move_list
@@ -263,18 +236,20 @@ if __name__ == '__main__':
 
   # Check tiles cache well behaved
   print  ''
-  tile_stats = pool.map(getTileStats, [None]*num_processes)
+  tile_stats = list(pool.map(getTileStats, [None]*num_processes))
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    pool.apply_async(printTileStats, ())
+    future = pool.submit(printTileStats, ())
+    future.result()
   else:
     print '-- Cache tile: OK (no swapping)'
 
   # Plot the move list
   if len_move_list:
+    result = dpa.GetMoveListMask((fmin, fmax))
     ax.scatter([cbsd.longitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                [cbsd.latitude for k, cbsd in enumerate(all_cbsds) if result[k]],
                color='r', marker='.')

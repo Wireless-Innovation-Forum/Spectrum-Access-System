@@ -42,34 +42,34 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
-    device_1['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
-    device_1['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_1['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
-    device_2['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_2['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
-    device_3['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
-    device_3['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_3['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
-    device_4['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
-    device_4['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_4['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     # Load Grant requests
     # Loading grant_request_1 for device_1 with In-band frequency range of 3620 to 3630 MHz
@@ -158,11 +158,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
-            'cert': os.path.join('certs', 'dp_1_client.cert'),
-            'key': os.path.join('certs', 'dp_1_client.key')
+            'cert': os.path.join('certs', 'domain_proxy.cert'),
+            'key': os.path.join('certs', 'domain_proxy.key')
          }, {
-            'cert': os.path.join('certs', 'dp_2_client.cert'),
-            'key': os.path.join('certs', 'dp_2_client.key')
+            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+            'key': os.path.join('certs', 'domain_proxy_1.key')
          }],
         'deltaIap': 2
     }
@@ -189,34 +189,34 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
-    device_1['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
-    device_1['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_1['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
+    device_1['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
-    device_2['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
-    device_2['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_2['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
+    device_2['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
-    device_3['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
-    device_3['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_3['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
+    device_3['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
-    device_4['installationParam']['
-        latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
-    device_4['installationParam']['
-        longitude'] = esc_record_1['installationParam']['longitude']
+    device_4['installationParam'][
+        'latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
+    device_4['installationParam'][
+        'longitude'] = esc_record_1['installationParam']['longitude']
 
     # Load Grant requests with In-band frequency range for all devices
     grant_request_1 = json.load(
@@ -322,16 +322,16 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': 'localhost',
         'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
 
@@ -366,11 +366,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
         'domainProxyConfigs': [{
-             'cert': os.path.join('certs', 'dp_1_client.cert'),
-             'key': os.path.join('certs', 'dp_1_client.key')
+             'cert': os.path.join('certs', 'domain_proxy.cert'),
+             'key': os.path.join('certs', 'domain_proxy.key')
         }, {
-            'cert': os.path.join('certs', 'dp_2_client.cert'),
-            'key': os.path.join('certs', 'dp_2_client.key')}
+            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+            'key': os.path.join('certs', 'domain_proxy_1.key')}
         ],
         'deltaIap': 2
     }
@@ -385,3 +385,4 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
       # test_type= enum (MCP, EPR)
       # Invoke MCP test steps 1 through 22.
       # self.executeMcpTestSteps(config, test_type)
+

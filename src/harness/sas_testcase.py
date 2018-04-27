@@ -104,6 +104,7 @@ class SasTestCase(unittest.TestCase):
     response = self._sas.Registration(
         request, ssl_cert=ssl_cert, ssl_key=ssl_key)['registrationResponse']
 
+    self.assertEqual(len(response), len(registration_request))
     # Check the registration response; collect CBSD IDs
     cbsd_ids = []
     for resp in response:
@@ -271,6 +272,42 @@ class SasTestCase(unittest.TestCase):
         break
     self.assertTrue(is_frequency_included_in_range,
                     'Channel is not included in list of frequency ranges')
+
+  def assertValidConfig(self, config, required_fields, optional_fields={}):
+    """Does basic checking of a testing config.
+
+    Checks that the given config contains the required fields of the correct
+    type and present optional fields are the correct type.
+
+    Args:
+      config: The test configuration as a dictionary.
+      required_fields: Dictionary of the required fields where the key is the
+        field name and the value is the expected data type.
+      optional_fields: Optional. Dictionary of the optional fields where the
+        key is the field name and the value is the expected data type.
+
+    Raises:
+      AssertError: When the given config does not include the required and
+      optional fields or the config contains unexpected keys.
+    """
+    for key, field_type in required_fields.iteritems():
+      self.assertTrue(key in config,
+                      'Required config field \'%s\' is not present.' % key)
+      self.assertTrue(
+          isinstance(config[key], field_type),
+          'Required config field \'%s\' is of type(%s) when it should be type(%s).'
+          % (key, type(config[key]).__name__, field_type.__name__))
+    for key, field_type in optional_fields.iteritems():
+      if key in config:
+        self.assertTrue(
+            isinstance(config[key], field_type),
+            'Optional config field \'%s\' is of type(%s) when it should be type(%s).'
+            % (key, type(config[key]).__name__, field_type.__name__))
+    # Check the config only contains the checked fields
+    for key in config:
+      self.assertTrue(
+          key in required_fields or key in optional_fields,
+          'Config field \'%s\' is neither required nor optional.' % key)
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     request_time = datetime.utcnow().replace(microsecond=0)

@@ -16,6 +16,7 @@ import json
 import logging
 import os
 
+from request_handler import HTTPError
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
@@ -363,10 +364,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       grant_id.append(resp['grantId'])
     del request, response
 
-    # Save sas version
-    version = self._sas._sas_version
     # Use higher than supported version
-    self._sas._sas_version = 'v5.0'
+    self._sas.cbsd_sas_version = 'v5.0'
 
     # Relinquish the grants
     request = {'relinquishmentRequest': [
@@ -384,12 +383,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
         self.assertEqual(resp['cbsdId'], cbsd_id)
         self.assertEqual(resp['grantId'], grant_id[resp_number])
         self.assertEqual(resp['response']['responseCode'], 100)
-    except AssertionError as e:
+    except HTTPError as e:
       # Allow HTTP status 404
-      self.assertEqual(e.args[0], 404)
-    finally:
-      # Put sas version back
-      self._sas._sas_version = version
+      self.assertEqual(e.error_code, 404)
 
   @winnforum_testcase
   def test_WINNF_FT_S_RLQ_5(self):

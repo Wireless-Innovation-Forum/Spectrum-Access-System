@@ -27,6 +27,7 @@ import inspect
 
 from OpenSSL import SSL, crypto
 from util import getCertificateFingerprint
+from request_handler import HTTPError
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -159,11 +160,11 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use with the optionally
         given |client_cert|. If 'None' path to the default CBSD key file will be used.
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
-
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
+    self._sas.UpdateCbsdRequestUrl(cipher)
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url, [cipher],
                                    client_cert, client_key)
 
     # Does a regular CBSD registration
@@ -182,16 +183,16 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_key: path to associated key file in PEM format to use.
       client_url: base URL of the (peer) SAS client.
     """
-
-    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, [cipher],
-                                   client_cert, client_key)
+    self._sas.UpdateSasRequestUrl(cipher)
 
     # Does a regular SAS registration
     self.SasReset()
     certificate_hash = getCertificateFingerprint(client_cert)
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': client_url})
+    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
+    self.assertTlsHandshakeSucceed(self._sas.sas_sas_active_base_url, [cipher],
+                                   client_cert, client_key)
     self._sas_admin.TriggerFullActivityDump()
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self._sas.GetFullActivityDump(client_cert, client_key)
@@ -203,12 +204,12 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_cert: optional client certificate file in PEM format to use.
         If 'None' the default CBSD certificate will be used.
       client_key: associated key file in PEM format to use with the optionally
-        given |client_cert|. If 'None' the default CBSD key file will be used.  
+        given |client_cert|. If 'None' the default CBSD key file will be used.
       ciphers: optional cipher method
       ssl_method: optional ssl_method
     """
-    client_cert = client_cert or self._sas._GetDefaultCbsdSSLCertPath()
-    client_key = client_key or self._sas._GetDefaultCbsdSSLKeyPath()
+    client_cert = client_cert or sas.GetDefaultCbsdSSLCertPath()
+    client_key = client_key or sas.GetDefaultCbsdSSLKeyPath()
 
     url = urlparse.urlparse('https://' + self._sas_admin._base_url)
     client = socket.socket()
@@ -230,7 +231,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
-    
+
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
       client_ssl_informations.append(conn.get_state_string())
@@ -241,16 +242,46 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
     client_ssl.set_tlsext_host_name(url.hostname)
-    
+
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
       self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
     except SSL.Error as e:
-      logging.debug('Received alert_reason:%s' %" ".join(e.message[0][2]))
       self.assertEquals(client_ssl.get_peer_finished(), None)
     finally:
       client_ssl.close()
+
+  def assertTlsHandshakeFailureOrHttp403(self, client_cert=None, client_key=None, ciphers=None, ssl_method=None, is_sas=False):
+    """
+    Checks that the TLS handshake failure by varying the given parameters
+    if handshake not failed make sure the next https request return error code 403
+
+    Args:
+      client_cert: optional client certificate file in PEM format to use.
+        If 'None' the default CBSD certificate will be used.
+      client_key: associated key file in PEM format to use with the optionally
+        given |client_cert|. If 'None' the default CBSD key file will be used.
+      ciphers: optional cipher method
+      ssl_method: optional ssl_method
+      is_sas: boolean to determine next request
+    """
+    try:
+      self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
+    except AssertionError as e:
+      try:
+        if is_sas:
+          self._sas.GetFullActivityDump(client_cert, client_key)
+        else:
+          device_a = json.load(
+            open(os.path.join('testcases', 'testdata', 'device_a.json')))
+          request = {'registrationRequest': [device_a]}
+          self._sas.Registration(request, ssl_cert=client_cert, ssl_key=client_key)
+      except HTTPError as e:
+        logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
+        self.assertEqual(e.error_code, 403)
+      else:
+        self.fail(msg="TLS Handshake and HTTPS request are success. but Expected: failure")
 
   def createShortLivedCertificate(self, client_type, cert_name, cert_duration_minutes):
     """Generates short lived certificate for SCS/SDS 17,18 & 19

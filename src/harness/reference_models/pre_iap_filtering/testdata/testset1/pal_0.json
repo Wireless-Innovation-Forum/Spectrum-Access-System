@@ -1,0 +1,26 @@
+{
+  "palId": "pal_0",
+  "fipsCode":20041084200,
+  "censusYear": 2010,
+  "licensee": "CBSD Operator No.0",
+  "userID": "user_0",
+  "registrationInformation": {
+    "frn": "test_fcc_frn_pal_0",
+    "callSign": "call_sign_pal_0",
+    "licenseConditions": "license_pal_0"
+  },
+  "license": {
+    "id": "test_fcc_id_pal_0"
+  },
+  "licenseStatus": "VALID",
+  "channelAssignment": {
+    "primaryAssignment": {
+      "lowFrequency": 3650000000,
+      "highFrequency": 3660000000
+    },
+    "secondaryAssignment": {
+      "lowFrequency": 3580000000,
+      "highFrequency": 3600000000
+    }
+  }
+}

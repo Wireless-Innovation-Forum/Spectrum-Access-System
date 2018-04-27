@@ -26,11 +26,6 @@ from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 DEFAULT_CRL_URL = 'http://localhost:9007/ca.crl'
 DEFAULT_CRL_SERVER_PORT = 80
-CERT_TYPE = {
-    '1': 'CBSD',
-    '2': 'DP',
-    '3': 'SAS'
-}
 MENU_ACTIONS = {}
 MENU_ID_MAIN_MENU = '-1'
 MENU_ID_QUIT = '0'
@@ -182,17 +177,8 @@ def revokeCertificate():
   # Retrives the all certificates from certs directory.
   cert_name = getCertificateNameToBlacklist()
   logging.info('Certificate selected to blacklist is:%s', cert_name)
-  print "select the certificate type:"
-  print "\n".join("[%s] %s" % (cert_id, cert_type)
-                  for (cert_id, cert_type) in sorted(CERT_TYPE.iteritems()))
-  cert_type = raw_input(CLI_PROMPT_TEXT)
-  if cert_type not in CERT_TYPE:
-    raise Exception("RunTimeError:Type of certificate to be blacklisted is incorrect."
-                    "Please select one of the values:%s" % CERT_TYPE.values())
-
   revoke_cert_command = "cd {0} && ./revoke_and_generate_crl.sh " \
-                        "{1} {2}".format(getCertsDirectoryAbsolutePath(),
-                                         CERT_TYPE[cert_type],
+                        "-r {1}".format(getCertsDirectoryAbsolutePath(),
                                          cert_name)
   command_exit_status = subprocess.call(revoke_cert_command, shell=True)
   if command_exit_status:
