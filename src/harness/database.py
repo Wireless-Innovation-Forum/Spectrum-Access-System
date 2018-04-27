@@ -125,7 +125,7 @@ class DatabaseHTTPServer(HTTPServer):
     self.name = name
     self.base_url = base_url
     self.authorization = authorization
-    self.server.file_paths = {}
+    self.file_paths = {}
 
 class DatabaseHandler(SimpleHTTPRequestHandler):
   def translate_path(self, path):
@@ -148,12 +148,11 @@ d = DatabaseServer(
     'Test',
     'localhost',
     8000,
-    'allsitedata',
-    os.path.expanduser('~/allsitedata'),
     cert_file=os.path.expanduser('~/dev_certs/test_cert.pem'),
     key_file=os.path.expanduser('~/dev_certs/test_cert.key'),
     ca_cert_file=os.path.expanduser('~/dev_certs/test_cert_root.pem'),
     authorization='Basic test:pass'
     )
+d.setFileToServe('allsitedata', os.path.expanduser('~/allsitedata'))
 d.start()
 raw_input('Press enter to continue: ')
