@@ -31,8 +31,6 @@ from pykml import parser
 import zipfile
 
 from reference_models.geo import CONFIG
-from reference_models.geo import utils
-from reference_models.geo import vincenty
 
 
 # The reference files.
@@ -269,38 +267,3 @@ def GetFccOfficeLocations():
       'longitude': lng
   } for lat, lng in np.loadtxt(fcc_file, delimiter=',', usecols=(1, 2))]
   return fcc_offices
-
-
-def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
-  """Returns the closest point on the canadian border within some distance.
-
-  Args:
-    latitude: The point latitude (degrees).
-    longitude: The point longitude (degrees).
-    max_dist_km: The max distance for the border point (km).
-
-  Returns:
-    Either:
-      None if no border point is within the requested `max dist_km`
-      or a (lat, lon, distance_km, bearing) tuple of the closest point in US/Canada border:
-        * lat, lon: closest point coordinates.
-        * distance_km: the distance to closest point (km).
-        * bearing: the bearing of the closest point (degrees, clockwise relative to north).
-  """
-  # Prefiltering of the border for quicker processing
-  one_degree = utils.WGS_EQUATORIAL_RADIUS_KM2 * 2 * np.pi / 360. * np.cos(latitude*np.pi/180.)
-  max_delta = max_dist_km / one_degree * 1.1
-  border_cap = GetUsCanadaBorder().intersection(
-      sgeo.Point(longitude, latitude).buffer(max_delta))
-  if not border_cap or 'LineString' not in border_cap.type:
-    return None
-  # Find closest point
-  points_dists = [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]),
-                   point)
-                  for point in zip(*border_cap.xy)]
-  closest = min(points_dists)
-  closest_dist = closest[0][0]
-  if closest_dist > max_dist_km:
-    return None
-  closest_bearing = closest[0][1]
-  return closest[1][1], closest[1][0], closest_dist, closest_bearing

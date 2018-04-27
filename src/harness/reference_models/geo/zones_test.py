@@ -76,18 +76,6 @@ class TestZones(unittest.TestCase):
         approx_len += d
       self.assertTrue(np.abs(approx_len - exp_borders_length[j]) < 25)
 
-  def test_closest_border_point(self):
-    # Specific ppint
-    res0 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.5)
-    self.assertTrue(res0 is None)
-    res0 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.99)
-    self.assertTrue(res0 is None)
-    res1 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 30)
-    self.assertAlmostEqual(res1[0], 42.04095, 4)
-    self.assertAlmostEqual(res1[1], -83.14962, 4)
-    self.assertAlmostEqual(res1[2], 4.0, 3)
-    self.assertAlmostEqual(res1[3], 90, 2)
-
 
 if __name__ == '__main__':
   unittest.main()

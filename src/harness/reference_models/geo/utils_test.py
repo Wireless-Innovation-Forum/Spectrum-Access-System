@@ -241,6 +241,50 @@ class TestUtils(unittest.TestCase):
     self.assertEqual(poly2.difference(poly).area, 0)
     self.assertEqual(poly.difference(poly2).area, 0)
 
+  def test_closest_border_point(self):
+    # Specific point 4km away from border
+    res0 = utils.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.5)
+    self.assertTrue(res0 is None)
+    res0 = utils.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.99)
+    self.assertTrue(res0 is None)
+    res1 = utils.GetClosestCanadianBorderPoint(42.040967, -83.197932, 30)
+    self.assertAlmostEqual(res1[0], 42.04095, 4)
+    self.assertAlmostEqual(res1[1], -83.14962, 4)
+    self.assertAlmostEqual(res1[2], 4.0, 3)
+    self.assertAlmostEqual(res1[3], 90, 2)
+
+  def test_check_sharing_zone(self):
+    # Less than 8km
+    status, _, _ = utils.CheckCbsdInBorderSharingZone(42.040967, -83.197932,
+                                                      270, 65)
+    self.assertTrue(status)
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.040967, -83.197932,
+                                                          90, 65)
+    self.assertTrue(status)
+    self.assertAlmostEqual(lat, 42.04095, 4)
+    self.assertAlmostEqual(lon, -83.14962, 4)
+    # At 57km
+    status, _, _ = utils.CheckCbsdInBorderSharingZone(42.0389, -83.838,
+                                                      90, 65)
+    self.assertFalse(status)
+    # At 20km
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.0407, -83.3912,
+                                                          90, 65)
+    self.assertTrue(status)
+    self.assertAlmostEqual(lat, 42.04095, 4)
+    self.assertAlmostEqual(lon, -83.14962, 4)
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.0407, -83.3912,
+                                                          270, 65)
+    self.assertFalse(status)
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.0407, -83.3912,
+                                                          350-32.7, 65)
+    self.assertFalse(status)
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.0407, -83.3912,
+                                                          350-32.3, 65)
+    self.assertTrue(status)
+    status, lat, lon = utils.CheckCbsdInBorderSharingZone(42.0407, -83.3912,
+                                                          270, 360)
+    self.assertTrue(status)
 
 
 if __name__ == '__main__':
