@@ -51,13 +51,34 @@ class TestZones(unittest.TestCase):
     self.assertTrue(approx_area > us_area * 0.9 and
                     approx_area < us_area * 1.1)
 
-  def test_read_urban_areas(self):
-    z = zones.GetUrbanAreas()
-    exp_area = 275000
-    approx_area = z.area * 110**2 * np.cos(44*np.pi/180)
-    self.assertTrue(z.is_valid)
-    self.assertTrue(approx_area > exp_area * 0.9 and
-                    approx_area < exp_area * 1.1)
+  def test_read_uscanadaborder(self):
+    borders = zones.GetUsCanadaBorder()
+    self.assertTrue(borders.is_valid)
+    # Official length of main and alaska are resp 3987 miles and 1538 miles
+    exp_borders_length = np.array([3987, 1538]) * 1.60934
+    for j, border in enumerate(borders):
+      approx_len = 0
+      points = zip(*border.xy)
+      for k in xrange(len(points)-1):
+        if points[k][0] > -67.8 and points[k][1] < 44.77:
+          continue  # the border file includes a maritime part not accounted in border length
+        dlat = points[k+1][1] - points[k][1]
+        dlon = points[k+1][0] - points[k][0]
+        d = np.sqrt((dlat * 111)**2 + (dlon * 111 * np.cos(points[k][1]*np.pi/180.))**2)
+        approx_len += d
+      self.assertTrue(np.abs(approx_len - exp_borders_length[j]) < 25)
+
+  def test_closest_border_point(self):
+    # Specific ppint
+    res0 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.5)
+    self.assertTrue(res0 is None)
+    res0 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 3.99)
+    self.assertTrue(res0 is None)
+    res1 = zones.GetClosestCanadianBorderPoint(42.040967, -83.197932, 30)
+    self.assertAlmostEqual(res1[0], 42.04095, 4)
+    self.assertAlmostEqual(res1[1], -83.14962, 4)
+    self.assertAlmostEqual(res1[2], 4.0, 3)
+    self.assertAlmostEqual(res1[3], 90, 2)
 
 
 if __name__ == '__main__':

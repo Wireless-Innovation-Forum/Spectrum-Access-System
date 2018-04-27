@@ -31,6 +31,8 @@ from pykml import parser
 import zipfile
 
 from reference_models.geo import CONFIG
+from reference_models.geo import utils
+from reference_models.geo import vincenty
 
 
 # The reference files.
@@ -42,6 +44,7 @@ FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 # The reference files for extra zones.
 USBORDER_FILE = 'usborder.kmz'
 URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
+USCANADA_BORDER_FILE = 'uscabdry_fine.kmz'
 
 # One source of data is the the `protection_zones.kml` preprocessed by
 # Winnforum (see src/data/), and which holds both the protection zone and
@@ -56,6 +59,8 @@ _coastal_zone = None
 _exclusion_zones = None
 _dpa_zones = None
 _border_zone = None
+_uscanada_border = None
+
 
 def _SplitCoordinates(coord):
   """Returns lon,lat from 'coord', a KML coordinate string field."""
@@ -75,6 +80,13 @@ def _GetPolygon(poly):
   except AttributeError:
     pass
   return sgeo.Polygon(out_points, holes=int_points)
+
+
+def _GetLineString(linestring):
+  """Returns a |shapely.geometry.LineString| from a KML 'LineString' element."""
+  coords = linestring.coordinates.text.strip().split(' ')
+  points = [_SplitCoordinates(coord) for coord in coords]
+  return sgeo.LineString(points)
 
 
 def _ReadKmlZones(kml_path, root_id_zone='Placemark', simplify=0):
@@ -123,6 +135,49 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', simplify=0):
   return zones
 
 
+def _ReadKmlBorder(kml_path, root_id='Placemark'):
+  """Gets the border defined in a KML.
+
+  Args:
+    kml_path: The path name to the border file KML or KMZ.
+    root_id_zone: The root id defininig a zone. Usually it is 'Placemark'.
+
+  Returns:
+    A dictionary of |shapely| LineString keyed by their names.
+  """
+  if kml_path.endswith('kmz'):
+    with zipfile.ZipFile(kml_path) as kmz:
+      kml_name = [info.filename for info in kmz.infolist()
+                  if os.path.splitext(info.filename)[1] == '.kml'][0]
+      with kmz.open(kml_name) as kml_file:
+        root = parser.parse(kml_file).getroot()
+  else:
+    with open(kml_path, 'r') as kml_file:
+      root = parser.parse(kml_file).getroot()
+
+  tag = root.tag[:root.tag.rfind('}') + 1]
+  linetrings_dict = {}
+  for element in root.findall('.//' + tag + root_id):
+    # Ignore nested root_id within root_id
+    if element.find('.//' + tag + root_id) is not None:
+      continue
+    name = element.name.text
+    linestrings = [
+        _GetLineString(l)
+        for l in element.findall('.//' + tag + 'LineString')
+    ]
+    if not linestrings:
+      continue
+    if len(linestrings) == 1:
+      linestring = linestrings[0]
+    else:
+      linestring = sgeo.MultiLineString(linestrings)
+
+    linetrings_dict[name] = linestring
+
+  return linetrings_dict
+
+
 def GetCoastalProtectionZone():
   """Returns the coastal protection zone as a |shapely.MultiPolygon|.
 
@@ -166,10 +221,20 @@ def GetDpaZones():
   return _dpa_zones
 
 
+def GetUsCanadaBorder():
+  """Gets the US/Canada border as a |shapely.MultiLineString|."""
+  global _uscanada_border
+  if _uscanada_border is None:
+    kml_file = os.path.join(CONFIG.GetFccDir(), USCANADA_BORDER_FILE)
+    lines = _ReadKmlBorder(kml_file)
+    _uscanada_border = ops.unary_union(lines.values())
+  return _uscanada_border
+
+
 def GetUsBorder():
   """Gets the US border as a |shapely.MultiPolygon|.
 
-  This is a composite US border.
+  This is a composite US border for simulation purposes only.
   """
   global _border_zone
   if _border_zone is None:
@@ -204,3 +269,38 @@ def GetFccOfficeLocations():
       'longitude': lng
   } for lat, lng in np.loadtxt(fcc_file, delimiter=',', usecols=(1, 2))]
   return fcc_offices
+
+
+def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
+  """Returns the closest point on the canadian border within some distance.
+
+  Args:
+    latitude: The point latitude (degrees).
+    longitude: The point longitude (degrees).
+    max_dist_km: The max distance for the border point (km).
+
+  Returns:
+    Either:
+      None if no border point is within the requested `max dist_km`
+      or a (lat, lon, distance_km, bearing) tuple of the closest point in US/Canada border:
+        * lat, lon: closest point coordinates.
+        * distance_km: the distance to closest point (km).
+        * bearing: the bearing of the closest point (degrees, clockwise relative to north).
+  """
+  # Prefiltering of the border for quicker processing
+  one_degree = utils.WGS_EQUATORIAL_RADIUS_KM2 * 2 * np.pi / 360. * np.cos(latitude*np.pi/180.)
+  max_delta = max_dist_km / one_degree * 1.1
+  border_cap = GetUsCanadaBorder().intersection(
+      sgeo.Point(longitude, latitude).buffer(max_delta))
+  if not border_cap or 'LineString' not in border_cap.type:
+    return None
+  # Find closest point
+  points_dists = [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]),
+                   point)
+                  for point in zip(*border_cap.xy)]
+  closest = min(points_dists)
+  closest_dist = closest[0][0]
+  if closest_dist > max_dist_km:
+    return None
+  closest_bearing = closest[0][1]
+  return closest[1][1], closest[1][0], closest_dist, closest_bearing
