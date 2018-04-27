@@ -213,8 +213,6 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_EXZ_1(self,config_filename):
     """Injected Exclusion Zones
 
-    The response should be SUCCESS for CBSDs located outside 50meters of all
-    Exclusion Zones.
     The responseCode = 400 for CBSDs located within 50meters of all Exclusion Zones
     or inside Exclusion Zones.
     """
@@ -294,21 +292,21 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N1_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_N1_1 just outside of 50 meters from exclusion zone of
-    # 'Fort Carson Military Reservation'
+    # 'East-Gulf Combined Contour'
     device_N1_1['installationParam']['latitude'] = 40.31260
     device_N1_1['installationParam']['longitude'] = -96.25100
 
     device_N1_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_N1_2 just outside of 50 meters from exclusion zone of
-    # 'Yuma Proving ground'
-    device_N1_2['installationParam']['latitude'] = 33.58101
-    device_N1_2['installationParam']['longitude'] = -114.35775
+    # 'West Combined Contour'
+    device_N1_2['installationParam']['latitude'] = 33.58101 
+    device_N1_2['installationParam']['longitude'] = -114.35775 
 
     device_N1_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_N1_3 just outside of 50 meters from exclusion zone of
-    # 'White Sands Missile Range
+    # 'West Combined Contour'
     device_N1_3['installationParam']['latitude'] = 33.85263
     device_N1_3['installationParam']['longitude'] = -106.57198
 
@@ -316,18 +314,18 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N2_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_N2_1 to a location inside the exclusion zone of
-    # 'Fort Carson Military Reservation'
-    device_N2_1['installationParam']['latitude'] = 37.47922
-    device_N2_1['installationParam']['longitude'] = -103.99037
+    # 'West Combined Contour'
+    device_N2_1['installationParam']['latitude'] = 37.26531 
+    device_N2_1['installationParam']['longitude'] = -121.89331
     device_N2_1['fccId'] = "test_fcc_id_bb"
     device_N2_1['cbsdSerialNumber'] = "test_serial_number_bb"
 
     device_N2_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_N2_2 to a location inside the exclusion zone of
-    # 'White Sands Missile Range'
-    device_N2_2['installationParam']['latitude'] = 33.39486
-    device_N2_2['installationParam']['longitude'] = -106.40535
+    # 'East-Gulf Combined Contour'
+    device_N2_2['installationParam']['latitude'] = 30.69461
+    device_N2_2['installationParam']['longitude'] = -89.82421 
     device_N2_2['fccId'] = "test_fcc_id_cc"
     device_N2_2['cbsdSerialNumber'] = "test_serial_number_cc"
 
@@ -335,27 +333,27 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N3_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_N3_1 to a location within 50 meters from the exclusion zone
-    # of 'White Sands Missile Range'
-    device_N3_1['installationParam']['latitude'] = 33.16232
-    device_N3_1['installationParam']['longitude'] = -106.77766
+    # of 'East-Gulf Combined Contour'
+    device_N3_1['installationParam']['latitude'] = 43.94141
+    device_N3_1['installationParam']['longitude'] = -71.50314
     device_N3_1['fccId'] = "test_fcc_id_aaa"
     device_N3_1['cbsdSerialNumber'] = "test_serial_number_aaa"
 
     device_N3_2 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_N3_2 to a location within 50 meters from the exclusion zone
-    # of 'Yuma Proving Ground'
-    device_N3_2['installationParam']['latitude'] = 33.05882
-    device_N3_2['installationParam']['longitude'] = -113.945
+    # of 'West Combined Contour'
+    device_N3_2['installationParam']['latitude'] = 47.35184
+    device_N3_2['installationParam']['longitude'] = -123.68957
     device_N3_2['fccId'] = "test_fcc_id_bbb"
     device_N3_2['cbsdSerialNumber'] = "test_serial_number_bbb"
 
     device_N3_3 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_N3_3 to a location within 50 meters from the exclusion zone
-    # of 'Fort Irwin'
-    device_N3_3['installationParam']['latitude'] = 35.39799
-    device_N3_3['installationParam']['longitude'] = -116.29082
+    # of 'East-Gulf Combined Contour'
+    device_N3_3['installationParam']['latitude'] = 37.78916
+    device_N3_3['installationParam']['longitude'] = -78.03314
     device_N3_3['fccId'] = "test_fcc_id_ccc"
     device_N3_3['cbsdSerialNumber'] = "test_serial_number_ccc"
 
@@ -482,8 +480,6 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
   def test_WINNF_FT_S_EXZ_2(self, config_filename):
     """Exclusion Zones defined in NTIA TR 15-517
 
-    The response should be SUCCESS for CBSDs located outside 50meters of all
-    Exclusion Zones.
     The responseCode = 400 for CBSDs located within 50meters of all Exclusion Zones
     or inside Exclusion Zones.
     """
@@ -518,11 +514,6 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     response_N1 = self._sas.Grant(request_N1)['grantResponse']
     self.assertEqual(len(response_N1), len(grant_request_N1))
 
-    for response_num, response in enumerate(response_N1):
-      self.assertEqual(response['cbsdId'], request_N1['grantRequest'][response_num]['cbsdId'])
-      self.assertTrue('grantId' in response)
-      self.assertEqual(response['response']['responseCode'], 0)
-
     # Generating grant requests for N2 and validating responses
     # Request grant
     grant_request_N2 = config['grantRequestsN2']
@@ -531,6 +522,11 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     request_N2 = {'grantRequest': grant_request_N2}
     response_N2 = self._sas.Grant(request_N2)['grantResponse']
     self.assertEqual(len(response_N2), len(grant_request_N2))
+
+    for response_num, response in enumerate(response_N2):
+      self.assertEqual(response['cbsdId'], request_N2['grantRequest'][response_num]['cbsdId'])
+      self.assertFalse('grantId' in response)
+      self.assertEqual(response['response']['responseCode'], 400)
 
     # Generating grant requests for N3 and validating responses
     grant_request_N3 = config['grantRequestsN3']
