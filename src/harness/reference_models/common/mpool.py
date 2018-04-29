@@ -18,6 +18,15 @@ Managing pool in one place avoids issue of either:
  - pool being issued locally in a function and loosing its context
    across repeated function calls.
  - centralize management of common shared memory
+
+Usage:
+# Configure the pool
+pool.Configure(-1)
+
+# Use the multiprocessing pool
+pool = mpool.Pool()
+pool.map(...)
+
 """
 # TODO(sbdt): review behavior in multiple platforms.
 
@@ -68,8 +77,10 @@ def Configure(num_processes=-1, pool=None):
   or inside a block `if __name__ == '__main__':`.
 
   Args:
-    num_processes: The number of processes to use for the calculation. If -1, use
-      half of the cpu. Only used when `pool` not specified.
+    num_processes: The number of processes to use for the calculation, limited to the
+      maximum number of cpus available.
+      If -1, use half of the cpus. If -2, use all the cpus.
+      Only used when `pool` not specified.
     pool: An optional multiprocessing |Pool|. If not specified, a pool will be
       automatically created with `num_processes`.
   """
@@ -78,8 +89,13 @@ def Configure(num_processes=-1, pool=None):
   if pool is not None:
     _pool = pool
   else:
-    if num_processes < 0:
-      num_processes = multiprocessing.cpu_count() / 2
+    num_cpus = multiprocessing.cpu_count()
+    if num_processes == -1:
+      num_processes = num_cpus / 2
+    elif num_processes < 0:
+      num_processes = num_cpus
+    if num_processes > num_cpus:
+      num_processes = num_cpus
     if pool is None or num_processes != _num_processes:
       _pool = futures.ProcessPoolExecutor(num_processes)
       _num_processes = num_processes

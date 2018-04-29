@@ -12,6 +12,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+# See the test_results/aggregate_interference_unit_test_calc_sheet.xlsx
+# for a detail on the calculations.
 
 import os
 import unittest
@@ -28,28 +30,27 @@ class TestAggregateInterference(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-
-    # Load the list of CBSD records with registration and grant details 
+    # Load the list of CBSD records with registration and grant details
     cbsd_filename = ['cbsd_uut_ut.json', 'cbsd_th1_ut.json']
     cls.cbsd_list = []
     for cbsd_file in cbsd_filename:
       cbsd_record = json.load(open(os.path.join(TEST_DIR, cbsd_file)))
       cls.cbsd_list.append(cbsd_record)
 
-    # Load the protection entity data with overlapping frequency of CBSD grants 
+    # Load the protection entity data with overlapping frequency of CBSD grants
     cls.fss_record = json.load(open(os.path.join(TEST_DIR, 'fss_ut.json')))
     cls.ppa_record = json.load(open(os.path.join(TEST_DIR, 'ppa_ut.json')))
     cls.pal_record = json.load(open(os.path.join(TEST_DIR, 'pal_ut.json')))
-    cls.gwpz_record = json.load(open(os.path.join(TEST_DIR, 'gwpz_ut.json'))) 
+    cls.gwpz_record = json.load(open(os.path.join(TEST_DIR, 'gwpz_ut.json')))
     cls.esc_record = json.load(open(os.path.join(TEST_DIR, 'esc_ut.json')))
-
 
   def setUp(self):
     self.original_interference = interf.computeInterference
 
   def tearDown(self):
     interf.computeInterference = self.original_interference
-   
+
+
   def test_AggregateInterferenceFssCochannel(self):
     expected_interference = {34.4116: {-100.57114: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
         2.2316393176900284, 2.2316393176900284, 0, 0, 0, 0, 0, 0, 0, 0]}}
@@ -57,39 +58,39 @@ class TestAggregateInterference(unittest.TestCase):
     interf.computeInterference = testutils.FakeInterferenceCalculator()
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForFssCochannel(
                              TestAggregateInterference.fss_record, TestAggregateInterference.cbsd_list)
-    self.assertSameInterference(allowed_interference, expected_interference) 
-  
+    self.assertSameInterference(allowed_interference, expected_interference)
+
   def test_AggregateInterferenceFssBlocking(self):
-    expected_interference = {34.4116: {-100.57114: [4.462898399659984]}} 
+    expected_interference = {34.4116: {-100.57114: [4.462898399659984]}}
 
     interf.computeInterference = testutils.FakeInterferenceCalculator()
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForFssBlocking(
                              TestAggregateInterference.fss_record, TestAggregateInterference.cbsd_list)
     self.assertSameInterference(allowed_interference, expected_interference)
-  
+
   def test_AggregateInterferenceEsc(self):
     expected_interference = {34.41029: {-100.56683: [0, 0, 2.229908301599665, 2.229908301599665,\
          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2.2323074278051225, 2.2323074278051225,\
-          0, 0, 0, 0]}} 
-      
+          0, 0, 0, 0]}}
+
     interf.computeInterference = testutils.FakeInterferenceCalculator()
 
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForEsc(
                              TestAggregateInterference.esc_record, TestAggregateInterference.cbsd_list)
     self.assertSameInterference(allowed_interference, expected_interference)
-    
+
   def test_AggregateInterferencePpa(self):
     expected_interference = {34.40888888888889: {-100.57222222222222: [2.5022498449008137,\
         2.5022498449008137]}, 34.40944444444444: {-100.57277777777779: [2.5022498449008053,\
-        2.5022498449008053], -100.57222222222222: [2.50256995666338, 2.50256995666338]}} 
+        2.5022498449008053], -100.57222222222222: [2.50256995666338, 2.50256995666338]}}
 
     interf.computeInterference = testutils.FakeInterferenceCalculator()
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForPpa(
-                             TestAggregateInterference.ppa_record, 
-                             [TestAggregateInterference.pal_record], 
+                             TestAggregateInterference.ppa_record,
+                             [TestAggregateInterference.pal_record],
                              TestAggregateInterference.cbsd_list)
     self.assertSameInterference(allowed_interference, expected_interference)
- 
+
   def test_AggregateInterferenceGwpz(self):
     expected_interference = {34.40888888888889: {-100.57222222222222: [2.5022498449008137,\
          2.5022498449008137, 0, 0, 0]}, 34.40944444444444: {-100.57277777777779: [2.5022498449008053,\
@@ -100,7 +101,7 @@ class TestAggregateInterference(unittest.TestCase):
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForGwpz(
                              TestAggregateInterference.gwpz_record, TestAggregateInterference.cbsd_list)
     self.assertSameInterference(allowed_interference, expected_interference)
-  
+
   def assertSameInterference(self, allowed_interference, expected_interference):
     return self.assertEqual(expected_interference, allowed_interference)
 

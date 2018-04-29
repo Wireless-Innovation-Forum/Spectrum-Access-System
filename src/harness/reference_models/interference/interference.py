@@ -27,8 +27,6 @@
 
   The common utility APIs are:
 
-    getGrantObjectsFromFAD
-    getAllGrantInformationFromCbsdDataDump
     findOverlappingGrantsInsideNeighborhood
     getProtectedChannels
 
@@ -36,20 +34,17 @@
   FSS/GWPZ/PPA/ESC incumbent types
 ==================================================================================
 """
-import numpy as np
+from collections import namedtuple
 import multiprocessing
 from multiprocessing.managers import BaseManager
+
+import numpy as np
+
+from reference_models.common import data
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
-from sas_test_harness import generateCbsdReferenceId
-from collections import namedtuple
-from enum import Enum
-
-# Initialize terrain driver
-# terrainDriver = terrain.TerrainDriver()
-terrainDriver = wf_itm.terrainDriver
 
 # Set constant parameters based on requirements in the WINNF-TS-0112
 # [R2-SGN-16]
@@ -106,58 +101,17 @@ GWPZ_PPA_HEIGHT = 1.5
 # In-band insertion loss
 IN_BAND_INSERTION_LOSS = 0.5
 
-# Define an enumeration class named ProtectedEntityType with members
-# 'GWPZ_AREA', 'PPA_AREA', 'FSS_CO_CHANNEL', 'FSS_BLOCKING', 'ESC'
-
-
-class ProtectedEntityType(Enum):
-  GWPZ_AREA = 1
-  PPA_AREA = 2
-  FSS_CO_CHANNEL = 3
-  FSS_BLOCKING = 4
-  ESC = 5
-
 # Global container to store neighborhood distance type of all the protection
 _DISTANCE_PER_PROTECTION_TYPE = {
-   ProtectedEntityType.GWPZ_AREA :  (GWPZ_NEIGHBORHOOD_DIST, GWPZ_NEIGHBORHOOD_DIST),
-   ProtectedEntityType.PPA_AREA : ( PPA_NEIGHBORHOOD_DIST,  PPA_NEIGHBORHOOD_DIST),
-   ProtectedEntityType.FSS_CO_CHANNEL : ( FSS_CO_CHANNEL_NEIGHBORHOOD_DIST,  FSS_CO_CHANNEL_NEIGHBORHOOD_DIST),
-   ProtectedEntityType.FSS_BLOCKING : ( FSS_BLOCKING_NEIGHBORHOOD_DIST,  FSS_BLOCKING_NEIGHBORHOOD_DIST),
-   ProtectedEntityType.ESC: (ESC_NEIGHBORHOOD_DIST_A, ESC_NEIGHBORHOOD_DIST_B)
-    }
-
-# Define CBSD grant, i.e., a tuple with named fields of 'latitude',
-# 'longitude', 'height_agl', 'indoor_deployment', 'antenna_azimuth',
-# 'antenna_gain', 'antenna_beamwidth', 'cbsd_category',
-# 'max_eirp', 'low_frequency', 'high_frequency', 'is_managed_grant'
-CbsdGrantInformation = namedtuple('CbsdGrantInformation',
-                       ['latitude', 'longitude', 'height_agl',
-                        'indoor_deployment', 'antenna_azimuth', 'antenna_gain',
-                        'antenna_beamwidth', 'cbsd_category',
-                        'max_eirp', 'low_frequency', 'high_frequency',
-                        'is_managed_grant'])
-
-# Define protection constraint, i.e., a tuple with named fields of
-# 'latitude', 'longitude', 'low_frequency', 'high_frequency'
-ProtectionConstraint = namedtuple('ProtectionConstraint',
-                                  ['latitude', 'longitude', 'low_frequency',
-                                   'high_frequency', 'entity_type'])
-
-# Define FSS Protection Point, i.e., a tuple with named fields of
-# 'latitude', 'longitude', 'height_agl', 'max_gain_dbi', 'pointing_azimuth',
-# 'pointing_elevation'
-FssInformation = namedtuple('FssInformation',
-                            ['height_agl', 'max_gain_dbi',
-                             'pointing_azimuth', 'pointing_elevation'])
-
-# Define ESC information, i.e., a tuple with named fields of
-# 'antenna_height', 'antenna_azimuth', 'antenna_gain_pattern'
-EscInformation = namedtuple('EscInformation',
-                            ['antenna_height', 'antenna_azimuth',
-                             'antenna_gain_pattern'])
+    data.ProtectedEntityType.GWPZ_AREA :  (GWPZ_NEIGHBORHOOD_DIST, GWPZ_NEIGHBORHOOD_DIST),
+    data.ProtectedEntityType.PPA_AREA : ( PPA_NEIGHBORHOOD_DIST,  PPA_NEIGHBORHOOD_DIST),
+    data.ProtectedEntityType.FSS_CO_CHANNEL : ( FSS_CO_CHANNEL_NEIGHBORHOOD_DIST,  FSS_CO_CHANNEL_NEIGHBORHOOD_DIST),
+    data.ProtectedEntityType.FSS_BLOCKING : ( FSS_BLOCKING_NEIGHBORHOOD_DIST,  FSS_BLOCKING_NEIGHBORHOOD_DIST),
+    data.ProtectedEntityType.ESC: (ESC_NEIGHBORHOOD_DIST_A, ESC_NEIGHBORHOOD_DIST_B)
+}
 
 
-class AggregateInterferenceOutputFormat:
+class AggregateInterferenceOutputFormat(object):
   """Implementation of output format of aggregate interference
 
   This class is used to generate specified output format for post IAP
@@ -229,10 +183,10 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
   Args:
     grants: an iterator of grants with attributes latitude and longitude
     protection_point: location of a protected entity as (longitude,latitude) tuple
-    entity_type: enum of type ProtectedEntityType
+    entity_type: enum of type |data.ProtectedEntityType|.
   Returns:
     grants_inside: a list of grants, each one being a namedtuple of type
-                   CbsdGrantInformation, of all CBSDs inside the neighborhood
+                   |data.CbsdGrantInfo|, of all CBSDs inside the neighborhood
                    of the protection constraint.
   """
   # Initialize an empty list
@@ -250,14 +204,15 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
   return grants_inside
 
+
 def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_type):
   """Checks if grant frequency overlaps with protection constraint frequency range
 
   Args:
-    grant: namedtuple of type CbsdGrantInformation 
-    ch_low_freq: low frequency of protection channel 
-    ch_high_freq: high frequency of protection channel 
-    protection_ent_type: enum of type ProtectedEntityType
+    grant: namedtuple of type |data.CbsdGrantInfo|
+    ch_low_freq: low frequency of protection channel
+    ch_high_freq: high frequency of protection channel
+    protection_ent_type: enum of type |data.ProtectedEntityType|.
   Returns:
     True, if grant frequency overlaps with protection constraint frequency
     range else False
@@ -270,10 +225,10 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
   # ESC Passband is 3550-3680MHz
   # Category A CBSD grants are considered in the neighborhood only for
   # constraint frequency range 3550-3660MHz
-  if (protection_ent_type == ProtectedEntityType.ESC and
+  if (protection_ent_type == data.ProtectedEntityType.ESC and
         grant.cbsd_category == 'A' and
         ch_high_freq > ESC_CAT_A_HIGH_FREQ_HZ):
-        freq_check = False 
+        freq_check = False
 
   return freq_check
 
@@ -282,138 +237,21 @@ def findOverlappingGrants(grants, constraint):
   """Finds grants overlapping with protection entity
 
   Grants overlapping with frequency range of the protection entity are
-  considered as overlapping grants
+  considered as overlapping grants.
 
   Args:
-    grants: an iterator of grants with attributes latitude and longitude
-    constraint: protection constraint of type ProtectionConstraint
+    grants: an iterator of grants with attributes latitude and longitude.
+    constraint: protection constraint of type |data.ProtectionConstraint|.
   Returns:
     grants_overlap: a list of grants, each one being a namedtuple of type
-                   CbsdGrantInformation, of all CBSDs inside the neighborhood
+                   |data.CbsdGrantInfo|, of all CBSDs inside the neighborhood
                    of the protection constraint.
   """
-
-  # Initialize an empty list
-  grants_overlap = []
-
-  # Loop over each CBSD grant
-  for grant in grants:
-   
-    freq_check = grantFrequencyOverlapCheck(grant, constraint.low_frequency, 
-                   constraint.high_frequency, constraint.entity_type)
-    # Append the grants information if it is inside the neighborhood of
-    # protection constraint
-    if freq_check:
-      grants_overlap.append(grant)
-
-  return grants_overlap 
-
-
-def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
-    """Returns the CBSDs that are not part of a PPA cluster list.
-
-    Args:
-      cbsds : List of CBSDData objects.
-      ppa_record : A PPA record dictionary.
-    Returns:
-      List of CBSDs that are not part of the PPA cluster list.
-    """
-    cbsds_not_part_of_ppa_cluster = []
-    # Compare the list of CBSDs with the PPA cluster list
-    for cbsd in cbsds:
-      cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
-                            cbsd['registration']['cbsdSerialNumber'])
-      if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
-        cbsds_not_part_of_ppa_cluster.append(cbsd)
-
-    return cbsds_not_part_of_ppa_cluster
-
-
-def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects, ppa_record=None): 
-  """Extracts CBSD grant objects from FAD objects
-
-
-  Args:
-    sas_uut_fad_object: FAD object from SAS UUT
-    sas_th_fad_object: a list of FAD objects from SAS Test Harness
-    ppa_record: A PPA record dictionary.
-  Returns:
-    grant_objects: a list of CBSD grants dictionary containing registration
-    and grants
-  """
-  # List of CBSD grant tuples extracted from FAD record
-  grant_objects = []
- 
-  grant_objects_uut = getAllGrantInformationFromCbsdDataDump(
-                        sas_uut_fad_object.getCbsdRecords(), True, ppa_record)
-
-  grant_objects_test_harness = []
-
-  for fad in sas_th_fad_objects:
-    grant_objects_test_harness.extend(getAllGrantInformationFromCbsdDataDump(
-                                   fad.getCbsdRecords(), False, ppa_record))
-
-  grant_objects = grant_objects_uut + grant_objects_test_harness
-
-  return grant_objects
-
-
-def getAllGrantInformationFromCbsdDataDump(cbsd_data_records, is_managing_sas=True, ppa_record=None):
-  """Extracts list of CbsdGrantInformation namedtuple
-
-  Routine to extract CbsdGrantInformation tuple from CBSD data records from
-  FAD objects. For protected entity of type PPA, CBSDs, which belong to the PPA cluster
-  list are not taken into consideration
-
-  Args:
-    cbsd_data_records: A list CbsdData object retrieved from FAD records.
-    is_managing_sas: flag indicating cbsd data record is from managing SAS or
-                     peer SAS
-                     True - Managing SAS, False - Peer SAS
-    ppa_record: A PPA record dictionary.
-  Returns:
-    grant_objects: a list of grants, each one being a namedtuple of type
-                   CBSDGrantInformation, of all CBSDs from SAS UUT FAD and
-                   SAS Test Harness FAD
-  """
-
-  grant_objects = []
-  
-  if ppa_record is not None:
-    cbsd_data_records = getCbsdsNotPartOfPpaCluster(cbsd_data_records, ppa_record)
-
-  # Loop over each CBSD grant
-  for cbsd_data_record in cbsd_data_records:
-    registration = cbsd_data_record['registration']
-    grants = cbsd_data_record['grants']
-
-    # Check CBSD location
-    lat_cbsd = registration['installationParam']['latitude']
-    lon_cbsd = registration['installationParam']['longitude']
-    height_cbsd = registration['installationParam']['height']
-    height_type_cbsd = registration['installationParam']['heightType']
-    if height_type_cbsd == 'AMSL':
-      altitude_cbsd = terrainDriver.GetTerrainElevation(lat_cbsd, lon_cbsd)
-      height_cbsd = height_cbsd - altitude_cbsd
-
-    for grant in grants:
-      # Return CBSD information
-      cbsd_grant = CbsdGrantInformation(
-        # Get information from the registration
-        latitude=lat_cbsd,
-        longitude=lon_cbsd,
-        height_agl=height_cbsd,
-        indoor_deployment=registration['installationParam']['indoorDeployment'],
-        antenna_azimuth=registration['installationParam']['antennaAzimuth'],
-        antenna_gain=registration['installationParam']['antennaGain'],
-        antenna_beamwidth=registration['installationParam']['antennaBeamwidth'],
-        cbsd_category=registration['cbsdCategory'],
-        max_eirp=grant['operationParam']['maxEirp'],
-        low_frequency=grant['operationParam']['operationFrequencyRange']['lowFrequency'],
-        high_frequency=grant['operationParam']['operationFrequencyRange']['highFrequency'],
-        is_managed_grant=is_managing_sas)
-      grant_objects.append(cbsd_grant)
-  return grant_objects
+  grants_overlap = [grant for grant in grants
+                    if grantFrequencyOverlapCheck(
+                        grant, constraint.low_frequency,
+                        constraint.high_frequency, constraint.entity_type)]
+  return grants_overlap
 
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
@@ -424,8 +262,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   point within GWPZ or PPA protection area
 
   Args:
-    cbsd_grant: a namedtuple of type CbsdGrantInformation
-    constraint: protection constraint of type ProtectionConstraint
+    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
+    constraint: protection constraint of type |data.ProtectionConstraint|.
     h_inc_ant: reference incumbent antenna height (in meters)
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
     region: Region type of the GWPZ or PPA area
@@ -434,7 +272,7 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   """
 
   if (cbsd_grant.latitude == constraint.latitude and
-        cbsd_grant.longitude == constraint.longitude):
+      cbsd_grant.longitude == constraint.longitude):
     db_loss = 0
     incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
   else:
@@ -454,7 +292,7 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                cbsd_grant.antenna_gain)
 
   # Get the exact overlap of the grant over the GWPZ area channels
-  if constraint.entity_type == ProtectedEntityType.GWPZ_AREA:
+  if constraint.entity_type == data.ProtectedEntityType.GWPZ_AREA:
     grant_overlap_bandwidth = min(cbsd_grant.high_frequency, constraint.high_frequency) \
         - max(cbsd_grant.low_frequency, constraint.low_frequency)
   else:
@@ -475,8 +313,8 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   point
 
   Args:
-    cbsd_grant: a namedtuple of type CbsdGrantInformation
-    constraint: protection constraint of type ProtectionConstraint
+    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
+    constraint: protection constraint of type |data.ProtectionConstraint|.
     esc_antenna_info: contains information on ESC antenna height, azimuth,
                       gain and pattern gain
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
@@ -520,8 +358,8 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   Routine to compute interference neighborhood grant causes to FSS protection
   point for co-channel passband
   Args:
-    cbsd_grant: a namedtuple of type CbsdGrantInformation
-    constraint: protection constraint of type ProtectionConstraint
+    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
+    constraint: protection constraint of type |data.ProtectionConstraint|.
     fss_info: contains fss point and antenna information
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
@@ -606,8 +444,8 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   point for blocking passband
 
   Args:
-    cbsd_grant: a namedtuple of type CbsdGrantInformation
-    constraint: protection constraint of type ProtectionConstraint
+    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
+    constraint: protection constraint of type |data.ProtectionConstraint|.
     fss_info: contains fss point and antenna information
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
@@ -679,9 +517,9 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   neighborhood of the protected entity FSS/ESC/PPA/GWPZ.
 
   Args:
-    grant : namedtuple of type CbsdGrantInformation
+    grant : namedtuple of type |data.CbsdGrantInfo|.
     eirp : EIRP of the grant
-    channel_constraint: namedtuple of type ProtectionConstraint
+    channel_constraint: namedtuple of type |data.ProtectionConstraint|.
     fss_info: contains fss point and antenna information
     esc_antenna_info: contains information on ESC antenna height, azimuth,
                       gain and pattern gain
@@ -691,17 +529,17 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   """
 
   # Compute interference to FSS Co-channel protection constraint
-  if channel_constraint.entity_type is ProtectedEntityType.FSS_CO_CHANNEL:
+  if channel_constraint.entity_type is data.ProtectedEntityType.FSS_CO_CHANNEL:
     interference = computeInterferenceFssCochannel(
                      grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to FSS Blocking protection constraint
-  elif channel_constraint.entity_type is ProtectedEntityType.FSS_BLOCKING:
+  elif channel_constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
     interference = computeInterferenceFssBlocking(
                      grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to ESC protection constraint
-  elif channel_constraint.entity_type is ProtectedEntityType.ESC:
+  elif channel_constraint.entity_type is data.ProtectedEntityType.ESC:
     interference = computeInterferenceEsc(
                      grant, channel_constraint, esc_antenna_info, eirp)
 
@@ -739,7 +577,7 @@ def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_fre
    fss_info: Contains fss point and antenna information
    esc_antenna_info: Contains information on ESC antenna height, azimuth,
                      gain and pattern gain
-   protection_ent_type: An enum member of class ProtectedEntityType
+   protection_ent_type: An enum member of class |data.ProtectedEntityType|.
    region_type: Region type of the protection point
    aggregate_interference : object of class type AggregateInterferenceOutputFormat
    Returns:
@@ -757,7 +595,7 @@ def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_fre
   if len(grants_inside) > 0:
     for channel in channels:
       # Get protection constraint over 5MHz channel range
-      protection_constraint = ProtectionConstraint(
+      protection_constraint = data.ProtectionConstraint(
           latitude=protection_point[1], longitude=protection_point[0],
           low_frequency=channel[0], high_frequency=channel[1],
           entity_type=protection_ent_type)

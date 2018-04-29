@@ -22,11 +22,12 @@ import json
 import os
 from pykml import parser
 from collections import namedtuple
-import aggregate_interference
 import time
-from multiprocessing import Pool
-import multiprocessing
+
+from reference_models.common import mpool
 from reference_models.interference import interference as interf
+
+import aggregate_interference
 
 # Number of parallel processes 
 NUM_OF_PROCESS = 30
@@ -34,6 +35,9 @@ NUM_OF_PROCESS = 30
 
 if __name__ == '__main__':
 
+  # Configure the multiprocess pool
+  mpool.Configure(NUM_OF_PROCESS)
+  
   # Data directory
   current_dir = os.getcwd()
   _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
@@ -137,15 +141,13 @@ if __name__ == '__main__':
     print('\nAggregate Interference (mW) output at ESC: \n' + 
                     str(esc_aggr_interference))
   for gwpz_record in gwpz_list:
-    pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
     gwpz_aggr_interference = aggregate_interference.\
-      calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool)
+      calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list)
     print('\nAggregate Interference (mW) output at GWPZ: \n' + str(gwpz_aggr_interference) )
 
   for ppa_record in ppa_list:
-    pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
     ppa_aggr_interference = aggregate_interference.\
-      calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list, pool)
+      calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list)
     print('\nAggregate Interference (mW) output at PPA: \n' + str(ppa_aggr_interference))
 
   end_time = time.time()
