@@ -41,8 +41,8 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
     # omni-directional antenna.
     device_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_1['installationParam']['latitude'] = 48.997796
-    device_1['installationParam']['longitude'] = -100.958252
+    device_1['installationParam']['latitude'] = 48.99781
+    device_1['installationParam']['longitude'] = -100.959089
     device_1['installationParam']['antennaBeamwidth'] = 0
     device_1['installationParam']['height'] = 1.2
     # CBSD 2: Category B CBSD within 56 km of the Canadian border with
@@ -277,7 +277,8 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
       # Proceed with PFD calculation
       logging.info('Closest point in the border: Lat is %f', closest_point_lat)
       logging.info('Closest point in the border: Long is %f', closest_point_lon)
-      requested_eirp = config['grantRequests'][i]['operationParam']['maxEirp']
+      # requested_eirp (p)
+      p = config['grantRequests'][i]['operationParam']['maxEirp']
       # Calculate PL
       cbsd_height = cbsd_information['installationParam']['height']
       is_cbsd_indoor = cbsd_information['installationParam']['indoorDeployment']
@@ -298,14 +299,15 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
       logging.info('Bearing: %f', propagation.incidence_angles.hor_cbsd)
       # Calculate effective antenna gain
       max_ant_gain = cbsd_information['installationParam']['antennaGain']
-      effective_ant_gain = antenna.GetStandardAntennaGains(
+      ant_gain = antenna.GetStandardAntennaGains(
           bearing, cbsd_ant_azi, cbsd_ant_beamwidth,
           max_ant_gain)
-      logging.info('Effective Antenna Gain: %f', effective_ant_gain)
-      # Arrive at 'P'
-      p = requested_eirp - max_ant_gain + effective_ant_gain
-      # Calculate PFD
-      pfd = p - pl + 32.6
+      logging.info('Effective Antenna Gain: %f', ant_gain)
+      # Calculate PFD where:
+      # p = requested_eirp
+      # effective_eirp = p - maxAntGain + antGain
+      # PFD = effective_eirp - pl + 32.6
+      pfd = p - max_ant_gain + ant_gain - pl + 32.6
       logging.info('Power Flex Density: %f dBm/m2/MHz', pfd)
       if pfd > -80:
         self.assertTrue(responses[i]['response']['responseCode'] == 400)
