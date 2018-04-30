@@ -17,10 +17,9 @@ import logging
 import os
 import sas
 import sas_testcase
-import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from pytz import timezone
-from time import sleep
+from time import sleep, strftime, gmtime
 from util import configurable_testcase, writeConfig, loadConfig, addCbsdIdsToRequests
 
 # Time zone in which CPAS is scheduled
@@ -148,7 +147,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load the configuration file
     config = loadConfig(config_filename)
-    
+
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']), 3)
     for grant_bundle in config['grantRequests']:
@@ -341,7 +340,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = loadConfig(config_filename)
 
     # Very light checking of the config file.
-    self.assertEqual(len(config['grantRequests']),3)
+    self.assertEqual(len(config['grantRequests']), 3)
     for grant_bundle in config['grantRequests']:
       self.assertEqual(len(grant_bundle), len(config['registrationRequests']))
 
@@ -1111,7 +1110,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load the configuration file
     config = loadConfig(config_filename)
-    
+
     # Very light checking of the config file.
     self.assertEqual(len(config['registrationRequests']),
                      len(config['expectedResponseCodes']))
@@ -1231,7 +1230,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load the configuration file
     config = loadConfig(config_filename)
-    
+
     # Very light checking of the config file.
     self.assertEqual(len(config['registrationRequests']),
                      len(config['grantRequests']))
@@ -1255,37 +1254,42 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # TODO
     # Step 4: Inject the FSS database URL into the UUT
 
-    # Step 5: Wait until after the completion of scheduled CPAS    
+    # Step 5: Wait until after the completion of scheduled CPAS
     # Fetching current time in CPAS time zone
     current_time = datetime.now(timezone(CPAS_TIME_ZONE))
-    
+
     # Checks if CPAS start time is over then wait till next day otherwise
     # wait till scheduled CPAS starts
-    scheduled_cpas_start_time = datetime.datetime.combine(datetime.date.today(), datetime.time(CPAS_START_TIME))
+    scheduled_cpas_start_time = datetime.combine(current_time.date(), time(CPAS_START_TIME))
+
+    # Scheduled CPAS start time is made consistent with the CPAS_TIME_ZONE  
+    scheduled_cpas_start_time = scheduled_cpas_start_time.replace(tzinfo=timezone(CPAS_TIME_ZONE))
+
     if scheduled_cpas_start_time < current_time:
-      scheduled_cpas_start_time += datetime.timedelta(days=1)
+      scheduled_cpas_start_time += timedelta(days=1)
 
     # Wait time in seconds
     wait_time_in_secs = (scheduled_cpas_start_time - current_time).seconds
 
     # Checks if scheduled CPAS starts today and ends on the next day
     if CPAS_START_TIME < CPAS_END_TIME:
-      scheduled_cpas_end_time = scheduled_cpas_start_time + timedelta(hours=CPAS_END_TIME -CPAS_START_TIME)
+      scheduled_cpas_end_time = scheduled_cpas_start_time +\
+                                timedelta(hours=CPAS_END_TIME - CPAS_START_TIME)
     else:
-      scheduled_cpas_end_time = scheduled_cpas_start_time + timedelta(days=1,
-                                                                      hours=CPAS_END_TIME -CPAS_START_TIME)
+      scheduled_cpas_end_time = scheduled_cpas_start_time +\
+                                timedelta(days=1, hours=CPAS_END_TIME - CPAS_START_TIME)
 
     # Run time in seconds
     run_time_in_secs = (scheduled_cpas_end_time - scheduled_cpas_start_time).seconds
 
     # Wait until CPAS is scheduled to start
-    logging.debug('Wait time for scheduled CPAS in (HH:MM:SS) %s',
-                  time.strftime("%H:%M:%S", time.gmtime(wait_time_in_secs)))
+    logging.debug('Wait time for scheduled CPAS is (HH:MM:SS) %s',
+                  strftime("%H:%M:%S", gmtime(wait_time_in_secs)))
     sleep(wait_time_in_secs)
 
     # Wait until CPAS completes
-    logging.debug('Run time for scheduled CPAS in (HH:MM:SS) %s',
-                  time.strftime("%H:%M:%S", time.gmtime(run_time_in_secs)))
+    logging.debug('Run time for scheduled CPAS is (HH:MM:SS) %s',
+                  strftime("%H:%M:%S", gmtime(run_time_in_secs)))
     sleep(run_time_in_secs)
 
     # Step 6: Sending Heartbeat Request

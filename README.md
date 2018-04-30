@@ -101,6 +101,11 @@ support for creating testing mocks.
 This Python library can be installed with <code>pip</code>. It provides
 support for advanced functools such as OrderedDict and lru_cache memoization.
 
+* pytz (https://pypi.org/project/pytz)
+
+This library allows accurate and cross platform timezone calculations using 
+Python 2.4 or higher. 
+
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,
 where <code>xyz</code> is the name of the package. Error-free import means
@@ -119,4 +124,3 @@ data/ folder, but kept instead in a separate Git repository found at:
  https://github.com/Wireless-Innovation-Forum/SAS-Data
 
 See the corresponding README.md for more details.
-
