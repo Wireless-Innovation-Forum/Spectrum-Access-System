@@ -443,7 +443,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       time.sleep(240)
       for domain_proxy in domain_proxies:
         domain_proxy.heartbeatForAllActiveGrants()
-      grant_info = data.getAuthorizedGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
+      grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
         self.assertTrue(dpa.CheckInterference(
@@ -600,8 +600,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Heartbeat with all domain proxies.
     for domain_proxy in domain_proxies:
       domain_proxy.heartbeatForAllActiveGrants()
-    # TODO: Update with correct function name/import when it is added.
-    grant_info = getGrantsFromDomainProxies(domain_proxies)
+    grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
     # Check that for each DPA the SAS UUT has not exceeded the allowed
     # interference threshold.
     for dpa, dpa_config in zip(all_dpas, config['dpas']):
