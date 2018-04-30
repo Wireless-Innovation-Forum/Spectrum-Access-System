@@ -7,10 +7,7 @@
   "ppaInfo": {
         "ppaRegionType": "RURAL",
         "cbsdReferenceId": [
-          "cbsd/fccId6/0f47fabe5aae48fabde5fa9f7af0a9807f9ce79d",
-          "cbsd/fccId4/4ad1dfe6a56157033194ea575108f44265a47351",
-          "cbsd/fccId110/03892f99d340b5b73e337e911f231d92eab5f46f",
-          "cbsd/fccId112/add0a4e47d1b21f73e43b4ba662503effd9e1dfa"
+          "cbsd/fccId101/8fd1cb294c78b227cc45c3f4754a258868441ed2"
         ],
         "palId": [
           "pal_0"
