@@ -334,8 +334,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_N3_1 to a location within 50 meters from the exclusion zone
     # of 'East-Gulf Combined Contour'
-    device_N3_1['installationParam']['latitude'] = 43.92759
-    device_N3_1['installationParam']['longitude'] = -71.09143
+    device_N3_1['installationParam']['latitude'] = 43.927267
+    device_N3_1['installationParam']['longitude'] = -77.129238 
     device_N3_1['fccId'] = "test_fcc_id_aaa"
     device_N3_1['cbsdSerialNumber'] = "test_serial_number_aaa"
 
@@ -352,8 +352,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_N3_3 to a location within 50 meters from the exclusion zone
     # of 'East-Gulf Combined Contour'
-    device_N3_3['installationParam']['latitude'] = 37.78608
-    device_N3_3['installationParam']['longitude'] = -77.75555
+    device_N3_3['installationParam']['latitude'] = 39.489834
+    device_N3_3['installationParam']['longitude'] = -77.129077
     device_N3_3['fccId'] = "test_fcc_id_ccc"
     device_N3_3['cbsdSerialNumber'] = "test_serial_number_ccc"
 
