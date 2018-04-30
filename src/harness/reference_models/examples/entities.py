@@ -236,7 +236,7 @@ def ConvertToCbsdGrantInfo(cbsds, min_freq_mhz, max_freq_mhz, chunks_mhz=-1):
   """Converts |Cbsd| into |data.CbsdGrantInfo| lists.
 
   Args:
-    cbsds: an iterable for |Cbsd|.
+    cbsds: an iterable of |Cbsd|.
     min_freq_mhz: The minimum grant frequency (MHz).
     max_freq_mhz: The maximum grant frequency (MHz).
     chunks_mhz: The chunking size of the grants (MHz). If -1, no chunking done.
