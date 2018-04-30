@@ -13,6 +13,8 @@ This folder contains code and testcases for SAS certification test as defined in
 *   shapely (https://pypi.python.org/pypi/Shapely)
 *   mock (https://pypi.python.org/pypi/mock)
 *   validators (https://pypi.python.org/pypi/validators)
+*   pytz (https://pypi.org/project/pytz)
+
 ## Code location
 
 *   **.**: Test framework.
