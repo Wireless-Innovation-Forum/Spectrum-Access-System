@@ -22,9 +22,9 @@ d = DatabaseServer(
     'Test',
     'localhost',
     8000,
-    cert_file=os.path.expanduser('certs/test_cert.crt'),
-    key_file=os.path.expanduser('certs/test_cert.key'),
-    ca_cert_file=os.path.expanduser('certs/test_cert_root.pem'),
+    cert_file='certs/test_cert.crt',
+    key_file='certs/test_cert.key',
+    ca_cert_file='certs/test_cert_root.pem',
     authorization='testuser:password'
     )
 d.setFileToServe('/allsitedata', 'allsitedata1')
@@ -38,7 +38,6 @@ d.setFilesToServe({
 
 import base64
 import logging
-import os
 import ssl
 import threading
 from BaseHTTPServer import HTTPServer
