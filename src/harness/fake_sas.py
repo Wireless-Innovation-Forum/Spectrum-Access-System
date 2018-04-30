@@ -192,7 +192,7 @@ class FakeSas(sas_interface.SasInterface):
     else:
       # Return Empty if invalid Id
       return {}
-      
+
   def GetFullActivityDump(self, version, ssl_cert=None, ssl_key=None):
     response = json.loads(json.dumps({'files':[
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
@@ -203,7 +203,7 @@ class FakeSas(sas_interface.SasInterface):
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "zone" },
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
              Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
-              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "esc_sensor" },        
+              'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "esc_sensor" },
              {'url': "https://raw.githubusercontent.com/Wireless-Innovation-Forum/\
              Spectrum-Access-System/master/schema/empty_activity_dump_file.json",
               'checksum': "da39a3ee5e6b4b0d3255bfef95601890afd80709", 'size':19, 'version': version,'recordType': "coordination" }
@@ -218,7 +218,7 @@ class FakeSas(sas_interface.SasInterface):
 
   def _GetMissingParamResponse(self):
     return {'responseCode': MISSING_PARAM}
-  
+
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     """SAS-SAS Get data from json files after generate the
      Full Activity Dump Message
@@ -297,9 +297,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def GetPpaCreationStatus(self):
     return {'completed': True, 'withError': False}
 
-
   def GetDailyActivitiesStatus(self):
     return {'completed': True}
+
   def TriggerLoadDpas(self):
     pass
 
@@ -307,6 +307,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerDpaActivation(self, request):
+    pass
+
+  def TriggerFullActivityDump(self):
     pass
 
   def TriggerDpaDeactivation(self, request):
@@ -405,8 +408,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
-    
-def RunFakeServer(cbsd_sas_version, sas_sas_version, ca_cert_path, verify_crl):
+def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, ca_cert_path, verify_crl):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
@@ -457,5 +459,7 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join('certs', args.ca_cert)
-  RunFakeServer(version, args.ecc, ca_cert_path, args.verify_crl)
+  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join(
+      'certs', args.ca_cert)
+  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc, ca_cert_path,
+                args.verify_crl)

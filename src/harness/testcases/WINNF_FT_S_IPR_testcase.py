@@ -23,7 +23,8 @@ from util import configurable_testcase, writeConfig, loadConfig, getCertificateF
 from test_harness_objects import DomainProxy
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
-from reference_models.move_list_calc import dpa_mgr
+from reference_models.dpa import dpa_mgr
+from reference_models.common import data
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
@@ -231,8 +232,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     n2_domain_proxy.heartbeatForAllActiveGrants()
     n3_domain_proxy.heartbeatForAllActiveGrants()
     # Get CbsdGrantInfo list of SAS UUT grants that are in an authorized state.
-    # TODO: Update with correct function name/import when it is added.
-    grant_info = getGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
+    grant_info = data.getAuthorizedGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
 
     # Check grants do not exceed each DPAs interference threshold.
     for dpa, dpa_config in zip(dpas, config['dpas']):

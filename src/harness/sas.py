@@ -130,20 +130,30 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     self._base_url = base_url
     self._tls_config = TlsConfig().WithClientCertificate(
         self._GetDefaultAdminSSLCertPath(), self._GetDefaultAdminSSLKeyPath())
+    self.injected_fcc_ids = set()
+    self.injected_user_ids = set()
 
   def Reset(self):
     RequestPost('https://%s/admin/reset' % self._base_url, None,
                 self._tls_config)
 
   def InjectFccId(self, request):
+    # Avoid injecting the same FCC ID twice in the same test case.
+    if request['fccId'] in self.injected_fcc_ids:
+      return
     if 'fccMaxEirp' not in request:
       request['fccMaxEirp'] = 47
     RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
                 self._tls_config)
+    self.injected_fcc_ids.add(request['fccId'])
 
   def InjectUserId(self, request):
+    # Avoid injecting the same user ID twice in the same test case.
+    if request['userId'] in self.injected_user_ids:
+      return
     RequestPost('https://%s/admin/injectdata/user_id' % self._base_url, request,
                 self._tls_config)
+    self.injected_user_ids.add(request['userId'])
 
   def InjectEscZone(self, request):
     return RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,

@@ -21,6 +21,7 @@ from sas_test_harness import generateCbsdRecords
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
  addCbsdIdsToRequests
 
+
 class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   def setUp(self):
@@ -29,6 +30,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   def tearDown(self):
     pass
+
 
   def generate_FPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.1. """
@@ -250,6 +252,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # Invoke MCP test steps 1 through 22.
     # self.executeMcpTestSteps(config, test_type)
     
+
   def generate_FPR_2_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.2."""
 
@@ -510,6 +513,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # test_type= enum (MCP, FSS)
     # Invoke MCP test steps 1 through 22.
     # self.executeMcpTestSteps(config, test_type)
+
     
       
   def generate_FPR_3_default_config(self, filename):
@@ -708,6 +712,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # test_type= enum (MCP, XPR)
     # Invoke MCP test steps 1 through 22.
     # self.executeMcpTestSteps(config, test_type)
+
 
   def generate_FPR_4_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.4."""
