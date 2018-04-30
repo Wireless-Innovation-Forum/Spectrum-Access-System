@@ -31,7 +31,6 @@ pool.map(...)
 # TODO(sbdt): review behavior in multiple platforms.
 
 import multiprocessing
-from concurrent import futures
 
 
 class _DummyPool(object):
@@ -97,5 +96,5 @@ def Configure(num_processes=-1, pool=None):
     if num_processes > num_cpus:
       num_processes = num_cpus
     if pool is None or num_processes != _num_processes:
-      _pool = futures.ProcessPoolExecutor(num_processes)
+      _pool = multiprocessing.Pool(processes=num_processes)
       _num_processes = num_processes
