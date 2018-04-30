@@ -67,8 +67,8 @@ PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection
 FREQ_PROP_MODEL = 3625.0
 
 # Frequency range of co-channel DPAs (Hz)
-LOW_FREQ_COCH = 3550000000
-HIGH_FREQ_COCH = 3700000000
+LOW_FREQ_COCH = 3550e6
+HIGH_FREQ_COCH = 3700e6
 
 # Out-of-band maximum conducted power (dBm/MHz) (FCC Part 96 Rules (96.41))
 OOB_POWER_WITHIN_10MHZ = -13
@@ -212,10 +212,10 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
     """
     # Compute overlapping bandwidths
     overlap_bw_within_10MHz = min(low_freq_cbsd, high_freq_c) \
-                              - max(low_freq_cbsd-10000000.0, low_freq_c)
-    overlap_bw_outside_10MHz = min(low_freq_cbsd-10000000.0, high_freq_c) \
-                               - max(3530000000.0, low_freq_c)
-    overlap_bw_below_3530MHz = min(3530000000.0, high_freq_c) \
+                              - max(low_freq_cbsd-10.e6, low_freq_c)
+    overlap_bw_outside_10MHz = min(low_freq_cbsd-10.e6, high_freq_c) \
+                               - max(3530.e6, low_freq_c)
+    overlap_bw_below_3530MHz = min(3530.e6, high_freq_c) \
                                - low_freq_c
 
     # Compute total conducted power
@@ -224,15 +224,15 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
     power_below_3530MHz_mW = 0
     if overlap_bw_within_10MHz > 0:
         power_within_10MHz_mW = 10 ** (OOB_POWER_WITHIN_10MHZ / 10.) \
-                                * overlap_bw_within_10MHz / 1000000.0
+                                * overlap_bw_within_10MHz / 1.e6
 
     if overlap_bw_outside_10MHz > 0:
         power_outside_10MHz_mW = 10 ** (OOB_POWER_OUTSIDE_10MHZ / 10.) \
-                                 * overlap_bw_outside_10MHz / 1000000.0
+                                 * overlap_bw_outside_10MHz / 1.e6
 
     if overlap_bw_below_3530MHz > 0:
         power_below_3530MHz_mW = 10 ** (OOB_POWER_BELOW_3530MHZ / 10.) \
-                                 * overlap_bw_below_3530MHz / 1000000.0
+                                 * overlap_bw_below_3530MHz / 1.e6
 
     power_mW = power_within_10MHz_mW + power_outside_10MHz_mW + power_below_3530MHz_mW
 
@@ -293,7 +293,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
         # Compute EIRP within co-channel bandwidth
         eirp_cbsd = ((grant.max_eirp - grant.antenna_gain) + ant_gain
-                     + 10 * np.log10(co_channel_bw / 1000000.0))
+                     + 10 * np.log10(co_channel_bw / 1.e6))
 
     else:   # For out-of-band inland DPAs
 
@@ -417,6 +417,13 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
 
     return nc
 
+
+def _addMinFreqGrantToFront(l, grant):
+  """Add the min freq grant to the front of lst l."""
+  l.append(grant)
+  if l[-1].low_frequency < l[0].low_frequency:
+    l[0], l[-1] = l[-1], l[0]
+
 #------------------------------------------
 # Public interface below
 def moveListConstraint(protection_point, low_freq, high_freq,
@@ -430,8 +437,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     Note that the returned indexes corresponds to the grant.grant_index
 
     Inputs:
-        protection_point:  A protection point location, having attributes 'latitude' and
-                           'longitude'.
+        protection_point:  A protection point location, having attributes
+                           'latitude' and 'longitude'.
         low_freq:          The low frequency of protection constraint (Hz).
         high_freq:         The high frequency of protection constraint (Hz).
         grants:            A list of CBSD |data.CbsdGrantInfo| grants.
@@ -446,9 +453,10 @@ def moveListConstraint(protection_point, low_freq, high_freq,
         catb_neighbor_dist: The CatB neighborhood distance (km).
 
     Returns:
-        A tuple of (move_list_idx, neighbor_list_idx) for that protection co nstraint:
-          + the list of indices of grants on the move list.
-          + the list of indices of grants in the neighborhood list.
+        A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
+          + the grants on the move list.
+          + the grants in the neighborhood list. Note that for OOB, the neightbor
+          list only includes the lower frequency grant of multiple CBSD grants.
     """
     dpa_type = findDpaType(low_freq, high_freq)
     if not beamwidth: beamwidth = 360
@@ -460,11 +468,23 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                                            high_frequency=high_freq,
                                            entity_type=data.ProtectedEntityType.DPA)
 
+    # DPA Purge algorithm for OOB
+    if dpa_type is DpaType.OUT_OF_BAND:
+        cbsds_to_grants = {}
+        for grant in grants:
+            key = grant.uniqueCbsdKey()
+            cbsd_grant_list = cbsds_to_grants.get(key, [])
+            if not cbsd_grant_list: cbsds_to_grants[key] = cbsd_grant_list
+            _addMinFreqGrantToFront(cbsd_grant_list, grant)
+        # Reset the grants to the minimum frequency grant for each CBSDs.
+        grants = [cbsd_grants[0] for cbsd_grants in cbsds_to_grants.values()]
+
     # Identify CBSD grants in the neighborhood of the protection constraint
     neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(grants,
                                                                   constraint,
                                                                   exclusion_zone, dpa_type,
                                                                   catb_neighbor_dist)
+    movelist_grants = []
     if len(neighbor_grants):  # Found CBSDs in the neighborhood
         # Form the matrix of interference contributions
         I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
@@ -476,13 +496,32 @@ def moveListConstraint(protection_point, low_freq, high_freq,
         nc = find_nc(I, bearings, threshold, beamwidth, min_azimuth, max_azimuth)
 
         # Determine the associated move list (Mc)
-        movelist_idxs = sorted_neighbor_idxs[nc:]
-        return (movelist_idxs, neighbor_idxs)
+        movelist_grants = [grants[k] for k in sorted_neighbor_idxs[nc:]]
 
-    return ([], neighbor_idxs)
+        # DPA Purge Algorithm for OOB - reintegrated in move list
+        if dpa_type is DpaType.OUT_OF_BAND:
+          # Add back all purged list with state of main one
+          extra_grants = []
+          for grant in movelist_grants:
+            cbsd_extra_grants = cbsds_to_grants[grant.uniqueCbsdKey()][1:]
+            if cbsd_extra_grants:
+              extra_grants.extend(cbsd_extra_grants)
+          movelist_grants.extend(extra_grants)
+          # Note: the following update on neighbor list is optional, the whole
+          # code would run the same if we were including only the main grant in
+          # the neighbor list. But for sake of consistency, we keep them.
+          extra_grants = []
+          for grant in neighbor_grants:
+            cbsd_extra_grants = cbsds_to_grants[grant.uniqueCbsdKey()][1:]
+            if cbsd_extra_grants:
+              extra_grants.extend(cbsd_extra_grants)
+          neighbor_grants.extend(extra_grants)
+
+    return (movelist_grants, neighbor_grants)
 
 
-def calcAggregatedInterference(protection_point, low_freq, high_freq,
+def calcAggregatedInterference(protection_point,
+                               low_freq, high_freq,
                                grants,
                                exclusion_zone,
                                inc_ant_height,
@@ -527,6 +566,17 @@ def calcAggregatedInterference(protection_point, low_freq, high_freq,
                                          low_frequency=low_freq,
                                          high_frequency=high_freq,
                                          entity_type=data.ProtectedEntityType.DPA)
+
+  # DPA Purge algorithm for OOB
+  if dpa_type is DpaType.OUT_OF_BAND:
+    cbsds_to_grants = {}
+    for grant in grants:
+      key = grant.uniqueCbsdKey()
+      cbsd_grant_list = cbsds_to_grants.get(key, [])
+      if not cbsd_grant_list: cbsds_to_grants[key] = cbsd_grant_list
+      _addMinFreqGrantToFront(cbsd_grant_list, grant)
+    # Reset the grants to the minimum frequency grant for each CBSDs.
+    grants = [cbsd_grants[0] for cbsd_grants in cbsds_to_grants.values()]
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
@@ -654,11 +704,11 @@ def findMoveList(protection_specs, protection_points, registration_requests,
 
     # Find the unique CBSD indices in the M_c list of lists.
     M = set().union(*M_c)
-    M = np.array(list(M))
 
     # Set to TRUE the elements of the output Boolean array that have grant_index in
     # the move list.
     result = np.zeros(len(grants), bool)
-    if M.size:
-        result[M] = True
+    for k, grant in enumerate(grants):
+      if grant in M:
+        result[k] = True
     return result.tolist()

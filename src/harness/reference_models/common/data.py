@@ -41,15 +41,18 @@ ProtectionConstraint = namedtuple('ProtectionConstraint',
 
 # A CBSD Grant.
 class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
-                               ['latitude', 'longitude', 'height_agl',
-                                'indoor_deployment',
+                               [# Installation params
+                                'latitude', 'longitude', 'height_agl',
+                                'indoor_deployment', 'cbsd_category',
                                 'antenna_azimuth', 'antenna_gain', 'antenna_beamwidth',
-                                'cbsd_category', 'max_eirp',
+                                # Grant params
+                                'max_eirp',
                                 'low_frequency', 'high_frequency',
                                 'is_managed_grant'])):
   """CbsdGrantInfo.
 
   Holds all parameters of a CBSD grant.
+  Suitable to be used as a key in dictionaries and sets.
 
   Attributes:
     latitude: The CBSD latitude (degrees).
@@ -67,6 +70,11 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
     is_managed_grant: True iff the grant belongs to the managing SAS.
   """
   __slots__ = ()
+
+  def uniqueCbsdKey(self):
+    """Returns unique CBSD key (ie key based on installation params only)."""
+    return self[0:8]
+
 
 def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
   """Constructs a |CbsdGrantInfo| tuple from the given data."""

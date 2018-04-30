@@ -85,7 +85,9 @@ class Dpa(object):
     catb_neighbor_dist: The CatB neighbording distance (km).
     grants: The list of registered grants.
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
-    keep_lists: A list of keep list (set of |CbsdGrantInfo|) per channel.
+    nbor_lists: A list of neighbor list (set of |CbsdGrantInfo|) per channel.
+
+  Note that keep list is the grants of the nbor_list not in the move list.
 
   Usage:
     # Setup the DPA
@@ -121,6 +123,9 @@ class Dpa(object):
   @classmethod
   def ConfigureDefaultProtectionZone(cls):
     """Configure to use the default protection zone.
+
+    Protection zone was initially specified for CatA neighborhood derivation
+    but are now unused. Support is kept for legacy reason however.
     """
     cls.protection_zone = zones.GetCoastalProtectionZone()
 
@@ -206,8 +211,8 @@ class Dpa(object):
       # Combine the individual point move lists
       move_list = set().union(*move_list)
       nbor_list = set().union(*nbor_list)
-      self.move_lists.append(set(self.grants[k] for k in move_list))
-      self.nbor_lists.append(set(self.grants[k] for k in nbor_list))
+      self.move_lists.append(move_list)
+      self.nbor_lists.append(nbor_list)
 
   def _GetChanIdx(self, channel):
     """Gets the channel idx for a given channel."""
@@ -555,6 +560,7 @@ def BuildDpa(dpa_name, protection_points_method=None):
     protection_points = [ProtectionPoint(longitude=pt.x, latitude=pt.y)
                          for pt in mpoints]
   # TODO(sbdt): read these parameters from the newest DPA databases once published.
+  #             Note for case of OOB < 3550 with no portal, use 3540 as the min freq
   protection_threshold = DPA_DEFAULT_THRESHOLD_PER_10MHZ
   radar_height = 50
   radar_beamwidth = 3
