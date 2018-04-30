@@ -64,7 +64,7 @@ class DatabaseServer(threading.Thread):
         other path will return a 404 (or other appropriate error).
       initial_file: The file system path of the initial file to serve.
       cert_file: Optional. The file path of the certificate file.
-      key_file: Optional. The file path of the key file. #TODO: (May be removed later, unsure on if needed)
+      key_file: Optional. The file path of the key file.
       ca_cert_file: Optional. The file path of the certificate authority
         certificate file.
       authorization: Optional, contains a string. Iff specified requires the
