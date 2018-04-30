@@ -454,7 +454,14 @@ def areTwoPpasEqual(first_ppa, second_ppa, delta=10):
   first_ppa['zone']['features'][0]['geometry'] = geometry_of_first_ppa
   second_ppa['zone']['features'][0]['geometry'] = geometry_of_second_ppa
   return result
- 
+
+def buildDpaActivationMessage(dpa_config):
+  """Constructs a dpa activation message."""
+  return {
+      'dpaId': dpa_config['dpaId'],
+      'frequencyRange': dpa_config['frequencyRange']
+  }
+
 class TestComponentError(Exception):
   """Indicates a test component failed due to no fault of the SAS UUT.
 
