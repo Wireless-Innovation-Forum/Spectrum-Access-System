@@ -119,4 +119,3 @@ data/ folder, but kept instead in a separate Git repository found at:
  https://github.com/Wireless-Innovation-Forum/SAS-Data
 
 See the corresponding README.md for more details.
-
