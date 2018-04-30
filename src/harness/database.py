@@ -50,16 +50,17 @@ class DatabaseServer(threading.Thread):
                name,
                host_name,
                port,
+               https=True,
                cert_file=None,
                key_file=None,
                ca_cert_file=None,
-               authorization=None,
-               protocol='https'):
+               authorization=None):
     """
     Args:
       name: The server's name, used for logging purposes.
       host_name: The address the server may be accessed at.
       port: The port to serve requests on.
+      https: Optional, if True use https else use http.
       path_of_file: The expected path from host_name:port/ to the file. Any
         other path will return a 404 (or other appropriate error).
       initial_file: The file system path of the initial file to serve.
@@ -69,15 +70,13 @@ class DatabaseServer(threading.Thread):
         certificate file.
       authorization: Optional, contains a string. Iff specified requires the
         authorization header to match the string when decoded.
-      protocol: Optional, specifies the protocol type (to be prepended to the
-        expected url).
     """
     super(DatabaseServer, self).__init__()
     self.name = name
     self.address = host_name + ':' + str(port)
     self.setDaemon(True)
     self.server = DatabaseHTTPServer((host_name, port), DatabaseHandler, name, authorization)
-    if protocol == 'https':
+    if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
           certfile=cert_file,
