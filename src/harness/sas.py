@@ -268,6 +268,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
 
+  def TriggerEscDisconnect(self):
+    RequestPost('https://%s/admin/trigger/disconnect_esc' % self._base_url,
+                request, self._tls_config)
+
   def TriggerFullActivityDump(self):
     RequestPost(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
