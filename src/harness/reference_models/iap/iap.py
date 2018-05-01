@@ -40,7 +40,6 @@ import logging
 from functools import partial
 from collections import namedtuple
 import multiprocessing
-from multiprocessing import Pool
 
 import numpy as np
 
@@ -82,6 +81,10 @@ FSS_RBW_HZ = 1*MHZ
 
 # ESC Point Protection reference bandwidth for the IAP process
 ESC_RBW_HZ = 1*MHZ
+
+# The grid resolution for area based protection entities.
+GWPZ_GRID_RES_ARCSEC = 2
+PPA_GRID_RES_ARCSEC = 2
 
 
 def iapPointConstraint(protection_point, channels, low_freq, high_freq, 
@@ -320,7 +323,7 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   ant_gain_pattern = np.array(gains)
 
   # Get ESC antenna information
-  esc_antenna_info = interf.EscInformation(antenna_height=esc_point['height'],
+  esc_antenna_info = data.EscInformation(antenna_height=esc_point['height'],
                        antenna_azimuth=esc_point['antennaAzimuth'],
                        antenna_gain_pattern=ant_gain_pattern)
 
@@ -335,7 +338,7 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   iapPointConstraint(protection_point, protection_channels, 
     interf.ESC_LOW_FREQ_HZ, interf.ESC_HIGH_FREQ_HZ, 
     grant_objects, None, esc_antenna_info, None, 
-    esc_iap_threshold, interf.ProtectedEntityType.ESC,
+    esc_iap_threshold, data.ProtectedEntityType.ESC,
     asas_interference, aggregate_interference)
   
   ap_iap_ref = calculatePostIapAggregateInterference(esc_iap_threshold, num_sas,
@@ -369,7 +372,8 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
 
   logging.debug('$$$$ Getting GRID points for GWPZ Protection Area $$$$')
   # Get Fine Grid Points for a GWPZ protection area
-  protection_points = utils.GridPolygon(protected_entity['zone']['features'][0]['geometry'], 2)
+  protection_points = utils.GridPolygon(protected_entity['zone']['features'][0]['geometry'],
+                                        GWPZ_GRID_RES_ARCSEC)
 
   gwpz_freq_range = protected_entity['deploymentParam']\
                       ['operationParam']['operationFrequencyRange']
@@ -390,7 +394,7 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
                      grant_objects=grant_objects, fss_info=None, 
                      esc_antenna_info=None, region_type=gwpz_region,
                      threshold=gwpz_iap_threshold, 
-                     protection_ent_type=interf.ProtectedEntityType.GWPZ_AREA,
+                     protection_ent_type=data.ProtectedEntityType.GWPZ_AREA,
                      asas_interference=asas_interference, 
                      aggregate_interference=aggregate_interference) 
   pool = mpool.Pool()
@@ -432,7 +436,8 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects,
   logging.debug('$$$$ Getting GRID points for PPA Protection Area $$$$')
 
   # Get Fine Grid Points for a PPA protection area
-  protection_points = utils.GridPolygon(protected_entity['zone']['features'][0]['geometry'], 2)
+  protection_points = utils.GridPolygon(protected_entity['zone']['features'][0]['geometry'],
+                                        PPA_GRID_RES_ARCSEC)
 
   # Get the region type of the PPA protection area
   ppa_region = protected_entity['ppaInfo']['ppaRegionType']
@@ -464,7 +469,7 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects,
                      grant_objects=grant_objects, fss_info=None, 
                      esc_antenna_info=None, region_type=ppa_region,
                      threshold=ppa_iap_threshold, 
-                     protection_ent_type=interf.ProtectedEntityType.PPA_AREA,
+                     protection_ent_type=data.ProtectedEntityType.PPA_AREA,
                      asas_interference=asas_interference, 
                      aggregate_interference=aggregate_interference) 
   pool = mpool.Pool()
@@ -510,7 +515,7 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
   fss_high_freq = fss_freq_range['highFrequency']
 
   # Get FSS information
-  fss_info = interf.FssInformation(height_agl=fss_point['height'],
+  fss_info = data.FssInformation(height_agl=fss_point['height'],
                max_gain_dbi=fss_point['antennaGain'],
                pointing_azimuth=fss_point['antennaAzimuth'],
                pointing_elevation=fss_point['antennaDowntilt'])
@@ -528,7 +533,7 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
   iapPointConstraint(protection_point, protection_channels, fss_low_freq,
     interf.CBRS_HIGH_FREQ_HZ, grant_objects, fss_info, None, 
     None, fss_cochannel_iap_threshold, 
-    interf.ProtectedEntityType.FSS_CO_CHANNEL,
+    data.ProtectedEntityType.FSS_CO_CHANNEL,
     asas_interference, aggregate_interference) 
   
   ap_iap_ref = calculatePostIapAggregateInterference(fss_cochannel_iap_threshold, num_sas,
@@ -572,7 +577,7 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
   fss_high_freq = fss_freq_range['highFrequency']
 
   # Get FSS information
-  fss_info = interf.FssInformation(height_agl=fss_point['height'],
+  fss_info = data.FssInformation(height_agl=fss_point['height'],
                max_gain_dbi=fss_point['antennaGain'],
                pointing_azimuth=fss_point['antennaAzimuth'],
                pointing_elevation=fss_point['antennaDowntilt'])
@@ -592,7 +597,7 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
     iapPointConstraint(protection_point, protection_channels, 
       interf.CBRS_LOW_FREQ_HZ, fss_low_freq, grant_objects, 
       fss_info, None, None, fss_blocking_iap_threshold, 
-      interf.ProtectedEntityType.FSS_BLOCKING,
+      data.ProtectedEntityType.FSS_BLOCKING,
       asas_interference, aggregate_interference) 
 
   ap_iap_ref = calculatePostIapAggregateInterference(fss_blocking_iap_threshold, num_sas, 
