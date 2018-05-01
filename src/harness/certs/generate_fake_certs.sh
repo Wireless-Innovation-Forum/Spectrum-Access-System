@@ -140,15 +140,6 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_1.csr \
 echo -e "\n\nGenerate 'certs for devices' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
     -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out device.csr -keyout device.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=Generic Device"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
-    -out device.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
     -out device_a.csr -keyout device_a.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id_a:test_serial_number_a"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
@@ -211,14 +202,14 @@ openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Certificates for test case WINNF.FT.S.SCS.7 - corrupted certificate, based on device.cert
+# Certificates for test case WINNF.FT.S.SCS.7 - corrupted certificate, based on device_a.cert
 echo -e "\n\nGenerate 'device_corrupted' certificate/key"
-gen_corrupt_cert device.key device.cert device_corrupted.key device_corrupted.cert
+gen_corrupt_cert device_a.key device_a.cert device_corrupted.key device_corrupted.cert
 
 # Certificate for test case WINNF.FT.S.SCS.8 - Self-signed certificate presented during registration
 # Using the same CSR that was created for normal operation
 echo -e "\n\nGenerate 'device_self_signed' certificate/key"
-openssl x509 -signkey device.key -in device.csr \
+openssl x509 -signkey device_a.key -in device_a.csr \
     -out device_self_signed.cert \
     -req -days 1185
 
@@ -337,7 +328,7 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_expired.cs
 
 # Certificate for test case WINNF.FT.S.SCS.15 - Certificate with inapplicable fields presented during registration
 echo -e "\n\nGenerate 'inapplicable certificate for WINNF.FT.S.SCS.15' certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -out device_inapplicable.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_inapplicable_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -460,9 +451,9 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
-# Creating a wrong type certificate by reusing the device.csr and creating a client certificate.
+# Creating a wrong type certificate by reusing the device_a.csr and creating a client certificate.
 echo -e "\n\nGenerate wrong type certificate/key"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device.csr \
+openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
     -out sas_wrong_type.cert -outdir ./root \
     -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
@@ -589,6 +580,9 @@ openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.
 echo -e "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert \
     revoked_cbsd_ca.cert revoked_sas_ca.cert revoked_proxy_ca.cert > ca.cert
+# Append the github cert, use to download test dump file.
+echo | openssl s_client  -servername raw.githubusercontent.com -connect raw.githubusercontent.com:443 -prexit 2>&1 | \
+    sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' >> ca.cert
 
 # Create CA certificate chain containing the CRLs with revoked leaf certificates.
 cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca_sxs11.crl

@@ -192,7 +192,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     config = {
         'sasCert': self.getCertFilename("sas_wrong_type.cert"),
-        'sasKey': self.getCertFilename("device.key")
+        'sasKey': self.getCertFilename("device_a.key")
     }
     writeConfig(filename, config)
 

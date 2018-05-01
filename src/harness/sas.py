@@ -33,14 +33,6 @@ def GetTestingSas():
     sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
 
 
-def GetDefaultCbsdSSLCertPath():
-  return os.path.join('certs', 'device.cert')
-
-
-def GetDefaultCbsdSSLKeyPath():
-  return os.path.join('certs', 'device.key')
-
-
 def GetDefaultDomainProxySSLCertPath():
   return os.path.join('certs', 'domain_proxy.cert')
 

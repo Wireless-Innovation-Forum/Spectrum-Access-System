@@ -32,7 +32,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy cipher security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('AES128-GCM-SHA256')
+    self.doCbsdTestCipher('AES128-GCM-SHA256',
+                          self.getCertFilename("device_a.cert"),
+                          self.getCertFilename("device_a.key"))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_2(self):
@@ -41,7 +43,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('AES256-GCM-SHA384')
+    self.doCbsdTestCipher('AES256-GCM-SHA384',
+                          self.getCertFilename("device_a.cert"),
+                          self.getCertFilename("device_a.key"))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_3(self):
@@ -51,7 +55,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that a CBSD registration with this configuration succeed.
     Note that the test require a SAS UUT
     """
-    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES128-GCM-SHA256',
+                          self.getCertFilename("device_a.cert"),
+                          self.getCertFilename("device_a.key"))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_4(self):
@@ -60,7 +66,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384')
+    self.doCbsdTestCipher('ECDHE-ECDSA-AES256-GCM-SHA384',
+                          self.getCertFilename("device_a.cert"),
+                          self.getCertFilename("device_a.key"))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_5(self):
@@ -69,7 +77,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     Checks that SAS UUT response satisfy specific security conditions.
     Checks that a CBSD registration with this configuration succeed.
     """
-    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256')
+    self.doCbsdTestCipher('ECDHE-RSA-AES128-GCM-SHA256',
+                          self.getCertFilename("device_a.cert"),
+                          self.getCertFilename("device_a.key"))
 
   def generate_SCS_6_default_config(self, filename):
     """Generates the WinnForum configuration for SCS_6"""
@@ -117,7 +127,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     config = {
       'clientCert': self.getCertFilename("device_self_signed.cert"),
-      'clientKey': self.getCertFilename("device.key")
+      'clientKey': self.getCertFilename("device_a.key")
     }
     writeConfig(filename, config)
 
@@ -236,7 +246,10 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailureOrHttp403(ssl_method=SSL.TLSv1_1_METHOD)
+    self.assertTlsHandshakeFailureOrHttp403(
+        ssl_method=SSL.TLSv1_1_METHOD,
+        client_cert=self.getCertFilename('device_a.cert'),
+        client_key=self.getCertFilename('device_a.key'))
 
   @winnforum_testcase
   def test_WINNF_FT_S_SCS_14(self):
@@ -244,7 +257,10 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
-    self.assertTlsHandshakeFailureOrHttp403(ciphers='ECDHE-RSA-AES256-GCM-SHA384')
+    self.assertTlsHandshakeFailureOrHttp403(
+        ciphers='ECDHE-RSA-AES256-GCM-SHA384',
+        client_cert=self.getCertFilename('device_a.cert'),
+        client_key=self.getCertFilename('device_a.key'))
 
   def generate_SCS_15_default_config(self, filename):
     """ Generates the WinnForum configuration for SCS.15 """
@@ -252,7 +268,7 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     
     config = {
         'clientCert': self.getCertFilename("device_inapplicable.cert"),
-        'clientKey': self.getCertFilename("device.key")
+        'clientKey': self.getCertFilename("device_a.key")
     }
     writeConfig(filename, config)
 

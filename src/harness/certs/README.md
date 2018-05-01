@@ -18,8 +18,8 @@ https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/
        sas_ca--------          cbsd_ca                  proxy_ca
        /    \        \            |                         \
       /      \        \           |                          \
-   admin     sas    server     device                   domain_proxy
-              |                device_a, device_c       domain_proxy_1
+   admin     sas    server     device_a                 domain_proxy
+              |                device_c                 domain_proxy_1
           sas_corrupted        device_corrupted         domain_proxy_corrupted
           sas_wrong_type       device_wrong_type        domain_proxy_wrong_type
           sas_expired          device_expired           domain_proxy_expired
@@ -65,9 +65,6 @@ Required certificates are:
 * `cbsd_ca.cert`: intermediate CBSD certificate authority for all CBSD device,
   signed by `root_ca`.
 
-* `client.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
-  Used in all tests not concerned with security-related features.
-
 * `device_a.[cert|key]`: leaf CBSD device certificate signed by `cbsd_ca`.
   Used to authenticate the device_a when connecting to a SAS server.
 
@@ -108,10 +105,10 @@ revoked. Used on security test test_WINNF_FT_S_SDS_16.
   `unrecognized_root_ca`, and corresponding trusted client certificates bundle.
   Used on security test test_WINNF_FT_S_SDS_6.
 
-* `device_corrupted.cert`: corrupted 'device.cert' certificate where the 20th character have been changed.
+* `device_corrupted.cert`: corrupted 'device_a.cert' certificate where the 20th character have been changed.
   Used on security test test_WINNF_FT_S_SCS_7.
   
-* `device_self_signed.cert`: self signed certificate of client (CBSD) signed by device.key
+* `device_self_signed.cert`: self signed certificate of client (CBSD) signed by device_a.key
   Used on security test test_WINNF_FT_S_SCS_8.
   
 * `non_cbrs_root_ca.cert`: a root certificate authority that is not approved as a CBRS root CA
