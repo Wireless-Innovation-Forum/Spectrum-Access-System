@@ -305,18 +305,6 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
         eirp_cbsd = ((grant.max_eirp - grant.antenna_gain) + ant_gain
                      + 10 * np.log10(co_channel_bw / 1000000.0))
 
-        # Overlapping bandwidth between the first 10 MHz adjacent-channel of CBSD grant and
-        # the frequency range of protection constraint
-        adj_channel_bw = min(10.e6, high_freq_c - low_freq_c - co_channel_bw)
-
-        # Incorporate EIRP within the adjacent-bandwidth into the total EIRP
-        if adj_channel_bw != 0:
-            # Compute EIRP within the adjacent-bandwidth
-            eirp_adj_channel_bw = (OOB_POWER_WITHIN_10MHZ + ant_gain
-                                   + 10 * np.log10(adj_channel_bw / 1000000.0))
-            # Compute total EIRP
-            eirp_cbsd = 10 * np.log10(10**(eirp_cbsd/10.) + 10**(eirp_adj_channel_bw/10.))
-
     else:   # For out-of-band inland DPAs
 
         # Compute out-of-band conducted power

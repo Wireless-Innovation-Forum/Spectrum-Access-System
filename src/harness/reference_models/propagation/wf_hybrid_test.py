@@ -202,5 +202,20 @@ class TestWfHybrid(unittest.TestCase):
     offset = wf_hybrid._GetMedianToMeanOffsetDb(3625, True)
     self.assertAlmostEqual(median + offset, -signal_mean, 2)
 
+  def test_small_height(self):
+    lat1, lng1 = 37.756672, -122.508512
+    lat2, lng2 = 37.754406, -122.388342
+    res_bad = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, 0, lat2, lng2, -1,
+        cbsd_indoor=False,
+        reliability=0.5, freq_mhz=3625., region='SUBURBAN')
+    res_expected = wf_hybrid.CalcHybridPropagationLoss(
+        lat1, lng1, 1, lat2, lng2, 1,
+        cbsd_indoor=False,
+        reliability=0.5, freq_mhz=3625., region='SUBURBAN')
+    self.assertEqual(res_bad.db_loss, res_expected.db_loss)
+    self.assertEqual(res_bad.incidence_angles, res_expected.incidence_angles)
+
+
 if __name__ == '__main__':
   unittest.main()

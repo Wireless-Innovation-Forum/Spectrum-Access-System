@@ -358,12 +358,13 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                                      'url': sas_test_harness_object.getBaseUrl()})
       sas_test_harness_objects.append(sas_test_harness_object)
 
+
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
 
       # Execute steps for single iteration
       self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects,
-                                  domain_proxy_objects)
+                                     domain_proxy_objects)
 
     # Stopping Test harness servers
     for test_harness in sas_test_harness_objects:

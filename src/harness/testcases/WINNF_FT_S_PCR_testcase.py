@@ -16,15 +16,15 @@
 import json
 import logging
 import os
-import signal
-import time
 import sas_testcase
+import uuid
 from shapely import ops
 from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
-     makePalRecordsConsistent, writeConfig, getCertificateFingerprint
+     makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
+     makePpaAndPalRecordsConsistent
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 def getSasUutClaimedPpaBoundaryFilePath(config_filename):
@@ -137,52 +137,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   is able to create PPA zone or error.
   """
 
-  def triggerPpaCreationAndWaitUntilComplete(self, ppa_creation_request):
-    """Triggers PPA Creation Admin API and returns PPA ID if the creation status is completed.
-
-    Triggers PPA creation to the SAS UUT. Checks the status of the PPA creation
-    by invoking the PPA creation status API. If the status is complete then the
-    PPA ID is returned. The status is checked every 10 secs for upto 2 hours.
-    Exception is raised if the PPA creation returns error or times out.
-
-    Args:
-      ppa_creation_request: A dictionary with a multiple key-value pair containing the
-        "cbsdIds", "palIds" and optional "providedContour"(a GeoJSON object).
-
-    Returns:
-      A Return value is string format of the PPA ID.
-
-    """
-    ppa_id = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
-
-    # Verify ppa_id should not be None.
-    self.assertIsNotNone(ppa_id, msg="PPA ID received from SAS UUT as result of "
-                                     "PPA Creation is None")
-
-    logging.info('TriggerPpaCreation is in progress')
-
-    # Triggers most recent PPA Creation Status immediately and checks for the
-    # status of activity every 10 seconds until it is completed. If the status
-    # is not changed within 2 hours it will throw an exception.
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Most Recent PPA Creation Status Check Timeout')))
-
-    # Timeout after 2 hours if it's not completed.
-    signal.alarm(7200)
-
-    # Check the Status of most recent ppa creation every 10 seconds.
-    while not self._sas_admin.GetPpaCreationStatus()['completed']:
-      time.sleep(10)
-
-    # Additional check to ensure whether PPA creation status has error.
-    self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
-                     msg='There was an error while creating PPA')
-    signal.alarm(0)
-
-    return ppa_id
-
   def triggerFadGenerationAndRetrievePpaZone(self, ssl_cert, ssl_key):
     """Triggers FAD and Retrieves PPA Zone Record.
 
@@ -217,6 +171,52 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     return uut_ppa_zone_data[0]
 
+  def assertPpaCreationFailure(self, ppa_creation_request):
+    """Trigger PPA Creation Admin API and asserts the failure response.
+
+    Triggers PPA creation to the SAS UUT and handles exception received if the
+    PPA creation returns error or times out.Checks the status of the PPA creation
+    by invoking the PPA creation status API.If the status is complete then looks for
+    withError set to True to declare ppa creation is failed. The status is checked
+    every 10 secs for up to 2 hours.
+
+    Args:
+      ppa_creation_request: A dictionary with a multiple key-value pair containing the
+        "cbsdIds", "palIds" and optional "providedContour"(a GeoJSON object).
+
+    Raises:
+      Exception for the following cases:
+         a. withError flag set to False even though most recent ppa creation
+         status is completed.
+         b. SAS UUT does not respond for longer time and timeout.
+         c. SAS UUT responds with success response rather than failure response.
+
+    """
+    response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    logging.info('TriggerPpaCreation is in progress')
+
+    # Triggers most recent PPA Creation Status immediately and checks for the status
+    # of activity every 10 seconds until it is completed. If the status is not changed
+    # within 2 hours it will throw an exception.
+    signal.signal(signal.SIGALRM,
+                  lambda signum, frame:
+                  (_ for _ in ()).throw(
+                      Exception('Most Recent PPA Creation Status Check Timeout')))
+
+    # Timeout after 2 hours if it's not completed.
+    signal.alarm(7200)
+
+    # Check the Status of most recent ppa creation every 10 seconds.
+    while not self._sas_admin.GetPpaCreationStatus()['completed']:
+      time.sleep(10)
+
+    # Expect the withError flag in status response should be toggled on to True
+    # to indicate PPA creation failure.
+    self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
+                    msg='Expected:There is an error in create PPA. But '
+                        'PPA creation status indicates no error')
+    signal.alarm(0)
+
   def generate_PCR_1_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 1."""
     # Load PAL records.
@@ -225,8 +225,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and b to make them adjacent.
-    # 20063955100 and 20063955200 respectively.
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -252,8 +251,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Device_b is Category B with conditionals pre-loaded.
     self.assertEqual(device_b['cbsdCategory'], 'B')
 
-    # Set the values of fipsCode in pal_records_a and b to make them adjacent.
-    # 20063955100 and 20063955200 respectively
+    # Make PAL records consistent.
     pal_records = makePalRecordsConsistent([pal_record_a, pal_record_b],
                                            pal_low_frequency, pal_high_frequency,
                                            device_a['userId'])
@@ -385,8 +383,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_record_b = json.load(
         open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # Set the values of fipsCode in pal_records_a and pal_records_b to make them adjacent.
-    # 20063955100 and 20063955200 respectively.
+    # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
     pal_record_b['fipsCode'] = 20063955200
 
@@ -412,8 +409,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Device_b is Category B with conditionals pre-loaded.
     self.assertEqual(device_b['cbsdCategory'], 'B')
 
-    # Set the values of fipsCode in pal_records_a and b to make them adjacent.
-    # 20063955100 and 20063955200 respectively.
+    # Make PAL record consistent.
     pal_records = makePalRecordsConsistent([pal_record_a, pal_record_b],
                                            pal_low_frequency, pal_high_frequency,
                                            device_a['userId'])
@@ -493,7 +489,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     for pal_record in config['palRecords']:
       self._sas_admin.InjectPalDatabaseRecord(pal_record)
 
-    # Trigger SAS UUT to create a PPA boundary.
+    # Prepares the PAL Ids to trigger ppa creation request.
     pal_ids = [record['palId'] for record in config['palRecords']]
     ppa_creation_request = {
         "cbsdIds": cbsd_ids,
@@ -546,11 +542,11 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
 
-    # Shrink the user claimed ppa boundary by 1 kilometer.
+    # Shrink the user claimed ppa boundary by approximately 1 kilometer.
     user_claimed_ppa_contour_shapely = utils.ToShapely(
         user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
-    user_claimed_ppa_contour_geometry = json.loads(utils.ToGeoJson(
-        user_claimed_ppa_contour_shapely))
+    user_claimed_ppa_contour_geometry = utils.ToGeoJson(
+        user_claimed_ppa_contour_shapely, as_dict=True)
 
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
@@ -582,7 +578,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered(pcr_1_test_config['registrationRequests'],
                                      pcr_1_test_config['conditionalRegistrationData'])
 
-    # Trigger SAS UUT to create a PPA boundary.
+    # Prepares the PAL Ids to trigger ppa creation request.
     pal_ids = [record['palId'] for record in pcr_1_test_config['palRecords']]
 
     # Create PPA creation request with user claimed ppa contour.
@@ -616,3 +612,361 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # PPA claimed boundary.
     test_harness_ppa_geometry = config['userClaimedPpaContour']
     self.assertTrue(utils.PolygonsAlmostEqual(test_harness_ppa_geometry, uut_ppa_geometry))
+
+  def generate_PCR_4_default_config(self, filename):
+    """Generate the WinnForum configuration for PCR 4."""
+    # Load PAL records.
+    pal_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    pal_record_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+
+    # Use the FIPS codes of adjacent census tracts.
+    pal_record_1['fipsCode'] = 20063955100
+    pal_record_2['fipsCode'] = 20063955200
+
+    # Set the PAL frequency.
+    pal_low_frequency = 3570000000
+    pal_high_frequency = 3580000000
+
+    # Load device info.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+
+    # Set the same user ID for all devices
+    device_b['userId'] = device_a['userId']
+    device_c['userId'] = device_a['userId']
+
+    # Make PAL records consistent.
+    pal_records = makePalRecordsConsistent([pal_record_1, pal_record_2],
+                                           pal_low_frequency, pal_high_frequency,
+                                           device_a['userId'])
+
+    # Set the values of CBSD location, antenna gain, and EIRP limit such that a
+    # single PPA can be formed.
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = 39.0373, -100.4184
+    device_b['installationParam']['latitude'], device_b['installationParam'][
+        'longitude'] = 39.0378, -100.4785
+
+    # At least one of the CBSDs is located outside the service area.
+    device_c['installationParam']['latitude'], device_c['installationParam'][
+        'longitude'] = 39.09755, -99.9179
+
+    # Set the AntennaGain and EIRP capability chosen in a way that only one PPA zone is created
+    # by those CBDSs
+    device_a['installationParam']['eirpCapability'] = 30
+    device_b['installationParam']['eirpCapability'] = 47
+    device_c['installationParam']['eirpCapability'] = 30
+    device_a['installationParam']['antennaGain'] = 16
+    device_b['installationParam']['antennaGain'] = 16
+    device_c['installationParam']['antennaGain'] = 16
+
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
+    }
+    conditionals = [conditionals_b]
+    del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['measCapability']
+
+    # Create the actual config.
+    devices = [device_a, device_b, device_c]
+    config = {
+        'registrationRequests': devices,
+        'conditionalRegistrationData': conditionals,
+        'palRecords': pal_records
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_PCR_4_default_config)
+  def test_WINNF_FT_S_PCR_4(self, config_filename):
+    """Unsuccessful PPA Creation with one or more CBSDs Outside Service Area.
+
+    Checks SAS UUT rejects creation of a PPA boundary if at least one of the CBSDs
+    included in the CBSD cluster list is located outside PAL holder service area.
+    """
+    # Load the Config file.
+    config = loadConfig(config_filename)
+
+    # Inject the PAL records.
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+
+    # Register devices and check the response.
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
+
+    # Prepares the PAL Ids to trigger ppa creation request.
+    pal_ids = [record['palId'] for record in config['palRecords']]
+
+    # Create PPA creation request to SAS UUT.
+    ppa_creation_request = {
+        "cbsdIds": cbsd_ids,
+        "palIds": pal_ids
+    }
+
+    # Trigger PPA Creation to SAS UUT and expect the failure response.
+    self.assertPpaCreationFailure(ppa_creation_request)
+
+  def generate_PCR_5_default_config(self, filename):
+    """Generate the WinnForum configuration for PCR 5."""
+    # Load PAL records.
+    pal_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    pal_record_2 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+
+    # Use the FIPS codes of adjacent census tracts.
+    pal_record_1['fipsCode'] = 20063955100
+    pal_record_2['fipsCode'] = 20063955200
+
+    # Set the PAL frequency.
+    pal_low_frequency = 3570000000
+    pal_high_frequency = 3580000000
+
+    # Load device info.
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # light check to ensure CBSD userId is not same.
+    self.assertNotEqual(device_a['userId'], device_b['userId'])
+
+    # The userId of at least one of the CBSDs is not associated to the userId of
+    # the PAL Holder configured in the PAL record for this service area.
+    pal_records = makePalRecordsConsistent([pal_record_1, pal_record_2], pal_low_frequency,
+                                           pal_high_frequency,
+                                           device_a['userId'])
+
+    # CBSDs are located inside the service area.
+    device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = 39.0373, -100.4184
+    device_b['installationParam']['latitude'], device_b['installationParam'][
+        'longitude'] = 39.0378, -100.4785
+
+    conditionals_b = {
+        'cbsdCategory': device_b['cbsdCategory'],
+        'fccId': device_b['fccId'],
+        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
+        'airInterface': device_b['airInterface'],
+        'installationParam': device_b['installationParam'],
+        'measCapability': device_b['measCapability']
+    }
+    conditionals = [conditionals_b]
+    del device_b['installationParam']
+    del device_b['cbsdCategory']
+    del device_b['airInterface']
+    del device_b['measCapability']
+
+    # Create the actual config.
+    devices = [device_a, device_b]
+    config = {
+        'registrationRequests': devices,
+        'conditionalRegistrationData': conditionals,
+        'palRecords': pal_records
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_PCR_5_default_config)
+  def test_WINNF_FT_S_PCR_5(self, config_filename):
+    """Unsuccessful PPA Creation with one or more CBSDs Outside Service Area.
+
+    Checks SAS UUT rejects creation of a PPA boundary if at least one of
+    the CBSDs included in the CBSD cluster list does not belong to the PAL holder.
+    """
+    # Load the Config file.
+    config = loadConfig(config_filename)
+
+    # Inject the PAL records.
+    for pal_record in config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+
+    # Register devices and check the response.
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                     config['conditionalRegistrationData'])
+
+    # Prepares the PAL Ids to trigger ppa creation request.
+    pal_ids = [record['palId'] for record in config['palRecords']]
+
+    # Create PPA creation request to SAS UUT.
+    ppa_creation_request = {
+        "cbsdIds": cbsd_ids,
+        "palIds": pal_ids
+    }
+
+    # Trigger PPA Creation to SAS UUT and expect the failure response.
+    # SAS does not create a PPA and generates an error.
+    self.assertPpaCreationFailure(ppa_creation_request)
+
+  def generate_PCR_6_default_config(self, filename):
+    """Generate the WinnForum configuration for PCR 6."""
+    # File path where SAS UUT claimed ppa boundary generated in PCR.1 test
+    pcr_1_test_config_file_path = os.path.join('testcases', 'configs',
+                                               'test_WINNF_FT_S_PCR_1',
+                                               'default.config')
+    sas_uut_claimed_ppa_boundary_file_path = getSasUutClaimedPpaBoundaryFilePath(
+        'default.config')
+
+    # Load SAS UUT claimed ppa boundary and check if any error while retrieving
+    # SAS UUT claimed ppa boundary generated in PCR.1 test.
+    try:
+      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
+        user_claimed_ppa_contour = json.load(claimed_ppa_file)
+    except IOError:
+      raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
+                         % sas_uut_claimed_ppa_boundary_file_path)
+
+    # Expand the user claimed ppa boundary by approximately 1 kilometer.
+    user_claimed_ppa_contour_shapely = utils.ToShapely(
+      user_claimed_ppa_contour['features'][0]['geometry']).buffer(1e-2)
+    user_claimed_ppa_contour_geometry = utils.ToGeoJson(
+      user_claimed_ppa_contour_shapely, as_dict=True)
+
+    # Create the actual config.
+    config = {
+        'configPCR_1': pcr_1_test_config_file_path,
+        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_PCR_6_default_config)
+  def test_WINNF_FT_S_PCR_6(self, config_filename):
+    """Unsuccessful PPA boundary Claimed by PAL Holder Not contained within Maximum PPA Boundary.
+
+    SAS UUT shall reject a PPA boundary claimed by the PAL holder,
+    that is not fully contained within the maximum PPA boundary created by SAS UUT.
+    """
+    # Load the Config file.
+    config = loadConfig(config_filename)
+
+    # Load the test_WINNF_FT_S_PCR_1 config. All other inputs must be identical
+    # to those used in the corresponding configuration of PCR.1.
+    pcr_1_test_config = loadConfig(config['configPCR_1'])
+
+    # Inject the PAL records.
+    for pal_record in pcr_1_test_config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+
+    # Register devices and  check response.
+    cbsd_ids = self.assertRegistered(pcr_1_test_config['registrationRequests'],
+                                     pcr_1_test_config['conditionalRegistrationData'])
+
+    # Prepares the PAL Ids to trigger ppa creation request.
+    pal_ids = [record['palId'] for record in pcr_1_test_config['palRecords']]
+
+    # Create PPA creation request with user claimed ppa contour.
+    ppa_creation_request = {
+        "cbsdIds": cbsd_ids,
+        "palIds": pal_ids,
+        "providedContour": config['userClaimedPpaContour']
+    }
+
+    # Trigger PPA Creation to SAS UUT.
+    self.assertPpaCreationFailure(ppa_creation_request)
+
+  def generate_PCR_7_default_config(self, filename):
+    """Generate the WinnForum configuration for PCR 7."""
+    # File path where SAS UUT claimed ppa boundary generated in PCR.1 test
+    pcr_1_test_config_file_path = os.path.join('testcases', 'configs',
+                                               'test_WINNF_FT_S_PCR_1',
+                                               'default.config')
+    sas_uut_claimed_ppa_boundary_file_path = getSasUutClaimedPpaBoundaryFilePath(
+        'default.config')
+
+    # Load SAS UUT claimed ppa boundary and check if any error while retrieving
+    # SAS UUT claimed ppa boundary generated in PCR.1 test.
+    try:
+      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as overlapped_ppa_file:
+        overlapping_ppa_contour = json.load(overlapped_ppa_file)
+    except IOError:
+      raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
+                         % sas_uut_claimed_ppa_boundary_file_path)
+
+    # Shrink the user claimed ppa boundary by approximately 1 kilometer.
+    overlapping_ppa_contour_shapely = utils.ToShapely(
+        overlapping_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
+    overlapping_ppa_contour_geometry = utils.ToGeoJson(
+        overlapping_ppa_contour_shapely, as_dict=True)
+
+    # Create ppa_record where user claimed PPA contour will be replaced.
+    overlapping_ppa_record = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+
+    # Update the user_claimed ppa contour geometry required for overlaps ppa.
+    overlapping_ppa_record['zone'] = overlapping_ppa_contour_geometry
+
+    # Load PCR.1 configuration.
+    pcr_1_test_config = loadConfig(pcr_1_test_config_file_path)
+
+    # Set the pal_record used in PCR.1 tests.
+    pcr_1_pal_records = pcr_1_test_config['palRecords']
+
+    #updating the PPA record based on the PAL records
+    overlapping_ppa_record ['ppaInfo']['palId'] = [pal['palId'] for pal in pcr_1_pal_records]
+    overlapping_ppa_record ['id'] = 'zone/ppa/%s/%s/%s' % (overlapping_ppa_record['creator'],
+                                                           overlapping_ppa_record['ppaInfo']['palId'][0],
+                                                           uuid.uuid4().hex)
+
+    overlapping_ppa_record ['ppaInfo']['ppaBeginDate'] = pcr_1_pal_records[0]['license']['licenseDate']
+    overlapping_ppa_record ['ppaInfo']['ppaExpirationDate'] = pcr_1_pal_records[0]['license']['licenseExpiration']
+
+    # Create the actual config.
+    config = {
+        'configPCR_1': pcr_1_test_config_file_path,
+        'overlapPpaRecord': overlapping_ppa_record
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_PCR_7_default_config)
+  def test_WINNF_FT_S_PCR_7(self, config_filename):
+    """Overlapping PPA Boundaries.
+
+    Checks SAS UUT shall doesnt create PPA zone within the service area.
+    Checks SAS UUT shall confirm a valid PPA boundary claimed by the PAL holder,
+    composed of one or more adjacent Census Tracts was overlapped by another
+    PPA zone.
+    """
+    # Load the Config file.
+    config = loadConfig(config_filename)
+
+    # Load the test_WINNF_FT_S_PCR_1 config. All other inputs must be identical
+    # to those used in the corresponding configuration of PCR.1.
+    pcr_1_test_config = loadConfig(config['configPCR_1'])
+
+    # Inject the PAL records.
+    for pal_record in pcr_1_test_config['palRecords']:
+      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+
+    # Inject the overlap ppa zone into SAS UUT.
+    zone_id = self._sas_admin.InjectZoneData({'record': config['overlapPpaRecord']})
+    self.assertTrue(zone_id)
+
+    # Register devices and check the response.
+    cbsd_ids = self.assertRegistered(pcr_1_test_config['registrationRequests'],
+                                     pcr_1_test_config['conditionalRegistrationData'])
+
+    # Prepares the PAL Ids to trigger ppa creation request.
+    pal_ids = [record['palId'] for record in pcr_1_test_config['palRecords']]
+
+    # Create PPA creation request with device which is already part of
+    # existing PPA zone.
+    ppa_creation_request = {
+        "cbsdIds": cbsd_ids,
+        "palIds": pal_ids
+    }
+
+    # Trigger PPA Creation to SAS UUT and check SAS UUT should not create PPA boundary
+    # claimed by PAL holder was overlapped by PPA zone.
+    self.assertPpaCreationFailure(ppa_creation_request)

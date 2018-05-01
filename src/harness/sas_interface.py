@@ -395,12 +395,25 @@ class SasAdminInterface(object):
     pass
 
   @abc.abstractmethod
+  def TriggerEnableNtiaExclusionZones(self):
+    """SAS admin interface to trigger enforcement of the NTIA exclusion zones 
+    """
+    pass
+
+  @abc.abstractmethod
   def GetDailyActivitiesStatus(self):
     """SAS admin interface to get the daily activities status
     Returns:
       A dictionary with a single key-value pair where the key is "completed" and the
       value is a boolean with value as true if the daily activities is completed and 
       false if the daily activities is running/failing.
+    """
+    pass
+
+  @abc.abstractmethod
+  def TriggerEnableScheduledDailyActivities(self):
+    """SAS admin interface to trigger the daily activities according to the 
+       schedule agreed upon by SAS admins.                         
     """
     pass
 

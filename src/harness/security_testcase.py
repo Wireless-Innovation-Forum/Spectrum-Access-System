@@ -181,15 +181,15 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_url: base URL of the (peer) SAS client.
     """
     self._sas.UpdateSasRequestUrl(cipher)
-    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
-    self.assertTlsHandshakeSucceed(self._sas.sas_sas_active_base_url, [cipher],
-                                   client_cert, client_key)
 
     # Does a regular SAS registration
     self.SasReset()
     certificate_hash = getCertificateFingerprint(client_cert)
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': client_url})
+    # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
+    self.assertTlsHandshakeSucceed(self._sas.sas_sas_active_base_url, [cipher],
+                                   client_cert, client_key)
     self._sas_admin.TriggerFullActivityDump()
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self._sas.GetFullActivityDump(client_cert, client_key)
