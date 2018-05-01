@@ -238,6 +238,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
                        self._base_url, request, self._tls_config)
 
+  def TriggerEnableNtiaExclusionZones(self):
+    _RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
+                 self._base_url, None, self._tls_config)
+    pass
+
   def GetDailyActivitiesStatus(self):
     return RequestPost(
         'https://%s/admin/get_daily_activities_status' % self._base_url, None,
