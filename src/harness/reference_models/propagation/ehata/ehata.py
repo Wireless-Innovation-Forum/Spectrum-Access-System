@@ -71,6 +71,13 @@ def MedianBasicPropLoss(freq_mhz, height_tx, height_rx, dist_km, region_code):
   return ehata_its.MedianBasicPropLoss(freq_mhz, height_tx, height_rx, dist_km, region_code)
 
 
+# Routine to simulate the correction done in C to recapture whole values.
+def _GetDistanceInMeters(its_elev):
+  distance_m = its_elev[0] * its_elev[1]
+  if abs(distance_m - round(distance_m)) < 1e-5:
+    distance_m = round(distance_m)
+  return distance_m
+
 def CbsdEffectiveHeights(height_cbsd, its_elev):
   """Get the CBSD effective height 'h_b'.
 
@@ -84,10 +91,9 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
   Returns:
     the CBSD effective height.
   """
-
   npts = int(its_elev[0])
-  xi = its_elev[1] / 1000   # step size of the profile points, in km
-  dist_km = npts * xi         # path distance, in km
+  xi = its_elev[1] / 1000.   # step size of the profile points, in km
+  dist_km = _GetDistanceInMeters(its_elev) / 1000.
   elev_cbsd = its_elev[2]
 
   if dist_km < 3.0:
@@ -100,6 +106,7 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
       i_end = 2 + int(math.floor(15.0 / xi))
       dist_km = 15.0
 
+    if i_start > i_end: i_start = i_end
     avg_height = sum(its_elev[i_start:i_end+1]) / float(i_end - i_start + 1)
     eff_height = height_cbsd + (dist_km - 3.0) / 12.0 * (elev_cbsd - avg_height)
 

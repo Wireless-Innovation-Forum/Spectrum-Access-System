@@ -86,6 +86,24 @@ class TestEHata(unittest.TestCase):
     eff_tx_m = ehata.CbsdEffectiveHeights(19, profile)
     self.assertEqual(20, eff_tx_m)
 
+  def test_eff_height_at3km(self):
+    profile = [6, 500, 1, 2, 3, 4, 5, 6, 7]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(50, eff_tx_m)
+
+    profile = [6, 505, 1, 2, 3, 4, 5, 6, 7]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(50-(6*30/12.e3), eff_tx_m)
+
+    profile = [6, 500.000000000001, 1, 2, 3, 4, 5, 6, 7]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    #self.assertAlmostEqual(50, eff_tx_m, 7)
+    self.assertEqual(50, eff_tx_m)
+
+    profile = [6, 499.99999999999507, 1, 2, 3, 4, 5, 6, 7]
+    eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
+    self.assertEqual(50, eff_tx_m)
+
   def test_eff_height_within15km(self):
     profile = [9, 1000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
@@ -99,7 +117,7 @@ class TestEHata(unittest.TestCase):
 
     profile = [5, 800, 12, 2, 3, 4, 5, 9]
     eff_tx_m = ehata.CbsdEffectiveHeights(50, profile)
-    self.assertEqual(50, eff_tx_m)
+    self.assertEqual(50+((12-7)*1/12.), eff_tx_m)
 
   def test_eff_height_over15km(self):
     profile = [9, 2000, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

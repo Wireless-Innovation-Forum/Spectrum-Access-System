@@ -144,7 +144,7 @@ class TestWfHybrid(unittest.TestCase):
   def test_over_80km(self):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.094745, -122.040671, 10.0  # 81km away
-    expected_loss = 286.907
+    expected_loss = 286.903
     expected_itm_loss = 269.067
 
     res = wf_hybrid.CalcHybridPropagationLoss(
