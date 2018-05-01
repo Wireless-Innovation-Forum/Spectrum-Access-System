@@ -13,10 +13,10 @@
 #    limitations under the License.
 
 # =============================================================================
-# Test Aggregate Interference calculation for GWPZ, PPA, FSS Co-Channel, 
+# Test Aggregate Interference calculation for GWPZ, PPA, FSS Co-Channel,
 # FSS Blocking and ESC Sensor incumbent types.
 # Expected result is dictionary containing aggregate interference
-# value at a protection constraint. 
+# value at a protection constraint.
 # =============================================================================
 import json
 import os
@@ -29,7 +29,7 @@ from reference_models.interference import interference as interf
 
 import aggregate_interference
 
-# Number of parallel processes 
+# Number of parallel processes
 NUM_OF_PROCESS = 30
 
 
@@ -48,14 +48,14 @@ if __name__ == '__main__':
 
   # Configure the multiprocess pool
   mpool.Configure(NUM_OF_PROCESS)
-  
+
   # Data directory
   current_dir = os.getcwd()
   _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
 
   # Populate a list of CBSD registration requests
   cbsd_filename = ['cbsd_0.json',
-                   'cbsd_1.json', 'cbsd_2.json', 'cbsd_3.json', 
+                   'cbsd_1.json', 'cbsd_2.json', 'cbsd_3.json',
                    'cbsd_4.json', 'cbsd_5.json', 'cbsd_6.json',
                    'cbsd_7.json', 'cbsd_8.json', 'cbsd_9.json',
                    'cbsd_10.json', 'cbsd_11.json', 'cbsd_12.json',
@@ -68,9 +68,9 @@ if __name__ == '__main__':
   for cbsd_file in cbsd_filename:
     cbsd_record = json.load(open(os.path.join(_BASE_DATA_DIR, cbsd_file)))
     cbsd_list.append(cbsd_record)
-  
+
   fss_filename = ['fss_0.json', 'fss_1.json']
-   
+
   fss_list = []
   for fss_file in fss_filename:
     # load and inject FSS data with Overlapping Frequency of CBSD
@@ -78,28 +78,28 @@ if __name__ == '__main__':
     fss_list.append(fss_record)
 
   esc_filename = ['esc_0.json']
-  
+
   esc_list = []
   for esc_file in esc_filename:
     # load and inject ESC data with Overlapping Frequency of CBSD
     esc_record = json.load(
       open(os.path.join(_BASE_DATA_DIR, esc_file)))
     esc_list.append(esc_record)
-  
+
   gwpz_filename = ['gwpz_0.json', 'gwpz_1.json']
 
   gwpz_list = []
-  
+
   for gwpz_file in gwpz_filename:
     # load and inject GWPZ data with Overlapping Frequency of CBSD
     gwpz_record = json.load(
       open(os.path.join(_BASE_DATA_DIR, gwpz_file)))
     gwpz_list.append(gwpz_record)
-  
+
   ppa_filename = ['ppa_0.json', 'ppa_1.json', 'ppa_2.json', 'ppa_3.json']
 
   ppa_list = []
-  
+
   for ppa_file in ppa_filename:
     # load and inject PPA data with Overlapping Frequency of CBSD
     ppa_record = json.load(open(os.path.join(_BASE_DATA_DIR, ppa_file)))
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   for pal_file in pal_filename:
       pal_record = json.load(open(os.path.join(_BASE_DATA_DIR, pal_file)))
       pal_list.append(pal_record)
-  
+
   # Determine aggregate interference caused by the grants in the neighborhood
   start_time = time.time()
 
@@ -125,31 +125,31 @@ if __name__ == '__main__':
 
     # Get FSS T&C Flag value
     fss_ttc_flag = fss_record['ttc']
-  
+
     # FSS Passband is between 3600 and 4200
-    if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and 
+    if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and
             fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
       fss_cochannel_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list)
-      print('Aggregate Interference (mW) output at FSS co-channel: ' + 
+      print('Aggregate Interference (mW) output at FSS co-channel: ' +
             str(CvtToList(fss_cochannel_aggr_interference)))
       fss_blocking_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
-      print('\nAggregate Interference (mW) output at FSS blocking: \n' + 
+      print('\nAggregate Interference (mW) output at FSS blocking: \n' +
             str(CvtToList(fss_blocking_aggr_interference)))
     # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
-    elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
+    elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and
             fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
             fss_ttc_flag is True):
       fss_blocking_aggr_interference = aggregate_interference.\
         calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
-      print('\nAggregate Interference (mW) output at FSS blocking: \n' + 
+      print('\nAggregate Interference (mW) output at FSS blocking: \n' +
             str(CvtToList(fss_blocking_aggr_interference)))
 
   for esc_record in esc_list:
     esc_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForEsc(esc_record, cbsd_list)
-    print('\nAggregate Interference (mW) output at ESC: \n' + 
+    print('\nAggregate Interference (mW) output at ESC: \n' +
           str(CvtToList(esc_aggr_interference)))
   for gwpz_record in gwpz_list:
     gwpz_aggr_interference = aggregate_interference.\

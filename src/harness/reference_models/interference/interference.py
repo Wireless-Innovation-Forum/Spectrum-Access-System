@@ -91,7 +91,7 @@ ESC_CH21_CF_HZ = 36525.e5
 # One Mega Hertz
 MHZ = 1.e6
 
-# Channel bandwidth over which SASs execute the aggregate interference and 
+# Channel bandwidth over which SASs execute the aggregate interference and
 # IAP process
 RBW_HZ = 5.e6
 
@@ -111,6 +111,9 @@ _DISTANCE_PER_PROTECTION_TYPE = {
 }
 
 
+# Management of a common structure object to manage the interference calculation.
+# This object uses multiprocessing.Manager() to share the internals among multiple
+# processes.
 class AggregateInterferenceOutputFormat(object):
   """Implementation of output format of aggregate interference
 
@@ -119,7 +122,7 @@ class AggregateInterferenceOutputFormat(object):
 
   Creates a data structure to store post IAP allowed interference or
   aggregate interference to non-DPAs output in the format of
-  {latitude : {longitude : [ output_first_5MHz_segment, output_first_5MHz_segment ]}}
+    {latitude : {longitude : [ output_first_5MHz_segment, ... , output_last_5MHz_segment ]}}
   """
   def __init__(self):
     self.manager = multiprocessing.Manager()
@@ -148,6 +151,18 @@ class AggregateInterferenceManager(BaseManager):
   pass
 
 
+def getInterferenceObject():
+  """ Creates the AggregateInterferenceOutputFormat class object, which will
+  be shared across multiple processes using AggregateInterferenceManager
+  customized manager"""
+  AggregateInterferenceManager.register('AggregateInterferenceOutputFormat',
+                                        AggregateInterferenceOutputFormat)
+  manager = AggregateInterferenceManager()
+  manager.start()
+
+  return manager.AggregateInterferenceOutputFormat()
+
+
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
   return 10**(x / float(10))
@@ -159,7 +174,7 @@ def linearToDb(x):
 
 
 def getProtectedChannels(low_freq_hz, high_freq_hz):
-  """Gets protected channels list
+  """Gets protected channels list.
 
   Performs 5MHz IAP channelization and returns a list of tuple containing
   (low_freq,high_freq)
@@ -174,16 +189,16 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
   assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
 
-  return [(low, high) for low,high in zip(channels, channels+5*MHZ)]
+  return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
 
 
 def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
-  """Finds grants inside protection entity neighborhood
+  """Finds grants inside protection entity neighborhood.
 
   Args:
-    grants: an iterator of grants with attributes latitude and longitude
-    protection_point: location of a protected entity as (longitude,latitude) tuple
-    entity_type: enum of type |data.ProtectedEntityType|.
+    grants: An iterable of CBSD grants of type |data.CbsdGrantInfo|.
+    protection_point: The location of a protected entity as (longitude, latitude) tuple.
+    entity_type: The entity type (|data.ProtectedEntityType|).
   Returns:
     grants_inside: a list of grants, each one being a namedtuple of type
                    |data.CbsdGrantInfo|, of all CBSDs inside the neighborhood
@@ -206,16 +221,16 @@ def findGrantsInsideNeighborhood(grants, protection_point, entity_type):
 
 
 def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_type):
-  """Checks if grant frequency overlaps with protection constraint frequency range
+  """Checks if grant frequency overlaps with protection constraint frequency range.
 
   Args:
-    grant: namedtuple of type |data.CbsdGrantInfo|
-    ch_low_freq: low frequency of protection channel
-    ch_high_freq: high frequency of protection channel
-    protection_ent_type: enum of type |data.ProtectedEntityType|.
+    grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    ch_low_freq: The low frequency of protection channel.
+    ch_high_freq: The high frequency of protection channel.
+    protection_ent_type: An enum of type |data.ProtectedEntityType|.
   Returns:
-    True, if grant frequency overlaps with protection constraint frequency
-    range else False
+    True if grant frequency overlaps with protection constraint frequency range,
+    False otherwise.
   """
   # Check frequency range
   overlapping_bw = min(grant.high_frequency, ch_high_freq) \
@@ -234,18 +249,17 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
 
 
 def findOverlappingGrants(grants, constraint):
-  """Finds grants overlapping with protection entity
+  """Finds grants overlapping with protection entity.
 
   Grants overlapping with frequency range of the protection entity are
   considered as overlapping grants.
 
   Args:
-    grants: an iterator of grants with attributes latitude and longitude.
-    constraint: protection constraint of type |data.ProtectionConstraint|.
+    grants: An iterable of CBSD grants of type |data.CbsdGrantInfo|.
+    constraint: A protection constraint of type |data.ProtectionConstraint|.
   Returns:
-    grants_overlap: a list of grants, each one being a namedtuple of type
-                   |data.CbsdGrantInfo|, of all CBSDs inside the neighborhood
-                   of the protection constraint.
+    grants_overlap: a list of |data.CbsdGrantInfo| grants of all CBSDs inside
+      the neighborhood of the protection constraint.
   """
   grants_overlap = [grant for grant in grants
                     if grantFrequencyOverlapCheck(
@@ -255,22 +269,21 @@ def findOverlappingGrants(grants, constraint):
 
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
-                                  max_eirp, region='SUBURBAN'):
-  """Compute interference grant causes to GWPZ or PPA protection area
+                                    max_eirp, region='SUBURBAN'):
+  """Computes interference that a grant causes to GWPZ or PPA protection area.
 
   Routine to compute interference neighborhood grant causes to protection
-  point within GWPZ or PPA protection area
+  point within GWPZ or PPA protection area.
 
   Args:
-    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
-    constraint: protection constraint of type |data.ProtectionConstraint|.
-    h_inc_ant: reference incumbent antenna height (in meters)
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+    h_inc_ant: The reference incumbent antenna height (in meters).
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
-    region: Region type of the GWPZ or PPA area
+    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
-    interference: interference contribution(dBm)
+    The interference contribution (dBm).
   """
-
   if (cbsd_grant.latitude == constraint.latitude and
       cbsd_grant.longitude == constraint.longitude):
     db_loss = 0
@@ -307,21 +320,19 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
 
 
 def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
-  """Compute interference grant causes to a ESC protection point
+  """Computes interference that a grant causes to a ESC protection point.
 
   Routine to compute interference neighborhood grant causes to ESC protection
-  point
+  point.
 
   Args:
-    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
-    constraint: protection constraint of type |data.ProtectionConstraint|.
-    esc_antenna_info: contains information on ESC antenna height, azimuth,
-                      gain and pattern gain
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+    esc_antenna_info: ESC antenna information of type |data.EscInformation|.
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
   Returns:
-    interference: interference contribution(dBm)
+    The interference contribution(dBm).
   """
-
   # Get the propagation loss and incident angles for ESC entity
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
                                    cbsd_grant.longitude, cbsd_grant.height_agl,
@@ -353,17 +364,18 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
 
 
 def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
-  """Compute interference grant causes to a FSS protection point
+  """Computes interference that a grant causes to a FSS protection point.
 
   Routine to compute interference neighborhood grant causes to FSS protection
-  point for co-channel passband
+  point for co-channel passband.
+
   Args:
-    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
-    constraint: protection constraint of type |data.ProtectionConstraint|.
-    fss_info: contains fss point and antenna information
-    max_eirp: The maximum EIRP allocated to the grant during IAP procedure
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+    fss_info: The FSS information of type |data.FssInformation|.
+    max_eirp: The maximum EIRP allocated to the grant during IAP procedure.
   Returns:
-    interference: interference contribution(dBm)
+    The interference contribution(dBm).
   """
 
   # Get the propagation loss and incident angles for FSS entity_type
@@ -395,7 +407,7 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
 
 
 def getFssMaskLoss(cbsd_grant, constraint):
-  """Gets the FSS mask loss for a FSS blocking protection constraint"""
+  """Gets the FSS mask loss for a FSS blocking protection constraint."""
   # Get 50MHz offset below the lower edge of the FSS earth station
   offset = constraint.low_frequency - 50.e6
 
@@ -438,20 +450,20 @@ def getFssMaskLoss(cbsd_grant, constraint):
 
 
 def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
-  """Compute interference grant causes to a FSS protection point
+  """Computes interference that a grant causes to a FSS protection point.
 
   Routine to compute interference neighborhood grant causes to FSS protection
   point for blocking passband
 
   Args:
-    cbsd_grant: a namedtuple of type |data.CbsdGrantInfo|.
-    constraint: protection constraint of type |data.ProtectionConstraint|.
-    fss_info: contains fss point and antenna information
-    max_eirp: The maximum EIRP allocated to the grant during IAP procedure
-  Returns:
-    interference: interference contribution(dBm)
-  """
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+    fss_info: The FSS information of type |data.FssInformation|.
+    max_eirp: The maximum EIRP allocated to the grant during IAP procedure.
 
+  Returns:
+    The interference contribution(dBm).
+  """
   # Get the propagation loss and incident angles for FSS entity
   # blocking channels
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(
@@ -471,7 +483,6 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
                    incidence_angles.ver_rx, fss_info.pointing_azimuth,
                    fss_info.pointing_elevation, fss_info.max_gain_dbi)
 
-
   # Get the total antenna gain by summing the antenna gains from CBSD to FSS
   # and FSS to CBSD
   effective_ant_gain = ant_gain + fss_ant_gain
@@ -488,19 +499,19 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
 
 def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
                            reference_bandwidth=RBW_HZ):
-  """Calculates effective EIRP caused by a grant
+  """Calculates effective EIRP caused by a grant.
 
   Utility API to get effective EIRP caused by a grant in the
   neighborhood of the protected entity FSS/ESC/PPA/GWPZ.
 
   Args:
-    max_eirp: The maximum EIRP allocated to the grant during IAP procedure
+    max_eirp: The maximum EIRP allocated to the grant during IAP procedure.
     cbsd_max_ant_gain: The nominal antenna gain of the CBSD.
     effective_ant_gain: The actual total antenna gains at the CBSD and protected
       entity. This takes into account the actual antenna patterns.
-    reference_bandwidth: Reference bandwidth over which effective EIRP is calculated
+    reference_bandwidth: Reference bandwidth over which effective EIRP is calculated.
   Returns:
-    eirp_cbsd: Effective EIRP of the CBSD(dBm)
+    The effective EIRP of the CBSD(dBm)
   """
 
   eirp_cbsd = ((max_eirp - cbsd_max_ant_gain) + effective_ant_gain + linearToDb
@@ -511,19 +522,18 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
 
 def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   esc_antenna_info=None, region_type=None):
-  """Calculates interference caused by a grant
+  """Calculates interference caused by a grant.
 
   Utility API to get interference caused by a grant in the
   neighborhood of the protected entity FSS/ESC/PPA/GWPZ.
 
   Args:
-    grant : namedtuple of type |data.CbsdGrantInfo|.
-    eirp : EIRP of the grant
-    channel_constraint: namedtuple of type |data.ProtectionConstraint|.
-    fss_info: contains fss point and antenna information
-    esc_antenna_info: contains information on ESC antenna height, azimuth,
-                      gain and pattern gain
-    region_type: region type of protection PPA/GWPZ area.
+    grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    eirp: The EIRP of the grant.
+    channel_constraint: A protection constraint of type |data.ProtectionConstraint|.
+    fss_info: The FSS information of type |data.FssInformation|.
+    esc_antenna_info: ESC antenna information of type |data.EscInformation|.
+    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
@@ -558,39 +568,34 @@ def convertAndSumInterference(cbsd_interference_list):
   return np.sum(dbToLinear(interferences_in_dbm))
 
 
-def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_freq,
-      grant_objects, fss_info, esc_antenna_info, protection_ent_type,
+def aggregateInterferenceForPoint(protection_point, channels, grants,
+      fss_info, esc_antenna_info, protection_ent_type,
       region_type, aggregate_interference):
-  """Algorithm to compute aggregate interference for protection point
+  """Algorithm to compute aggregate interference for protection point.
 
-  This method is invoked to calculate aggregate interference for FSS(Co-channel
-  and blocing passband) and ESC protection points.It is also invoked for
+  This routine is invoked to calculate aggregate interference for FSS(Co-channel
+  and blocking passband) and ESC protection points.It is also invoked for
   protection points within PPA and GWPZ protection areas.
 
+  It updates the `aggregate_interference` dictionary object with the aggregate
+  interference (mW) for each protected channel of a protection point.
+  The dictionary format is:
+      {latitude : {longitude : [aggr_interference(mW), ..., aggr_interference(mW)]}},
+  where the inner list holds all aggregated interference for the various channels.
+
   Args:
-   protection_point: Protection point as a tuple (longitude, latitude)
-   channels: A sequence of channels as tuple (low_freq_hz, high_freq_hz)
-   low_freq: Low frequency of protection constraint (Hz)
-   high_freq: High frequency of protection constraint (Hz)
-   grant_objects: A list of grant requests, each one being a namedtuple
-                  containing grant information
-   fss_info: Contains fss point and antenna information
-   esc_antenna_info: Contains information on ESC antenna height, azimuth,
-                     gain and pattern gain
-   protection_ent_type: An enum member of class |data.ProtectedEntityType|.
-   region_type: Region type of the protection point
-   aggregate_interference : object of class type AggregateInterferenceOutputFormat
-   Returns:
-      Updates aggregate_interference object for a aggregate interference(mW)
-      per protection channel of a protection point.
-      Dictionary in the format of
-      {latitude : {longitude : [aggr_interference(mW), aggr_interference(mW)]}},
-      aggr_interference is a aggregate interference(mW) in a particular protection
-      channel of protection point
+    protection_point: The location of a protected entity as (longitude, latitude) tuple.
+    channels: A sequence of channels as tuple (low_freq_hz, high_freq_hz).
+    grants: An iterable of CBSD grants of type |data.CbsdGrantInfo|.
+    fss_info: The FSS information of type |data.FssInformation| (optional).
+    esc_antenna_info: ESC antenna information of type |data.EscInformation| (optional).
+    protection_ent_type: The entity type (|data.ProtectedEntityType|).
+    region: Region type of the protection point: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    aggregate_interference : An object of class type |AggregateInterferenceOutputFormat|.
   """
   # Get all the grants inside neighborhood of the protection entity
   grants_inside = findGrantsInsideNeighborhood(
-                    grant_objects, protection_point, protection_ent_type)
+      grants, protection_point, protection_ent_type)
 
   if len(grants_inside) > 0:
     for channel in channels:
@@ -622,15 +627,3 @@ def aggregateInterferenceForPoint(protection_point, channels, low_freq, high_fre
       aggr_interference = convertAndSumInterference(cbsd_interference_list)
       aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
           protection_point[0], aggr_interference)
-
-
-def getInterferenceObject():
-  """ Creates the AggregateInterferenceOutputFormat class object, which will
-  be shared across multiple processes using AggregateInterferenceManager
-  customized manager"""
-  AggregateInterferenceManager.register('AggregateInterferenceOutputFormat',
-                                        AggregateInterferenceOutputFormat)
-  manager = AggregateInterferenceManager()
-  manager.start()
-
-  return manager.AggregateInterferenceOutputFormat()

@@ -42,6 +42,11 @@ from reference_models.common import data
 from reference_models.interference import interference as interf
 from reference_models.geo import utils
 
+# The grid resolution for area based protection entities.
+GWPZ_GRID_RES_ARCSEC = 10
+PPA_GRID_RES_ARCSEC = 10
+
+
 def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
   """Calculates aggregate interference for FSS co-channel.
 
@@ -54,7 +59,7 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
     cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to FSS co-channel in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
+      {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
   grant_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
 
@@ -82,10 +87,9 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
 
   aggregate_interference = interf.getInterferenceObject()
   interf.aggregateInterferenceForPoint(protection_point,
-    protection_channels, fss_low_freq, interf.CBRS_HIGH_FREQ_HZ,
-    grant_list, fss_info, None,
-    data.ProtectedEntityType.FSS_CO_CHANNEL, None,
-    aggregate_interference)
+      protection_channels, grant_list, fss_info, None,
+      data.ProtectedEntityType.FSS_CO_CHANNEL, None,
+      aggregate_interference)
 
   # Extract dictionary from DictProxy object using _getvalue() object method
   return aggregate_interference.GetAggregateInterferenceInfo()._getvalue()
@@ -103,7 +107,7 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
     cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to FSS blocking in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
+      {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
   grant_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
 
@@ -137,8 +141,7 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list):
 
     aggregate_interference = interf.getInterferenceObject()
     interf.aggregateInterferenceForPoint(protection_point,
-      protection_channels, interf.CBRS_LOW_FREQ_HZ,
-      fss_low_freq, grant_list, fss_info, None,
+      protection_channels, grant_list, fss_info, None,
       data.ProtectedEntityType.FSS_BLOCKING, None,
       aggregate_interference)
 
@@ -158,9 +161,8 @@ def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
     cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to ESC in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
+      {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
-
   grant_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
 
   # Get the protection point of the ESC
@@ -183,12 +185,11 @@ def calculateAggregateInterferenceForEsc(esc_record, cbsd_list):
 
   # Get ESC passband 3550-3680 MHz protection channels
   protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ,
-                          interf.ESC_HIGH_FREQ_HZ)
+                                                    interf.ESC_HIGH_FREQ_HZ)
 
   aggregate_interference = interf.getInterferenceObject()
   interf.aggregateInterferenceForPoint(protection_point,
-    protection_channels, interf.ESC_LOW_FREQ_HZ,
-    interf.ESC_HIGH_FREQ_HZ, grant_list, None,
+    protection_channels, grant_list, None,
     esc_antenna_info, data.ProtectedEntityType.ESC, None,
     aggregate_interference)
 
@@ -208,14 +209,14 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
     cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to GWPZ in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
+      {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
-
   grant_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
   gwpz_region = gwpz_record['zone']['features'][0]['properties']['clutter']
 
   # Get Fine Grid Points for a GWPZ protection area
-  protection_points = utils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'], 2)
+  protection_points = utils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'],
+                                        GWPZ_GRID_RES_ARCSEC)
   gwpz_freq_range = gwpz_record['deploymentParam']['operationParam']['operationFrequencyRange']
   gwpz_low_freq = gwpz_freq_range['lowFrequency']
   gwpz_high_freq = gwpz_freq_range['highFrequency']
@@ -228,13 +229,11 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
   aggregate_interference = interf.getInterferenceObject()
 
   interfCalculator = partial(interf.aggregateInterferenceForPoint,
-                     channels=protection_channels,
-                     low_freq=gwpz_low_freq, high_freq=gwpz_high_freq,
-                     grant_objects=grant_list, fss_info=None,
-                     esc_antenna_info=None,
-                     protection_ent_type=data.ProtectedEntityType.GWPZ_AREA,
-                     region_type=gwpz_region,
-                     aggregate_interference=aggregate_interference)
+                             channels=protection_channels, grants=grant_list,
+                             fss_info=None, esc_antenna_info=None,
+                             protection_ent_type=data.ProtectedEntityType.GWPZ_AREA,
+                             region_type=gwpz_region,
+                             aggregate_interference=aggregate_interference)
 
   pool = mpool.Pool()
   pool.map(interfCalculator, protection_points)
@@ -256,12 +255,13 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list):
     cbsd_list: list of CBSD objects containing registrations and grants
   Returns:
     Aggregate interference to PPA in the nested dictionary format.
-    {latitude : {longitude: [aggr_interf1(mW), aggr_interf2(mW)]}}
+      {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
   grant_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list, True, ppa_record)
 
   # Get Fine Grid Points for a PPA protection area
-  protection_points = utils.GridPolygon(ppa_record['zone']['features'][0]['geometry'], 2)
+  protection_points = utils.GridPolygon(ppa_record['zone']['features'][0]['geometry'],
+                                        PPA_GRID_RES_ARCSEC)
 
   # Get the region type of the PPA protection area
   ppa_region = ppa_record['ppaInfo']['ppaRegionType']
@@ -288,13 +288,11 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list):
   # Calculate aggregate interference from each protection constraint with a
   # pool of parallel processes.
   interfCalculator = partial(interf.aggregateInterferenceForPoint,
-                       channels=protection_channels,
-                       low_freq=ppa_low_freq, high_freq=ppa_high_freq,
-                       grant_objects=grant_list, fss_info=None,
-                       esc_antenna_info=None,
-                       protection_ent_type=data.ProtectedEntityType.PPA_AREA,
-                       region_type=ppa_region,
-                       aggregate_interference=aggregate_interference)
+                             channels=protection_channels, grants=grant_list,
+                             fss_info=None, esc_antenna_info=None,
+                             protection_ent_type=data.ProtectedEntityType.PPA_AREA,
+                             region_type=ppa_region,
+                             aggregate_interference=aggregate_interference)
 
   pool = mpool.Pool()
   pool.map(interfCalculator, protection_points)
