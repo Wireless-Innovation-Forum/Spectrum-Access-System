@@ -156,7 +156,7 @@ def ExtractArcFloatToZipAndResample(fname, out_dir):
                                dtype=np.dtype(np.float32).newbyteorder('<'))
           elev2 = elev2.reshape(1812, 1812)
           # Create the bilinear resampled matrix, keeping the no-values
-          elev = np.zeros((3624, 3624))
+          elev = np.zeros((3624, 3624), dtype=np.float32)
           elev[::2, ::2] = elev2
           elev[1:-1:2, ::2] = 0.5 * (elev[:-2:2, ::2] + elev[2:-1:2, ::2])
           elev[elev < -200] = -9999
