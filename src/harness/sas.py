@@ -113,9 +113,9 @@ class SasImpl(sas_interface.SasInterface):
 
   def UpdateSasRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
-      sas_sas_active_base_url = self._sas_sas_ec_base_url
+      self.sas_sas_active_base_url = self._sas_sas_ec_base_url
     else:
-      sas_sas_active_base_url = self._sas_sas_rsa_base_url
+      self.sas_sas_active_base_url = self._sas_sas_rsa_base_url
 
   def UpdateCbsdRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
