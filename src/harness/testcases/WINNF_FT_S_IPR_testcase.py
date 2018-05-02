@@ -282,7 +282,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'hostName':
             'localhost',
         'port':
-            9001,
+            9002,
         'serverCert':
             os.path.join('certs', 'server.cert'),
         'serverKey':
@@ -354,9 +354,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self.assertValidConfig(
         config, {
             'sasTestHarnessConfigs': list,
-            'registrationRequests': list,
-            'grantRequests': list,
-            'conditionalRegistrationData': list,
+            'domainProxies': list,
             'dpas': list,
             'pauseTime': int
         })
@@ -494,7 +492,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'hostName':
             'localhost',
         'port':
-            9001,
+            9006,
         'serverCert':
             os.path.join('certs', 'server.cert'),
         'serverKey':
