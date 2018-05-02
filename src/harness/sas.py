@@ -49,6 +49,7 @@ def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'sas.key')
 
 
+
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -124,6 +125,7 @@ class SasImpl(sas_interface.SasInterface):
       self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
     else:
       self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
+
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -241,9 +243,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                        self._base_url, request, self._tls_config)
 
   def TriggerEnableNtiaExclusionZones(self):
-    _RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
-                 self._base_url, None, self._tls_config)
-    pass
+    RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
+                self._base_url, None, self._tls_config)
 
   def GetDailyActivitiesStatus(self):
     return RequestPost(
@@ -272,7 +273,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
 
   def TriggerEscDisconnect(self):
     RequestPost('https://%s/admin/trigger/disconnect_esc' % self._base_url,
-                request, self._tls_config)
+                None, self._tls_config)
 
   def TriggerFullActivityDump(self):
     RequestPost(
