@@ -131,7 +131,7 @@ def AlreadyExistInDatabase(filename, ref_dir):
 
 
 # Extract the Arcfloat and headers, resample and zip them
-def ExtractArcFloatToZipAndResample(fname, out_dir):
+def ExtractArcFloatToZipAndResample(fname, out_dir, new_download):
   m = re.search('.*?([ns])(\d{1,3})([ew])(\d{1,3}).*?', fname)
   tile_name = '%s%s%s%s' % (m.group(1), m.group(2), m.group(3), m.group(4))
   # Ignore the tile if at -180degree, as these ones need special processing
@@ -145,9 +145,16 @@ def ExtractArcFloatToZipAndResample(fname, out_dir):
   else:
     basename = 'float%s' % (tile_name)
     out_basename = '%s_1_std' % (basename)
+
+  out_zip_file = os.path.join(out_dir, out_basename + '.zip')
+  # Early stop - ignore if the output zip already exist and not newer download
+  exists = os.path.exists(out_zip_file)
+  if exists and not new_download:
+    print '..alreay exist and latest'
+    return
+  print '..creating final archive'
   with zipfile.ZipFile(fname, 'r') as in_zip:
-    with  zipfile.ZipFile(os.path.join(out_dir, out_basename + '.zip'),
-                          'w') as out_zip:
+    with  zipfile.ZipFile(out_zip_file, 'w') as out_zip:
       for in_name in in_zip.namelist():
         if in_name.lower().startswith(basename) and in_name.endswith('flt'):
           data = in_zip.read(in_name)
@@ -157,10 +164,14 @@ def ExtractArcFloatToZipAndResample(fname, out_dir):
           elev2 = elev2.reshape(1812, 1812)
           # Create the bilinear resampled matrix, keeping the no-values
           elev = np.zeros((3624, 3624), dtype=np.float32)
-          elev[::2, ::2] = elev2
-          elev[1:-1:2, ::2] = 0.5 * (elev[:-2:2, ::2] + elev[2:-1:2, ::2])
-          elev[elev < -200] = -9999
-          elev[:, 1:-1:2] = 0.5 * (elev[:, :-2:2] + elev[:, 2:-1:2])
+          elev[1:-2:2, 1:-2:2] = 1/16. * (9 * elev2[:-1,:-1] + 1 * elev2[1:,  1:] +
+                                          3 * elev2[:-1, 1:] + 3 * elev2[1:, :-1])
+          elev[2:-1:2, 1:-2:2] = 1/16. * (9 * elev2[1:, :-1] + 1 * elev2[:-1, 1:] +
+                                          3 * elev2[1:, 1: ] + 3 * elev2[:-1,:-1])
+          elev[1:-2:2, 2:-1:2] = 1/16. * (9 * elev2[:-1, 1:] + 1 * elev2[1:, :-1] +
+                                          3 * elev2[:-1,:-1] + 3 * elev2[1:, 1: ])
+          elev[2:-1:2, 2:-1:2] = 1/16. * (9 * elev2[1:, 1: ] + 1 * elev2[:-1,:-1] +
+                                          3 * elev2[1:, :-1] + 3 * elev2[:-1, 1:])
           elev[elev < -200] = -9999
           elev = elev[6:-6, 6:-6]
           # Now store in archive all 3 file data
@@ -200,10 +211,8 @@ def RetrieveMissingElevationTilesAndProcess(out_dir, ref_dir):
     print 'Checking %s' % f
     downloaded = ned.download_if_newer(
         'vdelivery/Datasets/Staged/Elevation/2/GridFloat/' + f, f)
-    if downloaded:
-      # Extract the actual data and save in ref dir
-      print '..creating final archive for %s' % f
-      ExtractArcFloatToZipAndResample(f, out_dir)
+    # Optionally extract the actual data and save in ref dir
+    ExtractArcFloatToZipAndResample(f, out_dir, downloaded)
 
   ned.close()
 
