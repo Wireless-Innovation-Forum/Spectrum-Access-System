@@ -90,6 +90,7 @@ class FakeSas(sas_interface.SasInterface):
   """
 
   def __init__(self):
+    self.maximum_batch_size = 100
     pass
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):

@@ -29,8 +29,10 @@ def GetTestingSas():
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
+  maximum_batch_size = config_parser.get('SasConfig', 'MaximumBatchSize')
   return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
-    sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
+      sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id, maximum_batch_size),
+    SasAdminImpl(admin_api_base_url)
 
 
 def GetDefaultDomainProxySSLCertPath():
@@ -54,7 +56,7 @@ class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
   def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
-    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id):
+    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id, maximum_batch_size):
     self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
     self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
     self._sas_sas_rsa_base_url = sas_sas_rsa_base_url
@@ -65,6 +67,7 @@ class SasImpl(sas_interface.SasInterface):
     self.sas_sas_version = sas_sas_version
     self._tls_config = TlsConfig()
     self._sas_admin_id = sas_admin_id
+    self.maximum_batch_size = maximum_batch_size
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('registration', request, ssl_cert, ssl_key)
