@@ -354,9 +354,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self.assertValidConfig(
         config, {
             'sasTestHarnessConfigs': list,
-            'registrationRequests': list,
-            'grantRequests': list,
-            'conditionalRegistrationData': list,
+            'domainProxies': list,
             'dpas': list,
             'pauseTime': int
         })
