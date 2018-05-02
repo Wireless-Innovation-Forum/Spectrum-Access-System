@@ -167,8 +167,7 @@ def ExtractArcFloatToZipAndResample(fname, out_dir):
           data_out = elev.tobytes()
           out_zip.writestr(out_basename + '.flt', data_out)
 
-          prj_str = """
-Projection    GEOGRAPHIC
+          prj_str = """Projection    GEOGRAPHIC
 Datum         NAD83
 Zunits        METERS
 Units         DD
@@ -178,14 +177,13 @@ Yshift        0.0000000000
 Parameters\n"""
           lat_nw = int(m.group(2)) if (m.group(1) == 'n') else -int(m.group(2))
           lon_nw = int(m.group(4)) if (m.group(3) == 'e') else -int(m.group(4))
-          hdr_str = """
- ncols         3612
- nrows         3612
- xllcorner     %d.00166666667
- yllcorner     %d.00166666667f
- cellsize      0.000277777777778
- NODATA_value  -9999
- byteorder     LSBFIRST\n""" % (lon_nw, lat_nw-1)
+          hdr_str = """ncols         3612
+nrows         3612
+xllcorner     %d.00166666667
+yllcorner     %d.99833333333
+cellsize      0.0002777777777777778
+NODATA_value  -9999
+byteorder     LSBFIRST\n""" % (lon_nw, lat_nw-2)
           out_zip.writestr(out_basename + '.prj', prj_str)
           out_zip.writestr(out_basename + '.hdr', hdr_str)
 
