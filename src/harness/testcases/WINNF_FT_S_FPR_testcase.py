@@ -182,13 +182,11 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     sas_test_harness_device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] - 1.5 
 
-　
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1],[[grant_request_1]])
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-　
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -648,7 +646,6 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-　
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -1048,5 +1045,4 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     for response_num in response:
       self.assertEqual(response_num['response']['responseCode'], 400)
 
-　
- 
+
