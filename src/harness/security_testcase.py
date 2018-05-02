@@ -305,7 +305,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     cert_path = os.path.join(harness_dir, 'certs')
 
     # Build short lived certificate command
-    command = "cd {0} && ./generate_short_lived_certs.sh {1} {2} {3}".format(cert_path, client_type,
+    command = "cd {0} && bash ./generate_short_lived_certs.sh {1} {2} {3}".format(cert_path, client_type,
                                                                              cert_name, str(cert_duration_minutes))
     # Create the short lived certificate
     command_exit_status = subprocess.call(command, shell=True)
