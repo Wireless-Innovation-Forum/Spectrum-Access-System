@@ -15,7 +15,7 @@
 """Resample US/Canadian border.
 
 This script takes the `uscabdry.kml` file and resample it into a new KML file
-  `uscabdry_fine.kml`
+  `uscabdry_sampled.kml`
 The resampling insures that 2 consecutive vertex points are no more than D meters away.
 Using this resampling in test harness allows for deterministically finding the
 closest point on the border, by selecting the closest vertex.
@@ -45,9 +45,8 @@ from reference_models.geo import zones
 step_meters = 200
 
 input_kml = 'uscabdry.kml'
-output_kml = 'uscabdry_fine.kml'
+output_kml = 'uscabdry_sampled.kml'
 
-#import ipdb; ipdb.set_trace()
 
 # The resampling routine
 def ResampleUsCanadaBorderLineString(ls, step_m):

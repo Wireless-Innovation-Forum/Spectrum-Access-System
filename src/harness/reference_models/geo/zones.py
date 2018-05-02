@@ -42,7 +42,7 @@ FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 # The reference files for extra zones.
 USBORDER_FILE = 'usborder.kmz'
 URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
-USCANADA_BORDER_FILE = 'uscabdry_fine.kmz'
+USCANADA_BORDER_FILE = 'uscabdry_sampled.kmz'
 
 # One source of data is the the `protection_zones.kml` preprocessed by
 # Winnforum (see src/data/), and which holds both the protection zone and
