@@ -75,11 +75,11 @@ def ResampleUsCanadaBorderLineString(ls, step_m):
         # departing less than 70m from the 49degree north latitude
         lats = np.interp(range(num_points), [0, num_points-1], [vertex0[1], vertex1[1]])
         lons = np.interp(range(num_points), [0, num_points-1], [vertex0[0], vertex1[0]])
-        points = zip(lats, lons)
       else:
-        points = vincenty.GeodesicSampling(
+        lats, lons = vincenty.GeodesicSampling(
             vertex0[1], vertex0[0], vertex1[1], vertex1[0], num_points)
 
+      points = zip(lats, lons)
       out_vertices.extend([(point[1], point[0]) for point in points[:-1]])
 
   out_vertices.append(vertex1)  # add the last vertex

@@ -106,19 +106,18 @@ class TestVincenty(unittest.TestCase):
     lat11, lng11 = 44.0, -121.0
 
     # Compare with dual iterative implementation (well used initially)
-    pts11 = vincenty.GeodesicSampling(lat0, lng0, lat11, lng11, 1500)
+    lats11, lons11 = vincenty.GeodesicSampling(lat0, lng0, lat11, lng11, 1500)
+    pts11 = zip(lats11, lons11)
     pts11it = geodesic_iterative(lat0, lng0, lat11, lng11, 1500)
     diff = np.array(pts11) - np.array(pts11it)
     self.assertLess(np.max(np.abs(diff)), 1e-10)
 
     # Special case North south, longitude constant. lat delta constant
-    pts10 = vincenty.GeodesicSampling(lat0, lng0, lat10, lng10, 51)
-    lon = np.array([pt[1] for pt in pts10])
-    lon_offs = lon - lng0
+    lats10, lons10 = vincenty.GeodesicSampling(lat0, lng0, lat10, lng10, 51)
+    lon_offs = lons10 - lng0
     self.assertEqual(np.max(np.abs(lon_offs)), 0)
 
-    lat = np.array([pt[0] for pt in pts10])
-    lat_diffs = lat[1:] - lat[:-1]
+    lat_diffs = lats10[1:] - lats10[:-1]
     self.assertAlmostEqual(np.max(lat_diffs), -0.02, 5)
     self.assertAlmostEqual(np.min(lat_diffs), -0.02, 5)
 
