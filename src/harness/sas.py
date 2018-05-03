@@ -48,7 +48,6 @@ def GetDefaultSasSSLCertPath():
 def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'sas.key')
 
-
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
