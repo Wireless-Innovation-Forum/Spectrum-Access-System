@@ -176,7 +176,8 @@ def ExtractArcFloatToZipAndResample(fname, out_dir, new_download):
           elev = elev[6:-6, 6:-6]
           # Now store in archive all 3 file data
           data_out = elev.tobytes()
-          out_zip.writestr(out_basename + '.flt', data_out)
+          out_zip.writestr(out_basename + '.flt', data_out,
+                           compress_type=zipfile.ZIP_DEFLATED)
 
           prj_str = """Projection    GEOGRAPHIC
 Datum         NAD83
