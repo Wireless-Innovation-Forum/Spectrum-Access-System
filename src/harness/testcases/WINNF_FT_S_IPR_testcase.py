@@ -677,8 +677,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Move the CBSD to be nearby the St. Inigoes site.
-    device_b['installationParam']['latitude'] = 38.200465
-    device_b['installationParam']['longitude'] = -76.409756
+    device_b['installationParam']['latitude'] = 30.354917
+    device_b['installationParam']['longitude'] = -88.532033
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
     conditional_keys = [
@@ -698,11 +698,16 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Load grant request.
     grant_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-
+    frequency_range = grant_a['operationParam']['operationFrequencyRange']
+    dpa_1 = {
+        'dpaId': 'Pascagoula',
+        'frequencyRange': frequency_range
+    }
     config = {
         'registrationRequest': device_b,
         'grantRequest': grant_b,
-        'conditionalRegistrationData': conditionals_b
+        'conditionalRegistrationData': conditionals_b,
+        'dpa': dpa_1
     }
     writeConfig(filename, config)
 
@@ -715,7 +720,11 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'registrationRequest': dict,
             'grantRequest': dict,
             'conditionalRegistrationData': dict,
-        })
+        },
+        optional_fields={'dpa': dict})
+    if 'dpa' in config:
+        self.assertTrue(config['dpa']['frequencyRange']['lowFrequency'] < config['dpa']['frequencyRange']['highFrequency'])
+        self.assertTrue(config['dpa']['frequencyRange']['highFrequency'] <= 3650000000)
     self.GrantRequestInActiveDpaNeighborhood(config)
 
   def GrantRequestInActiveDpaNeighborhood(self, config):
