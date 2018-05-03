@@ -24,8 +24,7 @@ d = DatabaseServer(
     8000,
     cert_file='certs/test_cert.crt',
     key_file='certs/test_cert.key',
-    ca_cert_file='certs/test_cert_root.pem',
-    authorization='testuser:password'
+    ca_cert_file='certs/test_cert_root.pem'
     )
 d.setFileToServe('/allsitedata', 'allsitedata1')
 d.start()
@@ -43,6 +42,13 @@ import threading
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+
+# Create the authorization string.
+__USERNAME = 'username'
+__PASSWORD = 'password'
+__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(USERNAME+':'+PASSWORD)
+
+
 class DatabaseServer(threading.Thread):
   """A HTTP server which will serve a given file at the given file path."""
 
@@ -54,7 +60,7 @@ class DatabaseServer(threading.Thread):
                cert_file=None,
                key_file=None,
                ca_cert_file=None,
-               authorization=None):
+               authorization=False):
     """
     Args:
       name: The server's name, used for logging purposes.
@@ -68,8 +74,8 @@ class DatabaseServer(threading.Thread):
       key_file: Optional. The file path of the key file.
       ca_cert_file: Optional. The file path of the certificate authority
         certificate file.
-      authorization: Optional, contains a string. Iff specified requires the
-        authorization header to match the string when decoded.
+      authorization: Optional. Iff True require the request to contain the
+        authorization header matching the baked in username/password.
     """
     super(DatabaseServer, self).__init__()
     self.name = name
@@ -135,7 +141,7 @@ class DatabaseHTTPServer(HTTPServer):
     self.file_paths = {}
     # Encode the username and password for simple comparison. Expected form is:
     #   'Basic Base64RepresentationOfUsername:Password'
-    self.authorization = 'Basic ' + base64.b64encode(authorization) if authorization else None
+    self.authorization = authorization
 
 class DatabaseHandler(SimpleHTTPRequestHandler):
   def translate_path(self, path):
@@ -149,7 +155,7 @@ class DatabaseHandler(SimpleHTTPRequestHandler):
         self.wfile.write('no auth header received.\n')
         self.wfile.write('Ignore 404 response below.\n\n')
         return ""
-      elif self.headers['Authorization'] != self.server.authorization:
+      elif self.headers['Authorization'] != __AUTHORIZATION_STRING:
         logging.info('Authorization Failed. Incorrect username:password.')
         self.send_response(401)
         self.end_headers()
