@@ -80,6 +80,7 @@ class DatabaseServer(threading.Thread):
     super(DatabaseServer, self).__init__()
     self.name = name
     self.address = host_name + ':' + str(port)
+    self.base_url = 'http' + ('s' if https else '') + '://' + self.address
     self.setDaemon(True)
     self.server = DatabaseHTTPServer((host_name, port), DatabaseHandler, name, authorization)
     if https:
@@ -133,6 +134,9 @@ class DatabaseServer(threading.Thread):
         in the setFileToServe description.
     """
     self.server.file_paths = file_url_file_path_dict
+
+  def getBaseUrl():
+    return self.base_url
 
 class DatabaseHTTPServer(HTTPServer):
   def __init__(self, server_address, RequestHandlerClass, name, authorization):
