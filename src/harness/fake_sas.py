@@ -291,6 +291,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
 
+  def TriggerEnableNtiaExclusionZones(self):
+    pass
+
   def TriggerEnableScheduledDailyActivities(self):
     pass
 
