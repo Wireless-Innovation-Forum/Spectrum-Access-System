@@ -323,15 +323,13 @@ def GeodesicSampling(lat1, lon1, lat2, lon2, num_points):
     num_points : number of points to use (must be >=2)
 
   Returns:
-    A list of points along the geodesic, each point being a tuple (lat, lng).
-      The two input locations are first and last points.
+    A tuple (lats, longs) of ndarray vector defining points along the
+    geodesic. The two input locations are first and last points.
   """
-  points = [(lat1, lon1)]
-  lat, lon = lat1, lon1
-  dist, bearing, _ = GeodesicDistanceBearing(lat, lon, lat2, lon2)
+  dist, bearing, _ = GeodesicDistanceBearing(lat1, lon1, lat2, lon2)
   step_km = dist / (float(num_points-1))
-  distances = step_km * np.arange(1, num_points-1)
-  lats, longs, _ = GeodesicPoints(lat, lon, distances, bearing)
-  points.extend(zip(lats, longs))
-  points.append((lat2, lon2))
-  return points
+  distances = step_km * np.arange(0, num_points)
+  lats, lons, _ = GeodesicPoints(lat1, lon1, distances, bearing)
+  lats[0], lons[0] = lat1, lon1
+  lats[-1], lons[-1] = lat2, lon2
+  return lats, lons
