@@ -75,15 +75,31 @@ class TlsConfig(object):
     return ret
 
 
-def RequestPost(url, request, config):
-  return _Request(url, request, config, True)
+def RequestPostEmpty(url, config):
+  return _Request(url, None, config, True, None)
 
 
-def RequestGet(url, config):
-  return _Request(url, None, config, False)
+def RequestPostJson(url, request, config):
+  return _Request(url, request, config, True, 'application/json')
 
 
-def _Request(url, request, config, is_post_method):
+def RequestGetEmpty(url, config):
+  return _Request(url, None, config, False, None)
+
+
+def RequestGetJson(url, request, config):
+  return _Request(url, request, config, False, 'application/json')
+
+
+def _RequestPost(url, request, config, content_type):
+  return _Request(url, request, config, True, content_type)
+
+
+def _RequestGet(url, request, config, content_type):
+  return _Request(url, request, config, False, content_type)
+
+
+def _Request(url, request, config, is_post_method, content_type):
   """Sends HTTPS request.
 
   Args:
@@ -104,10 +120,9 @@ def _Request(url, request, config, is_post_method):
   conn = pycurl.Curl()
   conn.setopt(conn.URL, url)
   conn.setopt(conn.WRITEFUNCTION, response.write)
-  header = [
-      'Host: %s' % urlparse.urlparse(url).hostname,
-      'content-type: application/json'
-  ]
+  header = ['Host: %s' % urlparse.urlparse(url).hostname]
+  if content_type:
+    header.append('content-type: %s' % content_type)
   conn.setopt(
       conn.VERBOSE,
       3  # Improve readability.

@@ -14,9 +14,10 @@
 """Implementation of SasInterface."""
 
 import ConfigParser
-from request_handler import TlsConfig, RequestPost, RequestGet
+from request_handler import TlsConfig, RequestPostJson, RequestPostEmpty, RequestGetEmpty
 import os
 import sas_interface
+
 
 def GetTestingSas():
   config_parser = ConfigParser.RawConfigParser()
@@ -92,20 +93,20 @@ class SasImpl(sas_interface.SasInterface):
     url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
-    return RequestGet(url,
+    return RequestGetEmpty(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert or GetDefaultSasSSLCertPath(),
                           ssl_key or GetDefaultSasSSLKeyPath()))
 
   def _CbsdRequest(self, method_name, request, ssl_cert=None, ssl_key=None):
-    return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
+    return RequestPostJson('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
                            ssl_cert or GetDefaultCbsdSSLCertPath(),
                            ssl_key or GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return RequestGet(url,
+    return RequestGetEmpty(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
                           GetDefaultSasSSLCertPath(), ssl_key
@@ -134,7 +135,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     self.injected_user_ids = set()
 
   def Reset(self):
-    RequestPost('https://%s/admin/reset' % self._base_url, None,
+    RequestPostEmpty('https://%s/admin/reset' % self._base_url,
                 self._tls_config)
 
   def InjectFccId(self, request):
@@ -143,7 +144,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
       return
     if 'fccMaxEirp' not in request:
       request['fccMaxEirp'] = 47
-    RequestPost('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
+    RequestPostJson('https://%s/admin/injectdata/fcc_id' % self._base_url, request,
                 self._tls_config)
     self.injected_fcc_ids.add(request['fccId'])
 
@@ -151,131 +152,131 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     # Avoid injecting the same user ID twice in the same test case.
     if request['userId'] in self.injected_user_ids:
       return
-    RequestPost('https://%s/admin/injectdata/user_id' % self._base_url, request,
+    RequestPostJson('https://%s/admin/injectdata/user_id' % self._base_url, request,
                 self._tls_config)
     self.injected_user_ids.add(request['userId'])
 
   def InjectEscZone(self, request):
-    return RequestPost('https://%s/admin/injectdata/esc_zone' % self._base_url,
+    return RequestPostJson('https://%s/admin/injectdata/esc_zone' % self._base_url,
                        request, self._tls_config)
 
   def InjectExclusionZone(self, request):
-    return RequestPost(
+    return RequestPostJson(
         'https://%s/admin/injectdata/exclusion_zone' % self._base_url, request,
         self._tls_config)
 
   def InjectZoneData(self, request):
-    return RequestPost('https://%s/admin/injectdata/zone' % self._base_url,
+    return RequestPostJson('https://%s/admin/injectdata/zone' % self._base_url,
                        request, self._tls_config)
 
   def InjectPalDatabaseRecord(self, request):
-    RequestPost(
+    RequestPostJson(
         'https://%s/admin/injectdata/pal_database_record' % self._base_url,
         request, self._tls_config)
 
   def InjectClusterList(self, request):
-    RequestPost('https://%s/admin/injectdata/cluster_list' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/cluster_list' % self._base_url,
                 request, self._tls_config)
 
   def BlacklistByFccId(self, request):
-    RequestPost('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/blacklist_fcc_id' % self._base_url,
                 request, self._tls_config)
 
   def BlacklistByFccIdAndSerialNumber(self, request):
-    RequestPost('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number'
+    RequestPostJson('https://%s/admin/injectdata/blacklist_fcc_id_and_serial_number'
                 % self._base_url, request, self._tls_config)
 
   def TriggerEscZone(self, request):
-    RequestPost('https://%s/admin/trigger/esc_detection' % self._base_url,
+    RequestPostJson('https://%s/admin/trigger/esc_detection' % self._base_url,
                 request, self._tls_config)
 
   def ResetEscZone(self, request):
-    RequestPost('https://%s/admin/trigger/esc_reset' % self._base_url, request,
+    RequestPostJson('https://%s/admin/trigger/esc_reset' % self._base_url, request,
                 self._tls_config)
 
   def PreloadRegistrationData(self, request):
-    RequestPost(
+    RequestPostJson(
         'https://%s/admin/injectdata/conditional_registration' % self._base_url,
         request, self._tls_config)
 
   def InjectFss(self, request):
-    RequestPost('https://%s/admin/injectdata/fss' % self._base_url, request,
+    RequestPostJson('https://%s/admin/injectdata/fss' % self._base_url, request,
                 self._tls_config)
 
   def InjectWisp(self, request):
-    RequestPost('https://%s/admin/injectdata/wisp' % self._base_url, request,
+    RequestPostJson('https://%s/admin/injectdata/wisp' % self._base_url, request,
                 self._tls_config)
 
   def InjectSasAdministratorRecord(self, request):
-    RequestPost('https://%s/admin/injectdata/sas_admin' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/sas_admin' % self._base_url,
                 request, self._tls_config)
 
   def TriggerMeasurementReportRegistration(self):
-    RequestPost('https://%s/admin/trigger/meas_report_in_registration_response'
+    RequestPostJson('https://%s/admin/trigger/meas_report_in_registration_response'
                 % self._base_url, None, self._tls_config)
 
   def TriggerMeasurementReportHeartbeat(self):
-    RequestPost('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                self._base_url, None, self._tls_config)
+    RequestPostEmpty('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
+                self._base_url, self._tls_config)
 
   def InjectEscSensorDataRecord(self, request):
-    RequestPost('https://%s/admin/injectdata/esc_sensor' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/esc_sensor' % self._base_url,
                 request, self._tls_config)
 
   def TriggerPpaCreation(self, request):
-    return RequestPost('https://%s/admin/trigger/create_ppa' % self._base_url,
+    return RequestPostJson('https://%s/admin/trigger/create_ppa' % self._base_url,
                        request, self._tls_config)
 
   def TriggerDailyActivitiesImmediately(self):
-    RequestPost('https://%s/admin/trigger/daily_activities_immediately' %
-                self._base_url, None, self._tls_config)
+    RequestPostEmpty('https://%s/admin/trigger/daily_activities_immediately' %
+                self._base_url, self._tls_config)
 
   def TriggerEnableScheduledDailyActivities(self):
-    RequestPost('https://%s/admin/trigger/enable_scheduled_daily_activities' %
-                self._base_url, None, self._tls_config)
+    RequestPostEmpty('https://%s/admin/trigger/enable_scheduled_daily_activities' %
+                self._base_url, self._tls_config)
 
   def QueryPropagationAndAntennaModel(self, request):
-    return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
+    return RequestPostJson('https://%s/admin/query/propagation_and_antenna_model' %
                        self._base_url, request, self._tls_config)
 
   def TriggerEnableNtiaExclusionZones(self):
-    _RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
-                 self._base_url, None, self._tls_config)
+    RequestPostEmpty('https://%s/admin/trigger/enable_ntia_15_517' %
+                 self._base_url, self._tls_config)
     pass
 
   def GetDailyActivitiesStatus(self):
-    return RequestPost(
-        'https://%s/admin/get_daily_activities_status' % self._base_url, None,
+    return RequestGetEmpty(
+        'https://%s/admin/get_daily_activities_status' % self._base_url,
         self._tls_config)
 
   def InjectCpiUser(self, request):
-    RequestPost('https://%s/admin/injectdata/cpi_user' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/cpi_user' % self._base_url,
                 request, self._tls_config)
 
   def TriggerLoadDpas(self):
-    RequestPost('https://%s/admin/trigger/load_dpas' % self._base_url, None,
+    RequestPostEmpty('https://%s/admin/trigger/load_dpas' % self._base_url,
                 self._tls_config)
 
   def TriggerBulkDpaActivation(self, request):
-    RequestPost('https://%s/admin/trigger/bulk_dpa_activation' % self._base_url,
+    RequestPostJson('https://%s/admin/trigger/bulk_dpa_activation' % self._base_url,
                 request, self._tls_config)
 
   def TriggerDpaActivation(self, request):
-    RequestPost('https://%s/admin/trigger/dpa_activation' % self._base_url,
+    RequestPostJson('https://%s/admin/trigger/dpa_activation' % self._base_url,
                 request, self._tls_config)
 
   def TriggerDpaDeactivation(self, request):
-    RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
+    RequestPostJson('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
 
   def TriggerEscDisconnect(self):
-    RequestPost('https://%s/admin/trigger/disconnect_esc' % self._base_url,
-                request, self._tls_config)
+    RequestPostEmpty('https://%s/admin/trigger/disconnect_esc' % self._base_url,
+                self._tls_config)
 
   def TriggerFullActivityDump(self):
-    RequestPost(
+    RequestPostEmpty(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
-        None, self._tls_config)
+        self._tls_config)
 
   def _GetDefaultAdminSSLCertPath(self):
     return os.path.join('certs', 'admin_client.cert')
@@ -284,10 +285,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return os.path.join('certs', 'admin_client.key')
 
   def InjectPeerSas(self, request):
-    RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,
+    RequestPostJson('https://%s/admin/injectdata/peer_sas' % self._base_url,
                 request, self._tls_config)
 
   def GetPpaCreationStatus(self):
-    return RequestPost(
-      'https://%s/admin/get_ppa_status' % self._base_url, None,
+    return RequestGetEmpty(
+      'https://%s/admin/get_ppa_status' % self._base_url,
       self._tls_config)
