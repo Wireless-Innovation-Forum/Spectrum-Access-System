@@ -75,7 +75,7 @@ class TlsConfig(object):
     return ret
 
 
-def RequestPostEmpty(url, config):
+def RequestPostNoContentType(url, config):
   return _Request(url, None, config, True, None)
 
 
@@ -83,16 +83,8 @@ def RequestPostJson(url, request, config):
   return _Request(url, request, config, True, 'application/json')
 
 
-def RequestGetEmpty(url, config):
+def RequestGet(url, config):
   return _Request(url, None, config, False, None)
-
-
-def _RequestPost(url, request, config, content_type):
-  return _Request(url, request, config, True, content_type)
-
-
-def _RequestGet(url, request, config):
-  return _Request(url, request, config, False)
 
 
 def _Request(url, request, config, is_post_method, content_type=None):

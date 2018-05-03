@@ -14,7 +14,7 @@
 """Implementation of SasInterface."""
 
 import ConfigParser
-from request_handler import TlsConfig, RequestPostJson, RequestPostEmpty, RequestGetEmpty
+from request_handler import TlsConfig, RequestPostJson, RequestPostNoContentType, RequestGet
 import os
 import sas_interface
 
@@ -93,7 +93,7 @@ class SasImpl(sas_interface.SasInterface):
     url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
-    return RequestGetEmpty(url,
+    return RequestGet(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert or GetDefaultSasSSLCertPath(),
                           ssl_key or GetDefaultSasSSLKeyPath()))
@@ -106,7 +106,7 @@ class SasImpl(sas_interface.SasInterface):
                            ssl_key or GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return RequestGetEmpty(url,
+    return RequestGet(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
                           GetDefaultSasSSLCertPath(), ssl_key
@@ -135,8 +135,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     self.injected_user_ids = set()
 
   def Reset(self):
-    RequestPostEmpty('https://%s/admin/reset' % self._base_url,
-                self._tls_config)
+    RequestPostNoContentType('https://%s/admin/reset' % self._base_url,
+                             self._tls_config)
 
   def InjectFccId(self, request):
     # Avoid injecting the same FCC ID twice in the same test case.
@@ -216,8 +216,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                 % self._base_url, None, self._tls_config)
 
   def TriggerMeasurementReportHeartbeat(self):
-    RequestPostEmpty('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
-                self._base_url, self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/meas_report_in_heartbeat_response' %
+                             self._base_url, self._tls_config)
 
   def InjectEscSensorDataRecord(self, request):
     RequestPostJson('https://%s/admin/injectdata/esc_sensor' % self._base_url,
@@ -228,24 +228,24 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                        request, self._tls_config)
 
   def TriggerDailyActivitiesImmediately(self):
-    RequestPostEmpty('https://%s/admin/trigger/daily_activities_immediately' %
-                self._base_url, self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/daily_activities_immediately' %
+                             self._base_url, self._tls_config)
 
   def TriggerEnableScheduledDailyActivities(self):
-    RequestPostEmpty('https://%s/admin/trigger/enable_scheduled_daily_activities' %
-                self._base_url, self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/enable_scheduled_daily_activities' %
+                             self._base_url, self._tls_config)
 
   def QueryPropagationAndAntennaModel(self, request):
     return RequestPostJson('https://%s/admin/query/propagation_and_antenna_model' %
                        self._base_url, request, self._tls_config)
 
   def TriggerEnableNtiaExclusionZones(self):
-    RequestPostEmpty('https://%s/admin/trigger/enable_ntia_15_517' %
-                 self._base_url, self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/enable_ntia_15_517' %
+                             self._base_url, self._tls_config)
     pass
 
   def GetDailyActivitiesStatus(self):
-    return RequestGetEmpty(
+    return RequestGet(
         'https://%s/admin/get_daily_activities_status' % self._base_url,
         self._tls_config)
 
@@ -254,8 +254,8 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                 request, self._tls_config)
 
   def TriggerLoadDpas(self):
-    RequestPostEmpty('https://%s/admin/trigger/load_dpas' % self._base_url,
-                self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/load_dpas' % self._base_url,
+                             self._tls_config)
 
   def TriggerBulkDpaActivation(self, request):
     RequestPostJson('https://%s/admin/trigger/bulk_dpa_activation' % self._base_url,
@@ -270,11 +270,11 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                 request, self._tls_config)
 
   def TriggerEscDisconnect(self):
-    RequestPostEmpty('https://%s/admin/trigger/disconnect_esc' % self._base_url,
-                self._tls_config)
+    RequestPostNoContentType('https://%s/admin/trigger/disconnect_esc' % self._base_url,
+                             self._tls_config)
 
   def TriggerFullActivityDump(self):
-    RequestPostEmpty(
+    RequestPostNoContentType(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
         self._tls_config)
 
@@ -289,6 +289,6 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                 request, self._tls_config)
 
   def GetPpaCreationStatus(self):
-    return RequestGetEmpty(
+    return RequestGet(
       'https://%s/admin/get_ppa_status' % self._base_url,
       self._tls_config)
