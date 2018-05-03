@@ -49,7 +49,6 @@ def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'sas.key')
 
 
-
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -125,7 +124,6 @@ class SasImpl(sas_interface.SasInterface):
       self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
     else:
       self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
-
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -294,3 +292,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost(
       'https://%s/admin/get_ppa_status' % self._base_url, None,
       self._tls_config)
+
+  def InjectDatabaseUrl(self, request):
+    RequestPost('https://%s/admin/injectdata/database_url' % self._base_url,
+                request, self._tls_config)

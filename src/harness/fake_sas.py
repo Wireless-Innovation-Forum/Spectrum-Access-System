@@ -291,9 +291,6 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
   def TriggerDailyActivitiesImmediately(self):
     pass
 
-  def TriggerEnableNtiaExclusionZones(self):
-    pass
-
   def TriggerEnableScheduledDailyActivities(self):
     pass
 
@@ -326,6 +323,9 @@ class FakeSasAdmin(sas_interface.SasAdminInterface):
     pass
 
   def TriggerEscDisconnect(self):
+    pass
+
+  def InjectDatabaseUrl(self, request):
     pass
 
 class FakeSasHandler(BaseHTTPRequestHandler):
@@ -396,7 +396,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
                        '/admin/trigger/dpa_deactivation',
                        '/admin/trigger/bulk_dpa_activation',
                        '/admin/injectdata/exclusion_zone',
-                       '/admin/trigger/create_full_activity_dump'):
+                       '/admin/trigger/create_full_activity_dump',
+                       '/admin/injectdata/database_url'):
       response = ''
     else:
       self.send_response(404)
