@@ -35,7 +35,7 @@
 #==================================================================================
 
 import functools
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from enum import Enum
 
 import numpy as np
@@ -419,7 +419,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
 
 
 def _addMinFreqGrantToFront(l, grant):
-  """Add the min freq grant to the front of lst l."""
+  """Add the min freq `grant` to the front of list `l`."""
   l.append(grant)
   if l[-1].low_frequency < l[0].low_frequency:
     l[0], l[-1] = l[-1], l[0]
@@ -455,8 +455,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     Returns:
         A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
           + the grants on the move list.
-          + the grants in the neighborhood list. Note that for OOB, the neightbor
-          list only includes the lower frequency grant of multiple CBSD grants.
+          + the grants in the neighborhood list.
     """
     dpa_type = findDpaType(low_freq, high_freq)
     if not beamwidth: beamwidth = 360
@@ -470,14 +469,12 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 
     # DPA Purge algorithm for OOB
     if dpa_type is DpaType.OUT_OF_BAND:
-        cbsds_to_grants = {}
+        cbsds_grants_map = defaultdict(list)
         for grant in grants:
             key = grant.uniqueCbsdKey()
-            cbsd_grant_list = cbsds_to_grants.get(key, [])
-            if not cbsd_grant_list: cbsds_to_grants[key] = cbsd_grant_list
-            _addMinFreqGrantToFront(cbsd_grant_list, grant)
+            _addMinFreqGrantToFront(cbsds_grants_map[key], grant)
         # Reset the grants to the minimum frequency grant for each CBSDs.
-        grants = [cbsd_grants[0] for cbsd_grants in cbsds_to_grants.values()]
+        grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
 
     # Identify CBSD grants in the neighborhood of the protection constraint
     neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(grants,
@@ -503,7 +500,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
           # Add back all purged list with state of main one
           extra_grants = []
           for grant in movelist_grants:
-            cbsd_extra_grants = cbsds_to_grants[grant.uniqueCbsdKey()][1:]
+            cbsd_extra_grants = cbsds_grants_map[grant.uniqueCbsdKey()][1:]
             if cbsd_extra_grants:
               extra_grants.extend(cbsd_extra_grants)
           movelist_grants.extend(extra_grants)
@@ -512,7 +509,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
           # the neighbor list. But for sake of consistency, we keep them.
           extra_grants = []
           for grant in neighbor_grants:
-            cbsd_extra_grants = cbsds_to_grants[grant.uniqueCbsdKey()][1:]
+            cbsd_extra_grants = cbsds_grants_map[grant.uniqueCbsdKey()][1:]
             if cbsd_extra_grants:
               extra_grants.extend(cbsd_extra_grants)
           neighbor_grants.extend(extra_grants)
@@ -569,14 +566,12 @@ def calcAggregatedInterference(protection_point,
 
   # DPA Purge algorithm for OOB
   if dpa_type is DpaType.OUT_OF_BAND:
-    cbsds_to_grants = {}
+    cbsds_grants_map = defaultdict(list)
     for grant in grants:
       key = grant.uniqueCbsdKey()
-      cbsd_grant_list = cbsds_to_grants.get(key, [])
-      if not cbsd_grant_list: cbsds_to_grants[key] = cbsd_grant_list
-      _addMinFreqGrantToFront(cbsd_grant_list, grant)
+      _addMinFreqGrantToFront(cbsds_grants_map[key], grant)
     # Reset the grants to the minimum frequency grant for each CBSDs.
-    grants = [cbsd_grants[0] for cbsd_grants in cbsds_to_grants.values()]
+    grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
