@@ -83,23 +83,15 @@ def RequestPostJson(url, request, config):
   return _Request(url, request, config, True, 'application/json')
 
 
-def RequestGetEmpty(url, config):
-  return _Request(url, None, config, False, None)
-
-
-def RequestGetJson(url, request, config):
-  return _Request(url, request, config, False, 'application/json')
-
-
-def _RequestPost(url, request, config, content_type):
+def RequestPost(url, request, config, content_type):
   return _Request(url, request, config, True, content_type)
 
 
-def _RequestGet(url, request, config, content_type):
-  return _Request(url, request, config, False, content_type)
+def RequestGet(url, request, config):
+  return _Request(url, request, config, False)
 
 
-def _Request(url, request, config, is_post_method, content_type):
+def _Request(url, request, config, is_post_method, content_type=None):
   """Sends HTTPS request.
 
   Args:
