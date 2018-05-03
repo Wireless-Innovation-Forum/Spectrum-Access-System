@@ -12,7 +12,7 @@ function generate_cbsd_short_lived_certificate()
 
   # Create certificate for test case which use short lived certificate.
   if [ -f cbsd_ca.cert -a -f private/cbsd_ca.key ]; then
-    echo "Create short lived certificate"
+    echo "Create short lived certificate."
     current_time=`date -u +%y%m%d%H%M%SZ`
     offset=$2
     enddate_value=$(date -u -d "now + $offset minutes" '+%y%m%d%H%M%SZ')

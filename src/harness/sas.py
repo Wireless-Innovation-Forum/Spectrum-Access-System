@@ -32,20 +32,23 @@ def GetTestingSas():
   return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
     sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id), SasAdminImpl(admin_api_base_url)  
 
-def GetDefaultCbsdSSLCertPath():
-  return os.path.join('certs', 'client.cert')
+
+def GetDefaultDomainProxySSLCertPath():
+  return os.path.join('certs', 'domain_proxy.cert')
 
 
-def GetDefaultCbsdSSLKeyPath():
-  return os.path.join('certs', 'client.key')
+def GetDefaultDomainProxySSLKeyPath():
+  return os.path.join('certs', 'domain_proxy.key')
 
 
 def GetDefaultSasSSLCertPath():
-  return os.path.join('certs', 'client.cert')
+  return os.path.join('certs', 'sas.cert')
 
 
 def GetDefaultSasSSLKeyPath():
-  return os.path.join('certs', 'client.key')
+  return os.path.join('certs', 'sas.key')
+
+
 
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
@@ -101,8 +104,8 @@ class SasImpl(sas_interface.SasInterface):
     return RequestPost('https://%s/%s/%s' % (self.cbsd_sas_active_base_url, self.cbsd_sas_version,
                                              method_name), request,
                        self._tls_config.WithClientCertificate(
-                           ssl_cert or GetDefaultCbsdSSLCertPath(),
-                           ssl_key or GetDefaultCbsdSSLKeyPath()))
+                           ssl_cert or GetDefaultDomainProxySSLCertPath(),
+                           ssl_key or GetDefaultDomainProxySSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
     return RequestGet(url,
@@ -113,15 +116,16 @@ class SasImpl(sas_interface.SasInterface):
 
   def UpdateSasRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
-      sas_sas_active_base_url = self._sas_sas_ec_base_url
+      self.sas_sas_active_base_url = self._sas_sas_ec_base_url
     else:
-      sas_sas_active_base_url = self._sas_sas_rsa_base_url
+      self.sas_sas_active_base_url = self._sas_sas_rsa_base_url
 
   def UpdateCbsdRequestUrl(self, cipher):
     if 'ECDSA' in cipher:
       self.cbsd_sas_active_base_url = self._cbsd_sas_ec_base_url
     else:
       self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
+
 
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
@@ -238,6 +242,10 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     return RequestPost('https://%s/admin/query/propagation_and_antenna_model' %
                        self._base_url, request, self._tls_config)
 
+  def TriggerEnableNtiaExclusionZones(self):
+    RequestPost('https://%s/admin/trigger/enable_ntia_15_517' %
+                self._base_url, None, self._tls_config)
+
   def GetDailyActivitiesStatus(self):
     return RequestPost(
         'https://%s/admin/get_daily_activities_status' % self._base_url, None,
@@ -263,16 +271,20 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     RequestPost('https://%s/admin/trigger/dpa_deactivation' % self._base_url,
                 request, self._tls_config)
 
+  def TriggerEscDisconnect(self):
+    RequestPost('https://%s/admin/trigger/disconnect_esc' % self._base_url,
+                None, self._tls_config)
+
   def TriggerFullActivityDump(self):
     RequestPost(
         'https://%s/admin/trigger/create_full_activity_dump' % self._base_url,
         None, self._tls_config)
 
   def _GetDefaultAdminSSLCertPath(self):
-    return os.path.join('certs', 'admin_client.cert')
+    return os.path.join('certs', 'admin.cert')
 
   def _GetDefaultAdminSSLKeyPath(self):
-    return os.path.join('certs', 'admin_client.key')
+    return os.path.join('certs', 'admin.key')
 
   def InjectPeerSas(self, request):
     RequestPost('https://%s/admin/injectdata/peer_sas' % self._base_url,

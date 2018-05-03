@@ -13,7 +13,6 @@
 #    limitations under the License.
 
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-from functools import partial
 import json
 import os
 import sas
@@ -271,8 +270,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_7,
             'grantRequest': grant_request_7,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
@@ -284,8 +283,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_8,
             'grantRequest': grant_request_8,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],
@@ -298,8 +297,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
                                 'key': os.path.join('certs', 'domain_proxy.key')},
-                               {'cert': os.path.join('certs', 'domain_proxy.cert'),
-                                'key': os.path.join('certs', 'domain_proxy.key')}],
+                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
         'deltaIap': 2
     }
     writeConfig(filename, config)
@@ -358,13 +357,14 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                      'url': sas_test_harness_object.getBaseUrl()})
       sas_test_harness_objects.append(sas_test_harness_object)
-   
+
+
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
 
       # Execute steps for single iteration
-      self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects, 
-                                  domain_proxy_objects)
+      self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects,
+                                     domain_proxy_objects)
 
     # Stopping Test harness servers
     for test_harness in sas_test_harness_objects:

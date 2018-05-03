@@ -116,8 +116,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("corrupted_sas.cert"),
-        'sasKey': self.getCertFilename("corrupted_sas.key")
+        'sasCert': self.getCertFilename("sas_corrupted.cert"),
+        'sasKey': self.getCertFilename("sas_corrupted.key")
     }
     writeConfig(filename, config)
 
@@ -141,7 +141,7 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("self_signed_sas.cert"),
+        'sasCert': self.getCertFilename("sas_self_signed.cert"),
         'sasKey': self.getCertFilename("sas.key")
     }
     writeConfig(filename, config)
@@ -191,8 +191,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path 
 
     config = {
-        'sasCert': self.getCertFilename("wrong_type_sas.cert"),
-        'sasKey': self.getCertFilename("client.key")
+        'sasCert': self.getCertFilename("sas_wrong_type.cert"),
+        'sasKey': self.getCertFilename("device_a.key")
     }
     writeConfig(filename, config)
 
@@ -229,8 +229,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for blacklisted SAS cert/key path.
 
     config = {
-        'sasCert': self.getCertFilename("blacklisted_sas.cert"),
-        'sasKey': self.getCertFilename("blacklisted_sas.key")
+        'sasCert': self.getCertFilename("sas_blacklisted.cert"),
+        'sasKey': self.getCertFilename("sas_blacklisted.key")
     }
     writeConfig(filename, config)
 

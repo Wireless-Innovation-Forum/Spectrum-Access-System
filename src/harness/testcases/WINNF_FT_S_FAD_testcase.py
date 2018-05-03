@@ -18,13 +18,14 @@ import json
 import os
 import sas
 import sas_testcase
-from reference_models.geo import vincenty
+from reference_models.geo import vincenty, utils
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generateCbsdReferenceId, generatePpaRecords
 
 from util import configurable_testcase, writeConfig, loadConfig \
   , getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent \
   , compareDictWithUnorderedLists, winnforum_testcase, areTwoPpasEqual
+import logging
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
   """ This class contains all FAD related tests mentioned in SAS TS  """
@@ -120,7 +121,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqualToDeviceOrPreloadedConditionalParam('indoorDeployment', \
               device['installationParam'], reg_conditional_device_data['installationParam'],\
                 cbsd_record[0]['installationParam'])
-          #  parameters should equal to device or to default value
+          # parameters should equal to device or to default value
           registered_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in device['installationParam'] \
             else reg_conditional_device_data['installationParam']['antennaAzimuth'] \
@@ -133,16 +134,15 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
             if 'antennaBeamwidth' in cbsd_record[0]['installationParam'] else None
           dump_antenna_azimuth = cbsd_record[0]['installationParam']['antennaAzimuth'] \
             if 'antennaAzimuth' in cbsd_record[0]['installationParam'] else None
-          is_default_dump_beamwidth = dump_antenna_beamwidth == 360 or dump_antenna_beamwidth == 0
+          is_default_dump_beamwidth = dump_antenna_beamwidth == 360
           # beamwidth should be equal to registered value or default value
           if registered_antenna_beamwidth is None:
             self.assertTrue(is_default_dump_beamwidth)
           else:
               self.assertEqual(registered_antenna_beamwidth, dump_antenna_beamwidth)
-          # TODO: add check that if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
-          # if azimuth is not registered then the value of antenna azimuth should exist in the dump with any value
+          # if azimuth is not registered then the beamwidth in the dump should be the values of omni directional antenna
           if registered_antenna_azimuth is None:
-            self.assertIsNotNone(dump_antenna_azimuth)
+            self.assertTrue(is_default_dump_beamwidth)
           else:
             self.assertEqual(registered_antenna_azimuth, dump_antenna_azimuth)
 
@@ -178,7 +178,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                             ['operationFrequencyRange']['highFrequency'], 3700000000)
           self.assertEqual( grants_of_cbsd[0]['requestedOperationParam']\
                             ['operationFrequencyRange']['highFrequency'] % 5000000, 0) 
-          # check grant OperationParam    
+          # check grant OperationParam   
           self.assertDictEqual( grants_of_cbsd[0]['operationParam'], \
                                 grant_request[index]['operationParam'])
 
@@ -229,21 +229,35 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                                               pal_low_frequency,
                                                               pal_high_frequency,
                                                               device_a['userId'])
-      ppas.append(ppa)
+
+      device_a['installationParam']['latitude'], device_a['installationParam'][
+        'longitude'] = getRandomLatLongInPolygon(ppa)
+      # Devices inside and part of the claimed PPA.
+      # Contains the index of devices in the devices list.
+      ppas.append({
+            'ppaRecord': ppa,
+            'ppaClusterList': [0]})
       pals.extend(pal)
       # ESC senosrs
       esc_sensors = []
       esc_sensors.append(json.load(
             open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))))
       # SAS test harness configuration
-      sas_harness_config = {
+      sas_test_harness_0_config = {
           'sasTestHarnessName': 'SAS-TH-2',
           'hostName': 'localhost',
-          'url': 'localhost',
           'port': 9002,
-          'serverCert': "certs/sas.cert",
-          'serverKey': "certs/sas.key",
+          'serverCert': os.path.join('certs', 'sas.cert'),
+          'serverKey': os.path.join('certs', 'sas.key'),
           'caCert': "certs/ca.cert"
+      }
+      sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9003,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert')
       }
       config = {
         'registrationRequests': devices,
@@ -252,7 +266,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'ppaRecords': ppas,
         'palRecords': pals,
         'escSensorRecords' : esc_sensors,
-        'sasTestHarnessConfig': sas_harness_config
+        'sasTestHarnessConfigs': [sas_test_harness_0_config,
+                                  sas_test_harness_1_config]
       }
       writeConfig(filename, config)
     
@@ -269,9 +284,46 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Very light checking of the config file.
       self.assertEqual(len(config['registrationRequests']),
                         len(config['grantRequests']))
-        
-      # inject FCC IDs and User IDs of CBSDs   
-      for device in config['registrationRequests']:
+      # check that the config file contains consistent PAL&PPA data 
+      for index, grant in enumerate(config['grantRequests']):
+        grant_frequency_range = grant['operationParam']['operationFrequencyRange']
+        for ppa in config['ppaRecords']:
+            if index in ppa['ppaClusterList']:
+              frequency_ranges_of_pals = [{'frequencyRange' : {'lowFrequency' : pal['channelAssignment']['primaryAssignment']['lowFrequency'],\
+                'highFrequency' : pal['channelAssignment']['primaryAssignment']['highFrequency']}} \
+                for pal in config['palRecords'] if pal['palId'] in ppa['ppaRecord']['ppaInfo']['palId']]
+              self.assertLessEqual(1, frequency_ranges_of_pals, 'Empty list of Frequency Ranges in the PAL config')
+              low_freq = min([freq_range['frequencyRange']['lowFrequency'] for freq_range in frequency_ranges_of_pals])
+              high_freq = max([freq_range['frequencyRange']['highFrequency'] for freq_range in frequency_ranges_of_pals])
+              self.assertChannelsContainFrequencyRange(frequency_ranges_of_pals, {'lowFrequency': low_freq, 'highFrequency':high_freq })
+              # check that the grant in config file is not mixed of PAL and GAA channels
+              if low_freq <= grant_frequency_range['lowFrequency'] <= high_freq:
+                 self.assertLessEqual(grant_frequency_range['highFrequency'], high_freq, 'incorrect high frequency of the grant with index {0}, makes it GAA&PAL Mixed Grant'.format(index))
+              if low_freq <= grant_frequency_range['highFrequency'] <= high_freq:
+                 self.assertGreaterEqual(grant_frequency_range['lowFrequency'], low_freq, 'incorrect low frequency of the grant with index {0}, makes it a GAA&PAL Mixed Grant'.format(index))
+      for index, device  in enumerate(config['registrationRequests']):
+        # check azimuth in the CBSD config, if the beamwidth is not 0 or 360 and the azimuth is not provided, CBSD registration may be rejected
+        reg_conditional_device_data_list = [reg for reg in \
+              config['conditionalRegistrationData']['registrationData'] if reg['fccId'] == device['fccId'] and \
+              reg['cbsdSerialNumber'] == device['cbsdSerialNumber'] ]
+        if len(reg_conditional_device_data_list) == 1:
+          reg_conditional_installation_param = reg_conditional_device_data_list[0]['installationParam']
+        elif len(reg_conditional_device_data_list) > 1:
+           self.fail('invalid conditional Registration Data, multi conditional Registration configs for the cbsd with index: {0} '.format(index))
+        else:
+          reg_conditional_installation_param = {}
+        registeration_antenna_azimuth = device['installationParam']['antennaAzimuth'] \
+            if 'installationParam' in device and 'antennaAzimuth' in device['installationParam'] \
+            else reg_conditional_installation_param['antennaAzimuth'] \
+            if 'antennaAzimuth' in reg_conditional_installation_param else None
+        registeration_antenna_beamwidth = device['installationParam']['antennaBeamwidth'] \
+            if  'installationParam' in device and 'antennaBeamwidth' in device['installationParam'] \
+            else reg_conditional_installation_param['antennaBeamwidth'] \
+            if 'antennaBeamwidth' in reg_conditional_installation_param else None
+        if registeration_antenna_beamwidth != None and registeration_antenna_beamwidth not in [0, 360]\
+          and registeration_antenna_azimuth is None:
+           self.fail('invalid config, missing azimuth value for CBSD config with index: {0} '.format(index))
+        # inject FCC ID and User ID of CBSD 
         self._sas_admin.InjectFccId({
             'fccId': device['fccId'],
             'fccMaxEirp': 47
@@ -285,9 +337,28 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # Register N1 CBSDs.
       request = {'registrationRequest': config['registrationRequests']}
       responses = self._sas.Registration(request)['registrationResponse']
+
       # Check registration responses and get cbsd Id
       self.assertEqual(len(responses), len(config['registrationRequests']))
-      # TODO : to update the test so that it is possible to get a PAL Grant
+      cbsd_ids = []
+      for response in responses:
+        self.assertEqual(response['response']['responseCode'], 0)
+        cbsd_ids.append(response['cbsdId'])
+      # inject PALs and N2 PPAs
+      ppa_ids = []       
+      for pal in config['palRecords']:
+          self._sas_admin.InjectPalDatabaseRecord(pal)                  
+      for ppa in config['ppaRecords']:
+        # fill the PPA cbsdReferenceIds with values according to admin testing API spec
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+        for index in ppa['ppaClusterList']:
+            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
+        ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
+        # re-fill the PPA cbsdReferenceIds with the values expected in the dump according to SAS-SAS TS
+        ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
+        for index in ppa['ppaClusterList']:
+            cbsd = config['registrationRequests'][index]
+            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(generateCbsdReferenceId(cbsd['fccId'], cbsd['cbsdSerialNumber']))
       grants = config['grantRequests']
       for index, response in enumerate(responses):
           self.assertEqual(response['response']['responseCode'], 0)
@@ -298,41 +369,37 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # check grant response
       self.assertEqual(len(grant_responses), len(config['grantRequests']))
       for grant_response in grant_responses:
-          self.assertEqual(grant_response['response']['responseCode'], 0)       
-      # inject PALs and N2 PPAs
-      ppa_ids = []       
-      for pal in config['palRecords']:
-          self._sas_admin.InjectPalDatabaseRecord(pal)
-                       
-      for ppa in config['ppaRecords']:
-          ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa}))          
+          self.assertEqual(grant_response['response']['responseCode'], 0)   
       # inject N3 Esc sensor
       for esc_sensor in config['escSensorRecords']:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
       # step 7
       # Notify the SAS UUT about the SAS Test Harness
-      sas_th_config = config['sasTestHarnessConfig']		
-      certificate_hash = getCertificateFingerprint(sas_th_config['serverCert'])
-      self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                  'url': sas_th_config['url']})
-
+      for sas_th in config['sasTestHarnessConfigs']:
+        certificate_hash = getCertificateFingerprint(sas_th['serverCert'])
+        url = 'https://' + sas_th['hostName'] + ':' + str(sas_th['port'])
+        self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                    'url': url})
+      sas_th_config = config['sasTestHarnessConfigs'][0]
       response = self.TriggerFullActivityDumpAndWaitUntilComplete(sas_th_config['serverCert'], sas_th_config['serverKey'])
+      # verify that all the SASes get the same response :
       # check dump message format
       self.assertContainsRequiredFields("FullActivityDump.schema.json", response)
       # an array for each record type
       cbsd_dump_data = []
       ppa_dump_data = []
-      esc_sensor_dump_data = []
-        
+      esc_sensor_dump_data = []    
       # step 8 and check   
       # download dump files and fill corresponding arrays
+      hash_of_dump_file = {}
       for dump_file in response['files']:
           self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                               dump_file)
           downloaded_file = None
           if dump_file['recordType'] != 'coordination':                
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
-				  sas_th_config['serverCert'], sas_th_config['serverKey'])
+                sas_th_config['serverCert'], sas_th_config['serverKey'])
+              hash_of_dump_file[dump_file['url']] =  hashlib.sha1(json.dumps(downloaded_file)).hexdigest()
           if dump_file['recordType'] ==  'cbsd':
               cbsd_dump_data.extend(downloaded_file['recordData'])   
           elif dump_file['recordType'] ==  'esc_sensor':
@@ -340,8 +407,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           elif dump_file['recordType'] ==  'zone':
               ppa_dump_data.extend(downloaded_file['recordData'])
           else:
-              self.assertEqual('coordination', dump_file['recordType'])
-        
+              self.assertEqual('coordination', dump_file['recordType'])      
       # verify the length of records equal to the inserted ones
       self.assertEqual(len(config['registrationRequests']), len(cbsd_dump_data))
       self.assertEqual(len(config['ppaRecords']), len(ppa_dump_data))
@@ -352,20 +418,18 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         self.assertEqual(ppa_record['id'].split("/")[0], 'zone')
         self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
         self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
-        del ppa_record['id']
-        # TODO : to update the following check according when PAL grants are supported in this test case
-        if 'cbsdReferenceId' in ppa_record['ppaInfo']:
-          self.assertFalse(ppa_record['ppaInfo']['cbsdReferenceId'])
-          del ppa_record['ppaInfo']['cbsdReferenceId']
+        del ppa_record['id'] 
         # verify that the injected ppas exist in the dump files
-        # TODO: add Check for GeoJSON Winding of ppa polygon  
+        # check GeoJson Winding of PPA record
+        utils.HasCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])     
         exist_in_dump = False
-        for ppa in config['ppaRecords']:
+        for ppa_conf in config['ppaRecords']:
+          ppa = ppa_conf['ppaRecord']
           if 'id' in ppa:
-            del ppa['id']        
+            del ppa['id'] 
           exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
-          if exist_in_dump:
-            break
+        if exist_in_dump:
+          break
         self.assertTrue(exist_in_dump)     
       # verify the schema of record and two first parts of esc sensor record  Id
       for esc_record in esc_sensor_dump_data:                    
@@ -386,10 +450,20 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # verify that retrieved cbsd dump files have correct schema
       for cbsd_record in cbsd_dump_data:
           self.assertContainsRequiredFields("CbsdData.schema.json", cbsd_record)
-          self.assertFalse("cbsdInfo" in cbsd_record)
-            
+          self.assertFalse("cbsdInfo" in cbsd_record)        
       # verify all the previous activities on CBSDs and Grants exist in the dump files
       self.assertCbsdRecord(config['registrationRequests'], grants, grant_responses, cbsd_dump_data, config['conditionalRegistrationData'])
+      # step 10 check all SAS Test Harnesses retrieve all of the data in the Full Activity Dump from the SAS UUT
+      for sas_th in config['sasTestHarnessConfigs'][1:]:
+        dump_message = self._sas.GetFullActivityDump(sas_th['serverCert'], sas_th['serverKey'])
+        # check that dump message is the same as the message retreived by the first SAS TH
+        compareDictWithUnorderedLists(response, dump_message)
+        # check that dump files are the same as the files retreived by the first SAS TH
+        for dump_file in dump_message['files']:
+          if dump_file['recordType'] != 'coordination':                
+              downloaded_file = self._sas.DownloadFile(dump_file['url'],\
+                sas_th['serverCert'], sas_th['serverKey'])
+              self.assertEqual(hash_of_dump_file[dump_file['url']], hashlib.sha1(json.dumps(downloaded_file)).hexdigest())
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""

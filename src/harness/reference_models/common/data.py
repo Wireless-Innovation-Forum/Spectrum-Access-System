@@ -20,6 +20,7 @@ the utility routines for creating them for example from FAD objects.
 from collections import namedtuple
 import enum
 from reference_models.geo import drive
+from sas_test_harness import generateCbsdReferenceId
 
 
 class ProtectedEntityType(enum.Enum):
@@ -75,6 +76,19 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
     """Returns unique CBSD key (ie key based on installation params only)."""
     return self[0:8]
 
+# Define FSS Protection Point, i.e., a tuple with named fields of
+# 'latitude', 'longitude', 'height_agl', 'max_gain_dbi', 'pointing_azimuth',
+# 'pointing_elevation'
+FssInformation = namedtuple('FssInformation',
+                            ['height_agl', 'max_gain_dbi',
+                             'pointing_azimuth', 'pointing_elevation'])
+
+# Define ESC information, i.e., a tuple with named fields of
+# 'antenna_height', 'antenna_azimuth', 'antenna_gain_pattern'
+EscInformation = namedtuple('EscInformation',
+                            ['antenna_height', 'antenna_azimuth',
+                             'antenna_gain_pattern'])
+
 
 def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
   """Constructs a |CbsdGrantInfo| tuple from the given data."""
@@ -103,16 +117,41 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
       is_managed_grant=is_managing_sas)
 
 
-def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
+def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
+    """Returns the CBSDs that are not part of a PPA cluster list.
+
+    Args:
+      cbsds : List of CBSDData objects.
+      ppa_record : A PPA record dictionary.
+    Returns:
+      A list of CBSDs that are not part of the PPA cluster list.
+    """
+    cbsds_not_part_of_ppa_cluster = []
+    # Compare the list of CBSDs with the PPA cluster list
+    for cbsd in cbsds:
+      cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
+                            cbsd['registration']['cbsdSerialNumber'])
+      if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
+        cbsds_not_part_of_ppa_cluster.append(cbsd)
+
+    return cbsds_not_part_of_ppa_cluster
+
+
+def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True,
+                                    ppa_record=None):
   """Returns a list of |CbsdGrantInfo| from FAD object.
 
   Args:
     cbsd_data_records: A list of |CbsdData| objects retrieved from FAD records.
     is_managing_sas: Flag indicating if the `cbsd_data_record` from the managing SAS
       (True) or a peer SAS (False).
+    ppa_record: A PPA record dictionary. If None, ignored. If set, the returned grants
+      are not part of the PPA cluster list.
   """
 
   grant_objects = []
+  if ppa_record is not None:
+    cbsd_data_records = getCbsdsNotPartOfPpaCluster(cbsd_data_records, ppa_record)
 
   # Loop over each CBSD grant
   for cbsd_data_record in cbsd_data_records:
@@ -126,19 +165,22 @@ def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True):
   return grant_objects
 
 
-def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects):
+def getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects,
+                           ppa_record=None):
   """Returns a list of |CbsdGrantInfo| for SAS UUT and peer SAS TH.
 
   Args:
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_objects: a list of FAD objects from SAS Test Harness
+    ppa_record: A PPA record dictionary. If None, ignored. If set, the returned grants
+      are not part of the PPA cluster list.
   """
   # List of CBSD grant tuples extracted from FAD record
   grants = getAllGrantInfoFromCbsdDataDump(
-      sas_uut_fad_object.getCbsdRecords(), True)
+      sas_uut_fad_object.getCbsdRecords(), True, ppa_record)
   for fad in sas_th_fad_objects:
     grants.extend(getAllGrantInfoFromCbsdDataDump(
-        fad.getCbsdRecords(), False))
+        fad.getCbsdRecords(), False, ppa_record))
 
   return grants
 
