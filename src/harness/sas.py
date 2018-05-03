@@ -48,6 +48,8 @@ def GetDefaultSasSSLCertPath():
 def GetDefaultSasSSLKeyPath():
   return os.path.join('certs', 'sas.key')
 
+
+
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
@@ -124,6 +126,7 @@ class SasImpl(sas_interface.SasInterface):
     else:
       self.cbsd_sas_active_base_url = self._cbsd_sas_rsa_base_url
 
+      
 class SasAdminImpl(sas_interface.SasAdminInterface):
   """Implementation of SasAdminInterface for SAS certification testing."""
 
