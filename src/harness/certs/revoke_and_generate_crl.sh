@@ -7,7 +7,7 @@ function revoke_certificate()
 {
   #Argument1: Name of the certificate to be revoked.
 
-  #Fetch the Common Name to find out the issuer
+  #Fetch the Common Name to find out the issuer.
   local CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
   local CA=''
   if [[ "$CN" == *"CBSD OEM CA - Revoked"* ]]; then

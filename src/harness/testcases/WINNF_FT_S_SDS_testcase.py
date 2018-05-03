@@ -324,6 +324,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_domain_proxy"
     cert_duration_minutes = 1  # in minutes
 
@@ -367,6 +370,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_domain_proxy"
     cert_duration_minutes = 1  # in minutes
 
@@ -413,6 +419,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_domain_proxy"
     cert_duration_minutes = 1  # in minutes
 

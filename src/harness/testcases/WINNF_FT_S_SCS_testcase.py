@@ -328,6 +328,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_client"
     cert_duration_minutes = 1  # in minutes
 
@@ -372,6 +375,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_client"
     cert_duration_minutes = 1  # in minutes
 
@@ -419,6 +425,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
 
     Checks that SAS UUT response with fatal alert message.
     """
+    # Reset the SAS UUT
+    self.SasReset()
+
     device_cert_name = "short_lived_client"
     cert_duration_minutes = 1  # in minutes
 
