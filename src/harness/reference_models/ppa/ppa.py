@@ -13,11 +13,11 @@
 #    limitations under the License.
 
 import logging
-import multiprocessing
 from collections import namedtuple
 
 import numpy as np
 from concurrent import futures
+from reference_models.common import mpool
 from reference_models.antenna import antenna
 from reference_models.geo import drive
 from reference_models.geo import vincenty, nlcd
@@ -134,9 +134,9 @@ def PpaCreationModel(devices, pal_records):
   for pal_rec in pal_records:
     logging.info('Validating pal_rec', pal_rec)
     util.assertContainsRequiredFields("PalRecord.schema.json", pal_rec)
-  pool = futures.ProcessPoolExecutor(multiprocessing.cpu_count())
   # Create Contour for each CBSD
-  device_polygon = list(pool.map(_GetPolygon, devices))
+  pool = mpool.Pool()
+  device_polygon = pool.map(_GetPolygon, devices)
   # Create Union of all the CBSD Contours and Check for hole
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
