@@ -43,8 +43,8 @@ from reference_models.interference import interference as interf
 from reference_models.geo import utils
 
 # The grid resolution for area based protection entities.
-GWPZ_GRID_RES_ARCSEC = 10
-PPA_GRID_RES_ARCSEC = 10
+GWPZ_GRID_RES_ARCSEC = 2
+PPA_GRID_RES_ARCSEC = 2
 
 
 def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
