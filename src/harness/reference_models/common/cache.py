@@ -19,7 +19,22 @@ import functools32
 # Note: for now only use the lru_cache from functools, backported to Python 2.7 as
 # functools32. A better cache engine needs to be implemented that:
 # 1) supports sharing across process (optionally)
-# 2)
+# 2) ...
+
+
+# A cache decorator
+# Note: for now the cache simply wraps the functools.lrucache.
+# Will be expanded for multiprocess support.
+def LruCache(maxsize=None):
+  """LRU Cache decorator.
+
+  Args:
+    maxsize: the maximum cache size, or None for unlimited size.
+  """
+  def wrapper(fn):
+    return functools32.lru_cache(maxsize=maxsize)(fn)
+
+  return wrapper
 
 
 # Cache management
@@ -27,9 +42,14 @@ class CacheManager(object):
   """Cache context manager.
 
   This uses the `functools.lru_cache` for memoizing calls to
-  a function in a LRU fashion.
+  a function in a LRU fashion. Use it for:
+    - temporary speed up through memoizing. The cache is cleared
+    when getting out of the 'with' context.
+    - get repeatable results of function with random component:
+    the function results will be the same within one 'with' context.
 
   Usage:
+    #  Temporarily install a LRU memoizing cache on some function.
     with CacheManager(my_function, maxsize=None) as cm:
       # run the code using my_function
   """

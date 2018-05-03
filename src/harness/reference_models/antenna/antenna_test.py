@@ -102,6 +102,11 @@ class TestAntenna(unittest.TestCase):
     self.assertEqual(np.max(np.abs(
         gains - np.array([-25, 0, 0, -25]))), 0)
 
+    gains = antenna.GetRadarNormalizedAntennaGains([5, 8.99, 9.01, 10, 10.99, 11.01],
+                                                   10, radar_beamwidth=2)
+    self.assertEqual(np.max(np.abs(
+        gains - np.array([-25, -25, 0, 0, 0, -25]))), 0)
+
   def test_fss_gain(self):
     # Test the internal GSO gains
     # - diff in hor plane only

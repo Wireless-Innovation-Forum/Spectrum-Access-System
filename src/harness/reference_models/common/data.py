@@ -42,15 +42,18 @@ ProtectionConstraint = namedtuple('ProtectionConstraint',
 
 # A CBSD Grant.
 class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
-                               ['latitude', 'longitude', 'height_agl',
-                                'indoor_deployment',
+                               [# Installation params
+                                'latitude', 'longitude', 'height_agl',
+                                'indoor_deployment', 'cbsd_category',
                                 'antenna_azimuth', 'antenna_gain', 'antenna_beamwidth',
-                                'cbsd_category', 'max_eirp',
+                                # Grant params
+                                'max_eirp',
                                 'low_frequency', 'high_frequency',
                                 'is_managed_grant'])):
   """CbsdGrantInfo.
 
-  Holds all parameters of a CBSD grant (registration and grant).
+  Holds all parameters of a CBSD grant.
+  Suitable to be used as a key in dictionaries and sets.
 
   Attributes:
     latitude: The CBSD latitude (degrees).
@@ -69,6 +72,9 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
   """
   __slots__ = ()
 
+  def uniqueCbsdKey(self):
+    """Returns unique CBSD key (ie key based on installation params only)."""
+    return self[0:8]
 
 # Define FSS Protection Point, i.e., a tuple with named fields of
 # 'latitude', 'longitude', 'height_agl', 'max_gain_dbi', 'pointing_azimuth',
