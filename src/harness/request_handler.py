@@ -83,11 +83,15 @@ def RequestPostJson(url, request, config):
   return _Request(url, request, config, True, 'application/json')
 
 
-def RequestPost(url, request, config, content_type):
+def RequestGetEmpty(url, config):
+  return _Request(url, None, config, False, None)
+
+
+def _RequestPost(url, request, config, content_type):
   return _Request(url, request, config, True, content_type)
 
 
-def RequestGet(url, request, config):
+def _RequestGet(url, request, config):
   return _Request(url, request, config, False)
 
 

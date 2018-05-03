@@ -14,7 +14,7 @@
 """Implementation of SasInterface."""
 
 import ConfigParser
-from request_handler import TlsConfig, RequestPostJson, RequestPostEmpty, RequestGet
+from request_handler import TlsConfig, RequestPostJson, RequestPostEmpty, RequestGetEmpty
 import os
 import sas_interface
 
@@ -93,7 +93,7 @@ class SasImpl(sas_interface.SasInterface):
     url = 'https://%s/%s/%s' % (self.sas_sas_active_base_url, self.sas_sas_version, method_name)
     if request is not None:
       url += '/%s' % request
-    return RequestGet(url,
+    return RequestGetEmpty(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert or GetDefaultSasSSLCertPath(),
                           ssl_key or GetDefaultSasSSLKeyPath()))
@@ -106,7 +106,7 @@ class SasImpl(sas_interface.SasInterface):
                            ssl_key or GetDefaultCbsdSSLKeyPath()))
 
   def DownloadFile(self, url, ssl_cert=None, ssl_key=None):
-    return RequestGet(url,
+    return RequestGetEmpty(url,
                       self._tls_config.WithClientCertificate(
                           ssl_cert if ssl_cert else
                           GetDefaultSasSSLCertPath(), ssl_key
@@ -245,7 +245,7 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
     pass
 
   def GetDailyActivitiesStatus(self):
-    return RequestGet(
+    return RequestGetEmpty(
         'https://%s/admin/get_daily_activities_status' % self._base_url,
         self._tls_config)
 
@@ -289,6 +289,6 @@ class SasAdminImpl(sas_interface.SasAdminInterface):
                 request, self._tls_config)
 
   def GetPpaCreationStatus(self):
-    return RequestGet(
+    return RequestGetEmpty(
       'https://%s/admin/get_ppa_status' % self._base_url,
       self._tls_config)
