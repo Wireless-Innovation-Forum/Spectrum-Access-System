@@ -48,6 +48,10 @@ __USERNAME = 'username'
 __PASSWORD = 'password'
 __AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(USERNAME+':'+PASSWORD)
 
+__SSL_CERT = 'certs/server.cert'
+__SSL_KEY = 'certs/server.key'
+__SSL_CA_CERT_FILE = 'certs/ca.cert'
+
 
 class DatabaseServer(threading.Thread):
   """A HTTP server which will serve a given file at the given file path."""
@@ -57,9 +61,6 @@ class DatabaseServer(threading.Thread):
                host_name,
                port,
                https=True,
-               cert_file=None,
-               key_file=None,
-               ca_cert_file=None,
                authorization=False):
     """
     Args:
@@ -67,13 +68,6 @@ class DatabaseServer(threading.Thread):
       host_name: The address the server may be accessed at.
       port: The port to serve requests on.
       https: Optional, if True use https else use http.
-      path_of_file: The expected path from host_name:port/ to the file. Any
-        other path will return a 404 (or other appropriate error).
-      initial_file: The file system path of the initial file to serve.
-      cert_file: Optional. The file path of the certificate file.
-      key_file: Optional. The file path of the key file.
-      ca_cert_file: Optional. The file path of the certificate authority
-        certificate file.
       authorization: Optional. Iff True require the request to contain the
         authorization header matching the baked in username/password.
     """
@@ -86,9 +80,9 @@ class DatabaseServer(threading.Thread):
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
-          certfile=cert_file,
-          keyfile=key_file,
-          ca_certs=ca_cert_file,
+          certfile=__SSL_CERT,
+          keyfile=__SSL_KEY,
+          ca_certs=__SSL_CA_CERT_FILE,
           ssl_version=ssl.PROTOCOL_TLSv1_2,
           server_side=True)
 
