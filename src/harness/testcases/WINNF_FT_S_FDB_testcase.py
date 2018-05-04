@@ -177,7 +177,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     exclusion_zone_database_server = DatabaseServer("Exclusion Zone Database",
                                           config['exclusionZoneDatabaseConfig']['hostName'],
                                           config['exclusionZoneDatabaseConfig']['port'])
-    
+
     # Start fake database server
     exclusion_zone_database_server.start()
 
@@ -272,7 +272,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 400)
 
     del grant_request_g3, grant_response_g3
-    
+
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
@@ -564,8 +564,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     fss_database_config = {
         'hostName': 'localhost',
-        'port': 8003
-        'fileUrl': '/rest/fss/v1/allsitedata'
+        'port': 8003,
+        'fileUrl': '/rest/fss/v1/allsitedata',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_allsitedata')
     }
 
