@@ -102,19 +102,22 @@ double ITMDLLVersion();
 // *** WinnForum modification - New input parameters:
 // - to allow modification of original mdvar to 13
 // - force refractivity value
+// - to retrieve the vertical incidence angle at both end points.
 void point_to_point(double elev[], double tht_m, double rht_m,
                     double eps_dielect, double sgm_conductivity, double eno_ns_surfref,
                     double frq_mhz, int radio_climate, int pol,
                     double conf, double rel,
                     int mdvar, bool eno_is_final,
-                    double &dbloss, char *strmode, int &errnum);
+                    double &dbloss, char *strmode, int &errnum,
+                    double& ver0, double& ver1);
 
 void point_to_point_rels(double elev[], double tht_m, double rht_m,
                          double eps_dielect, double sgm_conductivity, double eno_ns_surfref,
                          double frq_mhz, int radio_climate, int pol, double conf,
                          double reliability[], int num_rel,
                          int mdvar, bool eno_is_final,
-                         double dbloss[], char *strmode, int &errnum);
+                         double dbloss[], char *strmode, int &errnum,
+                         double& ver0, double& ver1);
 
 void point_to_pointMDH(double elev[], double tht_m, double rht_m,
                        double eps_dielect, double sgm_conductivity, double eno_ns_surfref,

@@ -17,6 +17,8 @@ The modification are related to the `point_to_point()` main routine:
  - a new function `point_to_point_rels()` replicates the `point_to_point()` routine,
  but takes takes an array of reliabilities and return an array of path losses values.
 
+ - returning ver0, and ver1, the vertical incidence angles (in degrees) for both end points.
+ 
  - passing mdvar value - default value = 12 (original)
 
  - passing a boolean variable 'eno_is_final' (default=false), which intent is
