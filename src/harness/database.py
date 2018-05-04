@@ -18,14 +18,7 @@ Note: This server is only intended for winnforum testing purposes, do not use
 this in a production environment.
 
 Example usage:
-d = DatabaseServer(
-    'Test',
-    'localhost',
-    8000,
-    cert_file='certs/test_cert.crt',
-    key_file='certs/test_cert.key',
-    ca_cert_file='certs/test_cert_root.pem'
-    )
+d = DatabaseServer('Test', 'localhost', 8000)
 d.setFileToServe('/allsitedata', 'allsitedata1')
 d.start()
 # DO SOME TESTING
@@ -46,7 +39,11 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 # Create the authorization string.
 __USERNAME = 'username'
 __PASSWORD = 'password'
-__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(USERNAME+':'+PASSWORD)
+__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(__USERNAME+':'+__PASSWORD)
+
+__SSL_CERT = 'certs/server.cert'
+__SSL_KEY = 'certs/server.key'
+__SSL_CA_CERT_FILE = 'certs/ca.cert'
 
 
 class DatabaseServer(threading.Thread):
@@ -57,9 +54,6 @@ class DatabaseServer(threading.Thread):
                host_name,
                port,
                https=True,
-               cert_file=None,
-               key_file=None,
-               ca_cert_file=None,
                authorization=False):
     """
     Args:
@@ -67,13 +61,6 @@ class DatabaseServer(threading.Thread):
       host_name: The address the server may be accessed at.
       port: The port to serve requests on.
       https: Optional, if True use https else use http.
-      path_of_file: The expected path from host_name:port/ to the file. Any
-        other path will return a 404 (or other appropriate error).
-      initial_file: The file system path of the initial file to serve.
-      cert_file: Optional. The file path of the certificate file.
-      key_file: Optional. The file path of the key file.
-      ca_cert_file: Optional. The file path of the certificate authority
-        certificate file.
       authorization: Optional. Iff True require the request to contain the
         authorization header matching the baked in username/password.
     """
@@ -86,9 +73,9 @@ class DatabaseServer(threading.Thread):
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
-          certfile=cert_file,
-          keyfile=key_file,
-          ca_certs=ca_cert_file,
+          certfile=__SSL_CERT,
+          keyfile=__SSL_KEY,
+          ca_certs=__SSL_CA_CERT_FILE,
           ssl_version=ssl.PROTOCOL_TLSv1_2,
           server_side=True)
 
@@ -135,7 +122,7 @@ class DatabaseServer(threading.Thread):
     """
     self.server.file_paths = file_url_file_path_dict
 
-  def getBaseUrl():
+  def getBaseUrl(self):
     return self.base_url
 
 class DatabaseHTTPServer(HTTPServer):
