@@ -53,7 +53,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Fake database test harness configuration
+    # Exclusion zone database test harness configuration
     exclusion_zone_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -173,12 +173,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
-    # Create fake database server
+    # Create exclusion zone database server
     exclusion_zone_database_server = DatabaseServer("Exclusion Zone Database",
                                           config['exclusionZoneDatabaseConfig']['hostName'],
                                           config['exclusionZoneDatabaseConfig']['port'])
     
-    # Start fake database server
+    # Start exclusion zone database server
     exclusion_zone_database_server.start()
 
     # Set file path
@@ -250,7 +250,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 7: Modify exclusion zone database record frequency range from 'F1' to 'F2'
     # Set the path of modified file
-    fake_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
+    exclusion_zone_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
                                         config['exclusionZoneDatabaseConfig']['modifiedFilePath'])
 
     # Step 8: Trigger daily activities
@@ -272,7 +272,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 400)
 
     del grant_request_g3, grant_response_g3
-    
+
+
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
@@ -642,7 +643,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-   # Load grant requests
+    # FSS database test harness configuration
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_4', 'FDB_4_default_allsitedata.json'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_4', 'modified_FDB_4_default_allsitedata.json')
+    }
+
+    # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
@@ -708,9 +718,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'expectedResponseCodes': [
             [(0, ), (0,)],
             [(501, ), (501, )]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
 
@@ -735,8 +744,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer("FSS Database",
+                                          config['fssDatabaseConfig']['hostName'],
+                                          config['fssDatabaseConfig']['port'])
+    
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -790,8 +813,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     del relq_requests, relq_responses
     del heartbeat_requests, heartbeat_responses
 
-    # TODO
     # Step 6: Modify the FSS database to include modified version of FSS site S
+    # Set the path of modified file
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['modifiedFilePath'])
 
     # Step 7: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -826,7 +851,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # responseCode in the configuration file (SUCCESS '0' or SUSPENDED_GRANT '501')
     for resp_num, resp in enumerate(heartbeat_responses):
       self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][1][resp_num])
-    
+
     del heartbeat_requests, heartbeat_responses
 
   def generate_FDB_5_default_config(self, filename):
@@ -837,6 +862,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # FSS database test harness configuration
+    # The databaseFile FDB_5_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.   
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'FDB_5_default_allsitedata.json')
+    }
+
+    # GWBL database test harness configuration.
+    # The GWBL database file fdb_5_gwbl_db.json has one GWBL information within 150 KMs
+    # from FSS site 'KA413'.
+    gwbl_database_config = {
+        'hostName': 'localhost',
+        'port': 8001,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'l_micro.zip')
+    }
 
     # Load grant requests
     grant_g_a = json.load(
@@ -885,9 +929,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config,
+        'gwblDatabaseConfig': gwbl_database_config
     }
     writeConfig(filename, config)
 
@@ -916,11 +960,39 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                    grant_request_g,
                                    config['conditionalRegistrationData'])
 
-    # TODO
-    # Step 2: Create FSS database which includes at least one FSS site near
+    # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer("FSS Database",
+                                          config['fssDatabaseConfig']['hostName'],
+                                          config['fssDatabaseConfig']['port'])
 
-    # TODO
-    # Step 3: Create GWBL database which includes at least one GWBL site near
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
+
+    # Step 3: Create GWBL database which includes at least one GWBL site near location 'X'.
+    # Create GWBL database server
+    gwbl_database_server = DatabaseServer("GWBL Database",
+                                          config['gwblDatabaseConfig']['hostName'],
+                                          config['gwblDatabaseConfig']['port'])
+
+    # Start GWBL database server
+    gwbl_database_server.start()
+
+    # Set file path
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['filePath'])
+
+    # Inject the GWBL database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
+                                      config['gwblDatabaseConfig']['fileUrl'])
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -950,6 +1022,26 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # FSS database test harness configuration.
+    # The databaseFile FDB_6_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'FDB_6_default_allsitedata.json')
+    }
+
+    # GWBL database test harness configuration.
+    # The GWBL database file fdb_6_gwbl_db.json has one GWBL W information near device_b
+    # The GWBL database file fdb_6_gwbl_db_updated.json an updated location for the GWBL W.
+    gwbl_database_config = {
+        'hostName': 'localhost',
+        'port': 8001,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'l_micro.zip'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_6', 'modified_l_micro.zip')
+    }
 
     # Load grant requests
     grant_g1_a = json.load(
@@ -1017,9 +1109,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'expectedResponseCodes': [
             [(400,), (400,)],
             [(0,), (0,)]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config,
+        'gwblDatabaseConfig': gwbl_database_config
     }
     writeConfig(filename, config)
 
@@ -1038,13 +1130,41 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered(config['registrationRequest'],
                                      config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create FSS database which includes at least one FSS site near
     # CBSD location 'X'.
+    # Create FSS database server.
+    fss_database_server = DatabaseServer("FSS Database",
+                                          config['fssDatabaseConfig']['hostName'],
+                                          config['fssDatabaseConfig']['port'])
 
-    # TODO
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
+
     # Step 3: Create GWBL database which includes at least one GWBL site near
     # CBSD location 'X'.
+    # Create GWBL database server.
+    gwbl_database_server = DatabaseServer("GWBL Database",
+                                          config['gwblDatabaseConfig']['hostName'],
+                                          config['gwblDatabaseConfig']['port'])
+
+    # Start GWBL database server
+    gwbl_database_server.start()
+
+    # Set file path
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['filePath'])
+
+    # Inject the GWBL database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
+                                      config['gwblDatabaseConfig']['fileUrl'])
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1087,6 +1207,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # TOD0
     # Step 7: Modify the GWBL database to include a modified version of the GWBL 'W'.
     # 'W' is moved further than 150 kms from FSS site.
+    # Set the path of modified file
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['modifiedFilePath'])
 
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1113,6 +1236,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
 
+    # FCC ID database test harness configuration
+    fcc_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_7', 'FDB_7_fcc_id.csv'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_7', 'modified_FDB_7_fcc_id.csv')
+    }
+
     # Update the FCC ID of CBSDs from FCC ID database.
     device_a['fccId'] = "F_ID_a"
     device_c['fccId'] = "F_ID_c"
@@ -1123,9 +1255,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Create the actual config.
     config = {
         'registrationRequests': [device_a, device_c],
-        'expectedResponseCodes': [(103,), (0,)]
-        # TODO
-        # Need to add data base configurations
+        'expectedResponseCodes': [(103,), (0,)],
+        'fccDatabaseConfig': fcc_database_config
     }
     writeConfig(filename, config)
 
@@ -1154,8 +1285,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del registration_responses
 
-    # TODO
     # Step 2: Create FCC ID database which includes at least one FCC ID 'F_ID'.
+    # Create FCC ID database server
+    fcc_database_server = DatabaseServer("FCC ID Database",
+                                          config['fccDatabaseConfig']['hostName'],
+                                          config['fccDatabaseConfig']['port'])
+    
+    # Start FCC ID database server
+    fcc_database_server.start()
+
+    # Set file path
+    fcc_database_server.setFileToServe(config['fccDatabaseConfig']['fileUrl'],
+                                        config['fccDatabaseConfig']['filePath'])
+
+    # Inject the FCC ID database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fcc_database_server.getBaseUrl()+
+                                      config['fccDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1171,8 +1316,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del registration_responses
 
-    # TODO
     # Step 5: Modify FCC ID database record with FCC ID 'F_ID'.
+    # Set the path of modified file
+    fcc_database_server.setFileToServe(config['fccDatabaseConfig']['fileUrl'],
+                                        config['fccDatabaseConfig']['modifiedFilePath'])
 
     # Step 6: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1195,6 +1342,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+
+    # FSS database test harness configuration
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata',  'fdb_8', 'FDB_8_default_allsitedata.json')
+    }
 
     # Load grant requests
     grant_g_a = json.load(
@@ -1243,9 +1398,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
 
@@ -1273,11 +1427,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                               grant_request_g,
                               config['conditionalRegistrationData'])
 
-    # TODO
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer("FSS Database",
+                                          config['fssDatabaseConfig']['hostName'],
+                                          config['fssDatabaseConfig']['port'])
+    
+    # Start FSS database server
+    fss_database_server.start()
 
-    # TODO
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
     # Step 4: Inject the FSS database URL into the UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
 
     # Step 5: Wait until after the completion of scheduled CPAS
     # Fetching current time in CPAS time zone
