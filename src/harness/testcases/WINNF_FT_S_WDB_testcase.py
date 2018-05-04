@@ -95,8 +95,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     pal_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'fileUrl': '/allsitedata',
-        'filePath': os.path.join('testcases', 'testdata', 'wdb_1', 'pal_db_record.json')
+        'fileUrl': '/rest/pal/v1/',
+        'filePath': os.path.join('testcases', 'testdata', 'pal_db', 'pal_db_record.json')
     }
 
     # Create the actual configuration file
@@ -138,7 +138,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 3: Create PAL database with a PAL record containing the PAL ID 'P'.
     pal_database = DatabaseServer('PAL Database',config['palDatabaseConfig']['hostName'],
-                                  config['palDatabaseConfig']['port'], authorization=True)
+                                  config['palDatabaseConfig']['port'])
 
     # Start PAL database server.
     pal_database.start()
@@ -180,11 +180,11 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_name_d = 'd_name'
 
     # Read private keys for the CPI users
-    with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
+    with open(os.path.join('testcases', 'testdata', 'cpi_db', 'WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
       cpi_private_key_b = file_handle.read()
 
-    with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
+    with open(os.path.join('testcases', 'testdata', 'cpi_db', 'WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
       cpi_private_key_d = file_handle.read()
 
@@ -197,8 +197,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'fileUrl': '/allsitedata',
-        'filePath': os.path.join('testcases', 'testdata', 'wdb_2', 'CPI_Database-Public.csv')
+        'fileUrl': '/rest/cpi/v1/',
+        'filePath': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')
     }
 
     # Create the actual configuration.
@@ -241,17 +241,17 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 2: Create a CPI database which includes CPI user with credentials
     # matching those used to create the request in Step 1.
     cpi_database = DatabaseServer('CPI Database',config['cpiDatabaseConfig']['hostName'],
-                                  config['cpiDatabaseConfig']['port'],authorization=True)
+                                  config['cpiDatabaseConfig']['port'])
 
     # Start CPI database server.
     cpi_database.start()
 
     # Set file path.
-    cpi_database.setFileToServe(config['cpiDatabaseConfig']['fileUrl'],
-                                config['cpiDatabaseConfig']['filePath'])
+    cpi_database.setFilesToServe(config['cpiDatabaseConfig']['files'])
 
     # Inject the CPI database URL into the SAS UUT.
-    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl(
+        cpi_database.getBaseUrl()+config['cpiDatabaseConfig']['indexUrl'])
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()

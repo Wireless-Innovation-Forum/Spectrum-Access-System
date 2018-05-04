@@ -1,5 +1,5 @@
 {
-  "palId": "pal\/10-2017\/123456789\/A",
+  "palId": "pal/10-2017/123456789/A",
   "licensee": "CBSDOperatorNo.1",
   "userId": "cbsdOp1",
   "registrationInformation": {
@@ -7,11 +7,11 @@
     "registrationDate": "2017-06-01"
   },
   "license": {
-    "licenseId": "fccId123456789 - 1",
+    "licenseId": "fccId123456789",
     "licenseDate": "2017-07-01T00:00:00Z",
     "licenseExpiration": "2020-07-01T00:00:00Z",
     "licenseAreaIdentifier": "CensusTract123456789,Long Name",
-    "licenseAreaExtent": "zone\/census_tract\/census\/2010\/123456789",
+    "licenseAreaExtent": "zone/census_tract/census/2010/123456789",
     "licenseFrequencyChannelId": "1"
   },
   "licenseStatus": "VALID",
