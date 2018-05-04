@@ -521,3 +521,12 @@ class SasAdminInterface(object):
       is set to True if the PPA creation has completed with error(s) else it is set to False.
     """
     pass
+
+  @abc.abstractmethod
+  def InjectDatabaseUrl(self, request):
+    """Inject the Database URL into SAS.
+
+    Args:
+      request: Contains database url to be injected.
+    """
+    pass
