@@ -18,14 +18,7 @@ Note: This server is only intended for winnforum testing purposes, do not use
 this in a production environment.
 
 Example usage:
-d = DatabaseServer(
-    'Test',
-    'localhost',
-    8000,
-    cert_file='certs/test_cert.crt',
-    key_file='certs/test_cert.key',
-    ca_cert_file='certs/test_cert_root.pem'
-    )
+d = DatabaseServer('Test', 'localhost', 8000)
 d.setFileToServe('/allsitedata', 'allsitedata1')
 d.start()
 # DO SOME TESTING
@@ -46,7 +39,7 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 # Create the authorization string.
 __USERNAME = 'username'
 __PASSWORD = 'password'
-__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(USERNAME+':'+PASSWORD)
+__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(__USERNAME+':'+__PASSWORD)
 
 __SSL_CERT = 'certs/server.cert'
 __SSL_KEY = 'certs/server.key'
