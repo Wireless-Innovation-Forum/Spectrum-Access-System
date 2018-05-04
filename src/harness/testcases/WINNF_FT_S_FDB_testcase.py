@@ -174,19 +174,19 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
     # Create fake database server
-    fake_database_server = DatabaseServer("Exclusion Zone Database",
+    exclusion_zone_database_server = DatabaseServer("Exclusion Zone Database",
                                           config['exclusionZoneDatabaseConfig']['hostName'],
                                           config['exclusionZoneDatabaseConfig']['port'])
     
     # Start fake database server
-    fake_database_server.start()
+    exclusion_zone_database_server.start()
 
     # Set file path
-    fake_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
+    exclusion_zone_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
                                         config['exclusionZoneDatabaseConfig']['filePath'])
 
     # Inject the exclusion zone database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(fake_database_server.getBaseUrl()+
+    self._sas_admin.InjectDatabaseUrl(exclusion_zone_database_server.getBaseUrl()+
                                       config['exclusionZoneDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
