@@ -4,7 +4,9 @@
   "userId": "cbsdOp1",
   "registrationInformation": {
     "frn": "123456-789",
-    "registrationDate": "2017-06-01"
+    "registrationDate": "2017-06-01",
+    "licenseConditions": "free use",
+    "callSign":"WINF"
   },
   "license": {
     "licenseId": "fccId123456789",
