@@ -17,9 +17,9 @@ import logging
 import os
 import sas
 import sas_testcase
+from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
     convertRequestToRequestWithCpiSignature, makePalRecordsConsistent
-
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
@@ -92,13 +92,20 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     conditionals = [conditionals_b]
 
-    # Create the actual config file
+    pal_database_config = {
+        'hostName': 'localhost',
+        'port': 8003,
+        'fileUrl': '/allsitedata',
+        'filePath': os.path.join('testcases', 'testdata', 'wdb_1', 'pal_db_record.json')
+    }
+
+    # Create the actual configuration file
     config = {
         'palIds': [pal_ids_a, pal_ids_b],
         'registrationRequests': [device_a, device_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations.
+        'conditionalRegistrationData': conditionals,
+        'palDatabaseConfig': pal_database_config
+
     }
     writeConfig(filename, config)
 
@@ -109,7 +116,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Very light checking of the config file.
+    # Very light checking of the configuration file.
     self.assertEqual(len(config['registrationRequests']), len(config['palIds']))
 
     # Step 1: Register device(s) 'C' with conditional registration data
@@ -125,20 +132,33 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         "palIds": pal_ids
       })
 
-    # Trigger PPA creation
+    # Trigger PPA creation.
     for ppa_creation_request in ppa_creation_requests:
       self.assertPpaCreationFailure(ppa_creation_request)
 
-    # TODO
-    # Step 3: Create PAL database with a PAL record containg the PAL ID 'P'.
+    # Step 3: Create PAL database with a PAL record containing the PAL ID 'P'.
+    pal_database = DatabaseServer('PAL Database',config['palDatabaseConfig']['hostName'],
+                                  config['palDatabaseConfig']['port'], authorization=True)
 
-    # Step 4: Admin Test Harness triggers CPAS
+    # Start PAL database server.
+    pal_database.start()
+
+    # Set file path.
+    pal_database.setFileToServe(config['palDatabaseConfig']['fileUrl'],
+                                config['palDatabaseConfig']['filePath'])
+
+    # Inject the PAL database URL into the SAS UUT.
+    self._sas_admin.InjectDatabaseUrl(pal_database.getBaseUrl()+
+                                      config['palDatabaseConfig']['fileUrl'])
+
+    # Step 4: Admin Test Harness triggers CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Step 5: Request creation of PPA(s) again
     for ppa_creation_request in ppa_creation_requests:
       ppa_id = self.triggerPpaCreationAndWaitUntilComplete(ppa_creation_request)
       logging.debug('ppa_id received from SAS UUT:%s', ppa_id)
+
 
   def generate_WDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for WDB.2"""
@@ -174,11 +194,17 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     convertRequestToRequestWithCpiSignature(cpi_private_key_d, cpi_id_d,
                                             cpi_name_d, device_d)
 
-    # Create the actual config.
+    cpi_database_config = {
+        'hostName': 'localhost',
+        'port': 8003,
+        'fileUrl': '/allsitedata',
+        'filePath': os.path.join('testcases', 'testdata', 'wdb_2', 'CPI_Database-Public.csv')
+    }
+
+    # Create the actual configuration.
     config = {
-      'registrationRequests': [device_b, device_d]
-      # TODO
-      # Need to add data base configurations.
+      'registrationRequests': [device_b, device_d],
+      'cpiDatabaseConfig': cpi_database_config
     }
     writeConfig(filename, config)
 
@@ -189,7 +215,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Very light checking of the config file.
+    # Very light checking of the configuration file.
     self.assertGreater(len(config['registrationRequests']), 0)
 
     registration_requests = {
@@ -205,16 +231,27 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Send registration requests.
     registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
-    # Check registeration response,
+    # Check registration response,
     # responseCode should be 103 (INVALID_VALUE).
     for registration_response in registration_responses:
       self.assertEqual(registration_response['response']['responseCode'], 103)
 
     del registration_responses
 
-    # TODO
     # Step 2: Create a CPI database which includes CPI user with credentials
     # matching those used to create the request in Step 1.
+    cpi_database = DatabaseServer('CPI Database',config['cpiDatabaseConfig']['hostName'],
+                                  config['cpiDatabaseConfig']['port'],authorization=True)
+
+    # Start CPI database server.
+    cpi_database.start()
+
+    # Set file path.
+    cpi_database.setFileToServe(config['cpiDatabaseConfig']['fileUrl'],
+                                config['cpiDatabaseConfig']['filePath'])
+
+    # Inject the CPI database URL into the SAS UUT.
+    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -222,7 +259,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 4: Register the same device and ensure SUCCESS
     registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
-    # Check registeration response,
+    # Check registration response,
     # responseCode should be 0 (SUCCESS).
     for registration_response in registration_responses:
       self.assertEqual(registration_response['response']['responseCode'], 0)
