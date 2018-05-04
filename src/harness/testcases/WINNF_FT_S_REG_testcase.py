@@ -978,6 +978,14 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'fccIds': list,
+            'userIds': list,
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'expectedResponseCodes': list
+        })
     self.assertEqual(
         len(config['registrationRequests']),
         len(config['expectedResponseCodes']))
@@ -1065,6 +1073,16 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'fccIds': list,
+            'fccIdsBlacklist': list,
+            'userIds': list,
+            'registrationRequests': list,
+            'reregistrationRequests': list,
+            'conditionalRegistrationData': list,
+            'expectedResponseCodes': list
+        })
     self.assertEqual(
         len(config['reregistrationRequests']),
         len(config['expectedResponseCodes']))
@@ -1146,6 +1164,13 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'fccIds': list,
+            'userIds': list,
+            'registrationRequests': list,
+            'sasVersion': basestring
+        })
     self.assertEqual(len(config['fccIds']), len(config['userIds']))
     self.assertEqual(len(config['fccIds']), len(config['registrationRequests']))
     # Use the (higher) SAS version set in the config file.

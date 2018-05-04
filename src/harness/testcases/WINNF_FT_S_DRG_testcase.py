@@ -332,11 +332,11 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     heartbeat_requests = [heartbeat_a, heartbeat_c, heartbeat_b]
     deregistration_requests = [deregister_a, deregister_c, deregister_b]
     config = {
-        'registrationRequest': devices,
+        'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
-        'grantRequest': grant_requests,
-        'heartbeatRequest': heartbeat_requests,
-        'deregistrationRequest': deregistration_requests,
+        'grantRequests': grant_requests,
+        'heartbeatRequests': heartbeat_requests,
+        'deregistrationRequests': deregistration_requests,
         # First request has an invalid CBSD ID => INVALID_VALUE
         # Second request is missing CBSD ID => MISSING_PARAM
         # Third request, all valid params => SUCCESS
@@ -350,34 +350,43 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'grantRequests': list,
+            'heartbeatRequests': list,
+            'deregistrationRequests': list,
+            'expectedResponseCodes': list
+        })
     self.assertEqual(
-        len(config['registrationRequest']), len(config['grantRequest']))
+        len(config['registrationRequests']), len(config['grantRequests']))
     self.assertEqual(
-        len(config['grantRequest']), len(config['heartbeatRequest']))
+        len(config['grantRequests']), len(config['heartbeatRequests']))
     self.assertEqual(
-        len(config['heartbeatRequest']), len(config['deregistrationRequest']))
+        len(config['heartbeatRequests']), len(config['deregistrationRequests']))
     self.assertEqual(
-        len(config['deregistrationRequest']),
+        len(config['deregistrationRequests']),
         len(config['expectedResponseCodes']))
 
     # Whitelist FCC IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectFccId({
           'fccId': device['fccId'],
           'fccMaxEirp': 47
       })
 
     # Whitelist user IDs.
-    for device in config['registrationRequest']:
+    for device in config['registrationRequests']:
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Step 2 & 3: Register devices and get grants
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-        config['registrationRequest'], config['grantRequest'],
+        config['registrationRequests'], config['grantRequests'],
         config['conditionalRegistrationData'])
 
     # Step 4: First Heartbeat Request
-    heartbeat_request = config['heartbeatRequest']
+    heartbeat_request = config['heartbeatRequests']
     addCbsdIdsToRequests(cbsd_ids, heartbeat_request)
     addGrantIdsToRequests(grant_ids, heartbeat_request)
     request = {'heartbeatRequest': heartbeat_request}
@@ -389,7 +398,7 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     del request, responses
 
     # Step 5: First deregistration request
-    deregister_request = config['deregistrationRequest']
+    deregister_request = config['deregistrationRequests']
     addCbsdIdsToRequests(cbsd_ids, deregister_request)
     request = {'deregistrationRequest': deregister_request}
     responses_1 = self._sas.Deregistration(request)['deregistrationResponse']
@@ -429,11 +438,11 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     del request, responses_2
 
     # Step 7: Send registration request from Step 2
-    cbsd_ids = self.assertRegistered(config['registrationRequest'],
+    cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
 
     # Step 8: Heartbeat Request
-    heartbeat_requests = config['heartbeatRequest']
+    heartbeat_requests = config['heartbeatRequests']
     addCbsdIdsToRequests(cbsd_ids, heartbeat_requests)
     request = {'heartbeatRequest': heartbeat_requests}
     responses = self._sas.Heartbeat(request)['heartbeatResponse']

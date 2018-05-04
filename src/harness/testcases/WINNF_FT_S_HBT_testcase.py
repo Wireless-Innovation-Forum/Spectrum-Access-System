@@ -864,6 +864,15 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
 
     config = loadConfig(config_filename)
     # Very light checking of the config file.
+    self.assertValidConfig(
+        config, {
+            'registrationRequests': list,
+            'conditionalRegistrationData': list,
+            'fccIdsBlacklist': list,
+            'grantRequests': list,
+            'heartbeatRequests': list,
+            'expectedResponseCodes': list
+        })
     self.assertEqual(
         len(config['registrationRequests']), len(config['grantRequests']))
     self.assertEqual(
