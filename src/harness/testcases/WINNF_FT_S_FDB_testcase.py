@@ -54,8 +54,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # Fake database test harness configuration
-    fake_database_config = {
-        'name': 'FDB SERVER',
+    exclusion_zone_database_config = {
         'hostName': 'localhost',
         'port': 8000,
         'fileUrl': '/db_sync',
@@ -147,7 +146,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             [grant_g2_a, grant_g2_b],
             [grant_g3_a, grant_g3_b]],
         'conditionalRegistrationData': conditionals,
-        'fakeDatabaseInfo': fake_database_config
+        'exclusionZoneDatabaseConfig': exclusion_zone_database_config
       }
     writeConfig(filename, config)
 
@@ -175,27 +174,20 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
     # Create fake database server
-    fake_database_server = DatabaseServer(
-                              config['fakeDatabaseInfo']['name'],
-                              config['fakeDatabaseInfo']['hostName'],
-                              config['fakeDatabaseInfo']['port'],
-                              cert_file='certs/server.cert',
-                              key_file='certs/server.key',
-                              ca_cert_file='certs/ca.cert')
+    fake_database_server = DatabaseServer("Exclusion Zone Database",
+                                          config['exclusionZoneDatabaseConfig']['hostName'],
+                                          config['exclusionZoneDatabaseConfig']['port'])
     
     # Start fake database server
     fake_database_server.start()
 
-    # Inject the exclusion zone database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl("https://" +
-                                      config['fakeDatabaseInfo']['hostName'] +
-                                      ":" +
-                                      str(config['fakeDatabaseInfo']['port'])+
-                                      config['fakeDatabaseInfo']['fileUrl'])
-
     # Set file path
-    fake_database_server.setFileToServe(config['fakeDatabaseInfo']['fileUrl'],
-                                        config['fakeDatabaseInfo']['filePath'])
+    fake_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
+                                        config['exclusionZoneDatabaseConfig']['filePath'])
+
+    # Inject the exclusion zone database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fake_database_server.getBaseUrl()+
+                                      config['exclusionZoneDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -258,8 +250,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 7: Modify exclusion zone database record frequency range from 'F1' to 'F2'
     # Set the path of modified file
-    fake_database_server.setFileToServe(config['fakeDatabaseInfo']['fileUrl'],
-                                        config['fakeDatabaseInfo']['modifiedFilePath'])
+    fake_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
+                                        config['exclusionZoneDatabaseConfig']['modifiedFilePath'])
 
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -280,7 +272,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 400)
 
     del grant_request_g3, grant_response_g3
-
+    
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
