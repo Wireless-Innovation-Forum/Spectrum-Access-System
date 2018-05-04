@@ -66,7 +66,7 @@ def RetrieveULS():
       if not c:
         break
       out.write(c)
-   schema.close()
+  schema.close()
 
 
 # Find the directory of this script.
@@ -79,4 +79,3 @@ if not os.path.exists(dest):
 os.chdir(dest)
 
 RetrieveULS()
-

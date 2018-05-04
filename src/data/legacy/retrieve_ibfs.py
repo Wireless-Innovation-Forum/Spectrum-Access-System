@@ -26,10 +26,12 @@ def RetrieveIBFS():
 
   print 'Downloading IBFS.zip database file'
   fcc.download_if_newer('pub/Bureaus/International/databases/IBFS.zip', 'IBFS.zip')
-  fcc.close()
+  fcc.quit()
 
   print 'Downloading ibfs.txt schema'
+  fcc = ftputil.FTPHost('ftp.fcc.gov', 'anonymous', '')
   fcc.download_if_newer('pub/Bureaus/International/databases/ibfs.txt', 'ibfs.txt')
+  fcc.quit()
 
 # Find the directory of this script.
 dir = os.path.dirname(os.path.realpath(__file__))
@@ -40,4 +42,3 @@ if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)
 RetrieveIBFS()
-
