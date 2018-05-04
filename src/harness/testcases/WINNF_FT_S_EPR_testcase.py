@@ -350,7 +350,7 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLkeyPath()
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
