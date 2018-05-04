@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+   <Document>
+      <name>Portal_DPAs</name>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Barking Sands</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Barking Sands</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>12</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-159.78305556,22.05027778,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Bath</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Bath</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>12</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-69.81388889,43.90555556,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>China Lake</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>China Lake</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3700</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>22</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-117.67833333,35.94027778,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Dahlgren</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Dahlgren</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>10</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-77.03694444,38.33777778,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Kalaeloa</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Kalaeloa</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3516</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3652</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>5</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-158.10638889,21.29666667,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>McKinney</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>McKinney</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>135</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>225</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-96.65666667,33.21611111,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Moorestown</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Moorestown</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>22</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-74.90138889,39.98,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Newport_News</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Newport_News</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>33</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-76.43888889,36.98055556,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Pensacola</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Pensacola</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-139</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>2</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-87.27361111,30.35861111,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Portsmouth</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Portsmouth</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>28</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>245</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>340</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-71.31583333,41.52888889,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Wallops</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Wallops</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>22</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-75.47638889,37.84444444,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>White_Sands</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>White_Sands</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>22</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-106.34583333,33.2375,0</coordinates>
+         </Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>Yuma</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>Yuma</value>
+</Data> 
+<Data name="lowFreqMHz">
+<value>3550</value>
+</Data> 
+<Data name="highFreqMHz"> 
+<value>3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>5</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+</ExtendedData>
+         <Point>
+            <coordinates>-114.41472222,33.27444444,0</coordinates>
+         </Point>
+      </Placemark>
+   </Document>
+</kml>

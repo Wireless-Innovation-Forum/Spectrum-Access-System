@@ -273,7 +273,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del grant_request_g3, grant_response_g3
 
-
   def generate_FDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.2"""
 
@@ -283,24 +282,33 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # DPA database test harness configuration
+    dpa_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_2', 'FDB_2_Portal_DPAs.kml'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_2', 'modified_FDB_2_Portal_DPAs.kml')
+    }
+
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
     grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the modified DPA 'Pensacola' which is 3550-3650 MHz.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
@@ -308,21 +316,21 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3550-3650 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3630000000,
+        'highFrequency': 3640000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3550-3650 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
+        'lowFrequency': 3645000000,
+        'highFrequency': 3655000000
     }
     grant_g3_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3550-3700 MHz.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
@@ -352,9 +360,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             [grant_g1_a, grant_g1_b],
             [grant_g2_a, grant_g2_b],
             [grant_g3_a, grant_g3_b]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations.
+        'conditionalRegistrationData': conditionals,
+        'dpaDatabaseConfig': dpa_database_config
     }
     writeConfig(filename, config)
 
@@ -379,8 +386,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create DPA database which includes at least one inland DPA
+    # Create DPA database server
+    dpa_database_server = DatabaseServer("DPA Database",
+                                          config['dpaDatabaseConfig']['hostName'],
+                                          config['dpaDatabaseConfig']['port'])
+    
+    # Start DPA database server
+    dpa_database_server.start()
+
+    # Set file path
+    dpa_database_server.setFileToServe(config['dpaDatabaseConfig']['fileUrl'],
+                                        config['dpaDatabaseConfig']['filePath'])
+
+    # Inject the DPA database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(dpa_database_server.getBaseUrl()+
+                                      config['dpaDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -480,8 +501,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del grant_request_g2, grant_response_g2
 
-    # TODO
     # Step 8: Modify DPA database record frequency range from 'F1' to 'F2'
+    # Set the path of modified file
+    dpa_database_server.setFileToServe(config['dpaDatabaseConfig']['fileUrl'],
+                                        config['dpaDatabaseConfig']['modifiedFilePath'])
 
     # Step 9: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
