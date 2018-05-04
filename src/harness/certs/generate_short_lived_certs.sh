@@ -22,7 +22,7 @@ function generate_cbsd_short_lived_certificate()
     openssl req -new -newkey rsa:2048 -nodes \
         -reqexts cbsd_req -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
-        -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=short lived device"
+        -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=test_fcc_id_a:test_serial_number_a"
     openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in $1.csr \
         -out $1.cert -outdir ./root \
         -policy policy_anything -extensions cbsd_req_sign -config ../../../cert/openssl.cnf \
@@ -50,7 +50,7 @@ function generate_dp_short_lived_certificate()
     openssl req -new -newkey rsa:2048 -nodes \
         -reqexts oper_req -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
-        -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=short lived domain proxy"
+        -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=0112233445:0011"
     openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in $1.csr \
         -out $1.cert -outdir ./root \
         -policy policy_anything -extensions oper_req_sign -config ../../../cert/openssl.cnf \
