@@ -122,7 +122,7 @@ class DatabaseServer(threading.Thread):
     """
     self.server.file_paths = file_url_file_path_dict
 
-  def getBaseUrl():
+  def getBaseUrl(self):
     return self.base_url
 
 class DatabaseHTTPServer(HTTPServer):
