@@ -1,0 +1,71 @@
+{
+	"id": "device_0_id",
+	"registrationRequest": {
+					"fccId": "fccId0",
+		            "cbsdCategory": "B",
+		            "callSign": "KPPP",
+		            "userId": "cbsd_0",
+		            "airInterface": {
+    				  "radioTechnology": "E_UTRA",
+                      "supportedSpec": "LTE-Rel10"
+                    },
+		            "cbsdInfo": {
+                      "vendor": "Equipment Maker C"
+                    },
+
+					"cbsdSerialNumber": "serial_0",
+                    "measCapability": [ "EUTRA_CARRIER_RSSI_ALWAYS" ],
+                    "installationParam": {
+                      "latitude": 38.99363,
+                      "longitude": -77.45725,
+                      "height": 300,
+                      "heightType": "AMSL",
+                      "indoorDeployment": false,
+                      "antennaAzimuth": 170,
+                      "antennaDowntilt": -5,
+                      "antennaGain": 0,
+                      "antennaBeamwidth": 60,
+                      "eirpCapability": 47
+                    }
+			    	},
+    "grants": [{
+					"channelType": "GAA",
+					"grantExpireTime": "calculated at runtime",
+					"id": "cbsd_0_grant_0",
+					"operationParam": {
+						"maxEirp": 37,
+						"operationFrequencyRange": {
+							"highFrequency": 3610000000.0,
+							"lowFrequency": 3600000000.0
+						}
+					},
+					"terminated": false
+				},
+                                         {
+                                        "channelType": "GAA",
+                                        "grantExpireTime": "calculated at runtime",
+                                        "id": "cbsd_0_grant_1",
+                                        "operationParam": {
+                                                "maxEirp": 37,
+                                                "operationFrequencyRange": {
+                                                        "highFrequency": 3630000000.0,
+                                                        "lowFrequency": 3620000000.0
+                                                }
+                                        },
+                                        "terminated": false
+                                },
+                                 {
+                                        "channelType": "GAA",
+                                        "grantExpireTime": "calculated at runtime",
+                                        "id": "cbsd_0_grant_2",
+                                        "operationParam": {
+                                                "maxEirp": 37,
+                                                "operationFrequencyRange": {
+                                                        "highFrequency": 3695000000.0,
+                                                        "lowFrequency": 3690000000.0
+                                                }
+                                        },
+                                        "terminated": false
+                                }]
+
+}

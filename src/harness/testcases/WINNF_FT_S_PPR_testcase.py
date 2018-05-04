@@ -142,8 +142,8 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
@@ -354,8 +354,8 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],

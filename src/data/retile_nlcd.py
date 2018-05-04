@@ -24,26 +24,36 @@ import os
 import sys
 import zipfile
 
+from reference_models.geo import tiles
 import nlcd_origin
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
-data_dir = os.path.join(os.path.dirname(os.path.dirname(cur_dir)), 'data')
+data_dir = os.path.join(cur_dir, '..', '..', 'data')
 
 # ***** Start Configuration *****
 # If needed, modify these directories to fit your local directory structure:
 #  - where the NED terrain tiles are stored
-TERRAIN_DIR = os.path.join(data_dir, 'ned')
+TERRAIN_DIR = os.path.join(data_dir, 'geo', 'ned')
+USE_TERRAIN_DIR = False
 
-#  - where the original USGS NLCD 16GB file is stored.
-NLCD_ORIG_DIR = os.path.join(data_dir, 'nlcd_orig')
+#  - where the original USGS NLCD file is stored.
+NLCD_ORIG_DIR = os.path.join(data_dir, 'geo', 'orig_nlcd')
 
 #  - where to put the generated tiles.
-OUT_DIR = os.path.join(data_dir, 'nlcd')
+OUT_DIR = os.path.join(data_dir, 'geo', 'nlcd_out')
+
+# - reference dir of existing tiles
+#  - where to put the generated tiles.
+REF_DIR = os.path.join(data_dir, 'geo', 'nlcd')
 
 # If set to True, will create a jpg file per tile.
 create_jpg = True
 
 # ***** End Configuration *****
+
+ORIG_NLCD_FILES = [
+    'nlcd_2011_landcover_2011_edition_2014_10_10.img',
+    'ak_nlcd_2011_landcover_1_15_15.img']
 
 
 def ParseLatLonFromNedFile(fname):
@@ -103,6 +113,9 @@ def ParseLatLonFromNlcdFile(fname):
 # Main script to retile the NLCD
 if __name__ == '__main__':
 
+  if not os.path.exists(OUT_DIR):
+    os.makedirs(OUT_DIR)
+
   # Log file
   log_file = os.path.join(OUT_DIR, 'nlcd_log.csv')
   if not os.path.isfile(log_file):
@@ -112,118 +125,134 @@ if __name__ == '__main__':
   log_fd = open(log_file, 'a')
 
   # Initialise the terrain tile list
-  ned_latlon = []
-  terrain_tiles = glob.glob(os.path.join(TERRAIN_DIR, '*.flt'))
-  terrain_tiles = [os.path.basename(tile) for tile in terrain_tiles]
-  ned_latlon = [ParseLatLonFromNedFile(tile)
-                for tile in terrain_tiles]
-  ned_latlon.sort()
+  if USE_TERRAIN_DIR:
+    ned_latlon = []
+    # Detect the tiles from the NED dir
+    terrain_tiles = glob.glob(os.path.join(TERRAIN_DIR, '*.flt'))
+    terrain_tiles = [os.path.basename(tile) for tile in terrain_tiles]
+    ned_latlon = [ParseLatLonFromNedFile(tile)
+                  for tile in terrain_tiles]
+    ned_latlon.sort()
+  else:
+    # Get the tiles from the geo.tiles module
+    ned_latlon = list(tiles.NED_TILES)
+    ned_latlon.sort()
 
   # Discover the already processed NLCD tiles
-  nlcd_tiles = glob.glob(os.path.join(OUT_DIR, '*.zip'))
+  nlcd_tiles = glob.glob(os.path.join(REF_DIR, '*.zip'))
   nlcd_tiles = [os.path.basename(tile) for tile in nlcd_tiles]
   processed_latlon = [ParseLatLonFromNlcdFile(tile)
                       for tile in nlcd_tiles]
 
-  # Initialize the driver - in manual loading mode
-  driver = nlcd_origin.NlcdOriginDriver(NLCD_ORIG_DIR, data_mode=0)
-
   # Build the coordinates to retrieve at multiple of 1 arcsec
   coord = np.arange(3600) * 1/3600.
 
-  for lat_nw, lon_nw in ned_latlon:
+  # Loop on original NLCD files
+  for orig_file in ORIG_NLCD_FILES:
+    print 'Processing NLCD file : %s' % orig_file
 
-    if (lat_nw, lon_nw) in processed_latlon:
-      print 'Tile [%d %d] already done. Skipping...' % (lat_nw, lon_nw)
+    # Initialize the driver - in manual loading mode
+    try:
+      driver = nlcd_origin.NlcdOriginDriver(
+          os.path.join(NLCD_ORIG_DIR, orig_file),
+          data_mode=0)
+    except Exception:
+      print '  ... FILE NOT FOUND'
       continue
 
-    # Create the output file name
-    encoding = '%c%02d%c%03d' % (
-        'sn'[lat_nw >= 0], abs(lat_nw),
-        'we'[lon_nw >= 0], abs(lon_nw))
+    for lat_nw, lon_nw in ned_latlon:
 
-    tile_name = 'nlcd_' + encoding + '_ref.int'
+      if (lat_nw, lon_nw) in processed_latlon:
+        print 'Tile [%d %d] already done. Skipping...' % (lat_nw, lon_nw)
+        continue
 
-    print '** Processing NLCD tile: %s (Lat%d Lng%d)' % (tile_name, lat_nw, lon_nw)
+      # Create the output file name
+      encoding = '%c%02d%c%03d' % (
+          'sn'[lat_nw >= 0], abs(lat_nw),
+          'we'[lon_nw >= 0], abs(lon_nw))
 
-    # Load the original required tile
-    ret = driver.CacheTileInBox(lat_min=lat_nw-1, lat_max=lat_nw,
-                                lon_min=lon_nw, lon_max=lon_nw+1)
-    if ret is None:
-      print '        ..Skipping - Outside'
-      continue
+      tile_name = 'nlcd_' + encoding + '_ref.int'
 
-    # Check to see if a corresponding NLCD tile exists for the
-    # midpoint of this lat/lon square
-    nlcd = np.zeros((3600, 3600)).astype(np.uint8)
+      print '** Processing NLCD tile: %s (Lat%d Lng%d)' % (tile_name, lat_nw, lon_nw)
 
-    lat = lat_nw - coord
-    lon = lon_nw + coord
-    cnt_codes_zero = 0
-    for k in xrange(3600):
-      if (k+1) % 600 == 0:
-        sys.stdout.write('+')
-        sys.stdout.flush()
-      codes = driver.GetLandCoverCodes(lat[k] * np.ones(3600), lon)
-      nlcd[k, :] = codes
-      cnt_codes_zero += 3600 - np.count_nonzero(codes)
-    print '  Number of zero code = %d' % cnt_codes_zero
+      # Load the original required tile
+      ret = driver.CacheTileInBox(lat_min=lat_nw-1, lat_max=lat_nw,
+                                  lon_min=lon_nw, lon_max=lon_nw+1)
+      if ret is None:
+        print '        ..Skipping - Outside'
+        continue
 
-    # Skip saving tile if fully empty
-    if cnt_codes_zero >= 3600*3600:
-      print '        ..Skipping - All zero'
-      continue
+      # Check to see if a corresponding NLCD tile exists for the
+      # midpoint of this lat/lon square
+      nlcd = np.zeros((3600, 3600)).astype(np.uint8)
 
-    print '        ..Saving & zipping'
-    nlcd.tofile(os.path.join(OUT_DIR, tile_name))
+      lat = lat_nw - coord
+      lon = lon_nw + coord
+      cnt_codes_zero = 0
+      for k in xrange(3600):
+        if (k+1) % 600 == 0:
+          sys.stdout.write('+')
+          sys.stdout.flush()
+        codes = driver.GetLandCoverCodes(lat[k] * np.ones(3600), lon)
+        nlcd[k, :] = codes
+        cnt_codes_zero += 3600 - np.count_nonzero(codes)
+      print '  Number of zero code = %d' % cnt_codes_zero
 
-    # Create the header files
-    hdr_name = tile_name[:-4] + '.hdr'
-    with open(os.path.join(OUT_DIR, hdr_name), 'w') as fd:
-      fd.write(
-          'ncols         3600\n'
-          'nrows         3600\n'
-          'xllcorner     %.12f\n'
-          'yllcorner     %.12f\n'
-          'cellsize      0.0002777777777777778\n'
-          'NODATA_value  0\n'
-          'byteorder     LSBFIRST\n'
-          % (lon_nw - 0.5/3600., lat_nw - 1 + 0.5/3600.))
-    prj_name = tile_name[:-4] + '.prj'
-    with open(os.path.join(OUT_DIR, prj_name), 'w') as fd:
-      fd.write(
-          'Projection    GEOGRAPHIC\n'
-          'Datum         WGS84\n'
-          'Zunits        METERS\n'
-          'Units         DD\n'
-          'Spheroid      GRS1980\n'
-          'Xshift        0.0000000000\n'
-          'Yshift        0.0000000000\n'
-          'Parameters\n')
+      # Skip saving tile if fully empty
+      if cnt_codes_zero >= 3600*3600:
+        print '        ..Skipping - All zero'
+        continue
 
-    # Save as zip
-    zip_file = tile_name[:-4] + '.zip'
-    with zipfile.ZipFile(os.path.join(OUT_DIR, zip_file), 'w') as z:
-      z.write(os.path.join(OUT_DIR, tile_name), tile_name,
-              compress_type=zipfile.ZIP_DEFLATED)
-      z.write(os.path.join(OUT_DIR, hdr_name), hdr_name,
-              compress_type=zipfile.ZIP_DEFLATED)
-      z.write(os.path.join(OUT_DIR, prj_name), prj_name,
-              compress_type=zipfile.ZIP_DEFLATED)
+      print '        ..Saving & zipping'
+      nlcd.tofile(os.path.join(OUT_DIR, tile_name))
 
-    # Save infos to log
-    log_fd.write(str(lat_nw) + ',' +
-                 str(lon_nw) + ',' +
-                 str(datetime.datetime.now()) + ',' +
-                 str(cnt_codes_zero) + '\n')
+      # Create the header files
+      hdr_name = tile_name[:-4] + '.hdr'
+      with open(os.path.join(OUT_DIR, hdr_name), 'w') as fd:
+        fd.write(
+            'ncols         3600\n'
+            'nrows         3600\n'
+            'xllcorner     %.12f\n'
+            'yllcorner     %.12f\n'
+            'cellsize      0.0002777777777777778\n'
+            'NODATA_value  0\n'
+            'byteorder     LSBFIRST\n'
+            % (lon_nw - 0.5/3600., lat_nw - 1 + 0.5/3600.))
+      prj_name = tile_name[:-4] + '.prj'
+      with open(os.path.join(OUT_DIR, prj_name), 'w') as fd:
+        fd.write(
+            'Projection    GEOGRAPHIC\n'
+            'Datum         WGS84\n'
+            'Zunits        METERS\n'
+            'Units         DD\n'
+            'Spheroid      GRS1980\n'
+            'Xshift        0.0000000000\n'
+            'Yshift        0.0000000000\n'
+            'Parameters\n')
 
-    # Optionally create a jpg figure plot
-    if create_jpg:
-      aspect = 1./np.cos(np.radians(lat_nw-0.5))
-      plt.imshow(nlcd, extent=[lon_nw, lon_nw+1, lat_nw-1, lat_nw],
-                 aspect=aspect)
-      plt.title(tile_name[:-4])
-      plt.grid()
-      plt.colorbar()
-      plt.savefig(os.path.join(OUT_DIR, tile_name[:-4] + '.png'))
-      plt.close()
+      # Save as zip
+      zip_file = tile_name[:-4] + '.zip'
+      with zipfile.ZipFile(os.path.join(OUT_DIR, zip_file), 'w') as z:
+        z.write(os.path.join(OUT_DIR, tile_name), tile_name,
+                compress_type=zipfile.ZIP_DEFLATED)
+        z.write(os.path.join(OUT_DIR, hdr_name), hdr_name,
+                compress_type=zipfile.ZIP_DEFLATED)
+        z.write(os.path.join(OUT_DIR, prj_name), prj_name,
+                compress_type=zipfile.ZIP_DEFLATED)
+
+      # Save infos to log
+      log_fd.write(str(lat_nw) + ',' +
+                   str(lon_nw) + ',' +
+                   str(datetime.datetime.now()) + ',' +
+                   str(cnt_codes_zero) + '\n')
+
+      # Optionally create a jpg figure plot
+      if create_jpg:
+        aspect = 1./np.cos(np.radians(lat_nw-0.5))
+        plt.imshow(nlcd, extent=[lon_nw, lon_nw+1, lat_nw-1, lat_nw],
+                   aspect=aspect)
+        plt.title(tile_name[:-4])
+        plt.grid()
+        plt.colorbar()
+        plt.savefig(os.path.join(OUT_DIR, tile_name[:-4] + '.png'))
+        plt.close()

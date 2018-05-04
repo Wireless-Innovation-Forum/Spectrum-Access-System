@@ -16,9 +16,13 @@
 """
 
 import json
+import numpy as np
 import shapely.geometry as sgeo
 import shapely.ops as ops
-import numpy as np
+
+from reference_models.geo import vincenty
+from reference_models.geo import zones
+
 
 WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 WGS_POLAR_RADIUS_KM2 = 6356.753
@@ -339,3 +343,90 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
   intersection_polys = poly_ref.intersection(poly)
   return ((GeometryArea(union_polys) - GeometryArea(intersection_polys))
           < tol_perc/100. * GeometryArea(poly_ref))
+
+
+def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
+  """Returns the closest point on the canadian border within some distance.
+
+  Args:
+    latitude: The point latitude (degrees).
+    longitude: The point longitude (degrees).
+    max_dist_km: The max distance for the border point (km).
+
+  Returns:
+    Either:
+      None if no border point is within the requested `max dist_km`
+      or a (lat, lon, distance_km, bearing) tuple of the closest point in US/Canada border:
+        * lat, lon: closest point coordinates.
+        * distance_km: the distance to closest point (km).
+        * bearing: the bearing of the closest point (degrees, clockwise relative to north).
+  """
+  # Prefiltering of the border for quicker processing
+  one_degree = WGS_EQUATORIAL_RADIUS_KM2 * 2 * np.pi / 360. * np.cos(latitude*np.pi/180.)
+  max_delta = max_dist_km / one_degree * 1.1
+  border_cap = zones.GetUsCanadaBorder().intersection(
+      sgeo.Point(longitude, latitude).buffer(max_delta))
+  if not border_cap or 'LineString' not in border_cap.type:
+    return None
+  # Find closest point
+  points_dists = [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]),
+                   point)
+                  for point in zip(*border_cap.xy)]
+  closest = min(points_dists)
+  closest_dist = closest[0][0]
+  if closest_dist > max_dist_km:
+    return None
+  closest_bearing = closest[0][1]
+  return closest[1][1], closest[1][0], closest_dist, closest_bearing
+
+
+def _angleBetween(angle, min_angle, max_angle):
+  """Check if `angle` falls between `min_angle` and `max_angle`."""
+  angle = angle % 360
+  min_angle = min_angle % 360
+  max_angle = max_angle % 360
+  if min_angle < max_angle:
+    return angle >= min_angle and angle <= max_angle
+  return angle >= min_angle or angle <= max_angle
+
+
+def CheckCbsdInBorderSharingZone(latitude, longitude,
+                                 ant_azimuth, ant_beamwidth):
+  """Checks if a CBSD is in the border sharing zone.
+
+  Args:
+    latitude: The CBSD latitude (degrees).
+    longitude: The CBSD longitude (degrees).
+    ant_azimuth: The CBSD antenna azimuth (degrees).
+    ant_beamwidth: The CBSD antenna beamwidth (degrees).
+  Returns:
+    A tuple (status, lat, lon) of:
+      status: True if in sharing zone or False otherwise.
+      lat: The latitude of closest border point (degrees).
+      lon: The longitude of closest border point (degrees).
+    lat and lon are set to None if status is False.
+  """
+  closest_point_data = GetClosestCanadianBorderPoint(latitude, longitude, 56)
+  if closest_point_data is None:
+    return False, None, None
+  border_lat, border_lon, border_dist, border_bearing = closest_point_data
+  if border_dist > 56:
+    return False, None, None
+  if border_dist <= 8:
+    return True, border_lat, border_lon
+  # In between, check the main beam versus the 160 degree cone away from border
+  # point.
+  if (ant_beamwidth is None or ant_azimuth is None
+      or ant_beamwidth == 0 or ant_beamwidth == 360):
+    # omni antenna always in sharing zone
+    return True, border_lat, border_lon
+  min_cone_azi = border_bearing - 100
+  max_cone_azi = border_bearing + 100
+  min_beam_azi = ant_azimuth - ant_beamwidth / 2.
+  max_beam_azi = ant_azimuth + ant_beamwidth / 2.
+  mid_beam_azi = ant_azimuth  # makes sure we capture corner case
+  if (_angleBetween(min_beam_azi, min_cone_azi, max_cone_azi) or
+      _angleBetween(max_beam_azi, min_cone_azi, max_cone_azi) or
+      _angleBetween(mid_beam_azi, min_cone_azi, max_cone_azi)):
+    return True, border_lat, border_lon
+  return False, None, None

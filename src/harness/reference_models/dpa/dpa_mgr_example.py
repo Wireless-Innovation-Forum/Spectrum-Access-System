@@ -49,11 +49,11 @@ if __name__ == '__main__':
 
   # Configure operating parameters
   dpa_mgr.Dpa.Configure(num_iteration=num_iter)
-
   dpa_ref = dpa_mgr.Dpa(protection_points,
                         threshold=-144,
                         beamwidth=3,
                         radar_height=50,
+                        catb_neighbor_dist=190, # so as to exercise the HAAT
                         freq_ranges_mhz=[channel])
 
   # Read all grants

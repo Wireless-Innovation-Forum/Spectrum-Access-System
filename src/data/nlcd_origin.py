@@ -15,9 +15,10 @@
 """Provides a driver for reading original NLCD (National Land Cover) database
 provided by USGS.
 
-This driver works with the original untiled file of 16GB provided by
+This driver works with the original untiled files provided by
 USGS, under name:
    nlcd_2011_landcover_2011_edition_2014_10_10.XXX
+   ak_nlcd_2011_landcover_2011_xxx.XXX
 
 Typical usage:
 
@@ -37,7 +38,6 @@ Typical usage:
 """
 
 import gdal
-import glob
 import logging
 import numpy as np
 import os
@@ -60,11 +60,11 @@ class NlcdOriginDriver(object):
 
   Several modes are supported:
     data_mode=-1: cached the full NLCD database (requires 16GB permanent
-                  memory and 32GB transient).
+                  memory and 32GB transient) for conus file.
     data_mode=0:  user defined loading with CacheTileInBox().
     data_mode>0:  auto loading as small subtiles with LRU cache.
   """
-  def __init__(self, nlcd_directory,
+  def __init__(self, nlcd_file,
                data_mode=0,
                tile_size=(1, 1)):
     """Initializes the original NLCD driver.
@@ -87,10 +87,12 @@ class NlcdOriginDriver(object):
     self._use_default_tile = False
 
     # Read the tile info
-    img_names = glob.glob(os.path.join(nlcd_directory, '*.img'))
-    if not img_names:
-      raise Exception('No ".img" file name in directory: %s' % nlcd_directory)
-    self.img_path = img_names[0]
+    if not nlcd_file.endswith('.img'):
+      raise ValueError('NLCD file is not an .img file: %s' % nlcd_file)
+    if not os.path.exists(nlcd_file):
+      raise Exception('The file is not foundL %s' % nlcd_file)
+
+    self.img_path = nlcd_file
 
     self.tinfo = NlcdTileInfo(self.img_path)
     if self.data_mode <= 0:

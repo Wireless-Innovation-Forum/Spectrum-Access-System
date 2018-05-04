@@ -902,7 +902,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Use higher than supported version
-    self._sas._sas_version = 'v2.0'
+    self._sas.cbsd_sas_version = 'v5.0'
 
     # Load Devices
     device_a = json.load(
@@ -1174,7 +1174,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(config['fccIds']), len(config['userIds']))
     self.assertEqual(len(config['fccIds']), len(config['registrationRequests']))
     # Use the (higher) SAS version set in the config file.
-    self._sas._sas_version  = config['sasVersion']
+    self._sas.cbsd_sas_version  = config['sasVersion']
 
     # Whitelist N1 FCC ID.
     for fcc_id, max_eirp_dbm_per_10_mhz in config['fccIds']:

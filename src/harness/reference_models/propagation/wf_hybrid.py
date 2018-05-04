@@ -132,7 +132,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                               cbsd_indoor=False,
                               reliability=-1,
                               freq_mhz=3625.,
-                              region='RURAL'):
+                              region='RURAL',
+                              is_height_cbsd_amsl=False):
   """Implements the Hybrid ITM/eHata NTIA propagation model.
 
   As specified by Winforum, see:
@@ -159,6 +160,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                           Value in [0,1]: returns the CDF quantile
                           -1: returns the mean path loss
     region:             Region type among 'URBAN', 'SUBURBAN, 'RURAL'
+    is_height_cbsd_amsl: If True, the CBSD height shall be considered as AMSL (Average
+                         mean sea level).
 
   Returns:
     A namedtuple of:
@@ -184,10 +187,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     Exception if input parameters invalid or out of range.
   """
   # Sanity checks on input parameters
-  if height_cbsd < 1 or height_rx < 1:
-    raise Exception('End-point height less than 1m.')
-  if height_cbsd > 1000 or height_rx > 1000:
-    raise Exception('End-point height greater than 1000m.')
   if freq_mhz < 40 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz].')
   if region not in ['RURAL', 'URBAN', 'SUBURBAN']:
@@ -195,13 +194,16 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   if reliability not in (-1, 0.5):
     raise Exception('Hybrid model only computes the median or the mean.')
 
+  if is_height_cbsd_amsl:
+    altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+    height_cbsd = height_cbsd - altitude_cbsd
+
   # Get the terrain profile, using Vincenty great circle route, and WF
   # standard (bilinear interp; 1501 pts for all distances over 45 km)
   its_elev = drive.terrain_driver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
                                                  lat2=lat_rx, lon2=lon_rx,
                                                  target_res_meter=30.,
                                                  do_interp=True, max_points=1501)
-
 
   # Structural CBSD and mobile height corrections
   height_cbsd = max(height_cbsd, 20.)

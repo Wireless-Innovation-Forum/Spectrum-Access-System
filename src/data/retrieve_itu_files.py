@@ -23,7 +23,7 @@ import zipfile
 def RetrieveITU():
   print 'Retrieving ITU climate zone file...'
   border = urllib2.urlopen(
-      'http://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.617-3-201309-I!!ZIP-E.zip')
+      'https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.617-3-201309-S!!ZIP-E.zip')
   if not border.getcode() == 200:
     raise Exception('Could not find border definition file')
 
@@ -38,7 +38,7 @@ def RetrieveITU():
 
   print 'Retrieving ITU refractivity file...'
   border = urllib2.urlopen(
-      'http://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.452-16-201507-I!!ZIP-E.zip')
+      'https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.452-16-201507-I!!ZIP-E.zip')
   if not border.getcode() == 200:
     raise Exception('Could not find border definition file')
 
@@ -86,4 +86,3 @@ os.chdir(dest)
 
 RetrieveITU()
 ExtractITU()
-

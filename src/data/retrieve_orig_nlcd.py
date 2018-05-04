@@ -18,6 +18,7 @@ This is to be used in combination with `retile_nlcd.py` if ones want to recreate
 the NLCD tiles from scratch.
 """
 import os
+import ssl
 import urllib2
 
 
@@ -33,7 +34,8 @@ def RetrieveHTTPFile(resource, force=False, write_file=''):
     print 'Resource %s already retrieved' % resource
     return
 
-  f = urllib2.urlopen(resource)
+  context = ssl._create_unverified_context()
+  f = urllib2.urlopen(resource, context=context)
   if f.getcode() != 200:
     raise Exception('Could not find resource %s' % resource)
   with open(write_file, 'wb') as out:
@@ -52,14 +54,22 @@ def RetrieveNlcdConus(directory):
                    write_file='nlcd_2011_landcover_2011_edition_2014_10_10.zip')
   print 'Retrieved NLCD for CONUS'
 
+def RetrieveNlcdAlaska(directory):
+  os.chdir(directory)
+  print 'Retrieving NLCD for Alaska...'
+  RetrieveHTTPFile('http://www.landfire.gov/bulk/downloadfile.php?TYPE=nlcd2011&FNAME=ak_nlcd_2011_landcover_1_15_15.zip',
+                   write_file='ak_nlcd_2011_landcover_1_15_15.zip')
+  print 'Retrieved NLCD for Alaska'
+
 
 # Find the directory of this script.
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.dirname(os.path.dirname(cur_dir))
 
-dest_dir = os.path.join(os.path.join(root_dir, 'data'), 'nlcd')
+dest_dir = os.path.join(root_dir, 'data', 'geo', 'orig_nlcd')
 print 'Retrieving NLCD files to dir=%s' % dest_dir
 if not os.path.exists(dest_dir):
   os.makedirs(dest_dir)
 
 RetrieveNlcdConus(dest_dir)
+RetrieveNlcdAlaska(dest_dir)

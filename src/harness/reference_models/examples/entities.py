@@ -22,6 +22,7 @@ from collections import namedtuple
 import numpy as np
 import shapely.geometry as sgeo
 
+from reference_models.common import data
 from reference_models.geo import nlcd
 from reference_models.geo import vincenty
 
@@ -67,6 +68,15 @@ CBSD_TEMPLATE_CAT_B = Cbsd(latitude=0,longitude=0,
                            antenna_azimuth=[0, 120, 240],
                            antenna_beamwidth=90,
                            antenna_gain=15)
+
+CBSD_TEMPLATE_CAT_B_OMNI = Cbsd(latitude=0,longitude=0,
+                                height_agl=10,
+                                is_indoor=False,
+                                category='B',
+                                eirp_dbm_mhz=37,
+                                antenna_azimuth=0,
+                                antenna_beamwidth=None,
+                                antenna_gain=8)
 
 # FSS earth station
 FssLicenseInfo = namedtuple('FssLicenseInfo',
@@ -220,3 +230,32 @@ def GetCbsdGrantRequest(cbsd, min_freq_mhz, max_freq_mhz):
           'maxEirp': cbsd.eirp_dbm_mhz
       }
   }
+
+
+def ConvertToCbsdGrantInfo(cbsds, min_freq_mhz, max_freq_mhz, chunks_mhz=-1):
+  """Converts |Cbsd| into |data.CbsdGrantInfo| lists.
+
+  Args:
+    cbsds: an iterable of |Cbsd|.
+    min_freq_mhz: The minimum grant frequency (MHz).
+    max_freq_mhz: The maximum grant frequency (MHz).
+    chunks_mhz: The chunking size of the grants (MHz). If -1, no chunking done.
+  Returns:
+    A list of |data.CbsdGrantInfo| namedtuple.
+  """
+  reg_requests = []
+  grant_requests = []
+  for cbsd in cbsds:
+    req_request = GetCbsdRegistrationRequest(cbsd)
+    if chunks_mhz < 0:
+      grant_request = GetCbsdGrantRequest(cbsd, min_freq_mhz, max_freq_mhz)
+      reg_requests.append(req_request)
+      grant_requests.append(grant_request)
+    else:
+      for min_freq in np.arange(min_freq_mhz, max_freq_mhz, chunks_mhz):
+        max_freq = min(max_freq_mhz, min_freq + chunks_mhz)
+        grant_request = GetCbsdGrantRequest(cbsd, min_freq, max_freq)
+        reg_requests.append(req_request)
+        grant_requests.append(grant_request)
+
+  return data.getGrantsFromRequests(reg_requests, grant_requests)

@@ -74,8 +74,10 @@ _IncidenceAngles = namedtuple('_IncidenceAngles',
 def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                            lat_rx, lon_rx, height_rx,
                            cbsd_indoor=False,
-                           reliability=0.5, freq_mhz=3625.,
-                           its_elev=None):
+                           reliability=0.5,
+                           freq_mhz=3625.,
+                           its_elev=None,
+                           is_height_cbsd_amsl=False):
   """Implements the WinnForum-compliant ITM point-to-point propagation model.
 
   According to WinnForum spec R2-SGN-17, R2-SGN-22 and R2-SGN-5 to 10.
@@ -98,7 +100,8 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     freq_mhz:            Frequency (MHz). Default is mid-point of band.
     its_elev:            Optional profile to use (in ITM format). Default=None
                            If not specified, it is extracted from the terrain.
-
+    is_height_cbsd_amsl: If True, the CBSD height shall be considered as AMSL (Average
+                         mean sea level).
   Returns:
     A namedtuple of:
       db_loss            Path Loss in dB, either a scalar if reliability is scalar
@@ -121,12 +124,18 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     Exception if input parameters invalid or out of range.
   """
   # Sanity checks on input parameters
-  if height_cbsd < 1 or height_rx < 1:
-    raise Exception('Endpoint height less than 1m')
-  if height_cbsd > 1000 or height_rx > 1000:
-    raise Exception('Endpoint height greater than 1000m')
   if freq_mhz < 40.0 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz]')
+
+  if is_height_cbsd_amsl:
+    altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
+    height_cbsd = height_cbsd - altitude_cbsd
+
+  # Ensure minimum height of 1 meter
+  if height_cbsd < 1:
+    height_cbsd = 1
+  if height_rx < 1:
+    height_rx = 1
 
   # Internal ITM parameters are always set to following values in WF version:
   confidence = 0.5     # Confidence (always 0.5)
@@ -170,12 +179,13 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     reliabilities = np.arange(0.01, 1.0, 0.01)
     do_avg = True
 
-  db_loss, str_mode, err_num = itm.point_to_point(its_elev, height_cbsd, height_rx,
-                                                  dielec, conductivity,
-                                                  refractivity, freq_mhz,
-                                                  climate, polarization,
-                                                  confidence, reliabilities,
-                                                  mdvar, False)
+  db_loss, ver_cbsd, ver_rx, str_mode, err_num = itm.point_to_point(
+      its_elev, height_cbsd, height_rx,
+      dielec, conductivity,
+      refractivity, freq_mhz,
+      climate, polarization,
+      confidence, reliabilities,
+      mdvar, False)
   if do_avg:
     db_loss = -10*np.log10(np.mean(10**(-np.array(db_loss)/10.)))
 
@@ -186,13 +196,9 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     else:
       db_loss = [loss+15 for loss in db_loss]
 
-  # Get the incidence angles
-  ver_cbsd, ver_rx, _, _ = GetHorizonAngles(its_elev, height_cbsd, height_rx, refractivity)
-
   # Create distance/terrain arrays for plotting if desired
   prof_d_km = (its_elev[1]/1000.) * np.arange(len(its_elev)-2)
   prof_elev = np.asarray(its_elev[2:])
-
 
   return _PropagResult(
       db_loss = db_loss,
@@ -209,78 +215,6 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
           'prof_elev': prof_elev
           })
 
-
-# Utility function to compute the vertical incidence angles at CBSD and Rx
-# This code is derived from the qlrps() routine in itm.py, as specified
-# in R2-SGN-21. These data are returned as part of the above
-# CalcItmPropagationLoss() routine.
-def GetHorizonAngles(its_elev, height_cbsd, height_rx, refractivity):
-  """Gets the horizon angles given a terrain profile.
-
-  Derived from ITM hzns() routine as specified in R2-SGN-21.
-
-  Inputs:
-    its_elev:   Terrain profile in ITM format
-                  - pfl[0] = number of terrain points + 1
-                  - pfl[1] = step size, in meters
-                  - pfl[i] = elevation above mean sea level, in meters
-    height_cbsd:Height of the CBSD
-    height_rx:  Height of the reception point
-
-  Returns:
-    a tuple of:
-      ver_cbsd:      Vertical incidence angle. Positive value means upwards.
-      ver_rx:        Vertical incidence angle. Positive value means upwards.
-      hor_dist_cbsd: Horizon distance from CBSD (ie diffraction edge)
-      hor_dist_rx:   Horizon distance from Rx (ie diffraction edge).
-  """
-  num_points = int(its_elev[0])
-  step = its_elev[1]
-  dist = num_points * step
-
-  # Find the refractivity at the average terrain height
-  start_avg = int(3.0 + 0.1 * num_points)
-  end_avg = num_points - start_avg + 6
-  zsys = np.mean(its_elev[start_avg-1:end_avg])
-  refractivity *= np.exp(-zsys/9460.0)
-
-  # Find the ray down-curvature per meter
-  gma = 157e-9
-  gme = gma*(1.0 - 0.04665 * np.exp(refractivity/179.3))
-
-  alt_cbsd = its_elev[2] + height_cbsd
-  alt_rx = its_elev[num_points+2] + height_rx
-  qc = 0.5 * gme
-  q = qc * dist
-  # theta0 and theta1 the slopes, dl0 and dl1 the horizon distances
-  theta1 = (alt_rx - alt_cbsd) / dist
-  theta0 = theta1 - q
-  theta1 = -theta1 - q
-  dl0 = dist
-  dl1 = dist
-
-  if num_points >= 2:
-    sa = 0.0
-    sb = dist
-    wq = True
-    for i in range(1, num_points):
-      sa += step
-      sb -= step
-      q = its_elev[i+2] - (qc*sa + theta0) * sa - alt_cbsd
-      if q > 0.0:
-        theta0 += q/sa
-        dl0 = sa
-        wq = False
-      if not wq:
-        q = its_elev[i+2] - (qc*sb + theta1) * sb - alt_rx
-        if q > 0.0:
-          theta1 += q/sb
-          dl1 = sb
-
-  return (np.arctan(theta0) * 180/np.pi,
-          np.arctan(theta1) * 180/np.pi,
-          dl0,
-          dl1)
 
 # Utility function to compute the HAAT for a CBSD
 def ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd, height_is_agl=True):
