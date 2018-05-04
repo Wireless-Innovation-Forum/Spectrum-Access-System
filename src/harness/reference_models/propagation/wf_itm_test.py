@@ -14,12 +14,15 @@
 
 import os
 import numpy as np
+import random
 import unittest
 
 from reference_models.geo import testutils
 from reference_models.geo import drive
 
+from reference_models.propagation.itm.itm_test import _GetHorizonAnglesLegacy
 from reference_models.propagation import wf_itm
+
 
 TERRAIN_TEST_DIR = os.path.join(os.path.dirname(__file__),
                                 '..', 'geo', 'testdata', 'ned')
@@ -139,6 +142,30 @@ class TestWfItm(unittest.TestCase):
     haat  = wf_itm.ComputeHaat(
         lat_cbsd=37.50, lon_cbsd=-122.8, height_cbsd=10)
     self.assertEqual(haat, 10)
+
+  def test_angles_vs_legacy(self):
+    # More extensive testing of the vertical incidence angle
+    # obtained from C module vs legacy python-only method used prior to April 2017
+    random.seed(12345)
+    n_links = 500
+    pairs = testutils.MakeLatLngPairs(
+        n_links, 10, 50000,
+        lat_min=37, lat_max=38,
+        lng_min=-123, lng_max=-122)
+    height_tx= 20
+    height_rx = 10
+    for pair in pairs:
+      profile = drive.terrain_driver.TerrainProfile(*pair, target_res_meter=30.,
+                                                    do_interp=True, max_points=1501)
+      # Compute angles the legacy way
+      a_tx, a_rx, _, _ = _GetHorizonAnglesLegacy(profile, height_tx, height_rx, 314)
+      # Get angle from he ITM model
+      _, inc_angles, _ = wf_itm.CalcItmPropagationLoss(
+          pair[0], pair[1], height_tx,
+          pair[2], pair[3], height_rx,
+          its_elev=profile)
+      self.assertAlmostEqual(inc_angles.ver_cbsd, a_tx, 14)
+      self.assertAlmostEqual(inc_angles.ver_rx, a_rx, 14)
 
 
 if __name__ == '__main__':

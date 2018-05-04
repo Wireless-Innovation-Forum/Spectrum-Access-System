@@ -49,14 +49,14 @@ def MakeLatLngPairs(n_pairs,
   pair_points = []
   while len(pair_points) < n_pairs:
     lat1 = random.uniform(lat_min, lat_max)
-    lon1 = random.uniform(lon_min, lon_max)
+    lng1 = random.uniform(lng_min, lng_max)
     bearing = random.uniform(0., 360.)
     d = random.uniform(dmin_meters, dmax_meters)
     lat2, lng2, backaz = vincenty.GeodesicPoint(lat1, lng1, d, bearing)
     if (lat2 < lat_min or lat2 > lat_max or
         lng2 < lng_min or lng2 > lng_max):
       continue
-    pair_points.append((lat1, lon1, lat2, lon2))
+    pair_points.append((lat1, lng1, lat2, lng2))
 
   return pair_points
 

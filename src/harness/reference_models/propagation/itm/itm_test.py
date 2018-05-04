@@ -13,7 +13,6 @@
 #    limitations under the License.
 
 import numpy as np
-import random
 import unittest
 
 from reference_models.propagation.itm import itm
@@ -298,8 +297,9 @@ class TestItm(unittest.TestCase):
     self.assertAlmostEqual(a1, np.arctan(0.000444)*180./np.pi, 4)
     self.assertAlmostEqual(d0, 55357.7, 1)
     self.assertAlmostEqual(d1, 19450.0, 1)
-    self.assertAlmostEqual(a0, v0, 7)
-    self.assertAlmostEqual(a1, v1, 7)
+    # test exactness of new method vs old method
+    self.assertEqual(a0, v0)
+    self.assertEqual(a1, v1)
 
   def test_horizon_angles_los(self):
     refractivity = 314.
@@ -310,8 +310,8 @@ class TestItm(unittest.TestCase):
                                          refractivity=refractivity,
                                          freq_mhz=41.5, climate=5,
                                          polarization=0, confidence=0.5, reliabilities=0.5)
-    self.assertAlmostEqual(a0, v0, 7)
-    self.assertAlmostEqual(a1, v1, 7)
+    self.assertEqual(a0, v0)
+    self.assertEqual(a1, v1)
 
 
 if __name__ == '__main__':
