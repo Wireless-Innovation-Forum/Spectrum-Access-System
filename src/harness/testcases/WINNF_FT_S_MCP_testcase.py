@@ -111,20 +111,6 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     conditionals = [conditionals_device_2, conditionals_device_4, conditionals_device_8]
-    # Remove conditionals from registration
-    del device_2['cbsdCategory']
-    del device_2['airInterface']
-    del device_2['installationParam']
-    del device_2['measCapability']
-    del device_4['cbsdCategory']
-    del device_4['airInterface']
-    del device_4['installationParam']
-    del device_4['measCapability']
-    del device_8['cbsdCategory']
-    del device_8['airInterface']
-    del device_8['installationParam']
-    del device_8['measCapability']
-
     # Load GWPZ Record
     gwpz_record_1 = json.load(
       open(os.path.join('testcases', 'mcp_testdata', 'gwpz_record_0.json')))
@@ -535,6 +521,11 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       for ppa_record in protected_entity_records['ppaRecords']:
         self._sas_admin.InjectZoneData({'record': ppa_record})
 
+    if 'palRecords' in protected_entity_records:
+      for pal_record in protected_entity_records['palRecords']:
+        self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
+
+
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     fad_test_harnesses_objects = []
     if iteration_content['sasTestHarnessData']:
@@ -551,7 +542,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Step 10 : DP Test Harness Register N(2,k)CBSDs with SAS UUT
     # Use DP objects to register CBSDs
-    cbsds=[] #contain all CBSDs with authorized grants 
+    cbsd_list=[] #contain all CBSDs with authorized grants 
     
     for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(domain_proxy_objects,
                                                                 iteration_content['cbsdRequestsWithDomainProxies']):
@@ -570,13 +561,42 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Step 11 : Send heartbeat request managed by SAS UUT
     for domain_proxy_object in domain_proxy_objects:
       domain_proxy_object.heartbeatForAllActiveGrants()
-      cbsds.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
+      cbsd_list.append(domain_proxy_object.getCbsdsWithAtLeastOneAuthorizedGrant())
 
-    cbsd_records = getFullActivityDumpSasTestHarness(cbsds).getCbsdRecords()
-  
+    cbsd_records = []
+    # converting the cbsd_list object to records to send as input to the aggregate 
+    # interference model
+    for cbsds in cbsd_list:
+      if type(cbsds) == list:
+        for cbsd in cbsds:
+          cbsd_record = cbsd.getRegistrationRequest()
+          grant_list = cbsd.getAuthorizedGrants()
+          if type(grant_list) == list:
+            for grant in grant_list:
+              grant_records = []
+              grant_record = grant.getGrantRequest()
+              grant_records.append(grant_record)
+            cbsd_records.append({
+              'registration':cbsd_record,
+              'grants': grant_records
+              })
+          else:
+            grant_record = grant.getGrantRequest()
+          cbsd_records.append({
+            'registration':cbsd_record,
+            'grants': grant_records
+            })
+      else:
+        cbsd_record = cbsd.getRegistrationRequest()
+        grant_record = grant.getGrantRequest()
+      cbsd_records.append({
+        'registration':cbsd_record,
+        'grants': grant_records
+        })
+
     # Call Pre IAP model
     pre_iap_filtering.preIapReferenceModel(protected_entity_records, 
-                                    fad_uut_object, fad_test_harnesses_objects)
+                                   fad_uut_object, fad_test_harnesses_objects)
 
     # Step 12 : Invoke IAP model and Aggregate Interference Model
     # Check MCP.1
