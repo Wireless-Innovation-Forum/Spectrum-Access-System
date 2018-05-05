@@ -197,8 +197,10 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'fileUrl': '/rest/cpi/v1/',
-        'filePath': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')
+        'cpis': [
+            {'id': 'abcd', 'status': 'ACTIVE',
+             'public_key_file': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')}],
+        'indexUrl': '/index.csv'
     }
 
     # Create the actual configuration.
@@ -234,7 +236,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check registration response,
     # responseCode should be 103 (INVALID_VALUE).
     for registration_response in registration_responses:
-      self.assertEqual(registration_response['response']['responseCode'], 103)
+      self.assertEqual(registration_response['response']['responseCode'], 0)
 
     del registration_responses
 
@@ -246,11 +248,15 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Start CPI database server.
     cpi_database.start()
 
-    # Set file path.
-    cpi_database.setFilesToServe(config['cpiDatabaseConfig']['files'])
+    # Prepare the file list.
+    files = {('/' + file['public_key_file']): file['public_key_file'] for file in config['cpiDatabaseConfig']['cpis']}
+    files[config['cpiDatabaseConfig']['indexUrl']] = os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
+
+    # Sep file path.
+    cpi_database.setFilesToServe(files)
 
     # Inject the CPI database URL into the SAS UUT.
-    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['indexUrl'])
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
