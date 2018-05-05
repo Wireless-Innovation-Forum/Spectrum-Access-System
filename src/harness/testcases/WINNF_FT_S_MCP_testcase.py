@@ -12,26 +12,25 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-from functools import partial
 import json
+import time
 import os
+from reference_models.common import mpool
+from functools import partial
 import sas
 import sas_testcase
-from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
-    generatePpaRecords
-from reference_models.pre_iap_filtering import pre_iap_filtering
-import time
 import test_harness_objects
-from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
-  loadConfig, makePpaAndPalRecordsConsistent
 from full_activity_dump import FullActivityDump
-from reference_models.iap import iap 
+from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
+from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
+        loadConfig, makePpaAndPalRecordsConsistent
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
+        generatePpaRecords
+from reference_models.pre_iap_filtering import pre_iap_filtering
+from reference_models.iap import iap
 from reference_models.interference import aggregate_interference, interference
-import multiprocessing
-from multiprocessing import Pool
 
-NUM_OF_PROCESS = 30
+
 IAP_MARGIN = 1 # Threshold value in dBm
 
 class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
@@ -307,8 +306,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
                                 'key': os.path.join('certs', 'domain_proxy.key')},
-                               {'cert': os.path.join('certs', 'domain_proxy.cert'),
-                                'key': os.path.join('certs', 'domain_proxy.key')}],
+                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
         'deltaIap': 1
     }
     writeConfig(filename, config)
@@ -344,7 +343,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     for domain_proxy in config['domainProxyConfigs']:
       domain_proxy_objects.append(test_harness_objects.DomainProxy(self, domain_proxy['cert'],\
-                                                                   domain_proxy['key'],
+                                                                   domain_proxy['key']
                                                                    ))
     # Step 1 : Load DPAs
     self._sas_admin.TriggerLoadDpas()
@@ -381,15 +380,15 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
       test_harness.shutdown()
       del test_harness
 
-  def performIapAndAggregateInterferenceCheck(self, protection_entities, sas_uut,
+  def performIapAndAggregateInterferenceCheck(self, protected_entities, sas_uut_fad_object,
                                       sas_th_fad_objects, cbsd_list):
     """Compare the interference calculated using iap and aggregate reference models.
 
     Args:
-      protection_entities : List of entity records needed to be protected 
-      sas_uut : FAD object from SAS UUT
+      protected_entities : List of entity records needed to be protected 
+      sas_uut_fad_object : FAD object from SAS UUT
       sas_th_fad_objects : a list of FAD objects from SAS Test Harness
-      cbsd_list : List of new cbsds registered to the SAS.
+      cbsd_list : List of DP objects registered to the SAS.
 
     Returns:
       True or False based on the comparison of Aggregate Interference values
@@ -397,35 +396,33 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     """
     
     # Calculate and compare the interference value for PPA protection entity 
-    if 'ppaRecords' in protection_entities:
-      for ppa_record in protection_entities['ppaRecords']:
-        pal_records = protection_entities['palRecords']
-        pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
+    if 'ppaRecords' in protected_entities:
+      for ppa_record in protected_entities['ppaRecords']:
+        pal_records = protected_entities['palRecords']
         # Call iap reference model for ppa
         ppa_ap_iap_ref_values = iap.\
-             performIapForPpa(ppa_record, sas_uut, sas_th_fad_objects, pal_records, pool)
+             performIapForPpa(ppa_record, sas_uut_fad_object, sas_th_fad_objects, pal_records)
         # Call aggregate interference reference model for ppa
         ppa_aggr_interference = aggregate_interference.\
-             calculateAggregateInterferenceForPpa(ppa_record, pal_records, cbsd_list, pool)
+             calculateAggregateInterferenceForPpa(ppa_record, pal_records, cbsd_list)
         # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(ppa_ap_iap_ref_values, ppa_aggr_interference, 'area')
 
     # Calculate and compare the interference value for GWPZ protection entity
-    if 'gwpzRecords' in protection_entities:
-      for gwpz_record in protection_entities['gwpzRecords']:
-        pool = Pool(processes=min(multiprocessing.cpu_count(), NUM_OF_PROCESS))
+    if 'gwpzRecords' in protected_entities:
+      for gwpz_record in protected_entities['gwpzRecords']:
         # Call iap reference model for gwpz
         gwpz_ap_iap_ref_values = iap.\
-            performIapForGwpz(gwpz_record, sas_uut, sas_th_fad_objects)
+            performIapForGwpz(gwpz_record, sas_uut_fad_object, sas_th_fad_objects)
         # Call aggregate interference reference model for gwpz
         gwpz_aggr_interference = aggregate_interference.\
-            calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list, pool)
+            calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list)
         # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(gwpz_ap_iap_ref_values, gwpz_aggr_interference, 'area')
 
     # Calculate and compare the interference value for FSS protection point
-    if 'fssRecords' in protection_entities:
-      for fss_record in protection_entities['fssRecords']:
+    if 'fssRecords' in protected_entities:
+      for fss_record in protected_entities['fssRecords']:
         fss_freq_range = fss_record['record']['deploymentParam'][0]\
             ['operationParam']['operationFrequencyRange']
         fss_low_freq = fss_freq_range['lowFrequency']
@@ -435,9 +432,9 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                 fss_low_freq < interference.CBRS_HIGH_FREQ_HZ):
           # Call IAP for FSS blocking and FSS cochannel
           fss_cochannel_ap_iap_ref_values = iap.\
-              performIapForFssCochannel(fss_record, sas_uut, sas_th_fad_objects)
+              performIapForFssCochannel(fss_record, sas_uut_fad_object, sas_th_fad_objects)
           fss_blocking_ap_iap_ref_values = iap.\
-              performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
+              performIapForFssBlocking(fss_record, sas_uut_fad_object, sas_th_fad_objects)
           # Call Aggregate interference for FSS blocking ad FSS cochannel
           fss_cochannel_aggr_interference = aggregate_interference.\
               calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list)
@@ -451,7 +448,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                  fss_ttc_flag is True):
           # Call iap reference model for FSS blocking
           fss_blocking_ap_iap_ref_values = iap.\
-              performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
+              performIapForFssBlocking(fss_record, sas_uut_fad_object, sas_th_fad_objects)
           # Call aggregate interference model for FSS blocking
           fss_blocking_aggr_interference = aggregate_interference.\
               calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
@@ -460,11 +457,11 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
               fss_blocking_aggr_interference, 'point')
 
     # Calculate and compare the interference value for ESC protection point 
-    if 'escRecords' in protection_entities:
-      for esc_record in protection_entities['escRecords']:
+    if 'escRecords' in protected_entities:
+      for esc_record in protected_entities['escRecords']:
         # Call iap reference model for esc
         esc_ap_iap_ref_values = iap.\
-            performIapForEsc(esc_record, sas_uut, sas_th_fad_objects)
+            performIapForEsc(esc_record, sas_uut_fad_object, sas_th_fad_objects)
         # Call aggregate interference model for esc 
         esc_aggr_interference = aggregate_interference.\
             calculateAggregateInterferenceForEsc(esc_record, cbsd_list)
@@ -486,30 +483,29 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     Returns:
        Pass or Fail based on the comparison of the values within range
     """
-    iter_count = 0 # Variable to count the number of interference entries
-    match_count = 0 # Variable to count the number of matching interference entries
-    
+    iter_cnt = 0 # Variable to count the number of interference entries
+    match_cnt = 0 # Variable to count the number of matching interference entries
+    iap_margin_lin = interference.dbToLinear(IAP_MARGIN) 
+  
     for lat_dict in ap_iap_ref_values:
       long_dict = ap_iap_ref_values[lat_dict]
       long_dict_aggr = aggr_interference[lat_dict]
+      self.assertEqual(len(long_dict), len(long_dict_aggr))
       for interf in long_dict:
-        index = 0 
-        for interf_iap in long_dict[interf]:
+        for interf_iap, aggr in zip(long_dict[interf], long_dict_aggr[interf]):
+          iter_cnt += 1
           # The aggregate interference should be less than 
           # or equal to the iap interference + iap margin threshold
-          if long_dict_aggr[interf][index] <= \
-                interf_iap+interference.dbToLinear(IAP_MARGIN):
-            match_count+=1
-            index+=1
-          iter_count+=1
-
-    if entity_type is 'area':
-      # For protection areas the match of toltal interefrence values 
+          if aggr <= interf_iap * iap_margin_lin:
+            match_cnt += 1 
+    
+    if entity_type == 'area':
+      # For protection areas the match of total interference values 
       # should be greater than or equal to 95 percentile
-      self.assertGreaterEqual( (match_count/iter_count)*100.0, 95) 
+      self.assertGreaterEqual((100.0 * match_cnt) / iter_cnt, 95) 
     else:
       # For Protection points the comparison match should be 100 percentile
-      self.assertEqual(((match_count/iter_count)*100), 100)
+      self.assertEqual((100.0 * match_cnt) / iter_cnt, 100)
 
   def executeSingleMCPIteration(self, test_type, iteration_content, sas_test_harness_objects,
                                                           domain_proxy_objects):
