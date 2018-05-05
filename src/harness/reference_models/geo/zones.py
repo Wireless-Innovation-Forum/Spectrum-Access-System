@@ -16,8 +16,10 @@
 
 These routines allows to read the various zones used by SAS:
  - Protection zone for DPA CatA.
- - Exclusion zones for Ground Based stations.
+ - Exclusion zones for Ground Based stations and Part90 Exclusion Zones
  - Coastal DPAs.
+ - Portal DPAs.
+ - US/Canadian border.
 
 Plus a few other useful zones for evaluation/simulation purpose:
  - US Border
@@ -35,8 +37,14 @@ from reference_models.geo import CONFIG
 
 # The reference files.
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
-EXCLUSION_ZONE_FILE = 'protection_zones.kml'
-DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
+
+COASTAL_DPA_ZONE_FILE = 'Coastal_DPAs.kml'
+PORTAL_DPA_ZONE_FILE = 'Portal_DPAs.kml'
+EXCLUSION_ZONE_FILE = 'GB_Part90_EZ.kml'
+
+#EXCLUSION_ZONE_FILE = 'protection_zones.kml'
+#DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
+
 FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 
 # The reference files for extra zones.
@@ -54,7 +62,8 @@ _COASTAL_PROTECTION_ZONES = [
 
 # Singleton for operational zones.
 _coastal_zone = None
-_exclusion_zones = None
+_exclusion_zones_gbs = None
+_exclusion_zones_p90 = None
 _dpa_zones = None
 _border_zone = None
 _uscanada_border = None
@@ -87,16 +96,48 @@ def _GetLineString(linestring):
   return sgeo.LineString(points)
 
 
-def _ReadKmlZones(kml_path, root_id_zone='Placemark', simplify=0):
+class _Bunch(object):
+  """A simplistic struct."""
+  def __init__(self, fields):
+    """Initializes attributes to None for a list of `fields`."""
+    for field in fields:
+      setattr(self, field, None)
+
+
+def _SplitFreqRange(freq_range):
+  try:
+    fmin, fmax = freq_range.strip().split(',')
+    return [(float(fmin), float(fmax))]
+  except AttributeError:
+    freq_ranges = []
+    for one_range in freq_range:
+      fmin, fmax = one_range.strip().split(',')
+      freq_ranges.append((float(fmin), float(fmax)))
+    return freq_ranges
+
+
+def _ReadKmlZones(kml_path, root_id_zone='Placemark',
+                  data_fields=None, simplify=0):
   """Gets all the zones defined in a KML.
+
+  This assumes that each zone is either a bunch of polygons, or a bunch of points.
 
   Args:
     kml_path: The path name to the exclusion zone KML or KMZ.
     root_id_zone: The root id defininig a zone. Usually it is 'Placemark'.
-    simplify: If set, simplifies the resulting polygons
+    data_fields: List of string defining the data fields to extract from the KML
+      'ExtendedData'. If None, nothing is extracted.
+    simplify: If set, simplifies the resulting polygons.
 
   Returns:
-    a dictionary of |shapely| Polygon (or MultiPolygon) keyed by their name.
+    A dictionary of elements keyed by their name, with each elements being:
+      - if no data_fields requested:  a |shapely| Polygon/MultiPolygon or Point/MultiPoint
+      - if data_fields requested:
+        a struct with attributes:
+          * 'geometry': a |shapely| Polygon/MultiPolygon or Point/MultiPoint
+          * the requested data_fields as attributes. The value are string, or None
+            if the data fields is unset in the KML. If several identical data_fields are
+            found, they are put in a list.
   """
   if kml_path.endswith('kmz'):
     with zipfile.ZipFile(kml_path) as kmz:
@@ -114,21 +155,50 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', simplify=0):
     if element.find('.//' + tag + root_id_zone) is not None:
       continue
     name = element.name.text
+
+    # Read the zone geometry
+    geometry = None
     polygons = [_GetPolygon(poly)
                 for poly in element.findall('.//' + tag + 'Polygon')]
-    if not polygons: continue
-    if len(polygons) == 1:
-      polygon = polygons[0]
+    if polygons:
+      if len(polygons) == 1:
+        polygon = polygons[0]
+      else:
+        polygon = sgeo.MultiPolygon(polygons)
+      # Fix most invalid polygons
+      polygon = polygon.buffer(0)
+      if simplify:
+        polygon.simplify(simplify)
+      if not polygon.is_valid:
+        # polygon is broken and should be fixed upstream
+        raise ValueError('Polygon %s is invalid and cannot be cured.' % name)
+      geometry = polygon
     else:
-      polygon = sgeo.MultiPolygon(polygons)
-    # Fix most invalid polygons
-    polygon = polygon.buffer(0)
-    if simplify:
-      polygon.simplify(simplify)
-    if not polygon.is_valid:
-      # polygon is broken and should be fixed upstream
-      raise ValueError('Polygon %s is invalid and cannot be cured.' % name)
-    zones[name] = polygon
+      points = [_GetPoint(point)
+                for poly in element.findall('.//' + tag + 'Point')]
+      geometry = ops.unary_union(points)
+
+    # Read the data_fields
+    if data_fields is None:
+      zones[name] = geometry
+    else:
+      bunch = _Bunch(data_fields)
+      bunch.geometry = geometry
+      zones[name] = bunch
+      ext_data = element.ExtendedData.getchildren()
+      for data in ext_data:
+        data_attrib = data.attrib['name']
+        data_value = str(data.value)
+        if data_attrib in data_fields:
+          if getattr(bunch, data_attrib) is None:
+            setattr(bunch, data_attrib, data_value)
+          else:
+            existing_data = getattr(bunch, data_attrib)
+            try:
+              existing_data.append(str(data_value))
+              setattr(bunch, data_attrib, existing_data)
+            except:
+              setattr(bunch, data_attrib, [existing_data, str(data_value)])
 
   return zones
 
@@ -191,19 +261,34 @@ def GetCoastalProtectionZone():
   return _coastal_zone
 
 
-def GetExclusionZones():
-  """Returns all GBS exclusion zones as a |shapely.MultiPolygon|.
+def GetGbsExclusionZones():
+  """Returns all GBS exclusion zones.
 
   The GBS exclusion zone are used for protecting Ground Based Station
   transmitting below 3500MHz.
   """
-  global _exclusion_zones
-  if _exclusion_zones is None:
+  global _exclusion_zones_gbs
+  if _exclusion_zones_gbs is None:
     kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
-    zones = _ReadKmlZones(kml_file)
-    _exclusion_zones = ops.unary_union([zones[name] for name in zones
-                                       if name not in _COASTAL_PROTECTION_ZONES])
-  return _exclusion_zones
+    zones = _ReadKmlZones(kml_file, data_fields=['freqRangeMhz'])
+    _exclusion_zones_gbs = ops.unary_union(
+        [zones[name].geometry for name in zones
+         if (3550, 3650) in _SplitFreqRange(zones[name].freqRangeMhz)])
+  return _exclusion_zones_gbs
+
+
+def GetPart90ExclusionZones():
+  """Returns all Part90 federal exclusion zones.
+  """
+  import ipdb; ipdb.set_trace()
+  global _exclusion_zones_p90
+  if _exclusion_zones_p90 is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), EXCLUSION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file, data_fields=['freqRangeMhz'])
+    _exclusion_zones_p90 = ops.unary_union(
+        [zones[name].geometry for name in zones
+         if (3650, 3700) in _SplitFreqRange(zones[name].freqRangeMhz)])
+  return _exclusion_zones_p90
 
 
 def GetDpaZones():
