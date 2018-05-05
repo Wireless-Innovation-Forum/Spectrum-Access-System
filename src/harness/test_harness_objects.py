@@ -348,7 +348,7 @@ class DomainProxy(object):
       The grant responses for each grant_request.
     """
     grant_responses = []
-    maximum_batch_size = int(self.testcase._sas.maximum_batch_size)
+    maximum_batch_size = self.testcase._sas.maximum_batch_size
     for iteration in range(0, int(math.ceil(len(grant_requests)/float(maximum_batch_size)))):
       grant_request_block = grant_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
       # Wrapped version of the grant requests.
@@ -367,7 +367,7 @@ class DomainProxy(object):
       The relinquishment responses for each relinquishment_request.
     """
     relinquishment_responses = []
-    maximum_batch_size = int(self.testcase._sas.maximum_batch_size)
+    maximum_batch_size = self.testcase._sas.maximum_batch_size
     for iteration in range(0, int(math.ceil(len(relinquishment_requests)/float(maximum_batch_size)))):
       relinquishment_request_block = relinquishment_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
       # Wrapped version of the grant requests.

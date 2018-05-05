@@ -73,7 +73,7 @@ class SasImpl(sas_interface.SasInterface):
     self.sas_sas_version = sas_sas_version
     self._tls_config = TlsConfig()
     self._sas_admin_id = sas_admin_id
-    self.maximum_batch_size = maximum_batch_size
+    self.maximum_batch_size = int(maximum_batch_size)
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
     return self._CbsdRequest('registration', request, ssl_cert, ssl_key)
