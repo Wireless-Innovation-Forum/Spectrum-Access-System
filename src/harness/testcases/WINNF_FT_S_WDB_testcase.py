@@ -180,11 +180,11 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_name_d = 'd_name'
 
     # Read private keys for the CPI users
-    with open(os.path.join('testcases', 'testdata', 'cpi_db', 'WDB_2_CPI_Private_Key.txt'),
+    with open(os.path.join('testcases', 'testdata','WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
       cpi_private_key_b = file_handle.read()
 
-    with open(os.path.join('testcases', 'testdata', 'cpi_db', 'WDB_2_CPI_Private_Key.txt'),
+    with open(os.path.join('testcases', 'testdata','WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
       cpi_private_key_d = file_handle.read()
 
@@ -236,7 +236,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check registration response,
     # responseCode should be 103 (INVALID_VALUE).
     for registration_response in registration_responses:
-      self.assertEqual(registration_response['response']['responseCode'], 0)
+      self.assertEqual(registration_response['response']['responseCode'], 130)
 
     del registration_responses
 
