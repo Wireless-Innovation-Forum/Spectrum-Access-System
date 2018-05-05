@@ -294,7 +294,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3500-3650 MHz.
+    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3640000000,
         'highFrequency': 3650000000
@@ -308,7 +308,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
     grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'Pensacola' which is 3550-3650 MHz.
+    # Set the grant frequency to overlap with the modified DPA 'Pensacola' which is 3550-3700 MHz.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
