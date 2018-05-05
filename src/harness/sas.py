@@ -30,9 +30,15 @@ def GetTestingSas():
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
   sas_admin_id = config_parser.get('SasConfig', 'AdminId')
   maximum_batch_size = config_parser.get('SasConfig', 'MaximumBatchSize')
-  return SasImpl(cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url, sas_sas_rsa_base_url,\
-      sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id, maximum_batch_size),
-    SasAdminImpl(admin_api_base_url)
+  return SasImpl(
+      cbsd_sas_rsa_base_url,
+      cbsd_sas_ec_base_url,
+      sas_sas_rsa_base_url,
+      sas_sas_ec_base_url,
+      cbsd_sas_version,
+      sas_sas_version,
+      sas_admin_id,
+      maximum_batch_size), SasAdminImpl(admin_api_base_url)
 
 
 def GetDefaultDomainProxySSLCertPath():
