@@ -294,10 +294,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
+    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3500-3650 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3640000000,
+        'highFrequency': 3650000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
@@ -330,7 +330,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
     grant_g3_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3550-3700 MHz.
+    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3550-3650 MHz.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
@@ -769,9 +769,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server
-    fss_database_server = DatabaseServer("FSS Database",
-                                          config['fssDatabaseConfig']['hostName'],
-                                          config['fssDatabaseConfig']['port'])
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
     
     # Start FSS database server
     fss_database_server.start()
@@ -985,9 +987,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
     # Create FSS database server
-    fss_database_server = DatabaseServer("FSS Database",
-                                          config['fssDatabaseConfig']['hostName'],
-                                          config['fssDatabaseConfig']['port'])
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
 
     # Start FSS database server
     fss_database_server.start()
@@ -1156,9 +1160,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 2: Create FSS database which includes at least one FSS site near
     # CBSD location 'X'.
     # Create FSS database server.
-    fss_database_server = DatabaseServer("FSS Database",
-                                          config['fssDatabaseConfig']['hostName'],
-                                          config['fssDatabaseConfig']['port'])
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
 
     # Start FSS database server
     fss_database_server.start()
@@ -1452,9 +1458,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server
-    fss_database_server = DatabaseServer("FSS Database",
-                                          config['fssDatabaseConfig']['hostName'],
-                                          config['fssDatabaseConfig']['port'])
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
     
     # Start FSS database server
     fss_database_server.start()
