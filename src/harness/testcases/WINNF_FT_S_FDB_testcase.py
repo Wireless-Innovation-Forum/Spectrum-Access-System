@@ -294,21 +294,21 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
+    # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3640000000,
         'highFrequency': 3650000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'Pensacola' which is 3550-3700 MHz.
+    # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
+        'lowFrequency': 3615000000,
+        'highFrequency': 3625000000
     }
     grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'Pensacola' which is 3550-3700 MHz.
+    # Set the grant frequency to overlap with the modified DPA 'BATH' which is 3500-3700 MHz.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
@@ -316,25 +316,33 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3550-3650 MHz.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3630000000,
         'highFrequency': 3640000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3550-3650 MHz.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3645000000,
         'highFrequency': 3655000000
     }
     grant_g3_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3550-3650 MHz.
+    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3500-3700 MHz.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
     }
+
+    # Update the location 'X' of CBSD devices to be near DPAs
+    # 'BATH'
+    device_a['installationParam']['latitude'] = 43.906455
+    device_a['installationParam']['longitude'] = -69.813888
+    # 'China Lake'
+    device_b['installationParam']['latitude'] = 37.288360
+    device_b['installationParam']['longitude'] = -117.678333
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -678,14 +686,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
@@ -693,27 +701,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
         'highFrequency': 3695000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
 
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    device_b['installationParam']['latitude'] = 39.153414
+    device_b['installationParam']['longitude'] = -100.295313
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -889,7 +895,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # FSS database test harness configuration
-    # The databaseFile FDB_5_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.   
+    # The database File FDB_5_default_allsitedata.json has one FSS site information.   
     fss_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -898,8 +904,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # GWBL database test harness configuration.
-    # The GWBL database file fdb_5_gwbl_db.json has one GWBL information within 150 KMs
-    # from FSS site 'KA413'.
+    # The GWBL database file l_micro.zip has one GWBL information within 150 KMs
+    # from FSS site.
     gwbl_database_config = {
         'hostName': 'localhost',
         'port': 8001,
@@ -910,7 +916,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -918,20 +924,18 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with FSS frequency range which is 3650-4200 MHz.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3670000000,
         'highFrequency': 3680000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
 
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    device_b['installationParam']['latitude'] = 39.153414
+    device_b['installationParam']['longitude'] = -100.295313
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1051,7 +1055,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # FSS database test harness configuration.
-    # The databaseFile FDB_6_DOC-333151A1.xlsx has one FSS information for FSS site 'KA413'.
+    # The database File FDB_6_default_allsitedata.json has one FSS site information.
     fss_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -1060,8 +1064,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # GWBL database test harness configuration.
-    # The GWBL database file fdb_6_gwbl_db.json has one GWBL W information near device_b
-    # The GWBL database file fdb_6_gwbl_db_updated.json an updated location for the GWBL W.
+    # The GWBL database file l_micro.zip has one GWBL W information near device_b
+    # The GWBL database file modified_l_micro.zip has an updated location for the GWBL W.
     gwbl_database_config = {
         'hostName': 'localhost',
         'port': 8001,
@@ -1073,14 +1077,14 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g1_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
     grant_g2_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
@@ -1088,27 +1092,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
         'highFrequency': 3695000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
 
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    device_b['installationParam']['latitude'] = 39.153414
+    device_b['installationParam']['longitude'] = -100.295313
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1383,7 +1385,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load grant requests
     grant_g_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -1391,20 +1393,18 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3670000000,
         'highFrequency': 3680000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
 
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    device_b['installationParam']['latitude'] = 39.153414
+    device_b['installationParam']['longitude'] = -100.295313
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
