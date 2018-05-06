@@ -12,6 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import csv
 import json
 import logging
 import os
@@ -92,11 +93,17 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     conditionals = [conditionals_b]
 
+    pal_db_relative_file_path = os.path.join('testcases', 'testdata', 'pal_db', 'pal_db_record.json')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(os.path.join(pal_db_relative_file_path), 'w+') as file_handle:
+      file_handle.write(json.dumps(pal_records_a,pal_records_b,indent=2))
+
     pal_database_config = {
         'hostName': 'localhost',
         'port': 8003,
         'fileUrl': '/rest/pal/v1/',
-        'filePath': os.path.join('testcases', 'testdata', 'pal_db', 'pal_db_record.json')
+        'filePath': pal_db_relative_file_path
     }
 
     # Create the actual configuration file
@@ -184,7 +191,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
               'r') as file_handle:
       cpi_private_key_b = file_handle.read()
 
-    with open(os.path.join('testcases', 'testdata','WDB_2_CPI_Private_Key.txt'),
+    with open(os.path.join('testcases', 'testdata', 'WDB_2_CPI_Private_Key.txt'),
               'r') as file_handle:
       cpi_private_key_d = file_handle.read()
 
@@ -197,9 +204,15 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'cpis': [
-            {'id': 'abcd', 'status': 'ACTIVE',
-             'public_key_file': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')}],
+        'cpis': [{
+            'cpiId': cpi_id_b,
+            'status': 'ACTIVE',
+            'publicKeyIdentifierFile': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')},
+            {
+                'cpiId': cpi_id_d,
+                'status': 'ACTIVE',
+                'publicKeyIdentifierFile': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')}
+        ],
         'indexUrl': '/index.csv'
     }
 
@@ -236,7 +249,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check registration response,
     # responseCode should be 103 (INVALID_VALUE).
     for registration_response in registration_responses:
-      self.assertEqual(registration_response['response']['responseCode'], 130)
+      self.assertEqual(registration_response['response']['responseCode'], 103)
 
     del registration_responses
 
@@ -248,11 +261,21 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Start CPI database server.
     cpi_database.start()
 
-    # Prepare the file list.
-    files = {('/' + file['public_key_file']): file['public_key_file'] for file in config['cpiDatabaseConfig']['cpis']}
-    files[config['cpiDatabaseConfig']['indexUrl']] = os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
+    # Generate the CSV file and write the content of it.
+    config_keys = config['cpiDatabaseConfig']['cpis'][0].keys()
 
-    # Sep file path.
+    with open(config['cpiDatabaseConfig']['cpis'][0]['publicKeyIdentifierFile'], 'w+') as output_file:
+        dict_writer = csv.DictWriter(output_file, config_keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(config['cpiDatabaseConfig']['cpis'])
+
+    # Prepare the file list.
+    files = {('/' + cpi['publicKeyIdentifierFile']):
+                 cpi['publicKeyIdentifierFile'] for cpi in config['cpiDatabaseConfig']['cpis']}
+    files[config['cpiDatabaseConfig']['indexUrl']] = \
+        os.path.join('testcases', 'testdata', 'cpi_db', 'indexUrl.csv')
+
+    # Set file path.
     cpi_database.setFilesToServe(files)
 
     # Inject the CPI database URL into the SAS UUT.
