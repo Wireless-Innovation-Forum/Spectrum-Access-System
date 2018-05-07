@@ -1,4 +1,4 @@
-#    Copyright 2018 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS] Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFull
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
         loadConfig, makePpaAndPalRecordsConsistent
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
-        generatePpaRecords
+        generatePpaRecords, generateCbsdReferenceId
 from reference_models.pre_iap_filtering import pre_iap_filtering
 from reference_models.iap import iap
 from reference_models.interference import aggregate_interference, interference
@@ -113,7 +113,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     conditionals = [conditionals_device_2, conditionals_device_4, conditionals_device_8]
     # Load GWPZ Record
     gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'mcp_testdata', 'gwpz_record_0.json')))
+      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
 
     # Load FSS record
     fss_record_1 = json.load(
@@ -127,9 +127,9 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'esc_sensor_record_1.json')))
     # Load PPA and PAL record
     ppa_record = json.load(
-      open(os.path.join('testcases', 'mcp_testdata', 'ppa_record_0.json')))
+      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
     pal_record = json.load(
-      open(os.path.join('testcases', 'mcp_testdata', 'pal_record_0.json')))
+      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
 
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
@@ -139,6 +139,11 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
                                                                  pal_low_frequency,
                                                                  pal_high_frequency,
                                                                  'test_user_1')
+    
+    # Add a CBSD to be part of the PPA
+    cbsd_reference_id1 = generateCbsdReferenceId('test_fcc_id_x', 'test_serial_number_x')
+    ppa_record_1['ppaInfo'].update({'cbsdReferenceId': cbsd_reference_id1}) 
+
     # Define DPAs
     dpa_1 = {
        'dpaId': 'east_dpa_4',
@@ -270,8 +275,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     iteration0_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_0_domain_proxy_0, cbsd_records_iteration_0_domain_proxy_1],
         'cbsdRecords': [{
-            'registration': device_7,
-            'grants': grant_request_7,
+            'registrationRequests': device_7,
+            'grantRequests': grant_request_7,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -283,8 +288,8 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     iteration1_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_1_domain_proxy_0, cbsd_records_iteration_1_domain_proxy_1],
         'cbsdRecords': [{
-            'registration': device_8,
-            'grants': grant_request_8,
+            'registrationRequests': device_8,
+            'grantRequests': grant_request_8,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -507,6 +512,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     Returns:
        Pass or Fail based on the comparison of the values within range
     """
+
     iter_cnt = 0 # Variable to count the number of interference entries
     match_cnt = 0 # Variable to count the number of matching interference entries
     iap_margin_lin = interference.dbToLinear(DELTA_IAP)  
@@ -644,7 +650,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Register individual Cbsds(Domain Proxy with single CBSD)
     for cbsd_record in iteration_content['cbsdRecords']:
       proxy = test_harness_objects.DomainProxy(self, cbsd_record['clientCert'], cbsd_record['clientKey'])
-      proxy.registerCbsdsAndRequestGrants([cbsd_record['registration']], [cbsd_record['grants']])
+      proxy.registerCbsdsAndRequestGrants([cbsd_record['registrationRequests']], [cbsd_record['grantRequests']])
       domain_proxy_objects.append(proxy)
 
     # Step 11 : Send heartbeat request managed by SAS UUT
