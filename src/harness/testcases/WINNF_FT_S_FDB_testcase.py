@@ -53,7 +53,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # Fake database test harness configuration
+    # Exclusion zone database test harness configuration
     exclusion_zone_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -173,12 +173,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
-    # Create fake database server
+    # Create exclusion zone database server
     exclusion_zone_database_server = DatabaseServer("Exclusion Zone Database",
                                           config['exclusionZoneDatabaseConfig']['hostName'],
                                           config['exclusionZoneDatabaseConfig']['port'])
-
-    # Start fake database server
+    
+    # Start exclusion zone database server
     exclusion_zone_database_server.start()
 
     # Set file path
@@ -250,7 +250,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Step 7: Modify exclusion zone database record frequency range from 'F1' to 'F2'
     # Set the path of modified file
-    fake_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
+    exclusion_zone_database_server.setFileToServe(config['exclusionZoneDatabaseConfig']['fileUrl'],
                                         config['exclusionZoneDatabaseConfig']['modifiedFilePath'])
 
     # Step 8: Trigger daily activities
@@ -282,24 +282,33 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # DPA database test harness configuration
+    dpa_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_2', 'FDB_2_Portal_DPAs.kml'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_2', 'modified_FDB_2_Portal_DPAs.kml')
+    }
+
     # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3640000000,
+        'highFrequency': 3650000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
+        'lowFrequency': 3615000000,
+        'highFrequency': 3625000000
     }
     grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'puerto_rico_ver2_dpa_4'.
+    # Set the grant frequency to overlap with the modified DPA 'BATH' which is 3500-3700 MHz.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
@@ -307,25 +316,33 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3630000000,
+        'highFrequency': 3640000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
+        'lowFrequency': 3645000000,
+        'highFrequency': 3655000000
     }
     grant_g3_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified DPA 'alaska_dpa_37'.
+    # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3500-3700 MHz.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
     }
+
+    # Update the location 'X' of CBSD devices to be near DPAs
+    # 'BATH'
+    device_a['installationParam']['latitude'] = 43.906455
+    device_a['installationParam']['longitude'] = -69.813888
+    # 'China Lake'
+    device_b['installationParam']['latitude'] = 37.11318
+    device_b['installationParam']['longitude'] = -116.84714
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -351,9 +368,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             [grant_g1_a, grant_g1_b],
             [grant_g2_a, grant_g2_b],
             [grant_g3_a, grant_g3_b]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations.
+        'conditionalRegistrationData': conditionals,
+        'dpaDatabaseConfig': dpa_database_config
     }
     writeConfig(filename, config)
 
@@ -378,8 +394,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                    grant_request_g1,
                                    config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create DPA database which includes at least one inland DPA
+    # Create DPA database server
+    dpa_database_server = DatabaseServer("DPA Database",
+                                          config['dpaDatabaseConfig']['hostName'],
+                                          config['dpaDatabaseConfig']['port'])
+    
+    # Start DPA database server
+    dpa_database_server.start()
+
+    # Set file path
+    dpa_database_server.setFileToServe(config['dpaDatabaseConfig']['fileUrl'],
+                                        config['dpaDatabaseConfig']['filePath'])
+
+    # Inject the DPA database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(dpa_database_server.getBaseUrl()+
+                                      config['dpaDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -479,8 +509,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del grant_request_g2, grant_response_g2
 
-    # TODO
     # Step 8: Modify DPA database record frequency range from 'F1' to 'F2'
+    # Set the path of modified file
+    dpa_database_server.setFileToServe(config['dpaDatabaseConfig']['fileUrl'],
+                                        config['dpaDatabaseConfig']['modifiedFilePath'])
 
     # Step 9: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -641,17 +673,26 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-   # Load grant requests
+    # FSS database test harness configuration
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_4', 'FDB_4_default_allsitedata.json'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_4', 'modified_FDB_4_default_allsitedata.json')
+    }
+
+    # Load grant requests
     grant_g1_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
     grant_g2_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
@@ -659,27 +700,26 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
         'highFrequency': 3695000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
-
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    # with FSS Number 'FSS0001010'
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
+    # with FSS Number 'FSS0002010'
+    device_b['installationParam']['latitude'] = 39.3291
+    device_b['installationParam']['longitude'] = -104.1
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -707,9 +747,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'expectedResponseCodes': [
             [(0, ), (0,)],
             [(501, ), (501, )]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
 
@@ -734,8 +773,24 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                      config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
+    
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -789,8 +844,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     del relq_requests, relq_responses
     del heartbeat_requests, heartbeat_responses
 
-    # TODO
     # Step 6: Modify the FSS database to include modified version of FSS site S
+    # Set the path of modified file
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['modifiedFilePath'])
 
     # Step 7: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -837,10 +894,30 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # FSS database test harness configuration
+    # The database File FDB_5_default_allsitedata.json has FSS sites information.   
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'FDB_5_default_allsitedata.json')
+    }
+
+    # GWBL database test harness configuration.
+    # The GWBL database file l_micro.zip has following GWBLs within 150 KMs from FSS sites
+    # WAKEENEY,KS with Unique System Identifier as 959499
+    # NEW YORK, NY with Unique System Identifier as 954597
+    gwbl_database_config = {
+        'hostName': 'localhost',
+        'port': 8001,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'l_micro.zip')
+    }
+
     # Load grant requests
     grant_g_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -848,20 +925,19 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with FSS frequency range which is 3650-4200 MHz.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3670000000,
         'highFrequency': 3680000000
     }
 
-    # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
-
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    # Update the location 'X' of CBSD devices to be near the FSS sites
+    # with FSS Number 'FSS0001010'
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
+    # with FSS Number 'FSS0002010'
+    device_b['installationParam']['latitude'] = 40.69105
+    device_b['installationParam']['longitude'] = -75.21514
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -884,9 +960,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config,
+        'gwblDatabaseConfig': gwbl_database_config
     }
     writeConfig(filename, config)
 
@@ -915,11 +991,41 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                    grant_request_g,
                                    config['conditionalRegistrationData'])
 
-    # TODO
-    # Step 2: Create FSS database which includes at least one FSS site near
+    # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
 
-    # TODO
-    # Step 3: Create GWBL database which includes at least one GWBL site near
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
+
+    # Step 3: Create GWBL database which includes at least one GWBL site near location 'X'.
+    # Create GWBL database server
+    gwbl_database_server = DatabaseServer("GWBL Database",
+                                          config['gwblDatabaseConfig']['hostName'],
+                                          config['gwblDatabaseConfig']['port'])
+
+    # Start GWBL database server
+    gwbl_database_server.start()
+
+    # Set file path
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['filePath'])
+
+    # Inject the GWBL database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
+                                      config['gwblDatabaseConfig']['fileUrl'])
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -950,17 +1056,41 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # FSS database test harness configuration.
+    # The database File FDB_6_default_allsitedata.json has FSS sites information.   
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'FDB_6_default_allsitedata.json')
+    }
+
+    # GWBL database test harness configuration.
+    # The GWBL database file l_micro.zip has following GWBLs near CBSD locations 'X' and are
+    # within 150 KMs from FSS sites
+    # WAKEENEY,KS with Unique System Identifier as 959499
+    # NEW YORK, NY with Unique System Identifier as 954597
+    # The GWBL database file modified_l_micro.zip has updated locations for the above
+    # mentioned GWBLs (GWBLs are moved further than 150 km from the FSS sites).
+    gwbl_database_config = {
+        'hostName': 'localhost',
+        'port': 8001,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'l_micro.zip'),
+        'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_6', 'modified_l_micro.zip')
+    }
+
     # Load grant requests
     grant_g1_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
     grant_g2_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
@@ -968,27 +1098,26 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
     grant_g2_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
         'highFrequency': 3695000000
     }
 
-    # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
-
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    # Update the location 'X' of CBSD devices to be near the FSS sites
+    # with FSS Number 'FSS0001010'
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
+    # with FSS Number 'FSS0002010'
+    device_b['installationParam']['latitude'] = 40.69105
+    device_b['installationParam']['longitude'] = -75.21514
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1016,9 +1145,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'expectedResponseCodes': [
             [(400,), (400,)],
             [(0,), (0,)]],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config,
+        'gwblDatabaseConfig': gwbl_database_config
     }
     writeConfig(filename, config)
 
@@ -1037,13 +1166,43 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered(config['registrationRequest'],
                                      config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create FSS database which includes at least one FSS site near
     # CBSD location 'X'.
+    # Create FSS database server.
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
 
-    # TODO
+    # Start FSS database server
+    fss_database_server.start()
+
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
+
     # Step 3: Create GWBL database which includes at least one GWBL site near
     # CBSD location 'X'.
+    # Create GWBL database server.
+    gwbl_database_server = DatabaseServer("GWBL Database",
+                                          config['gwblDatabaseConfig']['hostName'],
+                                          config['gwblDatabaseConfig']['port'])
+
+    # Start GWBL database server
+    gwbl_database_server.start()
+
+    # Set file path
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['filePath'])
+
+    # Inject the GWBL database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
+                                      config['gwblDatabaseConfig']['fileUrl'])
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1086,6 +1245,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # TOD0
     # Step 7: Modify the GWBL database to include a modified version of the GWBL 'W'.
     # 'W' is moved further than 150 kms from FSS site.
+    # Set the path of modified file
+    gwbl_database_server.setFileToServe(config['gwblDatabaseConfig']['fileUrl'],
+                                        config['gwblDatabaseConfig']['modifiedFilePath'])
 
     # Step 8: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1195,10 +1357,18 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
+    # FSS database test harness configuration
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8000,
+        'fileUrl': '/db_sync',
+        'filePath': os.path.join('testcases', 'testdata',  'fdb_8', 'FDB_8_default_allsitedata.json')
+    }
+
     # Load grant requests
     grant_g_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -1206,20 +1376,19 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
+    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3670000000,
         'highFrequency': 3680000000
     }
 
     # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
-
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
+    # with FSS Number 'FSS0001010'
+    device_a['installationParam']['latitude'] = 39.353414
+    device_a['installationParam']['longitude'] = -100.195313
+    # with FSS Number 'FSS0002010'
+    device_b['installationParam']['latitude'] = 39.3291
+    device_b['installationParam']['longitude'] = -104.1
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1242,9 +1411,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations
+        'conditionalRegistrationData': conditionals,
+        'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
 
@@ -1272,11 +1440,24 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                               grant_request_g,
                               config['conditionalRegistrationData'])
 
-    # TODO
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
+    # Create FSS database server
+    fss_database_server = DatabaseServer(
+      'FSS Database',
+      config['fssDatabaseConfig']['hostName'],
+      config['fssDatabaseConfig']['port'],
+      authorization=True)
+    
+    # Start FSS database server
+    fss_database_server.start()
 
-    # TODO
+    # Set file path
+    fss_database_server.setFileToServe(config['fssDatabaseConfig']['fileUrl'],
+                                        config['fssDatabaseConfig']['filePath'])
+
     # Step 4: Inject the FSS database URL into the UUT
+    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
+                                      config['fssDatabaseConfig']['fileUrl'])
 
     # Step 5: Wait until after the completion of scheduled CPAS
     # Fetching current time in CPAS time zone
