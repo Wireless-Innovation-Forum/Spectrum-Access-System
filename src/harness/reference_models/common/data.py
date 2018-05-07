@@ -90,6 +90,51 @@ EscInformation = namedtuple('EscInformation',
                              'antenna_gain_pattern'])
 
 
+def getFssInfo(fss_record):
+  """Extracts FSS information from a FSS record.
+
+  Args:
+    fss_record: A FSS record (dict).
+  Returns:
+    A tuple of:
+      fss_point: A (longitude, latitude) tuple.
+      fss_info: A |FssInformation| tuple.
+      fss_freq_range: A (freq_min, freq_max) tuple.
+  """
+
+  # Extract installation parameters from FSS record.
+  fss_install_params = fss_record['record']['deploymentParam'][0]['installationParam']
+
+  fss_latitude = fss_install_params['latitude']
+  fss_longitude = fss_install_params['longitude']
+  fss_azimuth = fss_install_params['antennaAzimuth']
+  fss_pointing_elevation = -fss_install_params['antennaDowntilt']
+  fss_max_gain_dbi = fss_install_params['antennaGain']
+
+  # Convert the height to AGL if it was AMSL type.
+  # TODO(sbdt): verify if FSS can really be AMSL ??
+  fss_height = fss_install_params['height']
+  fss_height_type = fss_install_params['heightType']
+  if fss_height_type == 'AMSL':
+    fss_altitude = drive.terrain_driver.GetTerrainElevation(fss_latitude, fss_longitude)
+    fss_height_agl = fss_height - fss_altitude
+  else:
+    fss_height_agl = fss_height
+
+  fss_info = FssInformation(height_agl=fss_height_agl,
+                            max_gain_dbi=fss_max_gain_dbi,
+                            pointing_azimuth=fss_azimuth,
+                            pointing_elevation=fss_pointing_elevation)
+  fss_point = (fss_longitude, fss_latitude)
+
+  # Get the frequency range of the FSS
+  fss_deploy_params = fss_record['record']['deploymentParam'][0]['operationParam']
+  fss_low_freq = fss_deploy_params['operationFrequencyRange']['lowFrequency']
+  fss_high_freq = fss_deploy_params['operationFrequencyRange']['highFrequency']
+  fss_freq_range = (fss_low_freq, fss_high_freq)
+  return fss_point, fss_info, fss_freq_range
+
+
 def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
   """Constructs a |CbsdGrantInfo| tuple from the given data."""
   lat_cbsd = reg_request['installationParam']['latitude']
@@ -101,6 +146,11 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
     altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
     height_cbsd = height_cbsd - altitude_cbsd
 
+  max_eirp, low_frequency, high_frequency = None, None, None
+  if grant_request is not None:
+    max_eirp = grant_request['operationParam']['maxEirp'],
+    low_frequency = grant_request['operationParam']['operationFrequencyRange']['lowFrequency']
+    high_frequency = grant_request['operationParam']['operationFrequencyRange']['highFrequency']
   return CbsdGrantInfo(
       # Get information from the registration
       latitude=lat_cbsd,
@@ -111,9 +161,9 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
       antenna_gain=reg_request['installationParam']['antennaGain'],
       antenna_beamwidth=reg_request['installationParam']['antennaBeamwidth'],
       cbsd_category=reg_request['cbsdCategory'],
-      max_eirp=grant_request['operationParam']['maxEirp'],
-      low_frequency=grant_request['operationParam']['operationFrequencyRange']['lowFrequency'],
-      high_frequency=grant_request['operationParam']['operationFrequencyRange']['highFrequency'],
+      max_eirp=max_eirp,
+      low_frequency=low_frequency,
+      high_frequency=high_frequency,
       is_managed_grant=is_managing_sas)
 
 
@@ -148,7 +198,6 @@ def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True,
     ppa_record: A PPA record dictionary. If None, ignored. If set, the returned grants
       are not part of the PPA cluster list.
   """
-
   grant_objects = []
   if ppa_record is not None:
     cbsd_data_records = getCbsdsNotPartOfPpaCluster(cbsd_data_records, ppa_record)

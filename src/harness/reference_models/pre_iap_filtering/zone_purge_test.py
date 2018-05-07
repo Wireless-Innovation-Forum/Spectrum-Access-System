@@ -55,9 +55,14 @@ class TestZonePurge(unittest.TestCase):
      open(os.path.join('testdata', 'testset1', 'fss_0.json')))
    gwbl_record = json.load(
      open(os.path.join('testdata', 'testset1', 'gwbl_0.json')))
-    
-   ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record, pal_record_list,
-                                                                  'test_user_1')
+
+   pal_low_frequency = pal_record_0['channelAssignment']['primaryAssignment']['lowFrequency']
+   pal_high_frequency = pal_record_0['channelAssignment']['primaryAssignment']['highFrequency']
+   ppa_record, pal_records = makePpaAndPalRecordsConsistent(
+       ppa_record, pal_record_list,
+       pal_low_frequency,
+       pal_high_frequency,
+       'test_user_1')
    ppa_record['ppaInfo']['cbsdReferenceId'] = ["cbsd_5", "cbsd_3"]
    fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
    fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
@@ -98,6 +103,6 @@ class TestZonePurge(unittest.TestCase):
    print "===================================================================="
    self.assertLess(final_grants, initial_grants)
    # TODO: convert this in to proper unit test with assert
-  
+
 if __name__ == '__main__':
   unittest.main()

@@ -12,25 +12,23 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""This is the main Pre-IAP reference model which invokes the sub pre-IAP reference
-  models to filter out grants and CBSDs before IAP model is invoked.
-"""
-from reference_models.pre_iap_filtering import fss_purge
-import full_activity_dump
 import json
 import os
-from reference_models.pre_iap_filtering import pre_iap_util
-from reference_models.pre_iap_filtering import zone_purge
 import unittest
-from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+
+import full_activity_dump
 from util import makePpaAndPalRecordsConsistent
+from reference_models.pre_iap_filtering import fss_purge
+from reference_models.pre_iap_filtering import zone_purge
+from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+from reference_models.pre_iap_filtering import pre_iap_util
+
 
 class preIapFilteringTest(unittest.TestCase):
     """pre-IAP filtering unit tests."""
 
     def test_pre_iap_reference_model(self):
         """ The main function that invokes all pre-IAP filtering models."""
-        FSS_GWBL_PROTECTION_DISTANCE = 150
         cbsd_0 = json.load(
               open(os.path.join('testdata', 'cbsd_0.json')))
         cbsd_1 = json.load(
@@ -63,13 +61,19 @@ class preIapFilteringTest(unittest.TestCase):
                                  'MgBlocking': 2, 'MgOobe': 2, 'MgEsc': 2}
         pal_low_frequency = pal_record['channelAssignment']['primaryAssignment']['lowFrequency']
         pal_high_frequency = pal_record['channelAssignment']['primaryAssignment']['highFrequency']
-        ppa_record, pal_records = makePpaAndPalRecordsConsistent(ppa_record,
-                                                                     [pal_record],
-                                                                     'test_user_1')
+        ppa_record, pal_records = makePpaAndPalRecordsConsistent(
+            ppa_record,
+            [pal_record],
+            pal_low_frequency,
+            pal_high_frequency,
+            'test_user_1')
         sas_uut_fad = fd1
         sas_test_harness_fads = [fd2,fd3]
-        protected_entities = {'fssRecords':[fss_entity_0, fss_entity_1], 'gwpzRecords':[gwpz_record],
-            'gwblRecords':[gwbl_record], 'ppaRecords':[ppa_record], 'palRecords':pal_records}
+        protected_entities = {'fssRecords':[fss_entity_0, fss_entity_1],
+                              'gwpzRecords':[gwpz_record],
+                              'gwblRecords':[gwbl_record],
+                              'ppaRecords':[ppa_record],
+                              'palRecords':pal_records}
 
         print "================CBSD Grants passed as input======================"
         for records in sas_uut_fad.getCbsdRecords():
@@ -81,15 +85,18 @@ class preIapFilteringTest(unittest.TestCase):
                     print " ", json.dumps(grants['id'])
         print "===================================================================="
         # Invoke Inter SAS duplicate grant purge list reference model
-        inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel \
-            (sas_uut_fad, sas_test_harness_fads)
+        inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel(
+            sas_uut_fad, sas_test_harness_fads)
 
         # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
-        fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(protected_entities['gwblRecords']
-                                                                  , protected_entities['fssRecords'])
+        fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
+            protected_entities['gwblRecords'],
+            protected_entities['fssRecords'])
         zone_purge.zonePurgeReferenceModel(sas_uut_fad,
-                                           sas_test_harness_fads, protected_entities['ppaRecords'],
-                                           protected_entities['palRecords'], protected_entities['gwpzRecords'],
+                                           sas_test_harness_fads,
+                                           protected_entities['ppaRecords'],
+                                           protected_entities['palRecords'],
+                                           protected_entities['gwpzRecords'],
                                            fss_neighboring_gwbl)
 
         # Invoke FSS purge list reference model

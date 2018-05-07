@@ -20,6 +20,7 @@
                       "latitude": 40.50084,
                       "longitude": -101.50174,
                       "height": 3,
+		      "heightType": "AGL",
                       "indoorDeployment": true,
                       "antennaAzimuth": 72,
                       "antennaDowntilt": 3,

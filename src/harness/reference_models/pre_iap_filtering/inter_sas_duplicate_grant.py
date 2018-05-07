@@ -12,27 +12,25 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""
-==================================================================================
-  This is a subset of the pre-IAP reference model which implements inter-SAS
-  duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
-  CBSD is removed from the FAD objects of the respective SASs. The main function
-  is interSasDuplicateGrantPurgeReferenceModel().
-==================================================================================
+"""Inter-SAS Duplicate Grants removal.
+
+This is a subset of the pre-IAP reference model which implements inter-SAS
+duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
+CBSD is removed from the FAD objects of the respective SASs.
 """
 
 from collections import defaultdict
 
+
 def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads):
-  """ Removes CBSDs with grants from more than one SAS from FAD objects of SAS UUT 
-  and SAS test harnesses.
+  """ Removes CBSDs with grants from more than one SAS from FAD objects.
 
   Checks if a CBSD is registered with more than one SAS and removes the CBSD from
-  all the FAD objects of all SASs.
+  all the FAD objects of all SASs (SAS UUT and SAS Test Harnesses).
 
   Args:
-    sas_uut_fad: A FullActivityDump object containing the FAD records of SAS UUT.
-    sas_test_harness_fads: A list of FullActivityDump objects containing the FAD records
+    sas_uut_fad: A |FullActivityDump| object containing the FAD records of SAS UUT.
+    sas_test_harness_fads: A list of |FullActivityDump| objects containing the FAD records
       from SAS test harnesses.
   """
   # Get all the CBSD Reference ID of all CBSDs from UUT and SAS test Harness FAD objects
@@ -42,9 +40,9 @@ def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads
   for fad in sas_test_harness_fads:
     for cbsd in fad.getCbsdRecords():
       cbsd_id_counts[cbsd['id']] += 1
-  cbsds_to_keep = []
 
   # Iterate through the UUT CBSD list and keep only the non duplicate CBSDs
+  cbsds_to_keep = []
   for cbsd in sas_uut_fad.getCbsdRecords():
     if cbsd_id_counts[cbsd['id']] == 1:
       cbsds_to_keep.append(cbsd)
@@ -57,4 +55,3 @@ def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads
       if cbsd_id_counts[cbsd['id']] == 1:
         cbsds_to_keep.append(cbsd)
     fad.setCbsdRecords(cbsds_to_keep)
-

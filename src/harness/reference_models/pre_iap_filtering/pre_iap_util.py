@@ -17,65 +17,67 @@ from reference_models.geo import vincenty
 from sas_test_harness import generateCbsdReferenceId
 from reference_models.geo import utils
 
-FSS_GWBL_PROTECTION_DISTANCE = 150
+# GWBL parameters
+FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650e6,
+                                  'highFrequency': 3700e6}
+FSS_GWBL_PROTECTION_DISTANCE_KM = 150
 
 
 def purgeOverlappingGrants(cbsds, frequency_range):
   """Removes Grants from CBSDs that overlap with the given frequency range.
 
   Args:
-  cbsds: List of CbsdData objects. Grants are removed from the input.
-  frequency_range: A dictionary with keys 'lowFrequency' and 'highFrequency'
+    cbsds: List of |CbsdData| objects. Grants are removed from the input.
+    frequency_range: The frequency range in Hz as a dictionary with keys
+       'lowFrequency' and 'highFrequency'.
   """
   for cbsd in cbsds:
     cbsd['grants'] = [grant for grant in cbsd['grants']
-                            if not checkForOverlappingGrants(grant, frequency_range)]
+                      if not checkForOverlappingGrants(grant, frequency_range)]
+
 
 def checkForOverlappingGrants(grant, frequency_range):
-  """Check if a grant overlaps with a given frequency range
+  """Returns True if a grant overlaps with a given frequency range.
 
   If the lowFrequency or the highFrequency of the grant falls within the
   low and high frequencies of the given range then the grant is considered
   to be overlapping.
+
   Args:
-    grant: A GrantData object dictionary defined in SAS-SAS spec
-    frequency_range: A dictionary with keys 'lowFrequency' and 'highFrequency'
-  Returns:
-    True if the grant overlaps else False
+    grant: A |GrantData| object dictionary defined in SAS-SAS spec
+    frequency_range: The frequency range in Hz as a dictionary with keys
+       'lowFrequency' and 'highFrequency'.
   """
   low_frequency_cbsd = grant['operationParam']['operationFrequencyRange']['lowFrequency']
   high_frequency_cbsd = grant['operationParam']['operationFrequencyRange']['highFrequency']
   low_frequency = frequency_range['lowFrequency']
   high_frequency = frequency_range['highFrequency']
-  if (low_frequency_cbsd <= low_frequency < high_frequency_cbsd) or \
-     (low_frequency_cbsd < high_frequency <= high_frequency_cbsd):
-      return True
-  return False
+  return ((low_frequency_cbsd <= low_frequency < high_frequency_cbsd) or
+          (low_frequency_cbsd < high_frequency <= high_frequency_cbsd))
 
 
 def getCbsdsWithinPolygon(cbsds, polygon):
-  """Get the list of all CBSDs that are present within the polygon or on the 
-  boundary of the Polygon
+  """Returns the list of all CBSDs within a polygon protection area.
+
+  The returned CBSDs can lie either within the polygon or on its boundary.
 
   Args:
-    cbsds: List of CbsdData dictionaries as defined in the SAS-SAS specification.
+    cbsds: List of |CbsdData| dictionaries as defined in the SAS-SAS specification.
     polygon: A GeoJSON object containing polygon information.
-  Returns:
-    List of CBSDs lying within or on the boundary of the protectionn area.
-  """ 
+  """
   cbsds_within_polygon = []
   polygon = utils.ToShapely(polygon['features'][0]['geometry'])
   for cbsd in cbsds:
     if not cbsd['grants']:
       continue
     cbsd_lat = cbsd['registrationRequest']['installationParam']['latitude']
-    cbsd_long = cbsd['registrationRequest']['installationParam']['longitude']
-    point = sgeo.Point(cbsd_long, cbsd_lat)
-
+    cbsd_lon = cbsd['registrationRequest']['installationParam']['longitude']
+    point = sgeo.Point(cbsd_lon, cbsd_lat)
     # If the CBSD is within the polygon and has grants then add it to the list
     # TODO: check the need for touches() check
     if (polygon.contains(point) or polygon.touches(point)):
       cbsds_within_polygon.append(cbsd)
+
   return cbsds_within_polygon
 
 
@@ -84,13 +86,15 @@ def getPpaFrequencyRange(ppa_record, pal_records):
 
   The first PAL ID is retrieved from the PPA information and the primary frequency
   assignment of that PAL ID is returned as the PPA frequency range.
+
   Args:
     ppa_record: A PPA record dictionary.
     pal_records: List of PAL record dictionaries.
   Returns:
-    Operating frequency range of PPA.
+    The operating frequency range of PPA as a dictionary with keys:
+      'lowFrequency', 'highFrequency'
   Raises:
-    Exception: If the PAL records not found for PPA or if the frequency range in all
+    ValueError: If the PAL records not found for PPA or if the frequency range in all
       PAL records are not same for PPA.
   """
   pal_frequencies = []
@@ -105,61 +109,78 @@ def getPpaFrequencyRange(ppa_record, pal_records):
         break
     else:
       # Raise an exception if no matching PAL ID is found
-      raise Exception('PAL record %s not found for PPA ID %s' %(pal_record['palId'], ppa_record['id']))
+      raise ValueError('PAL record %s not found for PPA ID %s' % (
+          pal_record['palId'], ppa_record['id']))
 
   # Compare the frequencies of all the PAL records of the PPA
   for pal_frequency in pal_frequencies:
     if pal_frequency != pal_frequencies[0]:
-      # If the frequency of the PAL records are not matching raise an exception
-      raise Exception('The frequency range in all PAL records are not same for PPA ID %s' %ppa_record['id'])
+      # If the frequency of the PAL records are not matching, raise an exception
+      raise ValueError('The frequency range in all PAL'
+                      'records are not same for PPA ID %s' % ppa_record['id'])
 
   # Return the first frequency range of the first matching PAL ID
   return pal_frequencies[0]
 
-def getFssNeighboringCbsdsWithGrants(cbsds, fss_record, distance):
-  """Get the list of all CBSDs that lie within 150 KMs of FSS and have at least one grant.
+
+def getFssNeighboringCbsdsWithGrants(cbsds, fss_point,
+                                     distance_km=FSS_GWBL_PROTECTION_DISTANCE_KM):
+  """Returns the list of all CBSDs in the neighborhood of a FSS.
+
+  The neighborhood is typically defined by all CBSD within 150 KMs and having
+  at least one grant.
 
   Args:
-    cbsds :  List of CbsdData dictionaries as defined in the SAS-SAS specification.
-    fss_record: A FSS record dictionary.
+    cbsds :  List of |CbsdData| dictionaries as defined in the SAS-SAS specification.
+    fss_point: A tuple (longitude, latitude) of the FSS location.
+    distance_km: The neighboring distance (km).
   """
-
   neighboring_cbsds_with_grants = []
   for cbsd in cbsds:
     if not cbsd['grants']:
       continue
-    distance_km, _, _ = vincenty.GeodesicDistanceBearing(
-        fss_record['record']['deploymentParam'][0]['installationParam']['latitude'],
-        fss_record['record']['deploymentParam'][0]['installationParam']['longitude'],
+    distance, _, _ = vincenty.GeodesicDistanceBearing(
+        fss_point[1],
+        fss_point[0],
         cbsd['registrationRequest']['installationParam']['latitude'],
         cbsd['registrationRequest']['installationParam']['longitude'])
     # Get the list of cbsds that are within 150kms from the FSS entity
-    if distance_km <= distance and cbsd['grants']:
+    if distance <= distance_km and cbsd['grants']:
         neighboring_cbsds_with_grants.append(cbsd)
   return neighboring_cbsds_with_grants
 
 
-def getFssNeighboringGwbl(gwbl_records, fss_records): 
+def getFssNeighboringGwbl(gwbl_records, fss_records):
   """Returns the list of all FSS within 150km of GWBL and operating below 3700MHz.
-  Args:
-    fss_records:  List of FSS records dictionary.
-    gwbl_records: List of GWBL record dictionary.
-  """
 
+  Args:
+    gwbl_records: List of GWBL record dictionaries.
+    fss_records: List of FSS records dictionaries.
+  """
   list_of_fss_neighboring_gwbl = []
+  gwbl_locations = [
+      (gwbl_record['record']['deploymentParam'][0]['installationParam']['longitude'],
+       gwbl_record['record']['deploymentParam'][0]['installationParam']['latitude'])
+      for gwbl_record in gwbl_records]
+
   for fss_record in fss_records:
-    for gwbl_record in gwbl_records:
-      if (fss_record['record']['deploymentParam'][0]
-           ['operationParam']['operationFrequencyRange']['highFrequency'] >= 3700000000):
-        continue
+    fss_params = fss_record['record']['deploymentParam'][0]
+    fss_high_freq = fss_params['operationParam']['operationFrequencyRange']['highFrequency']
+    if fss_high_freq >= 3700e6:
+      continue
+    fss_latitude = fss_params['installationParam']['latitude']
+    fss_longitude = fss_params['installationParam']['longitude']
+    for gwbl_longitude, gwbl_latitude in gwbl_locations:
+      # TODO: If speed limiting, quick filtering to speed up things with approx dist bound.
+      # Exact distance filtering
       # Get the distance of the FSS entity from the GWBL polygon
-      distance_km, _, _ = vincenty.GeodesicDistanceBearing(
-          fss_record['record']['deploymentParam'][0]['installationParam']['latitude'],
-          fss_record['record']['deploymentParam'][0]['installationParam']['longitude'],
-          gwbl_record['record']['deploymentParam'][0]['installationParam']['latitude'],
-          gwbl_record['record']['deploymentParam'][0]['installationParam']['longitude']) 
+      distance, _, _ = vincenty.GeodesicDistanceBearing(
+          fss_latitude,
+          fss_longitude,
+          gwbl_latitude,
+          gwbl_longitude)
       # Get the list of FSS entity that are 150kms from the GWBL area
-      if distance_km <= FSS_GWBL_PROTECTION_DISTANCE:
+      if distance <= FSS_GWBL_PROTECTION_DISTANCE_KM:
         list_of_fss_neighboring_gwbl.append(fss_record)
         break
   return list_of_fss_neighboring_gwbl
@@ -169,12 +190,11 @@ def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
   """Returns the CBSDs that are not part of a PPA cluster list.
 
   Args:
-    cbsds: List of CbsdData objects.
+    cbsds: List of |CbsdData| objects.
     ppa_record: A PPA record dictionary.
   Returns:
     List of CBSDs that are not part of the PPA cluster list.
   """
-
   cbsds_not_part_of_ppa_cluster = []
   # Compare the list of CBSDs with the PPA cluster list
   for cbsd in cbsds:
