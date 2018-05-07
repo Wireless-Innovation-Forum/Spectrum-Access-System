@@ -229,6 +229,10 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 1
     cbsd_fad_records_iteration_1_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
+    
+    sas_config = {
+        'serverCert': os.path.join('certs', 'server.cert'),
+        'serverKey': os.path.join('certs', 'server.key')}
 
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
@@ -291,6 +295,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     }
     config = {
         'conditionalRegistrationData': conditionals,
+        'sasConfig': sas_config,
         'iterationData': [iteration0_config, iteration1_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
@@ -322,7 +327,9 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     """
     sas_test_harness_objects = []
     domain_proxy_objects = []
-    
+   
+    sas_info = config['sasConfig']
+
     # Load conditionals
     if config['conditionalRegistrationData']:
       self._sas_admin.PreloadRegistrationData({
@@ -360,7 +367,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     # Step 4,5 : Inject IAP protected entities into UUT
     for iteration_content in config['iterationData']:
       # Execute steps for single iteration
-      self.executeSingleMCPIteration(test_type, iteration_content, sas_test_harness_objects, 
+      self.executeSingleMCPIteration(test_type, iteration_content, sas_info, sas_test_harness_objects, 
                                      domain_proxy_objects)
     
     # Stopping Test harness servers
@@ -572,7 +579,7 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
         })
     return cbsd_records
 
-  def executeSingleMCPIteration(self, test_type, iteration_content, sas_test_harness_objects,
+  def executeSingleMCPIteration(self, test_type, iteration_content, sas_info, sas_test_harness_objects,
                                                           domain_proxy_objects):
     """Executes the steps from Step1 to Step22 for MCP and XPR testcases
 
@@ -606,9 +613,12 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     fad_test_harnesses_objects = []
+    
     if iteration_content['sasTestHarnessData']:
       fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                                 self._sas_admin)
+                                                 self._sas_admin,
+                                                 sas_info['serverCert'],
+                                                 sas_info['serverKey'])
 
       # Pull FAD from SAS Test Harnesses and fad objects are created for each SAS Test Harnesses
       for test_harness in sas_test_harness_objects:
@@ -663,10 +673,12 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     for test_harness, test_harness_data in zip(sas_test_harness_objects, iteration_content['sasTestHarnessData']):
       sas_test_harness_dump_records = [test_harness_data['cbsdRecords']]
       test_harness.writeFadRecords(sas_test_harness_dump_records)
-
+    
     # Step 14,15 : Trigger Full Activty Dump and Pull FAD records from SAS UUT
-    fad_uut_object = getFullActivityDumpSasUut(self._sas,
-                                               self._sas_admin)
+    fad_uut_object = getFullActivityDumpSasUut(self._sas, 
+                                            self._sas_admin,
+                                            sas_info['serverCert'],
+                                            sas_info['serverKey'])
 
     # Step 16 : Trigger CPAS and wait for its completion
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
