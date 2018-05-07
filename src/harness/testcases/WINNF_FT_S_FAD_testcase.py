@@ -479,8 +479,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Get a latitude and longitude within 40 kms from ESC.
     latitude, longitude, _ = vincenty.GeodesicPoint(esc_sensor['installationParam']['latitude'],
                                                     esc_sensor['installationParam']['longitude'],
-                                                    15,
-                                                    30)  # distance of 15 kms from ESC at 30 degrees
+                                                    0.1,
+                                                    30)  # distance of 0.1 km from ESC at 30 degrees
 
     # Load the device_c1 in the neighborhood area of the ESC sensor
     device_c1['installationParam']['latitude'] = latitude
@@ -511,7 +511,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Load the device_c3 in the neighborhood area of the PPA
     device_c3['installationParam']['latitude'] = 38.821322
-    device_c3['installationParam']['longitude'] = -97.282813
+    device_c3['installationParam']['longitude'] = -97.280040
 
     # Load grant request for device_c3 in SAS Test Harness
     grant_g3 = json.load(
@@ -529,8 +529,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Get a latitude and longitude within 40 kms from ESC.
     latitude, longitude, _ = vincenty.GeodesicPoint(esc_sensor['installationParam']['latitude'],
-                                         esc_sensor['installationParam']['longitude'], 20,
-                                         30)  # distance of 20 kms from ESC at 30 degrees
+                                         esc_sensor['installationParam']['longitude'], 0.1,
+                                         30)  # distance of 0.1 km from ESC at 30 degrees
 
     device_c2['installationParam']['latitude'] = latitude
     device_c2['installationParam']['longitude'] = longitude
@@ -560,7 +560,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Move device_c4 in the neighborhood area of the PPA
     device_c4['installationParam']['latitude'] = 38.805335
-    device_c4['installationParam']['longitude'] = -97.307623
+    device_c4['installationParam']['longitude'] = -97.289500
 
     # Creating conditionals for Cat B devices.
     self.assertEqual(device_c4['cbsdCategory'], 'B')
