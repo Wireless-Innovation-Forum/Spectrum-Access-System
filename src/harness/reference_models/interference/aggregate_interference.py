@@ -57,6 +57,7 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list):
   Args:
     fss_record: FSS co-channel protection entity
     cbsd_list: list of CBSD objects containing registrations and grants
+
   Returns:
     Aggregate interference to FSS co-channel in the nested dictionary format.
       {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}

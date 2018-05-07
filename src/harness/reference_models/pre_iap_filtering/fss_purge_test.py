@@ -18,10 +18,12 @@ import unittest
 import full_activity_dump
 import fss_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+
+
 class TestFssPurge(unittest.TestCase):
 
   def test_fss_purge_default(self):
-    
+
    # TEST DATA
    cbsd_0 = json.load(
      open(os.path.join('testdata', 'testset2', 'cbsd_0.json')))
@@ -37,14 +39,14 @@ class TestFssPurge(unittest.TestCase):
      open(os.path.join('testdata', 'testset2', 'cbsd_5.json')))
    fss_entity = json.load(
      open(os.path.join('testdata', 'testset2', 'fss_record_0.json')))
-   
+
    fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
    fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
    fad_object_3 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_4, cbsd_5]})
    protected_entities = [{'fssRecords':[fss_entity]}]
    sas_uut_fad_object = fad_object_1
    sas_test_harness_fad_object = [fad_object_2, fad_object_3]
- 
+
    print "================CBSD Grants passed as input======================"
    for records in sas_uut_fad_object.getCbsdRecords():
     for grants in records['grants']:
@@ -68,6 +70,7 @@ class TestFssPurge(unittest.TestCase):
         for grants in rec['grants']:
           print " ",json.dumps(grants['id'])
    print "===================================================================="
+
 
 if __name__ == '__main__':
   unittest.main()
