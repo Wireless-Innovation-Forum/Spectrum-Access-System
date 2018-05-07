@@ -149,11 +149,12 @@ int main() {
       double dbloss = 0;
       int errnum = -100;
       char strmode[1000];
+      double ver0, ver1;
 
       point_to_point(elev, 143.9, 8.5, 15, .005, 314, 41.5,
                      RADIO_CLIMATE_CONTINENTAL_TEMPERATE, POL_HORIZONTAL,
                      conf, rel, 12, true,
-                     dbloss, strmode, errnum);
+                     dbloss, strmode, errnum, ver0, ver1);
 
       std::cout << "rel=" << rel << " conf=" << conf << std::endl;
       std::cout << strmode << std::endl;
@@ -187,11 +188,12 @@ int main() {
       double dbloss = 0;
       int errnum = -100;
       char strmode[1000];
+      double ver0, ver1;
 
       point_to_point(elev, 194.0, 9.1, 15, .005, 314, 573.3,
                      RADIO_CLIMATE_CONTINENTAL_TEMPERATE, POL_HORIZONTAL,
                      conf, rel, 12, true,
-                     dbloss, strmode, errnum);
+                     dbloss, strmode, errnum, ver0, ver1);
 
       std::cout << "rel=" << rel << " conf=" << conf << std::endl;
       std::cout << strmode << std::endl;

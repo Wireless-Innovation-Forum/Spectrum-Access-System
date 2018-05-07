@@ -562,8 +562,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load devices info
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # Load grant requests
     grant_g_a = json.load(
@@ -576,45 +574,39 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'E000306' which is 3625-3700 MHz.
-    grant_g_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3660000000,
-        'highFrequency': 3670000000
+
+    device_a['installationParam']['latitude'] = 39.353414,
+    device_a['installationParam']['longitude'] = -100.195313
+
+    # Pre-load conditionals and remove reg conditional fields from registration
+    # request.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_a = {key: device_a[key] for key in conditional_keys}
+    device_a = {
+        key: device_a[key]
+        for key in device_a
+        if key not in reg_conditional_keys
     }
 
-    # Update the location 'X' of CBSD devices to be near FSS sites
-    # 'KA413' at Albright,WV
-    device_a['installationParam']['latitude'] = 39.57327
-    device_a['installationParam']['longitude'] = -79.61903
-
-    # 'E000306' at Andover,ME
-    device_b['installationParam']['latitude'] = 44.63367
-    device_b['installationParam']['longitude'] = -70.69758
-
-    # Creating conditionals for Cat B devices
-    self.assertEqual(device_b['cbsdCategory'], 'B')
-    conditionals_b = {
-        'cbsdCategory': device_b['cbsdCategory'],
-        'fccId': device_b['fccId'],
-        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-        'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam'],
-        'measCapability': device_b['measCapability']
+    fss_database_config = {
+        'hostName': 'localhost',
+        'port': 8003,
+        'fileUrl': '/rest/fss/v1/allsitedata',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_allsitedata')
     }
-    del device_b['cbsdCategory']
-    del device_b['airInterface']
-    del device_b['installationParam']
-    del device_b['measCapability']
-
-    conditionals = [conditionals_b]
 
     # Create the actual config.
     config = {
-        'registrationRequests': [device_a, device_b],
-        'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations.
+        'registrationRequests': [device_a],
+        'grantRequests': [grant_g_a],
+        'conditionalRegistrationData': [conditionals_a],
+        'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
 
@@ -642,8 +634,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                     grant_request_g,
                                     config['conditionalRegistrationData'])
 
-    # TODO
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
+    fss_database = DatabaseServer(
+        'FSS Database',
+        config['fss_database_config']['hostName'],
+        config['fss_database_config']['port'],
+        authorization=True)
+    fss_database.setFileToServe(
+        config['fss_database_config']['fileUrl'],
+        config['fss_database_config']['filePath'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1468,7 +1467,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # wait till scheduled CPAS starts
     scheduled_cpas_start_time = datetime.combine(current_time.date(), time(CPAS_START_TIME))
 
-    # Scheduled CPAS start time is made consistent with the CPAS_TIME_ZONE  
+    # Scheduled CPAS start time is made consistent with the CPAS_TIME_ZONE
     scheduled_cpas_start_time = scheduled_cpas_start_time.replace(tzinfo=timezone(CPAS_TIME_ZONE))
 
     if scheduled_cpas_start_time < current_time:

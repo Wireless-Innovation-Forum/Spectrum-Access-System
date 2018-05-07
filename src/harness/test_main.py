@@ -15,6 +15,9 @@ import logging
 import sys
 import unittest
 
+from reference_models.common import mpool
+
+
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(
@@ -23,6 +26,17 @@ handler.setFormatter(
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
+
 if __name__ == '__main__':
+  # Configure the multiprocessing worker pool.
+  # Your options are:
+  #   0: single process (default if not called)
+  #  -1: use half of the cpus
+  #  -2: use all cpus (minus one)
+  #  a specific number of cpus
+  # Or your own `pool`.
+  mpool.Configure(num_processes=-2)
+
+  # Run the tests
   tests = unittest.TestLoader().discover('testcases', '*_testcase.py')
   unittest.TextTestRunner(verbosity=2).run(tests)

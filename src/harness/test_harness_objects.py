@@ -16,6 +16,7 @@
    Mainly used in MCP and related test cases."""
 import logging
 import sas
+import math
 from common_types import ResponseCodes
 
 class Grant(object):
@@ -173,14 +174,8 @@ class DomainProxy(object):
     for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):
       grant_request['cbsdId'] = cbsd_id
 
-    # Wrapped version of the grant requests.
-    grant_requests_wrap = {
-      'grantRequest': grant_requests
-    }
-
     #perform grant operation.
-    grant_responses = self.testcase._sas.Grant(grant_requests_wrap,
-                                               self.ssl_cert, self.ssl_key)['grantResponse']
+    grant_responses = self._grantRequestWithMaximumBatchSize(grant_requests)
 
     # Check the length of grant responses is the same as grant requests.
     self.testcase.assertEqual(len(grant_responses), len(grant_requests))
@@ -302,11 +297,7 @@ class DomainProxy(object):
 
     # Perform relinquishment since operation param present in heartbeat response.
     if len(relinquishment_requests):
-      relinquishment_requests_wrap = {
-        'relinquishmentRequest': relinquishment_requests
-      }
-      relinquishment_responses = self.testcase._sas.Relinquishment(relinquishment_requests_wrap,
-                                        self.ssl_cert, self.ssl_key)['relinquishmentResponse']
+      relinquishment_responses = _relinquishmentRequestWithMaximumBatchSize(relinquishment_requests)
 
       # Check the length of relinquishment responses is the same as relinquishment request.
       self.testcase.assertEqual(len(relinquishment_responses), len(relinquishment_requests))
@@ -321,12 +312,8 @@ class DomainProxy(object):
 
     # Check if any grant request need to be sent.
     if len(grant_requests):
-      grant_requests_wrap = {
-        'grantRequest': grant_requests
-      }
       # Perform Grant for relinquished grants.
-      grant_responses = self.testcase._sas.Grant(grant_requests_wrap,
-                                                 self.ssl_cert, self.ssl_key)['grantResponse']
+      grant_responses = self._grantRequestWithMaximumBatchSize(grant_requests)
 
       # Check the length of grant responses is the same as grant requests.
       self.testcase.assertEqual(len(grant_responses), len(grant_requests))
@@ -351,3 +338,41 @@ class DomainProxy(object):
       if cbsd_object.hasAuthorizedGrant():
         cbsd_objects.append(cbsd_object)
     return cbsd_objects
+
+  def _grantRequestWithMaximumBatchSize(self, grant_requests):
+    """Sends grant requests in batches up to the maximum batch size.
+
+    Args:
+      grant_requests: All grant requests we wish to send.
+    Returns:
+      The grant responses for each grant_request.
+    """
+    grant_responses = []
+    maximum_batch_size = self.testcase._sas.maximum_batch_size
+    for iteration in range(0, int(math.ceil(len(grant_requests)/float(maximum_batch_size)))):
+      grant_request_block = grant_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
+      # Wrapped version of the grant requests.
+      grant_requests_wrap = {
+        'grantRequest': grant_request_block
+      }
+      grant_responses.extend(self.testcase._sas.Grant(grant_requests_wrap, self.ssl_cert, self.ssl_key)['grantResponse'])
+    return grant_responses
+
+  def _relinquishmentRequestWithMaximumBatchSize(self, relinquishment_requests):
+    """Sends relinquishment requests in batches up to the maximum batch size.
+
+    Args:
+      relinquishment_requests: All relinquishment requests we wish to send.
+    Returns:
+      The relinquishment responses for each relinquishment_request.
+    """
+    relinquishment_responses = []
+    maximum_batch_size = self.testcase._sas.maximum_batch_size
+    for iteration in range(0, int(math.ceil(len(relinquishment_requests)/float(maximum_batch_size)))):
+      relinquishment_request_block = relinquishment_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
+      # Wrapped version of the grant requests.
+      relinquishment_requests_wrap = {
+        'relinquishmentRequest': relinquishment_request_block
+      }
+      relinquishment_responses.extend(self.testcase._sas.Relinquishment(relinquishment_requests_wrap, self.ssl_cert, self.ssl_key)['relinquishmentResponse'])
+    return relinquishment_responses

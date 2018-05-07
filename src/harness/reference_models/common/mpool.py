@@ -34,29 +34,35 @@ import multiprocessing
 
 
 class _DummyPool(object):
-  """A dummy pool for replacement of concurrent.futures.ProcessPoolExecutor."""
+  """A dummy pool for replacement of `multiprocessing.Pool`
+
+  Using single process. Implements `map` and `apply_async`.
+  """
   _max_workers = 1
   def map(self, fn, iterable, chunksize=None):
     return map(fn, iterable)
 
-  def submit(self, fn, *args, **kwargs):
+  def apply_async(self, fn, args=(), kwds={}, callback=None):
     class Result(object):
       def __init__(self, result):
         self._result = result
-      def result(self):
+      def get(self, timeout):
         return self._result
-      def done(self):
+      def wait(self, timeout):
+        return
+      def ready(self):
         return True
-      def running(self):
-        return False
-      def cancel(self):
-        return False
-      def cancelled(self):
-        return False
+      def successful(self):
+        return True
+    result = Result(fn(*args, **kwargs))
+    if callback is not None:
+      callback(result.get())
+    return result
 
-    future = Result(fn(*args, **kwargs))
-    return future
-
+  def close(self):
+    return
+  def join(self):
+    return
 
 # The global pool
 _pool = _DummyPool()
@@ -66,6 +72,13 @@ _num_processes = 0
 
 # External interface
 def Pool():
+  """Returns the worker pool.
+
+  It supports routines:
+    map()
+    apply_async()
+  And other `multiprocessing.Pool` routines if not a dummy pool.
+  """
   return _pool
 
 def Configure(num_processes=-1, pool=None):
@@ -76,9 +89,11 @@ def Configure(num_processes=-1, pool=None):
   or inside a block `if __name__ == '__main__':`.
 
   Args:
-    num_processes: The number of processes to use for the calculation, limited to the
-      maximum number of cpus available.
-      If -1, use half of the cpus. If -2, use all the cpus.
+    num_processes: The number of processes to use for the calculation,
+      limited to the maximum number of cpus available. Special values:
+         0: use no multiprocessing (dummy pool).
+        -1: use half of the cpus
+        -2: use all the available cpus (minus one).
       Only used when `pool` not specified.
     pool: An optional multiprocessing |Pool|. If not specified, a pool will be
       automatically created with `num_processes`.
@@ -88,11 +103,18 @@ def Configure(num_processes=-1, pool=None):
   if pool is not None:
     _pool = pool
   else:
+    # Dummy pool with no multiprocessing
+    if num_processes == 0:
+      _pool = _DummyPool()
+      _num_processes = 0
+      return
+    # Actual multiprocessing pool of workers
     num_cpus = multiprocessing.cpu_count()
     if num_processes == -1:
       num_processes = num_cpus / 2
     elif num_processes < 0:
-      num_processes = num_cpus
+      # Always reserve 1 for other things (multiprocessing Manager for ex)
+      num_processes = num_cpus - 1
     if num_processes > num_cpus:
       num_processes = num_cpus
     if pool is None or num_processes != _num_processes:

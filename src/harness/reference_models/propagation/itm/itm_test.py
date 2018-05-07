@@ -13,7 +13,6 @@
 #    limitations under the License.
 
 import numpy as np
-import random
 import unittest
 
 from reference_models.propagation.itm import itm
@@ -95,6 +94,81 @@ PROFILE = [156, 77800./156.,
            137., 140., 144., 147., 150., 152., 159.,
 ]
 
+# Utility function to compute the vertical incidence angles at CBSD and Rx
+# This code is derived from the qlrps() routine in itm.py, as specified
+# in R2-SGN-21.
+# NOTE:
+#   This routine was initially used in the Winnforum ITM model, before replacement by
+#   the angles directly calculated by the hzns() routine it used to replicate.
+#   Keeping it as part of a unit test just for non regression test purposes.
+def _GetHorizonAnglesLegacy(its_elev, height_cbsd, height_rx, refractivity):
+  """Gets the horizon angles given a terrain profile.
+
+  Derived from ITM hzns() routine as specified in R2-SGN-21.
+
+  Inputs:
+    its_elev:   Terrain profile in ITM format
+                  - pfl[0] = number of terrain points + 1
+                  - pfl[1] = step size, in meters
+                  - pfl[i] = elevation above mean sea level, in meters
+    height_cbsd:Height of the CBSD
+    height_rx:  Height of the reception point
+
+  Returns:
+    a tuple of:
+      ver_cbsd:      Vertical incidence angle. Positive value means upwards.
+      ver_rx:        Vertical incidence angle. Positive value means upwards.
+      hor_dist_cbsd: Horizon distance from CBSD (ie diffraction edge)
+      hor_dist_rx:   Horizon distance from Rx (ie diffraction edge).
+  """
+  num_points = int(its_elev[0])
+  step = its_elev[1]
+  dist = num_points * step
+
+  # Find the refractivity at the average terrain height
+  start_avg = int(3.0 + 0.1 * num_points)
+  end_avg = num_points - start_avg + 6
+  zsys = np.mean(its_elev[start_avg-1:end_avg])
+  refractivity *= np.exp(-zsys/9460.0)
+
+  # Find the ray down-curvature per meter
+  gma = 157e-9
+  gme = gma*(1.0 - 0.04665 * np.exp(refractivity/179.3))
+
+  alt_cbsd = its_elev[2] + height_cbsd
+  alt_rx = its_elev[num_points+2] + height_rx
+  qc = 0.5 * gme
+  q = qc * dist
+  # theta0 and theta1 the slopes, dl0 and dl1 the horizon distances
+  theta1 = (alt_rx - alt_cbsd) / dist
+  theta0 = theta1 - q
+  theta1 = -theta1 - q
+  dl0 = dist
+  dl1 = dist
+
+  if num_points >= 2:
+    sa = 0.0
+    sb = dist
+    wq = True
+    for i in range(1, num_points):
+      sa += step
+      sb -= step
+      q = its_elev[i+2] - (qc*sa + theta0) * sa - alt_cbsd
+      if q > 0.0:
+        theta0 += q/sa
+        dl0 = sa
+        wq = False
+      if not wq:
+        q = its_elev[i+2] - (qc*sb + theta1) * sb - alt_rx
+        if q > 0.0:
+          theta1 += q/sb
+          dl1 = sb
+
+  return (np.arctan(theta0) * 180/np.pi,
+          np.arctan(theta1) * 180/np.pi,
+          dl0,
+          dl1)
+
 
 class TestItm(unittest.TestCase):
 
@@ -119,7 +193,7 @@ class TestItm(unittest.TestCase):
     k = 0
     for reliability in reliability_vals:
       for confidence in confidence_vals:
-        loss, err, mode = itm.point_to_point(PROFILE, height1, height2,
+        loss, ver0, ver1, err, mode = itm.point_to_point(PROFILE, height1, height2,
                                              dielectric, .005, refractivity,
                                              frequency, climate, polarization,
                                              confidence, reliability,
@@ -149,7 +223,7 @@ class TestItm(unittest.TestCase):
     k = 0
     for reliability in reliability_vals:
       for confidence in confidence_vals:
-        loss, err, mode = itm.point_to_point(PROFILE, height1, height2,
+        loss, ver0, ver1, err, mode = itm.point_to_point(PROFILE, height1, height2,
                                              dielectric, .005, refractivity,
                                              frequency, climate, polarization,
                                              confidence, reliability,  mdvar,
@@ -172,12 +246,12 @@ class TestItm(unittest.TestCase):
     mdvar = 12
     refractivity_final = False
 
-    loss1, _, _ = itm.point_to_point(PROFILE, height1, height2,
+    loss1, _, _, _, _ = itm.point_to_point(PROFILE, height1, height2,
                                      dielectric, .005, refractivity,
                                      frequency, climate, polarization,
                                      confidence, reliability,
                                      mdvar, refractivity_final)
-    loss2, _, _ = itm.point_to_point(PROFILE, height1, height2,
+    loss2, _, _, _, _ = itm.point_to_point(PROFILE, height1, height2,
                                      dielectric, .005, refractivity,
                                      frequency, climate, polarization,
                                      confidence, reliability)
@@ -198,18 +272,46 @@ class TestItm(unittest.TestCase):
     refractivity_final = False
 
     reliabilities = np.arange(0.1, 1.0, 0.1)
-    losses, _, _ = itm.point_to_point(PROFILE, height1, height2,
+    losses, _, _, _, _ = itm.point_to_point(PROFILE, height1, height2,
                                       dielectric, .005, refractivity,
                                       frequency, climate, polarization,
                                       confidence, reliabilities)
     self.assertEqual(len(losses), len(reliabilities))
 
     for rel, exp_loss in zip(reliabilities, losses):
-      loss, _, _ = itm.point_to_point(PROFILE, height1, height2,
+      loss, _, _, _, _ = itm.point_to_point(PROFILE, height1, height2,
                                       dielectric, .005, refractivity,
                                       frequency, climate, polarization,
                                       confidence, rel)
       self.assertEqual(loss, exp_loss)
+
+  def test_horizon_angles(self):
+    refractivity = 314.
+    a0, a1, d0, d1 = _GetHorizonAnglesLegacy(PROFILE, 143.9, 8.5, refractivity)
+    _, v0, v1, _, _ = itm.point_to_point(PROFILE, 143.9, 8.5,
+                                         dielectric=15, conductivity=.005,
+                                         refractivity=refractivity,
+                                         freq_mhz=41.5, climate=5,
+                                         polarization=0, confidence=0.5, reliabilities=0.5)
+    self.assertAlmostEqual(a0, np.arctan(-0.003900)*180./np.pi, 4)
+    self.assertAlmostEqual(a1, np.arctan(0.000444)*180./np.pi, 4)
+    self.assertAlmostEqual(d0, 55357.7, 1)
+    self.assertAlmostEqual(d1, 19450.0, 1)
+    # test exactness of new method vs old method
+    self.assertEqual(a0, v0)
+    self.assertEqual(a1, v1)
+
+  def test_horizon_angles_los(self):
+    refractivity = 314.
+    PROFILE = [5, 28.5, 10, 10, 8, 9, 11, 12]
+    a0, a1, _, _ = _GetHorizonAnglesLegacy(PROFILE, 100, 50, refractivity)
+    _, v0, v1, _, _ = itm.point_to_point(PROFILE, 100, 50,
+                                         dielectric=15, conductivity=.005,
+                                         refractivity=refractivity,
+                                         freq_mhz=41.5, climate=5,
+                                         polarization=0, confidence=0.5, reliabilities=0.5)
+    self.assertEqual(a0, v0)
+    self.assertEqual(a1, v1)
 
 
 if __name__ == '__main__':
