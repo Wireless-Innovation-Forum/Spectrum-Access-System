@@ -20,7 +20,7 @@ import sas
 import sas_testcase
 from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
-    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent
+    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, generateCpiRsaKeys
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
@@ -96,7 +96,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     pal_db_relative_file_path = os.path.join('testcases', 'testdata', 'pal_db', 'pal_db_record.json')
 
     # Create the pal_db record file consistent with CBSDs and PAL records.
-    with open(os.path.join(pal_db_relative_file_path), 'w+') as file_handle:
+    with open(pal_db_relative_file_path, 'w+') as file_handle:
       file_handle.write(json.dumps(pal_records_a,pal_records_b,indent=2))
 
     pal_database_config = {
@@ -186,34 +186,46 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_id_d = 'professional_installer_id_2'
     cpi_name_d = 'd_name'
 
-    # Read private keys for the CPI users
-    with open(os.path.join('testcases', 'testdata','WDB_2_CPI_Private_Key.txt'),
-              'r') as file_handle:
-      cpi_private_key_b = file_handle.read()
+    # Generate CPI keys for device b.
+    cpi_private_key_device_b, cpi_public_key_device_b = generateCpiRsaKeys()
 
-    with open(os.path.join('testcases', 'testdata', 'WDB_2_CPI_Private_Key.txt'),
-              'r') as file_handle:
-      cpi_private_key_d = file_handle.read()
+    # Generate CPI keys for device d.
+    cpi_private_key_device_d, cpi_public_key_device_d = generateCpiRsaKeys()
 
     # Convert CBSDs registration requests to embed cpiSignatureData
-    convertRequestToRequestWithCpiSignature(cpi_private_key_b, cpi_id_b,
+    convertRequestToRequestWithCpiSignature(cpi_private_key_device_b, cpi_id_b,
                                             cpi_name_b, device_b)
-    convertRequestToRequestWithCpiSignature(cpi_private_key_d, cpi_id_d,
+    convertRequestToRequestWithCpiSignature(cpi_private_key_device_d, cpi_id_d,
                                             cpi_name_d, device_d)
+
+    cpi_device_b_publick_key_relative_file_path = os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_b.txt')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(cpi_device_b_publick_key_relative_file_path, 'w+') as file_handle:
+      file_handle.write(cpi_public_key_device_b)
+
+    cpi_device_d_publick_key_relative_file_path = os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_d.txt')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(cpi_device_d_publick_key_relative_file_path, 'w+') as file_handle:
+      file_handle.write(cpi_public_key_device_d)
 
     cpi_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'cpis': [{
-            'cpiId': cpi_id_b,
-            'status': 'ACTIVE',
-            'publicKeyIdentifierFile': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')},
+        'cpis': [
             {
-                'cpiId': cpi_id_d,
-                'status': 'ACTIVE',
-                'publicKeyIdentifierFile': os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public.csv')}
-        ],
-        'indexUrl': '/index.csv'
+              'cpiId': cpi_id_b,
+              'status': 'ACTIVE',
+              'publicKeyIdentifierFile': cpi_device_b_publick_key_relative_file_path
+            },
+            {
+              'cpiId': cpi_id_d,
+              'status': 'ACTIVE',
+              'publicKeyIdentifierFile': cpi_device_d_publick_key_relative_file_path
+            }
+            ],
+        'indexUrl': os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
     }
 
     # Create the actual configuration.
@@ -261,11 +273,15 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Start CPI database server.
     cpi_database.start()
 
-    # Generate the CSV file and write the content of it.
-    config_keys = config['cpiDatabaseConfig']['cpis'][0].keys()
+    # creating URLs for files.
+    for cpi in config['cpiDatabaseConfig']['cpis']:
+        cpi['publicKeyIdentifierFile'] = cpi_database.getBaseUrl() + '/' + cpi['publicKeyIdentifierFile']
 
-    with open(config['cpiDatabaseConfig']['cpis'][0]['publicKeyIdentifierFile'], 'w+') as output_file:
-        dict_writer = csv.DictWriter(output_file, config_keys)
+    # Create the CSV file and write the content of it.
+    cpis_keys = ['cpiId', 'status', 'publicKeyIdentifierFile']
+
+    with open(config['cpiDatabaseConfig']['indexUrl'], 'w+') as output_file:
+        dict_writer = csv.DictWriter(output_file, cpis_keys)
         dict_writer.writeheader()
         dict_writer.writerows(config['cpiDatabaseConfig']['cpis'])
 
@@ -273,7 +289,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     files = {('/' + cpi['publicKeyIdentifierFile']):
                  cpi['publicKeyIdentifierFile'] for cpi in config['cpiDatabaseConfig']['cpis']}
     files[config['cpiDatabaseConfig']['indexUrl']] = \
-        os.path.join('testcases', 'testdata', 'cpi_db', 'indexUrl.csv')
+        os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
 
     # Set file path.
     cpi_database.setFilesToServe(files)

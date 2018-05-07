@@ -1,0 +1,3 @@
+cpiId,status,publicKeyIdentifierFile
+professional_installer_id_1,ACTIVE,https://localhost:8003/testcases/testdata/cpi_db/CPI_Database-Public_b.txt
+professional_installer_id_2,ACTIVE,https://localhost:8003/testcases/testdata/cpi_db/CPI_Database-Public_d.txt
