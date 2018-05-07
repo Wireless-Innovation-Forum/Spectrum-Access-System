@@ -291,6 +291,7 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
           closest_point_lat,
           closest_point_lon,
           closest_point_height,
+          reliability=0.5,
           cbsd_indoor=is_cbsd_indoor,
           freq_mhz=freq_mhz)
       pl = propagation.db_loss
@@ -311,4 +312,3 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
       logging.info('Power Flex Density: %f dBm/m2/MHz', pfd)
       if pfd > -80:
         self.assertTrue(responses[i]['response']['responseCode'] == 400)
-
