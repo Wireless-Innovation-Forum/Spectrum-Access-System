@@ -12,14 +12,15 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import csv
 import json
 import logging
 import os
 import sas
 import sas_testcase
+from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
-    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent
-
+    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, generateCpiRsaKeys
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
@@ -92,13 +93,26 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     conditionals = [conditionals_b]
 
-    # Create the actual config file
+    pal_db_relative_file_path = os.path.join('testcases', 'testdata', 'pal_db', 'pal_db_record.json')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(pal_db_relative_file_path, 'w+') as file_handle:
+      file_handle.write(json.dumps(pal_records_a,pal_records_b,indent=2))
+
+    pal_database_config = {
+        'hostName': 'localhost',
+        'port': 8003,
+        'fileUrl': '/rest/pal/v1/',
+        'filePath': pal_db_relative_file_path
+    }
+
+    # Create the actual configuration file
     config = {
         'palIds': [pal_ids_a, pal_ids_b],
         'registrationRequests': [device_a, device_b],
-        'conditionalRegistrationData': conditionals
-        # TODO
-        # Need to add data base configurations.
+        'conditionalRegistrationData': conditionals,
+        'palDatabaseConfig': pal_database_config
+
     }
     writeConfig(filename, config)
 
@@ -109,7 +123,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Very light checking of the config file.
+    # Very light checking of the configuration file.
     self.assertEqual(len(config['registrationRequests']), len(config['palIds']))
 
     # Step 1: Register device(s) 'C' with conditional registration data
@@ -125,20 +139,33 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         "palIds": pal_ids
       })
 
-    # Trigger PPA creation
+    # Trigger PPA creation.
     for ppa_creation_request in ppa_creation_requests:
       self.assertPpaCreationFailure(ppa_creation_request)
 
-    # TODO
-    # Step 3: Create PAL database with a PAL record containg the PAL ID 'P'.
+    # Step 3: Create PAL database with a PAL record containing the PAL ID 'P'.
+    pal_database = DatabaseServer('PAL Database',config['palDatabaseConfig']['hostName'],
+                                  config['palDatabaseConfig']['port'])
 
-    # Step 4: Admin Test Harness triggers CPAS
+    # Start PAL database server.
+    pal_database.start()
+
+    # Set file path.
+    pal_database.setFileToServe(config['palDatabaseConfig']['fileUrl'],
+                                config['palDatabaseConfig']['filePath'])
+
+    # Inject the PAL database URL into the SAS UUT.
+    self._sas_admin.InjectDatabaseUrl(pal_database.getBaseUrl()+
+                                      config['palDatabaseConfig']['fileUrl'])
+
+    # Step 4: Admin Test Harness triggers CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Step 5: Request creation of PPA(s) again
     for ppa_creation_request in ppa_creation_requests:
       ppa_id = self.triggerPpaCreationAndWaitUntilComplete(ppa_creation_request)
       logging.debug('ppa_id received from SAS UUT:%s', ppa_id)
+
 
   def generate_WDB_2_default_config(self, filename):
     """Generates the WinnForum configuration for WDB.2"""
@@ -159,26 +186,52 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_id_d = 'professional_installer_id_2'
     cpi_name_d = 'd_name'
 
-    # Read private keys for the CPI users
-    with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
-              'r') as file_handle:
-      cpi_private_key_b = file_handle.read()
+    # Generate CPI keys for device b.
+    cpi_private_key_device_b, cpi_public_key_device_b = generateCpiRsaKeys()
 
-    with open(os.path.join('testcases', 'testdata', 'wdb_2', 'WDB_2_CPI_Private_Key.txt'),
-              'r') as file_handle:
-      cpi_private_key_d = file_handle.read()
+    # Generate CPI keys for device d.
+    cpi_private_key_device_d, cpi_public_key_device_d = generateCpiRsaKeys()
 
     # Convert CBSDs registration requests to embed cpiSignatureData
-    convertRequestToRequestWithCpiSignature(cpi_private_key_b, cpi_id_b,
+    convertRequestToRequestWithCpiSignature(cpi_private_key_device_b, cpi_id_b,
                                             cpi_name_b, device_b)
-    convertRequestToRequestWithCpiSignature(cpi_private_key_d, cpi_id_d,
+    convertRequestToRequestWithCpiSignature(cpi_private_key_device_d, cpi_id_d,
                                             cpi_name_d, device_d)
 
-    # Create the actual config.
+    cpi_device_b_publick_key_relative_file_path = os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_b.txt')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(cpi_device_b_publick_key_relative_file_path, 'w+') as file_handle:
+      file_handle.write(cpi_public_key_device_b)
+
+    cpi_device_d_publick_key_relative_file_path = os.path.join('testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_d.txt')
+
+    # Create the pal_db record file consistent with CBSDs and PAL records.
+    with open(cpi_device_d_publick_key_relative_file_path, 'w+') as file_handle:
+      file_handle.write(cpi_public_key_device_d)
+
+    cpi_database_config = {
+        'hostName': 'localhost',
+        'port': 8003,
+        'cpis': [
+            {
+              'cpiId': cpi_id_b,
+              'status': 'ACTIVE',
+              'publicKeyIdentifierFile': cpi_device_b_publick_key_relative_file_path
+            },
+            {
+              'cpiId': cpi_id_d,
+              'status': 'ACTIVE',
+              'publicKeyIdentifierFile': cpi_device_d_publick_key_relative_file_path
+            }
+            ],
+        'indexUrl': os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
+    }
+
+    # Create the actual configuration.
     config = {
-      'registrationRequests': [device_b, device_d]
-      # TODO
-      # Need to add data base configurations.
+      'registrationRequests': [device_b, device_d],
+      'cpiDatabaseConfig': cpi_database_config
     }
     writeConfig(filename, config)
 
@@ -189,7 +242,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
-    # Very light checking of the config file.
+    # Very light checking of the configuration file.
     self.assertGreater(len(config['registrationRequests']), 0)
 
     registration_requests = {
@@ -205,16 +258,44 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Send registration requests.
     registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
-    # Check registeration response,
+    # Check registration response,
     # responseCode should be 103 (INVALID_VALUE).
     for registration_response in registration_responses:
       self.assertEqual(registration_response['response']['responseCode'], 103)
 
     del registration_responses
 
-    # TODO
     # Step 2: Create a CPI database which includes CPI user with credentials
     # matching those used to create the request in Step 1.
+    cpi_database = DatabaseServer('CPI Database',config['cpiDatabaseConfig']['hostName'],
+                                  config['cpiDatabaseConfig']['port'])
+
+    # Start CPI database server.
+    cpi_database.start()
+
+    # creating URLs for files.
+    for cpi in config['cpiDatabaseConfig']['cpis']:
+        cpi['publicKeyIdentifierFile'] = cpi_database.getBaseUrl() + '/' + cpi['publicKeyIdentifierFile']
+
+    # Create the CSV file and write the content of it.
+    cpis_keys = ['cpiId', 'status', 'publicKeyIdentifierFile']
+
+    with open(config['cpiDatabaseConfig']['indexUrl'], 'w+') as output_file:
+        dict_writer = csv.DictWriter(output_file, cpis_keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(config['cpiDatabaseConfig']['cpis'])
+
+    # Prepare the file list.
+    files = {('/' + cpi['publicKeyIdentifierFile']):
+                 cpi['publicKeyIdentifierFile'] for cpi in config['cpiDatabaseConfig']['cpis']}
+    files[config['cpiDatabaseConfig']['indexUrl']] = \
+        os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
+
+    # Set file path.
+    cpi_database.setFilesToServe(files)
+
+    # Inject the CPI database URL into the SAS UUT.
+    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['indexUrl'])
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -222,7 +303,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 4: Register the same device and ensure SUCCESS
     registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
 
-    # Check registeration response,
+    # Check registration response,
     # responseCode should be 0 (SUCCESS).
     for registration_response in registration_responses:
       self.assertEqual(registration_response['response']['responseCode'], 0)

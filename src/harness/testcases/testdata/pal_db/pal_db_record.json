@@ -1,0 +1,54 @@
+[
+  {
+    "license": {
+      "licenseAreaExtent": "zone/census_tract/census/2010/20063955100", 
+      "licenseFrequencyChannelId": "1", 
+      "licenseId": "test_fcc_id_pal_0", 
+      "licenseDate": "2017-05-07T00:27:09Z", 
+      "licenseAreaIdentifier": "20063955100", 
+      "licenseExpiration": "2019-05-07T00:27:09Z"
+    }, 
+    "registrationInformation": {
+      "callSign": "call_sign_pal_0", 
+      "frn": "test_fcc_frn_pal_0", 
+      "licenseConditions": "license_pal_0", 
+      "registrationDate": "2017-05-07T00:27:09Z"
+    }, 
+    "userId": "test_user_id_a", 
+    "licensee": "CBSD Operator No.1", 
+    "channelAssignment": {
+      "primaryAssignment": {
+        "lowFrequency": 3570000000, 
+        "highFrequency": 3580000000
+      }
+    }, 
+    "licenseStatus": "VALID", 
+    "palId": "pal/05-2017/20063955100/1"
+  }, 
+  {
+    "license": {
+      "licenseAreaExtent": "zone/census_tract/census/2010/20063955200", 
+      "licenseFrequencyChannelId": "1", 
+      "licenseId": "test_fcc_id_pal_1", 
+      "licenseDate": "2017-05-07T00:27:09Z", 
+      "licenseAreaIdentifier": "20063955200", 
+      "licenseExpiration": "2019-05-07T00:27:09Z"
+    }, 
+    "registrationInformation": {
+      "callSign": "call_sign_pal_1", 
+      "frn": "test_fcc_frn_pal_1", 
+      "licenseConditions": "license_pal_1", 
+      "registrationDate": "2017-05-07T00:27:09Z"
+    }, 
+    "userId": "test_user_id_a", 
+    "licensee": "CBSD Operator No.1", 
+    "channelAssignment": {
+      "primaryAssignment": {
+        "lowFrequency": 3570000000, 
+        "highFrequency": 3580000000
+      }
+    }, 
+    "licenseStatus": "VALID", 
+    "palId": "pal/05-2017/20063955200/1"
+  }
+]
