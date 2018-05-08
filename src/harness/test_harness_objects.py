@@ -190,9 +190,20 @@ class DomainProxy(object):
         registration_request, cbsd_id in zip(grant_requests,
                                              grant_responses, registration_requests, cbsd_ids):
       if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+        self._mergeConditionals(registration_request, conditional_registration_data)
         cbsd_object = Cbsd(cbsd_id, registration_request,
                            [grant_response['grantId']], [grant_request])
         self.cbsd_objects[cbsd_id] = cbsd_object
+
+  def _mergeConditionals(self, registration_request, conditionals):
+    if not conditionals:
+      return
+    for conditional in conditionals:
+      if conditional['fccId'] == registration_request['fccId'] and conditional['cbsdSerialNumber'] == registration_request['cbsdSerialNumber']:
+        for key, value in conditionals.iteritems():
+          if key not in registration_request:
+            registration_request[key] = value
+        break
 
   def getCbsdObjectById(self, cbsd_id):
       return self.cbsd_objects[cbsd_id]
