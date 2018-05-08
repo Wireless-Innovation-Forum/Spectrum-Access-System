@@ -42,15 +42,16 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
                                                                       sas_test_harness_fads)
 
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
-  list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
-      protected_entities['gwblRecords'],
-      protected_entities['fssRecords'])
-  zone_purge.zonePurgeReferenceModel(sas_uut_fad,
-                                     sas_test_harness_fads,
-                                     protected_entities['ppaRecords'],
-                                     protected_entities['palRecords'],
-                                     protected_entities['gwpzRecords'],
-                                     list_of_fss_neighboring_gwbl)
+  if 'gwblRecords' in protected_entities and 'fssRecords' in protected_entities:
+    list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
+        protected_entities['gwblRecords'],
+        protected_entities['fssRecords'])
+    zone_purge.zonePurgeReferenceModel(sas_uut_fad,
+                                       sas_test_harness_fads,
+                                       protected_entities['ppaRecords'],
+                                       protected_entities['palRecords'],
+                                       protected_entities['gwpzRecords'],
+                                       list_of_fss_neighboring_gwbl)
 
   # Invoke FSS purge list reference model
   if 'fssRecords' in protected_entities:
