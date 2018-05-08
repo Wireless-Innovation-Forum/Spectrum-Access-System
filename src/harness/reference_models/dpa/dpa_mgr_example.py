@@ -123,3 +123,16 @@ if __name__ == '__main__':
                                     margin_db=margin_db)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+
+  # Simulate a single SAS UUT (no peer SAS)
+  print '-- Single UUT model --'
+  dpa_uut.SetGrantsFromList(grants_uut)
+  dpa_uut.ComputeMoveLists()
+  keep_list = dpa_uut.GetKeepList(channel)
+  active_uut_grants = [grant for grant in grants_uut
+                       if grant in keep_list]
+  check = dpa_uut.CheckInterference(active_uut_grants,
+                                    margin_db=margin_db,
+                                    do_abs_check_single_uut=True)
+  print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
+  print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
