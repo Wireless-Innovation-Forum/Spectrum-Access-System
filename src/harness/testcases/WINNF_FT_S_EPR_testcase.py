@@ -126,11 +126,13 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3]
+        'grantRequests': [grant_request_3],
+        'conditionalRegistrationData': []
     }
 
     # Protected entity record
@@ -144,6 +146,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
+            'conditionalRegistrationData': conditionals_device_4,  
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -275,11 +278,14 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
+            
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3]
+        'grantRequests': [grant_request_3],
+        'conditionalRegistrationData': []
     }
 
     # Protected entity record
@@ -348,6 +354,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
+            'conditionalRegistrationData': conditionals_device_4,  
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
