@@ -59,6 +59,7 @@ _COASTAL_PROTECTION_ZONES = [
 ]
 
 # The DPA attributes to extract from DPA KMLs
+# Warning: If modifying, update below in the file and in dpa_mgr.BuildDpa()
 _DPA_ATTRIBUTES = ['freqRangeMhz',
                    'protectionCritDbmPer10MHz',
                    'refHeightMeters',
