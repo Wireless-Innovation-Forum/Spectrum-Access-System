@@ -12,15 +12,6 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-<<<<<<< HEAD
-from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-<<<<<<< HEAD
-import common_strings
-=======
-from functools import partial
->>>>>>> MCP.1 integration
-=======
->>>>>>> revision in response to review comments as of May 4th
 import json
 import time
 import os
@@ -32,6 +23,7 @@ import sas_testcase
 import test_harness_objects
 from full_activity_dump import FullActivityDump
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
+import common_strings
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
         loadConfig, makePpaAndPalRecordsConsistent
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
@@ -129,293 +121,45 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.protected_entity_records.extend(iteration_content['protectedEntities'])
     if 'fssRecords' in self.protected_entity_records:
       for fss_record in self.protected_entity_records['fssRecords']:
-        self._sas_admin.InjectFss({'record': fss_record})
-
-    if 'gwpzRecords' in self.protected_entity_records:
-      for gwpz_record in self.protected_entity_records['gwpzRecords']:
-        self._sas_admin.InjectWisp({'record': gwpz_record})
-        # TODO: calculate and store the land category of the GWPZ
-
-    if 'escRecords' in self.protected_entity_records:
-      for esc_record in self.protected_entity_records['escRecords']:
-        self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
-
-<<<<<<< HEAD
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
-    sas_test_harness_device_2['userId'] = "test_user_id_h"
-
-    sas_test_harness_device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    sas_test_harness_device_3['fccId'] = "test_fcc_id_i"
-    sas_test_harness_device_3['userId'] = "test_user_id_i"
-
-    sas_test_harness_device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    sas_test_harness_device_4['fccId'] = "test_fcc_id_j"
-    sas_test_harness_device_4['userId'] = "test_user_id_j"
-
-    sas_test_harness_device_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    sas_test_harness_device_5['fccId'] = "test_fcc_id_k"
-    sas_test_harness_device_5['userId'] = "test_user_id_k"
-
-    sas_test_harness_device_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    sas_test_harness_device_6['fccId'] = "test_fcc_id_l"
-    sas_test_harness_device_6['userId'] = "test_user_id_l"
-
-    # Generate Cbsd FAD Records for SAS Test Harness 0, initial data.
-    cbsd_fad_records_iteration_initial_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1], [[grant_request_1]])
-
-    # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
-    cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1], [[grant_request_1]])
-
-    # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
-    cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_4, sas_test_harness_device_5],
-                                                                          [[grant_request_2, grant_request_3], [grant_request_4]])
-
-    # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 1
-    cbsd_fad_records_iteration_1_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_2, sas_test_harness_device_3],
-                                                                          [[grant_request_1], [grant_request_2]])
-
-    # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 1
-    cbsd_fad_records_iteration_1_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
-
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert'),
-        'initialFad': [cbsd_fad_records_iteration_initial_sas_test_harness_0]
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
-    # Generate SAS Test Harnesses dump records for multiple iterations
-    dump_records_iteration_0_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
-    }
-    dump_records_iteration_1_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_0
-    }
-    dump_records_iteration_0_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
-    }
-    dump_records_iteration_1_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_iteration_1_sas_test_harness_1
-    }
-
-    # Create the actual config.
-    iteration0_config = {
-        'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_0_domain_proxy_0, cbsd_records_iteration_0_domain_proxy_1],
-        'cbsdRecords': [{
-            'registrationRequest': device_7,
-            'grantRequest': grant_request_7,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
-        }],
-        'protectedEntities': protected_entities_iteration_0,
-        'dpaActivationList': [dpa_1, dpa_2],
-        'dpaDeactivationList': [],
-        'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
-    }
-    iteration1_config = {
-        'cbsdRequestsWithDomainProxies': [cbsd_records_iteration_1_domain_proxy_0, cbsd_records_iteration_1_domain_proxy_1],
-        'cbsdRecords': [{
-            'registrationRequest': device_8,
-            'grantRequest': grant_request_8,
-            'conditionalRegistrationData': conditionals_device_8,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
-        }],
-        'protectedEntities': protected_entities_iteration_1,
-        'dpaActivationList': [dpa_3],
-        'dpaDeactivationList': [dpa_1],
-        'sasTestHarnessData': [dump_records_iteration_1_sas_test_harness_0, dump_records_iteration_1_sas_test_harness_1]
-    }
-    config = {
-        'iterationData': [iteration0_config, iteration1_config],
-        'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
-                                'key': os.path.join('certs', 'domain_proxy.key')},
-                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
-        'dpas': dpa_generic
-    }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_MCP_1_default_config)
-  def test_WINNF_FT_S_MCP_1(self, config_filename):
-    """SAS manages a mix of GAA and PAL Grants in 3550 MHz
-       to 3700 MHz to protect configurable IAP-protected entities and DPAs
-    """
-    config = loadConfig(config_filename)
-    # Invoke MCP test steps
-    self.executeMcpTestSteps(config, 'MCP')
-
-class McpXprCommonTestcase(sas_testcase.SasTestCase):
-
-  def executeMcpTestSteps(self, config, test_type):
-    """Execute all teststeps for MCP testcase and for xPR testcases till Step22
-
-    Args:
-      config: Testcase configuration
-      test_type: A string which indicates the type of testcase to be invoked("MCP"/"XPR")
-    """
-    # Initialize test-wide variables, and state variables.
-    self.config = config
-    self.active_dpas = []
-    self.test_type = test_type
-    self.sas_test_harness_objects = []
-    self.domain_proxy_objects = []
-    self.protected_entity_records = []
-    self.num_peer_sases = len(config['sasTestHarnessConfigs'])
-
-    for domain_proxy in config['domainProxyConfigs']:
-      self.domain_proxy_objects.append(test_harness_objects.DomainProxy(
-          self,
-          domain_proxy['cert'],
-          domain_proxy['key']))
-    # Step 1 : Load DPAs
-    self._sas_admin.TriggerLoadDpas()
-
-    # STEP 2 : ESC informs SAS about inactive DPA
-    self._sas_admin.TriggerBulkDpaActivation({'activate': False})
-
-    # Step 3 : creates multiple SAS TH, and Load predefined FAD,CBSD
-    self.test_harness_fads = []
-    if self.num_peer_sases:
-      for test_harness in config['sasTestHarnessConfigs']:
-        # Initialize SAS Test Harness Server instance to dump FAD records
-        sas_test_harness_object = SasTestHarnessServer(test_harness['sasTestHarnessName'],
-                                                             test_harness['hostName'],
-                                                             test_harness['port'],
-                                                             test_harness['serverCert'],
-                                                             test_harness['serverKey'],
-                                                             test_harness['caCert'])
-        # Start the server
-        sas_test_harness_object.start()
-
-        # Initialize content of test harness.
-        if 'initialFad' in test_harness:
-          sas_test_harness_object.writeFadRecords(test_harness['initialFad'])
-
-        # informing SAS UUT about SAS Test Harnesses
-        certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
-        self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
-                                       'url': sas_test_harness_object.getBaseUrl()})
-
-        self.test_harness_fads.append(getFullActivityDumpSasTestHarness(
-            sas_test_harness_object.getSasTestHarnessInterface()))
-
-        self.sas_test_harness_objects.append(sas_test_harness_object)
-
-      # Set the cert/key to use when requesting FADs from SAS UUT.
-      self.fad_cert = config['sasTestHarnessConfigs'][0]['serverCert']
-      self.fad_key = config['sasTestHarnessConfigs'][0]['serverKey']
-
-    # Step 4: Complete each iteration of the testcase.
-    for iteration_content in config['iterationData']:
-      # Execute steps for single iteration
-      self.executeSingleMCPIteration(iteration_content)
-
-    # Stopping Test harness servers
-    for test_harness in self.sas_test_harness_objects:
-      test_harness.shutdown()
-      del test_harness
-
-  def executeSingleMCPIteration(self, iteration_content):
-    """Executes the steps from Step1 to Step22 for MCP and XPR testcases
-
-    Args:
-      iteration_content: A dictionary with multiple key-value pairs that contain iteration data
-    """
-<<<<<<< HEAD
-
-    protected_entity_records = iteration_content['protectedEntities']
-    if 'fssRecords' in protected_entity_records:
-      for fss_record in protected_entity_records['fssRecords']:
         try:
           self._sas_admin.InjectFss({'record': fss_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
-    if 'gwpzRecords' in protected_entity_records:
-      for gwpz_record in protected_entity_records['gwpzRecords']:
+    if 'gwpzRecords' in self.protected_entity_records:
+      for gwpz_record in self.protected_entity_records['gwpzRecords']:
         try:
           self._sas_admin.InjectWisp({'record': gwpz_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
+        # TODO: calculate and store the land category of the GWPZ
 
-
-    if 'escRecords' in protected_entity_records:
-      for esc_record in protected_entity_records['escRecords']:
-<<<<<<< HEAD
+    if 'escRecords' in self.protected_entity_records:
+      for esc_record in self.protected_entity_records['escRecords']:
         try:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
+    if 'palRecords' in self.protected_entity_records:
+      for pal_record in self.protected_entity_records['palRecords']:
+        try:
+          self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
 
-=======
-        self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
-<<<<<<< HEAD
-     
->>>>>>> MCP.1 integration
-    if 'ppaRecords' in protected_entity_records:
-      for ppa_record in protected_entity_records['ppaRecords']:
+
+    if 'ppaRecords' in self.protected_entity_records:
+      for ppa_record in self.protected_entity_records['ppaRecords']:
         try:
           self._sas_admin.InjectZoneData({'record': ppa_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
-
-=======
->>>>>>> revision in response to review comments as of May. 5
-    if 'palRecords' in protected_entity_records:
-      for pal_record in protected_entity_records['palRecords']:
-=======
-    # Step 5 : Inject IAP protected entities into UUT
-    self.protected_entity_records.extend(iteration_content['protectedEntities'])
-    if 'fssRecords' in self.protected_entity_records:
-      for fss_record in self.protected_entity_records['fssRecords']:
-        self._sas_admin.InjectFss({'record': fss_record})
-
-    if 'gwpzRecords' in self.protected_entity_records:
-      for gwpz_record in self.protected_entity_records['gwpzRecords']:
-        self._sas_admin.InjectWisp({'record': gwpz_record})
-        # TODO: calculate and store the land category of the GWPZ
-
-    if 'escRecords' in self.protected_entity_records:
-      for esc_record in self.protected_entity_records['escRecords']:
-        self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
-
-    if 'palRecords' in self.protected_entity_records:
-      for pal_record in self.protected_entity_records['palRecords']:
->>>>>>> Refactor MCP.1
-=======
-    if 'palRecords' in self.protected_entity_records:
-      for pal_record in self.protected_entity_records['palRecords']:
->>>>>>> Fix mentioned bugs in MCP.1
-        self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
-
-    if 'ppaRecords' in self.protected_entity_records:
-      for ppa_record in self.protected_entity_records['ppaRecords']:
-        self._sas_admin.InjectZoneData({'record': ppa_record})
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     if self.num_peer_sases:
