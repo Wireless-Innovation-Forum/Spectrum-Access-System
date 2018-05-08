@@ -151,11 +151,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_3,device_4],
-        'grantRequests': [grant_request_1, grant_request_3,grant_request_4]
+        'grantRequests': [grant_request_1, grant_request_3,grant_request_4],
+        'conditionalRegistrationData':[conditionals_device_4]
     }
     cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_5,device_2],
-        'grantRequests': [grant_request_5,grant_request_2]
+        'grantRequests': [grant_request_5,grant_request_2],
+        'conditionalRegistrationData':[conditionals_device_2]
     }
 
     # Protected entities records for multiple iterations
@@ -222,8 +224,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_6,
             'grantRequest': grant_request_6,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
@@ -404,11 +406,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # DP Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2, device_6],
-        'grantRequests': [grant_request_1, grant_request_2, grant_request_6]
+        'grantRequests': [grant_request_1, grant_request_2, grant_request_6],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3, device_4, device_7],
-        'grantRequests': [grant_request_3, grant_request_4, grant_request_7]
+        'grantRequests': [grant_request_3, grant_request_4, grant_request_7],
+        'conditionalRegistrationData': [conditionals_device_4]
     }
 
     # Protected entity record
@@ -474,8 +478,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [
             {'registrationRequest': device_5,
              'grantRequest': grant_request_5,
-             'clientCert': os.path.join('certs', 'client.cert'),
-             'clientKey': os.path.join('certs', 'client.key')}],
+             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()}],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
         'dpaDeactivationList': [],
@@ -605,11 +609,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_4],
-        'grantRequests': [grant_request_4]
+        'grantRequests': [grant_request_4],
+        'conditionalRegistrationData': [conditionals_device_4]
     }
 
     # Protected entities records for multiple iterations
@@ -676,8 +682,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_3,
             'grantRequest': grant_request_3,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
