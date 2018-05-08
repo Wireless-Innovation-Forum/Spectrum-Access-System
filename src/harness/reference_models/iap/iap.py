@@ -375,13 +375,12 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   protection_points = utils.GridPolygon(protected_entity['zone']['features'][0]['geometry'],
                                         GWPZ_GRID_RES_ARCSEC)
 
-  gwpz_freq_range = protected_entity['deploymentParam']\
+  gwpz_freq_range = protected_entity['record']['deploymentParam'][0]\
                       ['operationParam']['operationFrequencyRange']
   gwpz_low_freq = gwpz_freq_range['lowFrequency']
   gwpz_high_freq = gwpz_freq_range['highFrequency']
 
-  gwpz_region = protected_entity['zone']['features'][0]\
-                                 ['properties']['clutter']
+  gwpz_region = protected_entity['landCategory']
 
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(gwpz_low_freq, gwpz_high_freq)
