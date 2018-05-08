@@ -613,7 +613,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       })
 
     # Register CBSD.
-    request = {'registrationRequest': config['registrationRequest']}
+    request = {'registrationRequest': [config['registrationRequest']]}
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response.
@@ -671,7 +671,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     # If successfully registered, CBSD sends a grant request
     config['grantRequest']['cbsdId'] = cbsd_id
     grant_request = config['grantRequest']
-    request = {'grantRequest': grant_request}
+    request = {'grantRequest': [grant_request]}
     response = self._sas.Grant(request)['grantResponse']
     # Check grant response
     self.assertEqual(len(response), 1)
