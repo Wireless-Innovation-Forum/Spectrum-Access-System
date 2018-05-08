@@ -40,6 +40,7 @@
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
 
+import common_strings
 from datetime import datetime
 import json
 import logging
@@ -1409,13 +1410,22 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertTrue('ppaRecord' in ppa)
         self.assertTrue('ppaClusterList' in ppa)
 
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],
-                                     config['conditionalRegistrationData'])
+    try:
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                       config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
+
 
     # Inject PAL database record
     if ('palRecords' in config) and (config['palRecords']):
       for pal_record in config['palRecords']:
-        self._sas_admin.InjectPalDatabaseRecord(pal_record)
+        try:
+          self._sas_admin.InjectPalDatabaseRecord(pal_record)
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
 
     # Update PPA records with devices' CBSD ID and Inject zone data
     if ('ppas' in config) and (config['ppas']):
@@ -1424,8 +1434,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
           ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = [
               cbsd_ids[device_index]
           ]
-        zone_id = self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']})
-        self.assertTrue(zone_id)
+        try:
+          zone_id = self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']})
+          self.assertTrue(zone_id)
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
 
     # Trigger daily activities
     if ('ppas' in config) and (config['ppas']):

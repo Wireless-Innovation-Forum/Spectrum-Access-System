@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import json
+import common_strings
 import os
 import sas
 import sas_testcase
@@ -990,18 +991,30 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # 1. Load information about N1 GWBZs
     for gwpz_record in config['gwpzRecords']:
-      self._sas_admin.InjectWisp(gwpz_record)
+      try:
+        self._sas_admin.InjectWisp(gwpz_record)
+      except Exception as e:
+        logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+        raise e
 
     # 2 & 3. Register N2 CBSDs
     # Check registration response
     # The assertRegistered function does the Inject FCC ID and user ID for the registration requests
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],
-                                     config['conditionalRegistrationData'])
+    try:
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                       config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
 
     # 4. Load N3 PPAs
     # Inject PAL Records for all PPAs
     for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      try:
+        self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      except Exception as e:
+        logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+        raise e
 
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
@@ -1009,7 +1022,11 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       for device_index in ppa['ppaClusterList']:
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[device_index])
       # Inject PPA into SAS UUT
-      zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
+      try:
+        zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
+      except Exception as e:
+        logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+        raise e
 
     # 5. Trigger CPAS activity if GWPZ > 0 or PPA > 0
     if (len(config['gwpzRecords']) > 0 or len(config['ppaRecords']) > 0):

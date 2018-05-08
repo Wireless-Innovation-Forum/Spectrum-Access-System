@@ -16,6 +16,7 @@
 import hashlib
 import json
 import os
+import common_strings
 import sas
 import sas_testcase
 from reference_models.geo import vincenty, utils
@@ -347,13 +348,21 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # inject PALs and N2 PPAs
       ppa_ids = []
       for pal in config['palRecords']:
+        try:
           self._sas_admin.InjectPalDatabaseRecord(pal)
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
       for ppa in config['ppaRecords']:
         # fill the PPA cbsdReferenceIds with values according to admin testing API spec
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
         for index in ppa['ppaClusterList']:
-            ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
-        ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
+          ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
+        try:
+          ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
         # re-fill the PPA cbsdReferenceIds with the values expected in the dump according to SAS-SAS TS
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
         for index in ppa['ppaClusterList']:
@@ -372,7 +381,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           self.assertEqual(grant_response['response']['responseCode'], 0)
       # inject N3 Esc sensor
       for esc_sensor in config['escSensorRecords']:
+        try:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
       # step 7
       # Notify the SAS UUT about the SAS Test Harness
       for sas_th in config['sasTestHarnessConfigs']:
@@ -688,8 +701,12 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Register devices C2 and C4, request grants G2 and G4 respectively with SAS UUT.
     # Ensure the registration and grant requests are successful.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_c2, device_c4],
-                                                          [grant_g2, grant_g4])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          [device_c2, device_c4], [grant_g2, grant_g4])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
     # respectively to SAS UUT.
@@ -703,7 +720,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
 
     # Injecting the PAL Records of the PPA into SAS UUT.
     for pal_record in config['palRecords']:
-      self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      try:
+        self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      except Exception as e:
+        logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+        raise e
 
     # Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()

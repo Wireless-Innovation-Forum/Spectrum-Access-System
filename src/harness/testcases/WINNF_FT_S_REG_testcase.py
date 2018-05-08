@@ -19,6 +19,7 @@ import os
 import time
 
 from request_handler import HTTPError
+import common_strings
 import sas
 import sas_testcase
 
@@ -1106,7 +1107,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     # Register N4 CBSDs.
     request = {'registrationRequest': config['registrationRequests']}
-    responses = self._sas.Registration(request)['registrationResponse']
+    try:
+      responses = self._sas.Registration(request)['registrationResponse']
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
 
     # Check registration responses.
     self.assertEqual(len(responses), len(config['registrationRequests']))

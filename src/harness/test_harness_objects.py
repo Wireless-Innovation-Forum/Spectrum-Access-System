@@ -14,6 +14,7 @@
 
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
+import common_strings
 import logging
 import sas
 import math
@@ -164,11 +165,15 @@ class DomainProxy(object):
     # Checking if the number of registration requests matches number of grant requests.
     # There should be exactly one grant request per registration request.
     self.testcase.assertEqual(len(grant_requests), len(registration_requests))
-    cbsd_ids = self.testcase.assertRegistered(
-        registration_requests,
-        conditional_registration_data=conditional_registration_data,
-        cert=self.ssl_cert,
-        key=self.ssl_key)
+    try:
+      cbsd_ids = self.testcase.assertRegistered(
+          registration_requests,
+          conditional_registration_data=conditional_registration_data,
+          cert=self.ssl_cert,
+          key=self.ssl_key)
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
 
     # Copy the cbsdId from Registration response to grant requests.
     for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):

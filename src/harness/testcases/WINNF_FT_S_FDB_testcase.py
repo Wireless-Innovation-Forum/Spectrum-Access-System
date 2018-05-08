@@ -12,6 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import common_strings
 import json
 import logging
 import os
@@ -167,9 +168,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g1 = config['grantRequests'][0]
 
     # Register device(s) 'C' and request grant 'G1' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
-                                   grant_request_g1,
-                                   config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], grant_request_g1,
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
@@ -390,9 +395,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g1 = config['grantRequests'][0]
 
     # Register device(s) 'C' and request grant 'G1' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
-                                   grant_request_g1,
-                                   config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], grant_request_g1,
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 2: Create DPA database which includes at least one inland DPA
     # Create DPA database server
@@ -630,9 +639,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g = config['grantRequests']
 
     # Register device(s) 'C' and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(config['registrationRequests'],
-                                    grant_request_g,
-                                    config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], grant_request_g,
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     fss_database = DatabaseServer(
@@ -770,8 +783,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       self.assertEqual(len(grant_bundle), len(config['registrationRequests']))
 
     # Step 1: Register device(s) 'C' (at location 'X') with conditional registration data
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],
-                                     config['conditionalRegistrationData'])
+    try:
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                      config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
 
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server
@@ -986,10 +1003,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g = config['grantRequests']
 
     # Register device(s) 'C' and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-                                   config['registrationRequests'],
-                                   grant_request_g,
-                                   config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], grant_request_g,
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
     # Create FSS database server
@@ -1163,8 +1183,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                      len(config['expectedResponseCodes']))
 
     # Step 1: Register device(s) 'C'(at location 'X') with conditional registration data
-    cbsd_ids = self.assertRegistered(config['registrationRequest'],
-                                     config['conditionalRegistrationData'])
+    try:
+      cbsd_ids = self.assertRegistered(config['registrationRequest'],
+                                       config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
 
     # Step 2: Create FSS database which includes at least one FSS site near
     # CBSD location 'X'.
@@ -1352,10 +1376,13 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_request_g = config['grantRequests']
 
     # Register device(s) 'C' and request grant 'G' with SAS UUT.
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-                              config['registrationRequests'],
-                              grant_request_g,
-                              config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], grant_request_g,
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server

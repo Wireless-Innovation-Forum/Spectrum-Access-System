@@ -16,6 +16,7 @@ import json
 import logging
 import os
 
+import common_strings
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
@@ -381,9 +382,13 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Step 2 & 3: Register devices and get grants
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-        config['registrationRequests'], config['grantRequests'],
-        config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequest'], config['grantRequest'],
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # Step 4: First Heartbeat Request
     heartbeat_request = config['heartbeatRequests']

@@ -14,6 +14,7 @@
 
 import json
 import os
+import common_strings
 import sas
 import sas_testcase
 
@@ -243,14 +244,17 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
           'registrationData': config['conditionalRegistrationData']
       })
 
-    # Register N2 devices
-    cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'])
+    try:
+      # Register N2 devices
+      cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'])
 
-    # Register N3 devices
-    cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'])
+      # Register N3 devices
+      cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'])
 
-    # Register N4 devices
-    cbsd_ids_N4 = self.assertRegistered(config['registrationRequestsN4'])
+      # Register N4 devices
+      cbsd_ids_N4 = self.assertRegistered(config['registrationRequestsN4'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
 
     # Execute CPAS and wait untill completion
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -518,14 +522,17 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     # Enforce NTIA Exlusion zones
     self._sas_admin.TriggerEnableNtiaExclusionZones()
 
-    # Register N1 devices
-    cbsd_ids_N1 = self.assertRegistered(config['registrationRequestsN1'], config['conditionalRegistrationDataN1'])
+    try:
+      # Register N1 devices
+      cbsd_ids_N1 = self.assertRegistered(config['registrationRequestsN1'], config['conditionalRegistrationDataN1'])
 
-    # Register N2 devices
-    cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'], config['conditionalRegistrationDataN2'])
+      # Register N2 devices
+      cbsd_ids_N2 = self.assertRegistered(config['registrationRequestsN2'], config['conditionalRegistrationDataN2'])
 
-    # Register N3 devices
-    cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'], config['conditionalRegistrationDataN3'])
+      # Register N3 devices
+      cbsd_ids_N3 = self.assertRegistered(config['registrationRequestsN3'], config['conditionalRegistrationDataN3'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
 
     # Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()

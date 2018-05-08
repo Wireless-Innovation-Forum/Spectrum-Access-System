@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
+import common_strings
 import json
 import os
 import sas
@@ -401,19 +402,37 @@ class MultiConstraintProtectionTestcase(sas_testcase.SasTestCase):
     protected_entity_records = iteration_content['protectedEntities']
     if 'fssRecords' in protected_entity_records:
       for fss_record in protected_entity_records['fssRecords']:
-        self._sas_admin.InjectFss({'record': fss_record})
+        try:
+          self._sas_admin.InjectFss({'record': fss_record})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
 
     if 'gwpzRecords' in protected_entity_records:
       for gwpz_record in protected_entity_records['gwpzRecords']:
-        self._sas_admin.InjectWisp({'record': gwpz_record})
+        try:
+          self._sas_admin.InjectWisp({'record': gwpz_record})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
+
 
     if 'escRecords' in protected_entity_records:
       for esc_record in protected_entity_records['escRecords']:
-        self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
+        try:
+          self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
+
 
     if 'ppaRecords' in protected_entity_records:
       for ppa_record in protected_entity_records['ppaRecords']:
-        self._sas_admin.InjectZoneData({'record': ppa_record})
+        try:
+          self._sas_admin.InjectZoneData({'record': ppa_record})
+        except Exception as e:
+          logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+          raise e
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     fad_test_harnesses_objects = []

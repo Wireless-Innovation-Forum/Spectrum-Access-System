@@ -12,6 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import common_strings
 from datetime import datetime
 from datetime import timedelta
 import json
@@ -882,8 +883,12 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         len(config['expectedResponseCodes']))
 
     # Register devices
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],
-                                     config['conditionalRegistrationData'])
+    try:
+      cbsd_ids = self.assertRegistered(config['registrationRequests'],
+                                       config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise e
 
     # Request grant
     grant_request = config['grantRequests']

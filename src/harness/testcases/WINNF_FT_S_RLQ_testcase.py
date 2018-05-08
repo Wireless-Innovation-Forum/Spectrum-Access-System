@@ -16,6 +16,7 @@ import json
 import logging
 import os
 
+import common_strings
 from request_handler import HTTPError
 import sas
 import sas_testcase
@@ -559,9 +560,13 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       self._sas_admin.InjectUserId({'userId': device['userId']})
 
     # Register devices and get grants
-    cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-        config['registrationRequests'], config['grantRequests'],
-        config['conditionalRegistrationData'])
+    try:
+      cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
+          config['registrationRequests'], config['grantRequests'],
+          config['conditionalRegistrationData'])
+    except Exception as e:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
+      raise e
 
     # First relinquishment
     relinquishment_request = config['relinquishmentRequestsFirst']
