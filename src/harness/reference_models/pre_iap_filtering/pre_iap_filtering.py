@@ -46,6 +46,8 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
     list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
         protected_entities['gwblRecords'],
         protected_entities['fssRecords'])
+  if 'ppaRecords' in protected_entities and 'palRecords' in protected_entities and \
+      'gwpzRecords' in protected_entities:
     zone_purge.zonePurgeReferenceModel(sas_uut_fad,
                                        sas_test_harness_fads,
                                        protected_entities['ppaRecords'],
