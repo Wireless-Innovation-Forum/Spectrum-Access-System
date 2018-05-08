@@ -37,13 +37,13 @@ from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 
 # Create the authorization string.
-__USERNAME = 'username'
-__PASSWORD = 'password'
-__AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(__USERNAME+':'+__PASSWORD)
+_USERNAME = 'username'
+_PASSWORD = 'password'
+_AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(_USERNAME+':'+_PASSWORD)
 
-__SSL_CERT = 'certs/server.cert'
-__SSL_KEY = 'certs/server.key'
-__SSL_CA_CERT_FILE = 'certs/ca.cert'
+_SSL_CERT = 'certs/server.cert'
+_SSL_KEY = 'certs/server.key'
+_SSL_CA_CERT_FILE = 'certs/ca.cert'
 
 
 class DatabaseServer(threading.Thread):
@@ -73,10 +73,9 @@ class DatabaseServer(threading.Thread):
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
-          certfile=__SSL_CERT,
-          keyfile=__SSL_KEY,
-          ca_certs=__SSL_CA_CERT_FILE,
-          ssl_version=ssl.PROTOCOL_TLSv1_2,
+          certfile=_SSL_CERT,
+          keyfile=_SSL_KEY,
+          ca_certs=_SSL_CA_CERT_FILE,
           server_side=True)
 
   def run(self):
@@ -146,7 +145,7 @@ class DatabaseHandler(SimpleHTTPRequestHandler):
         self.wfile.write('no auth header received.\n')
         self.wfile.write('Ignore 404 response below.\n\n')
         return ""
-      elif self.headers['Authorization'] != __AUTHORIZATION_STRING:
+      elif self.headers['Authorization'] != _AUTHORIZATION_STRING:
         logging.info('Authorization Failed. Incorrect username:password.')
         self.send_response(401)
         self.end_headers()

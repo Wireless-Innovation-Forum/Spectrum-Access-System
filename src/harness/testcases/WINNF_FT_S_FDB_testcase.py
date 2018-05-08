@@ -182,7 +182,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     exclusion_zone_database_server = DatabaseServer("Exclusion Zone Database",
                                           config['exclusionZoneDatabaseConfig']['hostName'],
                                           config['exclusionZoneDatabaseConfig']['port'])
-    
+
     # Start exclusion zone database server
     exclusion_zone_database_server.start()
 
@@ -408,7 +408,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     dpa_database_server = DatabaseServer("DPA Database",
                                           config['dpaDatabaseConfig']['hostName'],
                                           config['dpaDatabaseConfig']['port'])
-    
+
     # Start DPA database server
     dpa_database_server.start()
 
@@ -584,7 +584,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    device_a['installationParam']['latitude'] = 39.353414,
+    device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
 
     # Pre-load conditionals and remove reg conditional fields from registration
@@ -650,12 +650,15 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     fss_database = DatabaseServer(
         'FSS Database',
-        config['fss_database_config']['hostName'],
-        config['fss_database_config']['port'],
+        config['fssDatabaseConfig']['hostName'],
+        config['fssDatabaseConfig']['port'],
         authorization=True)
+
+    fss_database.start()
+
     fss_database.setFileToServe(
-        config['fss_database_config']['fileUrl'],
-        config['fss_database_config']['filePath'])
+        config['fssDatabaseConfig']['fileUrl'],
+        config['fssDatabaseConfig']['filePath'])
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -797,7 +800,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       config['fssDatabaseConfig']['hostName'],
       config['fssDatabaseConfig']['port'],
       authorization=True)
-    
+
     # Start FSS database server
     fss_database_server.start()
 
@@ -912,7 +915,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # FSS database test harness configuration
-    # The database File FDB_5_default_allsitedata.json has FSS sites information.   
+    # The database File FDB_5_default_allsitedata.json has FSS sites information.
     fss_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -1077,7 +1080,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # FSS database test harness configuration.
-    # The database File FDB_6_default_allsitedata.json has FSS sites information.   
+    # The database File FDB_6_default_allsitedata.json has FSS sites information.
     fss_database_config = {
         'hostName': 'localhost',
         'port': 8000,
@@ -1391,7 +1394,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       config['fssDatabaseConfig']['hostName'],
       config['fssDatabaseConfig']['port'],
       authorization=True)
-    
+
     # Start FSS database server
     fss_database_server.start()
 
