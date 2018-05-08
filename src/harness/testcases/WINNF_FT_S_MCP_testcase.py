@@ -116,8 +116,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 5 : Inject IAP protected entities into UUT
-    for key in self.protected_entity_records:
-      self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
+    for key in self.iteration_content['protectedEntities']:
+      if not key in self.protected_entity_records:
+        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
+      else:
+        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
     self.protected_entity_records.extend(iteration_content['protectedEntities'])
     if 'fssRecords' in self.protected_entity_records:
       for fss_record in self.protected_entity_records['fssRecords']:
