@@ -584,7 +584,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
-    device_a['installationParam']['latitude'] = 39.353414,
+    device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
 
     # Pre-load conditionals and remove reg conditional fields from registration
