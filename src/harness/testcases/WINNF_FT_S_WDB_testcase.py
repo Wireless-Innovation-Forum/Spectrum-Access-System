@@ -20,7 +20,7 @@ import sas
 import sas_testcase
 from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
-    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, generateCpiRsaKeys
+    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, generateCpiRsaKeys, ensureFileDirectoryExists
 
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
@@ -100,6 +100,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Create the PAL database file.
     pal_db_contents = pal_records_a
     pal_db_contents.extend(pal_records_b)
+    ensureFileDirectoryExists(pal_db_relative_file_path)
     with open(pal_db_relative_file_path, 'w+') as file_handle:
       file_handle.write(json.dumps(pal_db_contents,indent=2))
 
@@ -206,6 +207,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_b.txt')
 
     # Create the pal_db record file consistent with CBSDs and PAL records.
+    ensureFileDirectoryExists(cpi_device_b_public_key_relative_file_path)
     with open(cpi_device_b_public_key_relative_file_path, 'w+') as file_handle:
       file_handle.write(cpi_public_key_device_b)
 
@@ -213,6 +215,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'testcases', 'testdata', 'cpi_db', 'CPI_Database-Public_d.txt')
 
     # Create the pal_db record file consistent with CBSDs and PAL records.
+    ensureFileDirectoryExists(cpi_device_d_public_key_relative_file_path)
     with open(cpi_device_d_public_key_relative_file_path, 'w+') as file_handle:
       file_handle.write(cpi_public_key_device_d)
 
@@ -283,7 +286,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the main CPI database file.
     cpis_keys = ['cpiId', 'status', 'publicKeyIdentifier']
-
+    ensureFileDirectoryExists(config['cpiDatabaseConfig']['indexUrl'])
     with open(config['cpiDatabaseConfig']['indexUrl'], 'w+') as output_file:
       csv_writer = csv.writer(output_file, delimimter=',')
       for cpi in config['cpiDatabaseConfig']['cpis']:

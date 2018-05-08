@@ -509,7 +509,12 @@ def getChannels(lowFrequency, highFrequency):
                 or (startFrequency+channel*5 >= lowFrequency/1000000 and startFrequency + (channel+1)*5 <= highFrequency/1000000)
                 or (startFrequency+channel*5 < highFrequency/1000000 and startFrequency + (channel+1)*5 > highFrequency/1000000)):
             ch_low_freq = (startFrequency * 1000000) + (channel * 5000000)
-            ch_high_freq = ch_low_freq + 5000000     
+            ch_high_freq = ch_low_freq + 5000000
             protection_channels.append((ch_low_freq, ch_high_freq))
         channel = channel + 1
     return protection_channels
+
+def ensureFileDirectoryExists(file_path):
+  dir_name = os.path.dirname(file_path)
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
