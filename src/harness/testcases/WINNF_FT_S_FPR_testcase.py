@@ -20,9 +20,10 @@ import sas_testcase
 from sas_test_harness import generateCbsdRecords
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
  addCbsdIdsToRequests
+from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
-class FSSProtectionTestcase(sas_testcase.SasTestCase):
+class FSSProtectionTestcase(McpXprCommonTestcase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -34,26 +35,26 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   def generate_FPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.1. """
-    
+
         # Load FSS record
     fss_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_1['ttc'] = False
-    
+
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
         # Moving device_1 to a location within 40 KMs of FSS zone (9.596km)
     device_1['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.08  
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.08
     device_1['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.08  
-   
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.08
+
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
     device_2['installationParam']['latitude'] = \
-       fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1   
+       fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1
     device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1
 
@@ -61,18 +62,18 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
         # Moving device_3 to a location outside 40 KMs of FSS zone(60.861km)
     device_3['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5
     device_3['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5 
- 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5
+
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
     device_4['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude']  +  1.2 
-    
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude']  +  1.2
+
     device_4['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2  
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2
     device_5 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_e.json')))
         # Moving device_5 to a location within 40 KMs of FSS zone (5.425km)
@@ -80,7 +81,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.02
     device_5['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.02
-    
+
     device_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_f.json')))
         # Moving device_6 to a location outside 40 KMs of FSS zone (44.504km)
@@ -88,7 +89,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] +0.3
     device_6['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.3
-    
+
     # Load Grant requests
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
@@ -97,24 +98,24 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     grant_request_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency']  = 3580000000
-    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000  
+    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency']  = 3610000000
-    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000  
+    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
-    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000  
+    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
     grant_request_5 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_5['operationParam']['operationFrequencyRange']['lowFrequency']  = 3675000000
-    grant_request_5['operationParam']['operationFrequencyRange']['highFrequency'] = 3685000000  
+    grant_request_5['operationParam']['operationFrequencyRange']['highFrequency'] = 3685000000
     grant_request_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_6['operationParam']['operationFrequencyRange']['lowFrequency']  = 3690000000
-    grant_request_6['operationParam']['operationFrequencyRange']['highFrequency'] = 3700000000  
-   
+    grant_request_6['operationParam']['operationFrequencyRange']['highFrequency'] = 3700000000
+
     # device_b device_d and device_h are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B')
@@ -135,7 +136,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'installationParam': device_4['installationParam'],
         'measCapability': device_4['measCapability']
     }
-    
+
     conditionals =  [conditionals_device_2, conditionals_device_4]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
@@ -150,18 +151,20 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_3,device_4],
-        'grantRequests': [grant_request_1, grant_request_3,grant_request_4]
+        'grantRequests': [grant_request_1, grant_request_3,grant_request_4],
+        'conditionalRegistrationData':[conditionals_device_4]
     }
     cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_5,device_2],
-        'grantRequests': [grant_request_5,grant_request_2]
+        'grantRequests': [grant_request_5,grant_request_2],
+        'conditionalRegistrationData':[conditionals_device_2]
     }
 
     # Protected entities records for multiple iterations
     protected_entities_iteration_0 = {
          'fssRecords': [fss_record_1]
     }
- 
+
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses for two iterations
     sas_test_harness_device_1 = json.load(
@@ -178,9 +181,9 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
     sas_test_harness_device_2['userId'] = "test_user_id_h"
     sas_test_harness_device_2['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5
     sas_test_harness_device_2['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] - 1.5 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] - 1.5
 
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1],[[grant_request_1]])
@@ -213,7 +216,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     dump_records_iteration_0_sas_test_harness_1 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
- 
+
 
     # Create the actual config.
     iteration0_config = {
@@ -221,8 +224,8 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_6,
             'grantRequest': grant_request_6,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
@@ -242,14 +245,11 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   @configurable_testcase(generate_FPR_1_default_config)
   def test_WINNF_FT_S_FPR_1(self, config_filename):
-      """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 1 with TT&C Flag = OFF"""
-      config = loadConfig(config_filename)
-
-          # TODO
-    # test_type= enum (MCP, XPR)
+    """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 1 with TT&C Flag = OFF"""
+    config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
-    
+    self.executeMcpTestSteps(config, 'XPR')
+
 
   def generate_FPR_2_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.2."""
@@ -406,11 +406,13 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     # DP Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2, device_6],
-        'grantRequests': [grant_request_1, grant_request_2, grant_request_6]
+        'grantRequests': [grant_request_1, grant_request_2, grant_request_6],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3, device_4, device_7],
-        'grantRequests': [grant_request_3, grant_request_4, grant_request_7]
+        'grantRequests': [grant_request_3, grant_request_4, grant_request_7],
+        'conditionalRegistrationData': [conditionals_device_4]
     }
 
     # Protected entity record
@@ -476,8 +478,8 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [
             {'registrationRequest': device_5,
              'grantRequest': grant_request_5,
-             'clientCert': os.path.join('certs', 'client.cert'),
-             'clientKey': os.path.join('certs', 'client.key')}],
+             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()}],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
         'dpaDeactivationList': [],
@@ -507,13 +509,11 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     of an FSS Station for Scenario 1 with TT&C Flag = ON.
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, FSS)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
-    
-      
+
+
   def generate_FPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.3. """
       # Load FSS record
@@ -521,7 +521,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_1['ttc'] = False
     fss_record_1['record']['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']  = 3700000000
-    
+
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
     device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -529,13 +529,13 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     device_1['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 0.02
     device_1['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +0.02 
-   
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +0.02
+
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
     device_2['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1  
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1
     device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +1
 
@@ -544,16 +544,16 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         # Moving device_3 to a location outside 40 KMs of FSS zone(60.861km)
     device_3['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5
     device_3['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5
- 
+
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
     device_4['installationParam']['latitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1.2  
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1.2
     device_4['installationParam']['longitude'] = \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2
 
-     
+
     # Load Grant requests
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
@@ -562,16 +562,16 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     grant_request_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency']  = 3580000000
-    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000  
+    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency']  = 3610000000
-    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000  
+    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
-    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000  
-  
+    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
+
     # device_b and device_d are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B')
@@ -592,7 +592,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'installationParam': device_4['installationParam'],
         'measCapability': device_4['measCapability']
     }
-    
+
     conditionals = [conditionals_device_2, conditionals_device_4]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
@@ -603,24 +603,26 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     del device_4['airInterface']
     del device_4['installationParam']
     del device_4['measCapability']
-  
-  
+
+
 
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_4],
-        'grantRequests': [grant_request_4]
+        'grantRequests': [grant_request_4],
+        'conditionalRegistrationData': [conditionals_device_4]
     }
 
     # Protected entities records for multiple iterations
     protected_entities_iteration_0 = {
          'fssRecords': [fss_record_1]
     }
- 
+
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses for two iterations
     sas_test_harness_device_1 = json.load(
@@ -637,7 +639,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
     sas_test_harness_device_2['installationParam']['latitude'] =  \
-        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5 
+        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 1.5
     sas_test_harness_device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude']  -1.5
 
@@ -672,7 +674,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     dump_records_iteration_0_sas_test_harness_1 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
- 
+
 
     # Create the actual config.
     iteration0_config = {
@@ -680,8 +682,8 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_3,
             'grantRequest': grant_request_3,
-            'clientCert': os.path.join('certs', 'client.cert'),
-            'clientKey': os.path.join('certs', 'client.key')
+            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
+            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
@@ -701,14 +703,10 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
 
   @configurable_testcase(generate_FPR_3_default_config)
   def test_WINNF_FT_S_FPR_3(self, config_filename):
-      """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 2 with TT&C Flag = OFF"""
-      config = loadConfig(config_filename)
-
- 
-          # TODO
-    # test_type= enum (MCP, XPR)
+    """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 2 with TT&C Flag = OFF"""
+    config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
 
   def generate_FPR_4_default_config(self, filename):
@@ -922,11 +920,9 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     of an FSS Station for Scenario 2 with TT&C Flag = ON.
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, FSS)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
-    
+    self.executeMcpTestSteps(config, 'XPR')
+
   def generate_FPR_5_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.5."""
 
@@ -1016,7 +1012,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     """[Configurable] Grant Requests from one or more CBSDs Inside an FSS-GWBL Exclusion Zone."""
 
     config = loadConfig(config_filename)
-        
+
     # Light checking of the config file
     self.assertEqual(len(config['registrationRequests']), len(config['grantRequests']))
 
@@ -1027,7 +1023,7 @@ class FSSProtectionTestcase(sas_testcase.SasTestCase):
     self._sas_admin.InjectWisp(config['gwblRecord'])
 
     # Trigger CPAS activity
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete() 
+    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Register N > 0 CBSDs
     cbsd_ids = self.assertRegistered(config['registrationRequests'],config['conditionalRegistrationData'])

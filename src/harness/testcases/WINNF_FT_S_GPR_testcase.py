@@ -20,9 +20,10 @@ from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import addCbsdIdsToRequests, winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
+from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
-class GwpzProtectionTestcase(sas_testcase.SasTestCase):
+class GwpzProtectionTestcase(McpXprCommonTestcase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -110,11 +111,13 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3]
+        'grantRequests': [grant_request_3],
+        'conditionalRegistrationData': []
     }
 
     # Protected entity record
@@ -128,6 +131,7 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
+            'conditionalRegistrationData': conditionals_device_4,  
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -158,10 +162,8 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     """Single SAS GWPZ Protection
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, XPR)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
   def generate_GPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for GPR.2. """
@@ -253,11 +255,13 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
     # Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3]
+        'grantRequests': [grant_request_3],
+        'conditionalRegistrationData': []
     }
 
     # Protected entity record
@@ -326,6 +330,7 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
+            'conditionalRegistrationData': conditionals_device_4,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -354,13 +359,11 @@ class GwpzProtectionTestcase(sas_testcase.SasTestCase):
 
   @configurable_testcase(generate_GPR_2_default_config)
   def test_WINNF_FT_S_GPR_2(self, config_filename):
-    """Multiple SAS GWPZ Protection 
+    """Multiple SAS GWPZ Protection
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, XPR)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
   def generate_GPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for GPR.3 """
