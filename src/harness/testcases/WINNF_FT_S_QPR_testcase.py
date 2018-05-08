@@ -764,7 +764,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       })
 
     # Step 1: Register CBSD.
-    request = {'registrationRequest': config['registrationRequest']}
+    request = {'registrationRequest': [config['registrationRequest']]}
     response = self._sas.Registration(request)['registrationResponse']
 
     # Check registration response.
@@ -777,7 +777,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     # Step 2: Request first grant.
     config['grantRequest1']['cbsdId'] = cbsd_id
     grant_request = config['grantRequest1']
-    request = {'grantRequest': grant_request}
+    request = {'grantRequest': [grant_request]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check if the first grant response is successful.
     grant1_approved = response['response']['responseCode'] == 0
@@ -786,7 +786,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     # Step 3: Request second grant
     config['grantRequest2']['cbsdId'] = cbsd_id
     grant_request = config['grantRequest2']
-    request = {'grantRequest': grant_request}
+    request = {'grantRequest': [grant_request]}
     response = self._sas.Grant(request)['grantResponse'][0]
     # Check if the second grant response is successful.
     grant2_approved = response['response']['responseCode'] == 0
