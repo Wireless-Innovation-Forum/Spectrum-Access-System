@@ -42,6 +42,11 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
                                                                       sas_test_harness_fads)
 
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
+  # Initialize expected keys in protected_entities to empty array if type does not exist
+  for key in ['gwblRecords', 'fssRecords', 'ppaRecords', 'palRecords', 'gwpzRecords']:
+    if key not in protected_entities:
+      protected_entities[key] = []
+
   list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
       protected_entities['gwblRecords'],
       protected_entities['fssRecords'])
