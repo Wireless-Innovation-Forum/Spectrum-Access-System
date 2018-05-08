@@ -20,9 +20,10 @@ from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, makePpaAndPalRecordsConsistent
+from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
-class EscProtectionTestcase(sas_testcase.SasTestCase):
+class EscProtectionTestcase(McpXprCommonTestcase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -170,13 +171,11 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
 
   @configurable_testcase(generate_EPR_1_default_config)
   def test_WINNF_FT_S_EPR_1(self, config_filename):
-      """Single SAS ESC Sensor Protection
-      """
-      config = loadConfig(config_filename)
-      # TODO
-      # test_type= enum (MCP, EPR)
-      # Invoke MCP test steps 1 through 22.
-      # self.executeMcpTestSteps(config, test_type)
+    """Single SAS ESC Sensor Protection
+    """
+    config = loadConfig(config_filename)
+    # Invoke MCP test steps 1 through 22.
+    self.executeMcpTestSteps(config, 'XPR')
 
   def generate_EPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for EPR.2. """
@@ -378,11 +377,9 @@ class EscProtectionTestcase(sas_testcase.SasTestCase):
 
   @configurable_testcase(generate_EPR_2_default_config)
   def test_WINNF_FT_S_EPR_2(self, config_filename):
-      """Multiple SAS ESC Sensor Protection
-      """
-      config = loadConfig(config_filename)
-      # TODO
-      # test_type= enum (MCP, EPR)
-      # Invoke MCP test steps 1 through 22.
-      # self.executeMcpTestSteps(config, test_type)
+    """Multiple SAS ESC Sensor Protection
+    """
+    config = loadConfig(config_filename)
+    # Invoke MCP test steps 1 through 22.
+    self.executeMcpTestSteps(config, 'XPR')
 
