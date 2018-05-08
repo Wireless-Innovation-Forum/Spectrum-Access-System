@@ -20,9 +20,9 @@ from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
+from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
-
-class PpaProtectionTestcase(sas_testcase.SasTestCase):
+class PpaProtectionTestcase(McpXprCommonTestcase):
 
   def setUp(self):
     self._sas, self._sas_admin = sas.GetTestingSas()
@@ -150,7 +150,7 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
         'dpaDeactivationList': [],
         'sasTestHarnessData': []
     }
-    
+
     # Create the actual config.
     config = {
         'conditionalRegistrationData': conditionals,
@@ -172,10 +172,8 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     """Single SAS PPA Protection
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, XPR)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
   def generate_PPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for PPR.2. """
@@ -386,8 +384,6 @@ class PpaProtectionTestcase(sas_testcase.SasTestCase):
     """Multiple SAS PPA Protection
     """
     config = loadConfig(config_filename)
-    # TODO
-    # test_type= enum (MCP, XPR)
     # Invoke MCP test steps 1 through 22.
-    # self.executeMcpTestSteps(config, test_type)
+    self.executeMcpTestSteps(config, 'XPR')
 
