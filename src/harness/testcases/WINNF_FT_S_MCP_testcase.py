@@ -600,8 +600,6 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     esc_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
 
-    esc_record_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'esc_sensor_record_1.json')))
     # Load PPA and PAL record
     ppa_record = json.load(
       open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
