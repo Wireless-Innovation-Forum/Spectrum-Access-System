@@ -239,6 +239,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
     # Pre-load conditional registration data for N2,N3 and N4 CBSDs.
     if config['conditionalRegistrationData']:
+      for data in config['conditionalRegistrationData']:
+        self._sas_admin.InjectFccId({'fccId': data['fccId']})
       self._sas_admin.PreloadRegistrationData({
           'registrationData': config['conditionalRegistrationData']
       })
