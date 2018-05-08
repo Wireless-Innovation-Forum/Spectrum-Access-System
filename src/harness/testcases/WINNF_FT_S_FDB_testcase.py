@@ -607,7 +607,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'hostName': 'localhost',
         'port': 8003,
         'fileUrl': '/rest/fss/v1/allsitedata',
-        'filePath': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_allsitedata')
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_default_allsitedata')
     }
 
     # Create the actual config.
