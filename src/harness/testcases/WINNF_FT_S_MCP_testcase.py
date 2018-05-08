@@ -563,8 +563,6 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.fss_cochannel_ap_iap_ref_values_list = []
     self.esc_ap_iap_ref_values_list = []
 
-    authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
-
     # Calculate and compare the interference value for PPA protected entity
     if 'ppaRecords' in self.protected_entity_records:
       for ppa_record in self.protected_entity_records['ppaRecords']:

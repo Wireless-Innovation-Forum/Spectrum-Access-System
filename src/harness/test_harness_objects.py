@@ -200,7 +200,7 @@ class DomainProxy(object):
       return
     for conditional in conditionals:
       if conditional['fccId'] == registration_request['fccId'] and conditional['cbsdSerialNumber'] == registration_request['cbsdSerialNumber']:
-        for key, value in conditionals.iteritems():
+        for key, value in conditional.iteritems():
           if key not in registration_request:
             registration_request[key] = value
         break
