@@ -33,15 +33,37 @@ class TestZones(unittest.TestCase):
     self.assertTrue(z.area > 80)
 
   def test_read_exclusion(self):
-    z = zones.GetExclusionZones()
+    z = zones.GetGbsExclusionZones()
     self.assertTrue(z.is_valid)
     self.assertTrue(z.area > 3 and z.area < 4)
 
-  def test_read_dpa(self):
-    z = zones.GetDpaZones()
+    z = zones.GetPart90ExclusionZones()
+    self.assertTrue(z.is_valid)
+    self.assertTrue(z.area > 5.5 and z.area < 5.55)
+
+  def test_read_coastal_dpa(self):
+    z = zones.GetCoastalDpaZones()
     for name, zone in z.items():
-      self.assertTrue(zone.is_valid)
-    self.assertAlmostEqual(z['East5'].area, 6, 1)
+      self.assertTrue(zone.geometry.is_valid)
+    self.assertAlmostEqual(z['East5'].geometry.area, 6, 1)
+    self.assertEqual(z['East5'].freqRangeMhz, [(3500, 3650)])
+    self.assertEqual(z['East5'].protectionCritDbmPer10MHz, -144)
+    self.assertEqual(z['East5'].refHeightMeters, 50)
+    self.assertEqual(z['East5'].minAzimuthDeg, 0)
+    self.assertEqual(z['East5'].maxAzimuthDeg, 360)
+    self.assertEqual(z['East5'].catbNeighborDist, 200)
+
+  def test_read_portal_dpa(self):
+    z = zones.GetPortalDpaZones()
+    for name, zone in z.items():
+      self.assertTrue(zone.geometry.is_valid)
+    self.assertAlmostEqual(z['BATH'].geometry.area, 0.0, 1)
+    self.assertEqual(z['BATH'].freqRangeMhz, [(3500, 3650)])
+    self.assertEqual(z['BATH'].protectionCritDbmPer10MHz, -144)
+    self.assertEqual(z['BATH'].refHeightMeters, 30)
+    self.assertEqual(z['BATH'].minAzimuthDeg, 0)
+    self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
+    self.assertEqual(z['BATH'].catbNeighborDist, 200)
 
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()
