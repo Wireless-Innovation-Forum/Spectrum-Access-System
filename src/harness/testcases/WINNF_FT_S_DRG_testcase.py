@@ -384,7 +384,7 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     # Step 2 & 3: Register devices and get grants
     try:
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
-          config['registrationRequest'], config['grantRequest'],
+          config['registrationRequests'], config['grantRequests'],
           config['conditionalRegistrationData'])
     except Exception as e:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
