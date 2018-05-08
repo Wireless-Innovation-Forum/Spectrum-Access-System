@@ -718,8 +718,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
     # with FSS Number 'FSS0002010'
-    device_b['installationParam']['latitude'] = 39.3291
-    device_b['installationParam']['longitude'] = -104.1
+    device_b['installationParam']['latitude'] = 35.51043
+    device_b['installationParam']['longitude'] = -100.27183
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -936,8 +936,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
     # with FSS Number 'FSS0002010'
-    device_b['installationParam']['latitude'] = 40.69105
-    device_b['installationParam']['longitude'] = -75.21514
+    device_b['installationParam']['latitude'] = 35.51043
+    device_b['installationParam']['longitude'] = -100.27183
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1116,8 +1116,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
     # with FSS Number 'FSS0002010'
-    device_b['installationParam']['latitude'] = 40.69105
-    device_b['installationParam']['longitude'] = -75.21514
+    device_b['installationParam']['latitude'] = 35.51043
+    device_b['installationParam']['longitude'] = -100.27183
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
@@ -1265,89 +1265,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     del grant_request_g2, grant_response_g2
 
-  def generate_FDB_7_default_config(self, filename):
-    """Generates the WinnForum configuration for FDB.7"""
-
-    # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-
-    # Update the FCC ID of CBSDs from FCC ID database.
-    device_a['fccId'] = "F_ID_a"
-    device_c['fccId'] = "F_ID_c"
-
-    self.assertEqual(device_a['cbsdCategory'], 'A')
-    self.assertEqual(device_c['cbsdCategory'], 'A')
-
-    # Create the actual config.
-    config = {
-        'registrationRequests': [device_a, device_c],
-        'expectedResponseCodes': [(103,), (0,)]
-        # TODO
-        # Need to add data base configurations
-    }
-    writeConfig(filename, config)
-
-  @configurable_testcase(generate_FDB_7_default_config)
-  def test_WINNF_FT_S_FDB_7(self, config_filename):
-    """FCC ID Database Update."""
-
-    # Load the configuration file
-    config = loadConfig(config_filename)
-
-    # Very light checking of the config file.
-    self.assertEqual(len(config['registrationRequests']),
-                     len(config['expectedResponseCodes']))
-
-    registration_requests = {
-        'registrationRequest': config['registrationRequests']
-    }
-
-    # Step 1: Send registration request for CBSD 'C' to SAS UUT.
-    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
-
-    # Check registration response,
-    # responseCode should be 103(INVALID_VALUE)
-    for resp in registration_responses:
-      self.assertEqual(resp['response']['responseCode'], 103)
-
-    del registration_responses
-
-    # TODO
-    # Step 2: Create FCC ID database which includes at least one FCC ID 'F_ID'.
-
-    # Step 3: Trigger daily activities
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-
-    # Step 4: Send again the same registration request for CBSD 'C'
-    # with FCC ID 'F_ID' to SAS UUT.
-    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
-
-    # Check registration response,
-    # responseCode should be 0(SUCCESS)
-    for resp in registration_responses:
-      self.assertEqual(resp['response']['responseCode'], 0)
-
-    del registration_responses
-
-    # TODO
-    # Step 5: Modify FCC ID database record with FCC ID 'F_ID'.
-
-    # Step 6: Trigger daily activities
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
-
-    # Step 7: Send again the same registration request for CBSD 'C'
-    # with FCC ID 'F_ID' to SAS UUT.
-    registration_responses = self._sas.Registration(registration_requests)['registrationResponse']
-
-    # Check the registration response code is as expected (SUCCESS or INVALID_VALUE).
-    for resp_num, resp in enumerate(registration_responses):
-      self.assertIn(resp['response']['responseCode'], config['expectedResponseCodes'][resp_num])
-
-    del registration_requests, registration_responses
-
   def generate_FDB_8_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.8"""
 
@@ -1387,8 +1304,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['latitude'] = 39.353414
     device_a['installationParam']['longitude'] = -100.195313
     # with FSS Number 'FSS0002010'
-    device_b['installationParam']['latitude'] = 39.3291
-    device_b['installationParam']['longitude'] = -104.1
+    device_b['installationParam']['latitude'] = 35.51043
+    device_b['installationParam']['longitude'] = -100.27183
 
     # Creating conditionals for Cat B devices
     self.assertEqual(device_b['cbsdCategory'], 'B')
