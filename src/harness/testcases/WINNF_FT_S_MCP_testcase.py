@@ -373,17 +373,23 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         self.esc_ap_iap_ref_values_list.append(esc_ap_iap_ref_values)
 
   def performAggregateInterferenceCheck(self):
-    authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
+    authorized_grants = None
+    if any(key in self.protected_entity_records for key in ['gwpzRecords', 'fssRecords', 'escRecords']):
+      # Get Grant info for all CBSDs with grants from SAS UUT.
+      authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
 
     # Calculate and compare the interference value for PPA protected entity
     if 'ppaRecords' in self.protected_entity_records:
       for index, ppa_record in enumerate(self.protected_entity_records['ppaRecords']):
         pal_records = self.protected_entity_records['palRecords']
+        # Get Grant info for all CBSDs with grants from SAS UUT that are not
+        # part of the current ppa.
+        ppa_authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects, ppa_record=ppa_record)
         # Call aggregate interference reference model for ppa
         ppa_aggr_interference = aggregate_interference.calculateAggregateInterferenceForPpa(
             ppa_record,
             pal_records,
-            authorized_grants)
+            ppa_authorized_grants)
         ppa_ap_iap_ref_values = None
         if self.num_peer_sases > 0:
           ppa_ap_iap_ref_values = self.ppa_ap_iap_ref_values_list[index]
