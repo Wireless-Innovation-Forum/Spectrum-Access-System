@@ -13,6 +13,7 @@
 #    limitations under the License.
 """ Implementation of FAD test cases """
 
+import copy
 import hashlib
 import json
 import os
