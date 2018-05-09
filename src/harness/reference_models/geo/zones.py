@@ -110,13 +110,20 @@ def _GetLineString(linestring):
   return sgeo.LineString(points)
 
 
-class _Bunch(object):
-  """A simplistic configurable struct."""
+# A private struct for configurable zone with geometry and attributes
+class _Zone(object):
+  """A simplistic struct holder for zones."""
   def __init__(self, fields):
     """Initializes attributes to None for a list of `fields`."""
     self.fields = fields
     for field in fields:
       setattr(self, field, None)
+
+  def __repr__(self):
+    """Return zone representation."""
+    return 'Zone(geometry=%s, %s)' % (
+        'None' if not hasattr(self, 'geometry') else self.geometry.type,
+        ', '.join(['%s=%s' % (attr, getattr(self, attr)) for attr in self.fields]))
 
 
 def _SplitFreqRange(freq_range):
@@ -199,24 +206,24 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
     if data_fields is None:
       zones[name] = geometry
     else:
-      bunch = _Bunch(data_fields)
-      bunch.geometry = geometry
+      zone = _Zone(data_fields)
+      zone.geometry = geometry
       data_fields_lower = [field.lower() for field in data_fields]
-      zones[name] = bunch
+      zones[name] = zone
       ext_data = element.ExtendedData.getchildren()
       for data in ext_data:
         data_attrib = data.attrib['name']
         data_value = str(data.value)
         if data_attrib.lower() in data_fields_lower:
-          if getattr(bunch, data_attrib) is None:
-            setattr(bunch, data_attrib, data_value)
+          if getattr(zone, data_attrib) is None:
+            setattr(zone, data_attrib, data_value)
           else:
-            existing_data = getattr(bunch, data_attrib)
+            existing_data = getattr(zone, data_attrib)
             try:
               existing_data.append(str(data_value))
-              setattr(bunch, data_attrib, existing_data)
+              setattr(zone, data_attrib, existing_data)
             except:
-              setattr(bunch, data_attrib, [existing_data, str(data_value)])
+              setattr(zone, data_attrib, [existing_data, str(data_value)])
 
   return zones
 
@@ -331,16 +338,20 @@ def _LoadDpaZones(kml_name):
   """Loads DPA zones - See GetCoastalDpaZones for returned format."""
   kml_file = os.path.join(CONFIG.GetNtiaDir(), kml_name)
   # Manage the case where some items are in a Folder structure instead of Placemark
-  dpa_zones = _ReadKmlZones(kml_file, root_id_zone='Placemark', ignore_if_parent='Folder',
+  dpa_zones = _ReadKmlZones(kml_file, root_id_zone='Placemark',
+                            #ignore_if_parent='Folder',
                             data_fields=_DPA_ATTRIBUTES)
-  dpa_zones2 = _ReadKmlZones(kml_file, root_id_zone='Folder',
-                             data_fields=_DPA_ATTRIBUTES)
-  dpa_zones.update(dpa_zones2)
+  # Early version of KML files had some DPA as folder. Support it
+  #dpa_zones2 = _ReadKmlZones(kml_file, root_id_zone='Folder',
+  #                           data_fields=_DPA_ATTRIBUTES)
+  #dpa_zones.update(dpa_zones2)
+
   # TODO(sbdt): read the neighbor distance from actual source once defined
   for name, zone in dpa_zones.items():
     zone.catbNeighborDist = 200
+
   # Manage missing values, when expected.
-  ##  Nothing for now - all should be set.
+  ## =>  Nothing for now - all should be set.
   # Validity check that all parameters are set properly
   _CheckDpaValidity(dpa_zones)
   # Now adapt the data into
