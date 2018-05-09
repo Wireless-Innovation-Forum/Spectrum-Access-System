@@ -16,8 +16,9 @@ import json
 import os
 import unittest
 import full_activity_dump
-import fss_purge
-from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+
+from reference_models.pre_iap_filtering import fss_purge
+from reference_models.pre_iap_filtering import inter_sas_duplicate_grant
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata')
 

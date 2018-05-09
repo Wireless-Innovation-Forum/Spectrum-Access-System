@@ -20,7 +20,7 @@ import full_activity_dump
 from util import makePpaAndPalRecordsConsistent
 from reference_models.pre_iap_filtering import fss_purge
 from reference_models.pre_iap_filtering import zone_purge
-from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+from reference_models.pre_iap_filtering import inter_sas_duplicate_grant
 from reference_models.pre_iap_filtering import pre_iap_util
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata')

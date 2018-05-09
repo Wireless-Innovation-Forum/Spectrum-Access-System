@@ -59,16 +59,17 @@ NUM_PROCESSES = -2
 # A 2 level cache could also be used (with memmap or otherwise) in order to share
 # most of the in-memory tiles across processes. Not implemented.
 #
-
 # The memory allocated for geo cache across all sub-processes (in MB).
 #  -1: automatic allocation
 #  otherwise this number (in MB) is used for setting up the cache size
 MEM_ALLOCATION_GEO_CACHE_MB = -1
 # When 'automatic allocation', the ratio of total physical memory
 # dedicated to the geo cache
-RATIO_MEM_FOR_GEO_CACHE = 0.7
-# The factor of the main process vs worker processes. Use > 0.
-RATIO_MASTER_WORKER = 2
+MEM_RATIO_FOR_GEO_CACHE = 0.7
+# The weighting factor of the main processes vs worker processes. Use > 0
+MEM_NED_WEIGHT_MASTER = 2.0
+MEM_NLCD_WEIGHT_MASTER = 2.0
+MEM_NLCD_CACHE_WORKERS = 6
 
 
 def GetAvailableMemoryMb():
@@ -81,8 +82,45 @@ def GetGeoAllocatedMemory():
   if MEM_ALLOCATION_GEO_CACHE_MB > 0:
     return MEM_ALLOCATION_GEO_CACHE_MB
   else:
-    return GetAvailableMemoryMb() * RATIO_MEM_FOR_GEO_CACHE
+    return GetAvailableMemoryMb() * MEM_RATIO_FOR_GEO_CACHE
 
+def GetGeoCacheSize(num_workers):
+  """Compute the number of geo tiles to cache for a given number of workers.
+
+  This is derived according to a strategy taking into account respective use
+  of the geo in master and workers processes.
+
+  Args:
+    num_workers: The number of workers.
+
+  Returns:
+    A tuple (n_master_ned, n_worker_ned, n_master_nlcd, n_worker_nlcd), holding
+    the cache size to use for resp master/workers, and NED/NLCD.
+  """
+  geo_mem = GetGeoAllocatedMemory()
+  num_ned_work = num_workers + MEM_NED_WEIGHT_MASTER
+  num_nlcd_work = MEM_NLCD_WEIGHT_MASTER
+  NED_TILE_MB = 52
+  NLCD_TILE_MB = 13
+  num_tiles = float(geo_mem - MEM_NLCD_CACHE_WORKERS*num_workers*NLCD_TILE_MB) / (
+      num_ned_work * NED_TILE_MB + num_nlcd_work * NLCD_TILE_MB)
+  num_tiles = max(4, int(round(num_tiles)))
+  num_tiles_master_ned = int(round(num_tiles * MEM_NED_WEIGHT_MASTER))
+  num_tiles_worker_ned = num_tiles
+  num_tiles_master_nlcd = int(round(num_tiles * MEM_NLCD_WEIGHT_MASTER))
+  num_tiles_worker_nlcd = MEM_NLCD_CACHE_WORKERS
+  return (num_tiles_master_ned, num_tiles_worker_ned,
+          num_tiles_master_nlcd, num_tiles_worker_nlcd)
+
+def TestFunction(num_iter):
+  j = 0
+  for k in xrange(num_iter):
+    j *=k
+  return j
+
+def GetCacheSize(junk):
+  return (drive.terrain_driver.cache_size,
+          drive.nlcd_driver.cache_size, os.getpid())
 
 if __name__ == '__main__':
   # Configure the multiprocessing worker pool.
@@ -92,24 +130,32 @@ if __name__ == '__main__':
   #  -2: use all cpus (minus one)
   #  a specific number of cpus
   # Or your own `pool`.
+  logging.info('Start Worker processes')
   mpool.Configure(num_processes=NUM_PROCESSES)
   num_workers = mpool.GetNumWorkerProcesses()
+  logging.info(' ... %d workers started' % num_workers)
 
   # Configure geo drivers
-  geo_mem = GetGeoAllocatedMemory()
-  num_ned_work = num_workers + RATIO_MASTER_WORKER
-  num_nlcd_work = RATIO_MASTER_WORKER
-  ned_tile_mem = 52
-  nlcd_tile_mem = 13
-  num_tiles = float(geo_mem) / (
-      num_ned_work * ned_tile_mem + num_nlcd_work * nlcd_tile_mem)
+  logging.info('Configure geo drivers')
+  (num_tiles_master_ned, num_tiles_worker_ned,
+   num_tiles_master_nlcd, num_tiles_worker_nlcd) = GetGeoCacheSize(num_workers)
+  if num_tiles_worker_ned < 16:
+    logging.warning('Required geo cache size %d is low - too few memory or too many workers'
+                    % num_tiles)
+  logging.info(' ... NED: cache size: %d per master, %d for workers'
+               % (num_tiles_master_ned, num_tiles_worker_ned))
+  logging.info(' ... NLCD: cache size: %d per master, %d for workers'
+               % (num_tiles_master_ned, num_tiles_worker_ned))
 
-  # For main process
-  drive.ConfigureTerrainDriver(cache_size=RATIO_MASTER_WORKER*num_tiles)
-  drive.ConfigureNlcdDriver(cache_size=RATIO_MASTER_WORKER*num_tiles)
+  # - for main process
+  drive.ConfigureTerrainDriver(cache_size=num_tiles_master_ned)
+  drive.ConfigureNlcdDriver(cache_size=num_tiles_master_nlcd)
 
-  # For worker processes
-  # TODO
+  # - for worker processes
+  mpool.RunOnEachWorkerProcess(drive.ConfigureTerrainDriver,
+                               terrain_dir=None, cache_size=num_tiles_worker_ned)
+  mpool.RunOnEachWorkerProcess(drive.ConfigureNlcdDriver,
+                               nlcd_dir=None, cache_size=num_tiles_worker_nlcd)
 
   # Run the tests
   tests = unittest.TestLoader().discover('testcases', '*_testcase.py')

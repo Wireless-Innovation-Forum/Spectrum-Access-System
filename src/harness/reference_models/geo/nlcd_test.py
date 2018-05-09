@@ -18,7 +18,7 @@ import numpy as np
 import shutil
 import unittest
 
-from reference_models.geo import testutils
+from reference_models.tools import testutils
 from reference_models.geo import nlcd
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata', 'nlcd')

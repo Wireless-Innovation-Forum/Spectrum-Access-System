@@ -24,7 +24,7 @@ from reference_models.geo import drive
 from reference_models.geo import vincenty
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
-from reference_models.examples import testutils
+from reference_models.tools import testutils
 
 from reference_models.ppa import ppa
 
