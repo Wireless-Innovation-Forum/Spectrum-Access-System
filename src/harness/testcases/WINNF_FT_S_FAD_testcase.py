@@ -404,7 +404,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       esc_sensor_dump_data = []
       # step 8 and check
       # download dump files and fill corresponding arrays
-      dump_file = {}
+      downloaded_files = {}
       for dump_file in response['files']:
           self.assertContainsRequiredFields("ActivityDumpFile.schema.json",
                                               dump_file)
@@ -412,7 +412,10 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           if dump_file['recordType'] != 'coordination':
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th_config['serverCert'], sas_th_config['serverKey'])
-              dump_file[dump_file['url']] =  downloaded_file
+              # The downloaded_file is being modified in the assertions below,
+              # and hence we need a deep copy to verify that dump files are the
+              # same when requested by different SASs.
+              downloaded_files[dump_file['url']] = copy.deepcopy(downloaded_file)
           if dump_file['recordType'] ==  'cbsd':
               cbsd_dump_data.extend(downloaded_file['recordData'])
           elif dump_file['recordType'] ==  'esc_sensor':
@@ -476,7 +479,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           if dump_file['recordType'] != 'coordination':
               downloaded_file = self._sas.DownloadFile(dump_file['url'],\
                 sas_th['serverCert'], sas_th['serverKey'])
-              self.assertDictEqual(dump_file[dump_file['url']], downloaded_file)
+              self.assertDictEqual(downloaded_files[dump_file['url']], downloaded_file)
 
   def generate_FAD_2_default_config(self, filename):
     """Generates the WinnForum configuration for FAD_2"""
