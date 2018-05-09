@@ -46,8 +46,6 @@ def CvtToList(data):
 
 if __name__ == '__main__':
 
-  from reference_models.geo import drive
-  drive.terrain_driver.SetFlatEarthMode(True)
   # Configure the multiprocess pool
   mpool.Configure(NUM_OF_PROCESS)
 

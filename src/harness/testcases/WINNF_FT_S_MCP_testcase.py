@@ -53,7 +53,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.test_type = test_type
     self.sas_test_harness_objects = []
     self.domain_proxy_objects = []
-    self.protected_entity_records = []
+    self.protected_entity_records = {}
     self.num_peer_sases = len(config['sasTestHarnessConfigs'])
 
     for domain_proxy in config['domainProxyConfigs']:
@@ -116,12 +116,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 5 : Inject IAP protected entities into UUT
-    for key in self.iteration_content['protectedEntities']:
+    for key in iteration_content['protectedEntities']:
       if not key in self.protected_entity_records:
         self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
       else:
         self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
-    self.protected_entity_records.extend(iteration_content['protectedEntities'])
     if 'fssRecords' in self.protected_entity_records:
       for fss_record in self.protected_entity_records['fssRecords']:
         try:
@@ -488,7 +487,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     match_cnt = 0 # Variable to count the number of matching interference entries
     iap_margin_lin = interference.dbToLinear(DELTA_IAP)
 
-    for lat_val, lat_dict in aggregate_interference.iteritems():
+    for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
         ref_interf_list = ap_iap_ref_values[lat_val][long_val]
         self.assertEqual(len(interf_list), len(ref_interf_list))
@@ -682,8 +681,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
 
     protected_entities_iteration_1 = {
         'gwpzRecords': [gwpz_record_1],
-        'fssRecords': [fss_record_1],
-        'escRecords': [esc_record_2]
+        'fssRecords': [fss_record_1]
     }
 
     # SAS Test Harnesses configurations,
