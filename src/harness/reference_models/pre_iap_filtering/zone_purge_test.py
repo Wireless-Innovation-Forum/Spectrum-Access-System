@@ -20,6 +20,8 @@ from util import makePpaAndPalRecordsConsistent
 from reference_models.pre_iap_filtering import zone_purge
 from reference_models.pre_iap_filtering import pre_iap_util
 
+TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata')
+
 
 class TestZonePurge(unittest.TestCase):
 
@@ -27,34 +29,34 @@ class TestZonePurge(unittest.TestCase):
 
    # TEST DATA
    cbsd_0 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_0.json')))
    cbsd_1 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_1.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_1.json')))
    cbsd_2 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_2.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_2.json')))
    cbsd_3 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_3.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_3.json')))
    cbsd_4 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_4.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_4.json')))
    cbsd_5 = json.load(
-     open(os.path.join('testdata', 'testset1', 'cbsd_5.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'cbsd_5.json')))
    # Load PPA record
    gwpz_record = json.load(
-     open(os.path.join('testdata', 'testset1', 'gwpz_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'gwpz_0.json')))
    ppa_record = json.load(
-     open(os.path.join('testdata', 'testset1', 'ppa_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'ppa_0.json')))
    pal_record_0 = json.load(
-     open(os.path.join('testdata', 'testset1', 'pal_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'pal_0.json')))
    pal_record_1 = json.load(
-     open(os.path.join('testdata', 'testset1', 'pal_1.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'pal_1.json')))
    pal_record_2 = json.load(
-     open(os.path.join('testdata', 'testset1', 'pal_2.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'pal_2.json')))
 
    pal_record_list = [pal_record_0, pal_record_1, pal_record_2]
    fss_record = json.load(
-     open(os.path.join('testdata', 'testset1', 'fss_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'fss_0.json')))
    gwbl_record = json.load(
-     open(os.path.join('testdata', 'testset1', 'gwbl_0.json')))
+     open(os.path.join(TEST_DIR, 'testset1', 'gwbl_0.json')))
 
    pal_low_frequency = pal_record_0['channelAssignment']['primaryAssignment']['lowFrequency']
    pal_high_frequency = pal_record_0['channelAssignment']['primaryAssignment']['highFrequency']

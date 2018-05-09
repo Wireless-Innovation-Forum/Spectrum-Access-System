@@ -20,16 +20,33 @@ Managing pool in one place avoids issue of either:
  - centralize management of common shared memory
 
 Usage:
-# Configure the pool
-pool.Configure(-1)
 
-# Use the multiprocessing pool
+import mpool
+# Configure the pool
+mpool.Configure(-1)
+
+
+# Gets the number of worker processes
+num_workers = mpool.GetNumWorkerProcesses()
+
+# Apply a function on all workers
+mpool.RunOnEachWorkerProcess(fn, 3, arg2=4)
+
+# Use the multiprocessing worker pool
 pool = mpool.Pool()
 pool.map(...)
-
+pool.apply_async(...)
 """
-# TODO(sbdt): review behavior in multiple platforms.
+# NOTE: This has been tested in Linux only.
+# Windows has some special way of launching processes, not using fork(),
+# but rather by instantiating new processes and reimporting the
+# modules. Make sure that the code creating the processes is not
+# actually called during the imports, ie:
+#  - within the if __name__ == 'main': block
+#  - in a function that is not executed at time of import or within
+#    the routines delegated to workers.
 
+from functools import partial
 import multiprocessing
 
 
@@ -80,6 +97,23 @@ def Pool():
   And other `multiprocessing.Pool` routines if not a dummy pool.
   """
   return _pool
+
+
+def GetNumWorkerProcesses():
+  """Returns the number of worker processes."""
+  return _num_processes
+
+
+def _partial_fn(fn):
+  return fn()
+
+def RunOnEachWorkerProcess(fn, * args, **kwargs):
+  """Runs a function on each of the pool process."""
+  if not _num_processes:
+    return
+  pfn = partial(fn, *args, **kwargs)
+  return _pool.map(_partial_fn, [pfn] * _num_processes, chunksize=1)
+
 
 def Configure(num_processes=-1, pool=None):
   """Configure multiprocessing pool.

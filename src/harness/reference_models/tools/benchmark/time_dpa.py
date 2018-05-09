@@ -37,7 +37,7 @@ from reference_models.common import mpool
 from reference_models.geo import zones
 from reference_models.geo import drive
 from reference_models.geo import utils
-from reference_models.examples import entities
+from reference_models.tools import entities
 
 #------------------------------
 # Define simulation parameters
@@ -168,7 +168,7 @@ def PrepareSimulation():
           ax)
 
 # Useful functions
-def getTileStats(dummy):
+def getTileStats():
   return drive.terrain_driver.stats.ActiveTilesCount()
 
 def printTileStats():
@@ -182,8 +182,7 @@ if __name__ == '__main__':
 
   # Configure the global pool of processes
   mpool.Configure(num_processes)
-  pool = mpool.Pool()
-  num_processes = pool._max_workers  # actual number of processes
+  num_workers = mpool.GetNumWorkerProcesses()
 
   (all_cbsds, reg_requests, grant_requests, protection_zone,
    (n_a_indoor, n_a_outdoor, n_b), ax) = PrepareSimulation()
@@ -208,7 +207,7 @@ if __name__ == '__main__':
   plt.show(block=False)
 
   # Run the move list algorithm a first time to fill up geo cache
-  print 'Running Move List algorithm (%d processes)' % num_processes
+  print 'Running Move List algorithm (%d workers)' % num_workers
   print '  + once to populate the terrain cache (small run)'
   dpa.SetGrantsFromList(grants[0:50])
   dpa.ComputeMoveLists()
@@ -225,7 +224,7 @@ if __name__ == '__main__':
   print dpa.GetMoveListMask((fmin, fmax))
   len_move_list = len(dpa.move_lists[0])
   print ''
-  print 'Num Cores (Parallelization): %d' % num_processes
+  print 'Num Cores (Parallelization): %d' % num_workers
   print 'Num Protection Points: %d' % len(dpa.protected_points)
   print 'Num CBSD: %d (A: %d %d - B %d)' % (
       len(grants), n_a_indoor, n_a_outdoor, n_b)
@@ -236,14 +235,14 @@ if __name__ == '__main__':
 
   # Check tiles cache well behaved
   print  ''
-  tile_stats = list(pool.map(getTileStats, [None]*num_processes))
+  tile_stats = mpool.RunOnEachWorkerProcess(getTileStats)
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    future = pool.submit(printTileStats, ())
-    future.result()
+    pool = mpool.Pool()
+    pool.apply_async(printTileStats)
   else:
     print '-- Cache tile: OK (no swapping)'
 

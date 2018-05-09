@@ -14,8 +14,9 @@
 
 """Simple data model for SAS entities, and utility routines.
 
-Used solely for running various examples of the protection logic.
-This is *NOT* to be used for actual test harness.
+Used solely for running various examples of the protection logic, or scenario
+generating scripts.
+This is *NOT* designed to be used within the actual test harness.
 """
 
 from collections import namedtuple

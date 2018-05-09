@@ -18,7 +18,7 @@ import numpy as np
 import unittest
 import shutil
 
-from reference_models.geo import testutils
+from reference_models.tools import testutils
 from reference_models.geo import terrain
 
 

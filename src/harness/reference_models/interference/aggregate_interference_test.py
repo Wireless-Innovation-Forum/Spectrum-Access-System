@@ -18,7 +18,7 @@
 import os
 import unittest
 import json
-from reference_models.examples import testutils
+from reference_models.tools import testutils
 from reference_models.interference import aggregate_interference
 from reference_models.interference import interference as interf
 

@@ -14,10 +14,9 @@
 
 import os
 import numpy as np
-import random
 import unittest
 
-from reference_models.geo import testutils
+from reference_models.tools import testutils
 from reference_models.geo import drive
 
 from reference_models.propagation.itm.itm_test import _GetHorizonAnglesLegacy
@@ -146,7 +145,7 @@ class TestWfItm(unittest.TestCase):
   def test_angles_vs_legacy(self):
     # More extensive testing of the vertical incidence angle
     # obtained from C module vs legacy python-only method used prior to April 2017
-    random.seed(12345)
+    np.random.seed(12345)
     n_links = 500
     pairs = testutils.MakeLatLngPairs(
         n_links, 10, 50000,

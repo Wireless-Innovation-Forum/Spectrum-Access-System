@@ -12,7 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Example of FSS in-band protection.
+"""Example of FSS in-band protection code.
+
+This is just an example demonstrating how to call the propagation and antenna
+reference models.
 """
 from collections import namedtuple
 import numpy as np
@@ -21,8 +24,8 @@ import sys
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.propagation import wf_itm
+from reference_models.tools import entities
 
-import entities
 import fss_pointing
 
 # Configure here the path to terrain directory

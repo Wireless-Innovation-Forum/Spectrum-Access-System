@@ -17,8 +17,7 @@ import logging
 import numpy as np
 import unittest
 
-from reference_models.geo import testutils
-
+from reference_models.tools import testutils
 from reference_models.geo import drive
 from reference_models.propagation import wf_hybrid
 from reference_models.propagation import wf_itm

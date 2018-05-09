@@ -16,8 +16,11 @@ import json
 import os
 import unittest
 import full_activity_dump
-import fss_purge
-from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
+
+from reference_models.pre_iap_filtering import fss_purge
+from reference_models.pre_iap_filtering import inter_sas_duplicate_grant
+
+TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata')
 
 
 class TestFssPurge(unittest.TestCase):
@@ -26,19 +29,19 @@ class TestFssPurge(unittest.TestCase):
 
    # TEST DATA
    cbsd_0 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_0.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_0.json')))
    cbsd_1 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_1.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_1.json')))
    cbsd_2 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_2.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_2.json')))
    cbsd_3 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_3.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_3.json')))
    cbsd_4 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_4.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_4.json')))
    cbsd_5 = json.load(
-     open(os.path.join('testdata', 'testset2', 'cbsd_5.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'cbsd_5.json')))
    fss_entity = json.load(
-     open(os.path.join('testdata', 'testset2', 'fss_record_0.json')))
+     open(os.path.join(TEST_DIR, 'testset2', 'fss_record_0.json')))
 
    fad_object_1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
    fad_object_2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})

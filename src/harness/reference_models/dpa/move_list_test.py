@@ -18,8 +18,8 @@ import unittest
 from collections import namedtuple
 import numpy as np
 
-from reference_models.examples import testutils
-from reference_models.examples import entities
+from reference_models.tools import testutils
+from reference_models.tools import entities
 from reference_models.propagation import wf_itm
 
 from reference_models.dpa import move_list
