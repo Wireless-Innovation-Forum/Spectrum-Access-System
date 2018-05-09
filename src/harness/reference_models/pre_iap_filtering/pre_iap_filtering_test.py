@@ -23,6 +23,8 @@ from reference_models.pre_iap_filtering import zone_purge
 from reference_models.inter_sas_duplicate_grant import inter_sas_duplicate_grant
 from reference_models.pre_iap_filtering import pre_iap_util
 
+TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata')
+
 
 class preIapFilteringTest(unittest.TestCase):
     """pre-IAP filtering unit tests."""
@@ -30,35 +32,35 @@ class preIapFilteringTest(unittest.TestCase):
     def test_pre_iap_reference_model(self):
         """ The main function that invokes all pre-IAP filtering models."""
         cbsd_0 = json.load(
-              open(os.path.join('testdata', 'cbsd_0.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_0.json')))
         cbsd_1 = json.load(
-            open(os.path.join('testdata', 'cbsd_1.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_1.json')))
         cbsd_2 = json.load(
-            open(os.path.join('testdata', 'cbsd_2.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_2.json')))
         cbsd_3 = json.load(
-            open(os.path.join('testdata', 'cbsd_3.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_3.json')))
         cbsd_4 = json.load(
-            open(os.path.join('testdata', 'cbsd_4.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_4.json')))
         cbsd_5 = json.load(
-            open(os.path.join('testdata', 'cbsd_5.json')))
+            open(os.path.join(TEST_DIR, 'cbsd_5.json')))
         fss_entity_0 = json.load(
-            open(os.path.join('testdata', 'fss_0.json')))
+            open(os.path.join(TEST_DIR, 'fss_0.json')))
         fss_entity_1 = json.load(
-            open(os.path.join('testdata', 'fss_1.json')))
+            open(os.path.join(TEST_DIR, 'fss_1.json')))
         gwpz_record = json.load(
-          open(os.path.join('testdata', 'gwpz_0.json')))
+          open(os.path.join(TEST_DIR, 'gwpz_0.json')))
         ppa_record = json.load(
-          open(os.path.join('testdata', 'ppa_0.json')))
+          open(os.path.join(TEST_DIR, 'ppa_0.json')))
         pal_record = json.load(
-          open(os.path.join('testdata', 'pal_0.json')))
+          open(os.path.join(TEST_DIR, 'pal_0.json')))
         gwbl_record = json.load(
-          open(os.path.join('testdata', 'gwbl_0.json')))
+          open(os.path.join(TEST_DIR, 'gwbl_0.json')))
 
         fd1 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_0, cbsd_1]})
         fd2 = full_activity_dump.FullActivityDump({'cbsd': [cbsd_2, cbsd_3]})
         fd3 = full_activity_dump.FullActivityDump({'cbsd':[cbsd_4,cbsd_5]})
         headroom = {'MgPpa': 2, 'MgGwpz': 2, 'MgCochannel': 2,
-                                 'MgBlocking': 2, 'MgOobe': 2, 'MgEsc': 2}
+                    'MgBlocking': 2, 'MgOobe': 2, 'MgEsc': 2}
         pal_low_frequency = pal_record['channelAssignment']['primaryAssignment']['lowFrequency']
         pal_high_frequency = pal_record['channelAssignment']['primaryAssignment']['highFrequency']
         ppa_record, pal_records = makePpaAndPalRecordsConsistent(
