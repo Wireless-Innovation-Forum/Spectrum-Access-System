@@ -20,15 +20,24 @@ Managing pool in one place avoids issue of either:
  - centralize management of common shared memory
 
 Usage:
+
+import mpool
 # Configure the pool
-pool.Configure(-1)
+mpool.Configure(-1)
+
+# Gets the number of worker processes
+num_workers = mpool.GetNumWorkerProcesses()
 
 # Use the multiprocessing pool
 pool = mpool.Pool()
 pool.map(...)
-
+pool.apply_asyn(...)
 """
-# TODO(sbdt): review behavior in multiple platforms.
+# NOTE: This has been tested in Linux only.
+# Windows has some special way of launching processes, not using fork(),
+# but rather by instantiating new processes and reimporting the
+# modules. Make sure that the code creating the processes is not
+# actually called during the imports.
 
 import multiprocessing
 
@@ -80,6 +89,12 @@ def Pool():
   And other `multiprocessing.Pool` routines if not a dummy pool.
   """
   return _pool
+
+
+def GetNumWorkerProcesses():
+  """Returns the number of worker processes."""
+  return _num_processes
+
 
 def Configure(num_processes=-1, pool=None):
   """Configure multiprocessing pool.
