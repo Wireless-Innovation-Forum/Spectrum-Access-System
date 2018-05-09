@@ -18,6 +18,7 @@
 import os
 import unittest
 import json
+from reference_models.common import data
 from reference_models.tools import testutils
 from reference_models.interference import aggregate_interference
 from reference_models.interference import interference as interf
@@ -32,14 +33,15 @@ class TestAggregateInterference(unittest.TestCase):
   def setUpClass(cls):
     # Load the list of CBSD records with registration and grant details
     cbsd_filename = ['cbsd_uut_ut.json', 'cbsd_th1_ut.json']
-    cls.cbsd_list = []
+    cbsd_list = []
     for cbsd_file in cbsd_filename:
       cbsd_record = json.load(open(os.path.join(TEST_DIR, cbsd_file)))
-      cls.cbsd_list.append(cbsd_record)
-
+      cbsd_list.append(cbsd_record)
+    cls.cbsd_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
     # Load the protection entity data with overlapping frequency of CBSD grants
     cls.fss_record = json.load(open(os.path.join(TEST_DIR, 'fss_ut.json')))
     cls.ppa_record = json.load(open(os.path.join(TEST_DIR, 'ppa_ut.json')))
+    cls.ppa_cbsd_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list, ppa_record=cls.ppa_record)
     cls.pal_record = json.load(open(os.path.join(TEST_DIR, 'pal_ut.json')))
     cls.gwpz_record = json.load(open(os.path.join(TEST_DIR, 'gwpz_ut.json')))
     cls.esc_record = json.load(open(os.path.join(TEST_DIR, 'esc_ut.json')))
@@ -88,7 +90,7 @@ class TestAggregateInterference(unittest.TestCase):
     allowed_interference = aggregate_interference.calculateAggregateInterferenceForPpa(
                              TestAggregateInterference.ppa_record,
                              [TestAggregateInterference.pal_record],
-                             TestAggregateInterference.cbsd_list)
+                             TestAggregateInterference.ppa_cbsd_list)
     self.assertSameInterference(allowed_interference, expected_interference)
 
   def test_AggregateInterferenceGwpz(self):
