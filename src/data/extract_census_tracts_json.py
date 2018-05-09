@@ -26,12 +26,15 @@ This extract_census_tracts_json.py will help to perform following operations:
 
 """
 import argparse
+import ftputil
+import glob
+import io
+import json
 import os
 import re
+import shapefile
 import sys
-import glob
-import json
-import ftputil
+import zipfile
 from reference_models.geo import census_tract
 
 def FindStateTractFilenames(census):
@@ -58,6 +61,95 @@ def RetrieveShapefiles(directory):
     census.download_if_newer('geo/tiger/TIGER2010/TRACT/2010/' + f, f)
   census.close()
 
+def ExtractZipFiles(census_tract_directory, zip_filename=None):
+  """Extract the census tracts file downloaded from USGS site."""
+  # Filter the zip filename based on specified file name if any ends with .zip
+  census_tracts_file_list = [os.path.join(census_tract_directory, f)
+                             for f in os.listdir(census_tract_directory)
+                             if all((True if not zip_filename else
+                                     f.startswith(zip_filename),
+                                     f.endswith('.zip')))]
+  for file_name in census_tracts_file_list:
+    # Check if already extracted.
+    zf = zipfile.ZipFile(file_name, 'r')
+    for datfile in zf.infolist():
+      if any((datfile.filename.endswith('.dbf'),
+              datfile.filename.endswith('.prj'),
+              datfile.filename.endswith('.shp'),
+              datfile.filename.endswith('.shp.xml'),
+              datfile.filename.endswith('.shx'))):
+        try:
+          zf.extract(datfile, census_tract_directory)
+        except:
+          raise Exception('Cannot extract ' + datfile.filename +
+                          ' from ' + zip_filename)
+
+def ProcessShapelyFile(file_name):
+    """Verify the format for shpely file and and extracts and convert to GeoJSON format."""
+    basename = os.path.splitext(os.path.basename(file_name))[0]
+    print 'Processing shp file %s' % basename
+    with zipfile.ZipFile(file_name) as zf:
+      shpfile = io.BytesIO(zf.read(basename + '.shp'))
+      dbffile = io.BytesIO(zf.read(basename + '.dbf'))
+      shxfile = io.BytesIO(zf.read(basename + '.shx'))
+
+    shpfile = shapefile.Reader(shp=shpfile, shx=shxfile, dbf=dbffile)
+    geoid_field = -1
+    aland_field = -1
+    awater_field = -1
+    # light check to ensure that necessary fields are present in shapefile.
+    for i in range(0, len(shpfile.fields)):
+      field = shpfile.fields[i][0]
+      if 'GEOID' in field:
+        geoid_field = i - 1
+      elif 'ALAND' in field:
+        aland_field = i - 1
+      elif 'AWATER' in field:
+        awater_field = i - 1
+    if geoid_field == -1 or aland_field == -1 or awater_field == -1:
+      raise Exception('Could not find GEOID,ALAND,AWATER in fields %s' % shpfile.fields)
+
+    # get directory name.
+    census_tract_directory = os.path.splitext(os.path.dirname(file_name))[0]
+    # Extract all files before convert to shapely.
+    ExtractZipFiles(census_tract_directory)
+
+    # Proceed further to convert to geojson.
+    os.chdir(census_tract_directory)
+    file_data = glob.glob('*.shp')
+    x = file_data
+    print x
+    try:
+      for files in x:
+        # Read the shapefile.
+        reader = shapefile.Reader(files)
+        fields = reader.fields[1:]
+        field_names = [field[0] for field in fields]
+        records = []
+        for sr in reader.shapeRecords():
+          atr = dict(zip(field_names, sr.record))
+          geom = sr.shape.__geo_interface__
+          records.append(dict(type="Feature", geometry=geom, properties=atr))
+
+        # Write the GeoJSON file.
+        jsonfile = files.replace(".shp", ".json")
+        geojson = open(jsonfile, "w")
+        geojson.write(json.dumps({"type": "FeatureCollection",
+                                  "features": records}, indent=2) + "\n")
+        geojson.close()
+        print "\n" + files + " was converted to " + jsonfile + "."
+    except Exception as err:
+       print "There is an issue in convertShapelyfile to GeoJson:%s" % err.message
+
+def ConvertShapelyFileToGeoJSON(census_tract_driver):
+  """Convert the ShapelyFile to GeoJson format."""
+  print "Convert the ShapelyFile to GeoJson format"
+  files = os.listdir(census_tract_driver._census_tract_dir)
+  print 'Found %d zip files to translate' % len(files)
+  for f in files:
+    if os.path.isfile(os.path.join(census_tract_driver._census_tract_dir, f)) and re.match(r'.*\.zip$', f):
+      ProcessShapelyFile(os.path.join(census_tract_driver._census_tract_dir, f))
+
 def ConvertShapefilesToGeoJson(directory):
   """Convert Shapefile to GeoJson file with the help of CensusTractDriver."""
   # Initialize the CensusTractDriver.
@@ -67,7 +159,7 @@ def ConvertShapefilesToGeoJson(directory):
   census_tract_driver.SetCensusTractDirectory(directory)
 
   # Convert ShapelyFile to GeoJson
-  census_tract_driver.ConvertShapelyFileToGeoJSON()
+  ConvertShapelyFileToGeoJSON(census_tract_driver)
 
 def SplitCensusTractsGeoJsonFile(source_directory, destination_directory):
   """Split Census Tracts GeoJson file with mulitiple single file based on FISP Code."""
