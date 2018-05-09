@@ -33,6 +33,8 @@ from reference_models.common import data
 from reference_models.pre_iap_filtering import pre_iap_filtering
 from reference_models.iap import iap
 from reference_models.interference import aggregate_interference, interference
+from reference_models.geo import utils as geoutils
+from reference_models.geo import drive
 
 
 DELTA_IAP = 1 # Threshold value in dBm
@@ -116,38 +118,34 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 5 : Inject IAP protected entities into UUT
-    for key in iteration_content['protectedEntities']:
-      if not key in self.protected_entity_records:
-        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
-      else:
-        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
-    if 'fssRecords' in self.protected_entity_records:
-      for fss_record in self.protected_entity_records['fssRecords']:
+    if 'fssRecords' in iteration_content['protectedEntities']:
+      for fss_record in iteration_content['protectedEntities']['fssRecords']:
         try:
           self._sas_admin.InjectFss({'record': fss_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
-    if 'gwpzRecords' in self.protected_entity_records:
-      for gwpz_record in self.protected_entity_records['gwpzRecords']:
+    if 'gwpzRecords' in iteration_content['protectedEntities']:
+      for gwpz_record in iteration_content['protectedEntities']['gwpzRecords']:
         try:
-          self._sas_admin.InjectWisp({'record': gwpz_record})
+          self._sas_admin.InjectWisp(gwpz_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
-        # TODO: calculate and store the land category of the GWPZ
+        grid_points = geoutils.GridPolygon(gwpz_record['zone']['features']['geometry'], res_arcsec=2)
+        gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote([(pt[1], pt[0]) for pt in grid_points])
 
-    if 'escRecords' in self.protected_entity_records:
-      for esc_record in self.protected_entity_records['escRecords']:
+    if 'escRecords' in iteration_content['protectedEntities']:
+      for esc_record in iteration_content['protectedEntities']['escRecords']:
         try:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
-    if 'palRecords' in self.protected_entity_records:
-      for pal_record in self.protected_entity_records['palRecords']:
+    if 'palRecords' in iteration_content['protectedEntities']:
+      for pal_record in iteration_content['protectedEntities']['palRecords']:
         try:
           self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
         except Exception as e:
@@ -155,13 +153,19 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           raise e
 
 
-    if 'ppaRecords' in self.protected_entity_records:
-      for ppa_record in self.protected_entity_records['ppaRecords']:
+    if 'ppaRecords' in iteration_content['protectedEntities']:
+      for ppa_record in iteration_content['protectedEntities']['ppaRecords']:
         try:
           self._sas_admin.InjectZoneData({'record': ppa_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
+
+    for key in iteration_content['protectedEntities']:
+      if not key in self.protected_entity_records:
+        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
+      else:
+        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     if self.num_peer_sases:
