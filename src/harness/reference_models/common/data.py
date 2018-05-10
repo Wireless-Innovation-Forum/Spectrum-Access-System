@@ -257,17 +257,22 @@ def getGrantsFromRequests(registration_requests, grant_requests, is_managing_sas
   return grants
 
 
-def getAuthorizedGrantsFromDomainProxies(domain_proxies):
+def getAuthorizedGrantsFromDomainProxies(domain_proxies, ppa_record=None):
   """Returns a list of |CbsdGrantInfo| from some Domain Proxy objects.
 
   Args:
     domain_proxies: A list of DomainProxy objects to build |CbsdGrantInfo| from.
+    ppa_record: Optional. A PPA record dictionary. Iff set, the returned grant
+      info is not part of the PPA cluster list.
   Returns:
-    A list of |CbsdGrantInfo| for each authorized grant in the given Domain Proxies.
+    A list of |CbsdGrantInfo| for each authorized grant in the given Domain
+    Proxies.
   """
   grants = []
   for domain_proxy in domain_proxies:
     for cbsd in domain_proxy.getCbsdsWithAtLeastOneAuthorizedGrant():
+      if ppa_record and cbsd.getCbsdId() in ppa_record['ppaInfo']['cbsdReferenceId']:
+        continue
       for grant in cbsd.getAuthorizedGrants():
         grants.append(
             constructCbsdGrantInfo(

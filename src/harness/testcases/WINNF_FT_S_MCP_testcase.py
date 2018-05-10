@@ -33,6 +33,8 @@ from reference_models.common import data
 from reference_models.pre_iap_filtering import pre_iap_filtering
 from reference_models.iap import iap
 from reference_models.interference import aggregate_interference, interference
+from reference_models.geo import utils as geoutils
+from reference_models.geo import drive
 
 
 DELTA_IAP = 1 # Threshold value in dBm
@@ -53,7 +55,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.test_type = test_type
     self.sas_test_harness_objects = []
     self.domain_proxy_objects = []
-    self.protected_entity_records = []
+    self.protected_entity_records = {}
     self.num_peer_sases = len(config['sasTestHarnessConfigs'])
 
     for domain_proxy in config['domainProxyConfigs']:
@@ -116,39 +118,34 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 5 : Inject IAP protected entities into UUT
-    for key in self.iteration_content['protectedEntities']:
-      if not key in self.protected_entity_records:
-        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
-      else:
-        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
-    self.protected_entity_records.extend(iteration_content['protectedEntities'])
-    if 'fssRecords' in self.protected_entity_records:
-      for fss_record in self.protected_entity_records['fssRecords']:
+    if 'fssRecords' in iteration_content['protectedEntities']:
+      for fss_record in iteration_content['protectedEntities']['fssRecords']:
         try:
           self._sas_admin.InjectFss({'record': fss_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
-    if 'gwpzRecords' in self.protected_entity_records:
-      for gwpz_record in self.protected_entity_records['gwpzRecords']:
+    if 'gwpzRecords' in iteration_content['protectedEntities']:
+      for gwpz_record in iteration_content['protectedEntities']['gwpzRecords']:
         try:
-          self._sas_admin.InjectWisp({'record': gwpz_record})
+          self._sas_admin.InjectWisp(gwpz_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
-        # TODO: calculate and store the land category of the GWPZ
+        grid_points = geoutils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
+        gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote([(pt[1], pt[0]) for pt in grid_points])
 
-    if 'escRecords' in self.protected_entity_records:
-      for esc_record in self.protected_entity_records['escRecords']:
+    if 'escRecords' in iteration_content['protectedEntities']:
+      for esc_record in iteration_content['protectedEntities']['escRecords']:
         try:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
-    if 'palRecords' in self.protected_entity_records:
-      for pal_record in self.protected_entity_records['palRecords']:
+    if 'palRecords' in iteration_content['protectedEntities']:
+      for pal_record in iteration_content['protectedEntities']['palRecords']:
         try:
           self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
         except Exception as e:
@@ -156,13 +153,19 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           raise e
 
 
-    if 'ppaRecords' in self.protected_entity_records:
-      for ppa_record in self.protected_entity_records['ppaRecords']:
+    if 'ppaRecords' in iteration_content['protectedEntities']:
+      for ppa_record in iteration_content['protectedEntities']['ppaRecords']:
         try:
           self._sas_admin.InjectZoneData({'record': ppa_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
+
+    for key in iteration_content['protectedEntities']:
+      if not key in self.protected_entity_records:
+        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
+      else:
+        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     if self.num_peer_sases:
@@ -373,17 +376,23 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         self.esc_ap_iap_ref_values_list.append(esc_ap_iap_ref_values)
 
   def performAggregateInterferenceCheck(self):
-    authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
+    authorized_grants = None
+    if any(key in self.protected_entity_records for key in ['gwpzRecords', 'fssRecords', 'escRecords']):
+      # Get Grant info for all CBSDs with grants from SAS UUT.
+      authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
 
     # Calculate and compare the interference value for PPA protected entity
     if 'ppaRecords' in self.protected_entity_records:
       for index, ppa_record in enumerate(self.protected_entity_records['ppaRecords']):
         pal_records = self.protected_entity_records['palRecords']
+        # Get Grant info for all CBSDs with grants from SAS UUT that are not
+        # part of the current ppa.
+        ppa_authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects, ppa_record=ppa_record)
         # Call aggregate interference reference model for ppa
         ppa_aggr_interference = aggregate_interference.calculateAggregateInterferenceForPpa(
             ppa_record,
             pal_records,
-            authorized_grants)
+            ppa_authorized_grants)
         ppa_ap_iap_ref_values = None
         if self.num_peer_sases > 0:
           ppa_ap_iap_ref_values = self.ppa_ap_iap_ref_values_list[index]
@@ -482,7 +491,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     match_cnt = 0 # Variable to count the number of matching interference entries
     iap_margin_lin = interference.dbToLinear(DELTA_IAP)
 
-    for lat_val, lat_dict in aggregate_interference.iteritems():
+    for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
         ref_interf_list = ap_iap_ref_values[lat_val][long_val]
         self.assertEqual(len(interf_list), len(ref_interf_list))
@@ -676,8 +685,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
 
     protected_entities_iteration_1 = {
         'gwpzRecords': [gwpz_record_1],
-        'fssRecords': [fss_record_1],
-        'escRecords': [esc_record_2]
+        'fssRecords': [fss_record_1]
     }
 
     # SAS Test Harnesses configurations,

@@ -56,7 +56,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -131,7 +131,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'conditionalRegistrationData': conditionals_device_4,  
+            'conditionalRegistrationData': conditionals_device_4,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -189,7 +189,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -377,13 +377,13 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location inside GWPZ zone
     device_1['installationParam']['latitude'], \
-    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
+    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2 to a location inside GWPZ zone
     device_2['installationParam']['latitude'], \
-    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
+    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
 
     # Load Grant requests
     grant_request_1 = json.load(

@@ -24,10 +24,10 @@ from pykml import parser
 from collections import namedtuple
 import time
 
+from reference_models.common import data
 from reference_models.common import mpool
 from reference_models.interference import interference as interf
-
-import aggregate_interference
+from reference_models.interference import aggregate_interference
 
 # Number of parallel processes
 NUM_OF_PROCESS = 30
@@ -50,8 +50,7 @@ if __name__ == '__main__':
   mpool.Configure(NUM_OF_PROCESS)
 
   # Data directory
-  current_dir = os.getcwd()
-  _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
+  _BASE_DATA_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
   # Populate a list of CBSD registration requests
   cbsd_filename = ['cbsd_0.json',
@@ -130,11 +129,11 @@ if __name__ == '__main__':
     if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and
             fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
       fss_cochannel_aggr_interference = aggregate_interference.\
-        calculateAggregateInterferenceForFssCochannel(fss_record, cbsd_list)
+        calculateAggregateInterferenceForFssCochannel(fss_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
       print('Aggregate Interference (mW) output at FSS co-channel: ' +
             str(CvtToList(fss_cochannel_aggr_interference)))
       fss_blocking_aggr_interference = aggregate_interference.\
-        calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
+        calculateAggregateInterferenceForFssBlocking(fss_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
       print('\nAggregate Interference (mW) output at FSS blocking: \n' +
             str(CvtToList(fss_blocking_aggr_interference)))
     # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
@@ -142,23 +141,23 @@ if __name__ == '__main__':
             fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
             fss_ttc_flag is True):
       fss_blocking_aggr_interference = aggregate_interference.\
-        calculateAggregateInterferenceForFssBlocking(fss_record, cbsd_list)
+        calculateAggregateInterferenceForFssBlocking(fss_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
       print('\nAggregate Interference (mW) output at FSS blocking: \n' +
             str(CvtToList(fss_blocking_aggr_interference)))
 
   for esc_record in esc_list:
     esc_aggr_interference = aggregate_interference.\
-      calculateAggregateInterferenceForEsc(esc_record, cbsd_list)
+      calculateAggregateInterferenceForEsc(esc_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
     print('\nAggregate Interference (mW) output at ESC: \n' +
           str(CvtToList(esc_aggr_interference)))
   for gwpz_record in gwpz_list:
     gwpz_aggr_interference = aggregate_interference.\
-      calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list)
+      calculateAggregateInterferenceForGwpz(gwpz_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
     print('\nAggregate Interference (mW) output at GWPZ: \n' + str(CvtToList(gwpz_aggr_interference)))
 
   for ppa_record in ppa_list:
     ppa_aggr_interference = aggregate_interference.\
-      calculateAggregateInterferenceForPpa(ppa_record, pal_list, cbsd_list)
+      calculateAggregateInterferenceForPpa(ppa_record, pal_list, data.getAllGrantInfoFromCbsdDataDump(cbsd_list, ppa_record=ppa_record))
     print('\nAggregate Interference (mW) output at PPA: \n' + str(CvtToList(ppa_aggr_interference)))
 
   end_time = time.time()
