@@ -70,8 +70,8 @@ def getCbsdsWithinPolygon(cbsds, polygon):
   for cbsd in cbsds:
     if not cbsd['grants']:
       continue
-    cbsd_lat = cbsd['registration']['installationParam']['latitude']
-    cbsd_lon = cbsd['registration']['installationParam']['longitude']
+    cbsd_lat = cbsd['registrationRequest']['installationParam']['latitude']
+    cbsd_lon = cbsd['registrationRequest']['installationParam']['longitude']
     point = sgeo.Point(cbsd_lon, cbsd_lat)
     # If the CBSD is within the polygon and has grants then add it to the list
     # TODO: check the need for touches() check
@@ -142,8 +142,8 @@ def getFssNeighboringCbsdsWithGrants(cbsds, fss_point,
     distance, _, _ = vincenty.GeodesicDistanceBearing(
         fss_point[1],
         fss_point[0],
-        cbsd['registration']['installationParam']['latitude'],
-        cbsd['registration']['installationParam']['longitude'])
+        cbsd['registrationRequest']['installationParam']['latitude'],
+        cbsd['registrationRequest']['installationParam']['longitude'])
     # Get the list of cbsds that are within 150kms from the FSS entity
     if distance <= distance_km and cbsd['grants']:
         neighboring_cbsds_with_grants.append(cbsd)
@@ -198,8 +198,8 @@ def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
   cbsds_not_part_of_ppa_cluster = []
   # Compare the list of CBSDs with the PPA cluster list
   for cbsd in cbsds:
-    cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
-                                                cbsd['registration']['cbsdSerialNumber'])
+    cbsd_reference_id = generateCbsdReferenceId(cbsd['registrationRequest']['fccId'],
+                                                cbsd['registrationRequest']['cbsdSerialNumber'])
     if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
         cbsds_not_part_of_ppa_cluster.append(cbsd)
 
