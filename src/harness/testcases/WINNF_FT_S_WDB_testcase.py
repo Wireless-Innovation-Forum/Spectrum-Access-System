@@ -161,7 +161,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Inject the PAL database URL into the SAS UUT.
     self._sas_admin.InjectDatabaseUrl({'type': 'PAL', 'url': pal_database.getBaseUrl()+
-                                       config['palDatabaseConfig']['fileUrl']})
+                                       config['palDatabaseConfig']['filePath']})
 
     # Step 4: Admin Test Harness triggers CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
