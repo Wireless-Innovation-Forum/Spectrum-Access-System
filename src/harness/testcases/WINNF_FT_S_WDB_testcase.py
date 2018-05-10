@@ -231,7 +231,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             'status': 'ACTIVE',
             'publicKeyIdentifierFile': cpi_device_d_public_key_relative_file_path
         }],
-        'indexUrl': '/rest/cpi/v1/index.csv')
+        'indexUrl': '/rest/cpi/v1/index.csv',
+        'indexPath': os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
     }
 
     # Create the actual configuration.
@@ -285,8 +286,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the main CPI database file.
     cpis_keys = ['cpiId', 'status', 'publicKeyIdentifier']
-    ensureFileDirectoryExists(config['cpiDatabaseConfig']['indexUrl'])
-    with open(config['cpiDatabaseConfig']['indexUrl'], 'w+') as output_file:
+    ensureFileDirectoryExists(config['cpiDatabaseConfig']['indexPath'])
+    with open(config['cpiDatabaseConfig']['indexPath'], 'w+') as output_file:
       csv_writer = csv.writer(output_file, delimiter=',')
       for cpi in config['cpiDatabaseConfig']['cpis']:
         pki_url = cpi_database.getBaseUrl(
