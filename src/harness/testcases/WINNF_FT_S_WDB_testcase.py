@@ -160,8 +160,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                 config['palDatabaseConfig']['filePath'])
 
     # Inject the PAL database URL into the SAS UUT.
-    self._sas_admin.InjectDatabaseUrl(pal_database.getBaseUrl()+
-                                      config['palDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'PAL', 'url': pal_database.getBaseUrl()+
+                                       config['palDatabaseConfig']['fileUrl']})
 
     # Step 4: Admin Test Harness triggers CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -288,7 +288,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpis_keys = ['cpiId', 'status', 'publicKeyIdentifier']
     ensureFileDirectoryExists(config['cpiDatabaseConfig']['indexUrl'])
     with open(config['cpiDatabaseConfig']['indexUrl'], 'w+') as output_file:
-      csv_writer = csv.writer(output_file, delimimter=',')
+      csv_writer = csv.writer(output_file, delimiter=',')
       for cpi in config['cpiDatabaseConfig']['cpis']:
         pki_url = cpi_database.getBaseUrl(
         ) + '/' + cpi['publicKeyIdentifierFile']
@@ -305,7 +305,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_database.setFilesToServe(files)
 
     # Inject the CPI database URL into the SAS UUT.
-    self._sas_admin.InjectDatabaseUrl(config['cpiDatabaseConfig']['indexUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'CPI', 'url': config['cpiDatabaseConfig']['indexUrl']})
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()

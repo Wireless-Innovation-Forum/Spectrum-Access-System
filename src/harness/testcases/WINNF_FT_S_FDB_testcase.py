@@ -191,8 +191,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['exclusionZoneDatabaseConfig']['filePath'])
 
     # Inject the exclusion zone database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(exclusion_zone_database_server.getBaseUrl()+
-                                      config['exclusionZoneDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'EXCLUSION_ZONE', 'url': exclusion_zone_database_server.getBaseUrl()+
+                                       config['exclusionZoneDatabaseConfig']['fileUrl']})
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -417,8 +417,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['dpaDatabaseConfig']['filePath'])
 
     # Inject the DPA database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(dpa_database_server.getBaseUrl()+
-                                      config['dpaDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'SCHEDULED_DPA', 'url': dpa_database_server.getBaseUrl()+
+                                       config['dpaDatabaseConfig']['fileUrl']})
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -809,8 +809,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['fssDatabaseConfig']['filePath'])
 
     # Inject the FSS database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
-                                      config['fssDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'FSS', 'url': fss_database_server.getBaseUrl()+
+                                       config['fssDatabaseConfig']['fileUrl']})
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1030,8 +1030,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['fssDatabaseConfig']['filePath'])
 
     # Inject the FSS database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
-                                      config['fssDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'FSS', 'url': fss_database_server.getBaseUrl()+
+                                       config['fssDatabaseConfig']['fileUrl']})
 
     # Step 3: Create GWBL database which includes at least one GWBL site near location 'X'.
     # Create GWBL database server
@@ -1047,8 +1047,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['gwblDatabaseConfig']['filePath'])
 
     # Inject the GWBL database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
-                                      config['gwblDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'GWBL', 'url': gwbl_database_server.getBaseUrl()+
+                                       config['gwblDatabaseConfig']['fileUrl']})
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1210,8 +1210,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['fssDatabaseConfig']['filePath'])
 
     # Inject the FSS database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
-                                      config['fssDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'FSS', 'url': fss_database_server.getBaseUrl()+
+                                       config['fssDatabaseConfig']['fileUrl']})
 
     # Step 3: Create GWBL database which includes at least one GWBL site near
     # CBSD location 'X'.
@@ -1228,8 +1228,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['gwblDatabaseConfig']['filePath'])
 
     # Inject the GWBL database URL into the SAS UUT
-    self._sas_admin.InjectDatabaseUrl(gwbl_database_server.getBaseUrl()+
-                                      config['gwblDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'GWBL', 'url': gwbl_database_server.getBaseUrl()+
+                                       config['gwblDatabaseConfig']['fileUrl']})
 
     # Step 4: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -1403,8 +1403,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
                                         config['fssDatabaseConfig']['filePath'])
 
     # Step 4: Inject the FSS database URL into the UUT
-    self._sas_admin.InjectDatabaseUrl(fss_database_server.getBaseUrl()+
-                                      config['fssDatabaseConfig']['fileUrl'])
+    self._sas_admin.InjectDatabaseUrl({'type': 'FSS', 'url': fss_database_server.getBaseUrl()+
+                                       config['fssDatabaseConfig']['fileUrl']})
 
     # Step 5: Wait until after the completion of scheduled CPAS
     # Fetching current time in CPAS time zone
