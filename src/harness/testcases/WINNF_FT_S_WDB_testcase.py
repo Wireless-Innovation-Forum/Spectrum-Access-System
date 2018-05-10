@@ -107,7 +107,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     pal_database_config = {
         'hostName': 'localhost',
         'port': 8003,
-        'fileUrl': '/rest/pal/v1/',
+        'fileUrl': '/rest/pal/v1/pal_db.json/pal_db.json',
         'filePath': pal_db_relative_file_path
     }
 
@@ -161,7 +161,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Inject the PAL database URL into the SAS UUT.
     self._sas_admin.InjectDatabaseUrl({'type': 'PAL', 'url': pal_database.getBaseUrl()+
-                                       config['palDatabaseConfig']['filePath']})
+                                       config['palDatabaseConfig']['fileUrl']})
 
     # Step 4: Admin Test Harness triggers CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -231,8 +231,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             'status': 'ACTIVE',
             'publicKeyIdentifierFile': cpi_device_d_public_key_relative_file_path
         }],
-        'indexUrl':
-            os.path.join('testcases', 'testdata', 'cpi_db', 'index.csv')
+        'indexUrl': '/rest/cpi/v1/index.csv')
     }
 
     # Create the actual configuration.
