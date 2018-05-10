@@ -4,6 +4,7 @@
   "usage": "PPA",
   "terminated": false,
   "ppaInfo": {
+    "cbsdReferenceId": [],
     "ppaRegionType": "RURAL"
   },
   "zone": {

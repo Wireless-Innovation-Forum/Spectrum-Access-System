@@ -3,6 +3,10 @@
   "creator": "admin_0",
   "terminated": false,
   "usage": "PPA",
+  "ppaInfo": {
+    "cbsdReferenceId": [],
+    "ppaRegionType": "RURAL"
+  },
   "zone": {
     "type": "FeatureCollection",
     "features": [
