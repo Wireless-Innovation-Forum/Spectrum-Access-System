@@ -4,6 +4,7 @@
   "terminated": false,
   "usage": "PPA",
   "ppaInfo": {
+    "cbsdReferenceId": ["test_fcc_id_a_test_serial_number_a"],
     "ppaRegionType": "RURAL"
   },
   "zone": {
