@@ -298,8 +298,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     files = {('/' + cpi['publicKeyIdentifierFile']):
              cpi['publicKeyIdentifierFile']
              for cpi in config['cpiDatabaseConfig']['cpis']}
-    files['/' + config['cpiDatabaseConfig']['indexUrl']] = config[
-        'cpiDatabaseConfig']['indexUrl']
+    files['/' + config['cpiDatabaseConfig']['indexPath']] = config[
+        'cpiDatabaseConfig']['indexPath']
 
     # Set file path.
     cpi_database.setFilesToServe(files)
