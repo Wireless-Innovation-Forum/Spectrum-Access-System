@@ -265,16 +265,13 @@ def getAuthorizedGrantsFromDomainProxies(domain_proxies):
   Returns:
     A list of |CbsdGrantInfo| for each authorized grant in the given Domain Proxies.
   """
-  grant_records = []
-  cbsd_records = []
+  grants = []
   for domain_proxy in domain_proxies:
     for cbsd in domain_proxy.getCbsdsWithAtLeastOneAuthorizedGrant():
-      reg_record = cbsd.getRegistrationRequest()
       for grant in cbsd.getAuthorizedGrants():
-        grant_record = grant.getGrantRequest()
-        grant_records.append(grant_record)
-      cbsd_records.append({
-                   'registration':reg_record,
-                   'grants': grant_records
-                   })
-  return cbsd_records
+        grants.append(
+            constructCbsdGrantInfo(
+                cbsd.getRegistrationRequest(),
+                grant.getGrantRequest()))
+
+  return grants
