@@ -305,7 +305,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     cpi_database.setFilesToServe(files)
 
     # Inject the CPI database URL into the SAS UUT.
-    self._sas_admin.InjectDatabaseUrl({'type': 'CPI', 'url': config['cpiDatabaseConfig']['indexUrl']})
+    self._sas_admin.InjectDatabaseUrl({'type': 'CPI', 'url': cpi_database.getBaseUrl()+
+                                       config['cpiDatabaseConfig']['indexUrl']})
 
     # Step 3: Trigger daily activities.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
