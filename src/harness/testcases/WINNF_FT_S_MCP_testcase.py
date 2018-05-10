@@ -70,7 +70,6 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
 
     # Step 3 : creates multiple SAS TH, and Load predefined FAD,CBSD
-    self.test_harness_fads = []
     if self.num_peer_sases:
       for test_harness in config['sasTestHarnessConfigs']:
         # Initialize SAS Test Harness Server instance to dump FAD records
@@ -91,9 +90,6 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
         self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                        'url': sas_test_harness_object.getBaseUrl()})
-
-        self.test_harness_fads.append(getFullActivityDumpSasTestHarness(
-            sas_test_harness_object.getSasTestHarnessInterface()))
 
         self.sas_test_harness_objects.append(sas_test_harness_object)
 
