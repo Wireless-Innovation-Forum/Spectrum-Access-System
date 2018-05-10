@@ -4,10 +4,6 @@
   "terminated": false,
   "usage": "PPA",
   "ppaInfo": {
-    "palId": ["test_fcc_id_pal_1"],
-    "cbsdReferenceId": ["test_fcc_id_a_test_serial_number_a"],
-    "ppaBeginDate": "2018-05-28T00:00:00Z",
-    "ppaExpirationDate": "2019-05-28T00:00:00Z",
     "ppaRegionType": "RURAL"
   },
   "zone": {
