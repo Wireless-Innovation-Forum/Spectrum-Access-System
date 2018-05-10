@@ -4,7 +4,7 @@
   "terminated": false,
   "usage": "PPA",
   "ppaInfo": {
-    "cbsdReferenceId": ["test_fcc_id_b_test_serial_number_b"],
+    "cbsdReferenceId": [],
     "ppaRegionType": "SUBURBAN"
   },
   "zone": {
