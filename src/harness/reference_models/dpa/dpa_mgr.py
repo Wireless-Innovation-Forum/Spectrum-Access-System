@@ -552,15 +552,20 @@ def _DefaultProtectionPoints(dpa_geometry,
   def SampleLine(line, num_points):
     step = line.length / (num_points-1)
     return [line.interpolate(dist) for dist in np.arange(0, line.length, step)]
-  return (
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(front_border, num_pts_front_border)] +
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(back_border, num_pts_back_border)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)])
+
+  front_border_pts = [] if not front_border else [
+      ProtectionPoint(longitude=pt.x, latitude=pt.y)
+      for pt in SampleLine(front_border, num_pts_front_border)]
+  back_border_pts = [] if not back_border else [
+      ProtectionPoint(longitude=pt.x, latitude=pt.y)
+      for pt in SampleLine(back_border, num_pts_back_border)]
+  front_zone_pts = [] if not front_zone else [
+      ProtectionPoint(longitude=pt[0], latitude=pt[1])
+      for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)]
+  back_zone_pts = [] if not back_zone else [
+      ProtectionPoint(longitude=pt[0], latitude=pt[1])
+      for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)]
+  return front_border_pts + front_zone_pts + back_border_pts + back_zone_pts
 
 
 def BuildDpa(dpa_name, protection_points_method=None):
@@ -621,13 +626,13 @@ def BuildDpa(dpa_name, protection_points_method=None):
       mpoints = sgeo.MultiPoint([mpoints])
     if not isinstance(mpoints, sgeo.MultiPoint):
       raise ValueError('Protected point definition file for DPA `%s` not a valid MultiPoint'
-                       ' geoJSON file')
+                       ' geoJSON file.')
     protection_points = [ProtectionPoint(longitude=pt.x, latitude=pt.y)
                          for pt in mpoints]
     # Check validity of points
     if isinstance(dpa_zone, sgeo.Point):
       if len(protection_points) != 1:
-        raise ValueError('Multiple protection points for single point DPA %s' % dpa_name)
+        raise ValueError('Multiple protection points for single point DPA %s.' % dpa_name)
       pt = sgeo.Point(protection_points[0].longitude, protection_points[0].latitude)
       if not pt.within(dpa_zone.buffer(0.0005)):
         raise ValueError('Point for single point DPA %s is outside zone: %.5f %.5f'
@@ -636,8 +641,10 @@ def BuildDpa(dpa_name, protection_points_method=None):
       mpoint = sgeo.MultiPoint([(pt.longitude, pt.latitude) for pt in protection_points])
       mpoint_inside = dpa_zone.buffer(0.0005).intersection(mpoint)
       if len(mpoint) != len(mpoint_inside):
-        raise ValueError('Some points for DPA %s are outside zone' % dpa_name)
+        raise ValueError('Some points for DPA %s are outside zone.' % dpa_name)
 
+  if not protection_points:
+    raise ValueError('No valid points generated for DPA %s.' % dpa_name)
   # Set all DPA operational parameters
   protection_threshold = dpa_zone.protectionCritDbmPer10MHz
   radar_height = dpa_zone.refHeightMeters
