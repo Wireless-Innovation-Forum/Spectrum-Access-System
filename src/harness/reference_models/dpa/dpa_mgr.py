@@ -83,9 +83,8 @@ class Dpa(object):
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
     catb_neighbor_dist: The CatB neighbording distance (km).
-    dpa_type: The DPA category, either 'esc' or 'portal'.
+    monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
 
-    grants: The list of registered grants.
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
     nbor_lists: A list of neighbor list (set of |CbsdGrantInfo|) per channel.
 
@@ -138,7 +137,7 @@ class Dpa(object):
                azimuth_range=(0, 360),
                freq_ranges_mhz=[(3550, 3650)],
                catb_neighbor_dist=ml.CAT_B_NBRHD_DIST_DEFAULT,
-               dpa_type='esc'):
+               monitor_type='esc'):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
     self.threshold = threshold
@@ -146,10 +145,10 @@ class Dpa(object):
     self.azimuth_range = azimuth_range
     self.beamwidth = beamwidth
     self.catb_neighbor_dist = catb_neighbor_dist
-    self.dpa_type = dpa_type
+    self.monitor_type = monitor_type
     self.channels = None
     self._grants = []
-    self.has_th_grants = False
+    self._has_th_grants = False
     self.ResetFreqRange(freq_ranges_mhz)
     self.ResetLists()
 
@@ -157,10 +156,10 @@ class Dpa(object):
     """Returns the DPA str."""
     return ('Dpa(protected_points=%r, threshold=%.1f, radar_height=%.1f,'
             'beamwidth=%.1f, azimuth_range=%r, channels=%r,'
-            'catb_neighbor_dist=%.1f, dpa_type=%r)' % (
+            'catb_neighbor_dist=%.1f, monitor_type=%r)' % (
                 self.protected_points, self.threshold, self.radar_height,
                 self.beamwidth, self.azimuth_range, self.channels,
-                self.catb_neighbor_dist, self.dpa_type))
+                self.catb_neighbor_dist, self.monitor_type))
 
   def ResetFreqRange(self, freq_ranges_mhz):
     """Reset the frequency ranges of the DPA.
@@ -170,7 +169,7 @@ class Dpa(object):
         (freq_min_mhz, freq_max_mhz) of the DPA protected frequency ranges.
     """
     channels = GetDpaProtectedChannels(freq_ranges_mhz,
-                                       is_portal_dpa=(self.dpa_type=='portal'))
+                                       is_portal_dpa=(self.monitor_type=='portal'))
     if channels != self.channels:
       self.ResetLists()
     self.channels = channels
@@ -197,14 +196,14 @@ class Dpa(object):
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self._grants = data.getGrantObjectsFromFAD(sas_uut_fad, sas_th_fads)
     self.ResetLists()
-    self.has_th_grants = self._DetectIfPeerSas()
+    self._has_th_grants = self._DetectIfPeerSas()
 
   def SetGrantsFromList(self, grants):
     """Sets the list of grants from a list of |data.CbsdGrantInfo|."""
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self._grants = grants
     self.ResetLists()
-    self.has_th_grants = self._DetectIfPeerSas()
+    self._has_th_grants = self._DetectIfPeerSas()
 
   def ComputeMoveLists(self):
     """Computes move/keep lists.
@@ -369,7 +368,7 @@ class Dpa(object):
             grant not in keep_list_th_other_sas)]
     # Do absolute threshold in some case
     hard_threshold = None
-    if do_abs_check_single_uut and not self.has_th_grants:
+    if do_abs_check_single_uut and not self._has_th_grants:
       hard_threshold = self.threshold
 
     checkPointInterf = functools.partial(
@@ -562,7 +561,8 @@ def _DefaultProtectionPoints(dpa_geometry,
 
   # Case of Polygon/MultiPolygon
   us_border = zones.GetUsBorder()
-  us_border_ext = us_border.buffer(front_us_border_buffer_km / 111.)
+  us_border_ext = us_border.buffer(CvtKmToArcSec(front_us_border_buffer_km, us_border)
+                                   / 3600.)
   front_border = dpa_geometry.boundary.intersection(us_border_ext)
   back_border = dpa_geometry.boundary.difference(us_border_ext)
   front_zone = dpa_geometry.intersection(us_border_ext)
@@ -630,11 +630,11 @@ def BuildDpa(dpa_name, protection_points_method=None):
   """
   try:
     dpa_zone = zones.GetCoastalDpaZones()[dpa_name]
-    dpa_type = 'esc'
+    monitor_type = 'esc'
   except KeyError:
     try:
       dpa_zone = zones.GetPortalDpaZones()[dpa_name]
-      dpa_type = 'portal'
+      monitor_type = 'portal'
     except KeyError:
       raise ValueError('DPA %s not found in DPA database' % dpa_name)
 
@@ -689,4 +689,4 @@ def BuildDpa(dpa_name, protection_points_method=None):
              azimuth_range=azimuth_range,
              freq_ranges_mhz=freq_ranges_mhz,
              catb_neighbor_dist=catb_neighbor_dist,
-             dpa_type=dpa_type)
+             monitor_type=monitor_type)

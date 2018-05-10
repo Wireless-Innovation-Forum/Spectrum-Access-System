@@ -375,7 +375,7 @@ def GetCoastalDpaZones():
     A dict of DPA struct keyed by their names, each one holding following attributes:
       geometry: A |shapely.Polygon  or Point| defining the DPA.
       protectionCritDbmPer10MHz: The protection threshold (dBm/10MHz).
-      refHeightMeters: The radar antenna height.
+      refHeightMeters: The radar antenna height (meters).
       antennaBeamwidthDeg: The antenna beamwidth (degrees).
       minAzimuthDeg: The radar min azimuth (degrees).
       maxAzimuthDeg: The radar max azimuth (degrees).
@@ -395,7 +395,7 @@ def GetPortalDpaZones():
     A dict of DPA struct keyed by their names, each one holding following attributes:
       geometry: A |shapely.Polygon or Point| defining the DPA.
       protectionCritDbmPer10MHz: The protection threshold (dBm/10MHz).
-      refHeightMeters: The radar antenna height.
+      refHeightMeters: The radar antenna height (meters).
       antennaBeamwidthDeg: The antenna beamwidth (degrees).
       minAzimuthDeg: The radar min azimuth (degrees).
       maxAzimuthDeg: The radar max azimuth (degrees).
