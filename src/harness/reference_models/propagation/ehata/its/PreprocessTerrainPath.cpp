@@ -37,11 +37,10 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
     // ******* WinnForum change *******
     // Old code:
     //float xi = pfl[1] * 0.001;      // step size of the profile points, in km
-    //float d__km = np * xi;          // path distance, in km
     // New code:
     float xi = pfl[1] / 1000.;      // step size of the profile points, in km
-    float d__km = GetDistanceInMeters(pfl) / 1000.;
     // ******* End WinnForum change *******
+    float d__km = np * xi;
 
     int i_start, i_end;
     float sum = 0.0;
@@ -59,7 +58,7 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
         if (_WinnForum_Extensions) {
           i_start = 2 + int(ceil(3.0 / xi));
           i_end = np + 2;
-          if ( i_start > i_end ) i_start = i_end;
+          //if ( i_start > i_end ) i_start = i_end;
           for (int i = i_start; i <= i_end; i++)
             sum = sum + pfl[i];
           interValues->h_avg__meter[0] = pfl[2] - (pfl[2] - sum / (i_end - i_start + 1))
@@ -68,7 +67,7 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
           i_start = 2;
           i_end = np + 2 - int(ceil(3.0 / xi));
           sum = 0.0;
-          if ( i_start > i_end ) i_start = i_end;
+          #if ( i_start > i_end ) i_start = i_end;
           for (int i = i_start; i <= i_end; i++)
             sum = sum + pfl[i];
           interValues->h_avg__meter[1] = pfl[np+2] - (pfl[np+2] - sum / (i_end - i_start + 1))
