@@ -206,7 +206,7 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
     Aggregate interference to GWPZ in the nested dictionary format.
       {latitude : {longitude: [aggr_interf1(mW), ..., aggr_interfK(mW)]}}
   """
-  gwpz_region = gwpz_record['zone']['features'][0]['properties']['clutter']
+  gwpz_region = gwpz_record['landCategory']
 
   # Get Fine Grid Points for a GWPZ protection area
   protection_points = utils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'],

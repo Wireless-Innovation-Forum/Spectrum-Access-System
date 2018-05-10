@@ -133,7 +133,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
-        grid_points = geoutils.GridPolygon(gwpz_record['zone']['features']['geometry'], res_arcsec=2)
+        grid_points = geoutils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
         gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote([(pt[1], pt[0]) for pt in grid_points])
 
     if 'escRecords' in iteration_content['protectedEntities']:
