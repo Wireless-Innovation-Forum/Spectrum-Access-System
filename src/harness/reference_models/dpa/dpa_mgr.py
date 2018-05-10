@@ -453,6 +453,7 @@ def _CalcTestPointInterfDiff(point,
   by using the caching engine provided by |reference_models.common.cache|.
 
   Args:
+    point: A point having attributes 'latitude' and 'longitude'.
     channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
     keep_list_th_other_sas: A list of |data.CbsdGrantInfo| for non managing SAS, as
       computed by the reference model.
@@ -511,7 +512,7 @@ def _CalcTestPointInterfDiff(point,
 
 # DPA builder routines
 ProtectionPoint = namedtuple('ProtectionPoint',
-                             ['latitude', 'longitude'])
+                             ['longitude', 'latitude'])
 
 
 def _DefaultProtectionPoints(dpa_geometry,
@@ -519,13 +520,18 @@ def _DefaultProtectionPoints(dpa_geometry,
                              num_pts_back_border=10,
                              num_pts_front_zone=10,
                              num_pts_back_zone=5,
-                             front_us_border_buffer_km=40):
+                             front_us_border_buffer_km=40,
+                             min_dist_front_border_pts_km=0.2,
+                             min_dist_back_border_pts_km=1.,
+                             min_dist_front_zone_pts_km=0.5,
+                             min_dist_back_zone_pts_km=3.):
   """Returns a default list of DPA protection points.
 
   This creates a default set of points by regular sampling of the contour and gridding
   the interior of the DPA zone. The contour and zone are separated in front and back,
   using the US border (with a buffer) as the delimitation.
-  If the DPA is a Point, a single point is returned however.
+  Approximate minimum distance can be specified to avoid too many points for small
+  inland DPAs. Single point DPA are obviously protected by a single point.
 
   Args:
     dpa_geometry: The DPA geometry as a |shapely.Polygon or Point|.
@@ -534,37 +540,56 @@ def _DefaultProtectionPoints(dpa_geometry,
     num_pts_front_zone: Number of points in the front zone.
     num_pts_back_zone: Number of points in the back zone.
     front_us_border_buffer_km: Buffering of US border for delimiting front/back.
+    min_dist_front_border_pts_km: Minimum distance between front border points (km).
+    min_dist_back_border_pts_km: Minimum distance between back border points (km).
+    min_dist_front_zone_pts_km: Minimum distance between front zone points (km).
+    min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
   """
+  def SampleLine(line, num_points, min_step_arcsec):
+    step = line.length / (num_points-1)
+    min_step = min_step_arcsec / 3600.
+    if step < min_step:
+      num_points = round(line.length / min_step) + 1
+      step = line.length / (num_points-1)
+    return [line.interpolate(dist) for dist in np.arange(0, line.length+step/2., step)]
+
+  def CvtKmToArcSec(dist_km, ref_geo):
+    return dist_km / (111 * np.cos(ref_geo.centroid.y * np.pi / 180.)) * 3600.
+
   # Case of DPA points
   if isinstance(dpa_geometry, sgeo.Point):
     return [ProtectionPoint(longitude=dpa_geometry.x, latitude=dpa_geometry.y)]
 
-  # Case of Polygon
+  # Case of Polygon/MultiPolygon
   us_border = zones.GetUsBorder()
   us_border_ext = us_border.buffer(front_us_border_buffer_km / 111.)
-  front_border = dpa_geometry.exterior.intersection(us_border_ext)
-  back_border = dpa_geometry.exterior.difference(us_border_ext)
+  front_border = dpa_geometry.boundary.intersection(us_border_ext)
+  back_border = dpa_geometry.boundary.difference(us_border_ext)
   front_zone = dpa_geometry.intersection(us_border_ext)
   back_zone = dpa_geometry.difference(us_border_ext)
 
-  step_front_dpa_arcsec = np.sqrt(front_zone.area / num_pts_front_zone) * 3600.
-  step_back_dpa_arcsec = np.sqrt(back_zone.area / num_pts_back_zone) * 3600.
-  def SampleLine(line, num_points):
-    step = line.length / (num_points-1)
-    return [line.interpolate(dist) for dist in np.arange(0, line.length, step)]
+  # Obtain an approximate grid step, insuring a minimum separation between zone points
+  step_front_dpa_arcsec = max(np.sqrt(front_zone.area / num_pts_front_zone) * 3600.,
+                              CvtKmToArcSec(min_dist_front_zone_pts_km, dpa_geometry))
+  step_back_dpa_arcsec = max(np.sqrt(back_zone.area / num_pts_back_zone) * 3600.,
+                             CvtKmToArcSec(min_dist_back_zone_pts_km, dpa_geometry))
+  # Obtain the number of points in the border, insuring a minimum separation
+  min_step_front_border = CvtKmToArcSec(min_dist_front_border_pts_km, dpa_geometry)
+  min_step_back_border = CvtKmToArcSec(min_dist_back_border_pts_km, dpa_geometry)
 
   front_border_pts = [] if not front_border else [
       ProtectionPoint(longitude=pt.x, latitude=pt.y)
-      for pt in SampleLine(front_border, num_pts_front_border)]
+      for pt in SampleLine(front_border, num_pts_front_border, min_step_front_border)]
   back_border_pts = [] if not back_border else [
       ProtectionPoint(longitude=pt.x, latitude=pt.y)
-      for pt in SampleLine(back_border, num_pts_back_border)]
+      for pt in SampleLine(back_border, num_pts_back_border, min_step_back_border)]
   front_zone_pts = [] if not front_zone else [
       ProtectionPoint(longitude=pt[0], latitude=pt[1])
       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)]
   back_zone_pts = [] if not back_zone else [
       ProtectionPoint(longitude=pt[0], latitude=pt[1])
       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)]
+
   return front_border_pts + front_zone_pts + back_border_pts + back_zone_pts
 
 
@@ -581,17 +606,22 @@ def BuildDpa(dpa_name, protection_points_method=None):
       + a path pointing to the file holding the protected points location defined as a
         geojson MultiPoint or Point geometry. The path can be either absolute or relative
         to the running script (normally the `harness/` directory).
-      + 'default <parameters>': a simple default method. Parameters is a tuple defining
+      + 'default <parameters>': A simple default method. Parameters is a tuple defining
         the number of points to use for different part of the DPA:
-          num_pts_front_border: number of points in the front border
-          num_pts_back_border: number of points in the back border
-          num_pts_front_zone: number of points in the front zone
-          num_pts_back_zone: number of points in the back zone
-          front_us_border_buffer_km: buffering of US border for delimiting front/back.
+          num_pts_front_border: Number of points in the front border
+          num_pts_back_border: Number of points in the back border
+          num_pts_front_zone: Number of points in the front zone
+          num_pts_back_zone: Number of points in the back zone
+          front_us_border_buffer_km: Buffering of US border for delimiting front/back.
+          min_dist_front_border_pts_km: Minimum distance between front border points (km).
+          min_dist_back_border_pts_km: Minimum distance between back border points (km).
+          min_dist_front_zone_pts_km: Minimum distance between front zone points (km).
+          min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
         Example of encoding:
           'default (200,50,20,5)'
-          Note the default values are (25, 10, 10, 5, 40). Only the passed parameters will
-          be redefined.
+        Note the default values are (25, 10, 10, 5, 40, 0.2, 2, 0.2, 2)
+        Only the passed parameters will be redefined.
+        The result are only approximate (actual distance and number of points may differ).
   Returns:
     A Dpa object.
   Raises:
