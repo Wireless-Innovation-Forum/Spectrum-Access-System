@@ -42,13 +42,145 @@ ONE_MHZ = 1000000
 
 class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
+  def checkMcpConfig(self, config, test_type):
+    self.assertIn(test_type, ('MCP', 'xPR1', 'xPR2'))
+
+    def checkFadConfiguration(fad_config):
+      self.assertValidConfig(fad_config, {
+          'cbsdRecords': list
+      })
+
+    self.assertValidConfig(
+        config, {
+            'iterationData': list,
+            'sasTestHarnessConfigs': list,
+            'domainProxyConfigs': list
+        }, {'dpas': dict})
+
+    # Check each iteration's data.
+    for iteration_data in config['iterationData']:
+      self.assertValidConfig(
+          iteration_data, {
+              'cbsdRequestsWithDomainProxies': list,
+              'cbsdRecords': list,
+              'protectedEntities': dict,
+              'dpaActivationList': list,
+              'dpaDeactivationList': list,
+              'sasTestHarnessData': list
+          })
+
+      self.assertEqual(
+          len(iteration_data['cbsdRequestsWithDomainProxies']),
+          len(config['domainProxyConfigs']),
+          'Mismatch in the number of domain proxies and the configuration for this iteration: %s.'
+          % str(iteration_data))
+      for domain_proxy in iteration_data['cbsdRequestsWithDomainProxies']:
+        self.assertValidConfig(
+            domain_proxy, {
+                'registrationRequests': list,
+                'grantRequests': list,
+                'conditionalRegistrationData': list
+            })
+
+      for cbsd_record in iteration_data['cbsdRecords']:
+        self.assertValidConfig(
+            cbsd_record, {
+                'registrationRequest': dict,
+                'grantRequest': dict,
+                'conditionalRegistrationData': dict,
+                'clientCert': basestring,
+                'clientKey': basestring
+            })
+
+      self.assertValidConfig(
+          iteration_data['protectedEntities'],
+          {},
+          {
+              # All fields are optional.
+              'palRecords': list,
+              'ppaRecords': list,
+              'escRecords': list,
+              'gwpzRecords': list,
+              'gwblRecords': list,
+              'fssRecords': list,
+          })
+      if 'dpas' in config:
+        for dpa in iteration_data['dpaActivationList'] + iteration_data['dpaDeactivationList']:
+          self.assertValidConfig(dpa, {
+              'dpaId': basestring,
+              'frequencyRange': dict
+          })
+
+      self.assertEqual(
+          len(iteration_data['sasTestHarnessData']),
+          len(config['sasTestHarnessConfigs']),
+          'Mismatch in the number of SAS test harnesses and the configuration for this iteration: %s.'
+          % str(iteration_data))
+      for sas_test_harness_data in iteration_data['sasTestHarnessData']:
+        checkFadConfiguration(sas_test_harness_data)
+
+    # Check SAS test harnesses.
+    for sas_test_harness_config in config['sasTestHarnessConfigs']:
+      self.assertValidConfig(
+          sas_test_harness_config, {
+              'sasTestHarnessName': basestring,
+              'hostName': basestring,
+              'port': int,
+              'serverCert': basestring,
+              'serverKey': basestring,
+              'caCert': basestring,
+              'initialFad': list
+          })
+      checkFadConfiguration(sas_test_harness_config['initialFad'])
+
+    # Check domain proxies.
+    for domain_proxy_config in config['domainProxyConfigs']:
+      self.assertValidConfig(domain_proxy_config, {
+          'cert': basestring,
+          'key': basestring
+      })
+
+    # Special xPR-only checks.
+    if test_type == 'MCP':
+      return
+
+    # Max. 1 iteration.
+    self.assertEqual(
+        len(config['iterationData']), 1,
+        'XPR test cases only have one iteration.')
+
+    # No DPAs.
+    if 'dpas' in config:
+      self.assertEqual(
+          len(config['dpas']), 0,
+          'XPR does not permit the use of DPAs.')
+
+    # Max. one protected entity.
+    protected_entities = config['iterationData'][0]['protectedEntities']
+    if 'ppaRecords' in protected_entities:
+      self.assertTrue('palRecords' in protected_entities,
+                      'Must define PAL records if a PPA is to be injected.')
+      self.assertEqual(len(protected_entities.keys()), 2)
+    else:
+      self.assertEqual(
+          len(protected_entities.keys()), 1,
+          'Must define only one protected entity for an xPR test case.')
+
+    if test_type == 'xPR1':
+      # No SAS test harnesses.
+      self.assertEqual(
+          len(config['sasTestHarnessConfigs']), 0,
+          'xPR.1 does not permit the use of SAS Test Harnesses.')
+
   def executeMcpTestSteps(self, config, test_type):
     """Execute all teststeps for MCP testcase and for xPR testcases till Step22
 
     Args:
       config: Testcase configuration
-      test_type: A string which indicates the type of testcase to be invoked("MCP"/"XPR")
+      test_type: A string which indicates the type of testcase to be invoked("MCP"/"xPR1"/"xPR2")
     """
+    self.checkMcpConfig(config, test_type)
+
     # Initialize test-wide variables, and state variables.
     self.config = config
     self.active_dpas = []
@@ -128,8 +260,10 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
-        grid_points = geoutils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
-        gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote([(pt[1], pt[0]) for pt in grid_points])
+        grid_points = geoutils.GridPolygon(
+            gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
+        gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote(
+            [(pt[1], pt[0]) for pt in grid_points])
 
     if 'escRecords' in iteration_content['protectedEntities']:
       for esc_record in iteration_content['protectedEntities']['escRecords']:
@@ -158,9 +292,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     for key in iteration_content['protectedEntities']:
       if not key in self.protected_entity_records:
-        self.protected_entity_records[key] = iteration_content['protectedEntities'][key]
+        self.protected_entity_records[key] = iteration_content[
+            'protectedEntities'][key]
       else:
-        self.protected_entity_records[key].extend(iteration_content['protectedEntities'][key])
+        self.protected_entity_records[key].extend(
+            iteration_content['protectedEntities'][key])
 
     # Step 6,7 : Creating FAD Object and Pull FAD records from SAS UUT
     if self.num_peer_sases:
@@ -372,9 +508,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
   def performAggregateInterferenceCheck(self):
     authorized_grants = None
-    if any(key in self.protected_entity_records for key in ['gwpzRecords', 'fssRecords', 'escRecords']):
+    if any(key in self.protected_entity_records
+           for key in ['gwpzRecords', 'fssRecords', 'escRecords']):
       # Get Grant info for all CBSDs with grants from SAS UUT.
-      authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
+      authorized_grants = data.getAuthorizedGrantsFromDomainProxies(
+          self.domain_proxy_objects)
 
     # Calculate and compare the interference value for PPA protected entity
     if 'ppaRecords' in self.protected_entity_records:
@@ -382,12 +520,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         pal_records = self.protected_entity_records['palRecords']
         # Get Grant info for all CBSDs with grants from SAS UUT that are not
         # part of the current ppa.
-        ppa_authorized_grants = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects, ppa_record=ppa_record)
+        ppa_authorized_grants = data.getAuthorizedGrantsFromDomainProxies(
+            self.domain_proxy_objects, ppa_record=ppa_record)
         # Call aggregate interference reference model for ppa
         ppa_aggr_interference = aggregate_interference.calculateAggregateInterferenceForPpa(
-            ppa_record,
-            pal_records,
-            ppa_authorized_grants)
+            ppa_record, pal_records, ppa_authorized_grants)
         ppa_ap_iap_ref_values = None
         if self.num_peer_sases > 0:
           ppa_ap_iap_ref_values = self.ppa_ap_iap_ref_values_list[index]
@@ -461,7 +598,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             calculateAggregateInterferenceForEsc(esc_record, authorized_grants)
         esc_ap_iap_ref_values = None
         if self.num_peer_sases > 0:
-            esc_ap_iap_ref_values = self.esc_ap_iap_ref_values_list[index]
+          esc_ap_iap_ref_values = self.esc_ap_iap_ref_values_list[index]
         else:
           esc_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_ESC_DBM_PER_RBW)] * len(esc_aggr_interference)
         # Compare the interference values calculated from both models
