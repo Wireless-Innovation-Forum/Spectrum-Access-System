@@ -108,8 +108,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -135,7 +133,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Protected entity record
     protected_entities = {
         'palRecords': pal_records_1,
-        'ppaRecord': ppa_record_1
+        'ppaRecords': [ppa_record_1]
     }
 
     iteration_config = {
@@ -156,7 +154,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
@@ -165,8 +162,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         }, {
             'cert': os.path.join('certs', 'domain_proxy_1.cert'),
             'key': os.path.join('certs', 'domain_proxy_1.key')
-        }],
-        'deltaIap': 2
+        }]
     }
     writeConfig(filename, config)
 
@@ -176,7 +172,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR1')
 
   def generate_PPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for PPR.2. """
@@ -266,8 +262,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -293,7 +287,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Protected entity record
     protected_entities = {
         'palRecords': pal_records_1,
-        'ppaRecord': ppa_record_1
+        'ppaRecords': [ppa_record_1]
     }
 
     # SAS Test Harnesses configurations,
@@ -370,7 +364,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -380,8 +373,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         }, {
             'cert': os.path.join('certs', 'domain_proxy_1.cert'),
             'key': os.path.join('certs', 'domain_proxy_1.key')}
-        ],
-        'deltaIap': 2
+        ]
     }
     writeConfig(filename, config)
 
@@ -391,5 +383,5 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR2')
 

@@ -56,7 +56,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -96,8 +96,6 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -131,7 +129,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'conditionalRegistrationData': conditionals_device_4,
+            'conditionalRegistrationData': conditionals_device_4,  
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
@@ -143,7 +141,6 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
@@ -152,8 +149,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         }, {
             'cert': os.path.join('certs', 'domain_proxy_1.cert'),
             'key': os.path.join('certs', 'domain_proxy_1.key')
-        }],
-        'deltaIap': 2
+        }]
     }
     writeConfig(filename, config)
 
@@ -163,7 +159,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR1')
 
   def generate_GPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for GPR.2. """
@@ -189,7 +185,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -239,8 +235,6 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'installationParam': device_4['installationParam'],
         'measCapability': device_4['measCapability']
     }
-
-    conditionals = [conditionals_device_2, conditionals_device_4]
 
     # Remove conditionals from registration
     del device_2['cbsdCategory']
@@ -343,7 +337,6 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -352,8 +345,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
              'key': os.path.join('certs', 'domain_proxy.key')
         }, {
              'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-             'key': os.path.join('certs', 'domain_proxy_1.key')}],
-        'deltaIap': 2
+             'key': os.path.join('certs', 'domain_proxy_1.key')}]
     }
     writeConfig(filename, config)
 
@@ -363,7 +355,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR2')
 
   def generate_GPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for GPR.3 """
@@ -377,13 +369,13 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location inside GWPZ zone
     device_1['installationParam']['latitude'], \
-    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2 to a location inside GWPZ zone
     device_2['installationParam']['latitude'], \
-    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     # Load Grant requests
     grant_request_1 = json.load(
