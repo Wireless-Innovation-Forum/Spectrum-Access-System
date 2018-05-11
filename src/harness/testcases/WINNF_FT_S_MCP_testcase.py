@@ -748,7 +748,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'server.cert'),
         'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_initial_sas_test_harness_1]
     }
 
     # Generate SAS Test Harnesses dump records for multiple iterations
