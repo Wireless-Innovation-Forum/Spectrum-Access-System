@@ -1,13 +1,16 @@
-{  
-   "id":"incumbent/uls/0",
-   "type":"PART_90",
-   "deploymentParam":{  
-      "operationParam":{  
-         "operationFrequencyRange":{  
-            "lowFrequency":3650000000.0,
-            "highFrequency":3675000000.0
+{
+   "record": {  
+      "id":"incumbent/uls/0",
+      "type":"PART_90",
+      "deploymentParam": [
+      {  
+            "operationParam":{  
+               "operationFrequencyRange":{  
+                  "lowFrequency":3650000000.0,
+                  "highFrequency":3675000000.0
+            }
          }
-      }
+      }]
    },
    "landCategory":"RURAL",
    "zone":{  
