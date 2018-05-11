@@ -319,7 +319,7 @@ policyIdentifier = 2.16.840.1.114412.2.1
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth
+extendedKeyUsage = serverAuth,clientAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
 crlDistributionPoints=@crl_section
 [ cps ]
@@ -333,7 +333,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth
+extendedKeyUsage = serverAuth,clientAuth
 certificatePolicies=@cps,ROLE_SAS,FRN
 crlDistributionPoints=@crl_section
 [ cps ]
@@ -342,29 +342,6 @@ policyIdentifier = 2.16.840.1.114412.2.1
  CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
-[ sas_client_mode_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
-CPS.1="https://www.digicert.com/CPS"
-
-[ sas_client_mode_req_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
 
 [ cps ]
 
@@ -378,7 +355,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth
+extendedKeyUsage = serverAuth, clientAuth
 certificatePolicies=@cps,ROLE_SAS,ZONE
 ####################################################################
 [ oper_req ]
