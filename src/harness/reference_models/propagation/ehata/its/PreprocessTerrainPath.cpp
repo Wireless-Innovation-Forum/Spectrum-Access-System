@@ -1,4 +1,3 @@
-#include "stdio.h" // TODO
 #include "math.h"
 #include "ehata.h"
 
