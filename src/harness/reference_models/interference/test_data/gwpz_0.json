@@ -9,14 +9,12 @@
          }
       }
    },
+   "landCategory":"RURAL",
    "zone":{  
       "type":"FeatureCollection",
       "features":[  
          {  
             "type":"Feature",
-            "properties":{  
-               "clutter":"RURAL"
-            },
             "geometry":{  
                "type":"Polygon",
                "coordinates":[  

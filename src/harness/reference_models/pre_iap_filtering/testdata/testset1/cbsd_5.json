@@ -1,7 +1,7 @@
 {
 	"_comment": "PPA - CBSD for URBAN and SUBURBAN regions",
 	"id": "cbsd_5",
-	"registrationRequest": {
+	"registration": {
 		"fccId": "test_fcc_id_d",
 		"cbsdCategory": "A",
 		"callSign": "KPPP",

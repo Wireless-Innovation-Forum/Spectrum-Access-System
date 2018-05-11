@@ -9,14 +9,12 @@
          }
       }
    },
+   "landCategory":"SUBURBAN",  
    "zone":{  
       "type":"FeatureCollection",
       "features":[  
          {  
             "type":"Feature",
-            "properties":{  
-               "clutter":"SUBURBAN"
-            },
             "geometry":{  
                "type":"Polygon",
                "coordinates":[  

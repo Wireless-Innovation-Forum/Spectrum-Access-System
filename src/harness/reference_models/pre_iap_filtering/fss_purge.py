@@ -132,7 +132,7 @@ def calculateOobeInterference(grants_cbsds_oobe_info, fss_point, fss_info):
   for grant in grants_cbsds_oobe_info:
     if not grant['cbsd']['grants']:
       continue
-    cbsd = data.constructCbsdGrantInfo(grant['cbsd']['registrationRequest'], None)
+    cbsd = data.constructCbsdGrantInfo(grant['cbsd']['registration'], None)
     # Get the MCBSD (ie the conducted OOBE power)
     mcbsd = grant['mcbsd']
     # Computes the path loss
