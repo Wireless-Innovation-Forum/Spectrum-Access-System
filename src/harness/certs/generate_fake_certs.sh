@@ -119,21 +119,21 @@ openssl ca -cert sas-ecc_ca.cert -keyfile private/sas-ecc_ca.key -in server-ecc.
 # Generate sas server certificate/key.
 echo -e "\n\nGenerate 'sas server' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out sas.csr -keyout sas.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas.csr \
     -out sas.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out sas_1.csr -keyout sas_1.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate 001/CN=localhost"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_1.csr \
     -out sas_1.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Generate normal operation device certificate/key.
@@ -245,7 +245,7 @@ openssl ca -cert non_cbrs_root_signed_cbsd_ca.cert -keyfile private/non_cbrs_roo
 echo -e "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out device_wrong_type.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SCS.11
@@ -281,12 +281,12 @@ openssl ca -revoke domain_proxy_blacklisted.cert -keyfile private/proxy_ca.key -
 # Certificate for test case WINNF.FT.S.SSS.11
 echo -e "\n\nGenerate blacklisted sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out sas_blacklisted.csr -keyout sas_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_blacklisted.csr \
     -out sas_blacklisted.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Revoke the sas_blacklisted.cert for WINNF.FT.S.SSS.11
@@ -383,7 +383,7 @@ openssl ca -cert non_cbrs_root_signed_oper_ca.cert -keyfile private/non_cbrs_roo
 echo -e "\n\nGenerate wrong type certificate/key"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in server.csr \
     -out domain_proxy_wrong_type.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign   -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign   -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SDS.12 - Expired certificate presented during registration
@@ -407,12 +407,12 @@ openssl ca -cert proxy_ca.cert -keyfile private/proxy_ca.key -in domain_proxy.cs
 # Generate certificates for test case WINNF.FT.S.SSS.6 - Unrecognized root of trust certificate presented during registration
 echo -e "\n\nGenerate 'unrecognized_sas' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out unrecognized_sas.csr -keyout unrecognized_sas.key \
     -subj "/C=US/O=Generic Certification Organization/OU=www.example.org/CN=Unrecognized SAS Provider"
 openssl ca -cert unrecognized_root_ca.cert -keyfile private/unrecognized_root_ca.key -in unrecognized_sas.csr \
     -out unrecognized_sas.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificates for test case WINN.FT.S.SSS.7 - corrupted certificate, based on sas.cert
@@ -442,12 +442,12 @@ openssl ca -cert non_cbrs_root_ca.cert -keyfile private/non_cbrs_root_ca.key -in
 # Generate a SAS certificate signed by an intermediate SAS CA which is signed by a non-CBRS root CA
 echo -e "\n\nGenerate sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out non_cbrs_signed_sas.csr -keyout non_cbrs_signed_sas.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=non-cbrs.example.org"
 openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root_signed_sas_ca.key -in non_cbrs_signed_sas.csr \
     -out non_cbrs_signed_sas.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
@@ -461,12 +461,12 @@ openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
 # Certificate for test case WINNF.FT.S.SSS.12 - Expired certificate presented by SAS Test Harness
 echo -e "\n\nGenerate 'sas_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out sas_expired.csr -keyout sas_expired.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=expired.example.org"
 openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_expired.csr \
     -out sas_expired.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -startdate 20150214120000Z -enddate 20160214120000Z -md sha384
 
 # Certificate for test case WINNF.FT.S.SSS.15 -Certificate with inapplicable fields presented by SAS Test Harness
@@ -543,12 +543,12 @@ openssl ca -cert root_ca.cert -keyfile private/root_ca.key -in revoked_sas_ca.cs
 # Generate sas server certificate/key.
 echo -e "\n\nGenerate 'sas server' certificate/key signed by revoked_sas_ca"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_client_mode_req -config ../../../cert/openssl.cnf \
+    -reqexts sas_req -config ../../../cert/openssl.cnf \
     -out sas_cert_from_revoked_ca.csr -keyout sas_cert_from_revoked_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost - Revoked"
 openssl ca -cert revoked_sas_ca.cert -keyfile private/revoked_sas_ca.key -in sas_cert_from_revoked_ca.csr \
     -out sas_cert_from_revoked_ca.cert -outdir ./root \
-    -policy policy_anything -extensions sas_client_mode_req_sign -config ../../../cert/openssl.cnf \
+    -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 # Revoke the SAS CA Certificate.
