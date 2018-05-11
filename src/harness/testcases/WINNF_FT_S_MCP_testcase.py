@@ -64,7 +64,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           domain_proxy['cert'],
           domain_proxy['key']))
     # Step 1 : Load DPAs
-    #self._sas_admin.TriggerLoadDpas()
+    self._sas_admin.TriggerLoadDpas()
 
     # STEP 2 : ESC informs SAS about inactive DPA
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
