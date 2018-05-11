@@ -515,6 +515,9 @@ def _CalcTestPointInterfDiff(point,
 ProtectionPoint = namedtuple('ProtectionPoint',
                              ['longitude', 'latitude'])
 
+# Caching of the extended us_border
+_us_border_ext = None
+_us_border_ext_buffer = None
 
 def _DefaultProtectionPoints(dpa_geometry,
                              num_pts_front_border=25,
@@ -568,13 +571,18 @@ def _DefaultProtectionPoints(dpa_geometry,
   num_pts_back_zone = max(num_pts_back_zone, 1)
 
   # Case of Polygon/MultiPolygon
-  us_border = zones.GetUsBorder()
-  us_border_ext = us_border.buffer(CvtKmToArcSec(front_us_border_buffer_km, us_border)
-                                   / 3600.)
-  front_border = dpa_geometry.boundary.intersection(us_border_ext)
-  back_border = dpa_geometry.boundary.difference(us_border_ext)
-  front_zone = dpa_geometry.intersection(us_border_ext)
-  back_zone = dpa_geometry.difference(us_border_ext)
+  global _us_border_ext
+  global _us_border_ext_buffer
+  if _us_border_ext is None or _us_border_ext_buffer != front_us_border_buffer_km:
+    us_border = zones.GetUsBorder()
+    _us_border_ext = us_border.buffer(CvtKmToArcSec(front_us_border_buffer_km, us_border)
+                                      / 3600.)
+    _us_border_ext_buffer = front_us_border_buffer_km
+
+  front_border = dpa_geometry.boundary.intersection(_us_border_ext)
+  back_border = dpa_geometry.boundary.difference(_us_border_ext)
+  front_zone = dpa_geometry.intersection(_us_border_ext)
+  back_zone = dpa_geometry.difference(_us_border_ext)
 
   # Obtain an approximate grid step, insuring a minimum separation between zone points
   step_front_dpa_arcsec = max(np.sqrt(front_zone.area / num_pts_front_zone) * 3600.,

@@ -24,8 +24,32 @@ These routines allows to read the various zones used by SAS:
 Plus a few other useful zones for evaluation/simulation purpose:
  - US Border
  - US Urban areas
+
+Interface:
+  # Exclusion zones
+  GetGbsExclusionZones()
+  GetPart90ExclusionZones()
+
+  # DPA zones: E-DPA (Coastal/ESC) and P-DPA (Portal)
+  GetCoastalDpaZones()
+  GetPortalDpaZones()
+
+  # Coastal protection zone - for catA
+  GetCoastalProtectionZone()
+
+  # FCC Office locations
+  GetFccOfficeLocations()
+
+  # US-Canada Border
+  GetUsCanadaBorder()
+
+  # For simulation purpose: global US border and urban areas
+  GetUsBorder()
+  GetUrbanAreas()
 """
+import logging
 import os
+import re
 import numpy as np
 import shapely.geometry as sgeo
 import shapely.ops as ops
@@ -37,19 +61,68 @@ from reference_models.geo import CONFIG
 
 # The reference files.
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
+EXCLUSION_ZONE_FILE = 'GB_Part90_EZ.kml'
 COASTAL_DPA_ZONE_FILE = 'Coastal_DPAs.kml'
 PORTAL_DPA_ZONE_FILE = 'Portal_DPAs.kml'
-EXCLUSION_ZONE_FILE = 'GB_Part90_EZ.kml'
-
-#EXCLUSION_ZONE_FILE = 'protection_zones.kml'
-#DPA_ZONE_FILE = 'dpas_12-7-2017.kml'
-
 FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 
 # The reference files for extra zones.
 USBORDER_FILE = 'usborder.kmz'
 URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
 USCANADA_BORDER_FILE = 'uscabdry_sampled.kmz'
+
+# The CatB neighborhood CSV file suffix
+# Note: neighborhood distance are currently provided as an external CSV file.
+#       The code will be changed as the format/source is defined.
+DPA_NEIGHBOR_SUFFIX = '_CatBNeighborhoods'
+
+
+# A frequency splitter - used as DPA properties converter.
+def _SplitFreqRange(freq_range):
+  """Splits a `freq_range` str in a list of numerical (fmin, fmax) tuples."""
+  try:
+    fmin, fmax = re.split(',|-', freq_range.strip())
+    return [(float(fmin), float(fmax))]
+  except AttributeError:
+    freq_ranges = []
+    for one_range in freq_range:
+      fmin, fmax = re.split(',|-', one_range.strip())
+      freq_ranges.append((float(fmin), float(fmax)))
+    return freq_ranges
+
+
+# The DPA properties to extract from DPA KMLs.
+#    (attribute, converter, default)
+# * attribute: the KML attribute name to extract
+# * converter: a converter function (float, str, ..)
+# * default: Value to use if unset. If default=None, the attribute is mandatory,
+#     and an exception will be raised if absent.
+# Warning: If modifying, update in dpa_mgr.BuildDpa()
+# Warning: currently catbNeighborDist read from separate file, while waiting for
+#          process finalization.
+
+# For coastal DPAs.
+COASTAL_DPA_PROPERTIES = [('freqRangeMhz', _SplitFreqRange, None),
+                          ('protectionCritDbmPer10MHz', float, -144),
+                          ('refHeightMeters', float, 50),
+                          ('antennaBeamwidthDeg', float, 3.),
+                          ('minAzimuthDeg', float, 0.),
+                          ('maxAzimuthDeg', float, 360.),
+                          ('catbNeighborDist', float, None)]
+
+# For portal DPAs.
+PORTAL_DPA_PROPERTIES = [('freqRangeMhz', _SplitFreqRange, None),
+                         ('protectionCritDbmPer10MHz', float, None),
+                         ('refHeightMeters', float, None),
+                         ('antennaBeamwidthDeg', float, None),
+                         ('minAzimuthDeg', float, 0),
+                         ('maxAzimuthDeg', float, 360),
+                         ('catbNeighborDist', float, None),
+                         ('portalOrg', str, None),
+                         ('federalOp', bool, None),
+                         ('gmfSerialNumber', str, 'None'),
+                         ('fccCallSign', str, 'None')]
+
 
 # One source of data is the the `protection_zones.kml` preprocessed by
 # Winnforum (see src/data/), and which holds both the protection zone and
@@ -58,22 +131,14 @@ _COASTAL_PROTECTION_ZONES = [
     'West Combined Contour', 'East-Gulf Combined Contour'
 ]
 
-# The DPA attributes to extract from DPA KMLs
-# Warning: If modifying, update below in the file and in dpa_mgr.BuildDpa()
-_DPA_ATTRIBUTES = ['freqRangeMhz',
-                   'protectionCritDbmPer10MHz',
-                   'refHeightMeters',
-                   'antennaBeamwidthDeg',
-                   'minAzimuthDeg',
-                   'maxAzimuthDeg',
-                   'catbNeighborDist']
-
 # Singleton for operational zones.
 _coastal_protection_zone = None
 _exclusion_zones_gbs = None
 _exclusion_zones_p90 = None
 _coastal_dpa_zones = None
+_coastal_dpa_path = None
 _portal_dpa_zones = None
+_portal_dpa_path = None
 _border_zone = None
 _uscanada_border = None
 
@@ -124,18 +189,6 @@ class _Zone(object):
     return 'Zone(geometry=%s, %s)' % (
         'None' if not hasattr(self, 'geometry') else self.geometry.type,
         ', '.join(['%s=%s' % (attr, getattr(self, attr)) for attr in self.fields]))
-
-
-def _SplitFreqRange(freq_range):
-  try:
-    fmin, fmax = freq_range.strip().split(',')
-    return [(float(fmin), float(fmax))]
-  except AttributeError:
-    freq_ranges = []
-    for one_range in freq_range:
-      fmin, fmax = one_range.strip().split(',')
-      freq_ranges.append((float(fmin), float(fmax)))
-    return freq_ranges
 
 
 def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
@@ -271,20 +324,6 @@ def _ReadKmlBorder(kml_path, root_id='Placemark'):
   return linetrings_dict
 
 
-def GetCoastalProtectionZone():
-  """Returns the coastal protection zone as a |shapely.MultiPolygon|.
-
-  The coastal protection zone is used for DPA CatA neighborhood.
-  """
-  global _coastal_protection_zone
-  if _coastal_protection_zone is None:
-    kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
-    zones = _ReadKmlZones(kml_file)
-    _coastal_protection_zone = ops.unary_union([zones[name]
-                                                for name in _COASTAL_PROTECTION_ZONES])
-  return _coastal_protection_zone
-
-
 def _GetAllExclusionZones():
   """Read all exclusion zones."""
   global _exclusion_zones_gbs
@@ -306,6 +345,94 @@ def _GetAllExclusionZones():
     _exclusion_zones_gbs = ops.unary_union(gbs_zones)
     _exclusion_zones_p90 = ops.unary_union(p90_zones)
 
+
+def _CheckDpaValidity(dpa_zones, attributes):
+  """Checks that DPA is valid, ie all attributes actually set.
+
+  Raise:
+    ValueError: if some attributes unset.
+  """
+  for name, zone in dpa_zones.items():
+    for attr in attributes:
+      if getattr(zone, attr) is None:
+        raise ValueError('DPA %s: attribute %s is unset' % (name, attr))
+
+
+def _ReadDpaNborCsv(kml_path):
+  kml_path = os.path.splitext(kml_path)[0] + DPA_NEIGHBOR_SUFFIX + '.csv'
+  if not os.path.exists(kml_path):
+    logging.warning('No existing DPA neighbor file: %s' % kml_path)
+    return {}
+  with open(kml_path, 'r') as fd:
+    lines = fd.readlines()[1:]
+  lines = [line.strip().split(',') for line in lines]
+  dpa_dists = {line[0]: line[2] for line in lines}
+  return dpa_dists
+
+
+def _LoadDpaZones(kml_path, properties):
+  """Loads DPA zones from a `kml_path` - See GetCoastalDpaZones for returned format.
+
+  Args:
+    kml_path: Path to the DPA KML.
+    properties: A list of tuple (kml_attribute, converter) for extracting the DPA KML info:
+      * kml_attr: a string defining the data attribute in the KML
+      * converter: a converter routine, for example `float`.
+  """
+  # Manage the case where some items are in a Folder structure instead of Placemark
+  dpa_zones = _ReadKmlZones(kml_path, root_id_zone='Placemark',
+                            #ignore_if_parent='Folder', # useful if dpa_zones2 below used
+                            data_fields=[attr for attr,_,_ in properties])
+  # Early version of KML files had some DPA as folder. Support it
+  #dpa_zones2 = _ReadKmlZones(kml_path, root_id_zone='Folder',
+  #                           data_fields=[attr for attr,_,_ in properties])
+  #dpa_zones.update(dpa_zones2)
+
+  # Read the neighbor distance from actual neighbor distance file.
+  # WARNING: this may still change with direct inclusion in the KML.
+  dpa_dists = _ReadDpaNborCsv(kml_path)
+  for name, zone in dpa_zones.items():
+    if zone.catbNeighborDist is not None: continue
+    if name in dpa_dists:
+      zone.catbNeighborDist = dpa_dists[name]
+    else:
+      logging.warning('DPA %s has no CatB neighbor distance defined. Using default 200km.'
+                      % name)
+      zone.catbNeighborDist = 200
+
+  # Validity check that all requuired parameters are set properly
+  _CheckDpaValidity(dpa_zones, [attr for attr, _, default in properties
+                                if default is None])
+
+  # Now adapt the data with converters and set defaults
+  for name, zone in dpa_zones.items():
+    for attr, cvt, default in properties:
+      value = getattr(zone, attr)
+      if value is None:
+        setattr(zone, attr, default)
+      else:
+        setattr(zone, attr, cvt(value))
+
+  return dpa_zones
+
+#=============================================================
+# Public interface below
+
+
+def GetCoastalProtectionZone():
+  """Returns the coastal protection zone as a |shapely.MultiPolygon|.
+
+  The coastal protection zone is optionally used for DPA CatA neighborhood.
+  """
+  global _coastal_protection_zone
+  if _coastal_protection_zone is None:
+    kml_file = os.path.join(CONFIG.GetNtiaDir(), PROTECTION_ZONE_FILE)
+    zones = _ReadKmlZones(kml_file)
+    _coastal_protection_zone = ops.unary_union([zones[name]
+                                                for name in _COASTAL_PROTECTION_ZONES])
+  return _coastal_protection_zone
+
+
 def GetGbsExclusionZones():
   """Returns all GBS exclusion zones as a |shapely.MultiPolygon|.
 
@@ -322,54 +449,14 @@ def GetPart90ExclusionZones():
   return _exclusion_zones_p90
 
 
-def _CheckDpaValidity(dpa_zones):
-  """Checks that DPA is valid, ie all attributes actually set.
-
-  Raise:
-    ValueError: if some attributes unset.
-  """
-  for name, zone in dpa_zones.items():
-    for attr in _DPA_ATTRIBUTES:
-      if getattr(zone, attr) is None:
-        raise ValueError('DPA %s: attribute %s is unset' % (name, attr))
-
-
-def _LoadDpaZones(kml_name):
-  """Loads DPA zones - See GetCoastalDpaZones for returned format."""
-  kml_file = os.path.join(CONFIG.GetNtiaDir(), kml_name)
-  # Manage the case where some items are in a Folder structure instead of Placemark
-  dpa_zones = _ReadKmlZones(kml_file, root_id_zone='Placemark',
-                            #ignore_if_parent='Folder',
-                            data_fields=_DPA_ATTRIBUTES)
-  # Early version of KML files had some DPA as folder. Support it
-  #dpa_zones2 = _ReadKmlZones(kml_file, root_id_zone='Folder',
-  #                           data_fields=_DPA_ATTRIBUTES)
-  #dpa_zones.update(dpa_zones2)
-
-  # TODO(sbdt): read the neighbor distance from actual source once defined
-  for name, zone in dpa_zones.items():
-    zone.catbNeighborDist = 200
-
-  # Manage missing values, when expected.
-  ## =>  Nothing for now - all should be set.
-  # Validity check that all parameters are set properly
-  _CheckDpaValidity(dpa_zones)
-  # Now adapt the data into
-  for name, zone in dpa_zones.items():
-    zone.freqRangeMhz = _SplitFreqRange(zone.freqRangeMhz)
-    zone.protectionCritDbmPer10MHz = float(zone.protectionCritDbmPer10MHz)
-    zone.refHeightMeters = float(zone.refHeightMeters)
-    zone.antennaBeamwidthDeg = float(zone.antennaBeamwidthDeg)
-    zone.minAzimuthDeg = float(zone.minAzimuthDeg)
-    zone.maxAzimuthDeg = float(zone.maxAzimuthDeg)
-
-  return dpa_zones
-
-
-def GetCoastalDpaZones():
+def GetCoastalDpaZones(kml_path=None):
   """Gets Coastal DPA zones.
 
   Coastal DPA zones are Dynamic Protection Area monitored through the use of ESC sensors.
+
+  Args:
+    kml_path: Optional path to the Coastal DPA KML. If unspecified, use the default one
+      from the `data/ntia/` folder.
 
   Returns:
     A dict of DPA struct keyed by their names, each one holding following attributes:
@@ -379,18 +466,26 @@ def GetCoastalDpaZones():
       antennaBeamwidthDeg: The antenna beamwidth (degrees).
       minAzimuthDeg: The radar min azimuth (degrees).
       maxAzimuthDeg: The radar max azimuth (degrees).
-      catBNeighborDist: The CatB neighboring distance (km)
+      catBNeighborDist: The CatB neighboring distance (km).
   """
   global _coastal_dpa_zones
-  if _coastal_dpa_zones is None:
-    _coastal_dpa_zones = _LoadDpaZones(COASTAL_DPA_ZONE_FILE)
+  global _coastal_dpa_path
+  if _coastal_dpa_zones is None  or kml_path != _coastal_dpa_path:
+    _coastal_dpa_path = kml_path
+    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), COASTAL_DPA_ZONE_FILE)
+    _coastal_dpa_zones = _LoadDpaZones(kml_path, COASTAL_DPA_PROPERTIES)
   return _coastal_dpa_zones
 
 
-def GetPortalDpaZones():
+def GetPortalDpaZones(kml_path=None):
   """Gets Portal DPA zones.
 
   Portal DPA zones are Dynamic Protection Area monitored through the use of portal.
+
+  Args:
+    kml_path: Optional path to the Portal DPA KML. If unspecified, use the default one
+      from the `data/ntia/` folder.
+
   Returns:
     A dict of DPA struct keyed by their names, each one holding following attributes:
       geometry: A |shapely.Polygon or Point| defining the DPA.
@@ -399,11 +494,14 @@ def GetPortalDpaZones():
       antennaBeamwidthDeg: The antenna beamwidth (degrees).
       minAzimuthDeg: The radar min azimuth (degrees).
       maxAzimuthDeg: The radar max azimuth (degrees).
-      catBNeighborDist: The CatB neighboring distance (km)
+      catBNeighborDist: The CatB neighboring distance (km).
   """
   global _portal_dpa_zones
-  if _portal_dpa_zones is None:
-    _portal_dpa_zones = _LoadDpaZones(PORTAL_DPA_ZONE_FILE)
+  global _portal_dpa_path
+  if _portal_dpa_zones is None or kml_path != _portal_dpa_path:
+    _portal_dpa_path = kml_path
+    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), PORTAL_DPA_ZONE_FILE)
+    _portal_dpa_zones = _LoadDpaZones(kml_path, PORTAL_DPA_PROPERTIES)
   return _portal_dpa_zones
 
 
