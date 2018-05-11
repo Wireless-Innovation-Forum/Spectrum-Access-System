@@ -190,24 +190,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
@@ -217,6 +199,25 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_1]
+    }
 
     # Create the actual config.
     iteration0_config = {
@@ -446,6 +447,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         [sas_test_harness_device_2, sas_test_harness_device_3],
         [[grant_request_4], [grant_request_6]])
 
+    # Generate SAS Test Harnesses dump records
+    dump_records_sas_test_harness_0 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
+    }
+    dump_records_sas_test_harness_1 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+    }
+
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -453,7 +462,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': 9001,
         'serverCert': os.path.join('certs', 'sas.cert'),
         'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -461,15 +471,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'sas_1.cert'),
         'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
-    # Generate SAS Test Harnesses dump records
-    dump_records_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
-    }
-    dump_records_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
     }
 
     iteration_config = {
@@ -648,24 +651,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
@@ -675,6 +660,25 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_1]
+    }
 
     # Create the actual config.
     iteration0_config = {
@@ -857,6 +861,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         [sas_test_harness_device_2, sas_test_harness_device_3],
         [[grant_request_2], [grant_request_3]])
 
+    # Generate SAS Test Harnesses dump records
+    dump_records_sas_test_harness_0 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
+    }
+    dump_records_sas_test_harness_1 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+    }
+
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -864,7 +876,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': 9001,
         'serverCert': os.path.join('certs', 'sas.cert'),
         'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -872,15 +885,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'sas_1.cert'),
         'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
-    # Generate SAS Test Harnesses dump records
-    dump_records_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
-    }
-    dump_records_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
     }
 
     iteration_config = {

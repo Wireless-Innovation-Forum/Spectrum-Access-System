@@ -56,7 +56,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -189,7 +189,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
-    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
@@ -298,6 +298,14 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
                                           [[grant_request_2], [grant_request_3]]
     )
 
+    # Generate SAS Test Harnesses dump records
+    dump_records_sas_test_harness_0 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
+    }
+    dump_records_sas_test_harness_1 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+    }
+
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -305,7 +313,8 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'port': 9001,
         'serverCert': os.path.join('certs', 'sas.cert'),
         'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -313,15 +322,8 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'sas_1.cert'),
         'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
-    # Generate SAS Test Harnesses dump records
-    dump_records_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
-    }
-    dump_records_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
     }
 
     iteration_config = {
@@ -377,13 +379,13 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
     # Moving device_1 to a location inside GWPZ zone
     device_1['installationParam']['latitude'], \
-    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
     # Moving device_2 to a location inside GWPZ zone
     device_2['installationParam']['latitude'], \
-    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1['zone'])
+    device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     # Load Grant requests
     grant_request_1 = json.load(
