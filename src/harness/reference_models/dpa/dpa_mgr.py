@@ -164,6 +164,8 @@ class Dpa(object):
   def ResetFreqRange(self, freq_ranges_mhz):
     """Reset the frequency ranges of the DPA.
 
+    If the range have changed, the move and keep lists are also reset.
+
     Args:
       freq_ranges_mhz: The protection frequencies (MHz) as a list of tuple
         (freq_min_mhz, freq_max_mhz) of the DPA protected frequency ranges.
@@ -558,6 +560,12 @@ def _DefaultProtectionPoints(dpa_geometry,
   # Case of DPA points
   if isinstance(dpa_geometry, sgeo.Point):
     return [ProtectionPoint(longitude=dpa_geometry.x, latitude=dpa_geometry.y)]
+
+  # Sanity checks
+  num_pts_front_border = max(num_pts_front_border, 2)
+  num_pts_back_border = max(num_pts_back_border, 2)
+  num_pts_front_zone = max(num_pts_front_zone, 1)
+  num_pts_back_zone = max(num_pts_back_zone, 1)
 
   # Case of Polygon/MultiPolygon
   us_border = zones.GetUsBorder()
