@@ -64,7 +64,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           domain_proxy['cert'],
           domain_proxy['key']))
     # Step 1 : Load DPAs
-    self._sas_admin.TriggerLoadDpas()
+    #self._sas_admin.TriggerLoadDpas()
 
     # STEP 2 : ESC informs SAS about inactive DPA
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
@@ -623,27 +623,27 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
                                                                  'test_user_1')
     # Define DPAs
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {'lowFrequency': 3550000000, 'highFrequency': 3650000000}
     }
     dpa_2 = {
-        'dpaId': 'east_dpa_5',
+        'dpaId': 'East5',
         'frequencyRange': {'lowFrequency': 3550000000, 'highFrequency': 3650000000}
     }
     dpa_3 = {
-        'dpaId': 'east_dpa_6',
+        'dpaId': 'East6',
         'frequencyRange': {'lowFrequency': 3550000000, 'highFrequency': 3650000000}
     }
     dpa_generic = {
-      'east_dpa_4': {
+      'East4': {
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
       },
-      'east_dpa_5': {
+      'East5': {
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
       },
-      'east_dpa_6': {
+      'East6': {
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
       }

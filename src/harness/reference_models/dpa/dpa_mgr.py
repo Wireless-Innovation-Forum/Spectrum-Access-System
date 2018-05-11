@@ -21,9 +21,9 @@ computed at specific percentile of the combined interference random variable.
 Example usage:
   # Create a DPA
   # - either with a simple default protection points builder
-  dpa = BuildDpa('east_dpa_1', 'default (25,10,10,5)')
+  dpa = BuildDpa('East1', 'default (25,10,10,5)')
   # - or from a GeoJson file holding a MultiPoint geometry
-  dpa = BuildDpa('east_dpa_1', 'east_dpa_1_points.json')
+  dpa = BuildDpa('East1', 'east_dpa_1_points.json')
 
   # Set the grants
   dpa.SetGrantsFromFad(sas_uut_fad, sas_th_fads)

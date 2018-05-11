@@ -1057,7 +1057,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
             'lowFrequency': 3550000000,
             'highFrequency': 3560000000
         },
-        'dpaId': 'east_dpa_6'
+        'dpaId': 'East6'
     })
 
     # Step 6: Sleep 240 seconds

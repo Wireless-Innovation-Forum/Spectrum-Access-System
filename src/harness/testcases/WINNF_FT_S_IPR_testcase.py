@@ -115,7 +115,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {
             'lowFrequency': 3620000000,
             'highFrequency': 3630000000
@@ -296,7 +296,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {
             'lowFrequency': 3620000000,
             'highFrequency': 3630000000
@@ -305,7 +305,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'movelistMargin': 10
     }
     dpa_2 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {
             'lowFrequency': 3610000000,
             'highFrequency': 3620000000
@@ -314,7 +314,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'movelistMargin': 10
     }
     dpa_3 = {
-        'dpaId': 'east_dpa_3',
+        'dpaId': 'East3',
         'frequencyRange': {
             'lowFrequency': 3620000000,
             'highFrequency': 3630000000
@@ -482,7 +482,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     frequency_range = grant_a['operationParam']['operationFrequencyRange']
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {
             'lowFrequency': frequency_range['lowFrequency'],
             'highFrequency': frequency_range['highFrequency']
@@ -623,7 +623,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     frequency_range = grant_a['operationParam']['operationFrequencyRange']
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'frequencyRange': {
             'lowFrequency': frequency_range['lowFrequency'],
             'highFrequency': frequency_range['highFrequency']
@@ -756,7 +756,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-        'dpaId': 'east_dpa_4',
+        'dpaId': 'East4',
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
     }
