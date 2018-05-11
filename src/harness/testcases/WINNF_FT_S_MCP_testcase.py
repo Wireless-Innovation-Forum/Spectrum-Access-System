@@ -83,8 +83,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         sas_test_harness_object.start()
 
         # Initialize content of test harness.
-        if 'initialFad' in test_harness:
-          sas_test_harness_object.writeFadRecords(test_harness['initialFad'])
+        sas_test_harness_object.writeFadRecords(test_harness['initialFad'])
 
         # informing SAS UUT about SAS Test Harnesses
         certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
@@ -749,7 +748,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'server.cert'),
         'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_initial_sas_test_harness_1]
     }
 
     # Generate SAS Test Harnesses dump records for multiple iterations
