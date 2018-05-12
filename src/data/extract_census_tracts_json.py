@@ -87,34 +87,6 @@ def ExtractZipFiles(census_tract_directory, zip_filename=None):
                           ' from ' + zip_filename)
 
 
-def ProcessShapelyFile(file_path):
-  # Verify the format for shpely file
-  basename = os.path.splitext(os.path.basename(file_path))[0]
-  print 'Processing shp file %s' % basename
-  with zipfile.ZipFile(file_path) as zf:
-    shpfile = io.BytesIO(zf.read(basename + '.shp'))
-    dbffile = io.BytesIO(zf.read(basename + '.dbf'))
-    shxfile = io.BytesIO(zf.read(basename + '.shx'))
-
-  shpfile = shapefile.Reader(shp=shpfile, shx=shxfile, dbf=dbffile)
-  geoid_field = -1
-  aland_field = -1
-  awater_field = -1
-  # light check to ensure that necessary fields are present in shapefile.
-  for i in range(0, len(shpfile.fields)):
-    field = shpfile.fields[i][0]
-    if 'GEOID' in field:
-      geoid_field = i
-    elif 'ALAND' in field:
-      aland_field = i
-    elif 'AWATER' in field:
-      awater_field = i
-  if geoid_field == -1 or aland_field == -1 or awater_field == -1:
-    raise Exception('Could not find GEOID,ALAND,AWATER in fields %r' % shpfile.fields)
-
-
-
-
 def ConvertShapefilesToGeoJson(census_tract_directory):
   """Convert Shapefile to GeoJson."""
   print "Convert the Shapefiles to GeoJson format"
@@ -183,10 +155,13 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
 
         out_path = os.path.join(dest_dir, fisp_code + '.json')
         with open(out_path, 'w') as fd:
-          fd.write(json.dumps(feature))
+          fd.write(json.dumps({"type": "FeatureCollection",
+                               "features": [feature]},
+                              separators=(',', ':'))
+                   + '\n')
 
-        print "census_tract of fispCode: %s record split to the file:%s " \
-              "successfully" % (fisp_code, out_path)
+        print ("census_tract of fispCode: %s record split to the file:%s "
+               "successfully" % (fisp_code, out_path))
 
   except Exception as err:
     raise Exception("There is issue in SplitCensusTracts file : %s"
