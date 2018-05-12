@@ -35,7 +35,7 @@ import re
 import shapefile
 import sys
 import zipfile
-from reference_models.geo import census_tract
+
 
 def FindStateTractFilenames(census):
   """Retrieve the desired state-level census tract zip files from the census FTP site."""
@@ -47,6 +47,7 @@ def FindStateTractFilenames(census):
       matches.append(f)
   print 'Found %d matching state files in census tract ftp dir' % len(matches)
   return matches
+
 
 # Fetch via FTP all the 2010 census tract state shapefiles. Writes them
 # to the current directory.
@@ -60,6 +61,7 @@ def RetrieveShapefiles(directory):
     print 'Downloading %s' % f
     census.download_if_newer('geo/tiger/TIGER2010/TRACT/2010/' + f, f)
   census.close()
+
 
 def ExtractZipFiles(census_tract_directory, zip_filename=None):
   """Extract the census tracts file downloaded from USGS site."""
@@ -84,97 +86,89 @@ def ExtractZipFiles(census_tract_directory, zip_filename=None):
           raise Exception('Cannot extract ' + datfile.filename +
                           ' from ' + zip_filename)
 
-def ProcessShapelyFile(file_name):
-    """Verify the format for shpely file and and extracts and convert to GeoJSON format."""
-    basename = os.path.splitext(os.path.basename(file_name))[0]
-    print 'Processing shp file %s' % basename
-    with zipfile.ZipFile(file_name) as zf:
-      shpfile = io.BytesIO(zf.read(basename + '.shp'))
-      dbffile = io.BytesIO(zf.read(basename + '.dbf'))
-      shxfile = io.BytesIO(zf.read(basename + '.shx'))
 
-    shpfile = shapefile.Reader(shp=shpfile, shx=shxfile, dbf=dbffile)
-    geoid_field = -1
-    aland_field = -1
-    awater_field = -1
-    # light check to ensure that necessary fields are present in shapefile.
-    for i in range(0, len(shpfile.fields)):
-      field = shpfile.fields[i][0]
-      if 'GEOID' in field:
-        geoid_field = i - 1
-      elif 'ALAND' in field:
-        aland_field = i - 1
-      elif 'AWATER' in field:
-        awater_field = i - 1
-    if geoid_field == -1 or aland_field == -1 or awater_field == -1:
-      raise Exception('Could not find GEOID,ALAND,AWATER in fields %s' % shpfile.fields)
+def ProcessShapelyFile(file_path):
+  # Verify the format for shpely file
+  basename = os.path.splitext(os.path.basename(file_path))[0]
+  print 'Processing shp file %s' % basename
+  with zipfile.ZipFile(file_path) as zf:
+    shpfile = io.BytesIO(zf.read(basename + '.shp'))
+    dbffile = io.BytesIO(zf.read(basename + '.dbf'))
+    shxfile = io.BytesIO(zf.read(basename + '.shx'))
 
-    # get directory name.
-    census_tract_directory = os.path.splitext(os.path.dirname(file_name))[0]
-    # Extract all files before convert to shapely.
-    ExtractZipFiles(census_tract_directory)
+  shpfile = shapefile.Reader(shp=shpfile, shx=shxfile, dbf=dbffile)
+  geoid_field = -1
+  aland_field = -1
+  awater_field = -1
+  # light check to ensure that necessary fields are present in shapefile.
+  for i in range(0, len(shpfile.fields)):
+    field = shpfile.fields[i][0]
+    if 'GEOID' in field:
+      geoid_field = i
+    elif 'ALAND' in field:
+      aland_field = i
+    elif 'AWATER' in field:
+      awater_field = i
+  if geoid_field == -1 or aland_field == -1 or awater_field == -1:
+    raise Exception('Could not find GEOID,ALAND,AWATER in fields %r' % shpfile.fields)
 
-    # Proceed further to convert to geojson.
-    os.chdir(census_tract_directory)
-    file_data = glob.glob('*.shp')
-    x = file_data
-    print x
-    try:
-      for files in x:
-        # Read the shapefile.
-        reader = shapefile.Reader(files)
-        fields = reader.fields[1:]
-        field_names = [field[0] for field in fields]
-        records = []
-        for sr in reader.shapeRecords():
-          atr = dict(zip(field_names, sr.record))
-          geom = sr.shape.__geo_interface__
-          records.append(dict(type="Feature", geometry=geom, properties=atr))
 
-        # Write the GeoJSON file.
-        jsonfile = files.replace(".shp", ".json")
-        geojson = open(jsonfile, "w")
-        geojson.write(json.dumps({"type": "FeatureCollection",
-                                  "features": records}, indent=2) + "\n")
-        geojson.close()
-        print "\n" + files + " was converted to " + jsonfile + "."
-    except Exception as err:
-       print "There is an issue in convertShapelyfile to GeoJson:%s" % err.message
 
-def ConvertShapelyFileToGeoJSON(census_tract_driver):
-  """Convert the ShapelyFile to GeoJson format."""
-  print "Convert the ShapelyFile to GeoJson format"
-  files = os.listdir(census_tract_driver._census_tract_dir)
-  print 'Found %d zip files to translate' % len(files)
-  for f in files:
-    if os.path.isfile(os.path.join(census_tract_driver._census_tract_dir, f)) and re.match(r'.*\.zip$', f):
-      ProcessShapelyFile(os.path.join(census_tract_driver._census_tract_dir, f))
 
-def ConvertShapefilesToGeoJson(directory):
-  """Convert Shapefile to GeoJson file with the help of CensusTractDriver."""
-  # Initialize the CensusTractDriver.
-  census_tract_driver = census_tract.CensusTractDriver()
+def ConvertShapefilesToGeoJson(census_tract_directory):
+  """Convert Shapefile to GeoJson."""
+  print "Convert the Shapefiles to GeoJson format"
 
-  # Set the destination directory in Census Tract Driver.
-  census_tract_driver.SetCensusTractDirectory(directory)
+  # Extract all files before convert to shapely.
+  ExtractZipFiles(census_tract_directory)
 
-  # Convert ShapelyFile to GeoJson
-  ConvertShapelyFileToGeoJSON(census_tract_driver)
+  # Proceed further to convert to geojson.
+  os.chdir(census_tract_directory)
+  shp_files = glob.glob('*.shp')
+  try:
+    for shp_file in shp_files:
+      # Read the shapefile and fields
+      reader = shapefile.Reader(shp_file)
+      fields = reader.fields[1:]
+      field_names = [field[0] for field in fields]
 
-def SplitCensusTractsGeoJsonFile(source_directory, destination_directory):
+      # Sanity check that GEOID, ALAND and AWATER present
+      # Needs a loop to check if tag is within each string
+      has_geoid = any('GEOID' in field for field in field_names)
+      has_aland = any('ALAND' in field for field in field_names)
+      has_awater = any('AWATER' in field for field in field_names)
+      if not has_geoid or not has_aland or not has_awater:
+        raise Exception('Could not find GEOID,ALAND,AWATER in fields %r' % fields)
+
+      records = []
+      for shp_record in reader.shapeRecords():
+        properties = dict(zip(field_names, shp_record.record))
+        geometry = shp_record.shape.__geo_interface__
+        records.append(dict(type="Feature", geometry=geometry, properties=properties))
+
+      # Write the GeoJSON file.
+      json_file = os.path.splitext(shp_file)[0] + '.json'
+      with open(json_file, 'w') as fd:
+        fd.write(json.dumps({"type": "FeatureCollection",
+                             "features": records}, indent=2) + "\n")
+      print shp_file + " was converted to " + json_file + "."
+
+  except Exception as err:
+    raise Exception("There is an issue in ConvertShapefilesToGeoJson: %s"
+                    % err.message)
+
+
+def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
   """Split Census Tracts GeoJson file with mulitiple single file based on FISP Code."""
   try:
     print "\n" + "Splitting files..." + "\n"
-    os.chdir(source_directory)
-    file_data = glob.glob('*.json')
-    x = file_data
-    for files in x:
-      info = open(files, 'r').read()
-      geojs = json.loads(info)
-      features = geojs['features']
-      # split all census_tracts based on FISP code and dump into separate directory
-      # census_tract_directory
-      os.chdir(destination_directory)
+    os.chdir(src_dir)
+    json_files = glob.glob('*.json')
+    # split all census_tracts based on FISP code and dump into separate directory
+    # census_tract_directory
+    for json_file in json_files:
+      with open(json_file, 'r') as fd:
+        features = json.loads(fd.read())['features']
 
       for feature in features:
         fisp_code = None
@@ -186,14 +180,18 @@ def SplitCensusTractsGeoJsonFile(source_directory, destination_directory):
              break
         if not fisp_code:
           raise Exception('Unable to find GEOID property in census tracts')
-        file_name = fisp_code + '.json'
-        with open(file_name, 'w') as file_handle:
-          file_handle.write(json.dumps(feature))
-        print "census_tract of fispCode:%s record split to the file:%s " \
-              "successfully" % (fisp_code,
-                                os.path.join(destination_directory, file_name))
+
+        out_path = os.path.join(dest_dir, fisp_code + '.json')
+        with open(out_path, 'w') as fd:
+          fd.write(json.dumps(feature))
+
+        print "census_tract of fispCode: %s record split to the file:%s " \
+              "successfully" % (fisp_code, out_path)
+
   except Exception as err:
-    print "There is issue in split CensusTracts file to single file :%s" % err.message
+    raise Exception("There is issue in SplitCensusTracts file : %s"
+                    % err.message)
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
