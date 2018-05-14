@@ -276,7 +276,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     if 'palRecords' in iteration_content['protectedEntities']:
       for pal_record in iteration_content['protectedEntities']['palRecords']:
         try:
-          self._sas_admin.InjectPalDatabaseRecord({'record': pal_record})
+          self._sas_admin.InjectPalDatabaseRecord(pal_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
