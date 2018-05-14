@@ -282,7 +282,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
         grid_points = geoutils.GridPolygon(
-            gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
+            gwpz_record['zone']['features'][0]['geometry'], res_arcsec=1)
         gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote(
             [(pt[1], pt[0]) for pt in grid_points])
 
