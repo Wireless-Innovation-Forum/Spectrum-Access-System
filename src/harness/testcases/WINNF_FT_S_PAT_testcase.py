@@ -173,7 +173,6 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     If (rxAntennaGainRequired = False or omitted)
     The response should have the pathlossDb, txAntennaGainDbi
     """
-    
     config = loadConfig(config_filename)
     num_tests = len(config)
     test_pass_threshold = 0.999 #percentage of passed test expected
@@ -184,36 +183,44 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     num_invalid_tests = 0
 
     for test_num, request in enumerate(config):
-       try:
-           ref_response = computePropagationAntennaModel(request)
-       except ValueError as e:
-           logging.debug('Test # %d, Exception: %s', test_num, e)
-           logging.debug('Configuration: %s', request)
-           num_invalid_tests += 1
-           num_tests -= 1
-           max_fail_num = math.floor((1-test_pass_threshold) * num_tests)
-           continue
-       
-       # don't send a response to sas if invalid
-       sas_response = self._sas_admin.QueryPropagationAndAntennaModel(request)
+      logging.info("Running test number %d: %s" % (test_num, str(request)))
+      try:
+        ref_response = computePropagationAntennaModel(request)
+        logging.info("Reference response: %s") % str(ref_response))
+      except ValueError as e:
+        logging.debug('Test # %d, Exception: %s', test_num, e)
+        logging.debug('Invalid configuration: %s', request)
+        num_invalid_tests += 1
+        num_tests -= 1
+        max_fail_num = math.floor((1-test_pass_threshold) * num_tests)
+        # Do not send the request to the SAS if the reference prop model flagged it as an invalid config.
+        continue
 
+      # Send the request to the SAS.
+      sas_response = self._sas_admin.QueryPropagationAndAntennaModel(request)
+      logging.info("SAS response: %s" % str(sas_response))
 
-       # Check response
-       this_test = False
-       if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
-           this_test = (sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2))
+      # Check response.
+      this_test_passed = False
+      if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
+        this_test_passed = (sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2))
 
-           if 'fss' in request and request['fss']['rxAntennaGainRequired']:
-               if 'rxAntennaGainDbi' in sas_response:
-                   this_test = this_test and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
-               else:
-                   this_test = False
-       if this_test:
-           num_passed_tests += 1
-       else:
-           num_failed_tests += 1
-       if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
-           break
-       
+        if 'fss' in request and request['fss']['rxAntennaGainRequired']:
+          if 'rxAntennaGainDbi' in sas_response:
+            this_test_passed = this_test_passed and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
+          else:
+            this_test_passed = False
+
+      logging.info("This test passed? %s" % str(this_test_passed))
+
+      if this_test_passed:
+        num_passed_tests += 1
+      else:
+        num_failed_tests += 1
+      if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
+        self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
+
+    # Outside the 'for' loop.
+    logging.info("Passed %d out of %d tests. Need %2.6f percent pass rate." % (num_passed_tests, num_tests, test_pass_threshold*100))
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
-    
+
