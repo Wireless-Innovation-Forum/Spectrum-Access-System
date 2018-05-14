@@ -581,7 +581,7 @@ echo -e "\n\nGenerate 'ca' bundle"
 cat cbsd_ca.cert proxy_ca.cert sas_ca.cert root_ca.cert cbsd-ecc_ca.cert sas-ecc_ca.cert root-ecc_ca.cert \
     revoked_cbsd_ca.cert revoked_sas_ca.cert revoked_proxy_ca.cert > ca.cert
 # Append the github cert, use to download test dump file.
-echo | openssl s_client  -servername raw.githubusercontent.com -connect raw.githubusercontent.com:443 -prexit 2>&1 | \
+echo | openssl s_client  -servername raw.githubusercontent.com -connect raw.githubusercontent.com:443 -prexit < /dev/null 2>&1 | \
     sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' >> ca.cert
 
 # Create CA certificate chain containing the CRLs with revoked leaf certificates.
