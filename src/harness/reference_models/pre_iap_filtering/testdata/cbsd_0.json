@@ -1,7 +1,7 @@
 {
         "_comment":"FSS - Inband Blocking CBSD partial overlap",
 	"id": "device_0_id",
-	"registrationRequest": {
+	"registration": {
 					"fccId": "test_fcc_id_a",
 		            "cbsdCategory": "B",
 		            "callSign": "KPPP",

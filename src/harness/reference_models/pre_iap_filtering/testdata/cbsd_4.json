@@ -1,7 +1,7 @@
 {
         "_comment":"ESC- Category A CBSD",
 	"id": "device_4_id",
-	"registrationRequest": {
+	"registration": {
 					"fccId": "test_fcc_id_e",
 		            "cbsdCategory": "A",
 		            "callSign": "KPPP",

@@ -1,6 +1,6 @@
 {
 	"id": "device_2_id",
-	"registrationRequest": {
+	"registration": {
 					"fccId": "fccId2",
 		            "cbsdCategory": "B",
 		            "callSign": "KPPP",
