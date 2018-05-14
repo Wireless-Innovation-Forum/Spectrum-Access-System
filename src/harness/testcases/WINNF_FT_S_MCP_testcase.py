@@ -191,6 +191,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.num_peer_sases = len(config['sasTestHarnessConfigs'])
     logging.info("Running test type '%s' with %d SAS test harnesses.",
                  self.test_type, self.num_peer_sases)
+    self.sas_uut_fad = None
+    self.test_harness_fads = []
 
     logging.info("Creating domain proxies.")
     for domain_proxy in config['domainProxyConfigs']:
@@ -471,11 +473,12 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     for active_dpa in self.active_dpas:
       dpa_config = self.config['dpas'][active_dpa['dpaId']]
       dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
+      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
+      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
       dpa.ComputeMoveLists()
       # Check SAS UUT authorized grants do not exceed allowed threshold as calculated by the DPA reference model.
-      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
-      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
@@ -498,7 +501,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       for ppa_record in self.protected_entity_records['ppaRecords']:
         pal_records = self.protected_entity_records['palRecords']
         # Call IAP reference model for PPA.
-        logging.info("Calling the IAP reference model for PPA (%s) with PAL records (%s)" % (str(ppa_record), str(pal_records))
+        logging.info("Calling the IAP reference model for PPA (%s) with PAL records (%s)" % (str(ppa_record), str(pal_records)))
         ppa_ap_iap_ref_values = iap.performIapForPpa(
             ppa_record,
             self.sas_uut_fad,
