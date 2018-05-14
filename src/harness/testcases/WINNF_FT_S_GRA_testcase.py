@@ -104,7 +104,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerDpaActivation(
         {'frequencyRange': {'lowFrequency': pal_low_frequency,
                             'highFrequency': pal_high_frequency},
-         'dpaId': 'east_dpa_4'})
+         'dpaId': 'East4'})
     # wait for DPA activation
     time.sleep(240)
     # Send grant request

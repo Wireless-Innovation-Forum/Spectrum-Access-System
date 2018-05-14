@@ -292,7 +292,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       'highFrequency': 3630000000
     }
     self._sas_admin.TriggerDpaActivation({'frequencyRange': frequency_range,
-                                          'dpaId': 'east_dpa_4'})
+                                          'dpaId': 'East4'})
     time.sleep(300)
     # Load and register CBSD
     device_a = json.load(
