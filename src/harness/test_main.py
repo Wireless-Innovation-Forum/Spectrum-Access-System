@@ -65,7 +65,7 @@ NUM_PROCESSES = -2
 MEM_ALLOCATION_GEO_CACHE_MB = -1
 # When 'automatic allocation', the ratio of total physical memory
 # dedicated to the geo cache
-MEM_RATIO_FOR_GEO_CACHE = 0.7
+MEM_RATIO_FOR_GEO_CACHE = 0.5
 # The weighting factor of the main processes vs worker processes. Use > 0
 MEM_NED_WEIGHT_MASTER = 2.0
 MEM_NLCD_WEIGHT_MASTER = 2.0
@@ -139,9 +139,10 @@ if __name__ == '__main__':
   logging.info('Configure geo drivers')
   (num_tiles_master_ned, num_tiles_worker_ned,
    num_tiles_master_nlcd, num_tiles_worker_nlcd) = GetGeoCacheSize(num_workers)
-  if num_tiles_worker_ned < 16:
-    logging.warning('Required geo cache size %d is low - too few memory or too many workers'
-                    % num_tiles)
+  if num_tiles_master_ned < 16:
+    logging.warning('Required geo cache size %d (for master) is low'
+                    '- too few memory or too many workers'
+                    % num_tiles_master_ned)
   logging.info(' ... NED: cache size: %d per master, %d for workers'
                % (num_tiles_master_ned, num_tiles_worker_ned))
   logging.info(' ... NLCD: cache size: %d per master, %d for workers'
