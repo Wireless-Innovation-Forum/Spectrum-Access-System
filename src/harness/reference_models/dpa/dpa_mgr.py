@@ -59,7 +59,14 @@ DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
 
+# Help routine
+class _EmptyFad(object):
+  """Helper class for representing an empty FAD."""
+  def getCbsdRecords(self):
+    return []
 
+
+# The main Dpa class representing a Dpa zone
 class Dpa(object):
   """Dynamic Protection Area.
 
@@ -192,9 +199,13 @@ class Dpa(object):
     """Sets the list of grants.
 
     Args:
-      sas_uut_fad: The FAD object of SAS UUT.
-      sas_th_fads: A list of FAD objects of other SAS test harness.
+      sas_uut_fad: The FAD object of SAS UUT, or None if none.
+      sas_th_fads: A list of FAD objects of other SAS test harness, or None if none.
+
     """
+    # Manages the possibility of None for the FADs.
+    if sas_uut_fad is None: sas_uut_fad = _EmptyFad()
+    if sas_th_fads is None: sas_th_fads = []
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self._grants = data.getGrantObjectsFromFAD(sas_uut_fad, sas_th_fads)
     self.ResetLists()
@@ -340,6 +351,9 @@ class Dpa(object):
         interference. If None, use the global class level `num_iteration`.
       do_abs_check_single_uut: If True, performs check against absolute threshold instead
         of relative check against ref model, iff only SAS UUT present (no peer SAS).
+        In this mode, move list does not need to be precomputed, or grants setup,
+        (only the passed UUT active grants are used).
+
     Returns:
       True if all SAS UUT aggregated interference are within margin, False otherwise
       (ie if at least one combined protection point / azimuth fails the test).
@@ -351,23 +365,31 @@ class Dpa(object):
           return False
       return True
 
-    keep_list = self.GetKeepList(channel)
-    nbor_list = self.GetNeighborList(channel)
     if num_iter is None:
       num_iter = Dpa.num_iteration
-    # Find the keep list of TH and SAS UUT
+
+    # Find the keep list component of TH: SAS UUT and peer SASes.
+    keep_list = self.GetKeepList(channel)
     keep_list_th_other_sas = [
         grant for grant in self._grants
-        if (not grant.is_managed_grant and
-            grant in keep_list)]
+        if (not grant.is_managed_grant and grant in keep_list)]
     keep_list_th_managing_sas = [
         grant for grant in self._grants
-        if (grant.is_managed_grant and
-            grant in keep_list)]
-    keep_list_uut_managing_sas = [
-        grant for grant in sas_uut_active_grants
-        if (grant in nbor_list and
-            grant not in keep_list_th_other_sas)]
+        if (grant.is_managed_grant and grant in keep_list)]
+
+    # Find an extended keep list of UUT.
+    keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
+    # Note: other code with pre filtering could be:
+    #nbor_list = self.GetNeighborList(channel)
+    #if nbor_list:
+    #  # Slight optimization by prefiltering the ones in the nbor list.
+    #  keep_list_uut_managing_sas = [
+    #      grant for grant in sas_uut_active_grants
+    #      if (grant in nbor_list and grant not in keep_list_th_other_sas)]
+    #else:
+    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
     # Do absolute threshold in some case
     hard_threshold = None
     if do_abs_check_single_uut and not self._has_th_grants:
@@ -448,6 +470,10 @@ def _CalcTestPointInterfDiff(point,
   reference model keep list aggregated interference versus the blended one.
   The blended one uses the SAS UUT authorized grants that it manages, plus the CBSD
   of other SAS in the keep list.
+  Note that the "keep list" can be loosely defined as a superset of the actual
+  keep lists, including excess grants out of the neighborhood area. This routine
+  will insure that only the actual grants in the neighborhood are used for the
+  interference check.
 
   Note that this routine reduce the amount of random variation by reusing the same
   random draw for the CBSD that are shared between the two keep lists. This is done
