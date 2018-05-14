@@ -164,7 +164,7 @@ class Dpa(object):
   def ResetFreqRange(self, freq_ranges_mhz):
     """Reset the frequency ranges of the DPA.
 
-    If the range have changed, the move and keep lists are also reset.
+    If the range have changed, the move and neighbor lists are also reset.
 
     Args:
       freq_ranges_mhz: The protection frequencies (MHz) as a list of tuple
@@ -177,7 +177,7 @@ class Dpa(object):
     self.channels = channels
 
   def ResetLists(self):
-    """Reset move list and keep list."""
+    """Reset move list and neighbor list."""
     self.move_lists = []
     self.nbor_lists = []
 
@@ -208,10 +208,10 @@ class Dpa(object):
     self._has_th_grants = self._DetectIfPeerSas()
 
   def ComputeMoveLists(self):
-    """Computes move/keep lists.
+    """Computes move/neighbor lists.
 
-    This routine updates the internal grants move list and neighbor list. One set of list
-    is maintained per protected channel.
+    This routine updates the internal grants move list and neighbor list.
+    One set of list is maintained per protected channel.
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
     """
@@ -550,25 +550,25 @@ def _DefaultProtectionPoints(dpa_geometry,
     min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
   """
   def SampleLine(line, num_points, min_step_arcsec):
-    step = line.length / (num_points-1)
+    step = line.length / float(num_points)
     min_step = min_step_arcsec / 3600.
     if step < min_step:
-      num_points = round(line.length / min_step) + 1
-      step = line.length / (num_points-1)
-    return [line.interpolate(dist) for dist in np.arange(0, line.length+step/2., step)]
+      num_points = max(1, int(line.length / min_step))
+      step = line.length / float(num_points)
+    return [line.interpolate(dist)
+            for dist in np.arange(0, line.length-step/2., step)]
 
   def CvtKmToArcSec(dist_km, ref_geo):
-    return dist_km / (111 * np.cos(ref_geo.centroid.y * np.pi / 180.)) * 3600.
+    EQUATORIAL_RADIUS_KM = 6378.
+    return dist_km / (EQUATORIAL_RADIUS_KM * 2 * np.pi / 360.
+                      * np.cos(ref_geo.centroid.y * np.pi / 180.)) * 3600.
 
   # Case of DPA points
   if isinstance(dpa_geometry, sgeo.Point):
     return [ProtectionPoint(longitude=dpa_geometry.x, latitude=dpa_geometry.y)]
 
   # Sanity checks
-  num_pts_front_border = max(num_pts_front_border, 2)
-  num_pts_back_border = max(num_pts_back_border, 2)
-  num_pts_front_zone = max(num_pts_front_zone, 1)
-  num_pts_back_zone = max(num_pts_back_zone, 1)
+  num_pts_front_border = max(num_pts_front_border, 1) # at least one
 
   # Case of Polygon/MultiPolygon
   global _us_border_ext
@@ -585,10 +585,15 @@ def _DefaultProtectionPoints(dpa_geometry,
   back_zone = dpa_geometry.difference(_us_border_ext)
 
   # Obtain an approximate grid step, insuring a minimum separation between zone points
-  step_front_dpa_arcsec = max(np.sqrt(front_zone.area / num_pts_front_zone) * 3600.,
-                              CvtKmToArcSec(min_dist_front_zone_pts_km, dpa_geometry))
-  step_back_dpa_arcsec = max(np.sqrt(back_zone.area / num_pts_back_zone) * 3600.,
-                             CvtKmToArcSec(min_dist_back_zone_pts_km, dpa_geometry))
+  step_front_dpa_arcsec = CvtKmToArcSec(min_dist_front_zone_pts_km, dpa_geometry)
+  if num_pts_front_zone != 0:
+    step_front_dpa_arcsec = max(np.sqrt(front_zone.area / num_pts_front_zone) * 3600.,
+                                step_front_dpa_arcsec)
+  step_back_dpa_arcsec = CvtKmToArcSec(min_dist_back_zone_pts_km, dpa_geometry)
+  if num_pts_back_zone != 0:
+    step_back_dpa_arcsec = max(np.sqrt(back_zone.area / num_pts_back_zone) * 3600.,
+                               step_back_dpa_arcsec)
+
   # Obtain the number of points in the border, insuring a minimum separation
   min_step_front_border = CvtKmToArcSec(min_dist_front_border_pts_km, dpa_geometry)
   min_step_back_border = CvtKmToArcSec(min_dist_back_border_pts_km, dpa_geometry)
@@ -596,13 +601,13 @@ def _DefaultProtectionPoints(dpa_geometry,
   front_border_pts = [] if not front_border else [
       ProtectionPoint(longitude=pt.x, latitude=pt.y)
       for pt in SampleLine(front_border, num_pts_front_border, min_step_front_border)]
-  back_border_pts = [] if not back_border else [
+  back_border_pts = [] if (not back_border or num_pts_back_border == 0) else [
       ProtectionPoint(longitude=pt.x, latitude=pt.y)
       for pt in SampleLine(back_border, num_pts_back_border, min_step_back_border)]
-  front_zone_pts = [] if not front_zone else [
+  front_zone_pts = [] if (not front_zone or num_pts_front_zone == 0) else [
       ProtectionPoint(longitude=pt[0], latitude=pt[1])
       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)]
-  back_zone_pts = [] if not back_zone else [
+  back_zone_pts = [] if (not back_zone or num_pts_back_zone == 0) else [
       ProtectionPoint(longitude=pt[0], latitude=pt[1])
       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)]
 

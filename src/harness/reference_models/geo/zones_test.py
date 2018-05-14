@@ -51,7 +51,7 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['East5'].refHeightMeters, 50)
     self.assertEqual(z['East5'].minAzimuthDeg, 0)
     self.assertEqual(z['East5'].maxAzimuthDeg, 360)
-    self.assertEqual(z['East5'].catbNeighborDist, 200)
+    self.assertEqual(z['East5'].catbNeighborDist, 368)
 
   def test_read_portal_dpa(self):
     z = zones.GetPortalDpaZones()
