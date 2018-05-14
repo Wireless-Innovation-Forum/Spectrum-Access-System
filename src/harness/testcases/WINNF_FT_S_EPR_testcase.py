@@ -332,7 +332,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'serverCert': os.path.join('certs', 'sas.cert'),
         'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert'),
-        'initialFad': [cbsd_fad_records_sas_test_harness_0]
+        'initialFad': dump_records_sas_test_harness_0
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -341,7 +341,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'serverCert': os.path.join('certs', 'sas_1.cert'),
         'serverKey': os.path.join('certs', 'sas_1.key'),
         'caCert': os.path.join('certs', 'ca.cert'),
-        'initialFad': [cbsd_fad_records_sas_test_harness_1]
+        'initialFad': dump_records_sas_test_harness_1
     }
 
     iteration_config = {
@@ -350,7 +350,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'conditionalRegistrationData': conditionals_device_4,  
+            'conditionalRegistrationData': conditionals_device_4,
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
