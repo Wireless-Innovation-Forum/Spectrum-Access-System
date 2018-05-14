@@ -62,8 +62,8 @@ from reference_models.geo import CONFIG
 # The reference files.
 PROTECTION_ZONE_FILE = 'protection_zones.kml'
 EXCLUSION_ZONE_FILE = 'GB_Part90_EZ.kml'
-COASTAL_DPA_ZONE_FILE = 'Coastal_DPAs.kml'
-PORTAL_DPA_ZONE_FILE = 'Portal_DPAs.kml'
+COASTAL_DPA_ZONE_FILE = 'E-DPAs.kml'
+PORTAL_DPA_ZONE_FILE = 'P-DPAs.kml'
 FCC_FIELD_OFFICES_FILE = 'fcc_field_office_locations.csv'
 
 # The reference files for extra zones.
@@ -102,7 +102,7 @@ def _SplitFreqRange(freq_range):
 #          process finalization.
 
 # For coastal DPAs.
-COASTAL_DPA_PROPERTIES = [('freqRangeMhz', _SplitFreqRange, None),
+COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('protectionCritDbmPer10MHz', float, -144),
                           ('refHeightMeters', float, 50),
                           ('antennaBeamwidthDeg', float, 3.),
@@ -111,7 +111,7 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMhz', _SplitFreqRange, None),
                           ('catbNeighborDist', float, None)]
 
 # For portal DPAs.
-PORTAL_DPA_PROPERTIES = [('freqRangeMhz', _SplitFreqRange, None),
+PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('protectionCritDbmPer10MHz', float, None),
                          ('refHeightMeters', float, None),
                          ('antennaBeamwidthDeg', float, None),
