@@ -65,7 +65,7 @@ NUM_PROCESSES = -2
 MEM_ALLOCATION_GEO_CACHE_MB = -1
 # When 'automatic allocation', the ratio of total physical memory
 # dedicated to the geo cache
-MEM_RATIO_FOR_GEO_CACHE = 0.7
+MEM_RATIO_FOR_GEO_CACHE = 0.5
 # The weighting factor of the main processes vs worker processes. Use > 0
 MEM_NED_WEIGHT_MASTER = 2.0
 MEM_NLCD_WEIGHT_MASTER = 2.0

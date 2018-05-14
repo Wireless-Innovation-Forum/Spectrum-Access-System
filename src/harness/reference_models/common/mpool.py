@@ -84,8 +84,8 @@ class _DummyPool(object):
 # The global pool
 _pool = _DummyPool()
 
-# Number of processes in current pool
-_num_processes = 0
+# Number of workers in current pool
+_num_workers = 0
 
 # External interface
 def Pool():
@@ -101,7 +101,7 @@ def Pool():
 
 def GetNumWorkerProcesses():
   """Returns the number of worker processes."""
-  return _num_processes
+  return _num_workers
 
 
 def _partial_fn(fn):
@@ -109,21 +109,21 @@ def _partial_fn(fn):
 
 def RunOnEachWorkerProcess(fn, * args, **kwargs):
   """Runs a function on each of the pool process."""
-  if not _num_processes:
+  if not _num_workers:
     return
   pfn = partial(fn, *args, **kwargs)
-  return _pool.map(_partial_fn, [pfn] * _num_processes, chunksize=1)
+  return _pool.map(_partial_fn, [pfn] * _num_workers, chunksize=1)
 
 
 def Configure(num_processes=-1, pool=None):
   """Configure multiprocessing pool.
 
-  WARNING: do not call this function in the code executed by the child
-  processes. For example do it in a function only reachable by the parent process,
+  WARNING: do not call this function in the code executed by the workers.
+  For example do it in a function only reachable by the parent process,
   or inside a block `if __name__ == '__main__':`.
 
   Args:
-    num_processes: The number of processes to use for the calculation,
+    num_processes: The number of worker processes to use for the calculation,
       limited to the maximum number of cpus available. Special values:
          0: use no multiprocessing (dummy pool).
         -1: use half of the cpus
@@ -133,14 +133,14 @@ def Configure(num_processes=-1, pool=None):
       automatically created with `num_processes`.
   """
   global _pool
-  global _num_processes
+  global _num_workers
   if pool is not None:
     _pool = pool
   else:
     # Dummy pool with no multiprocessing
     if num_processes == 0:
       _pool = _DummyPool()
-      _num_processes = 0
+      _num_workers = 0
       return
     # Actual multiprocessing pool of workers
     num_cpus = multiprocessing.cpu_count()
@@ -151,6 +151,11 @@ def Configure(num_processes=-1, pool=None):
       num_processes = num_cpus - 1
     if num_processes > num_cpus:
       num_processes = num_cpus
-    if pool is None or num_processes != _num_processes:
+    if num_processes <= 1:
+      _pool = _DummyPool()
+      _num_workers = 0
+      return
+    # Instantiate the pool if it has changed.
+    if pool is None or num_processes != _num_workers:
       _pool = multiprocessing.Pool(processes=num_processes)
-      _num_processes = num_processes
+      _num_workers = num_processes
