@@ -111,8 +111,6 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -158,7 +156,6 @@ class EscProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
@@ -167,8 +164,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
          }, {
             'cert': os.path.join('certs', 'domain_proxy_1.cert'),
             'key': os.path.join('certs', 'domain_proxy_1.key')
-         }],
-        'deltaIap': 2
+         }]
     }
     writeConfig(filename, config)
 
@@ -178,7 +174,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR1')
 
   def generate_EPR_2_default_config(self, filename):
     """ Generates the WinnForum configuration for EPR.2. """
@@ -263,8 +259,6 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -322,6 +316,14 @@ class EscProtectionTestcase(McpXprCommonTestcase):
                                           [[grant_request_2], [grant_request_3]]
     )
 
+    # Generate SAS Test Harnesses dump records
+    dump_records_sas_test_harness_0 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
+    }
+    dump_records_sas_test_harness_1 = {
+        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+    }
+
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
@@ -329,7 +331,8 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'port': 9001,
         'serverCert': os.path.join('certs', 'sas.cert'),
         'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -337,15 +340,8 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'port': 9002,
         'serverCert': os.path.join('certs', 'sas_1.cert'),
         'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
-    # Generate SAS Test Harnesses dump records
-    dump_records_sas_test_harness_0 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_0
-    }
-    dump_records_sas_test_harness_1 = {
-        'cbsdRecords': cbsd_fad_records_sas_test_harness_1
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
     }
 
     iteration_config = {
@@ -367,7 +363,6 @@ class EscProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -377,8 +372,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         }, {
             'cert': os.path.join('certs', 'domain_proxy_1.cert'),
             'key': os.path.join('certs', 'domain_proxy_1.key')}
-        ],
-        'deltaIap': 2
+        ]
     }
     writeConfig(filename, config)
 
@@ -388,5 +382,5 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR2')
 

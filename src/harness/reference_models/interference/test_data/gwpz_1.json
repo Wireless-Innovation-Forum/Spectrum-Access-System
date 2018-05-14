@@ -1,22 +1,23 @@
-{  
-   "id":"incumbent/uls/1",
-   "type":"PART_90",
-   "deploymentParam":{  
-      "operationParam":{  
-         "operationFrequencyRange":{  
-            "lowFrequency":3650000000.0,
-            "highFrequency":3700000000.0
+{
+   "record": {  
+      "id":"incumbent/uls/1",
+      "type":"PART_90",
+      "deploymentParam": [
+      {  
+            "operationParam":{  
+               "operationFrequencyRange":{  
+                  "lowFrequency":3650000000.0,
+                  "highFrequency":3700000000.0
+            }
          }
-      }
+      }]
    },
-   "zone":{  
+  "landCategory":"RURAL",
+  "zone":{  
       "type":"FeatureCollection",
       "features":[  
          {  
             "type":"Feature",
-            "properties":{  
-               "clutter":"RURAL"
-            },
             "geometry":{  
                "type":"Polygon",
                "coordinates":[  

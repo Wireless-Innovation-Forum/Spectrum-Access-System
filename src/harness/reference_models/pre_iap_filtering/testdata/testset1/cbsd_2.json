@@ -1,7 +1,7 @@
 {
 	"_comment": "FSS - TT&C Blocking CBSD",
 	"id": "cbsd_2",
-	"registrationRequest": {
+	"registration": {
 		"fccId": "test_fcc_id_c",
 		"cbsdCategory": "B",
 		"callSign": "KPPP",

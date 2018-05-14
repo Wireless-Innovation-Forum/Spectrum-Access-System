@@ -41,7 +41,7 @@ class TestZones(unittest.TestCase):
     z = zones.GetDpaZones()
     for name, zone in z.items():
       self.assertTrue(zone.is_valid)
-    self.assertAlmostEqual(z['east_dpa_5'].area, 6, 1)
+    self.assertAlmostEqual(z['East5'].area, 6, 1)
 
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()

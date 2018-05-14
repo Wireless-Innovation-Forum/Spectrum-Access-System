@@ -32,11 +32,10 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
   def tearDown(self):
     pass
 
-
   def generate_FPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.1. """
 
-        # Load FSS record
+    # Load FSS record
     fss_record_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
     fss_record_1['ttc'] = False
@@ -116,7 +115,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     grant_request_6['operationParam']['operationFrequencyRange']['lowFrequency']  = 3690000000
     grant_request_6['operationParam']['operationFrequencyRange']['highFrequency'] = 3700000000
 
-    # device_b device_d and device_h are of Category B
+    # device_2 and device_4 are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B')
     conditionals_device_2 = {
@@ -137,7 +136,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals =  [conditionals_device_2, conditionals_device_4]
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -152,12 +150,12 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     cbsd_records_iteration_0_domain_proxy_0 = {
         'registrationRequests': [device_1, device_3,device_4],
         'grantRequests': [grant_request_1, grant_request_3,grant_request_4],
-        'conditionalRegistrationData':[conditionals_device_4]
+        'conditionalRegistrationData': [conditionals_device_4]
     }
     cbsd_records_iteration_0_domain_proxy_1 = {
         'registrationRequests': [device_5,device_2],
         'grantRequests': [grant_request_5,grant_request_2],
-        'conditionalRegistrationData':[conditionals_device_2]
+        'conditionalRegistrationData': [conditionals_device_2]
     }
 
     # Protected entities records for multiple iterations
@@ -190,24 +188,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
@@ -217,6 +197,25 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_1]
+    }
 
     # Create the actual config.
     iteration0_config = {
@@ -224,22 +223,23 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_6,
             'grantRequest': grant_request_6,
+            'conditionalRegistrationData': {},
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
+        'dpaActivationList': [],
+        'dpaDeactivationList': [],
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
     }
 
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
                                 'key': os.path.join('certs', 'domain_proxy.key')},
                                {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
-        'deltaIap': 2
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}]
     }
     writeConfig(filename, config)
 
@@ -248,7 +248,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 1 with TT&C Flag = OFF"""
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR2')
 
 
   def generate_FPR_2_default_config(self, filename):
@@ -391,8 +391,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -446,24 +444,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         [sas_test_harness_device_2, sas_test_harness_device_3],
         [[grant_request_4], [grant_request_6]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records
     dump_records_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_sas_test_harness_0
@@ -472,12 +452,33 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
+    }
+
     iteration_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_domain_proxy_0,
                                           cbsd_records_domain_proxy_1],
         'cbsdRecords': [
             {'registrationRequest': device_5,
              'grantRequest': grant_request_5,
+             'conditionalRegistrationData': {},
              'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
              'clientKey': sas.GetDefaultDomainProxySSLKeyPath()}],
         'protectedEntities': protected_entities,
@@ -489,7 +490,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -498,8 +498,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
              'key': os.path.join('certs', 'domain_proxy.key')},
             {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
              'key': os.path.join('certs', 'domain_proxy_1.key')}
-        ],
-        'deltaIap': 2
+        ]
     }
     writeConfig(filename, config)
 
@@ -510,9 +509,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
-
-
+    self.executeMcpTestSteps(config, 'xPR2')
 
   def generate_FPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.3. """
@@ -572,7 +569,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
 
-    # device_b and device_d are of Category B
+    # device_2 and device_4 are of Category B
     # Load Conditional Data
     self.assertEqual(device_2['cbsdCategory'], 'B')
     conditionals_device_2 = {
@@ -603,8 +600,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     del device_4['airInterface']
     del device_4['installationParam']
     del device_4['measCapability']
-
-
 
     # Registration and grant records for multiple iterations
     cbsd_records_iteration_0_domain_proxy_0 = {
@@ -648,24 +643,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_2],[[grant_request_2]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
@@ -675,6 +652,25 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_iteration_0_sas_test_harness_1]
+    }
 
     # Create the actual config.
     iteration0_config = {
@@ -682,22 +678,23 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_3,
             'grantRequest': grant_request_3,
+            'conditionalRegistrationData': {},
             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
         }],
         'protectedEntities': protected_entities_iteration_0,
+        'dpaActivationList': [],
+        'dpaDeactivationList': [],
         'sasTestHarnessData': [dump_records_iteration_0_sas_test_harness_0, dump_records_iteration_0_sas_test_harness_1]
     }
 
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
                                 'key': os.path.join('certs', 'domain_proxy.key')},
                                {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
-        'deltaIap': 2
+                                'key': os.path.join('certs', 'domain_proxy_1.key')}]
     }
     writeConfig(filename, config)
 
@@ -706,8 +703,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """Multiple CBSDs from Multiple SASs Inside and Outside the Neighborhood of an FSS Station for FSS Scenario 2 with TT&C Flag = OFF"""
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
-
+    self.executeMcpTestSteps(config, 'xPR2')
 
   def generate_FPR_4_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.4."""
@@ -804,8 +800,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'measCapability': device_4['measCapability']
     }
 
-    conditionals = [conditionals_device_2, conditionals_device_4]
-
     # Remove conditionals from registration
     del device_2['cbsdCategory']
     del device_2['airInterface']
@@ -819,11 +813,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # DP Registration and grant records
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
-        'grantRequests': [grant_request_1, grant_request_2]
+        'grantRequests': [grant_request_1, grant_request_2],
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
-        'grantRequests': [grant_request_3]
+        'grantRequests': [grant_request_3],
+        'conditionalRegistrationData': []
     }
 
     # Protected entity record
@@ -857,24 +853,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         [sas_test_harness_device_2, sas_test_harness_device_3],
         [[grant_request_2], [grant_request_3]])
 
-    # SAS Test Harnesses configuration
-    sas_test_harness_0_config = {
-        'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-    sas_test_harness_1_config = {
-        'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
-    }
-
     # Generate SAS Test Harnesses dump records
     dump_records_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_sas_test_harness_0
@@ -883,12 +861,33 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': cbsd_fad_records_sas_test_harness_1
     }
 
+    # SAS Test Harnesses configuration
+    sas_test_harness_0_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': 'localhost',
+        'port': 9001,
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_0]
+    }
+    sas_test_harness_1_config = {
+        'sasTestHarnessName': 'SAS-TH-2',
+        'hostName': 'localhost',
+        'port': 9002,
+        'serverCert': os.path.join('certs', 'sas_1.cert'),
+        'serverKey': os.path.join('certs', 'sas_1.key'),
+        'caCert': os.path.join('certs', 'ca.cert'),
+        'initialFad': [cbsd_fad_records_sas_test_harness_1]
+    }
+
     iteration_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_domain_proxy_0,
                                           cbsd_records_domain_proxy_1],
         'cbsdRecords': [
             {'registrationRequest': device_4,
              'grantRequest': grant_request_4,
+             'conditionalRegistrationData': conditionals_device_4,
              'clientCert': os.path.join('certs', 'client.cert'),
              'clientKey': os.path.join('certs', 'client.key')}],
         'protectedEntities': protected_entities,
@@ -900,7 +899,6 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'conditionalRegistrationData': conditionals,
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -909,8 +907,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
              'key': os.path.join('certs', 'domain_proxy.key')},
             {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
              'key': os.path.join('certs', 'domain_proxy_1.key')}
-        ],
-        'deltaIap': 2
+        ]
     }
     writeConfig(filename, config)
 
@@ -921,7 +918,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
-    self.executeMcpTestSteps(config, 'XPR')
+    self.executeMcpTestSteps(config, 'xPR2')
 
   def generate_FPR_5_default_config(self, filename):
     """Generates the WinnForum configuration for FPR.5."""

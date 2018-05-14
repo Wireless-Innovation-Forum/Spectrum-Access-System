@@ -153,7 +153,7 @@ certificatePolicies=@cps,ROLE_CA
 [ cps ]
 
 policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ sas_ca ]
@@ -164,11 +164,6 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_SAS
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ sas_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -176,11 +171,6 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_SAS
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ oper_ca ]
@@ -190,11 +180,6 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_OPERATOR
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ oper_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -202,11 +187,6 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_OPERATOR
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ pi_ca ]
@@ -216,11 +196,6 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_INSTALLER
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ pi_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -228,11 +203,6 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_INSTALLER
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ pal_ca ]
@@ -242,11 +212,6 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_PAL
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ pal_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -254,11 +219,6 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_PAL
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ cbsd_ca ]
@@ -268,11 +228,6 @@ basicConstraints = critical, CA:true, pathlen:1
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ cbsd_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -280,11 +235,6 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true, pathlen:1
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ cbsd_oem_ca ]
@@ -294,11 +244,6 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 [ cbsd_oem_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -307,25 +252,18 @@ basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies=@cps,ROLE_CA,ROLE_CBSD
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 
 ####################################################################
+
 [ sas_req ]
 
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
+extendedKeyUsage = serverAuth,clientAuth
+certificatePolicies=@cps,ROLE_SAS
 crlDistributionPoints=@crl_section
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=DNS:localhost,otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
 
 [ sas_req_sign ]
 
@@ -333,38 +271,12 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
+extendedKeyUsage = serverAuth,clientAuth
+certificatePolicies=@cps,ROLE_SAS
 crlDistributionPoints=@crl_section
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=DNS:localhost,otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
 
 ####################################################################
-[ sas_client_mode_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
-CPS.1="https://www.digicert.com/CPS"
-
-[ sas_client_mode_req_sign ]
-
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_SAS,FRN
-crlDistributionPoints=@crl_section
 
 [ cps ]
 
@@ -378,8 +290,9 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = clientAuth
+extendedKeyUsage = serverAuth, clientAuth
 certificatePolicies=@cps,ROLE_SAS,ZONE
+
 ####################################################################
 [ oper_req ]
 
@@ -387,14 +300,9 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_OPERATOR,FRN
+certificatePolicies=@cps,ROLE_OPERATOR
 crlDistributionPoints=@crl_section
-#FRN
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
 
 [ oper_req_sign ]
 
@@ -403,9 +311,9 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
-certificatePolicies=@cps,ROLE_OPERATOR,FRN
+certificatePolicies=@cps,ROLE_OPERATOR
 crlDistributionPoints=@crl_section
-#FRN
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
 
 [ oper_req_inapplicable_sign ]
 
@@ -416,11 +324,6 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_OPERATOR,ZONE
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 ####################################################################
 [ pi_req ]
 
@@ -429,11 +332,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_INSTALLER
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 [ pi_req_sign ]
 
@@ -444,11 +342,6 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_INSTALLER
 
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
-
 ####################################################################
 [ pal_req ]
 
@@ -457,13 +350,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_PAL
-#ZONE = ASN1:UTF8String:
-#FREQUENCY =
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.2;UTF8:zone_id_1,otherName:1.3.6.1.4.1.46609.1.3;UTF8:3650
 
 [ pal_req_sign ]
 
@@ -473,13 +360,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_PAL
-#ZONE = ASN1:UTF8String:
-#FREQUENCY =
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.2;UTF8:zone_id,otherName:1.3.6.1.4.1.46609.1.3;UTF8:3650
 
 ####################################################################
 [ cbsd_req ]
@@ -489,13 +370,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
-#FCCID
-#SERIAL
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:fcc_id,otherName:1.3.6.1.4.1.46609.1.5;UTF8:serial
 
 [ cbsd_req_sign ]
 
@@ -506,8 +381,7 @@ keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
-#FCCID
-#SERIAL
+# subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:fcc_id,otherName:1.3.6.1.4.1.46609.1.5;UTF8:serial
 
 [ cbsd_req_device_a_sign ]
 
@@ -518,8 +392,7 @@ keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
-FCCID=ASN1:UTF8String:test_fcc_id_a
-SERIAL=ASN1:UTF8String:test_serial_number_a
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_a,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_a
 
 [ cbsd_req_device_c_sign ]
 
@@ -530,8 +403,7 @@ keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
-FCCID=ASN1:UTF8String:test_fcc_id_c
-SERIAL=ASN1:UTF8String:test_serial_number_c
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_c,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_c
 
 [ cbsd_req_inapplicable_sign ]
 
@@ -541,10 +413,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD,ZONE
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 [ wrong_cbsd_req_sign ]
 subjectKeyIdentifier = hash
@@ -553,6 +421,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_SAS
+
 ####################################################################
 
 [ cbsd_oem_req ]
@@ -561,12 +430,6 @@ subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 certificatePolicies=@cps,ROLE_CBSD
-#FCCID
-#SERIAL
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 [ cbsd_oem_req_sign ]
 
@@ -576,13 +439,6 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies=@cps,ROLE_CBSD
-#FCCID
-#SERIAL
-
-[ cps ]
-
-policyIdentifier = 2.16.840.1.114412.2.1
- CPS.1="https://www.digicert.com/CPS"
 
 ####################################################################
 [ crl_ext ]

@@ -1,7 +1,7 @@
 {
 	"_comment": "PPA - CBSD and Category B - ESC CBSD",
 	"id": "cbsd_3",
-	"registrationRequest": {
+	"registration": {
 		"fccId": "test_fcc_id_d",
 		"cbsdCategory": "B",
 		"callSign": "KPPP",
