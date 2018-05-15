@@ -221,7 +221,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         sas_test_harness_object.start()
 
         # Initialize content of test harness.
-        sas_test_harness_object.writeFadRecords(test_harness['initialFad'])
+        sas_test_harness_object.writeFadRecords(
+            [test_harness['initialFad']['cbsdRecords']])
 
         # informing SAS UUT about SAS Test Harnesses
         certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
