@@ -87,6 +87,13 @@ def ExtractZipFiles(census_tract_directory, zip_filename=None):
                           ' from ' + zip_filename)
 
 
+def json_pp_dumps(obj, **kw):
+  """Pretty json.dumps replacement."""
+  return json.dumps(json.loads(json.dumps(obj),
+                               parse_float=lambda f: round(float(f), 7)),
+                   **kw)
+
+
 def ConvertShapefilesToGeoJson(census_tract_directory):
   """Convert Shapefile to GeoJson."""
   print "Convert the Shapefiles to GeoJson format"
@@ -97,6 +104,7 @@ def ConvertShapefilesToGeoJson(census_tract_directory):
   # Proceed further to convert to geojson.
   os.chdir(census_tract_directory)
   shp_files = glob.glob('*.shp')
+
   try:
     for shp_file in shp_files:
       # Read the shapefile and fields
@@ -116,13 +124,17 @@ def ConvertShapefilesToGeoJson(census_tract_directory):
       for shp_record in reader.shapeRecords():
         properties = dict(zip(field_names, shp_record.record))
         geometry = shp_record.shape.__geo_interface__
-        records.append(dict(type="Feature", geometry=geometry, properties=properties))
+        records.append(dict(type="Feature",
+                            properties=properties,
+                            geometry=geometry))
 
       # Write the GeoJSON file.
       json_file = os.path.splitext(shp_file)[0] + '.json'
       with open(json_file, 'w') as fd:
-        fd.write(json.dumps({"type": "FeatureCollection",
-                             "features": records}, indent=2) + "\n")
+        fd.write(json_pp_dumps({"type": "FeatureCollection",
+                                "features": records},
+                               sort_keys=True))
+        fd.write('/n')
       print shp_file + " was converted to " + json_file + "."
 
   except Exception as err:
@@ -155,10 +167,11 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
 
         out_path = os.path.join(dest_dir, fisp_code + '.json')
         with open(out_path, 'w') as fd:
-          fd.write(json.dumps({"type": "FeatureCollection",
-                               "features": [feature]},
-                              separators=(',', ':'))
-                   + '\n')
+          fd.write(json_pp_dumps({"type": "FeatureCollection",
+                                  "features": [feature]},
+                                 separators=(',', ':'),
+                                 sort_keys=True))
+          fd.write('\n')
 
         print ("census_tract of fispCode: %s record split to the file:%s "
                "successfully" % (fisp_code, out_path))
