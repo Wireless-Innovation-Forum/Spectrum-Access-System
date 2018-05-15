@@ -93,14 +93,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Inject GWBL station operating at range 3650 - 3700 MHz within 150 km of
     # FSS (approx. 100 km from FSS location set above).
-    gwbl_data = json.load(
+    gwbl = json.load(
         open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
-    self._sas_admin.InjectWisp(gwbl_data)
-    gwbl = gwbl_data['record']
-    gwbl_low_frequency = gwbl['deploymentParam'][0]['operationParam'][
-      'operationFrequencyRange']['lowFrequency']
-    gwbl_high_frequency  = gwbl['deploymentParam'][0]['operationParam'][
-      'operationFrequencyRange']['highFrequency']
+    self._sas_admin.InjectWisp(gwbl)
 
     # Load PAL/PPA data, operating channel 3620 - 3630 MHz.
     pal_record = json.load(
@@ -215,7 +210,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     }
     freq_range_all_but_fss_gwbl = {
         'lowFrequency': 3550000000,
-        'highFrequency': gwbl_low_frequency,
+        'highFrequency': 3650000000,
     }
     freq_range_all = {
         'lowFrequency': 3550000000,
