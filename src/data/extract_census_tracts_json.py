@@ -35,6 +35,7 @@ import re
 import shapefile
 import sys
 import zipfile
+import shapely.geometry as sgeo
 from collections import OrderedDict
 
 
@@ -154,7 +155,8 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
     json_files = glob.glob('*.json')
     # split all census_tracts based on FISP code and dump into separate directory
     # census_tract_directory
-    for json_file in json_files:
+    with open('warnings.log', 'w') as logger:
+     for json_file in json_files:
       with open(json_file, 'r') as fd:
         features = json.loads(fd.read(),
                               object_pairs_hook=OrderedDict)['features']
@@ -169,6 +171,12 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
              break
         if not fisp_code:
           raise Exception('Unable to find GEOID property in census tracts')
+
+        # Check for validity of the geometry
+        shape = sgeo.shape(feature['geometry'])
+        if not shape.is_valid:
+          logger.write('Shapely geometry invalid for file: %s FISP: %s '
+                       % (json_file, fisp_code))
 
         out_path = os.path.join(dest_dir, fisp_code + '.json')
         with open(out_path, 'w') as fd:
