@@ -93,9 +93,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Inject GWBL station operating at range 3650 - 3700 MHz within 150 km of
     # FSS (approx. 100 km from FSS location set above).
-    gwbl = json.load(
+    gwbl_data = json.load(
         open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
-    self._sas_admin.InjectWisp(gwbl)
+    self._sas_admin.InjectWisp(gwbl_data)
+    gwbl = gwbl_data['record']
+    gwbl_low_frequency = gwbl['deploymentParam'][0]['operationParam'][
+      'operationFrequencyRange']['lowFrequency']
+    gwbl_high_frequency  = gwbl['deploymentParam'][0]['operationParam'][
+      'operationFrequencyRange']['highFrequency']
 
     # Load PAL/PPA data, operating channel 3620 - 3630 MHz.
     pal_record = json.load(
@@ -208,6 +213,14 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'lowFrequency': 3650000000,
         'highFrequency': 3700000000,
     }
+    freq_range_all_but_fss_gwbl = {
+        'lowFrequency': 3550000000,
+        'highFrequency': gwbl_low_frequency,
+    }
+    freq_range_all = {
+        'lowFrequency': 3550000000,
+        'highFrequency': 3700000000,
+    }
     all_channels = []
     channels_low = []
     channels_high = []
@@ -239,8 +252,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             for channel in channels_pal[0]))
 
     # Checks for cbsd 2 (index 1)
-    self.assertChannelsContainFrequencyRange(channels_low[1], freq_range_low)
-    self.assertChannelsContainFrequencyRange(channels_high[1], freq_range_high)
+    self.assertChannelsContainFrequencyRange(all_channels[1], freq_range_all)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
@@ -263,8 +275,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(channels_excluded[2]), 0)
 
     # Checks for cbsd 4 (index 3)
-    self.assertChannelsContainFrequencyRange(channels_low[3], freq_range_low)
-    self.assertChannelsContainFrequencyRange(channels_high[3], freq_range_high)
+    self.assertChannelsContainFrequencyRange(all_channels[3], freq_range_all_but_fss_gwbl)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
