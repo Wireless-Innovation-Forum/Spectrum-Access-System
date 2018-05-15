@@ -35,6 +35,7 @@ import re
 import shapefile
 import sys
 import zipfile
+from collections import OrderedDict
 
 
 def FindStateTractFilenames(census):
@@ -90,7 +91,8 @@ def ExtractZipFiles(census_tract_directory, zip_filename=None):
 def json_pp_dumps(obj, **kw):
   """Pretty json.dumps replacement."""
   return json.dumps(json.loads(json.dumps(obj),
-                               parse_float=lambda f: round(float(f), 7)),
+                               parse_float=lambda f: round(float(f), 7),
+                               object_pairs_hook=OrderedDict),
                    **kw)
 
 
@@ -124,17 +126,19 @@ def ConvertShapefilesToGeoJson(census_tract_directory):
       for shp_record in reader.shapeRecords():
         properties = dict(zip(field_names, shp_record.record))
         geometry = shp_record.shape.__geo_interface__
-        records.append(dict(type="Feature",
-                            properties=properties,
-                            geometry=geometry))
+        records.append(OrderedDict([('type','Feature'),
+                                    ('properties',properties),
+                                    ('geometry',geometry)]))
 
       # Write the GeoJSON file.
-      json_file = os.path.splitext(shp_file)[0] + '.json'
+      base_name = os.path.splitext(shp_file)[0]
+      json_file =  base_name + '.json'
       with open(json_file, 'w') as fd:
-        fd.write(json_pp_dumps({"type": "FeatureCollection",
-                                "features": records},
-                               sort_keys=True))
-        fd.write('/n')
+        fd.write(json_pp_dumps(
+            OrderedDict([('type','FeatureCollection'),
+                         ('name', base_name),
+                         ('features',records)])))
+        fd.write('\n')
       print shp_file + " was converted to " + json_file + "."
 
   except Exception as err:
@@ -152,7 +156,8 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
     # census_tract_directory
     for json_file in json_files:
       with open(json_file, 'r') as fd:
-        features = json.loads(fd.read())['features']
+        features = json.loads(fd.read(),
+                              object_pairs_hook=OrderedDict)['features']
 
       for feature in features:
         fisp_code = None
@@ -167,10 +172,9 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
 
         out_path = os.path.join(dest_dir, fisp_code + '.json')
         with open(out_path, 'w') as fd:
-          fd.write(json_pp_dumps({"type": "FeatureCollection",
-                                  "features": [feature]},
-                                 separators=(',', ':'),
-                                 sort_keys=True))
+          fd.write(json_pp_dumps(OrderedDict([('type','FeatureCollection'),
+                                              ('features',[feature])]),
+                                 separators=(',', ':')))
           fd.write('\n')
 
         print ("census_tract of fispCode: %s record split to the file:%s "
