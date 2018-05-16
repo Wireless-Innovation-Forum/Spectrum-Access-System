@@ -966,8 +966,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_iteration_0_sas_test_harness_0
     }
@@ -975,8 +975,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'sasTestHarnessName': 'SAS-TH-2',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas_1.cert'),
+        'serverKey': getCertFilename('sas_1.key'),
         'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_iteration_0_sas_test_harness_1
     }

@@ -102,8 +102,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])
@@ -281,8 +281,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])
@@ -742,8 +742,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])

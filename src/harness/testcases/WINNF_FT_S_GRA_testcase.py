@@ -320,8 +320,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert')
     }
     sas_harness_dump_records = {
@@ -438,8 +438,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-TestHarness-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': getCertFilename('server.cert'),
-        'serverKey': getCertFilename('server.key'),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert')
     }
     sas_harness_dump_records = {
