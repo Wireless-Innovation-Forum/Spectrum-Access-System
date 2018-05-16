@@ -57,7 +57,7 @@ def zonePurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
     cbsds_within_ppa = pre_iap_util.getCbsdsWithinPolygon(cbsds, ppa_record['zone'])
     if cbsds_within_ppa:
       # Get all the cbsds that are not part of the PPA cluster list
-      cbsds_not_part_of_ppa_cluster = pre_iap_util.getCbsdsNotPartOfPpaCluster(
+      cbsds_not_part_of_ppa_cluster = data.getCbsdsNotPartOfPpaCluster(
                                                    cbsds_within_ppa, ppa_record)
       if cbsds_not_part_of_ppa_cluster:
         # Get the frequency of the PPA

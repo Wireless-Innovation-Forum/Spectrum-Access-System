@@ -179,9 +179,7 @@ def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
     cbsds_not_part_of_ppa_cluster = []
     # Compare the list of CBSDs with the PPA cluster list
     for cbsd in cbsds:
-      cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
-                            cbsd['registration']['cbsdSerialNumber'])
-      if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
+      if cbsd['id'] not in ppa_record['ppaInfo']['cbsdReferenceId']:
         cbsds_not_part_of_ppa_cluster.append(cbsd)
 
     return cbsds_not_part_of_ppa_cluster

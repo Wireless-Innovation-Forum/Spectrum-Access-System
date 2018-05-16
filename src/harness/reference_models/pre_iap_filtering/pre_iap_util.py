@@ -184,23 +184,3 @@ def getFssNeighboringGwbl(gwbl_records, fss_records):
         list_of_fss_neighboring_gwbl.append(fss_record)
         break
   return list_of_fss_neighboring_gwbl
-
-
-def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
-  """Returns the CBSDs that are not part of a PPA cluster list.
-
-  Args:
-    cbsds: List of |CbsdData| objects.
-    ppa_record: A PPA record dictionary.
-  Returns:
-    List of CBSDs that are not part of the PPA cluster list.
-  """
-  cbsds_not_part_of_ppa_cluster = []
-  # Compare the list of CBSDs with the PPA cluster list
-  for cbsd in cbsds:
-    cbsd_reference_id = generateCbsdReferenceId(cbsd['registration']['fccId'],
-                                                cbsd['registration']['cbsdSerialNumber'])
-    if cbsd_reference_id not in ppa_record['ppaInfo']['cbsdReferenceId']:
-        cbsds_not_part_of_ppa_cluster.append(cbsd)
-
-  return cbsds_not_part_of_ppa_cluster
