@@ -30,6 +30,7 @@ d.setFilesToServe({
 
 import base64
 import logging
+import os
 import ssl
 import threading
 from BaseHTTPServer import HTTPServer
@@ -41,9 +42,9 @@ _USERNAME = 'username'
 _PASSWORD = 'password'
 _AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(_USERNAME+':'+_PASSWORD)
 
-_SSL_CERT = 'certs/server.cert'
-_SSL_KEY = 'certs/server.key'
-_SSL_CA_CERT_FILE = 'certs/ca.cert'
+_SSL_CERT = os.path.join('certs', 'server.cert')
+_SSL_KEY = os.path.join('certs', 'server.key')
+_SSL_CA_CERT_FILE = os.path.join('certs', 'ca.cert')
 
 
 class DatabaseServer(threading.Thread):

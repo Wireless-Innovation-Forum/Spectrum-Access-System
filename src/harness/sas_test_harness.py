@@ -35,9 +35,9 @@ from datetime import datetime, timedelta
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
-DEFAULT_CERT_FILE = 'certs/server.cert'
-DEFAULT_KEY_FILE = 'certs/server.key'
-DEFAULT_CA_CERT = 'certs/ca.cert'
+DEFAULT_CERT_FILE = os.path.join('certs', 'sas.cert')
+DEFAULT_KEY_FILE = os.path.join('certs', 'sas.key')
+DEFAULT_CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
     'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
     'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384

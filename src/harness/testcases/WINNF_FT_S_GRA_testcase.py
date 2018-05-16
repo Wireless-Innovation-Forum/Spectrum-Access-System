@@ -319,8 +319,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-Test-Harness-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_harness_dump_records = {
@@ -360,7 +360,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_g1 = config['grantRequestG1']
     grant_g2 = config['grantRequestG2']
     sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords']]
-    
+
     # Inserting FCC IDs on SUUT before CPAS so SUUT will know about them
     self._sas_admin.InjectFccId({'fccId': device_c1['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c2['fccId']})
@@ -437,8 +437,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-TestHarness-1',
         'hostName': 'localhost',
         'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
+        'serverCert': os.path.join('certs', 'sas.cert'),
+        'serverKey': os.path.join('certs', 'sas.key'),
         'caCert': os.path.join('certs', 'ca.cert')
     }
     sas_harness_dump_records = {

@@ -104,9 +104,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'port':
             9001,
         'serverCert':
-            os.path.join('certs', 'server.cert'),
+            os.path.join('certs', 'sas.cert'),
         'serverKey':
-            os.path.join('certs', 'server.key'),
+            os.path.join('certs', 'sas.key'),
         'caCert':
             os.path.join('certs', 'ca.cert'),
         'fullActivityDumpRecords': [
@@ -289,9 +289,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'port':
             9002,
         'serverCert':
-            os.path.join('certs', 'server.cert'),
+            os.path.join('certs', 'sas.cert'),
         'serverKey':
-            os.path.join('certs', 'server.key'),
+            os.path.join('certs', 'sas.key'),
         'caCert':
             os.path.join('certs', 'ca.cert'),
         'fullActivityDumpRecords': [
@@ -756,9 +756,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'port':
             9006,
         'serverCert':
-            os.path.join('certs', 'server.cert'),
+            os.path.join('certs', 'sas.cert'),
         'serverKey':
-            os.path.join('certs', 'server.key'),
+            os.path.join('certs', 'sas.key'),
         'caCert':
             os.path.join('certs', 'ca.cert'),
         'fullActivityDumpRecords': [
