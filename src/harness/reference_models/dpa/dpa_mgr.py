@@ -727,7 +727,7 @@ def BuildDpa(dpa_name, protection_points_method=None):
   radar_height = dpa_zone.refHeightMeters
   radar_beamwidth = dpa_zone.antennaBeamwidthDeg
   azimuth_range = (dpa_zone.minAzimuthDeg, dpa_zone.maxAzimuthDeg)
-  freq_ranges_mhz = dpa_zone.freqRangeMhz
+  freq_ranges_mhz = dpa_zone.freqRangeMHz
   catb_neighbor_dist = dpa_zone.catbNeighborDist
   return Dpa(protection_points,
              threshold=protection_threshold,
