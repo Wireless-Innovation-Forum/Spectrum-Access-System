@@ -115,7 +115,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-        'dpaId': 'East4',
+        'dpaId': 'Pascagoula',
         'frequencyRange': {
             'lowFrequency': 3620000000,
             'highFrequency': 3630000000
@@ -296,24 +296,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     dpa_1 = {
-        'dpaId': 'East4',
-        'frequencyRange': {
-            'lowFrequency': 3620000000,
-            'highFrequency': 3630000000
-        },
-        'points_builder': 'default (25, 10, 10, 10)',
-        'movelistMargin': 10
-    }
-    dpa_2 = {
-        'dpaId': 'East4',
-        'frequencyRange': {
-            'lowFrequency': 3610000000,
-            'highFrequency': 3620000000
-        },
-        'points_builder': 'default (25, 10, 10, 10)',
-        'movelistMargin': 10
-    }
-    dpa_3 = {
         'dpaId': 'East3',
         'frequencyRange': {
             'lowFrequency': 3620000000,
@@ -322,8 +304,26 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
     }
+    dpa_2 = {
+        'dpaId': 'East3',
+        'frequencyRange': {
+            'lowFrequency': 3610000000,
+            'highFrequency': 3620000000
+        },
+        'points_builder': 'default (25, 10, 10, 10)',
+        'movelistMargin': 10
+    }
+    dpa_3 = {
+        'dpaId': 'East21',
+        'frequencyRange': {
+            'lowFrequency': 3620000000,
+            'highFrequency': 3630000000
+        },
+        'points_builder': 'default (25, 10, 10, 10)',
+        'movelistMargin': 10
+    }
     dpa_4 = {
-        'dpaId': 'west_dpa_4',
+        'dpaId': 'West4',
         'frequencyRange': {
             'lowFrequency': 3610000000,
             'highFrequency': 3620000000
