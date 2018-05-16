@@ -211,7 +211,7 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, cbsd_list):
   # Get Fine Grid Points for a GWPZ protection area
   protection_points = utils.GridPolygon(gwpz_record['zone']['features'][0]['geometry'],
                                         GWPZ_GRID_RES_ARCSEC)
-  gwpz_freq_range = gwpz_record['deploymentParam']['operationParam']['operationFrequencyRange']
+  gwpz_freq_range = gwpz_record['record']['deploymentParam']['operationParam']['operationFrequencyRange']
   gwpz_low_freq = gwpz_freq_range['lowFrequency']
   gwpz_high_freq = gwpz_freq_range['highFrequency']
 
