@@ -19,7 +19,9 @@ import sas
 import sas_testcase
 import time
 
-from util import buildDpaActivationMessage, configurable_testcase, writeConfig, loadConfig, getCertificateFingerprint
+from util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
+  loadConfig, getCertificateFingerprint, getFqdnLocalhost, getUnusedPort, \
+  getCertFilename
 from test_harness_objects import DomainProxy
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
@@ -97,18 +99,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     sas_test_harness_config = {
-        'sasTestHarnessName':
-            'SAS-Test-Harness-1',
-        'hostName':
-            'localhost',
-        'port':
-            9001,
-        'serverCert':
-            os.path.join('certs', 'server.cert'),
-        'serverKey':
-            os.path.join('certs', 'server.key'),
-        'caCert':
-            os.path.join('certs', 'ca.cert'),
+        'sasTestHarnessName': 'SAS-Test-Harness-1',
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('server.cert'),
+        'serverKey': getCertFilename('server.key'),
+        'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])
         ]
@@ -282,18 +278,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     sas_test_harness_config = {
-        'sasTestHarnessName':
-            'SAS-Test-Harness-1',
-        'hostName':
-            'localhost',
-        'port':
-            9002,
-        'serverCert':
-            os.path.join('certs', 'server.cert'),
-        'serverKey':
-            os.path.join('certs', 'server.key'),
-        'caCert':
-            os.path.join('certs', 'ca.cert'),
+        'sasTestHarnessName': 'SAS-Test-Harness-1',
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('server.cert'),
+        'serverKey': getCertFilename('server.key'),
+        'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])
         ]
@@ -340,8 +330,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'registrationRequests': [device_b],
         'grantRequests': [grant_b],
         'conditionalRegistrationData': [conditionals_b],
-        'cert': os.path.join('certs', 'domain_proxy.cert'),
-        'key': os.path.join('certs', 'domain_proxy.key')
+        'cert': getCertFilename('domain_proxy.cert'),
+        'key': getCertFilename('domain_proxy.key')
     }
 
     config = {
@@ -645,8 +635,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'registrationRequests': [device_a],
         'grantRequests': [grant_a],
         'conditionalRegistrationData': [conditionals_a],
-        'sslCert': os.path.join('certs', 'domain_proxy.cert'),
-        'sslKey': os.path.join('certs', 'domain_proxy.key')
+        'sslCert': getCertFilename('domain_proxy.cert'),
+        'sslKey': getCertFilename('domain_proxy.key')
     }
 
     config = {
@@ -749,18 +739,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
     sas_test_harness_config = {
-        'sasTestHarnessName':
-            'SAS-Test-Harness-1',
-        'hostName':
-            'localhost',
-        'port':
-            9006,
-        'serverCert':
-            os.path.join('certs', 'server.cert'),
-        'serverKey':
-            os.path.join('certs', 'server.key'),
-        'caCert':
-            os.path.join('certs', 'ca.cert'),
+        'sasTestHarnessName': 'SAS-Test-Harness-1',
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('server.cert'),
+        'serverKey': getCertFilename('server.key'),
+        'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
             generateCbsdRecords([device_a], [[grant_a]])
         ]
@@ -776,8 +760,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'registrationRequests': [device_b],
         'grantRequests': [grant_b],
         'conditionalRegistrationData': [conditionals_b],
-        'cert': os.path.join('certs', 'domain_proxy.cert'),
-        'key': os.path.join('certs', 'domain_proxy.key')
+        'cert': getCertFilename('domain_proxy.cert'),
+        'key': getCertFilename('domain_proxy.key')
     }
 
     config = {

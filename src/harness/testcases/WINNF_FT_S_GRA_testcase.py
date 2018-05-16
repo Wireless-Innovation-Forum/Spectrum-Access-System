@@ -51,7 +51,8 @@ import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent, configurable_testcase, writeConfig, \
-  loadConfig, getCertificateFingerprint, addCbsdIdsToRequests, getRandomLatLongInPolygon
+  loadConfig, getCertificateFingerprint, addCbsdIdsToRequests, \
+  getRandomLatLongInPolygon, getFqdnLocalhost, getUnusedPort, getCertFilename
 
 class GrantTestcase(sas_testcase.SasTestCase):
 
@@ -234,8 +235,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
      SAS rejects the request by sending responseCode 103
     """
     # Load device_a [cert|key]
-    device_a_cert = os.path.join('certs', 'device_a.cert')
-    device_a_key = os.path.join('certs', 'device_a.key')
+    device_a_cert = getCertFilename('device_a.cert')
+    device_a_key = getCertFilename('device_a.key')
 
     # Register the first device with certificates
     device_a = json.load(
@@ -251,8 +252,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Load device_c [cert|key]
-    device_c_cert = os.path.join('certs', 'device_c.cert')
-    device_c_key = os.path.join('certs', 'device_c.key')
+    device_c_cert = getCertFilename('device_c.cert')
+    device_c_key = getCertFilename('device_c.key')
 
     # Register the second device with certificates
     device_c = json.load(
@@ -317,11 +318,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('server.cert'),
+        'serverKey': getCertFilename('server.key'),
+        'caCert': getCertFilename('ca.cert')
     }
     sas_harness_dump_records = {
         'cbsdRecords': generateCbsdRecords([device_c1], [[grant_g1]])
@@ -435,11 +436,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'highFrequency'] = 3655000000
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-TestHarness-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('server.cert'),
+        'serverKey': getCertFilename('server.key'),
+        'caCert': getCertFilename('ca.cert')
     }
     sas_harness_dump_records = {
         'cbsdRecords': generateCbsdRecords([device_c1],

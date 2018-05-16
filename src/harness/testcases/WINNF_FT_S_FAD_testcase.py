@@ -24,9 +24,10 @@ from reference_models.geo import vincenty, utils
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generateCbsdReferenceId, generatePpaRecords
 
-from util import configurable_testcase, writeConfig, loadConfig \
-  , getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent \
-  , compareDictWithUnorderedLists, winnforum_testcase, areTwoPpasEqual
+from util import configurable_testcase, writeConfig, loadConfig, \
+  getCertificateFingerprint, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
+  compareDictWithUnorderedLists, winnforum_testcase, areTwoPpasEqual, \
+  getFqdnLocalhost, getUnusedPort, getCertFilename
 import logging
 
 class FullActivityDumpTestcase(sas_testcase.SasTestCase):
@@ -247,19 +248,19 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       # SAS test harness configuration
       sas_test_harness_0_config = {
           'sasTestHarnessName': 'SAS-TH-2',
-          'hostName': 'localhost',
-          'port': 9002,
-          'serverCert': os.path.join('certs', 'sas.cert'),
-          'serverKey': os.path.join('certs', 'sas.key'),
+          'hostName': getFqdnLocalhost(),
+          'port': getUnusedPort(),
+          'serverCert': getCertFilename('sas.cert'),
+          'serverKey': getCertFilename('sas.key'),
           'caCert': "certs/ca.cert"
       }
       sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9003,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert')
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas_1.cert'),
+        'serverKey': getCertFilename('sas_1.key'),
+        'caCert': getCertFilename('ca.cert')
       }
       config = {
         'registrationRequests': devices,
@@ -621,8 +622,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # SAS test harness configuration
     sas_harness_config = {
         'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'serverCert': "certs/server.cert",
         'serverKey': "certs/server.key",
         'caCert': "certs/ca.cert"

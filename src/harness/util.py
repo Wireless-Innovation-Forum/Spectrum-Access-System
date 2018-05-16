@@ -26,6 +26,7 @@ import time
 import random
 import uuid
 import jwt
+import portpicker
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -518,3 +519,21 @@ def ensureFileDirectoryExists(file_path):
   dir_name = os.path.dirname(file_path)
   if not os.path.exists(dir_name):
     os.makedirs(dir_name)
+
+def getCertFilename(cert_name):
+  """Returns the file path corresponding to the given |cert_name|.
+  """
+  return os.path.join('certs', cert_name)
+
+def getFqdnLocalhost():
+  """Returns the fully qualified name of the host running the testcase.
+  To be used when starting peer SAS webserver or other database webserver.
+  """
+  return os.environ.get('HOSTNAME', 'localhost')
+
+def getUnusedPort():
+  """Returns an unused TCP port on the local host.
+  To be used when starting peer SAS webserver or other database webserver.
+  """
+  return portpicker.pick_unused_port()
+

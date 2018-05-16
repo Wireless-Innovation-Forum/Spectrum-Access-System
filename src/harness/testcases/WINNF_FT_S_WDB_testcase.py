@@ -20,7 +20,9 @@ import sas
 import sas_testcase
 from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
-    convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, generateCpiRsaKeys, ensureFileDirectoryExists
+  convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, \
+  generateCpiRsaKeys, ensureFileDirectoryExists, getFqdnLocalhost, \
+  getUnusedPort, getCertFilename
 
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
@@ -105,8 +107,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       file_handle.write(json.dumps(pal_db_contents,indent=2))
 
     pal_database_config = {
-        'hostName': 'localhost',
-        'port': 8003,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/rest/pal/v1/pal_db.json/pal_db.json',
         'filePath': pal_db_relative_file_path
     }
@@ -220,8 +222,8 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       file_handle.write(cpi_public_key_device_d)
 
     cpi_database_config = {
-        'hostName': 'localhost',
-        'port': 8003,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'cpis': [{
             'cpiId': cpi_id_b,
             'status': 'ACTIVE',

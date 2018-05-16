@@ -14,6 +14,7 @@ This folder contains code and testcases for SAS certification test as defined in
 *   mock (https://pypi.python.org/pypi/mock)
 *   validators (https://pypi.python.org/pypi/validators)
 *   pytz (https://pypi.org/project/pytz)
+*   portpicker (https://pypi.org/project/portpicker)
 
 ## Code location
 

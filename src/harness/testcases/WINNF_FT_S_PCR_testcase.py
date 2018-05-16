@@ -24,7 +24,7 @@ from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
-     makePpaAndPalRecordsConsistent
+     makePpaAndPalRecordsConsistent, getCertFilename
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 def getSasUutClaimedPpaBoundaryFilePath(config_filename):
@@ -292,8 +292,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
         'palRecords': pal_records,
-        'sasTestHarnessCert': os.path.join('certs', 'sas.cert'),
-        'sasTestHarnessKey': os.path.join('certs', 'sas.key')
+        'sasTestHarnessCert': getCertFilename('sas.cert'),
+        'sasTestHarnessKey': getCertFilename('sas.key')
     }
     writeConfig(filename, config)
 
@@ -464,8 +464,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         'registrationRequests': devices,
         'conditionalRegistrationData': conditionals,
         'palRecords': pal_records,
-        'sasTestHarnessCert': os.path.join('certs', 'sas.cert'),
-        'sasTestHarnessKey': os.path.join('certs', 'sas.key')
+        'sasTestHarnessCert': getCertFilename('sas.cert'),
+        'sasTestHarnessKey': getCertFilename('sas.key')
     }
     writeConfig(filename, config)
 
