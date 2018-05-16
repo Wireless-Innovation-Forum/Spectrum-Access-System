@@ -151,6 +151,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'conditionalRegistrationDataN3': list,
             'dpas': list
         })
+    num_peer_sases = len(config['sasTestHarnessConfigs'])
     # SAS UUT loads DPAs.
     self._sas_admin.TriggerLoadDpas()
 
@@ -210,37 +211,40 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
              cbsd.getRegistrationRequest()['cbsdSerialNumber']))
 
     # Get SAS UUT FAD and Test Harness FADs.
-    sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+    sas_uut_fad = None
     test_harness_fads = []
-    for test_harness in test_harnesses:
-      test_harness_fads.append(
-          getFullActivityDumpSasTestHarness(
-              test_harness.getSasTestHarnessInterface()))
+    if num_peer_sases:
+        sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+        for test_harness in test_harnesses:
+          test_harness_fads.append(
+              getFullActivityDumpSasTestHarness(
+                  test_harness.getSasTestHarnessInterface()))
 
     # Trigger CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    # Initialize DPA objects and calculate movelist for each DPA.
-    dpas = []
-    for dpa_config in config['dpas']:
-      dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
-      freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-      freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
-      dpa.ResetFreqRange([(freq_range_low, freq_range_high)])
-      dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-      dpa.ComputeMoveLists()
-      dpas.append(dpa)
     # Heartbeat SAS UUT grants.
     n2_domain_proxy.heartbeatForAllActiveGrants()
     n3_domain_proxy.heartbeatForAllActiveGrants()
     # Get CbsdGrantInfo list of SAS UUT grants that are in an authorized state.
     grant_info = data.getAuthorizedGrantsFromDomainProxies([n2_domain_proxy, n3_domain_proxy])
 
-    # Check grants do not exceed each DPAs interference threshold.
-    for dpa, dpa_config in zip(dpas, config['dpas']):
+    # Initialize DPA objects and calculate movelist for each DPA.
+    dpas = []
+    for dpa_config in config['dpas']:
+      dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
+      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
+      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
+      dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
+      dpa.ComputeMoveLists()
+      # Check grants do not exceed each DPAs interference threshold.
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
-          margin_db=dpa_config['movelistMargin']))
+          margin_db=dpa_config['movelistMargin'],
+          channel=(low_freq_mhz, high_freq_mhz),
+          do_abs_check_single_uut=(num_peer_sases==0)))
+
 
   def generate_IPR_2_default_config(self, filename):
     """Generates the WinnForum configuration for IPR_2"""
@@ -369,6 +373,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self.assertDictEqual(config['dpas'][0]['frequencyRange'], config['dpas'][2]['frequencyRange'])
     self.assertDictEqual(config['dpas'][1]['frequencyRange'], config['dpas'][3]['frequencyRange'])
 
+    num_peer_sases = len(config['sasTestHarnessConfigs'])
     # SAS UUT loads DPAs and is informed they are all inactive.
     self._sas_admin.TriggerLoadDpas()
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
@@ -406,13 +411,15 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           conditional_registration_data=domain_proxy_config['conditionalRegistrationData'])
       domain_proxies.append(domain_proxy)
 
-    # Trigger, wait and download FAD records from SAS UUT and test harnesses.
-    sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+    sas_uut_fad = None
     test_harness_fads = []
-    for test_harness in test_harnesses:
-      test_harness_fads.append(
-          getFullActivityDumpSasTestHarness(
-              test_harness.getSasTestHarnessInterface()))
+    if num_peer_sases:
+      # Trigger, wait and download FAD records from SAS UUT and test harnesses.
+      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+      for test_harness in test_harnesses:
+        test_harness_fads.append(
+            getFullActivityDumpSasTestHarness(
+                test_harness.getSasTestHarnessInterface()))
 
     # Trigger CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -426,9 +433,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     all_dpas = []
     for dpa_config in config['dpas']:
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
-      freq_range_low = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-      freq_range_high = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
-      dpa.ResetFreqRange([(freq_range_low, freq_range_high)])
+      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
+      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
       dpa.ComputeMoveLists()
       all_dpas.append(dpa)
@@ -445,9 +452,13 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
+        low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
+        high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
         self.assertTrue(dpa.CheckInterference(
             sas_uut_active_grants=grant_info,
-            margin_db=dpa_config['movelistMargin']))
+            margin_db=dpa_config['movelistMargin'],
+            channel=(low_freq_mhz, high_freq_mhz),
+            do_abs_check_single_uut=(num_peer_sases==0)))
       if len(current_active_dpas) == len(all_dpas):
         break
       time.sleep(config['pauseTime'])
@@ -785,6 +796,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'domainProxies': list,
             'dpas': list
         })
+    num_peer_sases = len(config['sasTestHarnessConfigs'])
     # SAS UUT loads DPAs and is informed they are all inactive.
     self._sas_admin.TriggerLoadDpas()
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
@@ -821,13 +833,15 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           conditional_registration_data=domain_proxy_config['conditionalRegistrationData'])
       domain_proxies.append(domain_proxy)
 
-    # Trigger, wait and download FAD records from SAS UUT and test harnesses.
-    sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+    sas_uut_fad = None
     test_harness_fads = []
-    for test_harness in test_harnesses:
-      test_harness_fads.append(
-          getFullActivityDumpSasTestHarness(
-              test_harness.getSasTestHarnessInterface()))
+    if num_peer_sases:
+      # Trigger, wait and download FAD records from SAS UUT and test harnesses.
+      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+      for test_harness in test_harnesses:
+        test_harness_fads.append(
+            getFullActivityDumpSasTestHarness(
+                test_harness.getSasTestHarnessInterface()))
 
     # Trigger CPAS.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -855,4 +869,5 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for dpa, dpa_config in zip(all_dpas, config['dpas']):
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
-          margin_db=dpa_config['movelistMargin']))
+          margin_db=dpa_config['movelistMargin'],
+          do_abs_check_single_uut=(num_peer_sases==0)))

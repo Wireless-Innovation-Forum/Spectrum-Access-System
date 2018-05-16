@@ -13,6 +13,7 @@
 #    limitations under the License.
 
 import json
+import numbers
 import time
 import os
 from reference_models.common import mpool
@@ -191,6 +192,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.num_peer_sases = len(config['sasTestHarnessConfigs'])
     logging.info("Running test type '%s' with %d SAS test harnesses.",
                  self.test_type, self.num_peer_sases)
+    self.sas_uut_fad = None
+    self.test_harness_fads = []
 
     logging.info("Creating domain proxies.")
     for domain_proxy in config['domainProxyConfigs']:
@@ -281,7 +284,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
         grid_points = geoutils.GridPolygon(
-            gwpz_record['zone']['features'][0]['geometry'], res_arcsec=2)
+            gwpz_record['zone']['features'][0]['geometry'], res_arcsec=1)
         gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote(
             [(pt[1], pt[0]) for pt in grid_points])
 
@@ -472,11 +475,12 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     for active_dpa in self.active_dpas:
       dpa_config = self.config['dpas'][active_dpa['dpaId']]
       dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
+      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
+      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
       dpa.ComputeMoveLists()
       # Check SAS UUT authorized grants do not exceed allowed threshold as calculated by the DPA reference model.
-      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
-      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
@@ -593,8 +597,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           ppa_ap_iap_ref_values = self.ppa_ap_iap_ref_values_list[index]
         else:
-          ppa_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_PPA_DBM_PER_RBW)] * len(ppa_aggr_interference)
-        # Compare the interference values calculated from both models.
+          ppa_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_PPA_DBM_PER_RBW)
+        # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(ppa_ap_iap_ref_values, ppa_aggr_interference, 'area')
 
 
@@ -609,8 +613,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           gwpz_ap_iap_ref_values = self.gwpz_ap_iap_ref_values_list[index]
         else:
-          gwpz_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_GWPZ_DBM_PER_RBW)] * len(gwpz_aggr_interference)
-        # Compare the interference values calculated from both models.
+          gwpz_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_GWPZ_DBM_PER_RBW)
+        # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(gwpz_ap_iap_ref_values, gwpz_aggr_interference, 'area')
 
     # Calculate and compare the interference value for FSS site.
@@ -634,9 +638,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             fss_cochannel_ap_iap_ref_values = self.fss_cochannel_ap_iap_ref_values_list[index]
             fss_blocking_ap_iap_ref_values = self.fss_blocking_ap_iap_ref_values_list[index]
           else:
-            fss_cochannel_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_FSS_CO_CHANNEL_DBM_PER_RBW)] * len(fss_cochannel_aggr_interference)
-            fss_blocking_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)] * len(fss_blocking_aggr_interference)
-          # Check and compare interference for FSS site.
+            fss_cochannel_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_CO_CHANNEL_DBM_PER_RBW)
+            fss_blocking_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)
+          # Check and compare interference for FSS entity
           self.compareIapAndAggregateResults(fss_cochannel_ap_iap_ref_values, fss_cochannel_aggr_interference,'point')
           self.compareIapAndAggregateResults(fss_blocking_ap_iap_ref_values, fss_blocking_aggr_interference,'point')
         elif (fss_low_freq >= interference.FSS_TTC_LOW_FREQ_HZ and
@@ -649,8 +653,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           if self.num_peer_sases > 0:
             fss_blocking_ap_iap_ref_values = self.fss_blocking_ap_iap_ref_values_list[index]
           else:
-            fss_blocking_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)] * len(fss_blocking_aggr_interference)
-          # Compare the interference values calculated from both models.
+            fss_blocking_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)
+          # Compare the interference values calculated from both models
           self.compareIapAndAggregateResults(fss_blocking_ap_iap_ref_values,\
               fss_blocking_aggr_interference, 'point')
 
@@ -664,8 +668,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           esc_ap_iap_ref_values = self.esc_ap_iap_ref_values_list[index]
         else:
-          esc_ap_iap_ref_values = [interference.dbToLinear(iap.THRESH_ESC_DBM_PER_RBW)] * len(esc_aggr_interference)
-        # Compare the interference values calculated from both models.
+          esc_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_ESC_DBM_PER_RBW)
+        # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(esc_ap_iap_ref_values, esc_aggr_interference, 'point')
 
   def compareIapAndAggregateResults(self, ap_iap_ref_values, aggr_interference, entity_type):
@@ -687,15 +691,25 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     match_cnt = 0 # Variable to count the number of matching interference entries
     iap_margin_lin = interference.dbToLinear(DELTA_IAP)
 
+    scalar = isinstance(ap_iap_ref_values, numbers.Number)
+
     for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
-        ref_interf_list = ap_iap_ref_values[lat_val][long_val]
-        self.assertEqual(len(interf_list), len(ref_interf_list))
-        for interf, ref_interf in zip(interf_list, ref_interf_list):
-          iter_cnt += 1
-          logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
-          if interf <= ref_interf * iap_margin_lin:
-            match_cnt += 1
+        if scalar:
+          ref_interf = ap_iap_ref_values
+          for interf in interf_list:
+            iter_cnt += 1
+            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
+            if interf <= ref_interf * iap_margin_lin:
+              match_cnt += 1
+        else:
+          ref_interf_list = ap_iap_ref_values[lat_val][long_val]
+          self.assertEqual(len(interf_list), len(ref_interf_list))
+          for interf, ref_interf in zip(interf_list, ref_interf_list):
+            iter_cnt += 1
+            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
+            if interf <= ref_interf * iap_margin_lin:
+              match_cnt += 1
 
     logging.info("Protection type: '%s'; point count: %d; match count: %d." % (entity_type, iter_cnt, match_cnt))
 
