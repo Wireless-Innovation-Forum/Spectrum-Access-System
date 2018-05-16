@@ -62,9 +62,9 @@ import sas_interface
 
 # Fake SAS server configurations.
 PORT = 9000
-CERT_FILE = 'certs/server.cert'
-KEY_FILE = 'certs/server.key'
-CA_CERT = 'certs/ca.cert'
+CERT_FILE = os.path.join('certs', 'sas.cert')
+KEY_FILE = os.path.join('certs', 'sas.key')
+CA_CERT = os.path.join('certs', 'ca.cert')
 CIPHERS = [
     'AES128-GCM-SHA256',              # TLS_RSA_WITH_AES_128_GCM_SHA256
     'AES256-GCM-SHA384',              # TLS_RSA_WITH_AES_256_GCM_SHA384
