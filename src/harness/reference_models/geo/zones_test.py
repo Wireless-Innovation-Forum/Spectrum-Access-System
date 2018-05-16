@@ -46,7 +46,7 @@ class TestZones(unittest.TestCase):
     for name, zone in z.items():
       self.assertTrue(zone.geometry.is_valid)
     self.assertAlmostEqual(z['East5'].geometry.area, 6, 1)
-    self.assertEqual(z['East5'].freqRangeMhz, [(3550, 3650)])
+    self.assertEqual(z['East5'].freqRangeMHz, [(3550, 3650)])
     self.assertEqual(z['East5'].protectionCritDbmPer10MHz, -144)
     self.assertEqual(z['East5'].refHeightMeters, 50)
     self.assertEqual(z['East5'].minAzimuthDeg, 0)
@@ -58,7 +58,7 @@ class TestZones(unittest.TestCase):
     for name, zone in z.items():
       self.assertTrue(zone.geometry.is_valid)
     self.assertAlmostEqual(z['BATH'].geometry.area, 0.0, 1)
-    self.assertEqual(z['BATH'].freqRangeMhz, [(3500, 3650)])
+    self.assertEqual(z['BATH'].freqRangeMHz, [(3500, 3650)])
     self.assertEqual(z['BATH'].protectionCritDbmPer10MHz, -144)
     self.assertEqual(z['BATH'].refHeightMeters, 30)
     self.assertEqual(z['BATH'].minAzimuthDeg, 0)
