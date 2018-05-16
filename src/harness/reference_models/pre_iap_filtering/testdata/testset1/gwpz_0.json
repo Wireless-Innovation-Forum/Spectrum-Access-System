@@ -1,25 +1,25 @@
-{  
+{
    "id":"incumbent/uls/0",
    "type":"PART_90",
-   "deploymentParam":{  
-      "operationParam":{  
-         "operationFrequencyRange":{  
+   "deploymentParam":[{
+      "operationParam":{
+         "operationFrequencyRange":{
             "lowFrequency":3650000000,
             "highFrequency":3680000000
          }
       }
-   },
-   "zone":{  
+   }],
+   "zone":{
       "type":"FeatureCollection",
-      "features":[  
-         {  
+      "features":[
+         {
             "type":"Feature",
-            "properties":{  
+            "properties":{
                "clutter":"RURAL"
             },
-            "geometry":{  
+            "geometry":{
                "type":"Polygon",
-               "coordinates":[  
+               "coordinates":[
                   [
                      [
                      40.50541, -101.48221
@@ -33,7 +33,7 @@
                      [
                          40.48978, -101.49036
                      ]
-   
+
                   ]
 
                ]
