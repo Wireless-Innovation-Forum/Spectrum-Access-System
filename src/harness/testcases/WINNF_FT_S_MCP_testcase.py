@@ -261,7 +261,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       logging.info("Injecting FSS records.")
       for fss_record in iteration_content['protectedEntities']['fssRecords']:
         try:
-          self._sas_admin.InjectFss({'record': fss_record})
+          self._sas_admin.InjectFss(fss_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
