@@ -395,7 +395,7 @@ def getCertificateFingerprint(certificate):
   return sha1_fingerprint
 
 def filterChannelsByFrequencyRange(channels, freq_range):
-  """Returns channels within given frequency range.
+  """Returns channels which partially or fully overlap with 'freq_range'.
 
   Args:
     channels: list of available channels.
@@ -405,9 +405,9 @@ def filterChannelsByFrequencyRange(channels, freq_range):
   return [
       channel for channel in channels
       if
-      freq_range['lowFrequency'] <= channel['frequencyRange']['lowFrequency']
+      channel['frequencyRange']['lowFrequency'] <= freq_range['highFrequency'] 
       and
-      channel['frequencyRange']['highFrequency'] <= freq_range['highFrequency']
+      channel['frequencyRange']['highFrequency'] >= freq_range['lowFrequency']
   ]
 
 def _orderAttributes(obj):
