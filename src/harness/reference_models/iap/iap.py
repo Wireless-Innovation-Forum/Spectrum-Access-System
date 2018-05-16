@@ -175,7 +175,7 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
               roll_of_attenuation += interf.dbToLinear(-offset - 0.5)
               lowfreq += MHZ
               offset += 1
-            roll_of_attenuation = 10 * np.log10(roll_of_attenuation / 5) - interf.IN_BAND_INSERTION_LOSS
+            roll_of_attenuation = 10 * np.log10(roll_of_attenuation / 5)
             iap_threshold_channel.append(interf.dbToLinear(interf.linearToDb(threshold) - roll_of_attenuation))
           else:
             iap_threshold_channel.append(threshold)
@@ -303,7 +303,9 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
                    + 10*np.log10(IAPBW_HZ / ESC_RBW_HZ)
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
-  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB)
+  # Final IAP protection threshold for ESC is considered after subtracting 
+  # insertion loss
+  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB + interf.IN_BAND_INSERTION_LOSS)
 
   grant_objects = data.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
 
@@ -341,8 +343,8 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
     esc_iap_threshold, data.ProtectedEntityType.ESC,
     asas_interference, aggregate_interference)
   
-  ap_iap_ref = calculatePostIapAggregateInterference(esc_iap_threshold, num_sas,
-                 asas_interference, aggregate_interference) 
+  ap_iap_ref = calculatePostIapAggregateInterference(interf.dbToLinear(esc_thresh_q),
+                 num_sas, asas_interference, aggregate_interference) 
   return ap_iap_ref 
 
 def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
@@ -399,8 +401,8 @@ def performIapForGwpz(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   pool = mpool.Pool()
   pool.map(iapPoint, protection_points)
 
-  ap_iap_ref = calculatePostIapAggregateInterference(gwpz_iap_threshold, num_sas,
-                 asas_interference, aggregate_interference) 
+  ap_iap_ref = calculatePostIapAggregateInterference(interf.dbToLinear(gwpz_thresh_q),
+                 num_sas, asas_interference, aggregate_interference) 
   return ap_iap_ref 
 
 
@@ -474,8 +476,8 @@ def performIapForPpa(protected_entity, sas_uut_fad_object, sas_th_fad_objects,
   pool = mpool.Pool()
   pool.map(iapPoint, protection_points)
 
-  ap_iap_ref = calculatePostIapAggregateInterference(ppa_iap_threshold, num_sas,
-                 asas_interference, aggregate_interference) 
+  ap_iap_ref = calculatePostIapAggregateInterference(interf.dbToLinear(ppa_thresh_q),
+                 num_sas, asas_interference, aggregate_interference) 
   return ap_iap_ref 
 
 def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
@@ -535,8 +537,8 @@ def performIapForFssCochannel(protected_entity, sas_uut_fad_object, sas_th_fad_o
     data.ProtectedEntityType.FSS_CO_CHANNEL,
     asas_interference, aggregate_interference) 
   
-  ap_iap_ref = calculatePostIapAggregateInterference(fss_cochannel_iap_threshold, num_sas,
-                 asas_interference, aggregate_interference) 
+  ap_iap_ref = calculatePostIapAggregateInterference(interf.dbToLinear(fss_cochannel_thresh_q),
+                 num_sas, asas_interference, aggregate_interference) 
   return ap_iap_ref 
 
 def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
@@ -599,8 +601,8 @@ def performIapForFssBlocking(protected_entity, sas_uut_fad_object, sas_th_fad_ob
       data.ProtectedEntityType.FSS_BLOCKING,
       asas_interference, aggregate_interference) 
 
-  ap_iap_ref = calculatePostIapAggregateInterference(fss_blocking_iap_threshold, num_sas, 
-                 asas_interference, aggregate_interference) 
+  ap_iap_ref = calculatePostIapAggregateInterference(interf.dbToLinear(THRESH_FSS_BLOCKING_DBM_PER_RBW),
+                 num_sas, asas_interference, aggregate_interference) 
   return ap_iap_ref 
 
 
