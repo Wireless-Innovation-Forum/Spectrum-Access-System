@@ -183,10 +183,10 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     num_invalid_tests = 0
 
     for test_num, request in enumerate(config):
-      logging.info("Running test number %d: %s" % (test_num, str(request)))
+      logging.info('Running test number %d: %s', test_num, str(request))
       try:
         ref_response = computePropagationAntennaModel(request)
-        logging.info("Reference response: %s") % str(ref_response))
+        logging.info('Reference response: %s', str(ref_response))
       except ValueError as e:
         logging.debug('Test # %d, Exception: %s', test_num, e)
         logging.debug('Invalid configuration: %s', request)
@@ -198,7 +198,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
 
       # Send the request to the SAS.
       sas_response = self._sas_admin.QueryPropagationAndAntennaModel(request)
-      logging.info("SAS response: %s" % str(sas_response))
+      logging.info('SAS response: %s', str(sas_response))
 
       # Check response.
       this_test_passed = False
@@ -211,7 +211,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
           else:
             this_test_passed = False
 
-      logging.info("This test passed? %s" % str(this_test_passed))
+      logging.info('This test passed? %s', str(this_test_passed))
 
       if this_test_passed:
         num_passed_tests += 1
@@ -221,6 +221,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
         self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
 
     # Outside the 'for' loop.
-    logging.info("Passed %d out of %d tests. Need %2.6f percent pass rate." % (num_passed_tests, num_tests, test_pass_threshold*100))
+    logging.info('Passed %d out of %d tests. Need %2.6f percent pass rate.',
+                 num_passed_tests, num_tests, test_pass_threshold * 100)
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
 
