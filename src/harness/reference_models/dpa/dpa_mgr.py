@@ -59,7 +59,14 @@ DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
 
+# Help routine
+class _EmptyFad(object):
+  """Helper class for representing an empty FAD."""
+  def getCbsdRecords(self):
+    return []
 
+
+# The main Dpa class representing a Dpa zone
 class Dpa(object):
   """Dynamic Protection Area.
 
@@ -83,7 +90,8 @@ class Dpa(object):
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
     catb_neighbor_dist: The CatB neighbording distance (km).
-    grants: The list of registered grants.
+    monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
+
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
     nbor_lists: A list of neighbor list (set of |CbsdGrantInfo|) per channel.
 
@@ -135,33 +143,48 @@ class Dpa(object):
                beamwidth=3,
                azimuth_range=(0, 360),
                freq_ranges_mhz=[(3550, 3650)],
-               catb_neighbor_dist=ml.CAT_B_NBRHD_DIST_DEFAULT):
+               catb_neighbor_dist=ml.CAT_B_NBRHD_DIST_DEFAULT,
+               monitor_type='esc'):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
     self.threshold = threshold
     self.radar_height = radar_height
     self.azimuth_range = azimuth_range
     self.beamwidth = beamwidth
-    self.channels = GetDpaProtectedChannels(freq_ranges_mhz)
     self.catb_neighbor_dist = catb_neighbor_dist
+    self.monitor_type = monitor_type
+    self.channels = None
     self._grants = []
-    self.has_th_grants = False
+    self._has_th_grants = False
+    self.ResetFreqRange(freq_ranges_mhz)
     self.ResetLists()
+
+  def __str__(self):
+    """Returns the DPA str."""
+    return ('Dpa(protected_points=%r, threshold=%.1f, radar_height=%.1f,'
+            'beamwidth=%.1f, azimuth_range=%r, channels=%r,'
+            'catb_neighbor_dist=%.1f, monitor_type=%r)' % (
+                self.protected_points, self.threshold, self.radar_height,
+                self.beamwidth, self.azimuth_range, self.channels,
+                self.catb_neighbor_dist, self.monitor_type))
 
   def ResetFreqRange(self, freq_ranges_mhz):
     """Reset the frequency ranges of the DPA.
+
+    If the range have changed, the move and neighbor lists are also reset.
 
     Args:
       freq_ranges_mhz: The protection frequencies (MHz) as a list of tuple
         (freq_min_mhz, freq_max_mhz) of the DPA protected frequency ranges.
     """
-    channels = GetDpaProtectedChannels(freq_ranges_mhz)
+    channels = GetDpaProtectedChannels(freq_ranges_mhz,
+                                       is_portal_dpa=(self.monitor_type=='portal'))
     if channels != self.channels:
       self.ResetLists()
     self.channels = channels
 
   def ResetLists(self):
-    """Reset move list and keep list."""
+    """Reset move list and neighbor list."""
     self.move_lists = []
     self.nbor_lists = []
 
@@ -176,26 +199,30 @@ class Dpa(object):
     """Sets the list of grants.
 
     Args:
-      sas_uut_fad: The FAD object of SAS UUT.
-      sas_th_fads: A list of FAD objects of other SAS test harness.
+      sas_uut_fad: The FAD object of SAS UUT, or None if none.
+      sas_th_fads: A list of FAD objects of other SAS test harness, or None if none.
+
     """
+    # Manages the possibility of None for the FADs.
+    if sas_uut_fad is None: sas_uut_fad = _EmptyFad()
+    if sas_th_fads is None: sas_th_fads = []
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self._grants = data.getGrantObjectsFromFAD(sas_uut_fad, sas_th_fads)
     self.ResetLists()
-    self.has_th_grants = self._DetectIfPeerSas()
+    self._has_th_grants = self._DetectIfPeerSas()
 
   def SetGrantsFromList(self, grants):
     """Sets the list of grants from a list of |data.CbsdGrantInfo|."""
     # TODO(sbdt): optim = pre-filtering of grants in global DPA neighborhood.
     self._grants = grants
     self.ResetLists()
-    self.has_th_grants = self._DetectIfPeerSas()
+    self._has_th_grants = self._DetectIfPeerSas()
 
   def ComputeMoveLists(self):
-    """Computes move/keep lists.
+    """Computes move/neighbor lists.
 
-    This routine updates the internal grants move list and neighbor list. One set of list
-    is maintained per protected channel.
+    This routine updates the internal grants move list and neighbor list.
+    One set of list is maintained per protected channel.
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
     """
@@ -324,6 +351,9 @@ class Dpa(object):
         interference. If None, use the global class level `num_iteration`.
       do_abs_check_single_uut: If True, performs check against absolute threshold instead
         of relative check against ref model, iff only SAS UUT present (no peer SAS).
+        In this mode, move list does not need to be precomputed, or grants setup,
+        (only the passed UUT active grants are used).
+
     Returns:
       True if all SAS UUT aggregated interference are within margin, False otherwise
       (ie if at least one combined protection point / azimuth fails the test).
@@ -335,26 +365,34 @@ class Dpa(object):
           return False
       return True
 
-    keep_list = self.GetKeepList(channel)
-    nbor_list = self.GetNeighborList(channel)
     if num_iter is None:
       num_iter = Dpa.num_iteration
-    # Find the keep list of TH and SAS UUT
+
+    # Find the keep list component of TH: SAS UUT and peer SASes.
+    keep_list = self.GetKeepList(channel)
     keep_list_th_other_sas = [
         grant for grant in self._grants
-        if (not grant.is_managed_grant and
-            grant in keep_list)]
+        if (not grant.is_managed_grant and grant in keep_list)]
     keep_list_th_managing_sas = [
         grant for grant in self._grants
-        if (grant.is_managed_grant and
-            grant in keep_list)]
-    keep_list_uut_managing_sas = [
-        grant for grant in sas_uut_active_grants
-        if (grant in nbor_list and
-            grant not in keep_list_th_other_sas)]
+        if (grant.is_managed_grant and grant in keep_list)]
+
+    # Find an extended keep list of UUT.
+    keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
+    # Note: other code with pre filtering could be:
+    #nbor_list = self.GetNeighborList(channel)
+    #if nbor_list:
+    #  # Slight optimization by prefiltering the ones in the nbor list.
+    #  keep_list_uut_managing_sas = [
+    #      grant for grant in sas_uut_active_grants
+    #      if (grant in nbor_list and grant not in keep_list_th_other_sas)]
+    #else:
+    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
     # Do absolute threshold in some case
     hard_threshold = None
-    if do_abs_check_single_uut and not self.has_th_grants:
+    if do_abs_check_single_uut and not self._has_th_grants:
       hard_threshold = self.threshold
 
     checkPointInterf = functools.partial(
@@ -379,12 +417,16 @@ class Dpa(object):
     return max_diff_interf <= margin_db
 
 
-def GetDpaProtectedChannels(freq_ranges_mhz):
+def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
   """ Gets protected channels list for DPA.
+
+  Note: For ESC-monitored DPA, only the highest channel below 3550MHz is
+  kept.
 
   Args:
     freq_ranges_mhz: The protection frequencies (MHz) as a list of tuple
       (freq_min_mhz, freq_max_mhz) of the DPA protected frequency ranges.
+    is_portal_dpa: True if a portal DPA, False if Coastal ESC DPA.
 
   Returns:
     A list of protected channels as a tuple (low_freq_mhz, high_freq_mhz)
@@ -396,7 +438,18 @@ def GetDpaProtectedChannels(freq_ranges_mhz):
     freqs = np.arange(min_freq, max_freq, DPA_CHANNEL_BANDWIDTH)
     for freq in freqs:
       channels.add((freq, freq + DPA_CHANNEL_BANDWIDTH))
-  return sorted(list(channels))
+  channels = sorted(list(channels))
+  if not is_portal_dpa:
+    # For ESC DPA, channels below 3550 are always ON, and only the highest one dominates.
+    idx_above_3550 = 0
+    for chan in channels:
+      if chan[0] >= 3550:
+        break
+      idx_above_3550 +=1
+    highest_channel_idx_below_3550 = max(0, idx_above_3550 - 1)
+    channels = channels[highest_channel_idx_below_3550:]
+
+  return channels
 
 
 def _CalcTestPointInterfDiff(point,
@@ -417,12 +470,17 @@ def _CalcTestPointInterfDiff(point,
   reference model keep list aggregated interference versus the blended one.
   The blended one uses the SAS UUT authorized grants that it manages, plus the CBSD
   of other SAS in the keep list.
+  Note that the "keep list" can be loosely defined as a superset of the actual
+  keep lists, including excess grants out of the neighborhood area. This routine
+  will insure that only the actual grants in the neighborhood are used for the
+  interference check.
 
   Note that this routine reduce the amount of random variation by reusing the same
   random draw for the CBSD that are shared between the two keep lists. This is done
   by using the caching engine provided by |reference_models.common.cache|.
 
   Args:
+    point: A point having attributes 'latitude' and 'longitude'.
     channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
     keep_list_th_other_sas: A list of |data.CbsdGrantInfo| for non managing SAS, as
       computed by the reference model.
@@ -481,55 +539,105 @@ def _CalcTestPointInterfDiff(point,
 
 # DPA builder routines
 ProtectionPoint = namedtuple('ProtectionPoint',
-                             ['latitude', 'longitude'])
+                             ['longitude', 'latitude'])
 
+# Caching of the extended us_border
+_us_border_ext = None
+_us_border_ext_buffer = None
 
-def _DefaultProtectionPoints(name,
+def _DefaultProtectionPoints(dpa_geometry,
                              num_pts_front_border=25,
                              num_pts_back_border=10,
                              num_pts_front_zone=10,
                              num_pts_back_zone=5,
-                             front_us_border_buffer_km=40):
+                             front_us_border_buffer_km=40,
+                             min_dist_front_border_pts_km=0.2,
+                             min_dist_back_border_pts_km=1.,
+                             min_dist_front_zone_pts_km=0.5,
+                             min_dist_back_zone_pts_km=3.):
   """Returns a default list of DPA protection points.
 
   This creates a default set of points by regular sampling of the contour and gridding
   the interior of the DPA zone. The contour and zone are separated in front and back,
   using the US border (with a buffer) as the delimitation.
+  Approximate minimum distance can be specified to avoid too many points for small
+  inland DPAs. Single point DPA are obviously protected by a single point.
 
   Args:
-    num_pts_front_border: number of points in the front border
-    num_pts_back_border: number of points in the back border
-    num_pts_front_zone: number of points in the front zone
-    num_pts_back_zone: number of points in the back zone
-    front_us_border_buffer_km: buffering of US border for delimiting front/back.
+    dpa_geometry: The DPA geometry as a |shapely.Polygon or Point|.
+    num_pts_front_border: Number of points in the front border.
+    num_pts_back_border: Number of points in the back border.
+    num_pts_front_zone: Number of points in the front zone.
+    num_pts_back_zone: Number of points in the back zone.
+    front_us_border_buffer_km: Buffering of US border for delimiting front/back.
+    min_dist_front_border_pts_km: Minimum distance between front border points (km).
+    min_dist_back_border_pts_km: Minimum distance between back border points (km).
+    min_dist_front_zone_pts_km: Minimum distance between front zone points (km).
+    min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
   """
-  us_border = zones.GetUsBorder()
-  dpa_zone = zones.GetDpaZones()[name]
+  def SampleLine(line, num_points, min_step_arcsec):
+    step = line.length / float(num_points)
+    min_step = min_step_arcsec / 3600.
+    if step < min_step:
+      num_points = max(1, int(line.length / min_step))
+      step = line.length / float(num_points)
+    return [line.interpolate(dist)
+            for dist in np.arange(0, line.length-step/2., step)]
+
+  def CvtKmToArcSec(dist_km, ref_geo):
+    EQUATORIAL_RADIUS_KM = 6378.
+    return dist_km / (EQUATORIAL_RADIUS_KM * 2 * np.pi / 360.
+                      * np.cos(ref_geo.centroid.y * np.pi / 180.)) * 3600.
+
   # Case of DPA points
-  if isinstance(dpa_zone, sgeo.Point):
-    return [ProtectionPoint(longitude=dpa_zone.x,
-                            latitude=dpa_zone.y)]
+  if isinstance(dpa_geometry, sgeo.Point):
+    return [ProtectionPoint(longitude=dpa_geometry.x, latitude=dpa_geometry.y)]
 
-  us_border_ext = us_border.buffer(front_us_border_buffer_km / 111.)
-  front_border = dpa_zone.exterior.intersection(us_border_ext)
-  back_border = dpa_zone.exterior.difference(us_border_ext)
-  front_zone = dpa_zone.intersection(us_border_ext)
-  back_zone = dpa_zone.difference(us_border_ext)
+  # Sanity checks
+  num_pts_front_border = max(num_pts_front_border, 1) # at least one
 
-  step_front_dpa_arcsec = np.sqrt(front_zone.area / num_pts_front_zone) * 3600.
-  step_back_dpa_arcsec = np.sqrt(back_zone.area / num_pts_back_zone) * 3600.
-  def SampleLine(line, num_points):
-    step = line.length / (num_points-1)
-    return [line.interpolate(dist) for dist in np.arange(0, line.length, step)]
-  return (
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(front_border, num_pts_front_border)] +
-      [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-       for pt in SampleLine(back_border, num_pts_back_border)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)] +
-      [ProtectionPoint(longitude=pt[0], latitude=pt[1])
-       for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)])
+  # Case of Polygon/MultiPolygon
+  global _us_border_ext
+  global _us_border_ext_buffer
+  if _us_border_ext is None or _us_border_ext_buffer != front_us_border_buffer_km:
+    us_border = zones.GetUsBorder()
+    _us_border_ext = us_border.buffer(CvtKmToArcSec(front_us_border_buffer_km, us_border)
+                                      / 3600.)
+    _us_border_ext_buffer = front_us_border_buffer_km
+
+  front_border = dpa_geometry.boundary.intersection(_us_border_ext)
+  back_border = dpa_geometry.boundary.difference(_us_border_ext)
+  front_zone = dpa_geometry.intersection(_us_border_ext)
+  back_zone = dpa_geometry.difference(_us_border_ext)
+
+  # Obtain an approximate grid step, insuring a minimum separation between zone points
+  step_front_dpa_arcsec = CvtKmToArcSec(min_dist_front_zone_pts_km, dpa_geometry)
+  if num_pts_front_zone != 0:
+    step_front_dpa_arcsec = max(np.sqrt(front_zone.area / num_pts_front_zone) * 3600.,
+                                step_front_dpa_arcsec)
+  step_back_dpa_arcsec = CvtKmToArcSec(min_dist_back_zone_pts_km, dpa_geometry)
+  if num_pts_back_zone != 0:
+    step_back_dpa_arcsec = max(np.sqrt(back_zone.area / num_pts_back_zone) * 3600.,
+                               step_back_dpa_arcsec)
+
+  # Obtain the number of points in the border, insuring a minimum separation
+  min_step_front_border = CvtKmToArcSec(min_dist_front_border_pts_km, dpa_geometry)
+  min_step_back_border = CvtKmToArcSec(min_dist_back_border_pts_km, dpa_geometry)
+
+  front_border_pts = [] if not front_border else [
+      ProtectionPoint(longitude=pt.x, latitude=pt.y)
+      for pt in SampleLine(front_border, num_pts_front_border, min_step_front_border)]
+  back_border_pts = [] if (not back_border or num_pts_back_border == 0) else [
+      ProtectionPoint(longitude=pt.x, latitude=pt.y)
+      for pt in SampleLine(back_border, num_pts_back_border, min_step_back_border)]
+  front_zone_pts = [] if (not front_zone or num_pts_front_zone == 0) else [
+      ProtectionPoint(longitude=pt[0], latitude=pt[1])
+      for pt in utils.GridPolygon(front_zone, step_front_dpa_arcsec)]
+  back_zone_pts = [] if (not back_zone or num_pts_back_zone == 0) else [
+      ProtectionPoint(longitude=pt[0], latitude=pt[1])
+      for pt in utils.GridPolygon(back_zone, step_back_dpa_arcsec)]
+
+  return front_border_pts + front_zone_pts + back_border_pts + back_zone_pts
 
 
 def BuildDpa(dpa_name, protection_points_method=None):
@@ -545,30 +653,45 @@ def BuildDpa(dpa_name, protection_points_method=None):
       + a path pointing to the file holding the protected points location defined as a
         geojson MultiPoint or Point geometry. The path can be either absolute or relative
         to the running script (normally the `harness/` directory).
-      + 'default <parameters>': a simple default method. Parameters is a tuple defining
+      + 'default <parameters>': A simple default method. Parameters is a tuple defining
         the number of points to use for different part of the DPA:
-          num_pts_front_border: number of points in the front border
-          num_pts_back_border: number of points in the back border
-          num_pts_front_zone: number of points in the front zone
-          num_pts_back_zone: number of points in the back zone
-          front_us_border_buffer_km: buffering of US border for delimiting front/back.
+          num_pts_front_border: Number of points in the front border
+          num_pts_back_border: Number of points in the back border
+          num_pts_front_zone: Number of points in the front zone
+          num_pts_back_zone: Number of points in the back zone
+          front_us_border_buffer_km: Buffering of US border for delimiting front/back.
+          min_dist_front_border_pts_km: Minimum distance between front border points (km).
+          min_dist_back_border_pts_km: Minimum distance between back border points (km).
+          min_dist_front_zone_pts_km: Minimum distance between front zone points (km).
+          min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
         Example of encoding:
           'default (200,50,20,5)'
-          Note the default values are (25, 10, 10, 5, 40). Only the passed parameters will
-          be redefined.
+        Note the default values are (25, 10, 10, 5, 40, 0.2, 2, 0.2, 2)
+        Only the passed parameters will be redefined.
+        The result are only approximate (actual distance and number of points may differ).
   Returns:
     A Dpa object.
   Raises:
     IOError: if the provided file cannot be found.
     ValueError: if the provided file is not a valid GeoJSON MultiPoint geometry.
   """
+  try:
+    dpa_zone = zones.GetCoastalDpaZones()[dpa_name]
+    monitor_type = 'esc'
+  except KeyError:
+    try:
+      dpa_zone = zones.GetPortalDpaZones()[dpa_name]
+      monitor_type = 'portal'
+    except KeyError:
+      raise ValueError('DPA %s not found in DPA database' % dpa_name)
+
   if not protection_points_method:
-    protection_points = _DefaultProtectionPoints(dpa_name)
+    protection_points = _DefaultProtectionPoints(dpa_zone.geometry)
   elif protection_points_method.strip().lower().startswith('default'):
     # extract optional parameters
-    params = protection_points_method.strip().lower()[len('defaults'):].strip()
+    params = protection_points_method.strip().lower()[len('default'):].strip()
     params = ast.literal_eval(params)
-    protection_points = _DefaultProtectionPoints(dpa_name, *params)
+    protection_points = _DefaultProtectionPoints(dpa_zone.geometry, *params)
   else:
     protection_points_file = protection_points_method
     if not os.path.isfile(protection_points_file):
@@ -580,21 +703,37 @@ def BuildDpa(dpa_name, protection_points_method=None):
       mpoints = sgeo.MultiPoint([mpoints])
     if not isinstance(mpoints, sgeo.MultiPoint):
       raise ValueError('Protected point definition file for DPA `%s` not a valid MultiPoint'
-                       ' geoJSON file')
+                       ' geoJSON file.')
     protection_points = [ProtectionPoint(longitude=pt.x, latitude=pt.y)
                          for pt in mpoints]
-  # TODO(sbdt): read these parameters from the newest DPA databases once published.
-  #             Note for case of OOB < 3550 with no portal, use 3540 as the min freq
-  protection_threshold = DPA_DEFAULT_THRESHOLD_PER_10MHZ
-  radar_height = 50
-  radar_beamwidth = 3
-  azimuth_range = (0, 360)
-  freq_ranges_mhz = [(3550, 3650)]
-  catb_neighbor_dist = ml.CAT_B_NBRHD_DIST_DEFAULT
+    # Check validity of points
+    if isinstance(dpa_zone, sgeo.Point):
+      if len(protection_points) != 1:
+        raise ValueError('Multiple protection points for single point DPA %s.' % dpa_name)
+      pt = sgeo.Point(protection_points[0].longitude, protection_points[0].latitude)
+      if not pt.within(dpa_zone.buffer(0.0005)):
+        raise ValueError('Point for single point DPA %s is outside zone: %.5f %.5f'
+                         % (dpa_name, pt.x, pt.y))
+    else:
+      mpoint = sgeo.MultiPoint([(pt.longitude, pt.latitude) for pt in protection_points])
+      mpoint_inside = dpa_zone.buffer(0.0005).intersection(mpoint)
+      if len(mpoint) != len(mpoint_inside):
+        raise ValueError('Some points for DPA %s are outside zone.' % dpa_name)
+
+  if not protection_points:
+    raise ValueError('No valid points generated for DPA %s.' % dpa_name)
+  # Set all DPA operational parameters
+  protection_threshold = dpa_zone.protectionCritDbmPer10MHz
+  radar_height = dpa_zone.refHeightMeters
+  radar_beamwidth = dpa_zone.antennaBeamwidthDeg
+  azimuth_range = (dpa_zone.minAzimuthDeg, dpa_zone.maxAzimuthDeg)
+  freq_ranges_mhz = dpa_zone.freqRangeMHz
+  catb_neighbor_dist = dpa_zone.catbNeighborDist
   return Dpa(protection_points,
              threshold=protection_threshold,
              radar_height=radar_height,
              beamwidth=radar_beamwidth,
              azimuth_range=azimuth_range,
              freq_ranges_mhz=freq_ranges_mhz,
-             catb_neighbor_dist=catb_neighbor_dist)
+             catb_neighbor_dist=catb_neighbor_dist,
+             monitor_type=monitor_type)

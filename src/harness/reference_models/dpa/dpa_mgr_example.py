@@ -136,3 +136,28 @@ if __name__ == '__main__':
                                     do_abs_check_single_uut=True)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+
+  # Simulate the BuildDpa feature for various types
+  print '\n-- Test Build DPAs --'
+  dpa_pt = dpa_mgr.BuildDpa('Pensacola')
+  print '**Pensacola: %dpts' % len(dpa_pt.protected_points)
+  print dpa_pt
+
+  dpa_zone = dpa_mgr.BuildDpa('East3',
+                              protection_points_method='default(4,2,1,1)')
+  print '**East3: %dpts' % len(dpa_zone.protected_points)
+  print dpa_zone
+
+  dpa_portal = dpa_mgr.BuildDpa('BATH')
+  print '**BATH: %dpts' % len(dpa_portal.protected_points)
+  print dpa_portal
+
+  dpa_inland = dpa_mgr.BuildDpa('Alameda',
+                                protection_points_method='default(1000,2000,1,1,40,0.5,2)')
+  print '**Alameda: %dpts' % len(dpa_inland.protected_points)
+  print dpa_inland
+
+  dpa_multigeo = dpa_mgr.BuildDpa('Alaska9',
+                                protection_points_method='default(10,5,2,1,40,0.5,2)')
+  print '**Alaska9: %dpts' % len(dpa_multigeo.protected_points)
+  print dpa_multigeo

@@ -451,6 +451,9 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       + the grants on the move list.
       + the grants in the neighborhood list.
   """
+  if not grants:
+    return [], []
+
   dpa_type = findDpaType(low_freq, high_freq)
   if not beamwidth: beamwidth = 360
 
