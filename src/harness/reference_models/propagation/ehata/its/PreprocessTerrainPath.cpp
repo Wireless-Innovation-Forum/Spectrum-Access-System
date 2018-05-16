@@ -1,6 +1,7 @@
 #include "math.h"
 #include "ehata.h"
 
+
 void PreprocessTerrainPath(float *pfl, float h_b__meter, float h_m__meter, InterValues *interValues)
 {
     FindAverageGroundHeight(pfl, interValues);
@@ -35,11 +36,10 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
     // ******* WinnForum change *******
     // Old code:
     //float xi = pfl[1] * 0.001;      // step size of the profile points, in km
-    //float d__km = np * xi;          // path distance, in km
     // New code:
     float xi = pfl[1] / 1000.;      // step size of the profile points, in km
-    float d__km = GetDistanceInMeters(pfl) / 1000.;
     // ******* End WinnForum change *******
+    float d__km = np * xi;
 
     int i_start, i_end;
     float sum = 0.0;

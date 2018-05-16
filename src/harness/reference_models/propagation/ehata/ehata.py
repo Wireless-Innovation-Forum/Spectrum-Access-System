@@ -84,10 +84,9 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
   Returns:
     the CBSD effective height.
   """
-
   npts = int(its_elev[0])
-  xi = its_elev[1] / 1000   # step size of the profile points, in km
-  dist_km = npts * xi         # path distance, in km
+  xi = its_elev[1] / 1000.   # step size of the profile points, in km
+  dist_km = npts * xi
   elev_cbsd = its_elev[2]
 
   if dist_km < 3.0:
