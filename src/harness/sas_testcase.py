@@ -282,6 +282,34 @@ class SasTestCase(unittest.TestCase):
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
                      frequency_range['highFrequency'])
 
+  def assertChannelsWithinFrequencyRange(self, channels, frequency_range):
+    """Checks if the frequency range of all channels is within 
+       a given input frequency range.
+
+    Args:
+      channels: A list of dictionaries containing frequencyRange,
+        which is a dictionary containing lowFrequency and highFrequency.
+      frequency_range: A dictionary containing lowFrequency and highFrequency.
+    """
+    channels.sort(
+        key=
+        lambda ch: (ch['frequencyRange']['lowFrequency'],
+                    ch['frequencyRange']['highFrequency']),
+        reverse=False)
+    for index, channel in enumerate(channels):
+      if index == 0:
+        self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+                         frequency_range['lowFrequency'])
+      else:
+        self.assertLessEqual(
+            channel['frequencyRange']['lowFrequency'],
+            channels[index - 1]['frequencyRange']['highFrequency'])
+
+    channels.sort(
+        key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse=True)
+    self.assertLessEqual(channels[0]['frequencyRange']['highFrequency'],
+                     frequency_range['highFrequency'])
+
   def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
     """Checks if the channel lies within the list of frequency ranges.
 

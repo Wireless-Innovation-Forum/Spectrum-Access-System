@@ -247,7 +247,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             for channel in channels_pal[0]))
 
     # Checks for cbsd 2 (index 1)
-    self.assertChannelsContainFrequencyRange(all_channels[1], freq_range_all)
+    self.assertChannelsWithinFrequencyRange(all_channels[1], freq_range_all)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
@@ -270,7 +270,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(channels_excluded[2]), 0)
 
     # Checks for cbsd 4 (index 3)
-    self.assertChannelsContainFrequencyRange(all_channels[3], freq_range_all_but_fss_gwbl)
+    self.assertChannelsWithinFrequencyRange(all_channels[3], freq_range_all_but_fss_gwbl)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
