@@ -305,7 +305,7 @@ def performIapForEsc(protected_entity, sas_uut_fad_object, sas_th_fad_objects):
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
   # Final IAP protection threshold for ESC is considered after subtracting 
   # insertion loss
-  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB - interf.IN_BAND_INSERTION_LOSS)
+  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB + interf.IN_BAND_INSERTION_LOSS)
 
   grant_objects = data.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
 
