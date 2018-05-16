@@ -12,15 +12,12 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Driver for access to Census tract data.
-"""
+"""Driver for access to Census tract data."""
 import json
 import os
-
 from reference_models.geo import CONFIG
 
-
-class CensusTractDriver:
+class CensusTractDriver(object):
   def __init__(self, census_tract_directory=None):
     self.SetCensusTractDirectory(census_tract_directory)
 
@@ -31,7 +28,7 @@ class CensusTractDriver:
       self._census_tract_dir = CONFIG.GetCensusTractsDir()
 
   def GetCensusTract(self, fips_code):
-    """Returns the census tract (as a Python object) for the given fips code (as a str)."""
+    """Returns the census tract (as a Python object) for the given FIPS code (as a str)."""
     fips_code = str(fips_code)
     census_tract_file_path = os.path.join(self._census_tract_dir, "%s.json" % fips_code)
     if os.path.exists(census_tract_file_path):
@@ -42,3 +39,4 @@ class CensusTractDriver:
           raise IOError('Error occurred in opening Census Tract File: %s' % census_tract_file.name)
     else:
       raise Exception("Census Tract data not found with FIPS Code: %s" % fips_code)
+
