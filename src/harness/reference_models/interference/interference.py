@@ -177,7 +177,7 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
   """Gets protected channels list.
 
   Performs 5MHz IAP channelization and returns a list of tuple containing
-  (low_freq,high_freq)
+  ,(low_freq,high_freq)
 
   Args:
     low_freq_hz: Low frequency of the protected entity(Hz).
@@ -409,46 +409,67 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
 def getFssMaskLoss(cbsd_grant, constraint):
   """Gets the FSS mask loss for a FSS blocking protection constraint."""
   # Get 50MHz offset below the lower edge of the FSS earth station
-  offset = constraint.low_frequency - 50.e6
-
+  offset = constraint.high_frequency - 50*MHZ
   # Get CBSD grant frequency range
   cbsd_freq_range = cbsd_grant.high_frequency - cbsd_grant.low_frequency
 
-  fss_mask_loss = 0
+  # Define the initial attenuation values to 0
+  fss_mask_attenuation = 0
+  fss_mask_attenuation_seg1 = 0
+  fss_mask_attenuation_seg2 = 0
+  
+  # If the grant overlap frequency lies between 3650 to 3700 MHz
+  # Segment 1 calculation is applied
+  if ( offset <= cbsd_grant.low_frequency and
+         constraint.high_frequency >= cbsd_grant.high_frequency):
+   # Calculate the total of 1MHZ frequencies present in the grant frequency range
+   num_one_mhz_bin_seg1 = cbsd_freq_range/int(MHZ)
+   # Calculate the fss_mask for every 1MHZ frequency 
+   for i in range (0, num_one_mhz_bin_seg1 - 1):
+     fss_mask_attenuation += 10 **((dbToLinear(-(constraint.high_frequency - cbsd_grant.low_frequency)  - 0.5 -i)*0.6 - 0.5)/10) 
 
-  # if lower edge of the FSS passband is less than CBSD grant
-  # lowFrequency and highFrequency
-  if (constraint.low_frequency < cbsd_grant.low_frequency and
-         constraint.low_frequency < cbsd_grant.high_frequency):
-    fss_mask_loss = 0.5
+   # Calculate the average attenuation value per MHZ
+   fss_mask_attenuation_seg1 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg1)
 
-  # if CBSD grant lowFrequency and highFrequency is less than
-  # 50MHz offset from the FSS passband lower edge
-  elif (cbsd_grant.low_frequency < offset and
-     cbsd_grant.high_frequency < offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.25)
+  # If the grant overlap frequency lies between 3550 to 3650 MHz
+  # Segment 2 calculation is applied
+  elif ((offset - 100*MHZ) <= cbsd_grant.low_frequency and
+          offset >= cbsd_grant.high_frequency):
+    fss_mask_attenuation = 0
+    # Calculate the total of 1MHZ frequencies present in the grant frequency range
+    num_one_mhz_bin_seg2 = cbsd_freq_range/int(MHZ)
+    # Calculate the fss_mask for every 1MHZ frequency
+    for i in range (0, num_one_mhz_bin_seg2 - 1):
+      fss_mask_attenuation += 10 **((dbToLinear(-(offset - cbsd_grant.low_frequency)  - 0.5 -i)*0.25 - 30.5)/10)
+    # Calculate the average attenuation value per MHZ
+    fss_mask_attenuation_seg2 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg2)
 
-  # if CBSD grant lowFrequency is less than 50MHz offset and
-  # highFrequency is greater than 50MHz offset
-  elif (cbsd_grant.low_frequency < offset and
-            cbsd_grant.high_frequency > offset):
-    low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) /
-                                                     MHZ) * 0.25)
-    fss_mask_loss = low_freq_mask_loss + linearToDb(((
-        cbsd_grant.high_frequency - offset) / MHZ) * 0.6)
+  # If the grant frequency overlaps both the segments, the overlapping
+  # range is considered and calculation is done on both segments
+  elif ((offset - 100*MHZ) <= cbsd_grant.low_frequency and
+        constraint.high_frequency >= cbsd_grant.high_frequency):
+    # Get the total of 1MHZ frequencies overlapping within the segment1 range
+    num_one_mhz_bin_seg1 = int((cbsd_grant.high_frequency - offset)/MHZ)
+    fss_mask_attenuation = 0
+    for i in range (0, num_one_mhz_bin_seg1 - 1):
+      fss_mask_attenuation += 10 **((dbToLinear(-(constraint.high_frequency - cbsd_grant.low_frequency)  - 0.5 -i)*0.6 - 0.5)/10)
+    fss_mask_attenuation_seg1 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg1)
+    fss_mask_attenuation = 0
+    # Get the total of 1MHZ frequencies overlapping within the segment2 range
+    num_one_mhz_bin_seg2 = int((offset - cbsd_grant.low_frequency)/MHZ)
+    for i in range (0, num_one_mhz_bin_seg2 - 1):
+      fss_mask_attenuation += 10 **((dbToLinear(-(offset - cbsd_grant.low_frequency)  - 0.5 -i)*0.25 - 30.5)/10) 
+    fss_mask_attenuation_seg2 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg2)
+ 
+  else:
+    print "Not in the Fss Filter Mask Range"
 
-  # if FSS Passband lower edge frequency is grater than CBSD grant
-  # lowFrequency and highFrequency and
-  # CBSD grand low and high frequencies are greater than 50MHz offset
-  elif (constraint.low_frequency > cbsd_grant.low_frequency and
-      constraint.low_frequency > cbsd_grant.high_frequency and
-      cbsd_grant.low_frequency > offset and
-             cbsd_grant.high_frequency > offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.6)
+  # Calculate the final attenuation value by adding the overlap mask values calulated
+  # in both the segments
+  fss_mask_attenuation = fss_mask_attenuation_seg1+fss_mask_attenuation_seg2
+  return fss_mask_attenuation    
 
-  return fss_mask_loss
-
-
+   
 def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   """Computes interference that a grant causes to a FSS protection point.
 
