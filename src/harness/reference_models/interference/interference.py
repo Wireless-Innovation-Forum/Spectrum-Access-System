@@ -86,7 +86,7 @@ ESC_LOW_FREQ_HZ = 3550.e6
 ESC_HIGH_FREQ_HZ = 3680.e6
 
 # ESC Channel 21 Centre Frequency
-ESC_CH21_CF_HZ = 36525.e5
+ESC_CH21_CF_HZ = 3652.5e6
 
 # One Mega Hertz
 MHZ = 1.e6
@@ -143,8 +143,12 @@ class AggregateInterferenceOutputFormat(object):
       aggregate_interference_proxy[longitude].append(interference)
       self.aggregate_interference_info[latitude] = aggregate_interference_proxy
 
+  # TODO(sbdt): remove that function and replace with the following one
   def GetAggregateInterferenceInfo(self):
     return self.aggregate_interference_info
+
+  def GetAggregateInterferenceContent(self):
+    return self.aggregate_interference_info._getvalue()
 
 
 class AggregateInterferenceManager(BaseManager):
@@ -165,7 +169,7 @@ def getInterferenceObject():
 
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
-  return 10**(x / float(10))
+  return 10**(x / 10.)
 
 
 def linearToDb(x):
@@ -541,8 +545,8 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
   return eirp_cbsd
 
 
-def computeInterference(grant, eirp, channel_constraint, fss_info=None,
-  esc_antenna_info=None, region_type=None):
+def computeInterference(grant, eirp, constraint,
+                        fss_info=None, esc_antenna_info=None, region_type=None):
   """Calculates interference caused by a grant.
 
   Utility API to get interference caused by a grant in the
@@ -551,100 +555,32 @@ def computeInterference(grant, eirp, channel_constraint, fss_info=None,
   Args:
     grant: A CBSD grant of type |data.CbsdGrantInfo|.
     eirp: The EIRP of the grant.
-    channel_constraint: A protection constraint of type |data.ProtectionConstraint|.
+    constraint: A protection constraint of type |data.ProtectionConstraint|.
     fss_info: The FSS information of type |data.FssInformation|.
     esc_antenna_info: ESC antenna information of type |data.EscInformation|.
     region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
-
   # Compute interference to FSS Co-channel protection constraint
-  if channel_constraint.entity_type is data.ProtectedEntityType.FSS_CO_CHANNEL:
+  if constraint.entity_type is data.ProtectedEntityType.FSS_CO_CHANNEL:
     interference = computeInterferenceFssCochannel(
-                     grant, channel_constraint, fss_info, eirp)
+                     grant, constraint, fss_info, eirp)
 
   # Compute interference to FSS Blocking protection constraint
-  elif channel_constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
+  elif constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
     interference = computeInterferenceFssBlocking(
-                     grant, channel_constraint, fss_info, eirp)
+                     grant, constraint, fss_info, eirp)
 
   # Compute interference to ESC protection constraint
-  elif channel_constraint.entity_type is data.ProtectedEntityType.ESC:
+  elif constraint.entity_type is data.ProtectedEntityType.ESC:
     interference = computeInterferenceEsc(
-                     grant, channel_constraint, esc_antenna_info, eirp)
+                     grant, constraint, esc_antenna_info, eirp)
 
   # Compute interference to GWPZ or PPA protection constraint
   else:
     interference = computeInterferencePpaGwpzPoint(
-                     grant, channel_constraint, GWPZ_PPA_HEIGHT,
+                     grant, constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
 
   return interference
-
-
-def convertAndSumInterference(cbsd_interference_list):
-  """Converts interference in dBm to mW to calculate aggregate interference"""
-  interferences_in_dbm = np.array(cbsd_interference_list)
-  return np.sum(dbToLinear(interferences_in_dbm))
-
-
-def aggregateInterferenceForPoint(protection_point, channels, grants,
-      fss_info, esc_antenna_info, protection_ent_type,
-      region_type, aggregate_interference):
-  """Algorithm to compute aggregate interference for protection point.
-
-  This routine is invoked to calculate aggregate interference for FSS(Co-channel
-  and blocking passband) and ESC protection points.It is also invoked for
-  protection points within PPA and GWPZ protection areas.
-
-  It updates the `aggregate_interference` dictionary object with the aggregate
-  interference (mW) for each protected channel of a protection point.
-  The dictionary format is:
-      {latitude : {longitude : [aggr_interference(mW), ..., aggr_interference(mW)]}},
-  where the inner list holds all aggregated interference for the various channels.
-
-  Args:
-    protection_point: The location of a protected entity as (longitude, latitude) tuple.
-    channels: A sequence of channels as tuple (low_freq_hz, high_freq_hz).
-    grants: An iterable of CBSD grants of type |data.CbsdGrantInfo|.
-    fss_info: The FSS information of type |data.FssInformation| (optional).
-    esc_antenna_info: ESC antenna information of type |data.EscInformation| (optional).
-    protection_ent_type: The entity type (|data.ProtectedEntityType|).
-    region: Region type of the protection point: 'URBAN', 'SUBURBAN' or 'RURAL'.
-    aggregate_interference : An object of class type |AggregateInterferenceOutputFormat|.
-  """
-  # Get all the grants inside neighborhood of the protection entity
-  grants_inside = findGrantsInsideNeighborhood(
-      grants, protection_point, protection_ent_type)
-
-  if len(grants_inside) > 0:
-    for channel in channels:
-      # Get protection constraint over 5MHz channel range
-      protection_constraint = data.ProtectionConstraint(
-          latitude=protection_point[1], longitude=protection_point[0],
-          low_frequency=channel[0], high_frequency=channel[1],
-          entity_type=protection_ent_type)
-
-      # Identify CBSD grants overlapping with frequency range of the protection entity
-      # in the neighborhood of the protection point and channel
-      neighborhood_grants = findOverlappingGrants(
-                              grants_inside, protection_constraint)
-
-      if not neighborhood_grants:
-        # As number of neighborhood grants are zero, setting
-        # aggregate_interference to '0' for a protection_constraint
-        aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-          protection_point[0], 0)
-        continue
-
-      cbsd_interference_list = []
-
-      for grant in neighborhood_grants:
-        cbsd_interference_list.append(computeInterference(
-          grant, grant.max_eirp, protection_constraint, fss_info,
-          esc_antenna_info, region_type))
-
-      aggr_interference = convertAndSumInterference(cbsd_interference_list)
-      aggregate_interference.UpdateAggregateInterferenceInfo(protection_point[1],
-          protection_point[0], aggr_interference)

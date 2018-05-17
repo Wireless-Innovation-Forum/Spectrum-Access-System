@@ -82,19 +82,19 @@ if __name__ == '__main__':
 
   sas_uut = FullActivityDump({
             'cbsd': [cbsd_0, cbsd_1, cbsd_2, cbsd_3, cbsd_4, cbsd_5, cbsd_6,cbsd_7, cbsd_8, cbsd_9, cbsd_10, cbsd_11, cbsd_12, cbsd_13, cbsd_14, cbsd_15, cbsd_16, cbsd_17, cbsd_18, cbsd_19],
-            'esc_sensor': [], 
-            'zone': []
-          })  
-  sas_th1 = FullActivityDump({
-            'cbsd': [cbsd_20], 
             'esc_sensor': [],
             'zone': []
-          }) 
+          })
+  sas_th1 = FullActivityDump({
+            'cbsd': [cbsd_20],
+            'esc_sensor': [],
+            'zone': []
+          })
   sas_th2 = FullActivityDump({
-            'cbsd': [cbsd_22, cbsd_23], 
+            'cbsd': [cbsd_22, cbsd_23],
             'esc_sensor': [],
             'zone': [],
-          })  
+          })
   pal_records = [pal_0, pal_1, pal_2, pal_3]
   fss_records = [fss_0, fss_1]
   esc_records = [esc_0]
@@ -116,33 +116,38 @@ if __name__ == '__main__':
     fss_ttc_flag = fss_record['ttc']
 
     # FSS Passband is between 3600 and 4200
-    if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and 
-              fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
-      fss_cochannel_allowed_interference = iap.performIapForFssCochannel(fss_record, sas_uut, sas_th_fad_objects)
+    if (fss_low_freq >= interf.FSS_LOW_FREQ_HZ and
+        fss_low_freq < interf.CBRS_HIGH_FREQ_HZ):
+      fss_cochannel_allowed_interference = iap.performIapForFssCochannel(
+          fss_record, sas_uut, sas_th_fad_objects)
       print('$$$$ IAP Reference Model Output for FSS Co-Channel: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(fss_cochannel_allowed_interference))
-      fss_blocking_allowed_interference = iap.performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
+            str(fss_cochannel_allowed_interference))
+      fss_blocking_allowed_interference = iap.performIapForFssBlocking(
+          fss_record, sas_uut, sas_th_fad_objects)
       print('$$$$ IAP Reference Model Output for FSS Blocking: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(fss_blocking_allowed_interference))
+            str(fss_blocking_allowed_interference))
     # FSS Passband is between 3700 and 4200 and TT&C flag is set to TRUE
-    elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and 
-            fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
-            fss_ttc_flag is True):
-      fss_blocking_allowed_interference = iap.performIapForFssBlocking(fss_record, sas_uut, sas_th_fad_objects)
+    elif (fss_low_freq >= interf.FSS_TTC_LOW_FREQ_HZ and
+          fss_high_freq <= interf.FSS_TTC_HIGH_FREQ_HZ and
+          fss_ttc_flag is True):
+      fss_blocking_allowed_interference = iap.performIapForFssBlocking(
+          fss_record, sas_uut, sas_th_fad_objects)
       print('$$$$ IAP Reference Model Output for FSS Blocking: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(fss_blocking_allowed_interference))
+            str(fss_blocking_allowed_interference))
   for esc_record in esc_records:
     esc_allowed_interference = iap.performIapForEsc(esc_record, sas_uut, sas_th_fad_objects)
     print('$$$$ IAP Reference Model Output for ESC: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(esc_allowed_interference))
+          str(esc_allowed_interference))
   for gwpz_record in gwpz_records:
-    gwpz_allowed_interference = iap.performIapForGwpz(gwpz_record, sas_uut, sas_th_fad_objects)
+    gwpz_allowed_interference = iap.performIapForGwpz(
+        gwpz_record, sas_uut, sas_th_fad_objects)
     print('$$$$ IAP Reference Model Output for GWPZ: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(gwpz_allowed_interference))
+          str(gwpz_allowed_interference))
   for ppa_record in ppa_records:
-    ppa_allowed_interference = iap.performIapForPpa(ppa_record, sas_uut, sas_th_fad_objects, pal_records)
+    ppa_allowed_interference = iap.performIapForPpa(
+        ppa_record, sas_uut, sas_th_fad_objects, pal_records)
     print('$$$$ IAP Reference Model Output for PPA: AP_IAP_Ref (mW/IAPBW)$$$$' +
-                                                    str(ppa_allowed_interference))
+          str(ppa_allowed_interference))
 
   end_time = time.time()
 

@@ -25,6 +25,8 @@ from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
      makePpaAndPalRecordsConsistent, getCertFilename
+import signal
+
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
 def getSasUutClaimedPpaBoundaryFilePath(config_filename):
