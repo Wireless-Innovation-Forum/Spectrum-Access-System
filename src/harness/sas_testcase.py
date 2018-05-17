@@ -283,8 +283,8 @@ class SasTestCase(unittest.TestCase):
                      frequency_range['highFrequency'])
 
   def assertChannelsWithinFrequencyRange(self, channels, frequency_range):
-    """Checks if the frequency range of all channels is within 
-       a given input frequency range.
+    """Checks if the frequency range of all channels are within 
+       a given frequency range.
 
     Args:
       channels: A list of dictionaries containing frequencyRange,
