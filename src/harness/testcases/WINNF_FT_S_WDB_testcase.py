@@ -287,10 +287,11 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Create the URLs for the CPI PKI files.
 
     # Create the main CPI database file.
-    cpis_keys = ['cpiId', 'status', 'publicKeyIdentifier']
+    columns = ['cpiId', 'status', 'publicKeyIdentifier']
     ensureFileDirectoryExists(config['cpiDatabaseConfig']['indexPath'])
     with open(config['cpiDatabaseConfig']['indexPath'], 'w+') as output_file:
       csv_writer = csv.writer(output_file, delimiter=',')
+      csv_writer.writerow(columns)
       for cpi in config['cpiDatabaseConfig']['cpis']:
         pki_url = cpi_database.getBaseUrl(
         ) + '/' + cpi['publicKeyIdentifierFile']
