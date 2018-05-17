@@ -218,6 +218,7 @@ class DomainProxy(object):
     """
     # Concatenate all the heartbeat request of CBSD into single request.
     heartbeat_requests = []
+    heartbeat_responses = []
     for cbsd_object_item in self.cbsd_objects.itervalues():
       heartbeat_requests.extend(cbsd_object_item.constructHeartbeatRequestForAllActiveGrants())
 
@@ -240,7 +241,7 @@ class DomainProxy(object):
         self._mapResponseCodeToGrantState(heartbeat_response['response']['responseCode'],
                                          grant_object)
 
-      return heartbeat_requests, heartbeat_responses
+    return heartbeat_requests, heartbeat_responses
 
   def _mapResponseCodeToGrantState(self, heartbeat_response_code, grant_object):
     """Maps the heartbeat response and update the grant state."""
