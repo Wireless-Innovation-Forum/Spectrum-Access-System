@@ -22,7 +22,8 @@ from shapely import ops
 from reference_models.common import mpool
 from reference_models.antenna import antenna
 from reference_models.geo import drive
-from reference_models.geo import vincenty, nlcd
+from reference_models.geo import vincenty
+from reference_models.geo import nlcd
 from reference_models.geo import utils
 from reference_models.propagation import wf_hybrid
 import util
@@ -38,15 +39,17 @@ def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, an
   """Returns Vertex Point Distance for each azimuth with signal strength greater
   than or equal to Threshold"""
   db_loss = np.zeros(len(latitudes), dtype=np.float64)
+  lat_cbsd, lon_cbsd  = install_param['latitude'], install_param['longitude']
+  height_cbsd = install_param['height']
   for index, lat_lon in enumerate(zip(latitudes, longitudes)):
     lat, lon = lat_lon
-    db_loss[index] = wf_hybrid.CalcHybridPropagationLoss(install_param['latitude'],
-                                                         install_param['longitude'],
-                                                         install_param['height'],
-                                                         lat, lon, RX_HEIGHT,
-                                                         install_param['indoorDeployment'],
-                                                         reliability=0.5,
-                                                         region=cbsd_region_type).db_loss
+    db_loss[index] = wf_hybrid.CalcHybridPropagationLoss(
+        lat_cbsd, lon_cbsd, height_cbsd,
+        lat, lon, RX_HEIGHT,
+        cbsd_indoor=install_param['indoorDeployment'],
+        reliability=0.5,
+        region=cbsd_region_type,
+        is_height_cbsd_amsl=(install_param['heightType'] == 'AMSL')).db_loss
 
   index_cond, = np.where(
     (eirp_capability - install_param['antennaGain'] + antenna_gain) - db_loss
@@ -78,10 +81,11 @@ def _GetPolygon(device):
                                                            distances, azimuth)
                                    for azimuth in azimuths])
   # Compute the Gain for all Direction
+  # Note: some parameters are optional for catA, so falling back to None (omni) then
   antenna_gains = antenna.GetStandardAntennaGains(
       azimuths,
       install_param['antennaAzimuth'] if 'antennaAzimuth' in install_param else None,
-      install_param['antennaBeamwidth'],
+      install_param['antennaBeamwidth'] if 'antennaBeamwidth' in install_param else None,
       install_param['antennaGain'])
   # Get the Nlcd Region Type for Cbsd
   cbsd_region_code = drive.nlcd_driver.GetLandCoverCodes(install_param['latitude'],
@@ -95,13 +99,13 @@ def _GetPolygon(device):
                                                  cbsd_region_type,
                                                  radial_lats, radial_lons)
        for radial_lats, radial_lons, ant_gain in zip(latitudes,
-                                                 longitudes,
-                                                 antenna_gains)])
+                                                     longitudes,
+                                                     antenna_gains)])
   # Generating lat, lon for Contour
   contour_lats, contour_lons, _ = zip(*[
       vincenty.GeodesicPoint(install_param['latitude'], install_param['longitude'],
-                             dist, az)
-      for dist, az in zip(contour_dists_km, azimuths)])
+                             dists, az)
+      for dists, az in zip(contour_dists_km, azimuths)])
 
   return sgeo.Polygon(zip(contour_lons, contour_lats)).buffer(0)
 
