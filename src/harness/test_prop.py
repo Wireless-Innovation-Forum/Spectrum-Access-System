@@ -28,7 +28,7 @@ if nStatistics==1:
 else:
     dReliability = 0.5
 
-nScenarioIdx = 0
+nScenarioIdx = 9
 dCbsdAgl = 10.00
 dUeAgl = 50.00
 if (nScenarioIdx == 0):
@@ -151,7 +151,16 @@ if (nScenarioIdx < 9):
     p2dLossRuralStat1 = db_lossR1[0]
     p2dCbsdUeAngle = db_lossU0[1][1]
     p2dUeCbsdAngle = db_lossU0[1][3]
-    print("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f",%(p2dLossUrbanStat0,p2dLossUrbanStat1,p2dLossSuburbanStat0, p2dLossSuburbanStat1, p2dLossRuralStat0, p2dLossRuralStat1, p2dCbsdUeAngle, p2dUeCbsdAngle))
+    print(p2dLossUrbanStat0)
+    print(p2dLossUrbanStat1)
+    print(p2dLossSuburbanStat0)
+    print(p2dLossSuburbanStat1)
+    print(p2dLossRuralStat0)
+    print(p2dLossRuralStat1)
+    print(p2dCbsdUeAngle)
+    print(p2dUeCbsdAngle)
+else:
+    #print("%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f",%(p2dLossUrbanStat0,p2dLossUrbanStat1,p2dLossSuburbanStat0, p2dLossSuburbanStat1, p2dLossRuralStat0, p2dLossRuralStat1, p2dCbsdUeAngle, p2dUeCbsdAngle))
 #corner cases for NLCD
 #pdSubTileLat=38+(0.005/3600.00)
 #pdSubTileLon=-78.00
@@ -165,87 +174,87 @@ if (nScenarioIdx < 9):
 
 #p2nNlcdValue, p2sRegion = NLCD_GRID.computeGridNlcd(pdSubTileLat,pdSubTileLon)
 #np.savetxt('GridPoints_NLCD_P.txt', p2nNlcdValue, delimiter=',',fmt='%d')
-if ((nScenarioIdx == 9) | (nScenarioIdx == 11)):
-    for i in range(0,nRow):
-        #i = 42
-        dUeLat = pdSubTileLat[i]
-        for j in range(0,nCol):
-            dUeLon = pdSubTileLon[j]
-            print i,j
-            #j = 91
-            #if (nBELOW_EIGHTYKM_ONLY == 1):
-            dist, _, _ = vincenty.GeodesicDistanceBearing(dApLat, dApLon, dUeLat, dUeLon)
+    if ((nScenarioIdx == 9) | (nScenarioIdx == 11)):
+        for i in range(0,nRow):
+            #i = 42
+            dUeLat = pdSubTileLat[i]
+            for j in range(0,nCol):
+                dUeLon = pdSubTileLon[j]
+                print i,j
+                #j = 91
+                #if (nBELOW_EIGHTYKM_ONLY == 1):
+                dist, _, _ = vincenty.GeodesicDistanceBearing(dApLat, dApLon, dUeLat, dUeLon)
 
-            #if (((i==0) &(j==0)) | ((nBELOW_EIGHTYKM_ONLY == 1) & (dist > 80.0)))://itm 200 km grid if used for hybrid
-            if (((i == 0) & (j == 0)) | (dist == 0.0)):
-                p2dLossUrbanStat0[i][j] = 0
-                p2dLossUrbanStat1[i][j] = 0
-                p2dLossSuburbanStat0[i][j] = 0
-                p2dLossSuburbanStat1[i][j] = 0
-                p2dLossRuralStat0[i][j] = 0
-                p2dLossRuralStat1[i][j] = 0
-                p2dCbsdUeAngle[i][j] = 0
-                p2dUeCbsdAngle[i][j] = 0
-            else:
-                db_lossU0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='URBAN')
-                db_lossU1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl, reliability=dReliability, cbsd_indoor='True',region='URBAN')
-                db_lossS0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='SUBURBAN')
-                db_lossS1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=dReliability, cbsd_indoor='True',region='SUBURBAN')
-                db_lossR0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=0.5, cbsd_indoor='True', region='RURAL')
-                db_lossR1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=dReliability, cbsd_indoor='True', region='RURAL')
-                p2dLossUrbanStat0[i][j] = db_lossU0[0]
-                p2dLossUrbanStat1[i][j]  = db_lossU1[0]
-                p2dLossSuburbanStat0[i][j] = db_lossS0[0]
-                p2dLossSuburbanStat1[i][j] = db_lossS1[0]
-                p2dLossRuralStat0[i][j] = db_lossR0[0]
-                p2dLossRuralStat1[i][j] = db_lossR1[0]
-                p2dCbsdUeAngle[i][j] = db_lossU0[1][1]
-                p2dUeCbsdAngle[i][j] = db_lossU0[1][3]
-elif (nScenarioIdx == 10):
-    for i in range(0, nRow):
-        for j in range(0, nCol):
-            print i, j
-            #j=2
-            #i=113
-            #j=550
-            #i=112
-            #j=538
-            #i=112
-            #j=551
-            #i=112
-            #j=553
-            dUeLat = p2dGridPointLat[i][j]
-            dUeLon = p2dGridPointLon[i][j]
-            dist, _, _ = vincenty.GeodesicDistanceBearing(dApLat, dApLon, dUeLat, dUeLon)
-            if (dist==0):
-                p2dLossUrbanStat0[i][j] = 0
-                p2dLossUrbanStat1[i][j] = 0
-                p2dLossSuburbanStat0[i][j] = 0
-                p2dLossSuburbanStat1[i][j] = 0
-                p2dLossRuralStat0[i][j] = 0
-                p2dLossRuralStat1[i][j] = 0
-                p2dCbsdUeAngle[i][j] = 0
-                p2dUeCbsdAngle[i][j] = 0
-            else:
-                db_lossU0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='URBAN')
-                db_lossU1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl, reliability=dReliability, cbsd_indoor='True',region='URBAN')
-                db_lossS0= wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=0.5, cbsd_indoor='True',region='SUBURBAN')
-                db_lossS1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=dReliability, cbsd_indoor='True',region='SUBURBAN')
-                db_lossR0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='RURAL')
-                db_lossR1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=dReliability,cbsd_indoor='True', region='RURAL')
-                p2dLossUrbanStat0[i][j] = db_lossU0[0]
-                p2dLossUrbanStat1[i][j]  = db_lossU1[0]
-                p2dLossSuburbanStat0[i][j] = db_lossS0[0]
-                p2dLossSuburbanStat1[i][j] = db_lossS1[0]
-                p2dLossRuralStat0[i][j] = db_lossR0[0]
-                p2dLossRuralStat1[i][j] = db_lossR1[0]
-                p2dCbsdUeAngle[i][j] = db_lossU0[1][1]
-                p2dUeCbsdAngle[i][j] = db_lossU0[1][3]
-np.savetxt('GridPoints_Rem_Ur0P.txt', p2dLossUrbanStat0, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_Rem_Ur1P.txt', p2dLossUrbanStat1, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_Rem_Sb0P.txt', p2dLossSuburbanStat0, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_Rem_Sb1P.txt', p2dLossSuburbanStat1, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_Rem_Rr0P.txt', p2dLossRuralStat0, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_Rem_Rr1P.txt', p2dLossRuralStat1, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_CbsdUeP.txt', p2dCbsdUeAngle, delimiter=',', fmt='%.6f')
-np.savetxt('GridPoints_UeCbsdP.txt', p2dUeCbsdAngle, delimiter=',', fmt='%.6f')
+                #if (((i==0) &(j==0)) | ((nBELOW_EIGHTYKM_ONLY == 1) & (dist > 80.0)))://itm 200 km grid if used for hybrid
+                if (((i == 0) & (j == 0)) | (dist == 0.0)):
+                    p2dLossUrbanStat0[i][j] = 0
+                    p2dLossUrbanStat1[i][j] = 0
+                    p2dLossSuburbanStat0[i][j] = 0
+                    p2dLossSuburbanStat1[i][j] = 0
+                    p2dLossRuralStat0[i][j] = 0
+                    p2dLossRuralStat1[i][j] = 0
+                    p2dCbsdUeAngle[i][j] = 0
+                    p2dUeCbsdAngle[i][j] = 0
+                else:
+                    db_lossU0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='URBAN')
+                    db_lossU1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl, reliability=dReliability, cbsd_indoor='True',region='URBAN')
+                    db_lossS0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='SUBURBAN')
+                    db_lossS1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=dReliability, cbsd_indoor='True',region='SUBURBAN')
+                    db_lossR0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=0.5, cbsd_indoor='True', region='RURAL')
+                    db_lossR1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=dReliability, cbsd_indoor='True', region='RURAL')
+                    p2dLossUrbanStat0[i][j] = db_lossU0[0]
+                    p2dLossUrbanStat1[i][j]  = db_lossU1[0]
+                    p2dLossSuburbanStat0[i][j] = db_lossS0[0]
+                    p2dLossSuburbanStat1[i][j] = db_lossS1[0]
+                    p2dLossRuralStat0[i][j] = db_lossR0[0]
+                    p2dLossRuralStat1[i][j] = db_lossR1[0]
+                    p2dCbsdUeAngle[i][j] = db_lossU0[1][1]
+                    p2dUeCbsdAngle[i][j] = db_lossU0[1][3]
+    elif (nScenarioIdx == 10):
+        for i in range(0, nRow):
+            for j in range(0, nCol):
+                print i, j
+                #j=2
+                #i=113
+                #j=550
+                #i=112
+                #j=538
+                #i=112
+                #j=551
+                #i=112
+                #j=553
+                dUeLat = p2dGridPointLat[i][j]
+                dUeLon = p2dGridPointLon[i][j]
+                dist, _, _ = vincenty.GeodesicDistanceBearing(dApLat, dApLon, dUeLat, dUeLon)
+                if (dist==0):
+                    p2dLossUrbanStat0[i][j] = 0
+                    p2dLossUrbanStat1[i][j] = 0
+                    p2dLossSuburbanStat0[i][j] = 0
+                    p2dLossSuburbanStat1[i][j] = 0
+                    p2dLossRuralStat0[i][j] = 0
+                    p2dLossRuralStat1[i][j] = 0
+                    p2dCbsdUeAngle[i][j] = 0
+                    p2dUeCbsdAngle[i][j] = 0
+                else:
+                    db_lossU0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='URBAN')
+                    db_lossU1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl, reliability=dReliability, cbsd_indoor='True',region='URBAN')
+                    db_lossS0= wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon, dUeAgl,reliability=0.5, cbsd_indoor='True',region='SUBURBAN')
+                    db_lossS1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=dReliability, cbsd_indoor='True',region='SUBURBAN')
+                    db_lossR0 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=0.5, cbsd_indoor='True',region='RURAL')
+                    db_lossR1 = wf_hybrid.CalcHybridPropagationLoss(dApLat, dApLon, dCbsdAgl, dUeLat, dUeLon,dUeAgl, reliability=dReliability,cbsd_indoor='True', region='RURAL')
+                    p2dLossUrbanStat0[i][j] = db_lossU0[0]
+                    p2dLossUrbanStat1[i][j]  = db_lossU1[0]
+                    p2dLossSuburbanStat0[i][j] = db_lossS0[0]
+                    p2dLossSuburbanStat1[i][j] = db_lossS1[0]
+                    p2dLossRuralStat0[i][j] = db_lossR0[0]
+                    p2dLossRuralStat1[i][j] = db_lossR1[0]
+                    p2dCbsdUeAngle[i][j] = db_lossU0[1][1]
+                    p2dUeCbsdAngle[i][j] = db_lossU0[1][3]
+    np.savetxt('GridPoints_Rem_Ur0P.txt', p2dLossUrbanStat0, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_Rem_Ur1P.txt', p2dLossUrbanStat1, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_Rem_Sb0P.txt', p2dLossSuburbanStat0, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_Rem_Sb1P.txt', p2dLossSuburbanStat1, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_Rem_Rr0P.txt', p2dLossRuralStat0, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_Rem_Rr1P.txt', p2dLossRuralStat1, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_CbsdUeP.txt', p2dCbsdUeAngle, delimiter=',', fmt='%.6f')
+    np.savetxt('GridPoints_UeCbsdP.txt', p2dUeCbsdAngle, delimiter=',', fmt='%.6f')
