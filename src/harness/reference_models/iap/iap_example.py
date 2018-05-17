@@ -29,8 +29,8 @@ from reference_models.interference import interference as interf
 from full_activity_dump import FullActivityDump
 
 # Number of processes for parallel execution
-#NUM_OF_PROCESS = 30
-NUM_OF_PROCESS = 3
+NUM_OF_PROCESS = 30
+
 if __name__ == '__main__':
 
   # Configure the multiprocess pool
