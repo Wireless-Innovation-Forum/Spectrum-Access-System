@@ -81,7 +81,7 @@ class SasTestHarnessServer(threading.Thread):
     self.base_url = host_name + ':' + str(port)
     #BaseURL format should be https: // < hostname >: < port > / versionX.Y
     self.http_server_url = 'https://' + host_name + ':' + str(port) + '/' + self.sas_version
-    self.dump_path = self.__generateTempDirectory()
+    self.dump_path = self.generateTempDirectory()
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
     self.key_file = key_file if key_file is not None else DEFAULT_KEY_FILE
     self.ca_cert_file = ca_cert_file if ca_cert_file is not None else DEFAULT_CA_CERT
@@ -105,7 +105,7 @@ class SasTestHarnessServer(threading.Thread):
   def __del__(self):
     self.cleanDumpFiles()
 
-  def __generateTempDirectory(self):
+  def generateTempDirectory(self):
     """ This method will generate a random directory using the current timestamp.
 
     The relative path of the directory is

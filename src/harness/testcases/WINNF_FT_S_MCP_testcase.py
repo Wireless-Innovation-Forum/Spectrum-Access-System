@@ -26,7 +26,8 @@ from full_activity_dump import FullActivityDump
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 import common_strings
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
-        loadConfig, makePpaAndPalRecordsConsistent
+        loadConfig, makePpaAndPalRecordsConsistent, getFqdnLocalhost, \
+        getUnusedPort, getCertFilename
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
         generatePpaRecords, generateCbsdReferenceId
 from reference_models.dpa import dpa_mgr
@@ -963,20 +964,20 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert'),
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
+        'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_iteration_0_sas_test_harness_0
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'server.cert'),
-        'serverKey': os.path.join('certs', 'server.key'),
-        'caCert': os.path.join('certs', 'ca.cert'),
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas_1.cert'),
+        'serverKey': getCertFilename('sas_1.key'),
+        'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_iteration_0_sas_test_harness_1
     }
 
@@ -1011,10 +1012,10 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     config = {
         'iterationData': [iteration0_config, iteration1_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
-        'domainProxyConfigs': [{'cert': os.path.join('certs', 'domain_proxy.cert'),
-                                'key': os.path.join('certs', 'domain_proxy.key')},
-                               {'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-                                'key': os.path.join('certs', 'domain_proxy_1.key')}],
+        'domainProxyConfigs': [{'cert': getCertFilename('domain_proxy.cert'),
+                                'key': getCertFilename('domain_proxy.key')},
+                               {'cert': getCertFilename('domain_proxy_1.cert'),
+                                'key': getCertFilename('domain_proxy_1.key')}],
         'dpas': dpa_generic
     }
     writeConfig(filename, config)

@@ -19,12 +19,12 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 
 from request_handler import HTTPError
 import security_testcase
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig,\
-getCertificateFingerprint
+from util import winnforum_testcase, configurable_testcase, writeConfig, \
+  loadConfig, getCertificateFingerprint, getCertFilename
 from request_handler import HTTPError
 
-SAS_CERT = os.path.join('certs', 'sas.cert')
-SAS_KEY = os.path.join('certs', 'sas.key')
+SAS_CERT = getCertFilename('sas.cert')
+SAS_KEY = getCertFilename('sas.key')
 SAS_TEST_HARNESS_URL = 'https://fake.sas.url.not.used/v1.2'
 
 class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
@@ -90,8 +90,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("unrecognized_sas.cert"),
-        'sasKey': self.getCertFilename("unrecognized_sas.key")
+        'sasCert': getCertFilename("unrecognized_sas.cert"),
+        'sasKey': getCertFilename("unrecognized_sas.key")
     }
     writeConfig(filename, config)
 
@@ -116,8 +116,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas_corrupted.cert"),
-        'sasKey': self.getCertFilename("sas_corrupted.key")
+        'sasCert': getCertFilename("sas_corrupted.cert"),
+        'sasKey': getCertFilename("sas_corrupted.key")
     }
     writeConfig(filename, config)
 
@@ -141,8 +141,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas_self_signed.cert"),
-        'sasKey': self.getCertFilename("sas.key")
+        'sasCert': getCertFilename("sas_self_signed.cert"),
+        'sasKey': getCertFilename("sas.key")
     }
     writeConfig(filename, config)
 
@@ -166,8 +166,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("non_cbrs_signed_sas.cert"),
-        'sasKey': self.getCertFilename("non_cbrs_signed_sas.key")
+        'sasCert': getCertFilename("non_cbrs_signed_sas.cert"),
+        'sasKey': getCertFilename("non_cbrs_signed_sas.key")
     }
     writeConfig(filename, config)
 
@@ -191,8 +191,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path 
 
     config = {
-        'sasCert': self.getCertFilename("sas_wrong_type.cert"),
-        'sasKey': self.getCertFilename("device_a.key")
+        'sasCert': getCertFilename("sas_wrong_type.cert"),
+        'sasKey': getCertFilename("device_a.key")
     }
     writeConfig(filename, config)
 
@@ -229,8 +229,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for blacklisted SAS cert/key path.
 
     config = {
-        'sasCert': self.getCertFilename("sas_blacklisted.cert"),
-        'sasKey': self.getCertFilename("sas_blacklisted.key")
+        'sasCert': getCertFilename("sas_blacklisted.cert"),
+        'sasKey': getCertFilename("sas_blacklisted.key")
     }
     writeConfig(filename, config)
 
@@ -263,8 +263,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas_expired.cert"),
-        'sasKey': self.getCertFilename("sas_expired.key")
+        'sasCert': getCertFilename("sas_expired.cert"),
+        'sasKey': getCertFilename("sas_expired.key")
     }
     writeConfig(filename, config)
 
@@ -288,8 +288,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas.cert"),
-        'sasKey': self.getCertFilename("sas.key")
+        'sasCert': getCertFilename("sas.cert"),
+        'sasKey': getCertFilename("sas.key")
     }
     writeConfig(filename, config)
 
@@ -318,8 +318,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas.cert"),
-        'sasKey': self.getCertFilename("sas.key")
+        'sasCert': getCertFilename("sas.cert"),
+        'sasKey': getCertFilename("sas.key")
     }
     writeConfig(filename, config)
 
@@ -348,8 +348,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas_inapplicable.cert"),
-        'sasKey': self.getCertFilename("sas.key")
+        'sasCert': getCertFilename("sas_inapplicable.cert"),
+        'sasKey': getCertFilename("sas.key")
     }
     writeConfig(filename, config)
 
@@ -382,8 +382,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for SAS cert/key path.
 
     config = {
-        'sasCert': self.getCertFilename("sas_cert_from_revoked_ca.cert"),
-        'sasKey': self.getCertFilename("sas_cert_from_revoked_ca.key")
+        'sasCert': getCertFilename("sas_cert_from_revoked_ca.cert"),
+        'sasKey': getCertFilename("sas_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 
@@ -408,8 +408,8 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for SAS cert/key path
 
     config = {
-        'sasCert': self.getCertFilename("sas.cert"),
-        'sasKey': self.getCertFilename("sas.key")
+        'sasCert': getCertFilename("sas.cert"),
+        'sasKey': getCertFilename("sas.key")
     }
     writeConfig(filename, config)
 
@@ -430,11 +430,15 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
   def generate_SSS_18_default_config(self, filename):
     """ Generates the WinnForum configuration for SSS.18 """
     # Create the actual config for SAS cert/key path
-    
-    valid_cert_key_pair = {'cert' :self.getCertFilename("sas.cert"),
-                           'key' :self.getCertFilename("sas.key")}
-    invalid_cert_key_pair = {'cert' :self.getCertFilename("sas_expired.cert"),
-                             'key' :self.getCertFilename("sas_expired.key")}
+
+    valid_cert_key_pair = {
+        'cert': getCertFilename('sas.cert'),
+        'key': getCertFilename('sas.key')
+    }
+    invalid_cert_key_pair = {
+        'cert': getCertFilename('sas_expired.cert'),
+        'key': getCertFilename('sas_expired.key')
+    }
 
     config = {
         'validCertKeyPair': valid_cert_key_pair,

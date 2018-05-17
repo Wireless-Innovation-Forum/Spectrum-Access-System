@@ -19,7 +19,8 @@ import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent
+  loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
+  getFqdnLocalhost, getUnusedPort, getCertFilename
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 class PpaProtectionTestcase(McpXprCommonTestcase):
@@ -157,11 +158,11 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
         'domainProxyConfigs': [{
-            'cert': os.path.join('certs', 'domain_proxy.cert'),
-            'key': os.path.join('certs', 'domain_proxy.key')
+            'cert': getCertFilename('domain_proxy.cert'),
+            'key': getCertFilename('domain_proxy.key')
         }, {
-            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-            'key': os.path.join('certs', 'domain_proxy_1.key')
+            'cert': getCertFilename('domain_proxy_1.cert'),
+            'key': getCertFilename('domain_proxy_1.key')
         }]
     }
     writeConfig(filename, config)
@@ -330,20 +331,20 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # SAS Test Harnesses configuration
     sas_test_harness_0_config = {
         'sasTestHarnessName': 'SAS-TH-1',
-        'hostName': 'localhost',
-        'port': 9001,
-        'serverCert': os.path.join('certs', 'sas.cert'),
-        'serverKey': os.path.join('certs', 'sas.key'),
-        'caCert': os.path.join('certs', 'ca.cert'),
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
+        'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_sas_test_harness_0
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
-        'hostName': 'localhost',
-        'port': 9002,
-        'serverCert': os.path.join('certs', 'sas_1.cert'),
-        'serverKey': os.path.join('certs', 'sas_1.key'),
-        'caCert': os.path.join('certs', 'ca.cert'),
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas_1.cert'),
+        'serverKey': getCertFilename('sas_1.key'),
+        'caCert': getCertFilename('ca.cert'),
         'initialFad': dump_records_sas_test_harness_1
     }
 
@@ -370,11 +371,11 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
         'domainProxyConfigs': [{
-             'cert': os.path.join('certs', 'domain_proxy.cert'),
-             'key': os.path.join('certs', 'domain_proxy.key')
+             'cert': getCertFilename('domain_proxy.cert'),
+             'key': getCertFilename('domain_proxy.key')
         }, {
-            'cert': os.path.join('certs', 'domain_proxy_1.cert'),
-            'key': os.path.join('certs', 'domain_proxy_1.key')}
+            'cert': getCertFilename('domain_proxy_1.cert'),
+            'key': getCertFilename('domain_proxy_1.key')}
         ]
     }
     writeConfig(filename, config)

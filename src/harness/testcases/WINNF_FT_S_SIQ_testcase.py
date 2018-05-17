@@ -18,8 +18,9 @@ import os
 import sas
 import sas_testcase
 import logging
-from util import winnforum_testcase, writeConfig,loadConfig, configurable_testcase ,getRandomLatLongInPolygon, \
-  makePpaAndPalRecordsConsistent,filterChannelsByFrequencyRange, addCbsdIdsToRequests
+from util import winnforum_testcase, writeConfig,loadConfig, configurable_testcase, \
+  getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent,filterChannelsByFrequencyRange, \
+  addCbsdIdsToRequests, getCertFilename
 import time
 
 class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
@@ -413,8 +414,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     SAS rejects the request by sending responseCode = 103 or 105 
     """
     # Load device_a [cert|key]
-    device_a_cert = os.path.join('certs', 'device_a.cert')
-    device_a_key = os.path.join('certs', 'device_a.key')
+    device_a_cert = getCertFilename('device_a.cert')
+    device_a_key = getCertFilename('device_a.key')
 
     # Register the first device with certificates
     device_a = json.load(
@@ -430,8 +431,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Load device_c [cert|key]
-    device_c_cert = os.path.join('certs', 'device_c.cert')
-    device_c_key = os.path.join('certs', 'device_c.key')
+    device_c_cert = getCertFilename('device_c.cert')
+    device_c_key = getCertFilename('device_c.key')
 
     # Register the second device with certificates
     device_c = json.load(

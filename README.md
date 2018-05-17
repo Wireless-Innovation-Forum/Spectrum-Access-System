@@ -108,6 +108,10 @@ support for advanced functools such as OrderedDict and lru_cache memoization.
 This Python library can be installed with <code>pip</code>. It provides
 information on running processes and system (RAM,..).
 
+* portpicker (https://pypi.org/project/portpicker)
+
+This Python library can be installed with <code>pip</code>. It allows to
+find unused network ports on a host.
 
 For all these Python packages, a good way to test their installation is to
 run the Python interpreter and then issue an <code>import xyz</code> command,

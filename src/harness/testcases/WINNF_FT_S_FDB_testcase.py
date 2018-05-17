@@ -22,7 +22,8 @@ from database import DatabaseServer
 from datetime import date, datetime, time, timedelta
 from pytz import timezone
 from time import sleep, strftime, gmtime
-from util import configurable_testcase, writeConfig, loadConfig, addCbsdIdsToRequests
+from util import configurable_testcase, writeConfig, loadConfig, \
+  addCbsdIdsToRequests, getFqdnLocalhost, getUnusedPort,getCertFilename
 
 # Time zone in which CPAS is scheduled
 CPAS_TIME_ZONE = 'US/Pacific'
@@ -56,8 +57,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Exclusion zone database test harness configuration
     exclusion_zone_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_1', 'FDB_1_ground_based_exclusion_zones.kml'),
         'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_1', 'modified_FDB_1_ground_based_exclusion_zones.kml')
@@ -289,8 +290,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # DPA database test harness configuration
     dpa_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_2', 'FDB_2_Portal_DPAs.kml'),
         'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_2', 'modified_FDB_2_Portal_DPAs.kml')
@@ -604,8 +605,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     fss_database_config = {
-        'hostName': 'localhost',
-        'port': 8003,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/rest/fss/v1/allsitedata',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_3', 'FDB_3_default_allsitedata')
     }
@@ -691,8 +692,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # FSS database test harness configuration
     fss_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_4', 'FDB_4_default_allsitedata.json'),
         'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_4', 'modified_FDB_4_default_allsitedata.json')
@@ -917,8 +918,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # FSS database test harness configuration
     # The database File FDB_5_default_allsitedata.json has FSS sites information.
     fss_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'FDB_5_default_allsitedata.json')
     }
@@ -928,8 +929,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # WAKEENEY,KS with Unique System Identifier as 959499
     # NEW YORK, NY with Unique System Identifier as 954597
     gwbl_database_config = {
-        'hostName': 'localhost',
-        'port': 8001,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_5', 'l_micro.zip')
     }
@@ -1082,8 +1083,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # FSS database test harness configuration.
     # The database File FDB_6_default_allsitedata.json has FSS sites information.
     fss_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'FDB_6_default_allsitedata.json')
     }
@@ -1096,8 +1097,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # The GWBL database file modified_l_micro.zip has updated locations for the above
     # mentioned GWBLs (GWBLs are moved further than 150 km from the FSS sites).
     gwbl_database_config = {
-        'hostName': 'localhost',
-        'port': 8001,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata', 'fdb_6', 'l_micro.zip'),
         'modifiedFilePath': os.path.join('testcases', 'testdata', 'fdb_6', 'modified_l_micro.zip')
@@ -1303,8 +1304,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # FSS database test harness configuration
     fss_database_config = {
-        'hostName': 'localhost',
-        'port': 8000,
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
         'fileUrl': '/db_sync',
         'filePath': os.path.join('testcases', 'testdata',  'fdb_8', 'FDB_8_default_allsitedata.json')
     }

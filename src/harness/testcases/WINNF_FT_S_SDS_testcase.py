@@ -18,11 +18,11 @@ import os
 import time
 from OpenSSL import SSL
 from util import winnforum_testcase, configurable_testcase, \
-  writeConfig, loadConfig
+  writeConfig, loadConfig, getCertFilename
 
 
-DOMAIN_PROXY_CERT = os.path.join('certs', 'domain_proxy.cert')
-DOMAIN_PROXY_KEY = os.path.join('certs', 'domain_proxy.key')
+DOMAIN_PROXY_CERT = getCertFilename('domain_proxy.cert')
+DOMAIN_PROXY_KEY = getCertFilename('domain_proxy.key')
 
 
 class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
@@ -86,8 +86,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("unrecognized_domain_proxy.cert"),
-      'domainProxyKey': self.getCertFilename("unrecognized_domain_proxy.key")
+      'domainProxyCert': getCertFilename("unrecognized_domain_proxy.cert"),
+      'domainProxyKey': getCertFilename("unrecognized_domain_proxy.key")
     }
     writeConfig(filename, config)
 
@@ -106,8 +106,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("domain_proxy_corrupted.cert"),
-      'domainProxyKey': self.getCertFilename("domain_proxy_corrupted.key")
+      'domainProxyCert': getCertFilename("domain_proxy_corrupted.cert"),
+      'domainProxyKey': getCertFilename("domain_proxy_corrupted.key")
     }
     writeConfig(filename, config)
 
@@ -126,8 +126,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("domain_proxy_self_signed.cert"),
-      'domainProxyKey': self.getCertFilename("domain_proxy.key")
+      'domainProxyCert': getCertFilename("domain_proxy_self_signed.cert"),
+      'domainProxyKey': getCertFilename("domain_proxy.key")
     }
     writeConfig(filename, config)
 
@@ -146,8 +146,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("non_cbrs_signed_domain_proxy.cert"),
-      'domainProxyKey': self.getCertFilename("non_cbrs_signed_domain_proxy.key")
+      'domainProxyCert': getCertFilename("non_cbrs_signed_domain_proxy.cert"),
+      'domainProxyKey': getCertFilename("non_cbrs_signed_domain_proxy.key")
     }
     writeConfig(filename, config)
 
@@ -166,8 +166,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-      'domainProxyCert': self.getCertFilename("domain_proxy_wrong_type.cert"),
-      'domainProxyKey': self.getCertFilename("server.key")
+      'domainProxyCert': getCertFilename("domain_proxy_wrong_type.cert"),
+      'domainProxyKey': getCertFilename("server.key")
 
     }
     writeConfig(filename, config)
@@ -200,8 +200,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for blacklisted domain proxy cert/key path.
 
     config = {
-        'domainProxyCert': self.getCertFilename("domain_proxy_blacklisted.cert"),
-        'domainProxyKey': self.getCertFilename("domain_proxy_blacklisted.key")
+        'domainProxyCert': getCertFilename("domain_proxy_blacklisted.cert"),
+        'domainProxyKey': getCertFilename("domain_proxy_blacklisted.key")
     }
     writeConfig(filename, config)
 
@@ -226,8 +226,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-        'domainProxyCert': self.getCertFilename("domain_proxy_expired.cert"),
-        'domainProxyKey': self.getCertFilename("domain_proxy_expired.key")
+        'domainProxyCert': getCertFilename("domain_proxy_expired.cert"),
+        'domainProxyKey': getCertFilename("domain_proxy_expired.key")
     }
     writeConfig(filename, config)
 
@@ -262,8 +262,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the actual config for domain proxy cert/key path
 
     config = {
-        'domainProxyCert': self.getCertFilename("domain_proxy_inapplicable.cert"),
-        'domainProxyKey': self.getCertFilename("domain_proxy.key")
+        'domainProxyCert': getCertFilename("domain_proxy_inapplicable.cert"),
+        'domainProxyKey': getCertFilename("domain_proxy.key")
     }
     writeConfig(filename, config)
 
@@ -298,8 +298,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Create the configuration for domain proxy cert/key path.
 
     config = {
-        'domainProxyCert': self.getCertFilename("domain_proxy_cert_from_revoked_ca.cert"),
-        'domainProxyKey': self.getCertFilename("domain_proxy_cert_from_revoked_ca.key")
+        'domainProxyCert': getCertFilename("domain_proxy_cert_from_revoked_ca.cert"),
+        'domainProxyKey': getCertFilename("domain_proxy_cert_from_revoked_ca.key")
     }
     writeConfig(filename, config)
 
@@ -334,8 +334,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
 
     # Get the absolute path of short lived certificate.
-    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
-    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+    domain_proxy_cert = getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
@@ -380,8 +380,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
 
     # Get the absoulte path of short lived certificate.
-    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
-    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+    domain_proxy_cert = getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], domain_proxy_cert,
@@ -429,8 +429,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     self.createShortLivedCertificate("DomainProxy", device_cert_name, cert_duration_minutes)
 
     # Get the absolute path of short lived certificate created.
-    domain_proxy_cert = self.getCertFilename(device_cert_name + ".cert")
-    domain_proxy_key = self.getCertFilename(device_cert_name + ".key")
+    domain_proxy_cert = getCertFilename(device_cert_name + ".cert")
+    domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
     self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],domain_proxy_cert,
