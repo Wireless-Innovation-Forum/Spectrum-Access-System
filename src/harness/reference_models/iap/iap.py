@@ -303,9 +303,9 @@ def performIapForEsc(esc_record, sas_uut_fad_object, sas_th_fad_objects):
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_objects: A list of FAD objects from SAS Test Harness
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   esc_thresh_q = THRESH_ESC_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / ESC_RBW_HZ)
 
@@ -355,9 +355,9 @@ def performIapForGwpz(gwpz_record, sas_uut_fad_object, sas_th_fad_objects):
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_objects: A list of FAD objects from SAS Test Harness
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   gwpz_thresh_q = THRESH_GWPZ_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / GWPZ_RBW_HZ)
 
@@ -422,9 +422,9 @@ def performIapForPpa(ppa_record, sas_uut_fad_object, sas_th_fad_objects,
     sas_th_fad_object: A list of FAD objects from SAS Test Harness
     pal_records: PAL records associated with a PPA protection area
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   ppa_thresh_q = THRESH_PPA_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / PPA_RBW_HZ)
 
@@ -501,9 +501,9 @@ def performIapForFssCochannel(fss_record, sas_uut_fad_object, sas_th_fad_objects
     sas_uut_fad_object: A FAD object from SAS UUT
     sas_th_fad_object: A list of FAD objects from SAS Test Harness
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   fss_cochannel_thresh_q = (THRESH_FSS_CO_CHANNEL_DBM_PER_RBW
                             + interf.linearToDb(IAPBW_HZ / FSS_RBW_HZ))
@@ -560,9 +560,9 @@ def performIapForFssBlocking(fss_record, sas_uut_fad_object, sas_th_fad_objects)
     sas_uut_fad_object: FAD object from SAS UUT
     sas_th_fad_object: a list of FAD objects from SAS Test Harness
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
@@ -634,9 +634,9 @@ def calculatePostIapAggregateInterference(q_p, num_sas,
       but for all CBSDs managed by all SASes.
 
   Returns:
-    ap_iap_ref: The post-IAP |interf.AggregateInterferenceOutputFormat| allowed
-      interference, in the format of:
-      {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+    ap_iap_ref: The post-IAP allowed interference, as a dict formatted as:
+        {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
+      where the list holds all values per channel of that protection point.
   """
   ap_iap_ref = {}
   # Extract dictionary from DictProxy object using _getvalue object method
