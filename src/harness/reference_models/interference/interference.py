@@ -86,7 +86,7 @@ ESC_LOW_FREQ_HZ = 3550.e6
 ESC_HIGH_FREQ_HZ = 3680.e6
 
 # ESC Channel 21 Centre Frequency
-ESC_CH21_CF_HZ = 36525.e5
+ESC_CH21_CF_HZ = 3652.5e6
 
 # One Mega Hertz
 MHZ = 1.e6
@@ -165,7 +165,7 @@ def getInterferenceObject():
 
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
-  return 10**(x / float(10))
+  return 10**(x / 10.)
 
 
 def linearToDb(x):
@@ -432,8 +432,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   # highFrequency is greater than 50MHz offset
   elif (cbsd_grant.low_frequency < offset and
             cbsd_grant.high_frequency > offset):
-    low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) /
-                                                     MHZ) * 0.25)
+    low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) / MHZ) * 0.25)
     fss_mask_loss = low_freq_mask_loss + linearToDb(((
         cbsd_grant.high_frequency - offset) / MHZ) * 0.6)
 
@@ -521,7 +520,7 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
 
 
 def computeInterference(grant, eirp, channel_constraint, fss_info=None,
-  esc_antenna_info=None, region_type=None):
+                        esc_antenna_info=None, region_type=None):
   """Calculates interference caused by a grant.
 
   Utility API to get interference caused by a grant in the

@@ -19,6 +19,8 @@ the utility routines for creating them for example from FAD objects.
 """
 from collections import namedtuple
 import enum
+import numpy as np
+
 from reference_models.geo import drive
 from sas_test_harness import generateCbsdReferenceId
 
@@ -133,6 +135,32 @@ def getFssInfo(fss_record):
   fss_high_freq = fss_deploy_params['operationFrequencyRange']['highFrequency']
   fss_freq_range = (fss_low_freq, fss_high_freq)
   return fss_point, fss_info, fss_freq_range
+
+
+def getEscInfo(esc_record):
+  """Extracts ESC information from a ESC record.
+
+  Args:
+    esc_record: A ESC record (dict of schema |EscSensorRecord|)).
+  Returns:
+    A tuple of:
+      esc_point: A (longitude, latitude) tuple.
+      esc_info: A |EscInformation| tuple.
+  """
+  esc_install_params = esc_record['installationParam']
+
+  esc_point = (esc_install_params['longitude'], esc_install_params['latitude'])
+  ant_pattern = esc_install_params['azimuthRadiationPattern']
+  ant_pattern = sorted([(pat['angle'], pat['gain']) for pat in ant_pattern])
+  angles, gains = zip(*ant_pattern)
+  if angles != tuple(range(360)):
+    raise ValueError('ESC pattern inconsistent')
+  ant_gain_pattern = np.array(gains)
+  esc_info = EscInformation(
+      antenna_height=esc_install_params['height'],
+      antenna_azimuth=esc_install_params['antennaAzimuth'],
+      antenna_gain_pattern=ant_gain_pattern)
+  return esc_point, esc_info
 
 
 def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
