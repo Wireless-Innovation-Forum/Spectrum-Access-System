@@ -298,10 +298,10 @@ class SasTestCase(unittest.TestCase):
         reverse=False)
     for index, channel in enumerate(channels):
       if index == 0:
-        self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+        self.assertGreaterEqual(channel['frequencyRange']['lowFrequency'],
                          frequency_range['lowFrequency'])
       else:
-        self.assertLessEqual(
+        self.assertGreaterEqual(
             channel['frequencyRange']['lowFrequency'],
             channels[index - 1]['frequencyRange']['highFrequency'])
 
