@@ -132,7 +132,6 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
   neighbor_grants = interf.findOverlappingGrants(
       grants_inside,
       protection_constraint)
-  num_unsatisfied_grants = len(neighbor_grants)
 
   if not neighbor_grants:
     for j in xrange(len(channels)):
@@ -143,7 +142,8 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
     return
 
   # Get number of grants, IAP protection threshold and fairshare per channel.
-  #
+  num_unsatisfied_grants = len(neighbor_grants)
+
   # Initialize list of aggregate interference from all the grants
   # (including grants from managing and peer SAS )
   aggr_interf = [0] * len(channels)
@@ -184,7 +184,7 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
           lowfreq += MHZ
           offset += 1
         roll_of_attenuation = interf.linearToDb(roll_of_attenuation / 5.)
-        eff_threshold = interf.dbToLinear(interf.linearToDb(threshold) -
+        iap_threshold = interf.dbToLinear(interf.linearToDb(threshold) -
                                           roll_of_attenuation)
 
     # Calculate the fair share per channel based on unsatisfied grants
