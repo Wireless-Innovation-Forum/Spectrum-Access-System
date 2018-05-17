@@ -505,11 +505,13 @@ def performIapForFssCochannel(fss_record, sas_uut_fad_object, sas_th_fad_objects
       interference, in the format of:
       {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
   """
-  fss_thresh_q = THRESH_FSS_CO_CHANNEL_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / FSS_RBW_HZ)
+  fss_cochannel_thresh_q = (THRESH_FSS_CO_CHANNEL_DBM_PER_RBW
+                            + interf.linearToDb(IAPBW_HZ / FSS_RBW_HZ))
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
-  fss_cochannel_iap_threshold = interf.dbToLinear(fss_thresh_q - MARGIN_FSS_CO_CHANNEL_DB)
+  fss_cochannel_iap_threshold = interf.dbToLinear(fss_cochannel_thresh_q
+                                                  - MARGIN_FSS_CO_CHANNEL_DB)
 
   grants = data.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
 
