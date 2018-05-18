@@ -367,8 +367,9 @@ class SasTestCase(unittest.TestCase):
 
     Triggers PPA creation to the SAS UUT. Checks the status of the PPA creation
     by invoking the PPA creation status API. If the status is complete then the
-    PPA ID is returned. The status is checked every 10 secs for upto 2 hours.
-    Exception is raised if the PPA creation returns error or times out.
+    PPA ID is returned. The status is checked every 10 seconds until it is completed.
+    - Fails if it gives an error code 20 times in a row.
+    - If the status is not changed within 2 hours it will throw an exception.
 
     Args:
       ppa_creation_request: A dictionary with a multiple key-value pair containing the
@@ -398,7 +399,18 @@ class SasTestCase(unittest.TestCase):
     signal.alarm(7200)
 
     # Check the Status of most recent ppa creation every 10 seconds.
-    while not self._sas_admin.GetPpaCreationStatus()['completed']:
+    error_counter = 0
+    is_completed = False
+    while not is_completed:
+      try:
+        is_completed = self._sas_admin.GetPpaCreationStatus()['completed']
+        error_counter = 0
+      # If any error 20 times in a row, fail.
+      except Exception as ex:
+        logging.info('Exception: %s ', ex.message)
+        error_counter += 1
+        if error_counter == 20:
+          self.fail('Encountered errors 20 times. Failing immediately.')
       time.sleep(10)
 
     # Additional check to ensure whether PPA creation status has error.
@@ -453,4 +465,3 @@ class SasTestCase(unittest.TestCase):
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
     signal.alarm(0)
-
