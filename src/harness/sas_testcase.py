@@ -90,6 +90,8 @@ class SasTestCase(unittest.TestCase):
       A list of cbsd_ids.
     """
 
+    if not registration_request:
+      return []
     for device in registration_request:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})

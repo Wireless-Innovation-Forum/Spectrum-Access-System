@@ -83,6 +83,10 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
       grants, protection_point, protection_ent_type)
 
   if not grants_inside:
+    # We need one entry per channel, even if they're all zero.
+    for channel in channels:
+      aggr_interference.UpdateAggregateInterferenceInfo(
+          protection_point[1], protection_point[0], 0)
     return
 
   for channel in channels:
