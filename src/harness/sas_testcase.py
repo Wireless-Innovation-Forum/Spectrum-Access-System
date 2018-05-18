@@ -291,12 +291,12 @@ class SasTestCase(unittest.TestCase):
       channels: A list of dictionaries containing frequencyRange,
         which is a dictionary containing lowFrequency and highFrequency.
       frequency_range: A dictionary containing lowFrequency and highFrequency.
-      constrain_low: boolean indicating if the low edge frequency of the channel
-        at the lowest frequency end need to be constrained on the low frequency
-        of the frequency range.
-      constrain_high: boolean indicating if the high edge frequency of the channel
-        at the highest frequency end need to be constrained on the high frequency
-        of the frequency range.
+      constrain_low: A Boolean flag indicating if the lower frequency edge of the
+        channel with the lowest frequency segment need to be constrained to be 
+        equal to the lower frequency edge of the frequency range.
+      constrain_high: A Boolean flag indicating if the upper frequency edge of the
+        channel with the highest frequency segment need to be constrained to be 
+        equal to the upper frequency edge of the frequency range.
     """
     channels.sort(
         key=
