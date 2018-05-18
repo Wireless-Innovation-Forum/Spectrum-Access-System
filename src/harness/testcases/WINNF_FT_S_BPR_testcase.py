@@ -281,6 +281,7 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
       p = config['grantRequests'][i]['operationParam']['maxEirp']
       # Calculate PL
       cbsd_height = cbsd_information['installationParam']['height']
+      cbsd_height_type = cbsd_information['installationParam']['heightType']
       is_cbsd_indoor = cbsd_information['installationParam']['indoorDeployment']
       closest_point_height = 1.5  # According to the spec
       freq_mhz = 3625.  # Always in all SAS
@@ -293,7 +294,8 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
           closest_point_height,
           reliability=0.5,
           cbsd_indoor=is_cbsd_indoor,
-          freq_mhz=freq_mhz)
+          freq_mhz=freq_mhz,
+          is_height_cbsd_amsl=(cbsd_height_type == 'AMSL'))
       pl = propagation.db_loss
       logging.info('Propagation - db_loss: %f', propagation.db_loss)
       bearing = propagation.incidence_angles.hor_cbsd

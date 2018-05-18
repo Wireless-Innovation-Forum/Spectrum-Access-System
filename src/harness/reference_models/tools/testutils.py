@@ -71,7 +71,8 @@ class FakePropagationPredictor(object):
                reliability=0.5,
                freq_mhz=3625.,
                its_elev=None,
-               region=None):
+               region=None,
+               is_height_cbsd_amsl=False):
     """See `CalcItmPropagationLoss()` for specification."""
     if self.dist_type == 'L1':
       dist = np.abs(lat_rx - lat_cbsd) + np.abs(lon_rx - lon_cbsd)
@@ -121,32 +122,34 @@ class FakeInterferenceCalculator(object):
     self.propag_predictor = propag_predictor
 
   def __call__(self, grant, max_eirp, constraint, fss_info=None,
-                   esc_antenna_info=None, region_type=None):
+               esc_antenna_info=None, region_type=None):
 
     # Calculate the db loss and incidence angles using the FakePropagationPredictor
-    db_loss, incidence_angles, _ = self.propag_predictor(grant.latitude,
-        grant.longitude, grant.height_agl, constraint.latitude, constraint.longitude,
+    db_loss, incidence_angles, _ = self.propag_predictor(
+        grant.latitude, grant.longitude, grant.height_agl,
+        constraint.latitude, constraint.longitude,
         self.antenna_height, grant.indoor_deployment, reliability=-1)
     # Calculate the interference based on the protection entity type and calculate
     # eirp and interference
     if (constraint.entity_type is data.ProtectedEntityType.GWPZ_AREA or
       constraint.entity_type is data.ProtectedEntityType.PPA_AREA):
       eirp = interf.getEffectiveSystemEirp(max_eirp, grant.antenna_gain,
-         self.ant_gain, self.reference_bw)
+                                           self.ant_gain, self.reference_bw)
       interference = eirp - db_loss
-      return interference
     else:
       if constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
         eirp = interf.getEffectiveSystemEirp(max_eirp, grant.antenna_gain,
-               self.ant_gain, (grant.high_frequency - grant.low_frequency))
+                                             self.ant_gain,
+                                             (grant.high_frequency - grant.low_frequency))
         # default 0.5 fss mask loss considered for FSS blocking
         interference = eirp - db_loss - 0.5
       else:
         # interference calculation for FSS Co-channel and ESC
         eirp = interf.getEffectiveSystemEirp(max_eirp, grant.antenna_gain,
-            self.ant_gain, self.reference_bw)
+                                             self.ant_gain, self.reference_bw)
         interference = eirp - db_loss - interf.IN_BAND_INSERTION_LOSS
-      return interference
+
+    return interference
 
 
 def MakeLatLngPairs(n_pairs,
