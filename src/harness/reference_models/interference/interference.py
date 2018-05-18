@@ -409,7 +409,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
     num_one_mhz_bin_seg1 = cbsd_freq_range/int(MHZ)
     # Calculate the fss_mask for every 1MHZ frequency
     for i in range (0, num_one_mhz_bin_seg1 ):
-      fss_mask_attenuation +=10**(-(((constraint.high_frequency - offset)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
+      fss_mask_attenuation +=10**(-(((constraint.high_frequency - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
     # Calculate the average attenuation value per MHZ
     fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
 
