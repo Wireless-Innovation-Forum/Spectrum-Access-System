@@ -12,6 +12,23 @@ rm -f index.txt
 touch index.txt
 echo -n 'unique_subject = no' > index.txt.attr
 
+function gen_cbsd_cert {
+    # Called with:
+    # $1 = device name (For example device_a)
+    # $2 = fcc_id (For example test_fcc_id_a)
+    # $3 = serial number (For example test_serial_number_a)
+    echo "Generating cert $1 for device with fcc_id=$2 sn=$3"
+    openssl req -new -newkey rsa:2048 -nodes \
+        -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+        -out $1.csr -keyout $1.key \
+        -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=$2:$3"
+        echo "Signing cert $1 for device with fcc_id=$2 sn=$3"
+    openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in $1.csr \
+        -out $1.cert -outdir ./root \
+        -policy policy_anything -extensions cbsd_req_$1_sign -config ../../../cert/openssl.cnf \
+        -batch -notext -create_serial -utf8 -days 1185 -md sha384
+}
+
 function gen_corrupt_cert()
 {
   cp $1 $3
@@ -138,23 +155,16 @@ openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_1.csr \
 
 # Generate normal operation device certificate/key.
 echo -e "\n\nGenerate 'certs for devices' certificate/key"
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out device_a.csr -keyout device_a.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id_a:test_serial_number_a"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \
-    -out device_a.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_device_a_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
-
-openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
-    -out device_c.csr -keyout device_c.key \
-    -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id_c:test_serial_number_c"
-openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_c.csr \
-    -out device_c.cert -outdir ./root \
-    -policy policy_anything -extensions cbsd_req_device_c_sign -config ../../../cert/openssl.cnf \
-    -batch -notext -create_serial -utf8 -days 1185 -md sha384
+gen_cbsd_cert device_a test_fcc_id_a test_serial_number_a
+gen_cbsd_cert device_b test_fcc_id_b test_serial_number_b
+gen_cbsd_cert device_c test_fcc_id_c test_serial_number_c
+gen_cbsd_cert device_d test_fcc_id_d test_serial_number_d
+gen_cbsd_cert device_e test_fcc_id_e test_serial_number_e
+gen_cbsd_cert device_f test_fcc_id_f test_serial_number_f
+gen_cbsd_cert device_g test_fcc_id_g test_serial_number_g
+gen_cbsd_cert device_h test_fcc_id_h test_serial_number_h
+gen_cbsd_cert device_i test_fcc_id_i test_serial_number_i
+gen_cbsd_cert device_j test_fcc_id_j test_serial_number_j
 
 echo -e "\n\nGenerate 'admin' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
@@ -450,7 +460,7 @@ openssl ca -cert non_cbrs_root_signed_sas_ca.cert -keyfile private/non_cbrs_root
     -policy policy_anything -extensions sas_req_sign -config ../../../cert/openssl.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
-# Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness 
+# Certificate for test case WINNF.FT.S.SSS.10 - Certificate of wrong type presented by SAS Test Harness
 # Creating a wrong type certificate by reusing the device_a.csr and creating a client certificate.
 echo -e "\n\nGenerate wrong type certificate/key"
 openssl ca -cert cbsd_ca.cert -keyfile private/cbsd_ca.key -in device_a.csr \

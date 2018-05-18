@@ -394,6 +394,17 @@ certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
 subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_a,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_a
 
+[ cbsd_req_device_b_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_b,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_b
+
 [ cbsd_req_device_c_sign ]
 
 subjectKeyIdentifier = hash
@@ -404,6 +415,83 @@ extendedKeyUsage = clientAuth
 certificatePolicies=@cps,ROLE_CBSD
 crlDistributionPoints=@crl_section
 subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_c,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_c
+
+[ cbsd_req_device_d_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_d,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_d
+
+[ cbsd_req_device_e_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_e,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_e
+
+[ cbsd_req_device_f_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_f,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_f
+
+[ cbsd_req_device_g_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_g,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_g
+
+[ cbsd_req_device_h_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_h,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_h
+
+[ cbsd_req_device_i_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_i,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_i
+
+[ cbsd_req_device_j_sign ]
+
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
+extendedKeyUsage = clientAuth
+certificatePolicies=@cps,ROLE_CBSD
+crlDistributionPoints=@crl_section
+subjectAltName=otherName:1.3.6.1.4.1.46609.1.4;UTF8:test_fcc_id_j,otherName:1.3.6.1.4.1.46609.1.5;UTF8:test_serial_number_j
 
 [ cbsd_req_inapplicable_sign ]
 

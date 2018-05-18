@@ -123,7 +123,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     cbsd_records_domain_proxy_0 = {
         'registrationRequests': [device_1, device_2],
         'grantRequests': [grant_request_1, grant_request_2],
-        'conditionalRegistrationData': [conditionals_device_2] 
+        'conditionalRegistrationData': [conditionals_device_2]
     }
     cbsd_records_domain_proxy_1 = {
         'registrationRequests': [device_3],
@@ -143,9 +143,9 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
-            'conditionalRegistrationData': conditionals_device_4, 
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'conditionalRegistrationData': conditionals_device_4,
+            'clientCert': getCertFilename('device_d.cert'),
+            'clientKey': getCertFilename('device_d.key')
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
@@ -355,8 +355,8 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
             'conditionalRegistrationData': conditionals_device_4,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_d.cert'),
+            'clientKey': getCertFilename('device_d.key')
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
