@@ -282,14 +282,21 @@ class SasTestCase(unittest.TestCase):
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
                      frequency_range['highFrequency'])
 
-  def assertChannelsWithinFrequencyRange(self, channels, frequency_range):
-    """Checks if the frequency range of all channels are within 
-       a given frequency range.
+  def assertChannelsOverlapFrequencyRange(self, channels, frequency_range,
+                                          constrain_low=False, constrain_high=False):
+    """Checks if the frequency range of all channels overlap
+       the given frequency range.
 
     Args:
       channels: A list of dictionaries containing frequencyRange,
         which is a dictionary containing lowFrequency and highFrequency.
       frequency_range: A dictionary containing lowFrequency and highFrequency.
+      constrain_low: boolean indicating if the low edge frequency of the channel
+        at the lowest frequency end need to be constrained on the low frequency
+        of the frequency range.
+      constrain_high: boolean indicating if the high edge frequency of the channel
+        at the highest frequency end need to be constrained on the high frequency
+        of the frequency range.
     """
     channels.sort(
         key=
@@ -298,8 +305,12 @@ class SasTestCase(unittest.TestCase):
         reverse=False)
     for index, channel in enumerate(channels):
       if index == 0:
-        self.assertGreaterEqual(channel['frequencyRange']['lowFrequency'],
-                         frequency_range['lowFrequency'])
+        if constrain_low:
+          self.assertEqual(channel['frequencyRange']['lowFrequency'],
+                           frequency_range['lowFrequency'])
+        else:
+          self.assertGreaterEqual(channel['frequencyRange']['lowFrequency'],
+                                  frequency_range['lowFrequency'])
       else:
         self.assertGreaterEqual(
             channel['frequencyRange']['lowFrequency'],
@@ -307,8 +318,12 @@ class SasTestCase(unittest.TestCase):
 
     channels.sort(
         key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse=True)
-    self.assertLessEqual(channels[0]['frequencyRange']['highFrequency'],
-                     frequency_range['highFrequency'])
+    if constrain_high:
+      self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
+                       frequency_range['highFrequency'])
+    else:
+      self.assertLessEqual(channels[0]['frequencyRange']['highFrequency'],
+                           frequency_range['highFrequency'])
 
   def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
     """Checks if the channel lies within the list of frequency ranges.

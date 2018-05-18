@@ -208,10 +208,6 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'lowFrequency': 3650000000,
         'highFrequency': 3700000000,
     }
-    freq_range_all_but_fss_gwbl = {
-        'lowFrequency': 3550000000,
-        'highFrequency': 3650000000,
-    }
     freq_range_all = {
         'lowFrequency': 3550000000,
         'highFrequency': 3700000000,
@@ -247,11 +243,15 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             for channel in channels_pal[0]))
 
     # Checks for cbsd 2 (index 1)
-    self.assertChannelsWithinFrequencyRange(all_channels[1], freq_range_all)
+    self.assertChannelsOverlapFrequencyRange(channels_low[1], freq_range_low, True, False)
+    self.assertChannelsOverlapFrequencyRange(channels_high[1], freq_range_high, False, False)
+    for channel in channels[1]:
+      self.assertLessEqual(channel['frequencyRange']['highFrequency'],
+                           freq_range_all['highFrequency'])
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
-            for channel in channels_low[1] + channels_high[1]))
+            for channel in all_channels[1]))
     self.assertFalse(
         any(channel['channelType'] == 'PAL' for channel in all_channels[1]))
 
@@ -270,7 +270,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(channels_excluded[2]), 0)
 
     # Checks for cbsd 4 (index 3)
-    self.assertChannelsWithinFrequencyRange(all_channels[3], freq_range_all_but_fss_gwbl)
+    self.assertChannelsOverlapFrequencyRange(channels_low[3], freq_range_low, True, False)
+    self.assertChannelsOverlapFrequencyRange(channels_high[3], freq_range_high, False, True)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
