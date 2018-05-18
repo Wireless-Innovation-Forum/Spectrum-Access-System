@@ -402,6 +402,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
       cbsd_ant_beamwidth = cbsd_information['installationParam'][
           'antennaBeamwidth']
       cbsd_height = cbsd_information['installationParam']['height']
+      cbsd_height_type = cbsd_information['installationParam']['heightType']
       is_cbsd_indoor = cbsd_information['installationParam']['indoorDeployment']
       freq_mhz = 3625.  # Always in all SAS
       table_mountain_quiet_zone_lat = 40.130660
@@ -416,7 +417,8 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
           table_mountain_quiet_zone_height,
           cbsd_indoor=is_cbsd_indoor,
           reliability=0.5,
-          freq_mhz=freq_mhz)
+          freq_mhz=freq_mhz,
+          is_height_cbsd_amsl=(cbsd_height_type == 'AMSL'))
       pl = propagation.db_loss
       logging.info('Propagation:db_loss: %f', pl)
       bearing = propagation.incidence_angles.hor_cbsd
@@ -862,5 +864,3 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
 
     # CHECK: Total EIRP of all approved grants is <= 49.15 dBm
     self.assertLessEqual(total_eirp_dbm, 49.15)
-
-

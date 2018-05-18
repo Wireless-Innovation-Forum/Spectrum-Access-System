@@ -63,29 +63,38 @@ def computePropagationAntennaModel(request):
     # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
     result = {}
     if isfss:
-        path_loss = wf_itm.CalcItmPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                   rx['latitude'], rx['longitude'], rx['height'],
-                                                   cbsd_indoor= tx['indoorDeployment'],
-                                                   reliability=reliability_level, freq_mhz=3625.)
+        path_loss = wf_itm.CalcItmPropagationLoss(
+            tx['latitude'], tx['longitude'], tx['height'],
+            rx['latitude'], rx['longitude'], rx['height'],
+            cbsd_indoor= tx['indoorDeployment'],
+            reliability=reliability_level,
+            freq_mhz=3625.,
+            is_height_cbsd_amsl=(tx['heightType'] == 'AMSL'))
+
         result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
-                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        gain_tx_rx = antenna.GetStandardAntennaGains(
+            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+            ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
         result['txAntennaGainDbi'] = gain_tx_rx 
         if 'rxAntennaGainRequired' in rx:
             hor_dirs = path_loss.incidence_angles.hor_rx
             ver_dirs = path_loss.incidence_angles.ver_rx
-            gain_rx_tx = antenna.GetFssAntennaGains(hor_dirs, ver_dirs, rx['antennaAzimuth'], 
-                                                    rx['antennaElevation'], rx['antennaGain'])
+            gain_rx_tx = antenna.GetFssAntennaGains(
+                hor_dirs, ver_dirs, rx['antennaAzimuth'], 
+                rx['antennaElevation'], rx['antennaGain'])
             result['rxAntennaGainDbi'] = gain_rx_tx           
     else:
         
-        path_loss = wf_hybrid.CalcHybridPropagationLoss(tx['latitude'], tx['longitude'], tx['height'], 
-                                                        rx['latitude'], rx['longitude'], rx['height'],
-                                                        cbsd_indoor= tx['indoorDeployment'],                                                        
-                                                        reliability=-1, freq_mhz=3625., region=region_val)
+        path_loss = wf_hybrid.CalcHybridPropagationLoss(
+            tx['latitude'], tx['longitude'], tx['height'], 
+            rx['latitude'], rx['longitude'], rx['height'],
+            cbsd_indoor= tx['indoorDeployment'],
+            reliability=-1, freq_mhz=3625., region=region_val,
+            is_height_cbsd_amsl=(tx['heightType'] == 'AMSL'))
         result['pathlossDb'] = path_loss.db_loss
-        gain_tx_rx = antenna.GetStandardAntennaGains(path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
-                                                     ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
+        gain_tx_rx = antenna.GetStandardAntennaGains(
+            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+            ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
         result['txAntennaGainDbi'] = gain_tx_rx 
         
     
@@ -101,13 +110,13 @@ def cbsddata(device):
         installationParam['antennaGain'] = 0
                 
     cbsd = {'latitude': installationParam['latitude'],
-             'longitude': installationParam['longitude'],
-              'height': installationParam['height'],
-              'heightType': installationParam['heightType'],
-              'indoorDeployment': installationParam['indoorDeployment'],
-              'antennaAzimuth': installationParam['antennaAzimuth'],
-              'antennaGain': installationParam['antennaGain'],
-              'antennaBeamwidth': installationParam['antennaBeamwidth']}
+            'longitude': installationParam['longitude'],
+            'height': installationParam['height'],
+            'heightType': installationParam['heightType'],
+            'indoorDeployment': installationParam['indoorDeployment'],
+            'antennaAzimuth': installationParam['antennaAzimuth'],
+            'antennaGain': installationParam['antennaGain'],
+            'antennaBeamwidth': installationParam['antennaBeamwidth']}
     return cbsd
 
 def fssdata(fss_record, rx_antenna_gain_required=None):
@@ -117,11 +126,11 @@ def fssdata(fss_record, rx_antenna_gain_required=None):
         installationParam['antennaAzimuth'] = None
         
     fss = {'latitude': installationParam['latitude'],
-             'longitude': installationParam['longitude'],
-              'height': installationParam['height'],
-              'antennaAzimuth': installationParam['antennaAzimuth'],
-              'antennaGain': installationParam['antennaGain'],
-              'antennaElevation': -installationParam['antennaDowntilt']}
+           'longitude': installationParam['longitude'],
+           'height': installationParam['height'],
+           'antennaAzimuth': installationParam['antennaAzimuth'],
+           'antennaGain': installationParam['antennaGain'],
+           'antennaElevation': -installationParam['antennaDowntilt']}
     if rx_antenna_gain_required is not None:
         fss['rxAntennaGainRequired'] = rx_antenna_gain_required
     else:
@@ -152,14 +161,18 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     fss_record_0['rxAntennaGainRequired'] = True
     reliability_level = -1
     config = []
-    config.append({'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'fss': fssdata(fss_record_0, True)})
+    config.append({'reliabilityLevel': reliability_level,
+                   'cbsd': cbsddata(device_a),
+                   'fss': fssdata(fss_record_0, True)})
 
     # Load PPA
     ppa_record = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_3.json')))
      
     reliability_level = -1
-    config.append({'reliabilityLevel': reliability_level, 'cbsd': cbsddata(device_a),'ppa': ppa_record['zone']['features'][0]})
+    config.append({'reliabilityLevel': reliability_level,
+                   'cbsd': cbsddata(device_a),
+                   'ppa': ppa_record['zone']['features'][0]})
 
     writeConfig(filename, config)
       
@@ -203,11 +216,13 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
       # Check response.
       this_test_passed = False
       if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
-        this_test_passed = (sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2))
+        this_test_passed = ((sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and
+                            (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2)))
 
         if 'fss' in request and request['fss']['rxAntennaGainRequired']:
           if 'rxAntennaGainDbi' in sas_response:
-            this_test_passed = this_test_passed and (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2))
+            this_test_passed = (this_test_passed and
+                                (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2)))
           else:
             this_test_passed = False
 
