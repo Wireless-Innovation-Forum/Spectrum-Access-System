@@ -210,7 +210,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     sas_uut_fad = None
     test_harness_fads = []
     if num_peer_sases:
-        sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+        ssl_cert = config['sasTestHarnessConfigs'][0]['serverCert']
+        ssl_key = config['sasTestHarnessConfigs'][0]['serverKey']
+        sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert=ssl_cert, ssl_key=ssl_key)
         for test_harness in test_harnesses:
           test_harness_fads.append(
               getFullActivityDumpSasTestHarness(
@@ -405,7 +407,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     test_harness_fads = []
     if num_peer_sases:
       # Trigger, wait and download FAD records from SAS UUT and test harnesses.
-      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+      ssl_cert = config['sasTestHarnessConfigs'][0]['serverCert']
+      ssl_key = config['sasTestHarnessConfigs'][0]['serverKey']
+      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert=ssl_cert, ssl_key=ssl_key)
       for test_harness in test_harnesses:
         test_harness_fads.append(
             getFullActivityDumpSasTestHarness(
@@ -821,7 +825,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     test_harness_fads = []
     if num_peer_sases:
       # Trigger, wait and download FAD records from SAS UUT and test harnesses.
-      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin)
+      ssl_cert = config['sasTestHarnessConfigs'][0]['serverCert']
+      ssl_key = config['sasTestHarnessConfigs'][0]['serverKey']
+      sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin, ssl_cert=ssl_cert, ssl_key=ssl_key)
       for test_harness in test_harnesses:
         test_harness_fads.append(
             getFullActivityDumpSasTestHarness(
