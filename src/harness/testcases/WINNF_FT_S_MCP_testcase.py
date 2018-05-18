@@ -697,21 +697,34 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
         if scalar:
-          ref_interf = ap_iap_ref_values
-          for interf in interf_list:
-            iter_cnt += 1
-            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
-            if interf <= ref_interf * iap_margin_lin:
-              match_cnt += 1
+          # iter produces a infinite generator of the scalar, as zip iterates
+          # till one of the passed iterators is empty this will produce the same
+          # result as a list of len(interf_list) with the scalar in every field,
+          # but without having to construct the list.
+          ref_interf_list = iter((lambda : ap_iap_ref_values), 1)
         else:
           ref_interf_list = ap_iap_ref_values[lat_val][long_val]
           self.assertEqual(len(interf_list), len(ref_interf_list))
+        if entity_type == 'area':
+          # Area entities must check that each point is entirely not interfered
+          # with above the allowed threshold.
+          iter_cnt += 1
+          not_above_threshold = True
+          for interf, ref_interf in zip(interf_list, ref_interf_list):
+            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
+            if interf > ref_interf * iap_margin_lin:
+              not_above_threshold = False
+          if not_above_threshold:
+            match_cnt += 1
+        else:
           for interf, ref_interf in zip(interf_list, ref_interf_list):
             iter_cnt += 1
             logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
             if interf <= ref_interf * iap_margin_lin:
               match_cnt += 1
 
+    # All types of protection must have at least one point.
+    self.assertGreater(iter_cnt, 0, msg=common_strings.CONFIG_ERROR_SUSPECTED)
     logging.info("Protection type: '%s'; point count: %d; match count: %d." % (entity_type, iter_cnt, match_cnt))
 
     if entity_type == 'area':
