@@ -42,7 +42,7 @@ from reference_models.tools import entities
 #------------------------------
 # Define simulation parameters
 # - DPA to simulate
-dpa_name = 'east_dpa_7'
+dpa_name = 'East7'
 
 # - Number of sites to distribute within a given range of the DPA
 num_sites = 100
@@ -90,7 +90,8 @@ drive.ConfigureNlcdDriver(cache_size=num_cached_tiles)
 def PrepareSimulation():
   # Read the DPA zone
   print 'Preparing Zones'
-  dpa_zone = zones.GetDpaZones()[dpa_name]
+  dpa_zone = zones.GetCoastalDpaZones()[dpa_name]
+  dpa_geometry = dpa_zone.geometry
   us_border = zones.GetUsBorder()
   urban_areas = zones.GetUrbanAreas() if do_inside_urban_area else None
   protection_zone = zones.GetCoastalProtectionZone()
@@ -98,13 +99,13 @@ def PrepareSimulation():
   # Distribute random CBSD of various types around the FSS.
   print 'Distributing random CBSDs in DPA neighborhood'
   # - Find the zone where to distribute the CBSDs
-  typical_lat = dpa_zone.centroid.y
+  typical_lat = dpa_geometry.centroid.y
   km_per_lon_deg = 111. * np.cos(typical_lat * np.pi / 180)
   extend_cata_deg = max_dist_cat_a / km_per_lon_deg
   extend_catb_deg = max_dist_cat_b / km_per_lon_deg
 
-  zone_cata = dpa_zone.buffer(extend_cata_deg).intersection(us_border)
-  zone_catb = dpa_zone.buffer(extend_catb_deg).intersection(us_border)
+  zone_cata = dpa_geometry.buffer(extend_cata_deg).intersection(us_border)
+  zone_catb = dpa_geometry.buffer(extend_catb_deg).intersection(us_border)
 
   if urban_areas is not None:
     # simplify the huge urban_areas for quicker inclusion tests
@@ -144,12 +145,12 @@ def PrepareSimulation():
   # Plot on screen the elements of calculation
   ax = plt.axes(projection=ccrs.PlateCarree())
   margin = 0.1
-  box = zone_catb.union(dpa_zone)
+  box = zone_catb.union(dpa_geometry)
   ax.axis([box.bounds[0]-margin, box.bounds[2]+margin,
            box.bounds[1]-margin, box.bounds[3]+margin])
   ax.coastlines()
   ax.stock_img()
-  ax.plot(*dpa_zone.exterior.xy, color='r')
+  ax.plot(*dpa_geometry.exterior.xy, color='r')
   ax.plot(*zone_cata.exterior.xy, color='b', linestyle='--')
   ax.plot(*zone_catb.exterior.xy, color='g', linestyle='--')
   ax.plot(*protection_zone[0].exterior.xy, color='m', linestyle=':')
