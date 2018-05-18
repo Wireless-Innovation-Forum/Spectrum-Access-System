@@ -309,10 +309,10 @@ class SasTestCase(unittest.TestCase):
           self.assertEqual(channel['frequencyRange']['lowFrequency'],
                            frequency_range['lowFrequency'])
         else:
-          self.assertGreaterEqual(channel['frequencyRange']['lowFrequency'],
-                                  frequency_range['lowFrequency'])
+          self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+                               frequency_range['lowFrequency'])
       else:
-        self.assertGreaterEqual(
+        self.assertLessEqual(
             channel['frequencyRange']['lowFrequency'],
             channels[index - 1]['frequencyRange']['highFrequency'])
 
@@ -322,8 +322,8 @@ class SasTestCase(unittest.TestCase):
       self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
                        frequency_range['highFrequency'])
     else:
-      self.assertLessEqual(channels[0]['frequencyRange']['highFrequency'],
-                           frequency_range['highFrequency'])
+      self.assertGreaterEqual(channels[0]['frequencyRange']['highFrequency'],
+                              frequency_range['highFrequency'])
 
   def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
     """Checks if the channel lies within the list of frequency ranges.
