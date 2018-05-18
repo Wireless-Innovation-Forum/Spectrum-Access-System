@@ -176,12 +176,12 @@ else:
 #np.savetxt('GridPoints_NLCD_P.txt', p2nNlcdValue, delimiter=',',fmt='%d')
     if ((nScenarioIdx == 9) | (nScenarioIdx == 11)):
         for i in range(0,nRow):
-            #i = 42
+            i = 29
             dUeLat = pdSubTileLat[i]
             for j in range(0,nCol):
+                j= 155
                 dUeLon = pdSubTileLon[j]
                 print i,j
-                #j = 91
                 #if (nBELOW_EIGHTYKM_ONLY == 1):
                 dist, _, _ = vincenty.GeodesicDistanceBearing(dApLat, dApLon, dUeLat, dUeLon)
 

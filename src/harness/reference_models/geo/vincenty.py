@@ -116,7 +116,7 @@ def GeodesicDistanceBearing(lat1, lon1, lat2, lon2, accuracy=1.0E-12):
 
   alpha1 = degrees(alpha1)
   alpha2 = degrees(alpha2)
-
+  print("Distance,Azimuth: %.15f,%.15f" %(s,alpha1))
   return s, alpha1, alpha2
 
 
@@ -328,6 +328,7 @@ def GeodesicSampling(lat1, lon1, lat2, lon2, num_points):
   """
   dist, bearing, _ = GeodesicDistanceBearing(lat1, lon1, lat2, lon2)
   step_km = dist / (float(num_points-1))
+  print("GreatCircle_km: %.15f" %step_km)
   distances = step_km * np.arange(0, num_points)
   lats, lons, _ = GeodesicPoints(lat1, lon1, distances, bearing)
   lats[0], lons[0] = lat1, lon1

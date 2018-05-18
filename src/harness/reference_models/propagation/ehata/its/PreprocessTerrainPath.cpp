@@ -1,17 +1,28 @@
 #include "math.h"
 #include "ehata.h"
+#include "stdio.h"
 
+void printElevations(float *pfl){
+int i;
+printf("Start Elev Processing\n");
+for (i=0;i<(pfl[0]+3);i++){
+printf("%d: %.15f\n", i,pfl[i]);
+}
+printf("End Elev Processing\n");
+}
 
 void PreprocessTerrainPath(float *pfl, float h_b__meter, float h_m__meter, InterValues *interValues)
 {
+
+    //printf("Before FindAverageGroundHeight\n");printElevations(pfl);
     FindAverageGroundHeight(pfl, interValues);
-
+    //printf("Before ComputeTerrainStatistics\n");printElevations(pfl);
     ComputeTerrainStatistics(pfl, interValues);
-
+    //printf("Before MobileTerrainSlope\n");printElevations(pfl);
     MobileTerrainSlope(pfl, interValues);
-
+    //printf("Before AnalyzeSeaPath\n");printElevations(pfl);
     AnalyzeSeaPath(pfl, interValues);
-
+    //printf("Inside PreprocessTerrainPath, Before SingleHorizonTest\n");//printElevations(pfl);
     SingleHorizonTest(pfl, h_m__meter, h_b__meter, interValues);
 }
 
@@ -43,7 +54,7 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
 
     int i_start, i_end;
     float sum = 0.0;
-
+    printf("Inside FindAverageGroundHeight: %.15f, %.15f, %.15f\n",pfl[1],xi,d__km);
     if (d__km < 3.0)
     {
         interValues->h_avg__meter[0] = pfl[2];
@@ -180,6 +191,7 @@ void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
         pfl_segment[i - i_start] = pfl[i];
 
     int npts = i_end - i_start + 1;
+    printf("npts:%d,%d,%d\n",npts,i_start,i_end);
     int i10 = 0.1 * npts - 1;
     int i50 = 0.5 * npts - 1;
     int i90 = 0.9 * npts - 1;
@@ -198,6 +210,7 @@ void ComputeTerrainStatistics(float *pfl, InterValues *interValues)
         interValues->pfl90__meter = interValues->pfl90__meter * factor;
         interValues->deltah__meter = interValues->deltah__meter * factor;
     }
+    printf("Terrain Statistics: h10 %.15f, h50 %.15f,h90 %.15f,dH %.15f\n",interValues->pfl10__meter,interValues->pfl50__meter,interValues->pfl90__meter,interValues->deltah__meter);
     // ******* WinnForum change *******
     delete[] pfl_segment;
     // ******* End winnForum change *******    
@@ -287,6 +300,7 @@ void MobileTerrainSlope(float *pfl, InterValues *interValues)
             interValues->trace_code = interValues->trace_code | TRACE__METHOD_07;
         }
     }
+    printf("Inside MobileTerrainSlope, Theta: %.15f\n",interValues->theta_m__mrad);
     // ******* WinnForum change *******
     delete[] pfl_segment;
     // ******* End winnForum change *******    
@@ -330,13 +344,16 @@ void AnalyzeSeaPath(float* pfl, InterValues *interValues)
     }
 
     interValues->beta = float(sea_cnt) / float(np + 1);
-
+    printf("Inside AnalyzeSeaPath, %d, %d, %d, %d, %.15f\n",low_cnt,high_cnt,np,sea_cnt,interValues->beta);
+    //printf("AnalyzeSeaPath, %.15f,%.15f,%.15f\n",((float)(sea_cnt)),((float)(np + 1)),((float)(sea_cnt)) / ((float)(np + 1)));
     if (low_cnt > high_cnt)
         interValues->iend_ov_sea = 1;
     else if (high_cnt > low_cnt)
         interValues->iend_ov_sea = 0;
     else
         interValues->iend_ov_sea = -1;
+
+    printf("Inside AnalyzeSeaPath,  LandSea: %d, %.15f\n",interValues->iend_ov_sea,interValues->beta);
 }
 
 /*
@@ -353,11 +370,13 @@ float AverageTerrainHeight(float *pfl)
 {
     float h_gnd__meter = 0.0;
     int np = (int)pfl[0];
-
-    for (int i = 1; i <= np + 1; i++)
+    //printf("Start Average Terrain\n");
+    for (int i = 1; i <= np + 1; i++){
+        //printf("%d, %.15f\n",i+1,pfl[i + 1]);
         h_gnd__meter = h_gnd__meter + pfl[i + 1];
+    }
     h_gnd__meter = h_gnd__meter / (np + 1);
-
+    printf("Inside AverageTerrainHeight, %.15f\n",h_gnd__meter);
     return h_gnd__meter;
 }
 
@@ -400,9 +419,9 @@ void SingleHorizonTest(float *pfl, float h_m__meter, float h_b__meter, InterValu
         ens = en0 * exp(-h_gnd__meter / 9460);
     float gma = 157e-9f;
     float gme = gma * (1 - 0.04665 * exp(ens / 179.3));
-
+    printf("Inside Single Horizon, arg1 %.15f, arg2 %.15f\n",h_m__meter,h_b__meter);//printElevations(pfl);
     FindHorizons(pfl, gme, d__meter, h_m__meter, h_b__meter, interValues->d_hzn__meter);
-
+    //printf("HorizonDistance: TX %.15f, RX %.15f\n",interValues->d_hzn__meter[0],interValues->d_hzn__meter[1]);
     //float a = interValues->d_hzn__meter[0];
     //float b = interValues->d_hzn__meter[1];
     float d_diff__meter = d__meter - interValues->d_hzn__meter[0] - interValues->d_hzn__meter[1];
@@ -427,4 +446,5 @@ void SingleHorizonTest(float *pfl, float h_m__meter, float h_b__meter, InterValu
         if (interValues->hedge_tilda < 0.0)
             interValues->hedge_tilda = 0.0;
     }
+    printf("Inside Single Horizon, %d, %.15f\n",interValues->single_horizon,interValues->hedge_tilda);
 }

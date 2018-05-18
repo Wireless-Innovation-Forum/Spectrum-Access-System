@@ -69,6 +69,7 @@ void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter,
     int enviro_code, float *plb)
 {
     InterValues interValues;
+    //printf("Before ExtendedHata_DBG\n");//printElevations1(pfl);
     ExtendedHata_DBG(pfl, f__mhz, h_b__meter, h_m__meter, enviro_code, plb, &interValues);
 }
 
@@ -91,7 +92,7 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
     int enviro_code, float *plb, InterValues *interValues)
 {
     int np = int(pfl[0]);
-
+    printf("Inside ExtendedHata_DBG: arg1 %.15f,arg2 %.15f",h_b__meter,h_m__meter);//printElevations1(pfl);
     PreprocessTerrainPath(pfl, h_b__meter, h_m__meter, interValues);
 
     float h_m_gnd__meter, d1_hzn__km, d2_hzn__km;
@@ -101,7 +102,8 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
     interValues->h_b_eff__meter = h_b__meter + pfl[np + 2] - interValues->h_avg__meter[1];
     d1_hzn__km = interValues->d_hzn__meter[1] * 0.001;
     d2_hzn__km = interValues->d_hzn__meter[0] * 0.001;
-
+    //printf("test%.15f\n",interValues->h_m_eff__meter);
+    printf("Inside ExtendedHata_DBG (Effective Height pre-correction):arg1 %.15f,arg2 %.15f\n",interValues->h_b_eff__meter,interValues->h_m_eff__meter);
     // ******* WinnForum extension *******
     // Clamp values
     if (_WinnForum_Extensions) {
@@ -115,6 +117,7 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
         if (interValues->h_b_eff__meter <  30.0) interValues->h_b_eff__meter =  30.0;
         if (interValues->h_b_eff__meter > 200.0) interValues->h_b_eff__meter = 200.0;
     }
+    printf("Inside ExtendedHata_DBG (Effective Height post-correction):%.15f,%.15f,\n",interValues->h_b_eff__meter,interValues->h_m_eff__meter);
     // ******* End WinnForum extension *******
     // ******* WinnForum change *******
     //interValues->d__km = pfl[0] * pfl[1] / 1000;
@@ -124,12 +127,14 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
 
     float plb_median__db;
     MedianBasicPropLoss(f__mhz, interValues->h_b_eff__meter, interValues->h_m_eff__meter, interValues->d__km, enviro_code, &plb_median__db, interValues);
-
+    printf("Inside ExtendedHata_DBG, MedEHata:%.15f\n",plb_median__db);
     // apply correction factors based on path
     if (interValues->single_horizon)
     {
+        printf("Inside ExtendedHata_DBG: %.15f,%.15f,%.15f\n",plb_median__db,IsolatedRidgeCorrectionFactor(d1_hzn__km, d2_hzn__km, interValues->hedge_tilda),MixedPathCorrectionFactor(interValues->d__km, interValues));
         *plb = plb_median__db - IsolatedRidgeCorrectionFactor(d1_hzn__km, d2_hzn__km, interValues->hedge_tilda)
             - MixedPathCorrectionFactor(interValues->d__km, interValues);
+        printf("Inside ExtendedHata_DBG: %.15f\n",*plb);
 
         interValues->trace_code = interValues->trace_code | TRACE__METHOD_17;
     }
@@ -140,5 +145,8 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
             - FineRollingHillyTerrainCorectionFactor(interValues, h_m_gnd__meter)
             - GeneralSlopeCorrectionFactor(interValues->theta_m__mrad, interValues->d__km)
             - MixedPathCorrectionFactor(interValues->d__km, interValues);
+        printf("Inside ExtendedHata_DBG, SlopeCorrection: %.15f,%.15f,%.15f,%.15f\n",interValues->d__km,interValues->theta_m__mrad,GeneralSlopeCorrectionFactor(interValues->theta_m__mrad, interValues->d__km),(MixedPathCorrectionFactor(interValues->d__km, interValues)));
+        printf("Inside ExtendedHata_DBG, MixedLandSea, RH,FRH: %.15f,%.15f,%.15f\n",MixedPathCorrectionFactor(interValues->d__km, interValues), FineRollingHillyTerrainCorectionFactor(interValues, h_m_gnd__meter),MedianRollingHillyTerrainCorrectionFactor(interValues->deltah__meter));
     }
+    printf("Inside ExtendedHata_DBG, EhataLoss:%.15f\n",*plb);
 }

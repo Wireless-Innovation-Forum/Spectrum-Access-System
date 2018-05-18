@@ -188,6 +188,7 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
       mdvar, False)
   if do_avg:
     db_loss = -10*np.log10(np.mean(10**(-np.array(db_loss)/10.)))
+    print("ITM_P2P_Avg: %.15f,%f, Old Avg%f" % (db_loss, reliability, (10*np.log10(np.mean(10**(np.array(db_loss)/10.))))))
 
   # Add indoor losses
   if cbsd_indoor:
@@ -199,6 +200,7 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   # Create distance/terrain arrays for plotting if desired
   prof_d_km = (its_elev[1]/1000.) * np.arange(len(its_elev)-2)
   prof_elev = np.asarray(its_elev[2:])
+  print("Horizon Angles %.15f,%.15f\n" %(ver_cbsd,ver_rx))
 
   return _PropagResult(
       db_loss = db_loss,

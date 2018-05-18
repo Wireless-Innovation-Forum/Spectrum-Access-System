@@ -88,6 +88,7 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
   xi = its_elev[1] / 1000.   # step size of the profile points, in km
   dist_km = npts * xi
   elev_cbsd = its_elev[2]
+  print("Inside Effective Height: %.15f, %.15f, %.15f" %(its_elev[1], xi, dist_km))
 
   if dist_km < 3.0:
     eff_height = height_cbsd
@@ -101,8 +102,9 @@ def CbsdEffectiveHeights(height_cbsd, its_elev):
 
     avg_height = sum(its_elev[i_start:i_end+1]) / float(i_end - i_start + 1)
     eff_height = height_cbsd + (dist_km - 3.0) / 12.0 * (elev_cbsd - avg_height)
-
+    print("Inside Effective Height: %d,%d,%d" %(i_start,i_end,i_end - i_start + 1))
+    #print("Inside Effective Height: %.15f,%.15f,%.15f,%.15f" % (elev_cbsd, sum(its_elev[i_start:i_end + 1]), avg_height, eff_height))
   if eff_height < 20:
     eff_height = 20
-
+  print("Inside Effective Height: %.15f" %eff_height)
   return eff_height

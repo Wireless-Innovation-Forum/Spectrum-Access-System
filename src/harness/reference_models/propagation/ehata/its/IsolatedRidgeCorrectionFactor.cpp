@@ -1,5 +1,6 @@
 #include "math.h"
 #include "ehata.h"
+#include "stdio.h"
 
 /*
 *   Description: Find the isolated ridge correction factor
@@ -35,6 +36,6 @@ float IsolatedRidgeCorrectionFactor(float d1_hzn__km, float d2_hzn__km, float h_
 
     float c1 = curve_data[id1][id2] + (curve_data[id1][id2 + 1] - curve_data[id1][id2]) * (d2_hzn__km - d_2__km[id2]) / (d_2__km[id2 + 1] - d_2__km[id2]);
     float c2 = curve_data[id1 + 1][id2] + (curve_data[id1 + 1][id2 + 1] - curve_data[id1 + 1][id2]) * (d2_hzn__km - d_2__km[id2]) / (d_2__km[id2 + 1] - d_2__km[id2]);
-
+    printf("Inside IsolatedRidgeCorrectionFactorFW: %.15f,%.15f,%.15f,Idx%d, %.15f,%.15f, Idx%d,%.15f,%.15f,%.15f, %.15f, %.15f\n", c1,c2,d1_hzn__km,id1,d_1__km[id1],d_1__km[id1 + 1],id2,d_2__km[id2],d_2__km[id2+1],h_edge__meter,alpha,(alpha * (c1 + (c2 - c1) * (d1_hzn__km - d_1__km[id1]) / (d_1__km[id1 + 1] - d_1__km[id1]))));
     return alpha * (c1 + (c2 - c1) * (d1_hzn__km - d_1__km[id1]) / (d_1__km[id1 + 1] - d_1__km[id1]));
 }

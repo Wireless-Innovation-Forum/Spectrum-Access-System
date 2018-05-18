@@ -116,6 +116,7 @@ def _GetMedianToMeanOffsetDb(freq_mhz, is_urban):
   """
   std = GetEHataStandardDeviation(freq_mhz, is_urban)
   offset = std**2 * math.log(10.) / 20.
+  print("EhataStat: %.15f,%.15f,%.15f,%.15f\n"%(std,offset,(math.log(10.) / 20),std**2))
   return -offset
 
 
@@ -253,17 +254,20 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
         1, region_code)
     alpha = 1. + math.log10(dist_km)
     db_loss = fsl_100m + alpha * (median_basic_loss - fsl_100m)
-
+    print("Inside100_1Interp: %.15f,%.15f,%.15f,%.15f" %(dist_km,alpha,median_basic_loss,db_loss))
     # TODO: validate the following approach with WinnForum participants:
     # Weight the offset as well from 0 (100m) to 1.0 (1km).
     if reliability == -1:
       db_loss += alpha * offset_median_to_mean
+    print("Inside100_1Interp: %.15f,%.15f,%.15f" % (offset_median_to_mean, alpha, db_loss))
     return _BuildOutput(db_loss, incidence_angles, internals,
                         HybridMode.EHATA_FSL_INTERP, cbsd_indoor)
 
   elif dist_km >= 1 and dist_km <= 80:  # Use best of E-Hata / ITM
     ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
                                         region_code)
+
+    print("NTIA: %.15f" %(ehata_loss_med))
     if reliability == 0.5:
       ehata_loss = ehata_loss_med
       itm_loss_med = db_loss_itm
@@ -272,7 +276,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
       itm_loss_med = wf_itm.CalcItmPropagationLoss(
           lat_cbsd, lon_cbsd, height_cbsd, lat_rx, lon_rx, height_rx,
           False, 0.5, freq_mhz, its_elev).db_loss
-
+    print("NTIA: %.15f,%.15f,%.15f" % (ehata_loss_med,itm_loss_med,offset_median_to_mean))
     if itm_loss_med >= ehata_loss_med:
       return _BuildOutput(db_loss_itm, incidence_angles, internals,
                           HybridMode.ITM_DOMINANT, cbsd_indoor)
@@ -299,7 +303,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
     J = max(ehata_loss_80km - itm_loss_80km, 0)
     db_loss = db_loss_itm + J
-
+    print("Above80km (J, MedItm80, Ehata80,Ntia: %.15f,%.15f,%.15f,%.15f\n" %(J,itm_loss_80km,ehata_loss_80km, db_loss))
     return _BuildOutput(db_loss, incidence_angles, internals,
                         HybridMode.ITM_CORRECTED, cbsd_indoor)
 
@@ -318,6 +322,7 @@ def CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx):
   """
   r = math.sqrt((1000. * dist_km)**2 + (height_cbsd - height_rx)**2)
   db_loss = 20. * math.log10(r) + 20. * math.log10(freq_mhz) - 27.56
+  print("Inside FSPL: %.15f,%.15f"%(r,db_loss))
   return db_loss
 
 # Convenience function to build the output, applying the indoor loss
@@ -328,6 +333,7 @@ def _BuildOutput(db_loss, incidence_angles, internals,
   internals['hybrid_opcode'] = hybrid_opcode
   if is_indoor:
     db_loss += 15
+    print("NTIA, Indoor: %.15f,%r" %(db_loss,is_indoor))
   return _PropagResult(
       db_loss = db_loss,
       incidence_angles = incidence_angles,
