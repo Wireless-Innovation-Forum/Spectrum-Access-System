@@ -150,7 +150,6 @@ class AggregateInterferenceOutputFormat(object):
   def GetAggregateInterferenceContent(self):
     return self.aggregate_interference_info._getvalue()
 
-
 class AggregateInterferenceManager(BaseManager):
   pass
 
@@ -169,7 +168,7 @@ def getInterferenceObject():
 
 def dbToLinear(x):
   """This function returns dBm to mW converted value"""
-  return 10**(x / 10.)
+  return 10 ** (x / 10.)
 
 
 def linearToDb(x):
@@ -416,24 +415,21 @@ def getFssMaskLoss(cbsd_grant, constraint):
   offset = constraint.high_frequency - 50*MHZ
   # Get CBSD grant frequency range
   cbsd_freq_range = cbsd_grant.high_frequency - cbsd_grant.low_frequency
-
   # Define the initial attenuation values to 0
   fss_mask_attenuation = 0
   fss_mask_attenuation_seg1 = 0
   fss_mask_attenuation_seg2 = 0
-  
   # If the grant overlap frequency lies between 3650 to 3700 MHz
   # Segment 1 calculation is applied
   if ( offset <= cbsd_grant.low_frequency and
          constraint.high_frequency >= cbsd_grant.high_frequency):
-   # Calculate the total of 1MHZ frequencies present in the grant frequency range
-   num_one_mhz_bin_seg1 = cbsd_freq_range/int(MHZ)
-   # Calculate the fss_mask for every 1MHZ frequency 
-   for i in range (0, num_one_mhz_bin_seg1 - 1):
-     fss_mask_attenuation += 10 **((dbToLinear(-(constraint.high_frequency - cbsd_grant.low_frequency)  - 0.5 -i)*0.6 - 0.5)/10) 
-
-   # Calculate the average attenuation value per MHZ
-   fss_mask_attenuation_seg1 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg1)
+    # Calculate the total of 1MHZ frequencies present in the grant frequency range
+    num_one_mhz_bin_seg1 = cbsd_freq_range/int(MHZ)
+    # Calculate the fss_mask for every 1MHZ frequency 
+    for i in range (0, num_one_mhz_bin_seg1 ):
+      fss_mask_attenuation +=10**(-(((constraint.high_frequency - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
+    # Calculate the average attenuation value per MHZ
+    fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
 
   # If the grant overlap frequency lies between 3550 to 3650 MHz
   # Segment 2 calculation is applied
@@ -443,10 +439,10 @@ def getFssMaskLoss(cbsd_grant, constraint):
     # Calculate the total of 1MHZ frequencies present in the grant frequency range
     num_one_mhz_bin_seg2 = cbsd_freq_range/int(MHZ)
     # Calculate the fss_mask for every 1MHZ frequency
-    for i in range (0, num_one_mhz_bin_seg2 - 1):
-      fss_mask_attenuation += 10 **((dbToLinear(-(offset - cbsd_grant.low_frequency)  - 0.5 -i)*0.25 - 30.5)/10)
+    for i in range (0, num_one_mhz_bin_seg2):
+      fss_mask_attenuation +=10**(-(((offset - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.25 - 30.5)/10
     # Calculate the average attenuation value per MHZ
-    fss_mask_attenuation_seg2 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg2)
+    fss_mask_attenuation_seg2 = fss_mask_attenuation/num_one_mhz_bin_seg2
 
   # If the grant frequency overlaps both the segments, the overlapping
   # range is considered and calculation is done on both segments
@@ -455,18 +451,18 @@ def getFssMaskLoss(cbsd_grant, constraint):
     # Get the total of 1MHZ frequencies overlapping within the segment1 range
     num_one_mhz_bin_seg1 = int((cbsd_grant.high_frequency - offset)/MHZ)
     fss_mask_attenuation = 0
-    for i in range (0, num_one_mhz_bin_seg1 - 1):
-      fss_mask_attenuation += 10 **((dbToLinear(-(constraint.high_frequency - cbsd_grant.low_frequency)  - 0.5 -i)*0.6 - 0.5)/10)
-    fss_mask_attenuation_seg1 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg1)
+    for i in range (0, num_one_mhz_bin_seg1):
+      fss_mask_attenuation +=10**(-(((constraint.high_frequency - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
+    fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
     fss_mask_attenuation = 0
     # Get the total of 1MHZ frequencies overlapping within the segment2 range
     num_one_mhz_bin_seg2 = int((offset - cbsd_grant.low_frequency)/MHZ)
-    for i in range (0, num_one_mhz_bin_seg2 - 1):
-      fss_mask_attenuation += 10 **((dbToLinear(-(offset - cbsd_grant.low_frequency)  - 0.5 -i)*0.25 - 30.5)/10) 
-    fss_mask_attenuation_seg2 = linearToDb(fss_mask_attenuation/num_one_mhz_bin_seg2)
+    for i in range (0, num_one_mhz_bin_seg2):
+      fss_mask_attenuation +=10**(-(((offset - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.25 - 30.5)/10
+    fss_mask_attenuation_seg2 = fss_mask_attenuation/num_one_mhz_bin_seg2
  
   else:
-    print "Not in the Fss Filter Mask Range"
+    raise Exception("Fss Mask is not calculated for grants falling within band 3700 to 4200")
 
   # Calculate the final attenuation value by adding the overlap mask values calulated
   # in both the segments
@@ -545,8 +541,8 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
   return eirp_cbsd
 
 
-def computeInterference(grant, eirp, constraint,
-                        fss_info=None, esc_antenna_info=None, region_type=None):
+def computeInterference(grant, eirp, channel_constraint, fss_info=None,
+  esc_antenna_info=None, region_type=None):
   """Calculates interference caused by a grant.
 
   Utility API to get interference caused by a grant in the
@@ -555,32 +551,33 @@ def computeInterference(grant, eirp, constraint,
   Args:
     grant: A CBSD grant of type |data.CbsdGrantInfo|.
     eirp: The EIRP of the grant.
-    constraint: A protection constraint of type |data.ProtectionConstraint|.
+    channel_constraint: A protection constraint of type |data.ProtectionConstraint|.
     fss_info: The FSS information of type |data.FssInformation|.
     esc_antenna_info: ESC antenna information of type |data.EscInformation|.
     region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
+
   # Compute interference to FSS Co-channel protection constraint
-  if constraint.entity_type is data.ProtectedEntityType.FSS_CO_CHANNEL:
+  if channel_constraint.entity_type is data.ProtectedEntityType.FSS_CO_CHANNEL:
     interference = computeInterferenceFssCochannel(
-                     grant, constraint, fss_info, eirp)
+                     grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to FSS Blocking protection constraint
-  elif constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
+  elif channel_constraint.entity_type is data.ProtectedEntityType.FSS_BLOCKING:
     interference = computeInterferenceFssBlocking(
-                     grant, constraint, fss_info, eirp)
+                     grant, channel_constraint, fss_info, eirp)
 
   # Compute interference to ESC protection constraint
-  elif constraint.entity_type is data.ProtectedEntityType.ESC:
+  elif channel_constraint.entity_type is data.ProtectedEntityType.ESC:
     interference = computeInterferenceEsc(
-                     grant, constraint, esc_antenna_info, eirp)
+                     grant, channel_constraint, esc_antenna_info, eirp)
 
   # Compute interference to GWPZ or PPA protection constraint
   else:
     interference = computeInterferencePpaGwpzPoint(
-                     grant, constraint, GWPZ_PPA_HEIGHT,
+                     grant, channel_constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
 
   return interference
