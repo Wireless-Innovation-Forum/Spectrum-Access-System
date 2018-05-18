@@ -401,7 +401,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   fss_mask_attenuation = 0
   fss_mask_attenuation_seg1 = 0
   fss_mask_attenuation_seg2 = 0
-  # If the grant overlap frequency lies between 3650 to 3700 MHz
+  # If the grant overlap frequency lies between fp1-50 MHz to fp1, where fp1 is the lower edge of the FSS's passband
   # Segment 1 calculation is applied
   if ( offset <= cbsd_grant.low_frequency and
          constraint.high_frequency >= cbsd_grant.high_frequency):
@@ -409,11 +409,11 @@ def getFssMaskLoss(cbsd_grant, constraint):
     num_one_mhz_bin_seg1 = cbsd_freq_range/int(MHZ)
     # Calculate the fss_mask for every 1MHZ frequency
     for i in range (0, num_one_mhz_bin_seg1 ):
-      fss_mask_attenuation +=10**(-(((constraint.high_frequency - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
+      fss_mask_attenuation +=10**(-(((constraint.high_frequency - offset)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
     # Calculate the average attenuation value per MHZ
     fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
 
-  # If the grant overlap frequency lies between 3550 to 3650 MHz
+  # If the grant overlap frequency lies between fp1-150 MHz to fp1-50, where fp1 is the lower edge of the FSS's passband
   # Segment 2 calculation is applied
   elif ((offset - 100*MHZ) <= cbsd_grant.low_frequency and
           offset >= cbsd_grant.high_frequency):
@@ -434,7 +434,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
     num_one_mhz_bin_seg1 = int((cbsd_grant.high_frequency - offset)/MHZ)
     fss_mask_attenuation = 0
     for i in range (0, num_one_mhz_bin_seg1):
-      fss_mask_attenuation +=10**(-(((constraint.high_frequency - cbsd_grant.low_frequency)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
+      fss_mask_attenuation +=10**(-(((constraint.high_frequency - offset)/int(MHZ)) - 0.5 -i)*0.6 - 0.5)/10
     fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
     fss_mask_attenuation = 0
     # Get the total of 1MHZ frequencies overlapping within the segment2 range
