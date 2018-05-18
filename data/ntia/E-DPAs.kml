@@ -1869,7 +1869,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>West13</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -2634,7 +2634,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska2</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -2949,7 +2949,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska9</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -3048,7 +3048,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska11</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -3363,7 +3363,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska18</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -3419,7 +3419,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska19</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -3646,7 +3646,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska24</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -3785,7 +3785,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska27</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -4276,7 +4276,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>Alaska38</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -4371,7 +4371,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>PuertoRico2</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -4510,7 +4510,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Part 1</name>
+		<name>PuertoRico5</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>

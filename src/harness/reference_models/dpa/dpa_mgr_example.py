@@ -161,3 +161,8 @@ if __name__ == '__main__':
                                 protection_points_method='default(10,5,2,1,40,0.5,2)')
   print '**Alaska9: %dpts' % len(dpa_multigeo.protected_points)
   print dpa_multigeo
+
+  dpa_file = dpa_mgr.BuildDpa('Alameda',
+                              protection_points_method='./test_data/points_alameda.json')
+  print '**Alameda (file): %dpts' % len(dpa_file.protected_points)
+  print dpa_file
