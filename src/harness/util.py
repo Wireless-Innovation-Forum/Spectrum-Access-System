@@ -405,9 +405,9 @@ def filterChannelsByFrequencyRange(channels, freq_range):
   return [
       channel for channel in channels
       if
-      (bool(set(range(channel['frequencyRange']['lowFrequency'], 
-                channel['frequencyRange']['highFrequency'])).intersection(
-                    range(freq_range['lowFrequency'] , freq_range['highFrequency'] ))))
+      channel['frequencyRange']['lowFrequency'] < freq_range['highFrequency'] 
+      and
+      channel['frequencyRange']['highFrequency'] > freq_range['lowFrequency']
   ]
 
 def _orderAttributes(obj):
