@@ -259,12 +259,12 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
 
 
 def assertContainsRequiredFields(schema_filename, response):
-  schema_dir = os.path.join(os.path.dirname(os.path.abspath(
-      inspect.getfile(inspect.currentframe()))), '..', '..', 'schema')
+  schema_dir = os.path.abspath(os.path.join(os.path.dirname(
+      inspect.getfile(inspect.currentframe())), '..', '..', 'schema'))
   schema_filename = os.path.join(schema_dir, schema_filename)
   schema = json.load(open(schema_filename))
   Draft4Validator.check_schema(schema)
-  schema_dir = os.path.dirname(os.path.realpath(schema_filename))
+  schema_dir = os.path.dirname(schema_filename)
   resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
   # Raises ValidationError when incorrect response
   validate(response, schema, resolver=resolver)
@@ -524,6 +524,7 @@ def getCertFilename(cert_name):
   """Returns the file path corresponding to the given |cert_name|.
   """
   return os.path.join('certs', cert_name)
+
 
 def getFqdnLocalhost():
   """Returns the fully qualified name of the host running the testcase.
