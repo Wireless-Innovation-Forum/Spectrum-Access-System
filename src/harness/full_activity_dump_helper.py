@@ -79,8 +79,8 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   """
   request_time = datetime.utcnow().replace(microsecond=0)
   sas_admin.TriggerFullActivityDump()
-  # Timeout after 2 hours if it's not completed 
-  timeout = datetime.now() + timedelta(hours=2) 
+  # Timeout after 2 hours if it's not completed
+  timeout = datetime.now() + timedelta(hours=2)
   # Check generation date of full activity dump.
   while True:
     dump_message = sas.GetFullActivityDump(ssl_cert, ssl_key)
@@ -88,7 +88,7 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
                                   '%Y-%m-%dT%H:%M:%SZ')
     if request_time <= dump_time:
       break
-    if timeout < datetime.now(): 
+    if timeout < datetime.now():
       raise AssertionError('2 Hour FAD generation timeout has been exceeded')
     time.sleep(10)
   return dump_message
