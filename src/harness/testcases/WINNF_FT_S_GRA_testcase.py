@@ -361,7 +361,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     grant_g1 = config['grantRequestG1']
     grant_g2 = config['grantRequestG2']
     sas_test_harness_dump_records = [config['sasTestHarnessDumpRecords']['cbsdRecords']]
-    
+
     # Inserting FCC IDs on SUUT before CPAS so SUUT will know about them
     self._sas_admin.InjectFccId({'fccId': device_c1['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c2['fccId']})
@@ -1117,12 +1117,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['channelType'], 'PAL')
       self.assertEqual(resp['response']['responseCode'], 0)
     # Check grantExpireTime is less than corresponding PAL licenseExpiration
-    self.assertLess(
+    self.assertLessEqual(
         datetime.strptime(response[0]['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
         datetime.strptime(
             pal_record1[0]['license']['licenseExpiration'],
             '%Y-%m-%dT%H:%M:%SZ'))
-    self.assertLess(
+    self.assertLessEqual(
         datetime.strptime(response[1]['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ'),
         datetime.strptime(
             pal_record2[0]['license']['licenseExpiration'],
