@@ -28,7 +28,7 @@ if nStatistics==1:
 else:
     dReliability = 0.5
 
-nScenarioIdx = 9
+nScenarioIdx = 10
 dCbsdAgl = 10.00
 dUeAgl = 50.00
 if (nScenarioIdx == 0):
