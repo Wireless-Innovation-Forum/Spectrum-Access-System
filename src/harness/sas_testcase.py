@@ -441,7 +441,12 @@ class SasTestCase(unittest.TestCase):
          c. SAS UUT responds with success response rather than failure response.
 
     """
-    response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    try:
+        response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    except HTTPError:
+        # We are done if PPA creation failure is detected during TriggerPpaCreation.
+        return
+
     logging.info('TriggerPpaCreation is in progress')
 
     # Triggers most recent PPA Creation Status immediately and checks for the status

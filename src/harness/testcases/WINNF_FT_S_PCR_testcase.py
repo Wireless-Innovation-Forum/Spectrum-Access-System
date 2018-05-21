@@ -25,7 +25,9 @@ from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
      makePpaAndPalRecordsConsistent, getCertFilename
+from request_handler import HTTPError
 import signal
+import time
 
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
@@ -194,7 +196,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
          c. SAS UUT responds with success response rather than failure response.
 
     """
-    response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    try:
+        response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+    except HTTPError:
+        # We are done if PPA creation failure is detected during TriggerPpaCreation.
+        return
+
     logging.info('TriggerPpaCreation is in progress')
 
     # Triggers most recent PPA Creation Status immediately and checks for the status
