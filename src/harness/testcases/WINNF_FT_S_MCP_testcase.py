@@ -1010,7 +1010,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 1
     cbsd_fad_records_iteration_1_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
 
-   # Generate SAS Test Harnesses dump records for multiple iterations
+    # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
     }
