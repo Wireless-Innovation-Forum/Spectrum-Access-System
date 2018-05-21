@@ -435,7 +435,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   fss_mask_attenuation_seg1 = 0
   fss_mask_attenuation_seg2 = 0
   
-  # If the grant overlap frequency lies between 3650 to 3700 MHz
+  # If the grant overlap frequency lies between fp1-50 MHz to fp1, where fp1 is the starting frequency of FSS Passband
   # Segment 1 calculation is applied
   if ( offset <= cbsd_grant.low_frequency and
          constraint.high_frequency >= cbsd_grant.high_frequency):
@@ -447,7 +447,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
     # Calculate the average attenuation value per MHZ
     fss_mask_attenuation_seg1 = fss_mask_attenuation/num_one_mhz_bin_seg1
 
-  # If the grant overlap frequency lies between 3550 to 3650 MHz
+  # If the grant overlap frequency lies between fp1-150 MHz to fp1-50, where fp1 is the starting frequency of FSS Passband
   # Segment 2 calculation is applied
   elif ((offset - 100*MHZ) <= cbsd_grant.low_frequency and
           offset >= cbsd_grant.high_frequency):
