@@ -271,7 +271,7 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
         with self.assertRaises(AssertionError):
             self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=False, constrain_high=True)
 
-    # Test cases for testing constraint_high=False and constraint_high=False
+    # Test cases for testing constraint_low=False and constraint_high=False
 
     def test_shouldSucceedWhenSingleChannelCoversAllConstrainNeither(self):
         channels = [{'frequencyRange': {'lowFrequency': 3540, 'highFrequency': 3700}}]
@@ -296,7 +296,7 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
         frequency_range = {'lowFrequency': 3550, 'highFrequency': 3575}
         self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=False, constrain_high=False)
 
-    # Test cases for testing constraint_high=True and constraint_high=True
+    # Test cases for testing constraint_low=True and constraint_high=True
 
     def test_shouldFailWhenChannelOutOfRangeConstrainHigh(self):
         channels = [{'frequencyRange': {'lowFrequency': 3540, 'highFrequency': 3560}},
