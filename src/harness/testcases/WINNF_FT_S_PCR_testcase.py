@@ -201,6 +201,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     except HTTPError:
         # We are done if PPA creation failure is detected during TriggerPpaCreation.
         return
+
     logging.info('TriggerPpaCreation is in progress')
 
     # Triggers most recent PPA Creation Status immediately and checks for the status
