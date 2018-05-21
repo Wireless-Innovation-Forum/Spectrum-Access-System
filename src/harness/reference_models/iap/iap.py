@@ -523,7 +523,7 @@ def performIapForFssCochannel(fss_record, sas_uut_fad_object, sas_th_fad_objects
   fss_low_freq, fss_high_freq = fss_freq_range
 
   # Get channels for co-channel CBSDs
-  assert(fss_high_freq > interf.CBRS_HIGH_FREQ_HZ)
+  assert(fss_high_freq >= interf.CBRS_HIGH_FREQ_HZ)
   protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
   asas_interference = interf.getInterferenceObject()
