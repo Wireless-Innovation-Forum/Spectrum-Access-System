@@ -101,7 +101,7 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
                     {'frequencyRange': {'lowFrequency': 3630, 'highFrequency': 3650}},
                     {'frequencyRange': {'lowFrequency': 3650, 'highFrequency': 3700}}]
 
-        frequency_range = {'lowFrequency': 3550, 'highFrequency': 3575}
+        frequency_range = {'lowFrequency': 3550, 'highFrequency': 3660}
         self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=True, constrain_high=False)
 
     def test_shouldSucceedWhenConflictChannelWithEqualMinConstrainLow(self):
