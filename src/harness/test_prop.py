@@ -4,6 +4,9 @@ from reference_models.geo import nlcd
 from reference_models.geo import vincenty
 import numpy as np
 
+#nScenarioIdx = 9 creates a comprehensive 200 square km grid with 500 m spacing (400 rows and 400 columns)
+#nScenarioIdx = 10 creates a comprehensive 40 square km radials with 2 degree spacing (108 rows (radials) and 808 columns (radial points).
+
 
 nStatistics = 1
 if nStatistics==1:
