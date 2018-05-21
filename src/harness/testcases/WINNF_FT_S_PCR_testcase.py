@@ -923,7 +923,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
 
     # Update the user_claimed ppa contour geometry required for overlaps ppa.
-    overlapping_ppa_record['zone'] = overlapping_ppa_contour_geometry
+    overlapping_ppa_record['zone'] = {'type':'FeatureCollection',
+                                      'features': [
+                                          {'type': 'Feature', 
+                                           'properties': {}, 
+                                           'geometry': overlapping_ppa_contour_geometry}
+                                      ]}
 
     # Load PCR.1 configuration.
     pcr_1_test_config = loadConfig(pcr_1_test_config_file_path)
