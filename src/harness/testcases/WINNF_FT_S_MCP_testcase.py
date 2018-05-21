@@ -91,8 +91,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                 'grantRequest': dict,
                 'clientCert': basestring,
                 'clientKey': basestring
-            },
-            {'conditionalRegistrationData': dict})
+            }, {'conditionalRegistrationData': dict})
+        if 'conditionalRegistrationData' in cbsd_record:
+          self.assertIn('fccId', cbsd_record['conditionalRegistrationData'])
+          self.assertIn('cbsdSerialNumber',
+                        cbsd_record['conditionalRegistrationData'])
 
       self.assertValidConfig(
           iteration_data['protectedEntities'],
@@ -191,29 +194,31 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.domain_proxy_objects = []
     self.protected_entity_records = {}
     self.num_peer_sases = len(config['sasTestHarnessConfigs'])
-    logging.info("Running test type '%s' with %d SAS test harnesses.",
+    logging.info('Running test type "%s" with %d SAS test harnesses.',
                  self.test_type, self.num_peer_sases)
     self.sas_uut_fad = None
     self.test_harness_fads = []
 
-    logging.info("Creating domain proxies.")
+    logging.info('Creating domain proxies.')
     for domain_proxy in config['domainProxyConfigs']:
       self.domain_proxy_objects.append(test_harness_objects.DomainProxy(
           self,
           domain_proxy['cert'],
           domain_proxy['key']))
     # Step 1: Load DPAs
-    logging.info("Step 1: load DPAs")
+    logging.info('Step 1: load DPAs')
     self._sas_admin.TriggerLoadDpas()
 
     # Step 2: ESC informs SAS about inactive DPAs
-    logging.info("Step 2: deactivate all DPAs")
+    logging.info('Step 2: deactivate all DPAs')
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
 
     # Step 3: creates multiple SAS THs, and load predefined FAD records (CBSDs).
-    logging.info("Step 3: create %d SAS test harnesses" % self.num_peer_sases)
+    logging.info('Step 3: create %d SAS test harnesses' % self.num_peer_sases)
     if self.num_peer_sases:
       for test_harness in config['sasTestHarnessConfigs']:
+        logging.info('Creating SAS TH with config %s', test_harness)
+        
         # Initialize SAS Test Harness Server instance to dump FAD records
         sas_test_harness_object = SasTestHarnessServer(test_harness['sasTestHarnessName'],
                                                              test_harness['hostName'],
@@ -241,7 +246,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     # Step 4: Complete each iteration of the testcase.
     for iteration_number, iteration_content in enumerate(config['iterationData']):
-      logging.info("Step 4: execute iteration number %d" % iteration_number)
+      logging.info('Step 4: execute iteration number %d' % iteration_number)
       # Execute steps for single iteration
       self.executeSingleMCPIteration(iteration_content)
 
@@ -257,29 +262,32 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 5: Inject protected entities into UUT
-    logging.info("Step 5: inject new protected entities into SAS UUT")
+    logging.info('Step 5: inject new protected entities into SAS UUT')
     if 'fssRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting FSS records.")
-      for fss_record in iteration_content['protectedEntities']['fssRecords']:
+      logging.info('Injecting FSS records.')
+      for index, fss_record in enumerate(iteration_content['protectedEntities']['fssRecords']):
         try:
+          logging.info('Injecting FSS record #%d', index)
           self._sas_admin.InjectFss(fss_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
     if 'gwblRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting GWBL records.")
-      for gwbl_record in iteration_content['protectedEntities']:
+      logging.info('Injecting GWBL records.')
+      for index, gwbl_record in enumerate(iteration_content['protectedEntities']):
         try:
+          logging.info('Injecting GWBL record #%d', index)
           self._sas_admin.InjectWisp(gwbl_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
     if 'gwpzRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting GWPZ records.")
-      for gwpz_record in iteration_content['protectedEntities']['gwpzRecords']:
+      logging.info('Injecting GWPZ records.')
+      for index, gwpz_record in enumerate(iteration_content['protectedEntities']['gwpzRecords']):
         try:
+          logging.info('Injecting GWPZ record #%d', index)
           self._sas_admin.InjectWisp(gwpz_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
@@ -288,29 +296,33 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             gwpz_record['zone']['features'][0]['geometry'], res_arcsec=1)
         gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote(
             [(pt[1], pt[0]) for pt in grid_points])
+        logging.info('Land category: %s', gwpz_record['landCategory'])
 
     if 'escRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting ESC records.")
-      for esc_record in iteration_content['protectedEntities']['escRecords']:
+      logging.info('Injecting ESC records.')
+      for index, esc_record in enumerate(iteration_content['protectedEntities']['escRecords']):
         try:
+          logging.info('Injecting ESC record #%d', index)
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
     if 'palRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting PAL records.")
-      for pal_record in iteration_content['protectedEntities']['palRecords']:
+      logging.info('Injecting PAL records.')
+      for index, pal_record in enumerate(iteration_content['protectedEntities']['palRecords']):
         try:
+          logging.info('Injecting PAL record #%d', index)
           self._sas_admin.InjectPalDatabaseRecord(pal_record)
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
           raise e
 
     if 'ppaRecords' in iteration_content['protectedEntities']:
-      logging.info("Injecting PPA records.")
-      for ppa_record in iteration_content['protectedEntities']['ppaRecords']:
+      logging.info('Injecting PPA records.')
+      for index, ppa_record in enumerate(iteration_content['protectedEntities']['ppaRecords']):
         try:
+          logging.info('Injecting PPA record #%d', index)
           self._sas_admin.InjectZoneData({'record': ppa_record})
         except Exception as e:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
@@ -325,34 +337,36 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             iteration_content['protectedEntities'][key])
 
     # Step 6,7: Creating FAD Object and Pull FAD records from SAS UUT
-    logging.info("Steps 6 + 7: retrieve FAD from SAS UUT.")
+    logging.info('Steps 6 + 7: retrieve FAD from SAS UUT.')
     if self.num_peer_sases:
+      logging.info('Retrieving SAS UUT FAD.')
       self.sas_uut_fad = getFullActivityDumpSasUut(self._sas,
                                                  self._sas_admin,
                                                  self.fad_cert,
                                                  self.fad_key)
 
       # Pull FAD from SAS Test Harnesses; a FAD object is created for each SAS Test Harness.
-      logging.info("Collecting SAS TH FADs.")
+      logging.info('Collecting SAS TH FADs.')
       self.test_harness_fads = []
       for test_harness in self.sas_test_harness_objects:
         self.test_harness_fads.append(getFullActivityDumpSasTestHarness(
                                           test_harness.getSasTestHarnessInterface()))
 
     # Step 8: Trigger CPAS and wait until completion.
-    logging.info("Step 8: Triggering CPAS.")
+    logging.info('Step 8: Triggering CPAS.')
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     if self.num_peer_sases:
       # Step 9: Invoke IAP reference model
-      logging.info("Step 9: Performing pre-IAP filtering.")
+      logging.info('Step 9: Performing pre-IAP filtering.')
       pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
                                      self.sas_uut_fad, self.test_harness_fads)
-      logging.info("Step 9: Performing IAP.")
+      logging.info('Step 9: Performing IAP.')
       self.performIap()
 
     # Step 10: DP Test Harnesses register N(2,k) CBSDs with SAS UUT.
-    logging.info("Step 10: registering and granting new CBSDs.")
+    logging.info('Step 10: registering and granting new CBSDs.')
+    dp_index = 0
     for domain_proxy_object, cbsdRequestsWithDomainProxy in zip(
         self.domain_proxy_objects,
         iteration_content['cbsdRequestsWithDomainProxies']):
@@ -363,21 +377,25 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           'conditionalRegistrationData']
 
       #  Initiation of Registration and Grant procedures for the CBSDs using domain proxies.
+      logging.info('Registering and Granting CBSDs which use domain proxy %d.', dp_index)
+      dp_index += 1
       domain_proxy_object.registerCbsdsAndRequestGrants(
           registration_requests,
           grant_requests,
           conditional_registration_data=conditional_registration_data)
 
     # Register individual Cbsds(Domain Proxy with single CBSD)
-    for cbsd_record in iteration_content['cbsdRecords']:
+    for cbsd_index, cbsd_record in enumerate(iteration_content['cbsdRecords']):
+      logging.info('Registering and Granting CBSD %d.', cbsd_index)
       proxy = test_harness_objects.DomainProxy(self, cbsd_record['clientCert'], cbsd_record['clientKey'])
       conditionalRegistrationData = [cbsd_record['conditionalRegistrationData']] if 'conditionalRegistrationData' in cbsd_record else []
       proxy.registerCbsdsAndRequestGrants([cbsd_record['registrationRequest']], [cbsd_record['grantRequest']], conditionalRegistrationData)
       self.domain_proxy_objects.append(proxy)
 
     # Step 11: Send heartbeat request for all CBSDs managed by SAS UUT.
-    logging.info("Step 11: heartbeating all CBSDs.")
-    for domain_proxy_object in self.domain_proxy_objects:
+    logging.info('Step 11: heartbeating all CBSDs.')
+    for index, domain_proxy_object in enumerate(self.domain_proxy_objects):
+      logging.info('Heartbeating for domain proxy %d.', index)
       domain_proxy_object.heartbeatForAllActiveGrants()
 
     # Step 12: Invoke IAP model and Aggregate Interference Model
@@ -385,59 +403,59 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # For the set of protected entity the interference value is calculated
     # using both IAP and aggregate interference reference models, checked against
     # the comparison value
-    logging.info("Step 12: performing aggregate interference check.")
+    logging.info('Step 12: performing aggregate interference check.')
     self.performAggregateInterferenceCheck()
 
     if self.num_peer_sases:
       # Step 13: Configure SAS Test Harnesses with new FAD information.
-      logging.info("Step 13: re-configuring SAS test harnesses.")
+      logging.info('Step 13: re-configuring SAS test harnesses.')
       for test_harness, test_harness_data in zip(self.sas_test_harness_objects, iteration_content['sasTestHarnessData']):
         test_harness.writeFadRecords([test_harness_data['cbsdRecords']])
 
       # Step 14,15: Trigger Full Activty Dump and Pull FAD records from SAS UUT.
-      logging.info("Steps 14 + 15: triggering and pulling FAD.")
-      self.sas_uut_fad = getFullActivityDumpSasUut(self._sas,
-                                              self._sas_admin,
-                                              self.fad_cert,
-                                              self.fad_key)
+      logging.info('Steps 14 + 15: triggering and pulling FAD.')
+      self.sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin,
+                                                   self.fad_cert, self.fad_key)
       # Pull FAD from SAS Test Harnesses; a FAD object is created for each SAS Test Harness.
-      logging.info("Collecting SAS TH FADs.")
+      logging.info('Collecting SAS TH FADs.')
       self.test_harness_fads = []
       for test_harness in self.sas_test_harness_objects:
-        self.test_harness_fads.append(getFullActivityDumpSasTestHarness(
-                                          test_harness.getSasTestHarnessInterface()))
+        self.test_harness_fads.append(
+            getFullActivityDumpSasTestHarness(
+                test_harness.getSasTestHarnessInterface()))
 
     # Step 16: Trigger CPAS and wait for its completion.
-    logging.info("Step 16: triggering CPAS.")
+    logging.info('Step 16: triggering CPAS.')
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     if self.num_peer_sases:
       # Step 17: Call IAP reference model
-      logging.info("Step 17: Performing pre-IAP filtering.")
+      logging.info('Step 17: Performing pre-IAP filtering.')
       pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
                                      self.sas_uut_fad, self.test_harness_fads)
-      logging.info("Step 17: Performing IAP.")
+      logging.info('Step 17: Performing IAP.')
       self.performIap()
 
     # Steps 18, 19, 20, and 21: send heartbeat request for the grants,
     # relinquish the grant, grant request and heartbeat for new grant.
-    logging.info("Steps 18 - 21: heartbeat, relinquish, grant, heartbeat.")
-    for domain_proxy_object in self.domain_proxy_objects:
+    logging.info('Steps 18 - 21: heartbeat, relinquish, grant, heartbeat.')
+    for index, domain_proxy_object in enumerate(self.domain_proxy_objects):
+      logging.info('Working on domain proxy %d.', index)
       domain_proxy_object.performHeartbeatAndUpdateGrants()
 
     # Step 22: Calculating the Aggregate interface.
     # For the set of protected entity the interference value is calculated
     # using both IAP and aggregate interference reference models, checked against
     # the comparison value
-    logging.info("Step 22: performing aggregate interference check.")
+    logging.info('Step 22: performing aggregate interference check.')
     self.performAggregateInterferenceCheck()
 
     # Execute from Step 23 to Step 30 only for MCP testcase.
     if self.test_type == 'MCP':
-      logging.info("Proceeding with MCP-only steps.")
+      logging.info('Proceeding with MCP-only steps.')
       self.executeMCPOnlyTestSteps(iteration_content)
     else:
-      logging.info("xPR test complete.")
+      logging.info('xPR test complete.')
 
   def executeMCPOnlyTestSteps(self, iteration_content):
     """Executes the steps from Step 23 to Step 30 for MCP testcase.
@@ -446,11 +464,13 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       iteration_content: A dictionary with multiple key-value pairs that contain iteration data
     """
     # Step 23: ESC Test harness deactivates previously-activated DPAs.
-    logging.info("Step 23: activating and deactivating DPAs.")
+    logging.info('Step 23: activating and deactivating DPAs.')
     for dpa in iteration_content['dpaActivationList']:
+      logging.info('Activating: %s', dpa)
       self._sas_admin.TriggerDpaDeactivation(dpa)
       self.active_dpas.append(dpa)
     for dpa in iteration_content['dpaActivationList']:
+      logging.info('Deactivating: %s', dpa)
       self._sas_admin.TriggerDpaActivation(dpa)
       self.active_dpas.remove(dpa)
 
@@ -462,8 +482,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     # Steps 25, 26, 27, and 28: send heartbeat request for the grants,
     # relinquish the grant, grant request and heartbeat for new grants.
-    logging.info("Steps 25 - 28: heartbeat, relinquish, grant, heartbeat.")
-    for domain_proxy_object in self.domain_proxy_objects:
+    logging.info('Steps 25 - 28: heartbeat, relinquish, grant, heartbeat.')
+    for index, domain_proxy_object in enumerate(self.domain_proxy_objects):
+      logging.info('Working on domain proxy %d.', index)
       domain_proxy_object.performHeartbeatAndUpdateGrants()
 
     # Step 29: Check DPA movelist.
@@ -474,6 +495,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     grant_info = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
     # Calculate DPA movelist.
     for active_dpa in self.active_dpas:
+      logging.info('Considering DPA: %s', active_dpa)
       dpa_config = self.config['dpas'][active_dpa['dpaId']]
       dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
       low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
@@ -482,6 +504,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
       dpa.ComputeMoveLists()
       # Check SAS UUT authorized grants do not exceed allowed threshold as calculated by the DPA reference model.
+      logging.info('Checking aggregate interference to DPA.')
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
@@ -489,7 +512,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           do_abs_check_single_uut=(self.num_peer_sases==0)))
 
     # Step 30: Check IAP interference.
-    logging.info("Step 30: performing aggregate interference check.")
+    logging.info('Step 30: performing aggregate interference check.')
     self.performAggregateInterferenceCheck()
 
   def performIap(self):
@@ -499,35 +522,35 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     self.fss_cochannel_ap_iap_ref_values_list = []
     self.esc_ap_iap_ref_values_list = []
 
-    # Calculate and compare the interference value for all PPAs.
+    # Calculate the interference value for all PPAs.
     if 'ppaRecords' in self.protected_entity_records:
       for ppa_record in self.protected_entity_records['ppaRecords']:
         pal_records = self.protected_entity_records['palRecords']
         # Call IAP reference model for PPA.
-        logging.info("Calling the IAP reference model for PPA (%s) with PAL records (%s)" % (str(ppa_record), str(pal_records)))
+        logging.info('Calling the IAP reference model for PPA (%s) with PAL records (%s)', ppa_record, pal_records)
         ppa_ap_iap_ref_values = iap.performIapForPpa(
             ppa_record,
             self.sas_uut_fad,
             self.test_harness_fads,
             pal_records)
         # Store the IAP results for future comparison.
-        logging.debug("IAP reference model results: %s" % str(ppa_ap_iap_ref_values))
+        logging.debug('IAP reference model results: %s' % str(ppa_ap_iap_ref_values))
         self.ppa_ap_iap_ref_values_list.append(ppa_ap_iap_ref_values)
 
-    # Calculate and compare the interference value for all GWPZs.
+    # Calculate the interference value for all GWPZs.
     if 'gwpzRecords' in self.protected_entity_records:
       for gwpz_record in self.protected_entity_records['gwpzRecords']:
         # Call IAP reference model for GWPZ.
-        logging.info("Calling the IAP reference model for GWPZ (%s)." % str(gwpz_record))
+        logging.info('Calling the IAP reference model for GWPZ (%s).', gwpz_record)
         gwpz_ap_iap_ref_values = iap.performIapForGwpz(
             gwpz_record,
             self.sas_uut_fad,
             self.test_harness_fads)
         # Store the IAP results for future comparison.
-        logging.debug("IAP reference model results: %s" % str(gwpz_ap_iap_ref_values))
+        logging.debug('IAP reference model results: %s' % str(gwpz_ap_iap_ref_values))
         self.gwpz_ap_iap_ref_values_list.append(gwpz_ap_iap_ref_values)
 
-    # Calculate and compare the interference value for all FSS sites.
+    # Calculate the interference value for all FSS sites.
     if 'fssRecords' in self.protected_entity_records:
       for fss_record in self.protected_entity_records['fssRecords']:
         fss_freq_range = fss_record['record']['deploymentParam'][0]\
@@ -538,14 +561,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if (fss_low_freq >= interference.FSS_LOW_FREQ_HZ and
                 fss_low_freq < interference.CBRS_HIGH_FREQ_HZ):
           # Call IAP for FSS blocking and FSS cochannel.
-          logging.info("Calling the cochannel IAP reference model for FSS (%s)." % str(fss_record))
+          logging.info('Calling the cochannel IAP reference model for FSS (%s).', fss_record)
           fss_cochannel_ap_iap_ref_values = iap.\
               performIapForFssCochannel(fss_record, self.sas_uut_fad, self.test_harness_fads)
-          logging.debug("IAP reference model results: %s" % str(fss_cochannel_ap_iap_ref_values))
-          logging.info("Calling the blocking IAP reference model for FSS (%s)." % str(fss_record))
+          logging.debug('IAP reference model results: %s' % str(fss_cochannel_ap_iap_ref_values))
+          logging.info('Calling the blocking IAP reference model for FSS (%s).', fss_record)
           fss_blocking_ap_iap_ref_values = iap.\
               performIapForFssBlocking(fss_record, self.sas_uut_fad, self.test_harness_fads)
-          logging.debug("IAP reference model results: %s" % str(fss_blocking_ap_iap_ref_values))
+          logging.debug('IAP reference model results: %s' % str(fss_blocking_ap_iap_ref_values))
           # Store the IAP results for future comparison.
           self.fss_cochannel_ap_iap_ref_values_list.append(fss_cochannel_ap_iap_ref_values)
           self.fss_blocking_ap_iap_ref_values_list.append(fss_blocking_ap_iap_ref_values)
@@ -553,25 +576,25 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                  fss_high_freq <= interference.FSS_TTC_HIGH_FREQ_HZ and
                  fss_ttc_flag is True):
           # Call IAP reference model for FSS blocking.
-          logging.info("Calling the blocking IAP reference model for FSS (%s)." % str(fss_record))
+          logging.info('Calling the blocking IAP reference model for FSS (%s).', fss_record)
           fss_blocking_ap_iap_ref_values = iap.\
               performIapForFssBlocking(fss_record, self.sas_uut_fad, self.test_harness_fads)
-          logging.debug("IAP reference model results: %s" % str(fss_blocking_ap_iap_ref_values))
+          logging.debug('IAP reference model results: %s' % str(fss_blocking_ap_iap_ref_values))
           # Store the IAP results for future comparison.
           self.fss_cochannel_ap_iap_ref_values_list.append(None)
           self.fss_blocking_ap_iap_ref_values_list.append(fss_blocking_ap_iap_ref_values)
 
-    # Calculate and compare the interference value for all ESCs.
+    # Calculate the interference value for all ESCs.
     if 'escRecords' in self.protected_entity_records:
       for esc_record in self.protected_entity_records['escRecords']:
         # Call IAP reference model for ESC.
-        logging.info("Calling the IAP reference model for ESC (%s)." % str(esc_record))
+        logging.info('Calling the IAP reference model for ESC (%s).' % str(esc_record))
         esc_ap_iap_ref_values = iap.performIapForEsc(
           esc_record,
           self.sas_uut_fad,
           self.test_harness_fads)
         # Store the IAP results for future comparison.
-        logging.debug("IAP reference model results: %s" % str(esc_ap_iap_ref_values))
+        logging.debug('IAP reference model results: %s' % str(esc_ap_iap_ref_values))
         self.esc_ap_iap_ref_values_list.append(esc_ap_iap_ref_values)
 
   def performAggregateInterferenceCheck(self):
@@ -588,6 +611,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         pal_records = self.protected_entity_records['palRecords']
         # Get Grant info for all CBSDs with grants from SAS UUT that are not
         # part of the current ppa.
+        logging.info('Checking aggregate interference for PPA (%s) with PAL records (%s)', ppa_record, pal_records)
 
         ppa_authorized_grants = data.getAuthorizedGrantsFromDomainProxies(
             self.domain_proxy_objects, ppa_record=ppa_record)
@@ -606,6 +630,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # Calculate and compare the interference value for GWPZ protected entity
     if 'gwpzRecords' in self.protected_entity_records:
       for index, gwpz_record in enumerate(self.protected_entity_records['gwpzRecords']):
+        logging.info('Checking aggregate interference for GWPZ (%s).', gwpz_record)
         # Call aggregate interference reference model for GWPZ.
         gwpz_aggr_interference = aggregate_interference.calculateAggregateInterferenceForGwpz(
             gwpz_record,
@@ -621,6 +646,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # Calculate and compare the interference value for FSS site.
     if 'fssRecords' in self.protected_entity_records:
       for index, fss_record in enumerate(self.protected_entity_records['fssRecords']):
+        logging.info('Checking aggregate interference for FSS (%s).', fss_record)
         fss_freq_range = fss_record['record']['deploymentParam'][0]\
             ['operationParam']['operationFrequencyRange']
         fss_low_freq = fss_freq_range['lowFrequency']
@@ -642,7 +668,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             fss_cochannel_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_CO_CHANNEL_DBM_PER_RBW)
             fss_blocking_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)
           # Check and compare interference for FSS entity
+          logging.info('Checking cochannel.')
           self.compareIapAndAggregateResults(fss_cochannel_ap_iap_ref_values, fss_cochannel_aggr_interference,'point')
+          logging.info('Checking blocking.')
           self.compareIapAndAggregateResults(fss_blocking_ap_iap_ref_values, fss_blocking_aggr_interference,'point')
         elif (fss_low_freq >= interference.FSS_TTC_LOW_FREQ_HZ and
                  fss_high_freq <= interference.FSS_TTC_HIGH_FREQ_HZ and
@@ -656,12 +684,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           else:
             fss_blocking_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)
           # Compare the interference values calculated from both models
+          logging.info('Checking blocking.')
           self.compareIapAndAggregateResults(fss_blocking_ap_iap_ref_values,\
               fss_blocking_aggr_interference, 'point')
 
     # Calculate and compare the interference value for ESC.
     if 'escRecords' in self.protected_entity_records:
       for index, esc_record in enumerate(self.protected_entity_records['escRecords']):
+        logging.info('Checking aggregate interference for ESC (%s).', esc_record)
         # Call aggregate interference model for ESC.
         esc_aggr_interference = aggregate_interference.\
             calculateAggregateInterferenceForEsc(esc_record, authorized_grants)
@@ -696,12 +726,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
+        logging.info('Looking at lat %s long %s.', lat_val, long_val)
         if scalar:
           # iter produces a infinite generator of the scalar, as zip iterates
           # till one of the passed iterators is empty this will produce the same
           # result as a list of len(interf_list) with the scalar in every field,
           # but without having to construct the list.
           ref_interf_list = iter((lambda : ap_iap_ref_values), 1)
+          logging.info('Reference interference is a scalar: %s mW/IAPBW', ap_iap_ref_values)
         else:
           ref_interf_list = ap_iap_ref_values[lat_val][long_val]
           self.assertEqual(len(interf_list), len(ref_interf_list))
@@ -709,31 +741,49 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           # Area entities must check that each point is entirely not interfered
           # with above the allowed threshold.
           iter_cnt += 1
-          not_above_threshold = True
+          below_threshold = True
+          list_index = 0
           for interf, ref_interf in zip(interf_list, ref_interf_list):
-            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
+            logging.info(
+                'IAP aggregate interference comparison for index %d: interf=%s ref_interf=%s',
+                list_index, interf, ref_interf)
+            list_index += 1
             if interf > ref_interf * iap_margin_lin:
-              not_above_threshold = False
-          if not_above_threshold:
+              below_threshold = False
+              logging.info('This ^^^ point exceeded the threshold!')
+          if below_threshold:
             match_cnt += 1
         else:
+          list_index = 0
           for interf, ref_interf in zip(interf_list, ref_interf_list):
             iter_cnt += 1
-            logging.info('IAP aggregate interference comparison: interf=%s ref_interf=%s' % (interf, ref_interf))
+            logging.info(
+                'IAP aggregate interference comparison for index %d: interf=%s ref_interf=%s',
+                list_index, interf, ref_interf)
+            list_index += 1
             if interf <= ref_interf * iap_margin_lin:
               match_cnt += 1
+            else:
+              logging.info('This ^^^ point exceeded the threshold!')
 
     # All types of protection must have at least one point.
     self.assertGreater(iter_cnt, 0, msg=common_strings.CONFIG_ERROR_SUSPECTED)
-    logging.info("Protection type: '%s'; point count: %d; match count: %d." % (entity_type, iter_cnt, match_cnt))
+    logging.info('Protection type: "%s"; point count: %d; match count: %d.' % (entity_type, iter_cnt, match_cnt))
 
     if entity_type == 'area':
       # For protected areas the match of total interference values
-      # should be greater than or equal to 95 percentile
-      self.assertGreaterEqual((100.0 * match_cnt) / iter_cnt, 95)
+      # should be greater than or equal to 95 percent.
+      match_percentage = (100.0 * match_cnt) / iter_cnt
+      self.assertGreaterEqual(
+          match_percentage, 95,
+          'Expected 95 percent of locations to be below the threshold but only %2.3f percent were.'
+          % match_percentage)
     else:
-      # For Protection points the comparison match should be 100 percentile
-      self.assertEqual(match_cnt, iter_cnt)
+      # For Protection points the comparison match should be 100 percent.
+      self.assertEqual(
+          match_cnt, iter_cnt,
+          'Expected all constraints to be below the threshold but %d were not.' %
+          (iter_cnt - match_cnt))
 
 class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
 
@@ -918,33 +968,33 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     # Following configurations are for two SAS test harnesses for two iterations
     sas_test_harness_device_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    sas_test_harness_device_1['fccId'] = "test_fcc_id_g"
-    sas_test_harness_device_1['userId'] = "test_user_id_g"
+    sas_test_harness_device_1['fccId'] = 'test_fcc_id_g'
+    sas_test_harness_device_1['userId'] = 'test_user_id_g'
 
     sas_test_harness_device_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
-    sas_test_harness_device_2['userId'] = "test_user_id_h"
+    sas_test_harness_device_2['fccId'] = 'test_fcc_id_h'
+    sas_test_harness_device_2['userId'] = 'test_user_id_h'
 
     sas_test_harness_device_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    sas_test_harness_device_3['fccId'] = "test_fcc_id_i"
-    sas_test_harness_device_3['userId'] = "test_user_id_i"
+    sas_test_harness_device_3['fccId'] = 'test_fcc_id_i'
+    sas_test_harness_device_3['userId'] = 'test_user_id_i'
 
     sas_test_harness_device_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    sas_test_harness_device_4['fccId'] = "test_fcc_id_j"
-    sas_test_harness_device_4['userId'] = "test_user_id_j"
+    sas_test_harness_device_4['fccId'] = 'test_fcc_id_j'
+    sas_test_harness_device_4['userId'] = 'test_user_id_j'
 
     sas_test_harness_device_5 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    sas_test_harness_device_5['fccId'] = "test_fcc_id_k"
-    sas_test_harness_device_5['userId'] = "test_user_id_k"
+    sas_test_harness_device_5['fccId'] = 'test_fcc_id_k'
+    sas_test_harness_device_5['userId'] = 'test_user_id_k'
 
     sas_test_harness_device_6 = json.load(
       open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    sas_test_harness_device_6['fccId'] = "test_fcc_id_l"
-    sas_test_harness_device_6['userId'] = "test_user_id_l"
+    sas_test_harness_device_6['fccId'] = 'test_fcc_id_l'
+    sas_test_harness_device_6['userId'] = 'test_user_id_l'
 
     # Generate Cbsd FAD Records for SAS Test Harness 0, iteration 0
     cbsd_fad_records_iteration_0_sas_test_harness_0 = generateCbsdRecords([sas_test_harness_device_1], [[grant_request_1]])
@@ -960,7 +1010,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     # Generate Cbsd FAD Records for SAS Test Harness 1, iteration 1
     cbsd_fad_records_iteration_1_sas_test_harness_1 = generateCbsdRecords([sas_test_harness_device_6], [[grant_request_5, grant_request_6]])
 
-   # Generate SAS Test Harnesses dump records for multiple iterations
+    # Generate SAS Test Harnesses dump records for multiple iterations
     dump_records_iteration_0_sas_test_harness_0 = {
         'cbsdRecords': cbsd_fad_records_iteration_0_sas_test_harness_0
     }
