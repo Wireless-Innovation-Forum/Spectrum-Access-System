@@ -22,7 +22,7 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.ppa import ppa
-from reference_models.geo.import drive
+from reference_models.geo import drive
 
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
 from reference_models.geo import utils as geoutils
