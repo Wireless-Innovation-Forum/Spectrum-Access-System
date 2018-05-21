@@ -11,7 +11,7 @@ if nStatistics==1:
 else:
     dReliability = 0.5
 
-nScenarioIdx = 10
+nScenarioIdx = 9
 dCbsdAgl = 10.00
 dUeAgl = 50.00
 if (nScenarioIdx == 0):
@@ -74,7 +74,7 @@ elif (nScenarioIdx == 7): #FSS 8.2
     db_lossS1 = wf_hybrid.CalcHybridPropagationLoss(39.2291, -100.1, 7.6, 39.0119, -98.4842, 9.3,reliability=dReliability, cbsd_indoor='True',region='SUBURBAN')
     db_lossR0 = wf_hybrid.CalcHybridPropagationLoss(39.2291, -100.1, 7.6, 39.0119, -98.4842, 9.3,reliability=0.5, cbsd_indoor='True', region='RURAL')
     db_lossR1 = wf_hybrid.CalcHybridPropagationLoss(39.2291, -100.1, 7.6, 39.0119, -98.4842, 9.3,reliability=dReliability, cbsd_indoor='True',region='RURAL')
-elif (nScenarioIdx == 8): #Hybrid 8.2
+elif (nScenarioIdx == 8):
     db_lossU0 = wf_hybrid.CalcHybridPropagationLoss(39.0119, -98.4842, 9.3, 39.29888888888889, -98.6499999999999, 1.5,reliability=0.5, cbsd_indoor='True', region='URBAN')
     db_lossU1 = wf_hybrid.CalcHybridPropagationLoss(39.0119, -98.4842, 9.3, 39.29888888888889, -98.6499999999999, 1.5,reliability=dReliability, cbsd_indoor='True',region='URBAN')
     db_lossS0 = wf_hybrid.CalcHybridPropagationLoss(39.0119, -98.4842, 9.3, 39.29888888888889, -98.6499999999999, 1.5,reliability=0.5, cbsd_indoor='True', region='SUBURBAN')
@@ -107,15 +107,6 @@ elif (nScenarioIdx == 10):
     p2dLossRuralStat1 = [[0] * nCol for i in range(nRow)]
     p2dCbsdUeAngle = [[0] * nCol for i in range(nRow)]
     p2dUeCbsdAngle = [[0] * nCol for i in range(nRow)]
-elif (nScenarioIdx == 11):
-    nScenarioRun = 6
-    nSubtileSizeQty,_,pdSubTileLat, pdSubTileLon, dApLat, dApLon = Cellular_Grid.ComputeCellularGrid(6)
-    p2dLossUrbanStat0 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
-    p2dLossUrbanStat1 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
-    p2dLossSuburbanStat0 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
-    p2dLossSuburbanStat1 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
-    p2dLossRuralStat0 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
-    p2dLossRuralStat1 = [[0] * nSubtileSizeQty for i in range(nSubtileSizeQty)]
 
 if (nScenarioIdx == 10):
     np.savetxt('GridPoints_Lat_P.txt', p2dGridPointLat, delimiter=',',fmt='%.15f')
@@ -144,7 +135,7 @@ if (nScenarioIdx < 9):
     print(p2dCbsdUeAngle)
     print(p2dUeCbsdAngle)
 else:
-    if ((nScenarioIdx == 9) | (nScenarioIdx == 11)):
+    if (nScenarioIdx == 9):
         for i in range(0,nRow):
             dUeLat = pdSubTileLat[i]
             for j in range(0,nCol):
