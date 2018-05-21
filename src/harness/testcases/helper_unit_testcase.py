@@ -285,7 +285,7 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
                     {'frequencyRange': {'lowFrequency': 3630, 'highFrequency': 3700}}]
 
         frequency_range = {'lowFrequency': 3550, 'highFrequency': 3650}
-        self.assertChannelsOverlapFrequencyRange(channels, frequency_range, cconstrain_low=False, constrain_high=False)
+        self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=False, constrain_high=False)
 
     def test_shouldSucceedWhenConflictChannelWithEqualMinConstrainNeither(self):
         channels = [{'frequencyRange': {'lowFrequency': 3540, 'highFrequency': 3560}},
@@ -294,7 +294,7 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
                     {'frequencyRange': {'lowFrequency': 3560, 'highFrequency': 3595}}]
 
         frequency_range = {'lowFrequency': 3550, 'highFrequency': 3575}
-        self.assertChannelsOverlapFrequencyRange(channels, frequency_range, cconstrain_low=False, constrain_high=False)
+        self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=False, constrain_high=False)
 
     # Test cases for testing constraint_high=True and constraint_high=True
 
@@ -305,14 +305,14 @@ class assertChannelsOverlapFrequencyRange(sas_testcase.SasTestCase):
 
         frequency_range = {'lowFrequency': 3550, 'highFrequency': 3575}
         with self.assertRaises(AssertionError):
-            self.assertChannelsOverlapFrequencyRange(channels, frequency_range, cconstrain_low=True, constrain_high=True)
+            self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=True, constrain_high=True)
 
     def test_shouldFailWhenChannelOutOfRangeConstrainHigh2(self):
         channels = [{'frequencyRange': {'lowFrequency': 3540, 'highFrequency': 3580}}]
 
         frequency_range = {'lowFrequency': 3550, 'highFrequency': 3575}
         with self.assertRaises(AssertionError):
-            self.assertChannelsOverlapFrequencyRange(channels, frequency_range, cconstrain_low=True, constrain_high=True)
+            self.assertChannelsOverlapFrequencyRange(channels, frequency_range, constrain_low=True, constrain_high=True)
 
 # Test the Compare Dict function in util which is used in FAD.1 test to compare PPA record and Esc records in dump file with injected object
 class AssertPpaComparison(sas_testcase.SasTestCase):
