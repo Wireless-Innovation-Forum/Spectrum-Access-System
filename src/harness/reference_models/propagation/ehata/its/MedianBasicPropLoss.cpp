@@ -1,6 +1,6 @@
 #include "math.h"
 #include "ehata.h"
-#include "stdio.h"
+
 void MedianBasicPropLoss(float f__mhz, float h_b__meter, float h_m__meter, float d__km, int enviro_code, float* plb_med__db, InterValues *interValues)
 {
     double perm = 4.0e-7 * PI;
@@ -65,14 +65,13 @@ void MedianBasicPropLoss(float f__mhz, float h_b__meter, float h_m__meter, float
     interValues->att_100km = alpha_100 + log10(f__mhz)*(beta_100 + gamma_100*log10(f__mhz));
 
     double term2 = -13.82*log10(h_b__meter);
-    //printf("GLMED1:%.15f,%.15f,%.15f,%.15f,%.15f,%.15f\n",alpha_1,term1,htg_hb_ref,htg_hm_ref,wnmh,sr_1km);
+
     //find the "break-point" distance, d_bp, where the attenuation transitions from the Hata distance exponent, n_l,
     //to a larger distance exponent drawn from figure 12 of Okumura et al. (1968), n_h.n.b., d_bp depends on f and hb
     double n_h = 2.0*(rho + log10(h_b__meter)*(sigma + tau*log10(h_b__meter)) - 1.0);
     double n_l = 0.1 * (44.9 - 6.55*log10(h_b__meter)) - 2.0;
     interValues->d_bp__km = pow(10.0, (2.0 * n_h + 0.1 * (interValues->att_1km - interValues->att_100km)) / (n_h - n_l));
-    //printf("GLMED2:%.15f,%.15f,%.15f,%.15f,%.15f\n",rho,log10(h_b__meter),sigma,tau,h_b__meter);
-    //printf("GLMED3:%.15f,%.15f,%.15f,%.15f,%.15f,%.15f\n",term1,interValues->att_1km,interValues->att_100km,n_h,n_l,interValues->d_bp__km);
+
     double terma = -3.2 * pow(log10(11.75 * h_m__meter), 2) + 4.97;
     double sr_d = sqrt(1.0e+6 * pow(d__km, 2) + pow(h_b__meter - h_m__meter, 2)); // distance from base station to mobile, along the ray (compute triangle hypoth)
 

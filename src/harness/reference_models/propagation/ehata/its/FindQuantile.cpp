@@ -1,5 +1,5 @@
 #include "ehata.h"
-#include "stdio.h"
+
 float FindQuantile(const int &nn, float *a, const int &ir)
 {
     float q, r;
@@ -25,7 +25,7 @@ float FindQuantile(const int &nn, float *a, const int &ir)
         if (i>n)
             i = n;
         j = j1;
-        //printf("J VALUE IS: %d\n",j);
+
         while (j >= m && a[j] <= q)
             j--;
         if (j<m)

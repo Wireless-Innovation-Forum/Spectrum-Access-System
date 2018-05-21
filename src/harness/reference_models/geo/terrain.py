@@ -197,9 +197,6 @@ class TerrainDriver:
       # Compensate for the half-pixel offset of the center from the edge.
       float_x -= 0.5
       float_y -= 0.5
-      #print("%.15f,%.15f,%.15f,%.15f" % (lon[287], ilon[287],float_x[287],float_y[287]))
-      #print("%.15f,%.15f,%.15f,%.15f,%.15f,%.15f" % ((lat[287] - ilat[287]),3600*(lat[287] - ilat[287]), 3600*(lat[287] - ilat[287])+5.5,(lon[287] - ilon[287]),3600*(lon[287] - ilon[287]), 3600*(lon[287] - ilon[287])+5.5))
-
       # Bilinear interpolation
       xm = np.floor(float_x).astype(int)
       xp = xm + 1
@@ -211,7 +208,6 @@ class TerrainDriver:
       area_xm_yp = alpha_x * (1-alpha_y)
       area_xp_yp = (1-alpha_x) * (1-alpha_y)
       area_xp_ym = (1-alpha_x) * alpha_y
-      #print("%.15f,%.15f,%.15f,%.15f,%.15f,%.15f" %(alpha_x[287], alpha_y[287],area_xm_ym[287],area_xm_yp[287],area_xp_yp[287],area_xp_ym[287]))
     else:
       ix = float_x.astype(int)
       iy = float_y.astype(int)
@@ -244,7 +240,6 @@ class TerrainDriver:
         # Weight each of the four grid points by the opposite area
         alt[idx] = (area_xm_ym[idx] * ypxp + area_xm_yp[idx] * ymxp
                     + area_xp_yp[idx] * ymxm + area_xp_ym[idx] * ypxm)
-        #print("%.15f,%.15f,%.15f,%.15f,%.15f" %(ypxp[287],ymxp[287], ymxm[287],ypxm[287],alt[287]))
       else:
         # Use the elevation of the nearest point
         alt[idx] = tile_cache[iy[idx], ix[idx]]
@@ -291,7 +286,6 @@ class TerrainDriver:
     # Distance between end points (m)
     dist, _, _ = vincenty.GeodesicDistanceBearing(lat1, lon1, lat2, lon2)
     dist *= 1000.
-    print("Distance_Meters: %.15f" %(dist))
 
     num_points = np.ceil(dist/float(target_res_meter)) + 1
     if max_points > 0 and num_points > max_points:
@@ -300,18 +294,9 @@ class TerrainDriver:
       num_points = 2
 
     resolution = dist / float(num_points-1)
-    print("Resolution: %.15f" %resolution)
-
     lats, lons = vincenty.GeodesicSampling(lat1, lon1, lat2, lon2, num_points)
-    #np.savetxt('IntermediatePoints_Lat_P.txt', lat, fmt='%.15f')#, delimiter=',', newline=','
-    #np.savetxt('IntermediatePoints_Lon_P.txt', lons, fmt='%.15f')
-    #np.savetxt('IntermediatePoints_P.txt', points, fmt='%.15f')
-    #np.array(lat).tofile('IntermediatePoints_Lat_P.dat')
-    #np.array(lons).tofile('IntermediatePoints_Lon_P.dat')
     elev = [num_points-1, resolution]
     elev.extend(self.GetTerrainElevation(lats, lons, do_interp))
-    #np.savetxt('IntermediatePoints_Elev_P.txt', elev, fmt='%.15f')
-    #np.array(elev).tofile('IntermediatePoints_Elev_P.dat')
     return elev
 
   def ComputeNormalizedHaat(self, lat, lon):
