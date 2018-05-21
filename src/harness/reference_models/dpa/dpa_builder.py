@@ -120,7 +120,6 @@ def DpaProtectionPoints(dpa_name, dpa_geometry, protection_points_method=None):
     protection_points = builder_fn(dpa_name, dpa_geometry, *params)
 
   else:
-    import ipdb; ipdb.set_trace()
     # Using a geojson file
     protection_points_file = protection_points_method
     if not os.path.isfile(protection_points_file):
