@@ -925,7 +925,9 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Update the user_claimed ppa contour geometry required for overlaps ppa.
     overlapping_ppa_record['zone'] = {'type':'FeatureCollection',
                                       'features': [
-                                          {'geometry': overlapping_ppa_contour_geometry}
+                                          {'type': 'Feature', 
+                                           'properties': {}, 
+                                           'geometry': overlapping_ppa_contour_geometry}
                                       ]}
 
     # Load PCR.1 configuration.
