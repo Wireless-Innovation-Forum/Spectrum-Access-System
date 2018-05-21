@@ -1050,8 +1050,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_7,
             'grantRequest': grant_request_7,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_g.cert'),
+            'clientKey': getCertFilename('device_g.key')
         }],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [dpa_1, dpa_2],
@@ -1064,8 +1064,8 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
             'registrationRequest': device_8,
             'grantRequest': grant_request_8,
             'conditionalRegistrationData': conditionals_device_8,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_h.cert'),
+            'clientKey': getCertFilename('device_h.key')
         }],
         'protectedEntities': protected_entities_iteration_1,
         'dpaActivationList': [dpa_3],

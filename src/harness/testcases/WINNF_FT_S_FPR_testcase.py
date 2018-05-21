@@ -223,8 +223,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_6,
             'grantRequest': grant_request_6,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_f.cert'),
+            'clientKey': getCertFilename('device_f.key')
         }],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [],
@@ -474,11 +474,12 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     iteration_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_domain_proxy_0,
                                           cbsd_records_domain_proxy_1],
-        'cbsdRecords': [
-            {'registrationRequest': device_5,
-             'grantRequest': grant_request_5,
-             'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-             'clientKey': sas.GetDefaultDomainProxySSLKeyPath()}],
+        'cbsdRecords': [{
+            'registrationRequest': device_5,
+            'grantRequest': grant_request_5,
+            'clientCert': getCertFilename('device_e.cert'),
+            'clientKey': getCertFilename('device_e.key')
+        }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
         'dpaDeactivationList': [],
@@ -676,8 +677,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'cbsdRecords': [{
             'registrationRequest': device_3,
             'grantRequest': grant_request_3,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_c.cert'),
+            'clientKey': getCertFilename('device_c.key')
         }],
         'protectedEntities': protected_entities_iteration_0,
         'dpaActivationList': [],
@@ -881,12 +882,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     iteration_config = {
         'cbsdRequestsWithDomainProxies': [cbsd_records_domain_proxy_0,
                                           cbsd_records_domain_proxy_1],
-        'cbsdRecords': [
-            {'registrationRequest': device_4,
-             'grantRequest': grant_request_4,
-             'conditionalRegistrationData': conditionals_device_4,
-             'clientCert': getCertFilename('client.cert'),
-             'clientKey': getCertFilename('client.key')}],
+        'cbsdRecords': [{
+            'registrationRequest': device_4,
+            'grantRequest': grant_request_4,
+            'conditionalRegistrationData': conditionals_device_4,
+            'clientCert': getCertFilename('device_d.cert'),
+            'clientKey': getCertFilename('device_d.key')
+        }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
         'dpaDeactivationList': [],

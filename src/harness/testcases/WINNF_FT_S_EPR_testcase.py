@@ -146,8 +146,8 @@ class EscProtectionTestcase(McpXprCommonTestcase):
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
             'conditionalRegistrationData': conditionals_device_4,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_d.cert'),
+            'clientKey': getCertFilename('device_d.key')
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
@@ -352,8 +352,8 @@ class EscProtectionTestcase(McpXprCommonTestcase):
             'registrationRequest': device_4,
             'grantRequest': grant_request_4,
             'conditionalRegistrationData': conditionals_device_4,
-            'clientCert': sas.GetDefaultDomainProxySSLCertPath(),
-            'clientKey': sas.GetDefaultDomainProxySSLKeyPath()
+            'clientCert': getCertFilename('device_d.cert'),
+            'clientKey': getCertFilename('device_d.key')
         }],
         'protectedEntities': protected_entities,
         'dpaActivationList': [],
