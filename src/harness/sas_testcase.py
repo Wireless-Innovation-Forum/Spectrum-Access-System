@@ -304,6 +304,8 @@ class SasTestCase(unittest.TestCase):
                     ch['frequencyRange']['highFrequency']),
         reverse=False)
     for index, channel in enumerate(channels):
+      self.assertGreater(channel['frequencyRange']['highFrequency'],
+                         frequency_range['lowFrequency'])
       if index == 0:
         if constrain_low:
           self.assertEqual(channel['frequencyRange']['lowFrequency'],
@@ -316,6 +318,9 @@ class SasTestCase(unittest.TestCase):
             channel['frequencyRange']['lowFrequency'],
             channels[index - 1]['frequencyRange']['highFrequency'])
 
+    for index, channel in enumerate(channels):
+      self.assertLess(channel['frequencyRange']['lowFrequency'],
+                      frequency_range['highFrequency'])
     channels.sort(
         key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse=True)
     if constrain_high:
