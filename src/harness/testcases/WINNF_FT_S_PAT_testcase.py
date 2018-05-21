@@ -22,9 +22,10 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.ppa import ppa
-nlcd_driver = ppa.nlcd_driver
+from reference_models.geo import drive
+
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
-from reference_models.geo import utils as GeoUtils
+from reference_models.geo import utils as geoutils
 
 def computePropagationAntennaModel(request):
     reliability_level = request['reliabilityLevel']
@@ -42,7 +43,7 @@ def computePropagationAntennaModel(request):
         ppa = request['ppa']
 
         arcsec = 1
-        ppa_points = GeoUtils.GridPolygon(ppa['geometry'], arcsec)
+        ppa_points = geoutils.GridPolygon(ppa['geometry'], arcsec)
         if len(ppa_points) == 1:
             rx['longitude']= ppa_points[0][0]
             rx['latitude'] = ppa_points[0][1]
@@ -50,15 +51,15 @@ def computePropagationAntennaModel(request):
             raise ValueError('ppa boundary contains no protection point')
         else:
             raise ValueError('ppa boundary contains more than a single protection point')
-        
-        region_val = nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
+
+        region_val = drive.nlcd_driver.RegionNlcdVote([[rx['latitude'], rx['longitude']]])
 
     elif 'fss' in request:
         isfss = True
         rx = request['fss']
     else:
         raise ValueError('Neither fss nor ppa in request')
-    
+
     # ITM pathloss (if receiver type is FSS) or the hybrid model pathloss (if receiver type is PPA) and corresponding antenna gains.
     # The test specification notes that the SAS UUT shall use default values for w1 and w2 in the ITM model.
     result = {}
