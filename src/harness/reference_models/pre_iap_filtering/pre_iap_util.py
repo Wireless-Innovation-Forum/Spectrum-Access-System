@@ -165,8 +165,8 @@ def getFssNeighboringGwbl(gwbl_records, fss_records):
 
   for fss_record in fss_records:
     fss_params = fss_record['record']['deploymentParam'][0]
-    fss_high_freq = fss_params['operationParam']['operationFrequencyRange']['highFrequency']
-    if fss_high_freq >= 3700e6:
+    fss_low_freq = fss_params['operationParam']['operationFrequencyRange']['lowFrequency']
+    if fss_low_freq >= 3700e6:
       continue
     fss_latitude = fss_params['installationParam']['latitude']
     fss_longitude = fss_params['installationParam']['longitude']
