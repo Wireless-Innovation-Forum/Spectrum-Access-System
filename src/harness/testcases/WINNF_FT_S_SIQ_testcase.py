@@ -204,6 +204,10 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
         'lowFrequency': pal_high_frequency,
         'highFrequency': 3650000000,
     }
+    freq_range_high_all = {
+        'lowFrequency': pal_high_frequency,
+        'highFrequency': 3700000000,
+    }
     freq_range_excluded = {
         'lowFrequency': 3650000000,
         'highFrequency': 3700000000,
@@ -222,12 +226,16 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                                                           freq_range_high))
       channels_pal.append(filterChannelsByFrequencyRange(channels,
                                                          freq_range_pal))
-      channels_excluded.append(filterChannelsByFrequencyRange(channels,
-                                                              freq_range_excluded))
+      channels_excluded.append(
+          filterChannelsByFrequencyRange(channels, freq_range_excluded))
 
     # Checks for cbsd 1 (index 0)
     self.assertChannelsContainFrequencyRange(channels_low[0], freq_range_low)
-    self.assertChannelsOverlapFrequencyRange(channels_high[0], freq_range_high, constrain_low=True, constrain_high=False)
+    self.assertChannelsOverlapFrequencyRange(
+        channels_high[0],
+        freq_range_high_all,
+        constrain_low=True,
+        constrain_high=True)
     for channel in all_channels[0]:
       self.assertLessEqual(channel['frequencyRange']['highFrequency'],
                            3700000000)
