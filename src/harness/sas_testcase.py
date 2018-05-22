@@ -284,6 +284,54 @@ class SasTestCase(unittest.TestCase):
     self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
                      frequency_range['highFrequency'])
 
+  def assertChannelsOverlapFrequencyRange(self, channels, frequency_range,
+                                          constrain_low=False, constrain_high=False):
+    """Checks if the frequency range of all channels overlap
+       the given frequency range.
+
+    Args:
+      channels: A list of dictionaries containing frequencyRange,
+        which is a dictionary containing lowFrequency and highFrequency.
+      frequency_range: A dictionary containing lowFrequency and highFrequency.
+      constrain_low: A Boolean flag indicating if the lower frequency edge of the
+        channel with the lowest frequency segment need to be constrained to be 
+        equal to the lower frequency edge of the frequency range.
+      constrain_high: A Boolean flag indicating if the upper frequency edge of the
+        channel with the highest frequency segment need to be constrained to be 
+        equal to the upper frequency edge of the frequency range.
+    """
+    channels.sort(
+        key=
+        lambda ch: (ch['frequencyRange']['lowFrequency'],
+                    ch['frequencyRange']['highFrequency']),
+        reverse=False)
+    for index, channel in enumerate(channels):
+      self.assertGreater(channel['frequencyRange']['highFrequency'],
+                         frequency_range['lowFrequency'])
+      if index == 0:
+        if constrain_low:
+          self.assertEqual(channel['frequencyRange']['lowFrequency'],
+                           frequency_range['lowFrequency'])
+        else:
+          self.assertLessEqual(channel['frequencyRange']['lowFrequency'],
+                               frequency_range['lowFrequency'])
+      else:
+        self.assertLessEqual(
+            channel['frequencyRange']['lowFrequency'],
+            channels[index - 1]['frequencyRange']['highFrequency'])
+
+    for index, channel in enumerate(channels):
+      self.assertLess(channel['frequencyRange']['lowFrequency'],
+                      frequency_range['highFrequency'])
+    channels.sort(
+        key=lambda ch: (ch['frequencyRange']['highFrequency']), reverse=True)
+    if constrain_high:
+      self.assertEqual(channels[0]['frequencyRange']['highFrequency'],
+                       frequency_range['highFrequency'])
+    else:
+      self.assertGreaterEqual(channels[0]['frequencyRange']['highFrequency'],
+                              frequency_range['highFrequency'])
+
   def assertChannelIncludedInFrequencyRanges(self, channel, frequency_ranges):
     """Checks if the channel lies within the list of frequency ranges.
 

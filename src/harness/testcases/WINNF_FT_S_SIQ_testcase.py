@@ -227,7 +227,10 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
 
     # Checks for cbsd 1 (index 0)
     self.assertChannelsContainFrequencyRange(channels_low[0], freq_range_low)
-    self.assertChannelsContainFrequencyRange(channels_high[0], freq_range_high)
+    self.assertChannelsOverlapFrequencyRange(channels_high[0], freq_range_high, constrain_low=True, constrain_high=False)
+    for channel in all_channels[0]:
+      self.assertLessEqual(channel['frequencyRange']['highFrequency'],
+                           3700000000)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
@@ -239,12 +242,15 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
             for channel in channels_pal[0]))
 
     # Checks for cbsd 2 (index 1)
-    self.assertChannelsContainFrequencyRange(channels_low[1], freq_range_low)
-    self.assertChannelsContainFrequencyRange(channels_high[1], freq_range_high)
+    self.assertChannelsOverlapFrequencyRange(channels_low[1], freq_range_low, constrain_low=True, constrain_high=False)
+    self.assertChannelsOverlapFrequencyRange(channels_high[1], freq_range_high, constrain_low=False, constrain_high=False)
+    for channel in all_channels[1]:
+      self.assertLessEqual(channel['frequencyRange']['highFrequency'],
+                           3700000000)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
-            for channel in channels_low[1] + channels_high[1]))
+            for channel in all_channels[1]))
     self.assertFalse(
         any(channel['channelType'] == 'PAL' for channel in all_channels[1]))
 
@@ -263,8 +269,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     self.assertEqual(len(channels_excluded[2]), 0)
 
     # Checks for cbsd 4 (index 3)
-    self.assertChannelsContainFrequencyRange(channels_low[3], freq_range_low)
-    self.assertChannelsContainFrequencyRange(channels_high[3], freq_range_high)
+    self.assertChannelsOverlapFrequencyRange(channels_low[3], freq_range_low, constrain_low=True, constrain_high=False)
+    self.assertChannelsOverlapFrequencyRange(channels_high[3], freq_range_high, constrain_low=False, constrain_high=True)
     self.assertTrue(
         all(channel['channelType'] == 'GAA' and
             channel['ruleApplied'] == 'FCC_PART_96'
