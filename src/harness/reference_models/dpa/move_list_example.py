@@ -51,13 +51,15 @@ ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 #  'min_azimuth', max_azimuth', 'catb_neighbor_dist'
 ProtectionSpecs = namedtuple('ProtectionSpecs',
                              ['lowFreq', 'highFreq',
-                              'antHeight', 'beamwidth', 'threshold'])
+                              'antHeight', 'beamwidth', 'threshold',
+                              'neighbor_distances'])
 
 if __name__ == '__main__':
 
   # Populate protection specifications
   protection_specs = ProtectionSpecs(lowFreq=3600000000, highFreq=3610000000,
-                                     antHeight=50, beamwidth=3, threshold=-144)
+                                     antHeight=50, beamwidth=3, threshold=-144,
+                                     neighbor_distances=(150, 200, 0, 25))
 
   # Populate protection points
   protection_points = [ProtectionPoint(latitude=36.9400, longitude=-75.9989),
@@ -69,7 +71,7 @@ if __name__ == '__main__':
   num_iter = 2000
 
   # Number of parallel processes to use
-  num_processes = 6
+  num_processes = 0
 
   # Data directory
   current_dir = os.getcwd()
@@ -99,32 +101,11 @@ if __name__ == '__main__':
     grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
     grant_request_list.append(grant_request)
 
-  # Get east-gulf coastal exclusion zones (enclosed with U.S. border)
-  filename = os.path.join(_BASE_DATA_DIR, 'protection_zones.kml')
-  with open(filename, 'r') as kml_file:
-    coastalZoneDoc = parser.parse(kml_file).getroot()
-  placemarks = list(coastalZoneDoc.Document.Placemark)
-  exclusion_zone = []
-  for pm in placemarks:
-    name = pm.name.text
-    if name == 'East-Gulf Combined Contour':
-      # Get long_lat
-      line = pm.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
-      coords = line.split(' ')
-      long_lat = []
-      for c in coords:
-        if c.strip():
-          xy = c.strip().split(',')
-          long_lat.append([float(xy[0]), float(xy[1])])
-          exclusion_zone = long_lat
-          # Create an exclusion zone polygon object, if desired
-          # exclusion_zone = SPolygon(exclusion_zone)
-
   # Determine which CBSD grants are on the move list
   start_time = time.time()
   res = move_list.findMoveList(protection_specs, protection_points,
                                reg_request_list, grant_request_list,
-                               num_iter, num_processes, exclusion_zone)
+                               num_iter, num_processes)
 
   end_time = time.time()
   print 'Move list output: ' + str(res)
