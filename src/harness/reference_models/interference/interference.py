@@ -421,7 +421,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   Returns:
     FSS filter loss in dB.
   """
-  # Check whether the grant frequency lies within the Fss Blocking protection frequency
+  # Sanity checks
   if (cbsd_grant.low_frequency >= cbsd_grant.high_frequency or
       cbsd_grant.low_frequency >= constraint.high_frequency):
       raise ValueError('CBSD grant frequencies incorrect')
@@ -433,7 +433,7 @@ def getFssMaskLoss(cbsd_grant, constraint):
   # Get the grant overlap frequency over the segment2 (FSS Blocking protection low frequency - edge frequency)
   seg2 = ( cbsd_grant.low_frequency,
            min(cbsd_grant.high_frequency, edge_freq_round))
-  # Get the grant overlap frequency over the segment2 (edge frequency - FSS Blocking protection high frequency)
+  # Get the grant overlap frequency over the segment1 (edge frequency - FSS Blocking protection high frequency)
   seg1 = ( max(cbsd_grant.low_frequency, edge_freq_round),
            min(cbsd_grant.high_frequency, constraint.high_frequency))
 
