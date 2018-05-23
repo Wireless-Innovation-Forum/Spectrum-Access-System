@@ -85,7 +85,8 @@ class Dpa(object):
     beamwidth: The radar antenna beamwidth (degrees).
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
-    catb_neighbor_dist: The CatB neighbording distance (km).
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      (cata_dist, catb_dist, cata_oob_dist, catb_oob_dist)
     monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
 
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
@@ -108,30 +109,16 @@ class Dpa(object):
     status = dpa.CheckInterference(channel, sas_uut_keep_list, margin_db=1)
   """
   num_iteration = 2000
-  protection_zone = None
 
   @classmethod
   def Configure(cls,
-                protection_zone=None,
                 num_iteration=2000):
     """Configure operating parameters.
 
     Args:
-      protection_zone: A |shapely.Polygon/MultiPolygon| defining the CatA protection zone.
       num_iteration: The number of iteration to use in the Monte Carlo simulation.
     """
     cls.num_iteration = num_iteration
-    if protection_zone is not None:
-      cls.protection_zone = protection_zone
-
-  @classmethod
-  def ConfigureDefaultProtectionZone(cls):
-    """Configure to use the default protection zone.
-
-    Protection zone was initially specified for CatA neighborhood derivation
-    but are now unused. Support is kept for legacy reason however.
-    """
-    cls.protection_zone = zones.GetCoastalProtectionZone()
 
   def __init__(self, protected_points,
                threshold=DPA_DEFAULT_THRESHOLD_PER_10MHZ,
@@ -139,7 +126,7 @@ class Dpa(object):
                beamwidth=3,
                azimuth_range=(0, 360),
                freq_ranges_mhz=[(3550, 3650)],
-               catb_neighbor_dist=ml.CAT_B_NBRHD_DIST_DEFAULT,
+               neighbor_distances=(150, 200, 0, 25),
                monitor_type='esc'):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
@@ -147,7 +134,7 @@ class Dpa(object):
     self.radar_height = radar_height
     self.azimuth_range = azimuth_range
     self.beamwidth = beamwidth
-    self.catb_neighbor_dist = catb_neighbor_dist
+    self.neighbor_distances = neighbor_distances
     self.monitor_type = monitor_type
     self.channels = None
     self._grants = []
@@ -159,10 +146,10 @@ class Dpa(object):
     """Returns the DPA str."""
     return ('Dpa(protected_points=%r, threshold=%.1f, radar_height=%.1f,'
             'beamwidth=%.1f, azimuth_range=%r, channels=%r,'
-            'catb_neighbor_dist=%.1f, monitor_type=%r)' % (
+            'neighbor_distances=%r, monitor_type=%r)' % (
                 self.protected_points, self.threshold, self.radar_height,
                 self.beamwidth, self.azimuth_range, self.channels,
-                self.catb_neighbor_dist, self.monitor_type))
+                self.neighbor_distances, self.monitor_type))
 
   def ResetFreqRange(self, freq_ranges_mhz):
     """Reset the frequency ranges of the DPA.
@@ -230,14 +217,13 @@ class Dpa(object):
           low_freq=low_freq * 1.e6,
           high_freq=high_freq * 1.e6,
           grants=self._grants,
-          exclusion_zone=Dpa.protection_zone,
           inc_ant_height=self.radar_height,
           num_iter=Dpa.num_iteration,
           threshold=self.threshold,
           beamwidth=self.beamwidth,
           min_azimuth=self.azimuth_range[0],
           max_azimuth=self.azimuth_range[1],
-          catb_neighbor_dist=self.catb_neighbor_dist)
+          neighbor_distances=self.neighbor_distances)
 
       move_list, nbor_list = zip(*pool.map(moveListConstraint,
                                            self.protected_points))
@@ -313,13 +299,12 @@ class Dpa(object):
         low_freq=channel[0] * 1e6,
         high_freq=channel[1] * 1e6,
         grants=keep_list,
-        exclusion_zone=Dpa.protection_zone,
         inc_ant_height=self.radar_height,
         num_iter=num_iter,
         beamwidth=self.beamwidth,
         min_azimuth=self.azimuth_range[0],
         max_azimuth=self.azimuth_range[1],
-        catb_neighbor_dist=self.catb_neighbor_dist,
+        neighbor_distances=self.neighbor_distances,
         do_max=True)
 
     pool = mpool.Pool()
@@ -399,10 +384,9 @@ class Dpa(object):
         keep_list_uut_managing_sas=keep_list_uut_managing_sas,
         radar_height=self.radar_height,
         beamwidth=self.beamwidth,
-        protection_zone=Dpa.protection_zone,
         num_iter=num_iter,
         azimuth_range=self.azimuth_range,
-        catb_neighbor_dist=self.catb_neighbor_dist,
+        neighbor_distances=self.neighbor_distances,
         threshold=hard_threshold
     )
     # TODO(sbdt): could do early stop as soon as one fails, although I would expect
@@ -455,10 +439,9 @@ def _CalcTestPointInterfDiff(point,
                              keep_list_uut_managing_sas,
                              radar_height,
                              beamwidth,
-                             protection_zone,
                              num_iter,
                              azimuth_range,
-                             catb_neighbor_dist,
+                             neighbor_distances,
                              threshold=None):
   """Calculate difference of aggregate interference between reference and SAS UUT.
 
@@ -486,12 +469,11 @@ def _CalcTestPointInterfDiff(point,
       computed by the SAS UUT.
     radar_height: The radar height (meters).
     beamwidth: The radar antenna beamwidth (degrees).
-    protection_zone: An optional |shapely.Polygon/MultiPolygon| defining the CatA
-      protection zone.
     num_iteration: The number of iteration to use in the Monte Carlo simulation.
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
-    catb_neighbor_dist: The CatB neighbor distance (km).
+    neighbor_distances: The neighborhood distance (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
     threshold: If set, do an absolute threshold check of SAS UUT interference against
       threshold. Otherwise compare against the reference model aggregated interference.
 
@@ -509,13 +491,12 @@ def _CalcTestPointInterfDiff(point,
         low_freq=channel[0] * 1e6,
         high_freq=channel[1] * 1e6,
         grants=keep_list_th_other_sas + keep_list_uut_managing_sas,
-        exclusion_zone=protection_zone,
         inc_ant_height=radar_height,
         num_iter=num_iter,
         beamwidth=beamwidth,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
-        catb_neighbor_dist=catb_neighbor_dist)
+        neighbor_distances=neighbor_distances)
     if threshold is not None:
       return np.max(uut_interferences - threshold)
     th_interferences = ml.calcAggregatedInterference(
@@ -523,13 +504,12 @@ def _CalcTestPointInterfDiff(point,
         low_freq=channel[0] * 1e6,
         high_freq=channel[1] * 1e6,
         grants=keep_list_th_other_sas + keep_list_th_managing_sas,
-        exclusion_zone=protection_zone,
         inc_ant_height=radar_height,
         num_iter=num_iter,
         beamwidth=beamwidth,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
-        catb_neighbor_dist=catb_neighbor_dist)
+        neighbor_distances=neighbor_distances)
     return np.max(uut_interferences - th_interferences)
 
 
@@ -594,12 +574,15 @@ def BuildDpa(dpa_name, protection_points_method=None):
   radar_beamwidth = dpa_zone.antennaBeamwidthDeg
   azimuth_range = (dpa_zone.minAzimuthDeg, dpa_zone.maxAzimuthDeg)
   freq_ranges_mhz = dpa_zone.freqRangeMHz
-  catb_neighbor_dist = dpa_zone.catBNeighborhoodDistanceKm
+  neighbor_distances = (dpa_zone.catANeighborhoodDistanceKm,
+                        dpa_zone.catBNeighborhoodDistanceKm,
+                        dpa_zone.catAOOBNeighborhoodDistanceKm,
+                        dpa_zone.catBOOBNeighborhoodDistanceKm)
   return Dpa(protection_points,
              threshold=protection_threshold,
              radar_height=radar_height,
              beamwidth=radar_beamwidth,
              azimuth_range=azimuth_range,
              freq_ranges_mhz=freq_ranges_mhz,
-             catb_neighbor_dist=catb_neighbor_dist,
+             neighbor_distances=neighbor_distances,
              monitor_type=monitor_type)

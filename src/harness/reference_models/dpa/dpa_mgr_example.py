@@ -53,7 +53,7 @@ if __name__ == '__main__':
                         threshold=-144,
                         beamwidth=3,
                         radar_height=50,
-                        catb_neighbor_dist=190, # so as to exercise the HAAT
+                        neighbor_distances=(150, 190, 0, 25),
                         freq_ranges_mhz=[channel])
 
   # Read all grants

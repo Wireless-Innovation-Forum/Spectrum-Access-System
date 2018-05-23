@@ -103,7 +103,10 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('antennaBeamwidthDeg', float, 3.),
                           ('minAzimuthDeg', float, 0.),
                           ('maxAzimuthDeg', float, 360.),
-                          ('catBNeighborhoodDistanceKm', float, None)]
+                          ('catANeighborhoodDistanceKm', float, 150),
+                          ('catBNeighborhoodDistanceKm', float, None),
+                          ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                          ('catBOOBNeighborhoodDistanceKm', float, float('nan'))]
 
 # For portal DPAs.
 PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
@@ -112,7 +115,10 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('antennaBeamwidthDeg', float, None),
                          ('minAzimuthDeg', float, 0),
                          ('maxAzimuthDeg', float, 360),
+                         ('catANeighborhoodDistanceKm', float, 150),
                          ('catBNeighborhoodDistanceKm', float, None),
+                         ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                         ('catBOOBNeighborhoodDistanceKm', float, float('nan')),
                          ('portalOrg', str, None),
                          ('federalOp', bool, None),
                          ('gmfSerialNumber', str, 'None'),
@@ -389,8 +395,17 @@ def _LoadDpaZones(kml_path, properties):
   # Final code should raise an exception for those which are mandatory by the spec,
   # and use the standard default for the optional ones.
   for name, zone in dpa_zones.items():
+    # CatA neighborhood specified with default value if not in file,
+    # so this is managed in the declaration.
+    # Others seems mandatory:
+    # CatB not yet defined set as NaN
     if np.isnan(zone.catBNeighborhoodDistanceKm):
-      zone.catBNeighborhoodDistanceKm = 200.
+      zone.catBNeighborhoodDistanceKm = 200
+    # OOB distances not yet provided in the KML files, so default to NaN
+    if np.isnan(zone.catAOOBNeighborhoodDistanceKm):
+      zone.catAOOBNeighborhoodDistanceKm = 0
+    if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
+      zone.catBOOBNeighborhoodDistanceKm = 25
 
   return dpa_zones
 
