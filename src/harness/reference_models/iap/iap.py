@@ -171,21 +171,6 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
     # Computes interference quota for this protection_point and channel.
     iap_threshold = threshold
-    if protection_ent_type is data.ProtectedEntityType.ESC:
-      # Integrates roll-off attenuation in threshold
-      if channel[0] >= 3650.e6:
-        # TODO(sbdt): what is the intent in following line?
-        # Also why not doing the analytical formula for speedup
-        offset = ((channel[0] - 3650.e6) / 5.e6) * 5
-        lowfreq = channel[0]
-        roll_of_attenuation = 0
-        while lowfreq < channel[1]:
-          roll_of_attenuation += interf.dbToLinear(-offset - 0.5)
-          lowfreq += MHZ
-          offset += 1
-        roll_of_attenuation = interf.linearToDb(roll_of_attenuation / 5.)
-        iap_threshold = interf.dbToLinear(interf.linearToDb(threshold) -
-                                          roll_of_attenuation)
 
     # Calculate the fair share per channel based on unsatisfied grants
     fairshare_channel = 0
@@ -311,10 +296,7 @@ def performIapForEsc(esc_record, sas_uut_fad_object, sas_th_fad_objects):
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
-  # Final IAP protection threshold for ESC is considered after subtracting
-  # insertion loss
-  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB
-                                        + interf.IN_BAND_INSERTION_LOSS)
+  esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB)
 
   grants = data.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
 

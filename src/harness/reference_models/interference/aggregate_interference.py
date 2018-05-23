@@ -112,14 +112,6 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
                                    fss_info, esc_antenna_info, region_type)
         for grant in neighborhood_grants]
 
-    # TODO(sbdt): this is a temp addition of the ESC mask loss while figuring
-    # out if the IAP process needs to be changed: in that case the mask loss
-    # will be added always in the computeInterferenceEsc() routine.
-    if protection_constraint.entity_type is data.ProtectedEntityType.ESC:
-      esc_mask_loss = interf.getEscMaskLoss(protection_constraint)
-      cbsd_interferences = [(interference - esc_mask_loss)
-                            for interference in cbsd_interferences]
-
     total_interference = convertAndSumInterference(cbsd_interferences)
     aggr_interference.UpdateAggregateInterferenceInfo(
         protection_point[1], protection_point[0], total_interference)

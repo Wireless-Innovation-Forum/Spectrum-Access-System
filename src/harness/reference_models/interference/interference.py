@@ -378,14 +378,9 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   effective_ant_gain = ant_gain + esc_ant_gain
 
   # Compute the interference value for ESC entity
-  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain, effective_ant_gain)
-
-  interference = eirp - db_loss
-  # TODO(sbdt): normally we should do the following. However since IAP does a
-  # special roll-off processing for ESC, the ESC mask loss is only used for now
-  # in the aggregate interf calculation (see aggregateInterferenceForPoint).
-  # A future PR will clean either this comment or the IAP processing.
-  # interference -= getEscMaskLoss(cbsd_grant, constraint)
+  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
+                                effective_ant_gain)
+  interference = eirp - db_loss - getEscMaskLoss(constraint)
   return interference
 
 
