@@ -411,45 +411,37 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
 
 
 def getFssMaskLoss(cbsd_grant, constraint):
-  """Gets the FSS mask loss for a FSS blocking protection constraint."""
-  # Get 50MHz offset below the lower edge of the FSS earth station
-  offset = constraint.low_frequency - 50.e6
+  """Gets the FSS mask loss for a FSS blocking protection constraint.
 
-  # Get CBSD grant frequency range
-  cbsd_freq_range = cbsd_grant.high_frequency - cbsd_grant.low_frequency
+  Args:
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+      The constraint defines the FSS out of band left part, so typically
+      [3550, min_passband_freq] or [3550, 3700].
+  """
+  # Sanity checks
+  if (cbsd_grant.low_frequency >= cbsd_grant.high_frequency or
+      cbsd_grant.low_frequency >= constraint.high_frequency):
+    raise ValueError('CBSD grant frequencies incorrect')
 
-  fss_mask_loss = 0
+  # Find the 50MHz edge and its rounded version
+  edge_freq = constraint.high_frequency - 50*MHZ
+  edge_freq_round = int(edge_freq/MHZ +0.5)*MHZ
+  # Part of grant in closest mask segment
+  seg1 = (max(cbsd_grant.low_frequency, edge_freq_round),
+          min(cbsd_grant.high_frequency, constraint.high_frequency))
+  # Part of grant in farther mask segment
+  seg2 = (cbsd_grant.low_frequency,
+          min(cbsd_grant.high_frequency, edge_freq_round))
 
-  # if lower edge of the FSS passband is less than CBSD grant
-  # lowFrequency and highFrequency
-  if (constraint.low_frequency < cbsd_grant.low_frequency and
-         constraint.low_frequency < cbsd_grant.high_frequency):
-    fss_mask_loss = 0.5
-
-  # if CBSD grant lowFrequency and highFrequency is less than
-  # 50MHz offset from the FSS passband lower edge
-  elif (cbsd_grant.low_frequency < offset and
-     cbsd_grant.high_frequency < offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.25)
-
-  # if CBSD grant lowFrequency is less than 50MHz offset and
-  # highFrequency is greater than 50MHz offset
-  elif (cbsd_grant.low_frequency < offset and
-            cbsd_grant.high_frequency > offset):
-    low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) / MHZ) * 0.25)
-    fss_mask_loss = low_freq_mask_loss + linearToDb(((
-        cbsd_grant.high_frequency - offset) / MHZ) * 0.6)
-
-  # if FSS Passband lower edge frequency is grater than CBSD grant
-  # lowFrequency and highFrequency and
-  # CBSD grand low and high frequencies are greater than 50MHz offset
-  elif (constraint.low_frequency > cbsd_grant.low_frequency and
-      constraint.low_frequency > cbsd_grant.high_frequency and
-      cbsd_grant.low_frequency > offset and
-             cbsd_grant.high_frequency > offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.6)
-
-  return fss_mask_loss
+  # Now compute the attenuation
+  freqs1 = np.arange(seg1[0] + 0.5*MHZ, seg1[1], MHZ)
+  freqs2 = np.arange(seg2[0] + 0.5*MHZ, seg2[1], MHZ)
+  attens1 = (constraint.high_frequency - freqs1)/MHZ * 0.6 + 0.5
+  attens2 = (edge_freq - freqs2)/MHZ * 0.25 + 30.5
+  attens = np.concatenate((attens1, attens2))
+  fss_mask_attenuation = -linearToDb(np.mean(dbToLinear(-attens)))
+  return fss_mask_attenuation
 
 
 def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
