@@ -133,7 +133,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                               reliability=-1,
                               freq_mhz=3625.,
                               region='RURAL',
-                              is_height_cbsd_amsl=False):
+                              is_height_cbsd_amsl=False,
+                              return_internals=False):
   """Implements the Hybrid ITM/eHata NTIA propagation model.
 
   As specified by Winforum, see:
@@ -173,7 +174,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
           hor_rx:         Horizontal incidence angle (bearing) from Rx to CBSD
           ver_rx:         Vertical incidence angle at Rx
 
-      internals:        A dictionary of internal data for advanced analysis:
+      internals:        A dictionary of internal data for advanced analysis
+                        (only if return_internals=True):
           hybrid_opcode:  Opcode from HybridCode - See GetInfoOnHybridCodes()
           effective_height_cbsd: Effective CBSD antenna height
           itm_db_loss:    Loss in dB for the ITM model.
@@ -191,7 +193,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
     return _PropagResult(
         db_loss = 0,
         incidence_angles = _IncidenceAngles(0,0,0,0),
-        internals = {})
+        internals = None)
 
   # Sanity checks on input parameters
   if freq_mhz < 40 or freq_mhz > 10000:
@@ -221,7 +223,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   db_loss_itm, incidence_angles, internals = wf_itm.CalcItmPropagationLoss(
       lat_cbsd, lon_cbsd, height_cbsd,
       lat_rx, lon_rx, height_rx,
-      False, reliability, freq_mhz, its_elev)
+      False, reliability, freq_mhz, its_elev, return_internals=True)
   internals['itm_db_loss'] = db_loss_itm
 
   # Calculate the effective heights of the tx
@@ -239,6 +241,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   elif region == 'SUBURBAN':
     region_code = 22
   else:  # 'RURAL': use ITM
+    if not return_internals: return_internals = None
     return _BuildOutput(db_loss_itm, incidence_angles, internals,
                         HybridMode.ITM_RURAL, cbsd_indoor)
 
@@ -247,6 +250,7 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
   # Now process the different cases
   dist_km = internals['dist_km']
+  if not return_internals: return_internals = None
 
   if dist_km <= 0.1:  # Use Free Space Loss
     db_loss = CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx)
@@ -332,7 +336,8 @@ def CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx):
 def _BuildOutput(db_loss, incidence_angles, internals,
                  hybrid_opcode, is_indoor):
   """Build the output of CalcHybridPropagationLoss."""
-  internals['hybrid_opcode'] = hybrid_opcode
+  if internals:
+    internals['hybrid_opcode'] = hybrid_opcode
   if is_indoor:
     db_loss += 15
   return _PropagResult(

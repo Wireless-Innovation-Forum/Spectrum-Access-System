@@ -52,7 +52,8 @@ class TestWfItm(unittest.TestCase):
     lat2, lng2, height2 = 37.756559, -122.507882, 10.0
     reliability = 0.5
     res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                        reliability=reliability, freq_mhz=3625.)
+                                        reliability=reliability, freq_mhz=3625.,
+                                        return_internals=True)
     self.assertAlmostEqual(res.db_loss, 78.7408, 4)
     self.assertAlmostEqual(res.incidence_angles.ver_cbsd, -res.incidence_angles.ver_rx, 3)
     self.assertEqual(res.internals['itm_err_num'], wf_itm.ItmErrorCode.OTHER)  # LOS mode
@@ -65,7 +66,8 @@ class TestWfItm(unittest.TestCase):
 
     for rel, exp_loss in zip(reliabilities, expected_losses):
       res = wf_itm.CalcItmPropagationLoss(lat1, lng1, height1, lat2, lng2, height2,
-                                          reliability=rel, freq_mhz=3625.)
+                                          reliability=rel, freq_mhz=3625.,
+                                          return_internals=True)
       self.assertAlmostEqual(res.db_loss, exp_loss, 2)
       self.assertEqual(res.internals['itm_err_num'], wf_itm.ItmErrorCode.WARNING)  # Double horizon
 
