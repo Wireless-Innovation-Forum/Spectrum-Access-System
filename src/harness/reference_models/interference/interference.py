@@ -422,8 +422,8 @@ def getFssMaskLoss(cbsd_grant, constraint):
     FSS filter loss in dB.
   """
   # Check whether the grant frequency lies within the Fss Blocking protection frequency
-  assert cbsd_grant.low_frequency >= constraint.low_frequency, 'Grant Low frequency is less than Fss protection Low frequency'
-  assert cbsd_grant.high_frequency <= constraint.high_frequency, 'Grant High frequency is greater than Fss protection High frequency'
+  assert cbsd_grant.low_frequency < constraint.low_frequency, 'Grant Low frequency is less than Fss protection Low frequency'
+  assert cbsd_grant.high_frequency <= constraint.low_frequency, 'Grant High frequency is less than Fss protection low frequency'
 
   # Get 50MHz offset below the lower edge of the FSS earth station
   offset = constraint.high_frequency - 50*MHZ
