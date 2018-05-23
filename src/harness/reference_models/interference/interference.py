@@ -288,13 +288,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   Returns:
     The interference contribution (dBm).
   """
-  if (cbsd_grant.latitude == constraint.latitude and
-      cbsd_grant.longitude == constraint.longitude):
-    db_loss = 0
-    incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
-  else:
-    # Get the propagation loss and incident angles for area entity
-    db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
+  # Get the propagation loss and incident angles for area entity
+  db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
                                      cbsd_grant.latitude, cbsd_grant.longitude,
                                      cbsd_grant.height_agl, constraint.latitude,
                                      constraint.longitude, h_inc_ant,
@@ -381,7 +376,6 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   Returns:
     The interference contribution(dBm).
   """
-
   # Get the propagation loss and incident angles for FSS entity_type
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
                                    cbsd_grant.longitude, cbsd_grant.height_agl,
