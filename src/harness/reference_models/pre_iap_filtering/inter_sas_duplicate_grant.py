@@ -19,6 +19,7 @@ duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
 CBSD is removed from the FAD objects of the respective SASs.
 """
 
+import logging
 from collections import defaultdict
 
 
@@ -46,6 +47,7 @@ def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads
   for cbsd in sas_uut_fad.getCbsdRecords():
     if cbsd_id_counts[cbsd['id']] == 1:
       cbsds_to_keep.append(cbsd)
+  logging.info('CBSDs to keep in SAS UUT: %s', cbsds_to_keep)
   sas_uut_fad.setCbsdRecords(cbsds_to_keep)
 
   # Iterate through the test harness CBSD list and keep only the non duplicate CBSDs
@@ -54,4 +56,5 @@ def interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads
     for cbsd in fad.getCbsdRecords():
       if cbsd_id_counts[cbsd['id']] == 1:
         cbsds_to_keep.append(cbsd)
+    logging.info('CBSDs to keep in SAS TH: %s', cbsds_to_keep)
     fad.setCbsdRecords(cbsds_to_keep)

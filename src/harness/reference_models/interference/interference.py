@@ -37,7 +37,7 @@
 from collections import namedtuple
 import multiprocessing
 from multiprocessing.managers import BaseManager
-
+import logging
 import numpy as np
 
 from reference_models.common import data
@@ -247,7 +247,7 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
   if (protection_ent_type == data.ProtectedEntityType.ESC and
         grant.cbsd_category == 'A' and
         ch_high_freq > ESC_CAT_A_HIGH_FREQ_HZ):
-        freq_check = False
+    freq_check = False
 
   return freq_check
 
@@ -552,5 +552,9 @@ def computeInterference(grant, eirp, constraint,
     interference = computeInterferencePpaGwpzPoint(
                      grant, constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
+
+  logging.info(
+      'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
+      grant, eirp, constraint, fss_info, esc_antenna_info, region, interference)
 
   return interference
