@@ -166,6 +166,11 @@ class TestWfItm(unittest.TestCase):
       self.assertAlmostEqual(inc_angles.ver_cbsd, a_tx, 14)
       self.assertAlmostEqual(inc_angles.ver_rx, a_rx, 14)
 
+  def test_same_location(self):
+    result = wf_itm.CalcItmPropagationLoss(45, -80, 10, 45, -80, 10)
+    self.assertEqual(result.db_loss, 0)
+    self.assertTupleEqual(result.incidence_angles, (0, 0, 0, 0))
+
 
 if __name__ == '__main__':
   unittest.main()

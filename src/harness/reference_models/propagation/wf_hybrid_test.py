@@ -215,6 +215,11 @@ class TestWfHybrid(unittest.TestCase):
     self.assertEqual(res_bad.db_loss, res_expected.db_loss)
     self.assertEqual(res_bad.incidence_angles, res_expected.incidence_angles)
 
+  def test_same_location(self):
+    result = wf_hybrid.CalcHybridPropagationLoss(45, -80, 10, 45, -80, 10)
+    self.assertEqual(result.db_loss, 0)
+    self.assertTupleEqual(result.incidence_angles, (0, 0, 0, 0))
+
 
 if __name__ == '__main__':
   unittest.main()

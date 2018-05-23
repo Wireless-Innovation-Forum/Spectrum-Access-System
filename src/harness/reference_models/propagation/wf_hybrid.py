@@ -186,6 +186,13 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   Raises:
     Exception if input parameters invalid or out of range.
   """
+  # Case of same points
+  if (lat_cbsd == lat_rx and lon_cbsd == lon_rx):
+    return _PropagResult(
+        db_loss = 0,
+        incidence_angles = _IncidenceAngles(0,0,0,0),
+        internals = {})
+
   # Sanity checks on input parameters
   if freq_mhz < 40 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz].')
