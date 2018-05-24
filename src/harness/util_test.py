@@ -23,14 +23,14 @@ class UtilTest(unittest.TestCase):
 
   def test_getFqdnLocalhost(self):
     # Initialize the testConfig with our test data.
-    util._initTestConfig()
+    util._test_config = util._GetSharedTestConfig()
     util._test_config.hostname = 'foo.bar.com'
 
     self.assertEqual(util.getFqdnLocalhost(), 'foo.bar.com')
 
   def test_getUnusedPort_pickAny(self):
     # Initialize the testConfig with our test data.
-    util._initTestConfig()
+    util._test_config = util._GetSharedTestConfig()
     util._test_config.min_port = -1
     util._test_config.min_port = -1
 
@@ -38,7 +38,7 @@ class UtilTest(unittest.TestCase):
 
   def test_getUnusedPort_pickRange(self):
     # Initialize the testConfig with our test data.
-    util._initTestConfig()
+    util._test_config = util._GetSharedTestConfig()
     # Note that the could failed if these port are already in use...
     START_PORT = 12345
     util._test_config.min_port = START_PORT
