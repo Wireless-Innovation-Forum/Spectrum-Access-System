@@ -34,6 +34,7 @@ import ssl
 import threading
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
+from util import releasePort
 
 
 # Create the authorization string.
@@ -67,9 +68,10 @@ class DatabaseServer(threading.Thread):
     super(DatabaseServer, self).__init__()
     self.name = name
     self.address = host_name + ':' + str(port)
+    self.port = port
     self.base_url = 'http' + ('s' if https else '') + '://' + self.address
     self.setDaemon(True)
-    self.server = DatabaseHTTPServer((host_name, port), DatabaseHandler, name, authorization)
+    self.server = DatabaseHTTPServer(('localhost', port), DatabaseHandler, name, authorization)
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
@@ -77,6 +79,9 @@ class DatabaseServer(threading.Thread):
           keyfile=_SSL_KEY,
           ca_certs=_SSL_CA_CERT_FILE,
           server_side=True)
+
+  def __del__(self):
+    releasePort(self.port)
 
   def run(self):
     """ Starts the HTTPServer as background thread.
