@@ -71,7 +71,7 @@ class DatabaseServer(threading.Thread):
     self.port = port
     self.base_url = 'http' + ('s' if https else '') + '://' + self.address
     self.setDaemon(True)
-    self.server = DatabaseHTTPServer(('localhost', port), DatabaseHandler, name, authorization)
+    self.server = DatabaseHTTPServer(('', port), DatabaseHandler, name, authorization)
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,

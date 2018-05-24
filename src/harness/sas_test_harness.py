@@ -92,7 +92,7 @@ class SasTestHarnessServer(threading.Thread):
     self.setDaemon(True)
     self.server = SasHttpServer(
         self.dump_path,
-        ('localhost', self.port),
+        ('', self.port),
         SasTestHarnessServerHandler,
         self.getSasTestHarnessVersion(),
     )

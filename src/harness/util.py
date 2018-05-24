@@ -74,6 +74,7 @@ def configurable_testcase(default_config_function):
       def _func(*a):
         if generate_default_func:
           generate_default_func(*a)
+          _releaseAllPorts()
         _log_testcase_header(name, func.func_doc)
         return func(*a, config_filename=config)
       _func.__name__ = name
@@ -564,7 +565,7 @@ def getUnusedPort():
   To be used when starting peer SAS webserver or other database webserver.
   """
   _initTestConfig()
-  if _test_config.min_port < 0:
+  if int(_test_config.min_port) < 0:
     return portpicker.pick_unused_port()
   global _ports
   # Find the first available port in the defined range.
@@ -575,10 +576,14 @@ def getUnusedPort():
   raise AssertionError('No available new ports')
 
 def releasePort(port):
-  """Release a used port after a webserevr goes down."""
+  """Release a used port after a webserver goes down."""
   _initTestConfig()
   if _test_config.min_port < 0:
     portpicker.return_port(port)
   global _ports
   if port in _ports:
     _ports.remove(port)
+
+def _releaseAllPorts():
+  """Release all used ports."""
+  _ports.clear()
