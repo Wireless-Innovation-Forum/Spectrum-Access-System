@@ -192,8 +192,9 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
   """
   if low_freq_hz >= high_freq_hz:
     raise ValueError('Low frequency is greater than high frequency')
+  # Align the low_freq to multiple of 5MHZ
+  low_freq_hz = int(low_freq_hz / (5*MHZ)) * (5*MHZ)
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
-
   return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
 
 
@@ -237,20 +238,18 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
     True if grant frequency overlaps with protection constraint frequency range,
     False otherwise.
   """
-  # Check frequency range
-  overlapping_bw = min(grant.high_frequency, ch_high_freq) \
-                      - max(grant.low_frequency, ch_low_freq)
-  freq_check = (overlapping_bw > 0)
-
-  # ESC Passband is 3550-3680MHz
+  # Special case of ESC: ESC Passband is 3550-3680MHz
   # Category A CBSD grants are considered in the neighborhood only for
   # constraint frequency range 3550-3660MHz
   if (protection_ent_type == data.ProtectedEntityType.ESC and
-        grant.cbsd_category == 'A' and
-        ch_high_freq > ESC_CAT_A_HIGH_FREQ_HZ):
-    freq_check = False
+      grant.cbsd_category == 'A' and
+      ch_low_freq >= ESC_CAT_A_HIGH_FREQ_HZ):
+    return False
 
-  return freq_check
+  # Check frequency range overlap
+  overlapping_bw = (min(grant.high_frequency, ch_high_freq)
+                    - max(grant.low_frequency, ch_low_freq))
+  return (overlapping_bw > 0)
 
 
 def findOverlappingGrants(grants, constraint):
@@ -268,13 +267,13 @@ def findOverlappingGrants(grants, constraint):
   """
   grants_overlap = [grant for grant in grants
                     if grantFrequencyOverlapCheck(
-                        grant, constraint.low_frequency,
+                        grant, constraint.low_frequency ,
                         constraint.high_frequency, constraint.entity_type)]
   return grants_overlap
 
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
-                                    max_eirp, region='SUBURBAN'):
+                                    max_eirp, region_type='SUBURBAN'):
   """Computes interference that a grant causes to GWPZ or PPA protection area.
 
   Routine to compute interference neighborhood grant causes to protection
@@ -285,7 +284,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
     constraint: The protection constraint of type |data.ProtectionConstraint|.
     h_inc_ant: The reference incumbent antenna height (in meters).
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                    'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     The interference contribution (dBm).
   """
@@ -297,7 +297,7 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                                      cbsd_grant.indoor_deployment,
                                      reliability=-1,
                                      freq_mhz=FREQ_PROP_MODEL_MHZ,
-                                     region=region)
+                                     region=region_type)
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(incidence_angles.hor_cbsd,
@@ -319,6 +319,26 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   return interference
 
 
+def getEscMaskLoss(constraint):
+  """Returns the ESC mask loss (in dB).
+
+  Note: This routine assumes that the constraint bandwidth is 5MHz-aligned and
+  fully contained in the CBSD grant so there is no partial overlap across the
+  3650MHz ESC pass-band edge. This condition is realized in current framework.
+
+  Args:
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+  """
+  if constraint.high_frequency <= 3650*MHZ:
+    return IN_BAND_INSERTION_LOSS
+  if constraint.low_frequency < 3650*MHZ:
+    raise ValueError('ESC mask loss: inconsistent protection channel %r' % constraint)
+  freqs = np.arange(constraint.low_frequency + 0.5*MHZ, constraint.high_frequency, MHZ)
+  attens = freqs/MHZ - 3650. + IN_BAND_INSERTION_LOSS
+  atten = -linearToDb(np.mean(dbToLinear(-attens)))
+  return atten
+
+
 def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   """Computes interference that a grant causes to a ESC protection point.
 
@@ -334,17 +354,16 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
     The interference contribution(dBm).
   """
   # Get the propagation loss and incident angles for ESC entity
-  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
-                                   cbsd_grant.longitude, cbsd_grant.height_agl,
-                                   constraint.latitude, constraint.longitude,
-                                   esc_antenna_info.antenna_height,
-                                   cbsd_grant.indoor_deployment, reliability=-1,
-                                   freq_mhz=FREQ_PROP_MODEL_MHZ)
+  db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(
+      cbsd_grant.latitude, cbsd_grant.longitude, cbsd_grant.height_agl,
+      constraint.latitude, constraint.longitude, esc_antenna_info.antenna_height,
+      cbsd_grant.indoor_deployment, reliability=-1,
+      freq_mhz=FREQ_PROP_MODEL_MHZ)
 
   # Compute CBSD antenna gain in the direction of protection point
-  ant_gain = antenna.GetStandardAntennaGains(incidence_angles.hor_cbsd,
-               cbsd_grant.antenna_azimuth, cbsd_grant.antenna_beamwidth,
-               cbsd_grant.antenna_gain)
+  ant_gain = antenna.GetStandardAntennaGains(
+      incidence_angles.hor_cbsd, cbsd_grant.antenna_azimuth,
+      cbsd_grant.antenna_beamwidth, cbsd_grant.antenna_gain)
 
   # Compute ESC antenna gain in the direction of CBSD
   esc_ant_gain = antenna.GetAntennaPatternGains(
@@ -357,9 +376,9 @@ def computeInterferenceEsc(cbsd_grant, constraint, esc_antenna_info, max_eirp):
   effective_ant_gain = ant_gain + esc_ant_gain
 
   # Compute the interference value for ESC entity
-  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,effective_ant_gain)
-
-  interference = eirp - db_loss
+  eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
+                                effective_ant_gain)
+  interference = eirp - db_loss - getEscMaskLoss(constraint)
   return interference
 
 
@@ -513,8 +532,8 @@ def getEffectiveSystemEirp(max_eirp, cbsd_max_ant_gain, effective_ant_gain,
     The effective EIRP of the CBSD(dBm)
   """
 
-  eirp_cbsd = ((max_eirp - cbsd_max_ant_gain) + effective_ant_gain + linearToDb
-            (reference_bandwidth / MHZ))
+  eirp_cbsd = ((max_eirp - cbsd_max_ant_gain) + effective_ant_gain +
+               linearToDb(reference_bandwidth / MHZ))
 
   return eirp_cbsd
 
@@ -532,7 +551,8 @@ def computeInterference(grant, eirp, constraint,
     constraint: A protection constraint of type |data.ProtectionConstraint|.
     fss_info: The FSS information of type |data.FssInformation|.
     esc_antenna_info: ESC antenna information of type |data.EscInformation|.
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                   'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
@@ -559,6 +579,6 @@ def computeInterference(grant, eirp, constraint,
 
   logging.info(
       'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
-      grant, eirp, constraint, fss_info, esc_antenna_info, region, interference)
+      grant, eirp, constraint, fss_info, esc_antenna_info, region_type, interference)
 
   return interference

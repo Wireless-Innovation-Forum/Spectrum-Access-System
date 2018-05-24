@@ -113,12 +113,12 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
           protection_point[1], protection_point[0], 0)
       continue
 
-    cbsd_interference_list = [
+    cbsd_interferences = [
         interf.computeInterference(grant, grant.max_eirp, protection_constraint,
                                    fss_info, esc_antenna_info, region_type)
         for grant in neighborhood_grants]
 
-    total_interference = convertAndSumInterference(cbsd_interference_list)
+    total_interference = convertAndSumInterference(cbsd_interferences)
     aggr_interference.UpdateAggregateInterferenceInfo(
         protection_point[1], protection_point[0], total_interference)
 
@@ -140,8 +140,10 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
   fss_low_freq, fss_high_freq = fss_freq_range
 
   # Get channels for co-channel CBSDs
-  fss_high_freq = min(fss_high_freq, interf.CBRS_HIGH_FREQ_HZ)
-  protection_channels = interf.getProtectedChannels(fss_low_freq, fss_high_freq)
+  if fss_high_freq < interf.CBRS_HIGH_FREQ_HZ:
+    raise ValueError('FSS high frequency should not be less than CBRS high frequency')
+
+  protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
   aggr_interference = interf.getInterferenceObject()
   aggregateInterferenceForPoint(fss_point,

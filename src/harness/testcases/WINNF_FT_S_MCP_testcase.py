@@ -22,6 +22,7 @@ import logging
 import sas
 import sas_testcase
 import test_harness_objects
+import threading
 from full_activity_dump import FullActivityDump
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 import common_strings
@@ -41,6 +42,23 @@ from reference_models.geo import drive
 
 DELTA_IAP = 1 # Threshold value in dBm
 ONE_MHZ = 1000000
+
+# Basic thread classes to handle parallel execution of MCP/xPR components.
+class ParallelCpas(threading.Thread):
+  def __init__(self, testcase):
+    super(ParallelCpas, self).__init__()
+    self.testcase = testcase
+
+  def run(self):
+    self.testcase.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+
+class ParallelAggregateInterferenceCheck(threading.Thread):
+  def __init__(self, testcase):
+    super(ParallelAggregateInterferenceCheck, self).__init__()
+    self.testcase = testcase
+
+  def run(self):
+    self.testcase.performAggregateInterferenceCheck()
 
 class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
@@ -218,7 +236,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     if self.num_peer_sases:
       for test_harness in config['sasTestHarnessConfigs']:
         logging.info('Creating SAS TH with config %s', test_harness)
-        
+
         # Initialize SAS Test Harness Server instance to dump FAD records
         sas_test_harness_object = SasTestHarnessServer(test_harness['sasTestHarnessName'],
                                                              test_harness['hostName'],
@@ -353,8 +371,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                                           test_harness.getSasTestHarnessInterface()))
 
     # Step 8: Trigger CPAS and wait until completion.
-    logging.info('Step 8: Triggering CPAS.')
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    logging.info("Step 8: Triggering CPAS.")
+    cpas = ParallelCpas(self)
+    cpas.start()
 
     if self.num_peer_sases:
       # Step 9: Invoke IAP reference model
@@ -363,6 +382,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                                      self.sas_uut_fad, self.test_harness_fads)
       logging.info('Step 9: Performing IAP.')
       self.performIap()
+
+    logging.info("Waiting for CPAS to complete (Started in step 8).")
+    cpas.join()
 
     # Step 10: DP Test Harnesses register N(2,k) CBSDs with SAS UUT.
     logging.info('Step 10: registering and granting new CBSDs.')
@@ -403,8 +425,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # For the set of protected entity the interference value is calculated
     # using both IAP and aggregate interference reference models, checked against
     # the comparison value
-    logging.info('Step 12: performing aggregate interference check.')
-    self.performAggregateInterferenceCheck()
+    logging.info("Step 12: performing aggregate interference check.")
+    aggregate_interference_check = ParallelAggregateInterferenceCheck(self)
+    aggregate_interference_check.start()
 
     if self.num_peer_sases:
       # Step 13: Configure SAS Test Harnesses with new FAD information.
@@ -425,8 +448,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                 test_harness.getSasTestHarnessInterface()))
 
     # Step 16: Trigger CPAS and wait for its completion.
-    logging.info('Step 16: triggering CPAS.')
-    self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    logging.info("Step 16: triggering CPAS.")
+    cpas = ParallelCpas(self)
+    cpas.start()
 
     if self.num_peer_sases:
       # Step 17: Call IAP reference model
@@ -435,6 +459,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                                      self.sas_uut_fad, self.test_harness_fads)
       logging.info('Step 17: Performing IAP.')
       self.performIap()
+
+    logging.info("Waiting for aggregate interference check to complete (Started in step 12).")
+    aggregate_interference_check.join()
+    logging.info("Waiting for CPAS to complete (Started in step 16).")
+    cpas.join()
 
     # Steps 18, 19, 20, and 21: send heartbeat request for the grants,
     # relinquish the grant, grant request and heartbeat for new grant.
@@ -487,10 +516,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       logging.info('Working on domain proxy %d.', index)
       domain_proxy_object.performHeartbeatAndUpdateGrants()
 
-    # Step 29: Check DPA movelist.
+
+
+    # Step 29 + 30: Check DPA movelist + Check IAP interference (can happen in parallel).
     logging.info(
-        'Step 29: calculating reference DPA move list and performing DPA aggregate interference check.'
+        'Step 29 + 30: calculating reference DPA move list, performing DPA aggregate interference check and performing aggregate interference check.'
     )
+    aggregate_interference_check = ParallelAggregateInterferenceCheck(self)
+    aggregate_interference_check.start()
     # Get list of authorized grants, in the format required from DPA movelist checking.
     grant_info = data.getAuthorizedGrantsFromDomainProxies(self.domain_proxy_objects)
     # Calculate DPA movelist.
@@ -504,16 +537,16 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
       dpa.ComputeMoveLists()
       # Check SAS UUT authorized grants do not exceed allowed threshold as calculated by the DPA reference model.
-      logging.info('Checking aggregate interference to DPA.')
+      logging.info(
+        'CHECK: DPA aggregate interference check for DPA %s.' % active_dpa['dpaId']
+      )
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
           channel=(low_freq_mhz, high_freq_mhz),
           do_abs_check_single_uut=(self.num_peer_sases==0)))
-
-    # Step 30: Check IAP interference.
-    logging.info('Step 30: performing aggregate interference check.')
-    self.performAggregateInterferenceCheck()
+    logging.info("Waiting for aggregate interference check to complete  (Started in step 30).")
+    aggregate_interference_check.join()
 
   def performIap(self):
     self.ppa_ap_iap_ref_values_list = []
