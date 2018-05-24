@@ -223,11 +223,11 @@ class SasTestCase(unittest.TestCase):
     every 10 seconds until it is completed.
     - Fails immediately if the status check returns HTTP 500 (or) if it gives
     *any other error code* 20 times in a row.
-    - If the status is not changed within 2 hours it will throw an exception.
+    - If the status is not changed within 24 hours it will throw an exception.
     """
     self._sas_admin.TriggerDailyActivitiesImmediately()
-    # Timeout after 2 hours if it's not completed
-    timeout = datetime.now() + timedelta(hours=2) 
+    # Timeout after 24 hours if it's not completed
+    timeout = datetime.now() + timedelta(hours=24) 
     # Check the Status of Daily Activities every 10 seconds
     error_counter = 0
     is_completed = False
