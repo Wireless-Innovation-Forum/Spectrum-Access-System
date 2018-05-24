@@ -565,10 +565,11 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
         user_claimed_ppa_contour_shapely, as_dict=True)
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
 
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
+        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
     }
     writeConfig(filename, config)
 
@@ -851,12 +852,13 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       user_claimed_ppa_contour['features'][0]['geometry']).buffer(1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
       user_claimed_ppa_contour_shapely, as_dict=True)
-
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
+        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
     }
+
     writeConfig(filename, config)
 
   @configurable_testcase(generate_PCR_6_default_config)
