@@ -254,8 +254,24 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     device_a['installationParam']['longitude'] = -87.93972
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 44.47642
-    device_b['installationParam']['longitude'] = -124.08096
+    device_b['installationParam']['latitude'] = 30.47642
+    device_b['installationParam']['longitude'] = -87.08096
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c['installationParam']['latitude'] = 30.31534
+    device_c['installationParam']['longitude'] = -86.08972
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_d['installationParam']['latitude'] = 30.30642
+    device_d['installationParam']['longitude'] = -86.06096
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_e['installationParam']['latitude'] = 44.47642
+    device_e['installationParam']['longitude'] = -124.08096
+    device_h = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_h['installationParam']['latitude'] = 44.46642
+    device_h['installationParam']['longitude'] = -124.07096
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
@@ -272,12 +288,40 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         for key in device_b
         if key not in reg_conditional_keys
     }
+    conditionals_d = {key: device_d[key] for key in conditional_keys}
+    device_d = {
+        key: device_d[key]
+        for key in device_d
+        if key not in reg_conditional_keys
+    }
+    conditionals_h = {key: device_h[key] for key in conditional_keys}
+    device_h = {
+        key: device_h[key]
+        for key in device_h
+        if key not in reg_conditional_keys
+    }
 
     # Load grant requests.
     grant_a = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
+    grant_c['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
+    grant_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_d['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
+    grant_d['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
+    grant_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
+    grant_e['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
+    grant_h = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_h['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
+    grant_h['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
 
     sas_test_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
@@ -287,7 +331,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'serverKey': getCertFilename('sas.key'),
         'caCert': getCertFilename('ca.cert'),
         'fullActivityDumpRecords': [
-            generateCbsdRecords([device_a], [[grant_a]])
+            generateCbsdRecords([device_a, device_c, device_e], [[grant_a], [grant_c], [grant_e]])
         ]
     }
 
@@ -329,9 +373,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     domain_proxy = {
-        'registrationRequests': [device_b],
-        'grantRequests': [grant_b],
-        'conditionalRegistrationData': [conditionals_b],
+        'registrationRequests': [device_b, device_d, device_h],
+        'grantRequests': [grant_b, grant_d, grant_h],
+        'conditionalRegistrationData': [conditionals_b, conditionals_d, conditionals_h],
         'cert': getCertFilename('domain_proxy.cert'),
         'key': getCertFilename('domain_proxy.key')
     }
