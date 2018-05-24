@@ -113,12 +113,12 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
           protection_point[1], protection_point[0], 0)
       continue
 
-    cbsd_interference_list = [
+    cbsd_interferences = [
         interf.computeInterference(grant, grant.max_eirp, protection_constraint,
                                    fss_info, esc_antenna_info, region_type)
         for grant in neighborhood_grants]
 
-    total_interference = convertAndSumInterference(cbsd_interference_list)
+    total_interference = convertAndSumInterference(cbsd_interferences)
     aggr_interference.UpdateAggregateInterferenceInfo(
         protection_point[1], protection_point[0], total_interference)
 
