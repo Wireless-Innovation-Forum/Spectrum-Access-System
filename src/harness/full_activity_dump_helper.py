@@ -13,9 +13,8 @@
 #    limitations under the License.
 """Container for Full Activity Dump information."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
-import signal
 import time
 from full_activity_dump import FullActivityDump
 import util
@@ -80,13 +79,8 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   """
   request_time = datetime.utcnow().replace(microsecond=0)
   sas_admin.TriggerFullActivityDump()
-  signal.signal(signal.SIGALRM,
-                lambda signum,
-                frame: (_ for _ in ()).
-                  throw(EnvironmentError('Full Activity Dump '
-                                         'generation in SAS UUT timed out')))
-  # Timeout after 2 hours if it's not completed.
-  signal.alarm(7200)
+  # Timeout after 2 hours if it's not completed 
+  timeout = datetime.now() + timedelta(hours=2) 
   # Check generation date of full activity dump.
   while True:
     dump_message = sas.GetFullActivityDump(ssl_cert, ssl_key)
@@ -94,8 +88,9 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
                                   '%Y-%m-%dT%H:%M:%SZ')
     if request_time <= dump_time:
       break
+    if timeout < datetime.now(): 
+      raise AssertionError('2 Hour FAD generation timeout has been exceeded')
     time.sleep(10)
-  signal.alarm(0)
   return dump_message
 
 
