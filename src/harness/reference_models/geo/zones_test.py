@@ -51,7 +51,7 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['East5'].refHeightMeters, 50)
     self.assertEqual(z['East5'].minAzimuthDeg, 0)
     self.assertEqual(z['East5'].maxAzimuthDeg, 360)
-    self.assertEqual(z['East5'].catbNeighborDist, 368)
+    self.assertEqual(z['East5'].catBNeighborhoodDistanceKm, 368)
 
   def test_read_portal_dpa(self):
     z = zones.GetPortalDpaZones()
@@ -63,8 +63,8 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['BATH'].refHeightMeters, 30)
     self.assertEqual(z['BATH'].minAzimuthDeg, 0)
     self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
-    self.assertEqual(z['BATH'].catbNeighborDist, 200)
-  """
+    self.assertEqual(z['BATH'].catBNeighborhoodDistanceKm, 240)
+
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()
     exp_area = 275000
@@ -72,7 +72,7 @@ class TestZones(unittest.TestCase):
     self.assertTrue(z.is_valid)
     self.assertTrue(approx_area > exp_area * 0.9 and
                     approx_area < exp_area * 1.1)
-  """
+
   def test_read_usborder(self):
     z = zones.GetUsBorder()
     self.assertTrue(z.is_valid)

@@ -403,8 +403,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       + the grants on the move list.
       + the grants in the neighborhood list.
   """
-  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%s)',
-               protection_point, low_freq, high_freq, threshold, catb_neighbor_dist)
+  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%r)',
+               protection_point, low_freq, high_freq, threshold, neighbor_distances)
   if not grants:
     return [], []
 
