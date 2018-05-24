@@ -484,8 +484,12 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
 
   # Compute EIRP of CBSD grant inside the frequency range of
   # protection constraint
+  eff_bandwidth = (min(cbsd_grant.high_frequency, constraint.high_frequency)
+                   - cbsd_grant.low_frequency)
+  if eff_bandwidth < 0:
+    raise ValueError('Computing FSS blocking on grant fully inside FSS passband')
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
-           effective_ant_gain, (cbsd_grant.high_frequency - cbsd_grant.low_frequency))
+                                effective_ant_gain, eff_bandwidth)
   # Calculate the interference contribution
   interference = eirp - getFssMaskLoss(cbsd_grant, constraint) - db_loss
 
