@@ -40,6 +40,8 @@ import logging
 
 from reference_models.common import mpool
 from reference_models.common import data
+from reference_models.common import cache
+from reference_models.propagation import wf_hybrid
 from reference_models.interference import interference as interf
 from reference_models.geo import utils
 
@@ -91,32 +93,34 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
           protection_point[1], protection_point[0], 0)
     return
 
-  for channel in channels:
-    # Get protection constraint over 5MHz channel range
-    protection_constraint = data.ProtectionConstraint(
-        latitude=protection_point[1], longitude=protection_point[0],
-        low_frequency=channel[0], high_frequency=channel[1],
-        entity_type=protection_ent_type)
+  with cache.CacheManager(wf_hybrid.CalcHybridPropagationLoss):
+    # Using memoizing cache manager only for lengthy calculation (hybrid on PPA/GWPZ).
+    for channel in channels:
+      # Get protection constraint over 5MHz channel range
+      protection_constraint = data.ProtectionConstraint(
+          latitude=protection_point[1], longitude=protection_point[0],
+          low_frequency=channel[0], high_frequency=channel[1],
+          entity_type=protection_ent_type)
 
-    # Identify CBSD grants overlapping with frequency range of the protection entity
-    # in the neighborhood of the protection point and channel
-    neighborhood_grants = interf.findOverlappingGrants(grants_inside, protection_constraint)
+      # Identify CBSD grants overlapping with frequency range of the protection entity
+      # in the neighborhood of the protection point and channel
+      neighborhood_grants = interf.findOverlappingGrants(grants_inside, protection_constraint)
 
-    if not neighborhood_grants:
-      # As number of neighborhood grants are zero, setting
-      # aggr_interference to '0' for a protection_constraint
+      if not neighborhood_grants:
+        # As number of neighborhood grants are zero, setting
+        # aggr_interference to '0' for a protection_constraint
+        aggr_interference.UpdateAggregateInterferenceInfo(
+            protection_point[1], protection_point[0], 0)
+        continue
+
+      cbsd_interferences = [
+          interf.computeInterference(grant, grant.max_eirp, protection_constraint,
+                                     fss_info, esc_antenna_info, region_type)
+          for grant in neighborhood_grants]
+
+      total_interference = convertAndSumInterference(cbsd_interferences)
       aggr_interference.UpdateAggregateInterferenceInfo(
-          protection_point[1], protection_point[0], 0)
-      continue
-
-    cbsd_interferences = [
-        interf.computeInterference(grant, grant.max_eirp, protection_constraint,
-                                   fss_info, esc_antenna_info, region_type)
-        for grant in neighborhood_grants]
-
-    total_interference = convertAndSumInterference(cbsd_interferences)
-    aggr_interference.UpdateAggregateInterferenceInfo(
-        protection_point[1], protection_point[0], total_interference)
+          protection_point[1], protection_point[0], total_interference)
 
 
 def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
