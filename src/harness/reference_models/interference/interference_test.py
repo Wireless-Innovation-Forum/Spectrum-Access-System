@@ -94,7 +94,7 @@ class TestAggInterf(unittest.TestCase):
         dist_type='REAL', factor=1.0, offset=70 - 30.0)
     antenna.GetFssAntennaGains = mock.create_autospec(antenna.GetFssAntennaGains,
                                                       return_value=2.8)
-    #import ipdb; ipdb.set_trace()
+    import ipdb; ipdb.set_trace()
     # Create FSS and a CBSD at 30km
     fss_point, fss_info, _ = data.getFssInfo(TestAggInterf.fss_record)
     fss_freq_range = (3650e6, 3750e6)
@@ -122,7 +122,7 @@ class TestAggInterf(unittest.TestCase):
         dist_type='REAL', factor=1.0, offset=70 - 30.0)
     antenna.GetFssAntennaGains = mock.create_autospec(antenna.GetFssAntennaGains,
                                                       return_value=2.8)
-    import ipdb; ipdb.set_trace()
+
     # Create FSS and a CBSD at 30km
     fss_point, fss_info, _ = data.getFssInfo(TestAggInterf.fss_record)
     fss_freq_range = (3652e6, 3750e6)
