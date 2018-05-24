@@ -52,9 +52,9 @@ def _log_testcase_header(name, doc):
 def winnforum_testcase(testcase):
   """Decorator for common features (e.g. logging) for WinnForum test cases."""
   def decorated_testcase(*args, **kwargs):
-    assert testcase, ('Avoid using @winnforum_testcase with '
-                      '@configurable_testcase')
-
+    if not testcase:
+      raise ValueError('Avoid using @winnforum_testcase with '
+                       '@configurable_testcase')
     _log_testcase_header(testcase.__name__, testcase.__doc__)
     testcase(*args, **kwargs)
 
@@ -354,7 +354,8 @@ def addIdsToRequests(ids, requests, id_field_name):
   """
   for index, req in enumerate(requests):
     if id_field_name not in req:
-      assert len(ids) == len(requests)  # Not valid otherwise
+      if len(ids) != len(requests):
+        raise ValueError('Bad number of requests')
       req[id_field_name] = ids[index]
     elif req[id_field_name] == 'REMOVE':
       del req[id_field_name]

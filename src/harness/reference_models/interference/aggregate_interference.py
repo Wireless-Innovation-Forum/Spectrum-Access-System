@@ -36,6 +36,7 @@
 
 import numpy as np
 from functools import partial
+import logging
 
 from reference_models.common import mpool
 from reference_models.common import data
@@ -78,6 +79,11 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
     region: Region type of the protection point: 'URBAN', 'SUBURBAN' or 'RURAL'.
     aggr_interference : An object of class type |AggregateInterferenceOutputFormat|.
   """
+  logging.info(
+      'Computing aggregateInterferenceForPoint for protection point (%s), channels (%s), grants (%s), fss_info (%s), esc_antenna_info (%s), protection_ent_type (%s), region_type (%s), aggr_interference (%s)',
+      protection_point, channels, grants, fss_info, esc_antenna_info,
+      protection_ent_type, region_type, aggr_interference)
+
   # Get all the grants inside neighborhood of the protection entity
   grants_inside = interf.findGrantsInsideNeighborhood(
       grants, protection_point, protection_ent_type)

@@ -73,7 +73,8 @@ class Cbsd(object):
       grant_ids: list of grant ids.
       grant_requests:A list of dictionary containing the grant request parameters.
     """
-    assert len(grant_requests) == len(grant_ids)
+    if len(grant_requests) != len(grant_ids):
+      raise ValueError('Cbsd builder: invalid grant_ids number')
     self.cbsd_id = cbsd_id
     self.grant_objects = {}
     for grant_id, grant_request in zip(grant_ids, grant_requests):

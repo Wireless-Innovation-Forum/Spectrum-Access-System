@@ -37,6 +37,7 @@
 import functools
 from collections import namedtuple, defaultdict
 from enum import Enum
+import logging
 
 import numpy as np
 from shapely.geometry import Point as SPoint
@@ -51,9 +52,9 @@ from reference_models.common import cache
 from reference_models.common import data
 from reference_models.antenna import antenna
 
-
-# Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
-PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection
+# Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
+# Monte Carlo percentile for protection
+PROTECTION_PERCENTILE = 95      
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
 FREQ_PROP_MODEL = 3625.0
@@ -215,9 +216,9 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
   # Compute median and K random realizations of path loss/interference contribution
   # based on ITM model as defined in [R2-SGN-03] (in dB)
   reliabilities = np.random.uniform(0.001, 0.999, num_iteration)  # get K random
-                # reliability values from an uniform distribution over [0.001,0.999)
+  # reliability values from an uniform distribution over [0.001,0.999)
   reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
-                                            # a last value to reliabilities array
+  # a last value to reliabilities array
   results = wf_itm.CalcItmPropagationLoss(
       grant.latitude, grant.longitude, grant.height_agl,
       constraint.latitude, constraint.longitude, inc_ant_height,
@@ -402,6 +403,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       + the grants on the move list.
       + the grants in the neighborhood list.
   """
+  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%s)',
+               protection_point, low_freq, high_freq, threshold, catb_neighbor_dist)
   if not grants:
     return [], []
 
@@ -463,6 +466,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 
       neighbor_grants.extend(extra_grants)
 
+  logging.info('Returning movelist_grants=(%s), neighbor_grants=(%s)',
+               movelist_grants, neighbor_grants)
   return (movelist_grants, neighbor_grants)
 
 
@@ -590,7 +595,7 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     protection_specs:   protection specifications, an object with attributes
                         'lowFreq' (in Hz), 'highFreq' (in Hz),
                         'antHeight' (in meters), 'beamwidth' (in degrees),
-                        'threshold' (in dBm/10MHz), 'neightbor_distances' (km),
+                        'threshold' (in dBm/10MHz), 'neighbor_distances' (km),
                         'min_azimuth', 'max_azimuth' (degrees)
                         where `neighbor_distances` are the neighborhood
                         distances (km) as a sequence:
@@ -613,6 +618,10 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                         grant_requests) with TRUE elements at indices having
                         grants on the move list
   """
+  logging.info(
+      'Finding reference move list for protection specs (%s), protection points (%s), registration requests (%s), grant requests (%s), num iter (%s), num_processes (%s)',
+      protection_specs, protection_points, registration_requests,
+      grant_requests, num_iter, num_processes)
   grants = data.getGrantsFromRequests(registration_requests, grant_requests)
   # Find the move list of each protection constraint with a pool of parallel processes.
   if pool is None:
@@ -648,4 +657,6 @@ def findMoveList(protection_specs, protection_points, registration_requests,
   for k, grant in enumerate(grants):
     if grant in M:
       result[k] = True
-  return result.tolist()
+  output = result.tolist()
+  logging.info('DPA ML output = %s', output)
+  return output

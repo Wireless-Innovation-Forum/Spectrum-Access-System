@@ -53,7 +53,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertAlmostEqual(res.db_loss, 79.167, 3)
     self.assertEqual(res.internals['hybrid_opcode'], wf_hybrid.HybridMode.FSL)
 
@@ -64,7 +64,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
     self.assertEqual(res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.ITM_HIGH_HEIGHT)
@@ -76,7 +76,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='RURAL')
+        region='RURAL', return_internals=True)
     self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
     self.assertEqual(res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.ITM_RURAL)
@@ -88,7 +88,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='URBAN')
+        region='URBAN', return_internals=True)
     self.assertAlmostEqual(res.db_loss, 144.836, 3)
     self.assertEqual(res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.EHATA_FSL_INTERP)
@@ -101,7 +101,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertAlmostEqual(res.db_loss, expected_itm_loss, 2)
     self.assertEqual(res.db_loss, res.internals['itm_db_loss'])
     self.assertEqual(res.internals['hybrid_opcode'],
@@ -117,7 +117,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertAlmostEqual(res.db_loss, expected_loss, 2)
     self.assertEqual(res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.EHATA_DOMINANT)
@@ -149,7 +149,7 @@ class TestWfHybrid(unittest.TestCase):
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=0.5, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertAlmostEqual(res.db_loss, expected_loss, 3)
     self.assertAlmostEqual(expected_itm_loss, res.internals['itm_db_loss'], 0)
     self.assertEqual(res.internals['hybrid_opcode'],
@@ -169,7 +169,7 @@ class TestWfHybrid(unittest.TestCase):
     avg_res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=-1, freq_mhz=3625.,
-        region='SUBURBAN')
+        region='SUBURBAN', return_internals=True)
     self.assertEqual(avg_res.internals['hybrid_opcode'],
                      wf_hybrid.HybridMode.ITM_DOMINANT)
     self.assertAlmostEqual(avg_res.db_loss,
@@ -214,6 +214,11 @@ class TestWfHybrid(unittest.TestCase):
         reliability=0.5, freq_mhz=3625., region='SUBURBAN')
     self.assertEqual(res_bad.db_loss, res_expected.db_loss)
     self.assertEqual(res_bad.incidence_angles, res_expected.incidence_angles)
+
+  def test_same_location(self):
+    result = wf_hybrid.CalcHybridPropagationLoss(45, -80, 10, 45, -80, 10)
+    self.assertEqual(result.db_loss, 0)
+    self.assertTupleEqual(result.incidence_angles, (0, 0, 0, 0))
 
 
 if __name__ == '__main__':

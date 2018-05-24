@@ -37,7 +37,7 @@
 from collections import namedtuple
 import multiprocessing
 from multiprocessing.managers import BaseManager
-
+import logging
 import numpy as np
 
 from reference_models.common import data
@@ -190,7 +190,8 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
     An array of protected channel frequency range tuple
     (low_freq_hz,high_freq_hz).
   """
-  assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
+  if low_freq_hz >= high_freq_hz:
+    raise ValueError('Low frequency is greater than high frequency')
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
 
   return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
@@ -247,7 +248,7 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
   if (protection_ent_type == data.ProtectedEntityType.ESC and
         grant.cbsd_category == 'A' and
         ch_high_freq > ESC_CAT_A_HIGH_FREQ_HZ):
-        freq_check = False
+    freq_check = False
 
   return freq_check
 
@@ -288,13 +289,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
   Returns:
     The interference contribution (dBm).
   """
-  if (cbsd_grant.latitude == constraint.latitude and
-      cbsd_grant.longitude == constraint.longitude):
-    db_loss = 0
-    incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
-  else:
-    # Get the propagation loss and incident angles for area entity
-    db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
+  # Get the propagation loss and incident angles for area entity
+  db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
                                      cbsd_grant.latitude, cbsd_grant.longitude,
                                      cbsd_grant.height_agl, constraint.latitude,
                                      constraint.longitude, h_inc_ant,
@@ -381,7 +377,6 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   Returns:
     The interference contribution(dBm).
   """
-
   # Get the propagation loss and incident angles for FSS entity_type
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
                                    cbsd_grant.longitude, cbsd_grant.height_agl,
@@ -484,8 +479,12 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
 
   # Compute EIRP of CBSD grant inside the frequency range of
   # protection constraint
+  eff_bandwidth = (min(cbsd_grant.high_frequency, constraint.high_frequency)
+                   - cbsd_grant.low_frequency)
+  if eff_bandwidth < 0:
+    raise ValueError('Computing FSS blocking on grant fully inside FSS passband')
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
-           effective_ant_gain, (cbsd_grant.high_frequency - cbsd_grant.low_frequency))
+                                effective_ant_gain, eff_bandwidth)
   # Calculate the interference contribution
   interference = eirp - getFssMaskLoss(cbsd_grant, constraint) - db_loss
 
@@ -552,5 +551,9 @@ def computeInterference(grant, eirp, constraint,
     interference = computeInterferencePpaGwpzPoint(
                      grant, constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
+
+  logging.info(
+      'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
+      grant, eirp, constraint, fss_info, esc_antenna_info, region, interference)
 
   return interference
