@@ -541,35 +541,35 @@ class _TestConfig(object):
     parser.read([file])
     test_config = _TestConfig()
     test_config.hostname = parser.get('TestConfig', 'hostname')
-    test_config.min_port = parser.get('TestConfig', 'minPort')
-    test_config.max_port = parser.get('TestConfig', 'maxPort')
+    test_config.min_port = int(parser.get('TestConfig', 'minPort'))
+    test_config.max_port = int(parser.get('TestConfig', 'maxPort'))
     return test_config
 
 
 _test_config = None
-def _initTestConfig():
+def _GetSharedTestConfig():
   global _test_config
   if _test_config is None:
     _test_config = _TestConfig.FromFile()
+  return _test_config
 
 def getFqdnLocalhost():
   """Returns the fully qualified name of the host running the testcase.
   To be used when starting peer SAS webserver or other database webserver.
   """
-  _initTestConfig()
-  return _test_config.hostname
+  return _GetSharedTestConfig().hostname
 
 _ports = set()
 def getUnusedPort():
   """Returns an unused TCP port on the local host inside the defined port range.
   To be used when starting peer SAS webserver or other database webserver.
   """
-  _initTestConfig()
-  if int(_test_config.min_port) < 0:
+  config = _GetSharedTestConfig()
+  if config.min_port < 0:
     return portpicker.pick_unused_port()
   global _ports
   # Find the first available port in the defined range.
-  for p in xrange(int(_test_config.min_port), int(_test_config.max_port)):
+  for p in xrange(config.min_port, config.max_port):
     if p not in _ports and portpicker.is_port_free(p):
       _ports.add(p)
       return p
@@ -577,8 +577,7 @@ def getUnusedPort():
 
 def releasePort(port):
   """Release a used port after a webserver goes down."""
-  _initTestConfig()
-  if _test_config.min_port < 0:
+  if _GetSharedTestConfig().min_port < 0:
     portpicker.return_port(port)
   global _ports
   if port in _ports:
