@@ -274,7 +274,7 @@ def findOverlappingGrants(grants, constraint):
 
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
-                                    max_eirp, region='SUBURBAN'):
+                                    max_eirp, region_type='SUBURBAN'):
   """Computes interference that a grant causes to GWPZ or PPA protection area.
 
   Routine to compute interference neighborhood grant causes to protection
@@ -285,7 +285,8 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
     constraint: The protection constraint of type |data.ProtectionConstraint|.
     h_inc_ant: The reference incumbent antenna height (in meters).
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                    'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     The interference contribution (dBm).
   """
@@ -297,7 +298,7 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
                                      cbsd_grant.indoor_deployment,
                                      reliability=-1,
                                      freq_mhz=FREQ_PROP_MODEL_MHZ,
-                                     region=region)
+                                     region=region_type)
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(incidence_angles.hor_cbsd,
@@ -527,7 +528,8 @@ def computeInterference(grant, eirp, constraint,
     constraint: A protection constraint of type |data.ProtectionConstraint|.
     fss_info: The FSS information of type |data.FssInformation|.
     esc_antenna_info: ESC antenna information of type |data.EscInformation|.
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                   'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
@@ -554,6 +556,6 @@ def computeInterference(grant, eirp, constraint,
 
   logging.info(
       'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
-      grant, eirp, constraint, fss_info, esc_antenna_info, region, interference)
+      grant, eirp, constraint, fss_info, esc_antenna_info, region_type, interference)
 
   return interference
