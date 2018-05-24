@@ -37,7 +37,6 @@
 from collections import namedtuple
 import multiprocessing
 from multiprocessing.managers import BaseManager
-import logging
 import numpy as np
 
 from reference_models.common import data
@@ -553,9 +552,5 @@ def computeInterference(grant, eirp, constraint,
     interference = computeInterferencePpaGwpzPoint(
                      grant, constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
-
-  logging.info(
-      'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
-      grant, eirp, constraint, fss_info, esc_antenna_info, region_type, interference)
 
   return interference
