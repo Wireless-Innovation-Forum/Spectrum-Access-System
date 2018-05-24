@@ -37,7 +37,7 @@
 from collections import namedtuple
 import multiprocessing
 from multiprocessing.managers import BaseManager
-
+import logging
 import numpy as np
 
 from reference_models.common import data
@@ -190,7 +190,8 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
     An array of protected channel frequency range tuple
     (low_freq_hz,high_freq_hz).
   """
-  assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
+  if low_freq_hz >= high_freq_hz:
+    raise ValueError('Low frequency is greater than high frequency')
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
 
   return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
@@ -271,7 +272,7 @@ def findOverlappingGrants(grants, constraint):
 
 
 def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
-                                    max_eirp, region='SUBURBAN'):
+                                    max_eirp, region_type='SUBURBAN'):
   """Computes interference that a grant causes to GWPZ or PPA protection area.
 
   Routine to compute interference neighborhood grant causes to protection
@@ -282,24 +283,20 @@ def computeInterferencePpaGwpzPoint(cbsd_grant, constraint, h_inc_ant,
     constraint: The protection constraint of type |data.ProtectionConstraint|.
     h_inc_ant: The reference incumbent antenna height (in meters).
     max_eirp: The maximum EIRP allocated to the grant during IAP procedure
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                    'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     The interference contribution (dBm).
   """
-  if (cbsd_grant.latitude == constraint.latitude and
-      cbsd_grant.longitude == constraint.longitude):
-    db_loss = 0
-    incidence_angles = wf_itm._IncidenceAngles(hor_cbsd=0, ver_cbsd=0, hor_rx=0, ver_rx=0)
-  else:
-    # Get the propagation loss and incident angles for area entity
-    db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
+  # Get the propagation loss and incident angles for area entity
+  db_loss, incidence_angles, _ = wf_hybrid.CalcHybridPropagationLoss(
                                      cbsd_grant.latitude, cbsd_grant.longitude,
                                      cbsd_grant.height_agl, constraint.latitude,
                                      constraint.longitude, h_inc_ant,
                                      cbsd_grant.indoor_deployment,
                                      reliability=-1,
                                      freq_mhz=FREQ_PROP_MODEL_MHZ,
-                                     region=region)
+                                     region=region_type)
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(incidence_angles.hor_cbsd,
@@ -398,7 +395,6 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   Returns:
     The interference contribution(dBm).
   """
-
   # Get the propagation loss and incident angles for FSS entity_type
   db_loss, incidence_angles, _ = wf_itm.CalcItmPropagationLoss(cbsd_grant.latitude,
                                    cbsd_grant.longitude, cbsd_grant.height_agl,
@@ -428,45 +424,37 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
 
 
 def getFssMaskLoss(cbsd_grant, constraint):
-  """Gets the FSS mask loss for a FSS blocking protection constraint."""
-  # Get 50MHz offset below the lower edge of the FSS earth station
-  offset = constraint.low_frequency - 50.e6
+  """Gets the FSS mask loss for a FSS blocking protection constraint.
 
-  # Get CBSD grant frequency range
-  cbsd_freq_range = cbsd_grant.high_frequency - cbsd_grant.low_frequency
+  Args:
+    cbsd_grant: A CBSD grant of type |data.CbsdGrantInfo|.
+    constraint: The protection constraint of type |data.ProtectionConstraint|.
+      The constraint defines the FSS out of band left part, so typically
+      [3550, min_passband_freq] or [3550, 3700].
+  """
+  # Sanity checks
+  if (cbsd_grant.low_frequency >= cbsd_grant.high_frequency or
+      cbsd_grant.low_frequency >= constraint.high_frequency):
+    raise ValueError('CBSD grant frequencies incorrect')
 
-  fss_mask_loss = 0
+  # Find the 50MHz edge and its rounded version
+  edge_freq = constraint.high_frequency - 50*MHZ
+  edge_freq_round = int(edge_freq/MHZ +0.5)*MHZ
+  # Part of grant in closest mask segment
+  seg1 = (max(cbsd_grant.low_frequency, edge_freq_round),
+          min(cbsd_grant.high_frequency, constraint.high_frequency))
+  # Part of grant in farther mask segment
+  seg2 = (cbsd_grant.low_frequency,
+          min(cbsd_grant.high_frequency, edge_freq_round))
 
-  # if lower edge of the FSS passband is less than CBSD grant
-  # lowFrequency and highFrequency
-  if (constraint.low_frequency < cbsd_grant.low_frequency and
-         constraint.low_frequency < cbsd_grant.high_frequency):
-    fss_mask_loss = 0.5
-
-  # if CBSD grant lowFrequency and highFrequency is less than
-  # 50MHz offset from the FSS passband lower edge
-  elif (cbsd_grant.low_frequency < offset and
-     cbsd_grant.high_frequency < offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.25)
-
-  # if CBSD grant lowFrequency is less than 50MHz offset and
-  # highFrequency is greater than 50MHz offset
-  elif (cbsd_grant.low_frequency < offset and
-            cbsd_grant.high_frequency > offset):
-    low_freq_mask_loss = linearToDb(((offset - cbsd_grant.low_frequency) / MHZ) * 0.25)
-    fss_mask_loss = low_freq_mask_loss + linearToDb(((
-        cbsd_grant.high_frequency - offset) / MHZ) * 0.6)
-
-  # if FSS Passband lower edge frequency is grater than CBSD grant
-  # lowFrequency and highFrequency and
-  # CBSD grand low and high frequencies are greater than 50MHz offset
-  elif (constraint.low_frequency > cbsd_grant.low_frequency and
-      constraint.low_frequency > cbsd_grant.high_frequency and
-      cbsd_grant.low_frequency > offset and
-             cbsd_grant.high_frequency > offset):
-    fss_mask_loss = linearToDb((cbsd_freq_range / MHZ) * 0.6)
-
-  return fss_mask_loss
+  # Now compute the attenuation
+  freqs1 = np.arange(seg1[0] + 0.5*MHZ, seg1[1], MHZ)
+  freqs2 = np.arange(seg2[0] + 0.5*MHZ, seg2[1], MHZ)
+  attens1 = (constraint.high_frequency - freqs1)/MHZ * 0.6 + 0.5
+  attens2 = (edge_freq - freqs2)/MHZ * 0.25 + 30.5
+  attens = np.concatenate((attens1, attens2))
+  fss_mask_attenuation = -linearToDb(np.mean(dbToLinear(-attens)))
+  return fss_mask_attenuation
 
 
 def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
@@ -509,8 +497,12 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
 
   # Compute EIRP of CBSD grant inside the frequency range of
   # protection constraint
+  eff_bandwidth = (min(cbsd_grant.high_frequency, constraint.high_frequency)
+                   - cbsd_grant.low_frequency)
+  if eff_bandwidth < 0:
+    raise ValueError('Computing FSS blocking on grant fully inside FSS passband')
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
-           effective_ant_gain, (cbsd_grant.high_frequency - cbsd_grant.low_frequency))
+                                effective_ant_gain, eff_bandwidth)
   # Calculate the interference contribution
   interference = eirp - getFssMaskLoss(cbsd_grant, constraint) - db_loss
 
@@ -553,7 +545,8 @@ def computeInterference(grant, eirp, constraint,
     constraint: A protection constraint of type |data.ProtectionConstraint|.
     fss_info: The FSS information of type |data.FssInformation|.
     esc_antenna_info: ESC antenna information of type |data.EscInformation|.
-    region: Region type of the GWPZ or PPA area: 'URBAN', 'SUBURBAN' or 'RURAL'.
+    region_type: Region type of the GWPZ or PPA area:
+                   'URBAN', 'SUBURBAN' or 'RURAL'.
   Returns:
     interference: Interference caused by a grant(dBm)
   """
@@ -577,5 +570,9 @@ def computeInterference(grant, eirp, constraint,
     interference = computeInterferencePpaGwpzPoint(
                      grant, constraint, GWPZ_PPA_HEIGHT,
                      eirp, region_type)
+
+  logging.info(
+      'Interference for grant (%s) with EIRP (%s) to constraint (%s) with fss_info (%s), esc_antenna_info (%s), and region (%s) is equal to %s dBm.',
+      grant, eirp, constraint, fss_info, esc_antenna_info, region_type, interference)
 
   return interference

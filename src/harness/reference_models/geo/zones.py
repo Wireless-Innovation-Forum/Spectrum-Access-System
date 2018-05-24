@@ -71,11 +71,6 @@ USBORDER_FILE = 'usborder.kmz'
 URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
 USCANADA_BORDER_FILE = 'uscabdry_sampled.kmz'
 
-# The CatB neighborhood CSV file suffix
-# Note: neighborhood distance are currently provided as an external CSV file.
-#       The code will be changed as the format/source is defined.
-DPA_NEIGHBOR_SUFFIX = '_CatBNeighborhoods'
-
 
 # A frequency splitter - used as DPA properties converter.
 def _SplitFreqRange(freq_range):
@@ -108,7 +103,10 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('antennaBeamwidthDeg', float, 3.),
                           ('minAzimuthDeg', float, 0.),
                           ('maxAzimuthDeg', float, 360.),
-                          ('catbNeighborDist', float, None)]
+                          ('catANeighborhoodDistanceKm', float, 150),
+                          ('catBNeighborhoodDistanceKm', float, None),
+                          ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                          ('catBOOBNeighborhoodDistanceKm', float, float('nan'))]
 
 # For portal DPAs.
 PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
@@ -117,7 +115,10 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('antennaBeamwidthDeg', float, None),
                          ('minAzimuthDeg', float, 0),
                          ('maxAzimuthDeg', float, 360),
-                         ('catbNeighborDist', float, None),
+                         ('catANeighborhoodDistanceKm', float, 150),
+                         ('catBNeighborhoodDistanceKm', float, None),
+                         ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                         ('catBOOBNeighborhoodDistanceKm', float, float('nan')),
                          ('portalOrg', str, None),
                          ('federalOp', bool, None),
                          ('gmfSerialNumber', str, 'None'),
@@ -358,18 +359,6 @@ def _CheckDpaValidity(dpa_zones, attributes):
         raise ValueError('DPA %s: attribute %s is unset' % (name, attr))
 
 
-def _ReadDpaNborCsv(kml_path):
-  kml_path = os.path.splitext(kml_path)[0] + DPA_NEIGHBOR_SUFFIX + '.csv'
-  if not os.path.exists(kml_path):
-    logging.warning('No existing DPA neighbor file: %s' % kml_path)
-    return {}
-  with open(kml_path, 'r') as fd:
-    lines = fd.readlines()[1:]
-  lines = [line.strip().split(',') for line in lines]
-  dpa_dists = {line[0]: line[2] for line in lines}
-  return dpa_dists
-
-
 def _LoadDpaZones(kml_path, properties):
   """Loads DPA zones from a `kml_path` - See GetCoastalDpaZones for returned format.
 
@@ -388,19 +377,7 @@ def _LoadDpaZones(kml_path, properties):
   #                           data_fields=[attr for attr,_,_ in properties])
   #dpa_zones.update(dpa_zones2)
 
-  # Read the neighbor distance from actual neighbor distance file.
-  # WARNING: this may still change with direct inclusion in the KML.
-  dpa_dists = _ReadDpaNborCsv(kml_path)
-  for name, zone in dpa_zones.items():
-    if zone.catbNeighborDist is not None: continue
-    if name in dpa_dists:
-      zone.catbNeighborDist = dpa_dists[name]
-    else:
-      logging.warning('DPA %s has no CatB neighbor distance defined. Using default 200km.'
-                      % name)
-      zone.catbNeighborDist = 200
-
-  # Validity check that all requuired parameters are set properly
+  # Validity check that all required parameters are set properly
   _CheckDpaValidity(dpa_zones, [attr for attr, _, default in properties
                                 if default is None])
 
@@ -413,11 +390,28 @@ def _LoadDpaZones(kml_path, properties):
       else:
         setattr(zone, attr, cvt(value))
 
+  # Check on the neighbor distances and set defaults
+  # TODO(sbdt): This is temp while final KML are produced.
+  # Final code should raise an exception for those which are mandatory by the spec,
+  # and use the standard default for the optional ones.
+  for name, zone in dpa_zones.items():
+    # CatA neighborhood specified with default value if not in file,
+    # so this is managed in the declaration.
+    # Others seems mandatory:
+    # CatB not yet defined set as NaN
+    if np.isnan(zone.catBNeighborhoodDistanceKm):
+      zone.catBNeighborhoodDistanceKm = 200
+    # OOB distances not yet provided in the KML files, so default to NaN
+    if np.isnan(zone.catAOOBNeighborhoodDistanceKm):
+      zone.catAOOBNeighborhoodDistanceKm = 0
+    if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
+      zone.catBOOBNeighborhoodDistanceKm = 25
+
   return dpa_zones
+
 
 #=============================================================
 # Public interface below
-
 
 def GetCoastalProtectionZone():
   """Returns the coastal protection zone as a |shapely.MultiPolygon|.

@@ -5,12 +5,16 @@
 	<open>1</open>
 	<ExtendedData>
 		<Data name="version">
-			<value>1.0</value>
+			<value>1.0.1</value>
 		</Data>
 		<Data name="creationDate">
-			<value>2018-05-14</value>
+			<value>2018-05-22</value>
+		</Data>
+		<Data name="Disclaimer">
+			<value>The Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
 		</Data>
 	</ExtendedData>
+	<gx:balloonVisibility>1</gx:balloonVisibility>
 	<Placemark>
 		<name>BARKING SANDS</name>
 		<Snippet maxLines="0"></Snippet>
@@ -38,6 +42,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>NaN</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -71,6 +78,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>240</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -115,6 +125,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>208</value>
 			</Data>
 		</ExtendedData>
 		<Polygon>
@@ -166,6 +179,9 @@
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
 			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>400</value>
+			</Data>
 		</ExtendedData>
 		<Polygon>
 			<outerBoundaryIs>
@@ -205,6 +221,9 @@
 			<Data name="maxAzimuthDeg">
 				<value>225</value>
 			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>416</value>
+			</Data>
 		</ExtendedData>
 		<Point>
 			<coordinates>-96.65666667000001,33.21611111,0</coordinates>
@@ -237,6 +256,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>384</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -271,6 +293,9 @@
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
 			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>384</value>
+			</Data>
 		</ExtendedData>
 		<Point>
 			<coordinates>-76.43888889,36.98055556,0</coordinates>
@@ -303,6 +328,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>340</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>400</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -347,6 +375,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>384</value>
 			</Data>
 		</ExtendedData>
 		<Polygon>
@@ -398,6 +429,9 @@
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
 			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>208</value>
+			</Data>
 		</ExtendedData>
 		<Polygon>
 			<outerBoundaryIs>
@@ -447,6 +481,9 @@
 			</Data>
 			<Data name="maxAzimuthDeg">
 				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>208</value>
 			</Data>
 		</ExtendedData>
 		<Polygon>

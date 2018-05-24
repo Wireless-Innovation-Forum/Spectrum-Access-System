@@ -26,7 +26,6 @@ from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
      makePpaAndPalRecordsConsistent, getCertFilename
 from request_handler import HTTPError
-import signal
 import time
 
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
@@ -207,16 +206,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Triggers most recent PPA Creation Status immediately and checks for the status
     # of activity every 10 seconds until it is completed. If the status is not changed
     # within 2 hours it will throw an exception.
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Most Recent PPA Creation Status Check Timeout')))
-
     # Timeout after 2 hours if it's not completed.
-    signal.alarm(7200)
+    timeout = datetime.now() + timedelta(hours=2)
 
     # Check the Status of most recent ppa creation every 10 seconds.
     while not self._sas_admin.GetPpaCreationStatus()['completed']:
+      self.assertLess(datetime.now(), timeout, 'Timeout during PPA creation.')
       time.sleep(10)
 
     # Expect the withError flag in status response should be toggled on to True
@@ -224,7 +219,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
-    signal.alarm(0)
 
   def generate_PCR_1_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 1."""
@@ -565,10 +559,11 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
         user_claimed_ppa_contour_shapely, as_dict=True)
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
 
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
+        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
     }
     writeConfig(filename, config)
 
@@ -628,7 +623,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Check the maximum PPA boundary created by SAS UUT is identical with the maximum
     # PPA claimed boundary.
-    test_harness_ppa_geometry = config['userClaimedPpaContour']
+    test_harness_ppa_geometry = config['userClaimedPpaContour']['features'][0]['geometry']
     self.assertTrue(utils.PolygonsAlmostEqual(test_harness_ppa_geometry, uut_ppa_geometry))
 
   def generate_PCR_4_default_config(self, filename):
@@ -851,12 +846,13 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       user_claimed_ppa_contour['features'][0]['geometry']).buffer(1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
       user_claimed_ppa_contour_shapely, as_dict=True)
-
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
+        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
     }
+
     writeConfig(filename, config)
 
   @configurable_testcase(generate_PCR_6_default_config)

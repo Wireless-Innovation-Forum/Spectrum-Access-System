@@ -18,6 +18,7 @@
   models to filter out grants and CBSDs before IAP model is invoked.
 ==================================================================================
 """
+import logging
 from reference_models.pre_iap_filtering import fss_purge
 from reference_models.pre_iap_filtering import inter_sas_duplicate_grant
 from reference_models.pre_iap_filtering import zone_purge
@@ -38,10 +39,12 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
   """
 
   # Invoke Inter SAS duplicate grant purge list reference model
+  logging.info('Invoking inter-SAS duplicate Grant purge list reference model.')
   inter_sas_duplicate_grant.interSasDuplicateGrantPurgeReferenceModel(sas_uut_fad,
                                                                       sas_test_harness_fads)
 
   # Invoke PPA, EXZ, GWPZ, and FSS+GWBL purge list reference models
+  logging.info('Invoking zone purge reference model.')
   # Initialize expected keys in protected_entities to empty array if type does not exist
   for key in ['gwblRecords', 'fssRecords', 'ppaRecords', 'palRecords', 'gwpzRecords']:
     if key not in protected_entities:
@@ -50,6 +53,8 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
   list_of_fss_neighboring_gwbl = pre_iap_util.getFssNeighboringGwbl(
       protected_entities['gwblRecords'],
       protected_entities['fssRecords'])
+  logging.info('List of FSS records with GWBL within 150 km: %s',
+               list_of_fss_neighboring_gwbl)
   zone_purge.zonePurgeReferenceModel(sas_uut_fad,
                                      sas_test_harness_fads,
                                      protected_entities['ppaRecords'],
@@ -59,6 +64,6 @@ def preIapReferenceModel(protected_entities, sas_uut_fad, sas_test_harness_fads)
 
   # Invoke FSS purge list reference model
   if 'fssRecords' in protected_entities:
+    logging.info('Invoking the FSS purge list reference model.')
     fss_purge.fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
                                      protected_entities['fssRecords'])
-
