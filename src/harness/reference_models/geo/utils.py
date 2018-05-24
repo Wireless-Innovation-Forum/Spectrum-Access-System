@@ -182,6 +182,33 @@ def ToGeoJson(geometry, as_dict=False):
   return json.loads(json_geometry) if as_dict else json_geometry
 
 
+def InsureFeatureCollection(geometry, as_dict=False):
+  """Returns a GeoJSON feature collection from a geojson geometry.
+
+  Args:
+    geometry: A geojson geometry, either as dict or str. Can be any type
+      of GeoJSON: standard geometry, feature or feature collection.
+  """
+  if isinstance(geometry, basestring):
+    geometry = json.loads(geometry)
+  if 'type' not in geometry:
+    raise ValueError('Invalid GeoJSON geometry.')
+  if geometry['type'] == 'FeatureCollection':
+    pass
+  elif geometry['type'] == 'Feature':
+    geometry = {'type': 'FeatureCollection',
+                'features': [geometry]}
+  else:
+    geometry = {'type': 'FeatureCollection',
+                'features': [
+                    {'type': 'Feature',
+                    'properties': {},
+                    'geometry': geometry}
+                ]
+    }
+  return geometry if as_dict else json.dumps(geometry)
+
+
 def GridPolygon(poly, res_arcsec):
   """Grids a polygon or multi-polygon.
 

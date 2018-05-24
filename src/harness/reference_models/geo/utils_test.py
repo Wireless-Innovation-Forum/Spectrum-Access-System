@@ -286,6 +286,29 @@ class TestUtils(unittest.TestCase):
                                                           270, 360)
     self.assertTrue(status)
 
+  def test_insure_feature_collection(self):
+    with open(os.path.join(TEST_DIR, 'ppa_record_0.json'), 'r') as fd:
+      ppa = json.load(fd)
+    feature_col = ppa['zone']
+    feature_col_str = json.dumps(feature_col)
+    feature = ppa['zone']['features'][0]
+    geometry = ppa['zone']['features'][0]['geometry']
+    geometry_str = json.dumps(geometry)
+    self.assertDictEqual(utils.InsureFeatureCollection(feature_col, as_dict=True),
+                          feature_col)
+    self.assertDictEqual(utils.InsureFeatureCollection(feature_col_str, as_dict=True),
+                          feature_col)
+    self.assertDictEqual(utils.InsureFeatureCollection(feature, as_dict=True),
+                          feature_col)
+    self.assertDictEqual(utils.InsureFeatureCollection(geometry, as_dict=True),
+                          feature_col)
+    self.assertDictEqual(utils.InsureFeatureCollection(geometry_str, as_dict=True),
+                          feature_col)
+    self.assertEqual(utils.InsureFeatureCollection(geometry),
+                      feature_col_str)
+    self.assertEqual(utils.InsureFeatureCollection(geometry_str),
+                      feature_col_str)
+
 
 if __name__ == '__main__':
   unittest.main()
