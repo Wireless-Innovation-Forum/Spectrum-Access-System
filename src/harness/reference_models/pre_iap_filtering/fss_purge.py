@@ -19,6 +19,7 @@ algorithm described in R2-SGN-29.
 """
 import numpy as np
 from collections import namedtuple
+import logging
 
 from reference_models.common import data
 from reference_models.antenna import antenna
@@ -69,6 +70,9 @@ def generatePurgeListForFssPoint(cbsds, fss_point, fss_info):
   oobe_threshold_value = -129 + 10 * np.log10(REF_BW/interf.MHZ) - FSS_OOBE_MARGIN
 
   while True:
+    logging.info(
+        'Starting another loop of the FSS purge list; current purge list: %s',
+        final_purge_list)
 
     # Calculate the OOBE interference value for each grant.
     calculateOobeInterference(grants_cbsds_info_for_oobe_calculation, fss_point, fss_info)
@@ -87,6 +91,7 @@ def generatePurgeListForFssPoint(cbsds, fss_point, fss_info):
 
     # If no grants are identified for purging in this iteration then break the loop
     if not grants_to_purge:
+      logging.info('No grants to purge.')
       break
     # Otherwise update purge list
     for purged_grant in grants_to_purge:
@@ -225,6 +230,7 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   for fss_record in fss_records:
     # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
     if fss_record['ttc']:
+      logging.info('Running purge list for FSS record (%s).', fss_record)
       fss_point, fss_info, _ = data.getFssInfo(fss_record)
       neighboring_cbsds_with_grants = pre_iap_util.getFssNeighboringCbsdsWithGrants(
           cbsds, fss_point, 40)
@@ -241,5 +247,8 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
              for purge_data in grants_to_purge_for_fss])
 
   # Removing grant requests that are in the grants to purge list from the CBSDs.
+  logging.info(
+      'As a result of all FSS purge list calculations, purging the following: %s',
+      grants_to_purged_for_all_fss)
   for purge_data in grants_to_purged_for_all_fss:
     purge_data.cbsd['grants'].remove(purge_data.grant)
