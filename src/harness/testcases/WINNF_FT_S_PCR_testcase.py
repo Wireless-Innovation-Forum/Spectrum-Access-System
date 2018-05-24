@@ -565,11 +565,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
         user_claimed_ppa_contour_shapely, as_dict=True)
-    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
 
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
+        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
     }
     writeConfig(filename, config)
 
@@ -599,12 +598,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Prepares the PAL Ids to trigger ppa creation request.
     pal_ids = [record['palId'] for record in pcr_1_test_config['palRecords']]
-
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(config['userClaimedPpaContour'], as_dict=True)
     # Create PPA creation request with user claimed ppa contour.
     ppa_creation_request = {
         "cbsdIds": cbsd_ids,
         "palIds": pal_ids,
-        "providedContour": config['userClaimedPpaContour']
+        "providedContour": user_claimed_ppa_contour_feature_collection
     }
 
     # Trigger PPA Creation to SAS UUT.
@@ -852,11 +851,11 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
       user_claimed_ppa_contour['features'][0]['geometry']).buffer(1e-2)
     user_claimed_ppa_contour_geometry = utils.ToGeoJson(
       user_claimed_ppa_contour_shapely, as_dict=True)
-    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
+
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
-        'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
+        'userClaimedPpaContour': user_claimed_ppa_contour_geometry
     }
 
     writeConfig(filename, config)
@@ -885,12 +884,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # Prepares the PAL Ids to trigger ppa creation request.
     pal_ids = [record['palId'] for record in pcr_1_test_config['palRecords']]
-
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(config['userClaimedPpaContour'], as_dict=True)
     # Create PPA creation request with user claimed ppa contour.
     ppa_creation_request = {
         "cbsdIds": cbsd_ids,
         "palIds": pal_ids,
-        "providedContour": config['userClaimedPpaContour']
+        "providedContour": user_claimed_ppa_contour_feature_collection
     }
 
     # Trigger PPA Creation to SAS UUT.
