@@ -399,8 +399,13 @@ def computeInterferenceFssCochannel(cbsd_grant, constraint, fss_info, max_eirp):
   effective_ant_gain = ant_gain + fss_ant_gain
 
   # Compute the interference value for Fss co-channel entity
+  eff_bandwidth = (min(cbsd_grant.high_frequency, constraint.high_frequency)
+                   - max(cbsd_grant.low_frequency, constraint.low_frequency))
+  if eff_bandwidth <= 0:
+    raise ValueError('Computing FSS co-channel on grant fully outside FSS passband')
+
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
-                   effective_ant_gain)
+                                effective_ant_gain, eff_bandwidth)
   interference = eirp - db_loss - IN_BAND_INSERTION_LOSS
   return interference
 
@@ -481,7 +486,7 @@ def computeInterferenceFssBlocking(cbsd_grant, constraint, fss_info, max_eirp):
   # protection constraint
   eff_bandwidth = (min(cbsd_grant.high_frequency, constraint.high_frequency)
                    - cbsd_grant.low_frequency)
-  if eff_bandwidth < 0:
+  if eff_bandwidth <= 0:
     raise ValueError('Computing FSS blocking on grant fully inside FSS passband')
   eirp = getEffectiveSystemEirp(max_eirp, cbsd_grant.antenna_gain,
                                 effective_ant_gain, eff_bandwidth)

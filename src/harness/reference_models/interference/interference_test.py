@@ -94,7 +94,7 @@ class TestAggInterf(unittest.TestCase):
         dist_type='REAL', factor=1.0, offset=70 - 30.0)
     antenna.GetFssAntennaGains = mock.create_autospec(antenna.GetFssAntennaGains,
                                                       return_value=2.8)
-    import ipdb; ipdb.set_trace()
+    #import ipdb; ipdb.set_trace()
     # Create FSS and a CBSD at 30km
     fss_point, fss_info, _ = data.getFssInfo(TestAggInterf.fss_record)
     fss_freq_range = (3650e6, 3750e6)
@@ -114,6 +114,34 @@ class TestAggInterf(unittest.TestCase):
                            -70 # pathloss
                            + 2.8 # FSS antenna gain
                            - 3.1634, # FSS mask loss for adjacent 10MHz
+                           4)
+
+  def test_computeFssCoChannel(self):
+    # Mock things propag and FSS antenna. -70dBm at 30km
+    wf_itm.CalcItmPropagationLoss = testutils.FakePropagationPredictor(
+        dist_type='REAL', factor=1.0, offset=70 - 30.0)
+    antenna.GetFssAntennaGains = mock.create_autospec(antenna.GetFssAntennaGains,
+                                                      return_value=2.8)
+    import ipdb; ipdb.set_trace()
+    # Create FSS and a CBSD at 30km
+    fss_point, fss_info, _ = data.getFssInfo(TestAggInterf.fss_record)
+    fss_freq_range = (3652e6, 3750e6)
+    cbsd_lat, cbsd_lon, _ = vincenty.GeodesicPoint(fss_point[1], fss_point[0], 30, 0)
+    cbsd = entities.CBSD_TEMPLATE_CAT_A_OUTDOOR._replace(
+      latitude=cbsd_lat, longitude=cbsd_lon)
+    grant = entities.ConvertToCbsdGrantInfo([cbsd], 3645, 3660)[0]
+    constraint = data.ProtectionConstraint(fss_point[1], fss_point[0],
+                                           fss_freq_range[0], fss_freq_range[1],
+                                           data.ProtectedEntityType.FSS_CO_CHANNEL)
+
+    itf = interf.computeInterferenceFssCochannel(grant, constraint, fss_info,
+                                                 grant.max_eirp)
+    self.assertAlmostEqual(itf,
+                           20 + # EIRP/MHZ
+                           9.0309 + # 8MHz effective bandwidth
+                           -70 # pathloss
+                           + 2.8 # FSS antenna gain
+                           - 0.5, # inband filter
                            4)
 
 
