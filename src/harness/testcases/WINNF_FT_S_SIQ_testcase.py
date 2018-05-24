@@ -215,6 +215,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     all_channels = []
     channels_low = []
     channels_high = []
+    channels_high_all = []
     channels_pal = []
     channels_excluded = []
     for i in xrange(4):
@@ -224,6 +225,8 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
                                                          freq_range_low))
       channels_high.append(filterChannelsByFrequencyRange(channels,
                                                           freq_range_high))
+      channels_high_all.append(filterChannelsByFrequencyRange(
+          channels, freq_range_high_all))
       channels_pal.append(filterChannelsByFrequencyRange(channels,
                                                          freq_range_pal))
       channels_excluded.append(
@@ -232,7 +235,7 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     # Checks for cbsd 1 (index 0)
     self.assertChannelsContainFrequencyRange(channels_low[0], freq_range_low)
     self.assertChannelsOverlapFrequencyRange(
-        channels_high[0],
+        channels_high_all[0],
         freq_range_high_all,
         constrain_low=True,
         constrain_high=True)
