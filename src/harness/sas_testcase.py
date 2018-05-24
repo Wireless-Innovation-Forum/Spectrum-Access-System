@@ -12,9 +12,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
-import signal
 import time
 import unittest
 import sas
@@ -89,7 +88,6 @@ class SasTestCase(unittest.TestCase):
     Returns:
       A list of cbsd_ids.
     """
-
     if not registration_request:
       return []
     for device in registration_request:
@@ -228,13 +226,8 @@ class SasTestCase(unittest.TestCase):
     - If the status is not changed within 2 hours it will throw an exception.
     """
     self._sas_admin.TriggerDailyActivitiesImmediately()
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Daily Activity Check Timeout')))
-
     # Timeout after 2 hours if it's not completed
-    signal.alarm(7200)
+    timeout = datetime.now() + timedelta(hours=2) 
     # Check the Status of Daily Activities every 10 seconds
     error_counter = 0
     is_completed = False
@@ -261,8 +254,8 @@ class SasTestCase(unittest.TestCase):
         error_counter += 1
         if error_counter == 20:
           self.fail('Encountered errors 20 times. Failing immediately.')
+      self.assertLess(datetime.now(), timeout, 'Timeout during CPAS execution.')
       time.sleep(10)
-    signal.alarm(0)
 
   def assertChannelsContainFrequencyRange(self, channels, frequency_range):
     channels.sort(
@@ -390,12 +383,8 @@ class SasTestCase(unittest.TestCase):
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
     request_time = datetime.utcnow().replace(microsecond=0)
     self._sas_admin.TriggerFullActivityDump()
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Full Activity Dump Check Timeout')))
     # Timeout after 2 hours if it's not completed
-    signal.alarm(7200)
+    timeout = datetime.now() + timedelta(hours=2)
     # Check generation date of full activity dump
     while True:
       try:
@@ -406,8 +395,8 @@ class SasTestCase(unittest.TestCase):
           break
       except AssertionError:
         pass
+      self.assertLess(datetime.now(), timeout, 'Timeout during Full Activity Dump.')
       time.sleep(10)
-    signal.alarm(0)
     return dump_message
 
   def triggerPpaCreationAndWaitUntilComplete(self, ppa_creation_request):
@@ -438,13 +427,8 @@ class SasTestCase(unittest.TestCase):
     # Triggers most recent PPA Creation Status immediately and checks for the
     # status of activity every 10 seconds until it is completed. If the status
     # is not changed within 2 hours it will throw an exception.
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Most Recent PPA Creation Status Check Timeout')))
-
     # Timeout after 2 hours if it's not completed.
-    signal.alarm(7200)
+    timeout = datetime.now() + timedelta(hours=2)
 
     # Check the Status of most recent ppa creation every 10 seconds.
     error_counter = 0
@@ -459,12 +443,12 @@ class SasTestCase(unittest.TestCase):
         error_counter += 1
         if error_counter == 20:
           self.fail('Encountered errors 20 times. Failing immediately.')
+      self.assertLess(datetime.now(), timeout, 'Timeout during PPA creation.')
       time.sleep(10)
 
     # Additional check to ensure whether PPA creation status has error.
     self.assertFalse(self._sas_admin.GetPpaCreationStatus()['withError'],
                      msg='There was an error while creating PPA')
-    signal.alarm(0)
 
     return ppa_id
 
@@ -500,16 +484,12 @@ class SasTestCase(unittest.TestCase):
     # Triggers most recent PPA Creation Status immediately and checks for the status
     # of activity every 10 seconds until it is completed. If the status is not changed
     # within 2 hours it will throw an exception.
-    signal.signal(signal.SIGALRM,
-                  lambda signum, frame:
-                  (_ for _ in ()).throw(
-                      Exception('Most Recent PPA Creation Status Check Timeout')))
-
     # Timeout after 2 hours if it's not completed.
-    signal.alarm(7200)
+    timeout = datetime.now() + timedelta(hours=2)
 
     # Check the Status of most recent ppa creation every 10 seconds.
     while not self._sas_admin.GetPpaCreationStatus()['completed']:
+      self.assertLess(datetime.now(), timeout, 'Timeout during PPA creation.')
       time.sleep(10)
 
     # Expect the withError flag in status response should be toggled on to True
@@ -517,4 +497,3 @@ class SasTestCase(unittest.TestCase):
     self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
-    signal.alarm(0)
