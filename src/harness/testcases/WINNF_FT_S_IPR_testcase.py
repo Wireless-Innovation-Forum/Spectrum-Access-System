@@ -308,12 +308,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_c = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
-    grant_c['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
+    grant_c['operationParam']['operationFrequencyRange']['lowFrequency'] = 3620000000
+    grant_c['operationParam']['operationFrequencyRange']['highFrequency'] = 3630000000    
     grant_d = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_d['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
-    grant_d['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000    
+    grant_d['operationParam']['operationFrequencyRange']['lowFrequency'] = 3620000000
+    grant_d['operationParam']['operationFrequencyRange']['highFrequency'] = 3630000000    
     grant_e = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_e['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
