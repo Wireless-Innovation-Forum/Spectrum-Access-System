@@ -192,8 +192,9 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
   """
   if low_freq_hz >= high_freq_hz:
     raise ValueError('Low frequency is greater than high frequency')
+  # Align the low_freq to multiple of 5MHZ
+  low_freq_hz = int(low_freq_hz / (5*MHZ)) * (5*MHZ)
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
-
   return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
 
 

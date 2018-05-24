@@ -140,8 +140,10 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
   fss_low_freq, fss_high_freq = fss_freq_range
 
   # Get channels for co-channel CBSDs
-  fss_high_freq = min(fss_high_freq, interf.CBRS_HIGH_FREQ_HZ)
-  protection_channels = interf.getProtectedChannels(fss_low_freq, fss_high_freq)
+  if fss_high_freq < interf.CBRS_HIGH_FREQ_HZ:
+    raise ValueError('FSS high frequency should not be less than CBRS high frequency')
+
+  protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
   aggr_interference = interf.getInterferenceObject()
   aggregateInterferenceForPoint(fss_point,

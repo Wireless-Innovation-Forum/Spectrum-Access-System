@@ -94,7 +94,6 @@ class TestAggInterf(unittest.TestCase):
         dist_type='REAL', factor=1.0, offset=70 - 30.0)
     antenna.GetFssAntennaGains = mock.create_autospec(antenna.GetFssAntennaGains,
                                                       return_value=2.8)
-    import ipdb; ipdb.set_trace()
     # Create FSS and a CBSD at 30km
     fss_point, fss_info, _ = data.getFssInfo(TestAggInterf.fss_record)
     fss_freq_range = (3650e6, 3750e6)
@@ -116,6 +115,15 @@ class TestAggInterf(unittest.TestCase):
                            - 3.1634, # FSS mask loss for adjacent 10MHz
                            4)
 
+  def test_getProtectedChannels(self):
+    self.assertEqual(interf.getProtectedChannels(3660e6, 3675e6),
+                     [(3660e6, 3665e6), (3665e6, 3670e6), (3670e6, 3675e6)])
+    self.assertEqual(interf.getProtectedChannels(3662e6, 3671e6),
+                     [(3660e6, 3665e6), (3665e6, 3670e6), (3670e6, 3675e6)])
+    self.assertEqual(interf.getProtectedChannels(3540e6, 3555e6),
+                     [(3550e6, 3555e6)])
+    self.assertEqual(interf.getProtectedChannels(3692e6, 3722e6),
+                     [(3690e6, 3695e6), (3695e6, 3700e6) ])
 
 if __name__ == '__main__':
   unittest.main()
