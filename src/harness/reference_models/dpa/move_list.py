@@ -52,17 +52,9 @@ from reference_models.common import cache
 from reference_models.common import data
 from reference_models.antenna import antenna
 
-
-# Set constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
-CAT_A_NBRHD_DIST = 150          # neighborhood distance for Cat-A CBSD (in km)
-CAT_B_NBRHD_DIST_DEFAULT = 200  # default neighborhood distance for Cat-B CBSD (in km)
-CAT_B_NBRHD_DIST_FOR_HT = 300   # neighborhood distance for Cat-B CBSD (in km) in
-# consideration of antenna height
-CAT_B_LONG_HT = 200             # height of Cat_B CBSD (in meters) in consideration of
-# neighborhood distance Cat_B_NBRHD_DIST_FOR_HT
-CAT_B_NBRHD_DIST_OOB = 25       # neighborhood distance for Cat-B CBSD
-# for out-of-band inland DPA (in km)
-PROTECTION_PERCENTILE = 95      # Monte Carlo percentile for protection
+# Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
+# Monte Carlo percentile for protection
+PROTECTION_PERCENTILE = 95      
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
 FREQ_PROP_MODEL = 3625.0
@@ -107,27 +99,17 @@ def findDpaType(low_freq, high_freq):
   raise ValueError('Invalid DPA frequency range')
 
 
-# A Cache for storing the height-above-average-terrain computed for neighborhood
-# determination.
-@cache.LruCache(1e5)
-def GetHaat(lat_cbsd, lon_cbsd, height_cbsd):
-  return wf_itm.ComputeHaat(lat_cbsd, lon_cbsd, height_cbsd)
-
-
 def findGrantsInsideNeighborhood(grants, constraint,
-                                 exclusion_zone, dpa_type,
-                                 catb_neighbor_dist):
+                                 dpa_type,
+                                 neighbor_distances):
   """Identify the CBSD grants in the neighborhood of protection constraint.
 
   Inputs:
     grants:         a list of CBSD |data.CbsdGrantInfo| grants.
     constraint:     protection constraint of type |data.ProtectionConstraint|
-    exclusion_zone: a polygon object or a list of locations.
-                    If it is a list of locations, each one is a tuple
-                    with fields 'latitude' and 'longitude'.
-                    Default value is 'None'.
     dpa_type:       an enum member of class DpaType
-    catb_neighbor_dist: the Cat B neighborhood distance
+    neighbor_distances: the neighborhood distances (Km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
 
   Returns:
     A tuple of:
@@ -138,57 +120,27 @@ def findGrantsInsideNeighborhood(grants, constraint,
   # Initialize an empty list
   grants_inside = []
   idxs_inside = []
-  # For co-channel offshore/inland DPAs, make sure exclusion zone is a polygon
-  polygon_ex_zone = None
-  if dpa_type is not DpaType.OUT_OF_BAND and exclusion_zone is not None:
-    if isinstance(exclusion_zone, SPolygon) or isinstance(exclusion_zone, MPolygon):
-      polygon_ex_zone = exclusion_zone
-    else:
-      polygon_ex_zone = SPolygon(exclusion_zone)
+
+  neighbor_dists = neighbor_distances[0:2]
+  if dpa_type is DpaType.OUT_OF_BAND:
+    neighbor_dists = neighbor_distances[2:]
 
   # Loop over each CBSD grant and filter the ones inside the neighborhood
   for k, grant in enumerate(grants):
     # Check frequency range
-    low_freq_cbsd = grant.low_frequency
-    high_freq_cbsd = grant.high_frequency
     if dpa_type is not DpaType.OUT_OF_BAND:
-      low_freq_c = constraint.low_frequency
-      high_freq_c = constraint.high_frequency
-      overlapping_bw = min(high_freq_cbsd, high_freq_c) - max(low_freq_cbsd, low_freq_c)
+      overlapping_bw = (min(grant.high_frequency, constraint.high_frequency)
+                        - max(grant.low_frequency, constraint.low_frequency))
       if overlapping_bw <= 0:
         continue
 
     # Compute distance from CBSD location to protection constraint location
-    lat_cbsd = grant.latitude
-    lon_cbsd = grant.longitude
-    height_cbsd = grant.height_agl
-    lat_c = constraint.latitude
-    lon_c = constraint.longitude
-    dist_km, bearing, _ = vincenty.GeodesicDistanceBearing(lat_cbsd, lon_cbsd,
-                                                           lat_c, lon_c)
-    # Check if CBSD is inside the neighborhood of protection constraint
-    cbsd_in_nbrhd = False
-    if grant.cbsd_category == 'A':
-      if dpa_type is not DpaType.OUT_OF_BAND:
-        point_cbsd = SPoint(lon_cbsd, lat_cbsd)
-        if (dist_km <= CAT_A_NBRHD_DIST and
-            (polygon_ex_zone is None or polygon_ex_zone.contains(point_cbsd))):
-          cbsd_in_nbrhd = True
-    elif grant.cbsd_category == 'B':
-      if dpa_type is not DpaType.OUT_OF_BAND:
-        if dist_km <= catb_neighbor_dist:
-          cbsd_in_nbrhd = True
-        elif dist_km <= CAT_B_NBRHD_DIST_FOR_HT:
-          height_cbsd_haat = GetHaat(lat_cbsd, lon_cbsd, height_cbsd)
-          if height_cbsd_haat >= CAT_B_LONG_HT:
-            cbsd_in_nbrhd = True
-      else:
-        if dist_km <= CAT_B_NBRHD_DIST_OOB:
-          cbsd_in_nbrhd = True
-    else:
-      raise ValueError('Unknown category %s' % grant.cbsd_category)
+    dist_km, _, _ = vincenty.GeodesicDistanceBearing(
+        grant.latitude, grant.longitude,
+        constraint.latitude, constraint.longitude)
 
-    if not cbsd_in_nbrhd:
+    # Check if CBSD is inside the neighborhood of protection constraint
+    if dist_km > neighbor_dists[grant.cbsd_category == 'B']:
       continue
 
     grants_inside.append(grant)
@@ -423,10 +375,10 @@ def _addMinFreqGrantToFront(l, grant):
 # Public interface below
 def moveListConstraint(protection_point, low_freq, high_freq,
                        grants,
-                       exclusion_zone, inc_ant_height,
+                       inc_ant_height,
                        num_iter, threshold, beamwidth,
-                       min_azimuth=0, max_azimuth=360,
-                       catb_neighbor_dist=CAT_B_NBRHD_DIST_DEFAULT):
+                       neighbor_distances,
+                       min_azimuth=0, max_azimuth=360):
   """Returns the move list for a given protection constraint.
 
   Note that the returned indexes corresponds to the grant.grant_index
@@ -437,23 +389,22 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     low_freq:          The low frequency of protection constraint (Hz).
     high_freq:         The high frequency of protection constraint (Hz).
     grants:            A list of CBSD |data.CbsdGrantInfo| grants.
-    exclusion_zone:    The protection zone as a shapely Polygon/MultiPolygon or
-                       a list of locations with attributes 'latitude' and 'longitude'.
     inc_ant_height:    The reference incumbent antenna height (meters).
     num_iter:          The number of Monte Carlo iterations.
     threshold:         The protection threshold (dBm/10 MHz).
     beamwidth:         The protection antenna beamwidth (degree).
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
-    catb_neighbor_dist: The CatB neighborhood distance (km).
 
   Returns:
     A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
       + the grants on the move list.
       + the grants in the neighborhood list.
   """
-  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%s)',
-               protection_point, low_freq, high_freq, threshold, catb_neighbor_dist)
+  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%r)',
+               protection_point, low_freq, high_freq, threshold, neighbor_distances)
   if not grants:
     return [], []
 
@@ -477,11 +428,9 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
 
   # Identify CBSD grants in the neighborhood of the protection constraint
-  neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(grants,
-                                                                constraint,
-                                                                exclusion_zone,
-                                                                dpa_type,
-                                                                catb_neighbor_dist)
+  neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(
+      grants, constraint, dpa_type, neighbor_distances)
+
   movelist_grants = []
   if len(neighbor_grants):  # Found CBSDs in the neighborhood
     # Form the matrix of interference contributions
@@ -525,13 +474,12 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 def calcAggregatedInterference(protection_point,
                                low_freq, high_freq,
                                grants,
-                               exclusion_zone,
                                inc_ant_height,
                                num_iter,
                                beamwidth,
+                               neighbor_distances,
                                min_azimuth=0,
                                max_azimuth=360,
-                               catb_neighbor_dist=CAT_B_NBRHD_DIST_DEFAULT,
                                do_max=False):
   """Computes the 95% aggregated interference quantile on a protected point.
 
@@ -541,14 +489,13 @@ def calcAggregatedInterference(protection_point,
     low_freq:          The low frequency of protection constraint (Hz).
     high_freq:         The high frequency of protection constraint (Hz).
     grants:            A list of CBSD |data.CbsdGrantInfo| active grants.
-    exclusion_zone:    The protection zone as a shapely Polygon/MultiPolygon or
-                       a list of locations with attributes 'latitude' and 'longitude'.
     inc_ant_height:    The reference incumbent antenna height (meters).
     num_iter:          The number of Monte Carlo iterations.
     beamwidth:         The protection antenna beamwidth (degree).
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
-    catb_neighbor_dist: The CatB neighborhood distance (km).
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
     do_max:            If True, returns the maximum interference over all radar azimuth.
 
   Returns:
@@ -580,8 +527,8 @@ def calcAggregatedInterference(protection_point,
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
-                                                    exclusion_zone, dpa_type,
-                                                    catb_neighbor_dist)
+                                                    dpa_type,
+                                                    neighbor_distances)
   if not neighbor_grants:
     return np.asarray(-1000)
   interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
@@ -640,7 +587,7 @@ from reference_models.common import mpool
 from reference_models.common import data
 from functools import partial
 def findMoveList(protection_specs, protection_points, registration_requests,
-                 grant_requests, num_iter, num_processes, exclusion_zone=None,
+                 grant_requests, num_iter, num_processes,
                  pool=None):
   """Main routine to find CBSD indices on the move list.
 
@@ -648,8 +595,11 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     protection_specs:   protection specifications, an object with attributes
                         'lowFreq' (in Hz), 'highFreq' (in Hz),
                         'antHeight' (in meters), 'beamwidth' (in degrees),
-                        'threshold' (in dBm/10MHz), 'catb_neighbor_dist' (km),
+                        'threshold' (in dBm/10MHz), 'neighbor_distances' (km),
                         'min_azimuth', 'max_azimuth' (degrees)
+                        where `neighbor_distances` are the neighborhood
+                        distances (km) as a sequence:
+                          [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
     protection_points:  a list of protection points, each one being an object
                         providing attributes 'latitude' and 'longitude'
     registration_requests: a list of CBSD registration requests, each one being
@@ -661,10 +611,6 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                         have corresponding duplicate items in registration_requests
     num_iter:           number of Monte Carlo iterations
     num_processes:      number of parallel processes to use
-    exclusion_zone:     a polygon object or a list of locations.
-                        If it is a list of locations, each one is a tuple
-                        with fields 'latitude' and 'longitude'.
-                        Default value is 'None'.
     pool:               optional |multiprocessing.Pool| to use
 
   Returns:
@@ -681,10 +627,8 @@ def findMoveList(protection_specs, protection_points, registration_requests,
   if pool is None:
     mpool.Configure(num_processes)
     pool = mpool.Pool()
-  try:
-    catb_neighbor_dist = protection_specs.catb_neighbor_dist
-  except AttributeError:
-    catb_neighbor_dist = CAT_B_NBRHD_DIST_DEFAULT
+
+  neighbor_distances = protection_specs.neighbor_distances
   try:
     min_azimuth = protection_specs.min_azimuth
     max_azimuth = protection_specs.max_azimuth
@@ -695,14 +639,13 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                       low_freq=protection_specs.lowFreq,
                       high_freq=protection_specs.highFreq,
                       grants=grants,
-                      exclusion_zone=exclusion_zone,
                       inc_ant_height=protection_specs.antHeight,
                       num_iter=num_iter,
                       threshold=protection_specs.threshold,
                       beamwidth=protection_specs.beamwidth,
                       min_azimuth=min_azimuth,
                       max_azimuth=max_azimuth,
-                      catb_neighbor_dist=catb_neighbor_dist)
+                      neighbor_distances=neighbor_distances)
   M_c, _ = zip(*pool.map(moveListC, protection_points))
 
   # Find the unique CBSD indices in the M_c list of lists.
