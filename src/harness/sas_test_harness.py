@@ -400,8 +400,8 @@ def generateCbsdRecords(registration_requests, grant_requests_list):
 
       # Auto-generating GrantData 'id' field.
       grant_data['id'] = 'SAMPLE_ID_{:05}'.format(random.randrange(1, 10 ** 5))
-
-      assert grant_request.has_key('operationParam'), 'operationParam does not exist in GrantRequest'
+      if not grant_request.has_key('operationParam'):
+        raise ValueError('operationParam does not exist in GrantRequest')
       grant_data['operationParam'] = grant_request['operationParam']
 
       # requestedOperationParam is a required field in SAS-SAS exchange in Release 1.

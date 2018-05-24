@@ -190,7 +190,8 @@ def getProtectedChannels(low_freq_hz, high_freq_hz):
     An array of protected channel frequency range tuple
     (low_freq_hz,high_freq_hz).
   """
-  assert low_freq_hz < high_freq_hz, 'Low frequency is greater than high frequency'
+  if low_freq_hz >= high_freq_hz:
+    raise ValueError('Low frequency is greater than high frequency')
   channels = np.arange( max(low_freq_hz, 3550*MHZ), min(high_freq_hz, 3700*MHZ), 5*MHZ)
 
   return [(low, high) for low, high in zip(channels, channels+5*MHZ)]
