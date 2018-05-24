@@ -250,12 +250,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Load Devices
     device_a = json.load(
         open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_a['installationParam']['latitude'] = 30.71570
-    device_a['installationParam']['longitude'] = -88.09350
+    device_a['installationParam']['latitude'] = 30.23534
+    device_a['installationParam']['longitude'] = -87.93972
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 30.71571
-    device_b['installationParam']['longitude'] = -88.09351
+    device_b['installationParam']['latitude'] = 44.47642
+    device_b['installationParam']['longitude'] = -124.08096
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
