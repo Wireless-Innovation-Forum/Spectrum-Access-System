@@ -227,7 +227,7 @@ class SasTestCase(unittest.TestCase):
     """
     self._sas_admin.TriggerDailyActivitiesImmediately()
     # Timeout after 24 hours if it's not completed
-    timeout = datetime.now() + timedelta(hours=24) 
+    timeout = datetime.now() + timedelta(hours=24)
     # Check the Status of Daily Activities every 10 seconds
     error_counter = 0
     is_completed = False
