@@ -49,8 +49,12 @@ from reference_models.common import mpool
 from reference_models.dpa import move_list as ml
 from reference_models.dpa import dpa_builder
 
-# The default protection threshold
+# The default DPA parameters, corresponding to legacy Coastal DPA.
 DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
+DPA_DEFAULT_RADAR_HEIGHT = 50
+DPA_DEFAULT_BEAMWIDTH = 3
+DPA_DEFAULT_FREQ_RANGE = (3550, 3650)
+DPA_DEFAULT_DISTANCES = (150, 200, 0, 25)
 
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
@@ -122,11 +126,11 @@ class Dpa(object):
 
   def __init__(self, protected_points,
                threshold=DPA_DEFAULT_THRESHOLD_PER_10MHZ,
-               radar_height=50,
-               beamwidth=3,
+               radar_height=DPA_DEFAULT_RADAR_HEIGHT,
+               beamwidth=DPA_DEFAULT_BEAMWIDTH,
                azimuth_range=(0, 360),
-               freq_ranges_mhz=[(3550, 3650)],
-               neighbor_distances=(150, 200, 0, 25),
+               freq_ranges_mhz=[DPA_DEFAULT_FREQ_RANGE],
+               neighbor_distances=DPA_DEFAULT_DISTANCES,
                monitor_type='esc'):
     """Initialize the DPA attributes."""
     self.protected_points = protected_points
