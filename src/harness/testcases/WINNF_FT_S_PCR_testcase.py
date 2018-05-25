@@ -26,6 +26,7 @@ from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
      makePpaAndPalRecordsConsistent, getCertFilename
 from request_handler import HTTPError
+from datetime import datetime, timedelta
 import time
 
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
