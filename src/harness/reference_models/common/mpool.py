@@ -48,7 +48,7 @@ pool.apply_async(...)
 
 from functools import partial
 import multiprocessing
-
+import time
 
 class _DummyPool(object):
   """A dummy pool for replacement of `multiprocessing.Pool`
@@ -105,7 +105,11 @@ def GetNumWorkerProcesses():
 
 
 def _partial_fn(fn):
+  # sleep to avoid returning too fast so each worker
+  # gets one job in the RunOnEachWorkerProcess.
+  time.sleep(0.5)
   return fn()
+
 
 def RunOnEachWorkerProcess(fn, * args, **kwargs):
   """Runs a function on each of the pool process."""
