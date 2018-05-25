@@ -437,6 +437,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         self.assertEqual(ppa_record['id'].split("/")[1], 'ppa')
         self.assertEqual(ppa_record['id'].split("/")[2], self._sas._sas_admin_id)
         del ppa_record['id']
+        # remove creator from value check 
+        del ppa_record['creator']
         # verify that the injected ppas exist in the dump files
         # check GeoJson Winding of PPA record
         utils.HasCorrectGeoJsonWinding(ppa_record['zone']['features'][0]['geometry'])
@@ -445,6 +447,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           ppa = ppa_conf['ppaRecord']
           if 'id' in ppa:
             del ppa['id']
+          # remove creator from value check
+          if 'creator' in ppa:
+            del ppa['creator']
           exist_in_dump = exist_in_dump or areTwoPpasEqual(ppa_record, ppa)
         if exist_in_dump:
           break
