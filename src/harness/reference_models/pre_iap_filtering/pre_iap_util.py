@@ -99,24 +99,24 @@ def getPpaFrequencyRange(ppa_record, pal_records):
       in all PAL records are not same for PPA.
   """
   pal_frequencies = []
-  ppa_pal_ids = ppa_record["ppaInfo"]["palId"]
+  ppa_pal_ids = ppa_record['ppaInfo']['palId']
   # Get all the frequencies from the PAL records whose ID is present in the
   # given PPA record
   for pal_record in pal_records:
-    if pal_record["palId"] in ppa_pal_ids:
+    if pal_record['palId'] in ppa_pal_ids:
       pal_frequencies.append(
-          pal_record["channelAssignment"]["primaryAssignment"])
+          pal_record['channelAssignment']['primaryAssignment'])
   if not pal_frequencies:
     # Raise an exception if no matching PAL ID is found
-    raise ValueError("PAL record %s not found for PPA ID %s" %
-                     (pal_record["palId"], ppa_record["id"]))
+    raise ValueError('PAL record %s not found for PPA ID %s' %
+                     (pal_record['palId'], ppa_record['id']))
 
   # Compare the frequencies of all the PAL records of the PPA
   for pal_frequency in pal_frequencies:
     if pal_frequency != pal_frequencies[0]:
       # If the frequency of the PAL records are not matching, raise an exception
-      raise ValueError("The frequency range in all PAL"
-                       "records are not same for PPA ID %s" % ppa_record["id"])
+      raise ValueError('The frequency range in all PAL'
+                       'records are not same for PPA ID %s' % ppa_record['id'])
 
   # Return the first frequency range of the first matching PAL ID
   return pal_frequencies[0]
