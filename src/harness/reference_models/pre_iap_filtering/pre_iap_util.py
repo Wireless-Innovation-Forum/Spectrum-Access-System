@@ -84,40 +84,39 @@ def getCbsdsWithinPolygon(cbsds, polygon):
 def getPpaFrequencyRange(ppa_record, pal_records):
   """Determines the frequency range of the PPA from the PAL records.
 
-  The first PAL ID is retrieved from the PPA information and the primary frequency
-  assignment of that PAL ID is returned as the PPA frequency range.
+  The first PAL ID is retrieved from the PPA information and the primary
+  frequency assignment of that PAL ID is returned as the PPA frequency range.
 
   Args:
     ppa_record: A PPA record dictionary.
     pal_records: List of PAL record dictionaries.
+
   Returns:
     The operating frequency range of PPA as a dictionary with keys:
       'lowFrequency', 'highFrequency'
   Raises:
-    ValueError: If the PAL records not found for PPA or if the frequency range in all
-      PAL records are not same for PPA.
+    ValueError: If the PAL records not found for PPA or if the frequency range
+      in all PAL records are not same for PPA.
   """
   pal_frequencies = []
-  ppa_pal_ids = ppa_record['ppaInfo']['palId']
-  num_ppa_pal = len(ppa_pal_ids)
-  # Get all the frequencies from the PAL records whose ID is present in the given PPA record
+  ppa_pal_ids = ppa_record["ppaInfo"]["palId"]
+  # Get all the frequencies from the PAL records whose ID is present in the
+  # given PPA record
   for pal_record in pal_records:
-    for pal_id in range(0, num_ppa_pal):
-      if pal_record['palId'] == ppa_pal_ids[pal_id]:
-        pal_frequency = pal_record['channelAssignment']['primaryAssignment']
-        pal_frequencies.append(pal_frequency)
-        break
-    else:
-      # Raise an exception if no matching PAL ID is found
-      raise ValueError('PAL record %s not found for PPA ID %s' % (
-          pal_record['palId'], ppa_record['id']))
+    if pal_record["palId"] in ppa_pal_ids:
+      pal_frequencies.append(
+          pal_record["channelAssignment"]["primaryAssignment"])
+  if not pal_frequencies:
+    # Raise an exception if no matching PAL ID is found
+    raise ValueError("PAL record %s not found for PPA ID %s" %
+                     (pal_record["palId"], ppa_record["id"]))
 
   # Compare the frequencies of all the PAL records of the PPA
   for pal_frequency in pal_frequencies:
     if pal_frequency != pal_frequencies[0]:
       # If the frequency of the PAL records are not matching, raise an exception
-      raise ValueError('The frequency range in all PAL'
-                      'records are not same for PPA ID %s' % ppa_record['id'])
+      raise ValueError("The frequency range in all PAL"
+                       "records are not same for PPA ID %s" % ppa_record["id"])
 
   # Return the first frequency range of the first matching PAL ID
   return pal_frequencies[0]
