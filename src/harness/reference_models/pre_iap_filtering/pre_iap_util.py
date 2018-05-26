@@ -52,8 +52,10 @@ def checkForOverlappingGrants(grant, frequency_range):
   high_frequency_cbsd = grant['operationParam']['operationFrequencyRange']['highFrequency']
   low_frequency = frequency_range['lowFrequency']
   high_frequency = frequency_range['highFrequency']
-  return ((low_frequency_cbsd <= low_frequency < high_frequency_cbsd) or
-          (low_frequency_cbsd < high_frequency <= high_frequency_cbsd))
+  assert low_frequency_cbsd < high_frequency_cbsd
+  assert low_frequency < high_frequency
+  return ((low_frequency_cbsd < high_frequency) and
+          (low_frequency < high_frequency_cbsd))
 
 
 def getCbsdsWithinPolygon(cbsds, polygon):
