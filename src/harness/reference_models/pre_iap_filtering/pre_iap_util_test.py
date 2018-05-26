@@ -1,4 +1,4 @@
-#    Copyright 2017 SAS Project Authors. All Rights Reserved.
+#    Copyright 2018 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -22,6 +22,78 @@ class preIapFilteringUtilTest(unittest.TestCase):
 
   def create_frequency_range(self, low_freq, high_freq):
     return {'lowFrequency': low_freq, 'highFrequency': high_freq}
+
+  def create_ppa_record(self, ppa_id, pal_ids):
+    return {'id': ppa_id, 'ppaInfo': {'palId': pal_ids}}
+
+  def create_pal_record(self, pal_id, frequency_range):
+    return {
+        'palId': pal_id,
+        'channelAssignment': {
+            'primaryAssignment': frequency_range,
+        }
+    }
+
+  def test_ppa_frequency_range(self):
+    self.assertDictEqual(
+        self.create_frequency_range(3550, 3700),
+        pre_iap_util.getPpaFrequencyRange(
+            self.create_ppa_record('PPA1', ['PAL1']), [
+                self.create_pal_record('PAL1',
+                                       self.create_frequency_range(3550, 3700)),
+                self.create_pal_record('PAL2',
+                                       self.create_frequency_range(3550, 3600))
+            ]))
+
+    self.assertDictEqual(
+        self.create_frequency_range(3550, 3600),
+        pre_iap_util.getPpaFrequencyRange(
+            self.create_ppa_record('PPA1', ['PAL2']), [
+                self.create_pal_record('PAL1',
+                                       self.create_frequency_range(3550, 3700)),
+                self.create_pal_record('PAL2',
+                                       self.create_frequency_range(3550, 3600))
+            ]))
+
+    self.assertDictEqual(
+        self.create_frequency_range(3550, 3700),
+        pre_iap_util.getPpaFrequencyRange(
+            self.create_ppa_record('PPA1', ['PAL2', 'PAL1']), [
+                self.create_pal_record('PAL1',
+                                       self.create_frequency_range(3550, 3700)),
+                self.create_pal_record('PAL2',
+                                       self.create_frequency_range(3550, 3700))
+            ]))
+
+    # No matching PAL ID is found
+    with self.assertRaises(ValueError) as context:
+      pre_iap_util.getPpaFrequencyRange(
+          self.create_ppa_record('PPA1', ['PAL3', 'PAL4']), [
+              self.create_pal_record(
+                  'PAL1', self.create_frequency_range(3550, 3700)),
+              self.create_pal_record(
+                  'PAL2', self.create_frequency_range(3550, 3700))
+          ])
+
+    # No matching PAL ID is found (palId is empty).
+    with self.assertRaises(ValueError) as context:
+      pre_iap_util.getPpaFrequencyRange(
+          self.create_ppa_record('PPA1', []), [
+              self.create_pal_record(
+                  'PAL1', self.create_frequency_range(3550, 3700)),
+              self.create_pal_record(
+                  'PAL2', self.create_frequency_range(3550, 3700))
+          ])
+
+    # The frequency of the PAL records are not matching.
+    with self.assertRaises(ValueError) as context:
+      pre_iap_util.getPpaFrequencyRange(
+          self.create_ppa_record('PPA1', ['PAL1', 'PAL2']), [
+              self.create_pal_record('PAL1',
+                                     self.create_frequency_range(3550, 3700)),
+              self.create_pal_record('PAL2',
+                                     self.create_frequency_range(3550, 3600))
+          ])
 
   def create_grant(self, low_freq, high_freq):
     return {
