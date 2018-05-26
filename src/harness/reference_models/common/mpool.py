@@ -88,14 +88,20 @@ _pool = _DummyPool()
 _num_workers = 0
 
 # External interface
-def Pool():
+def Pool(reinit=False):
   """Returns the worker pool.
 
   It supports routines:
     map()
     apply_async()
   And other `multiprocessing.Pool` routines if not a dummy pool.
+
+  Args:
+    reinit: If True, a brand new pool is created, and the old one discarded.
   """
+  global _pool
+  if reinit and _num_workers:
+    _pool = multiprocessing.Pool(processes=_num_workers)
   return _pool
 
 
