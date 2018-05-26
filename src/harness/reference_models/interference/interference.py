@@ -35,8 +35,6 @@
 ==================================================================================
 """
 from collections import namedtuple
-import multiprocessing
-from multiprocessing.managers import BaseManager
 import numpy as np
 
 from reference_models.common import data
@@ -108,62 +106,6 @@ _DISTANCE_PER_PROTECTION_TYPE = {
     data.ProtectedEntityType.FSS_BLOCKING : ( FSS_BLOCKING_NEIGHBORHOOD_DIST,  FSS_BLOCKING_NEIGHBORHOOD_DIST),
     data.ProtectedEntityType.ESC: (ESC_NEIGHBORHOOD_DIST_A, ESC_NEIGHBORHOOD_DIST_B)
 }
-
-
-# Management of a common structure object to manage the interference calculation.
-# This object uses multiprocessing.Manager() to share the internals among multiple
-# processes.
-class AggregateInterferenceOutputFormat(object):
-  """Implementation of output format of aggregate interference
-
-  This class is used to generate specified output format for post IAP
-  allowed interference or for aggregate interference to non-DPAs
-
-  Creates a data structure to store post IAP allowed interference or
-  aggregate interference to non-DPAs output in the format of
-    {latitude : {longitude : [ output_first_5MHz_segment, ... , output_last_5MHz_segment ]}}
-  """
-  def __init__(self):
-    self.manager = multiprocessing.Manager()
-    self.aggregate_interference_info = self.manager.dict()
-    self.lock = multiprocessing.Lock()
-
-  def UpdateAggregateInterferenceInfo(self, latitude, longitude, interference):
-    with self.lock:
-      if latitude not in self.aggregate_interference_info:
-        self.aggregate_interference_info[latitude] = self.manager.dict()
-
-      # Creating a proxy container for mutable dictionary
-      aggregate_interference_proxy = self.aggregate_interference_info[latitude]
-
-      if longitude not in aggregate_interference_proxy:
-        aggregate_interference_proxy[longitude] = self.manager.list()
-
-      aggregate_interference_proxy[longitude].append(interference)
-      self.aggregate_interference_info[latitude] = aggregate_interference_proxy
-
-  # TODO(sbdt): remove that function and replace with the following one
-  def GetAggregateInterferenceInfo(self):
-    return self.aggregate_interference_info
-
-  def GetAggregateInterferenceContent(self):
-    return self.aggregate_interference_info._getvalue()
-
-
-class AggregateInterferenceManager(BaseManager):
-  pass
-
-
-def getInterferenceObject():
-  """ Creates the AggregateInterferenceOutputFormat class object, which will
-  be shared across multiple processes using AggregateInterferenceManager
-  customized manager"""
-  AggregateInterferenceManager.register('AggregateInterferenceOutputFormat',
-                                        AggregateInterferenceOutputFormat)
-  manager = AggregateInterferenceManager()
-  manager.start()
-
-  return manager.AggregateInterferenceOutputFormat()
 
 
 def dbToLinear(x):

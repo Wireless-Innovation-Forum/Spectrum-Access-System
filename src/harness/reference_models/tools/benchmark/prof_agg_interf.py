@@ -52,8 +52,8 @@ if __name__ == '__main__':
 
   #=======================================
   # Decrease resolution of GWPZ/PPA for reducing time
-  aggregate_interference.GWPZ_GRID_RES_ARCSEC = 20
-  aggregate_interference.PPA_GRID_RES_ARCSEC = 20
+  aggregate_interference.GWPZ_GRID_RES_ARCSEC = 10
+  aggregate_interference.PPA_GRID_RES_ARCSEC = 10
 
   #=======================================
   # Configure the multiprocess pool with profiler enabled
@@ -173,8 +173,8 @@ if __name__ == '__main__':
     gwpz_aggr_interference = aggregate_interference.\
       calculateAggregateInterferenceForGwpz(
           gwpz_record, data.getAllGrantInfoFromCbsdDataDump(cbsd_list))
-    print('\nAggregate Interference (mW) output at GWPZ: %s\n'
-          % (CvtToList(gwpz_aggr_interference)))
+    print('\nAggregate Interference (mW) output at GWPZ: \n' +
+          str(CvtToList(gwpz_aggr_interference))[0:400])
 
   #--- PPA ---
   for ppa_record in ppa_list:
@@ -182,8 +182,8 @@ if __name__ == '__main__':
       calculateAggregateInterferenceForPpa(
           ppa_record, pal_list,
           data.getAllGrantInfoFromCbsdDataDump(cbsd_list, ppa_record=ppa_record))
-    print('\nAggregate Interference (mW) output at PPA: %s\n'
-          % (CvtToList(ppa_aggr_interference)))
+    print('\nAggregate Interference (mW) output at PPA: \n' +
+          str(CvtToList(gwpz_aggr_interference))[0:400])
 
   prof0.disable()
   end_time = time.time()
