@@ -44,6 +44,8 @@ import numpy as np
 
 from reference_models.common import data
 from reference_models.common import mpool
+from reference_models.common import cache
+from reference_models.propagation import wf_hybrid
 from reference_models.geo import utils
 from reference_models.interference import interference as interf
 
@@ -188,75 +190,77 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
   grants_overlap_flag = {}
   grants_interference = {}
 
-  while num_unsatisfied_grants > 0:
-    for g_idx, grant in enumerate(neighbor_grants):
+  with cache.CacheManager(wf_hybrid.CalcHybridPropagationLoss):
+    # Using memoizing cache manager only for lengthy calculation (hybrid on PPA/GWPZ).
+    while num_unsatisfied_grants > 0:
+      for g_idx, grant in enumerate(neighbor_grants):
 
-      if grants_satisfied[g_idx]:
-        continue
-
-      for idx, channel in enumerate(channels):
-        # Check if grant overlaps with protection point, channel
-        grant_overlap_check = interf.grantFrequencyOverlapCheck(
-            grant, channel[0], channel[1], protection_ent_type)
-
-        grants_overlap_flag[(g_idx, idx)] = grant_overlap_check
-        if not grant_overlap_check:
+        if grants_satisfied[g_idx]:
           continue
-        # Get protection constraint over 5MHz channel range
-        channel_constraint = data.ProtectionConstraint(
-            latitude=protection_point[1], longitude=protection_point[0],
-            low_frequency=channel[0], high_frequency=channel[1],
-            entity_type=protection_ent_type)
 
-        # Compute interference that grant causes to protection point over channel
-        interference = interf.dbToLinear(interf.computeInterference(
-            grant, grants_eirp[g_idx], channel_constraint, fss_info,
-            esc_antenna_info, region_type))
+        for idx, channel in enumerate(channels):
+          # Check if grant overlaps with protection point, channel
+          grant_overlap_check = interf.grantFrequencyOverlapCheck(
+              grant, channel[0], channel[1], protection_ent_type)
 
-        # If calculated interference is more than fair share of interference
-        # to which the grants are entitled then grant is considered unsatisfied
-        if interference < fairshare_channels[idx]:
-          # Add the interference caused by all the grants in a 5MHz channel
-          grants_interference[(g_idx, idx)] = interference
-          grants_satisfied[g_idx] = True
-        else:
-          grants_satisfied[g_idx] = False
-          break
+          grants_overlap_flag[(g_idx, idx)] = grant_overlap_check
+          if not grant_overlap_check:
+            continue
+          # Get protection constraint over 5MHz channel range
+          channel_constraint = data.ProtectionConstraint(
+              latitude=protection_point[1], longitude=protection_point[0],
+              low_frequency=channel[0], high_frequency=channel[1],
+              entity_type=protection_ent_type)
 
-    num_grants_good_overall_channels = 0
+          # Compute interference that grant causes to protection point over channel
+          interference = interf.dbToLinear(interf.computeInterference(
+              grant, grants_eirp[g_idx], channel_constraint, fss_info,
+              esc_antenna_info, region_type))
 
-    for gr_idx, grant in enumerate(neighbor_grants):
-      if grants_removed[gr_idx]:
-        continue
-      if not grants_satisfied[gr_idx]:
-        continue
-      if num_unsatisfied_grants > 0:
-        num_unsatisfied_grants -= 1
-      for ch_idx, channel in enumerate(channels):
-        # Grant interferes with protection point over channel
-        if grants_overlap_flag[(gr_idx, ch_idx)]:
-          iap_threshold_channels[ch_idx] = (iap_threshold_channels[ch_idx] -
-                                            grants_interference[(gr_idx, ch_idx)])
-          num_unsatisfied_grants_channels[ch_idx] -= 1
-          # Re-calculate fairshare for a channel
-          if num_unsatisfied_grants_channels[ch_idx] > 0:
-            fairshare_channels[ch_idx] = (float(iap_threshold_channels[ch_idx]) /
-                                          num_unsatisfied_grants_channels[ch_idx])
-          aggr_interf[ch_idx] += grants_interference[(gr_idx, ch_idx)]
-          if grant.is_managed_grant:
-            asas_interf[ch_idx] += grants_interference[(gr_idx, ch_idx)]
+          # If calculated interference is more than fair share of interference
+          # to which the grants are entitled then grant is considered unsatisfied
+          if interference < fairshare_channels[idx]:
+            # Add the interference caused by all the grants in a 5MHz channel
+            grants_interference[(g_idx, idx)] = interference
+            grants_satisfied[g_idx] = True
+          else:
+            grants_satisfied[g_idx] = False
+            break
 
-        # Removing grants from future consideration
-        grants_removed[gr_idx] = True
+      num_grants_good_overall_channels = 0
 
-        # Increase number of grants good over all channels
-        num_grants_good_overall_channels += 1
+      for gr_idx, grant in enumerate(neighbor_grants):
+        if grants_removed[gr_idx]:
+          continue
+        if not grants_satisfied[gr_idx]:
+          continue
+        if num_unsatisfied_grants > 0:
+          num_unsatisfied_grants -= 1
+        for ch_idx, channel in enumerate(channels):
+          # Grant interferes with protection point over channel
+          if grants_overlap_flag[(gr_idx, ch_idx)]:
+            iap_threshold_channels[ch_idx] = (iap_threshold_channels[ch_idx] -
+                                              grants_interference[(gr_idx, ch_idx)])
+            num_unsatisfied_grants_channels[ch_idx] -= 1
+            # Re-calculate fairshare for a channel
+            if num_unsatisfied_grants_channels[ch_idx] > 0:
+              fairshare_channels[ch_idx] = (float(iap_threshold_channels[ch_idx]) /
+                                            num_unsatisfied_grants_channels[ch_idx])
+            aggr_interf[ch_idx] += grants_interference[(gr_idx, ch_idx)]
+            if grant.is_managed_grant:
+              asas_interf[ch_idx] += grants_interference[(gr_idx, ch_idx)]
 
-    if num_grants_good_overall_channels == 0:
-      for grant_idx, grant in enumerate(neighbor_grants):
-        # Reduce power level of all the unsatisfied grants
-        if not grants_satisfied[grant_idx]:
-          grants_eirp[grant_idx] -= 1
+          # Removing grants from future consideration
+          grants_removed[gr_idx] = True
+
+          # Increase number of grants good over all channels
+          num_grants_good_overall_channels += 1
+
+      if num_grants_good_overall_channels == 0:
+        for grant_idx, grant in enumerate(neighbor_grants):
+          # Reduce power level of all the unsatisfied grants
+          if not grants_satisfied[grant_idx]:
+            grants_eirp[grant_idx] -= 1
 
   # Return the computed data
   return protection_point[1], protection_point[0], asas_interf, aggr_interf
