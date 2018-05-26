@@ -34,6 +34,7 @@ import traceback
 from datetime import datetime, timedelta
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
+from util import releasePort
 
 DEFAULT_CERT_FILE = 'certs/server.cert'
 DEFAULT_KEY_FILE = 'certs/server.key'
@@ -91,7 +92,7 @@ class SasTestHarnessServer(threading.Thread):
     self.setDaemon(True)
     self.server = SasHttpServer(
         self.dump_path,
-        (self.host_name, self.port),
+        ('', self.port),
         SasTestHarnessServerHandler,
         self.getSasTestHarnessVersion(),
     )
@@ -107,6 +108,7 @@ class SasTestHarnessServer(threading.Thread):
 
   def __del__(self):
     self.cleanDumpFiles()
+    releasePort(self.port)
 
   def generateTempDirectory(self):
     """ This method will generate a random directory using the current timestamp.

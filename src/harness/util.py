@@ -14,6 +14,7 @@
 """Helper functions for test harness."""
 
 from collections import defaultdict
+import ConfigParser
 from datetime import datetime
 from functools import wraps
 import inspect
@@ -73,6 +74,7 @@ def configurable_testcase(default_config_function):
       def _func(*a):
         if generate_default_func:
           generate_default_func(*a)
+          _releaseAllPorts()
         _log_testcase_header(name, func.func_doc)
         return func(*a, config_filename=config)
       _func.__name__ = name
@@ -526,15 +528,62 @@ def getCertFilename(cert_name):
   return os.path.join('certs', cert_name)
 
 
+class _TestConfig(object):
+  """Represents the configuration of a Test Harness."""
+
+  def __init__(self):
+    self.hostname = 'localhost'
+    self.min_port = 9005
+    self.max_port = 9010
+
+  @classmethod
+  def FromFile(cls, file='test.cfg'):
+    parser = ConfigParser.RawConfigParser()
+    parser.read([file])
+    test_config = _TestConfig()
+    test_config.hostname = parser.get('TestConfig', 'hostname')
+    test_config.min_port = int(parser.get('TestConfig', 'minPort'))
+    test_config.max_port = int(parser.get('TestConfig', 'maxPort'))
+    return test_config
+
+
+_test_config = None
+def _GetSharedTestConfig():
+  global _test_config
+  if _test_config is None:
+    _test_config = _TestConfig.FromFile()
+  return _test_config
+
 def getFqdnLocalhost():
   """Returns the fully qualified name of the host running the testcase.
   To be used when starting peer SAS webserver or other database webserver.
   """
-  return os.environ.get('HOSTNAME', 'localhost')
+  return _GetSharedTestConfig().hostname
 
+_ports = set()
 def getUnusedPort():
-  """Returns an unused TCP port on the local host.
+  """Returns an unused TCP port on the local host inside the defined port range.
   To be used when starting peer SAS webserver or other database webserver.
   """
-  return portpicker.pick_unused_port()
+  config = _GetSharedTestConfig()
+  if config.min_port < 0:
+    return portpicker.pick_unused_port()
+  global _ports
+  # Find the first available port in the defined range.
+  for p in xrange(config.min_port, config.max_port):
+    if p not in _ports and portpicker.is_port_free(p):
+      _ports.add(p)
+      return p
+  raise AssertionError('No available new ports')
 
+def releasePort(port):
+  """Release a used port after a webserver goes down."""
+  if _GetSharedTestConfig().min_port < 0:
+    portpicker.return_port(port)
+  global _ports
+  if port in _ports:
+    _ports.remove(port)
+
+def _releaseAllPorts():
+  """Release all used ports."""
+  _ports.clear()

@@ -50,6 +50,18 @@ GWPZ_GRID_RES_ARCSEC = 2
 PPA_GRID_RES_ARCSEC = 2
 
 
+def InterferenceDict(data_list):
+  """Creates an interferenceReturns a double dict from a list of lat,lng, interferences."""
+  if not isinstance(data_list, list):
+    data_list = [data_list]
+  result = {}
+  for lat, lon, data in data_list:
+    if lat not in result: result[lat] = {}
+    result[lat][lon] = data
+
+  return result
+
+
 def convertAndSumInterference(cbsd_interference_list):
   """Converts interference in dBm to mW to calculate aggregate interference"""
   interferences_in_dbm = np.array(cbsd_interference_list)
@@ -58,18 +70,11 @@ def convertAndSumInterference(cbsd_interference_list):
 
 def aggregateInterferenceForPoint(protection_point, channels, grants,
                                   fss_info, esc_antenna_info,
-                                  protection_ent_type, region_type,
-                                  aggr_interference):
+                                  protection_ent_type, region_type):
   """Computes the aggregate interference for a protection point.
 
   This routine is invoked to calculate aggregate interference for ESC sensor,
   FSS Co-channel/Blocking and PPA/GWPZ protection areas.
-
-  It updates the `aggr_interference` dictionary object with the aggregate
-  interference (in mW) for each protected channel of a protection point.
-  The dictionary format is:
-      {latitude : {longitude : [aggr_interference(mW), ..., aggr_interference(mW)]}},
-  where the inner list holds all aggregated interference for the various channels.
 
   Args:
     protection_point: The location of a protected entity as (longitude, latitude) tuple.
@@ -79,7 +84,10 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
     esc_antenna_info: ESC antenna information of type |data.EscInformation| (optional).
     protection_ent_type: The entity type (|data.ProtectedEntityType|).
     region: Region type of the protection point: 'URBAN', 'SUBURBAN' or 'RURAL'.
-    aggr_interference : An object of class type |AggregateInterferenceOutputFormat|.
+
+  Returns:
+    A tuple (latitude, longitude, interferences) where interferences is a list
+    of interference per channel.
   """
 
   # Get all the grants inside neighborhood of the protection entity
@@ -88,11 +96,9 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
 
   if not grants_inside:
     # We need one entry per channel, even if they're all zero.
-    for channel in channels:
-      aggr_interference.UpdateAggregateInterferenceInfo(
-          protection_point[1], protection_point[0], 0)
-    return
+    return protection_point[1], protection_point[0], [0]*len(channels)
 
+  interferences = []
   with cache.CacheManager(wf_hybrid.CalcHybridPropagationLoss):
     # Using memoizing cache manager only for lengthy calculation (hybrid on PPA/GWPZ).
     for channel in channels:
@@ -107,20 +113,18 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
       neighborhood_grants = interf.findOverlappingGrants(grants_inside, protection_constraint)
 
       if not neighborhood_grants:
-        # As number of neighborhood grants are zero, setting
-        # aggr_interference to '0' for a protection_constraint
-        aggr_interference.UpdateAggregateInterferenceInfo(
-            protection_point[1], protection_point[0], 0)
+        interferences.append(0)
         continue
-
+        
       cbsd_interferences = [
           interf.computeInterference(grant, grant.max_eirp, protection_constraint,
                                      fss_info, esc_antenna_info, region_type)
           for grant in neighborhood_grants]
 
       total_interference = convertAndSumInterference(cbsd_interferences)
-      aggr_interference.UpdateAggregateInterferenceInfo(
-          protection_point[1], protection_point[0], total_interference)
+      interferences.append(total_interference)
+
+  return protection_point[1], protection_point[0], interferences
 
 
 def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
@@ -145,23 +149,18 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
 
   protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
-  aggr_interference = interf.getInterferenceObject()
-
   logging.info(
       'Computing aggregateInterferenceForPoint for FSS Coch: channels (%s), grants (%s), point (%s), fss_info (%s)',
       protection_channels, grants, fss_point, fss_info)
 
-  aggregateInterferenceForPoint(fss_point,
+  interferences = aggregateInterferenceForPoint(fss_point,
                                 protection_channels,
                                 grants,
                                 fss_info,
                                 None,
                                 data.ProtectedEntityType.FSS_CO_CHANNEL,
-                                None,
-                                aggr_interference)
-
-  # Gets the aggregate interference dict content
-  return aggr_interference.GetAggregateInterferenceContent()
+                                None)
+  return InterferenceDict(interferences)
 
 
 def calculateAggregateInterferenceForFssBlocking(fss_record, grants):
@@ -193,23 +192,19 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, grants):
   # FSS TT&C Blocking Algorithm
   protection_channels = [(interf.CBRS_LOW_FREQ_HZ, fss_low_freq)]
 
-  aggr_interference = interf.getInterferenceObject()
-
   logging.info(
       'Computing aggregateInterferenceForPoint for FSS Blocking: channels (%s), grants (%s), point (%s), fss_info (%s)',
       protection_channels, grants, fss_point, fss_info)
 
-  aggregateInterferenceForPoint(fss_point,
+  interferences = aggregateInterferenceForPoint(fss_point,
                                 protection_channels,
                                 grants,
                                 fss_info,
                                 None,
                                 data.ProtectedEntityType.FSS_BLOCKING,
-                                None,
-                                aggr_interference)
+                                None)
 
-  # Gets the aggregate interference dict content
-  return aggr_interference.GetAggregateInterferenceContent()
+  return InterferenceDict(interferences)
 
 
 def calculateAggregateInterferenceForEsc(esc_record, grants):
@@ -231,23 +226,19 @@ def calculateAggregateInterferenceForEsc(esc_record, grants):
   protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ,
                                                     interf.ESC_HIGH_FREQ_HZ)
 
-  aggr_interference = interf.getInterferenceObject()
-
   logging.info(
       'Computing aggregateInterferenceForPoint for ESC: channels (%s), grants (%s), point (%s), antenna_info (%s)',
       protection_channels, grants, protection_point, esc_antenna_info)
 
-  aggregateInterferenceForPoint(protection_point,
+  interferences = aggregateInterferenceForPoint(protection_point,
                                 protection_channels,
                                 grants,
                                 None,
                                 esc_antenna_info,
                                 data.ProtectedEntityType.ESC,
-                                None,
-                                aggr_interference)
+                                None)
 
-  # Gets the aggregate interference dict content
-  return aggr_interference.GetAggregateInterferenceContent()
+  return InterferenceDict(interferences)
 
 
 def calculateAggregateInterferenceForGwpz(gwpz_record, grants):
@@ -277,8 +268,6 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, grants):
 
   # Calculate aggregate interference from each protection constraint with a
   # pool of parallel processes.
-  aggr_interference = interf.getInterferenceObject()
-
   logging.info(
       'Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), grants (%s), region_type (%s) - nPoints (%d)',
       gwpz_record, protection_channels, grants, gwpz_region, len(protection_points))
@@ -289,14 +278,12 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, grants):
                              fss_info=None,
                              esc_antenna_info=None,
                              protection_ent_type=data.ProtectedEntityType.GWPZ_AREA,
-                             region_type=gwpz_region,
-                             aggr_interference=aggr_interference)
+                             region_type=gwpz_region)
 
   pool = mpool.Pool()
-  pool.map(interfCalculator, protection_points)
+  interferences = pool.map(interfCalculator, protection_points)
+  return InterferenceDict(interferences)
 
-  # Gets the aggregate interference dict content
-  return aggr_interference.GetAggregateInterferenceContent()
 
 
 def calculateAggregateInterferenceForPpa(ppa_record, pal_records, grants):
@@ -336,8 +323,6 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_records, grants):
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(ppa_low_freq, ppa_high_freq)
 
-  aggr_interference = interf.getInterferenceObject()
-
   logging.info(
       'Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), grants (%s), region_type (%s) - nPoints (%d)',
       ppa_record, protection_channels, grants, ppa_region, len(protection_points))
@@ -350,11 +335,8 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_records, grants):
                              fss_info=None,
                              esc_antenna_info=None,
                              protection_ent_type=data.ProtectedEntityType.PPA_AREA,
-                             region_type=ppa_region,
-                             aggr_interference=aggr_interference)
+                             region_type=ppa_region)
 
   pool = mpool.Pool()
-  pool.map(interfCalculator, protection_points)
-
-  # Gets the aggregate interference dict content
-  return aggr_interference.GetAggregateInterferenceContent()
+  interferences = pool.map(interfCalculator, protection_points)
+  return InterferenceDict(interferences)

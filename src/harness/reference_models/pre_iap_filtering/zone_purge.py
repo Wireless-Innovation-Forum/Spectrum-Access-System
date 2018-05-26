@@ -84,7 +84,7 @@ def zonePurgeReferenceModel(sas_uut_fad, sas_test_harness_fads,
     if cbsds_within_gwpz:
       # Purge the overlapping grants
       pre_iap_util.purgeOverlappingGrants(cbsds_within_gwpz,
-                                          gwpz_record['deploymentParam'][0]
+                                          gwpz_record['record']['deploymentParam'][0]
                                           ['operationParam']['operationFrequencyRange'])
 
   # Perform GWBL+FSS purge for each FSS

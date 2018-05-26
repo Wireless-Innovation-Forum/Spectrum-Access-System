@@ -1,14 +1,16 @@
 {
-   "id":"incumbent/uls/0",
-   "type":"PART_90",
-   "deploymentParam":[{
-      "operationParam":{
-         "operationFrequencyRange":{
-            "lowFrequency":3650000000,
-            "highFrequency":3680000000
-         }
-      }
-   }],
+   "record": {  
+       "id":"incumbent/uls/0",
+       "type":"PART_90",
+       "deploymentParam":[{
+	   "operationParam":{
+               "operationFrequencyRange":{
+		   "lowFrequency":3650000000,
+		   "highFrequency":3680000000
+               }
+	   }
+       }]
+   },
    "zone":{
       "type":"FeatureCollection",
       "features":[
