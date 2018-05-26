@@ -82,8 +82,8 @@ FSS_RBW_HZ = 1*MHZ
 ESC_RBW_HZ = 1*MHZ
 
 # The grid resolution for area based protection entities.
-GWPZ_GRID_RES_ARCSEC = 2
-PPA_GRID_RES_ARCSEC = 2
+GWPZ_GRID_RES_ARCSEC = 20
+PPA_GRID_RES_ARCSEC = 20
 
 
 def iapPointConstraint(protection_point, channels, low_freq, high_freq,
@@ -586,7 +586,7 @@ def calculatePostIapAggregateInterference(q_p, num_sas, iap_interfs):
   for lat, lon, asas_interfs, agg_interfs in iap_interfs:
     if lat not in ap_iap_ref: ap_iap_ref[lat] = {}
     ap_iap_ref[lat][lon] = [
-        ((q_p - aggr_interf) / num_sas + asas_interf)
-        for aggr_interf, asas_interf in zip(asas_interfs, agg_interfs)]
+        (float(q_p - aggr_interf) / num_sas + asas_interf)
+        for asas_interf, aggr_interf in zip(asas_interfs, agg_interfs)]
 
   return ap_iap_ref
