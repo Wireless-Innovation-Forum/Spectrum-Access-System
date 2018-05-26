@@ -193,7 +193,7 @@ class _Zone(object):
 
 
 def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
-                  data_fields=None, simplify=0):
+                  data_fields=None, simplify=0, fix_invalid=True):
   """Gets all the zones defined in a KML.
 
   This assumes that each zone is either a bunch of polygons, or a bunch of points.
@@ -204,6 +204,7 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
     data_fields: List of string defining the data fields to extract from the KML
       'ExtendedData'. If None, nothing is extracted.
     simplify: If set, simplifies the resulting polygons.
+    fix_invalid: If True, try to fix invalid DPA zone (using buffer(0) trick).
 
   Returns:
     A dictionary of elements keyed by their name, with each elements being:
@@ -234,6 +235,7 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
       continue
 
     name = element.name.text
+    if name == 'Hawaii6': continue
     # Read the zone geometry
     geometry = None
     polygons = [_GetPolygon(poly)
@@ -244,7 +246,8 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
       else:
         polygon = sgeo.MultiPolygon(polygons)
       # Fix most invalid polygons
-      polygon = polygon.buffer(0)
+      if fix_invalid:
+        polygon = polygon.buffer(0)
       if simplify:
         polygon.simplify(simplify)
       if not polygon.is_valid:
@@ -359,7 +362,7 @@ def _CheckDpaValidity(dpa_zones, attributes):
         raise ValueError('DPA %s: attribute %s is unset' % (name, attr))
 
 
-def _LoadDpaZones(kml_path, properties):
+def _LoadDpaZones(kml_path, properties, fix_invalid=True):
   """Loads DPA zones from a `kml_path` - See GetCoastalDpaZones for returned format.
 
   Args:
@@ -367,6 +370,7 @@ def _LoadDpaZones(kml_path, properties):
     properties: A list of tuple (kml_attribute, converter) for extracting the DPA KML info:
       * kml_attr: a string defining the data attribute in the KML
       * converter: a converter routine, for example `float`.
+    fix_invalid: If True, try to fix invalid DPA zone (using buffer(0) trick).
   """
   # Manage the case where some items are in a Folder structure instead of Placemark
   dpa_zones = _ReadKmlZones(kml_path, root_id_zone='Placemark',
@@ -467,7 +471,10 @@ def GetCoastalDpaZones(kml_path=None):
   if _coastal_dpa_zones is None  or kml_path != _coastal_dpa_path:
     _coastal_dpa_path = kml_path
     if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), COASTAL_DPA_ZONE_FILE)
-    _coastal_dpa_zones = _LoadDpaZones(kml_path, COASTAL_DPA_PROPERTIES)
+    _coastal_dpa_zones = _LoadDpaZones(kml_path, COASTAL_DPA_PROPERTIES,
+                                       fix_invalid=True)
+    # TODO(sbdt): put fix_invalid=False once Hawaii6 is definitely fixed.
+    # This will provide auto issue detection in future updates
   return _coastal_dpa_zones
 
 
@@ -495,7 +502,8 @@ def GetPortalDpaZones(kml_path=None):
   if _portal_dpa_zones is None or kml_path != _portal_dpa_path:
     _portal_dpa_path = kml_path
     if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), PORTAL_DPA_ZONE_FILE)
-    _portal_dpa_zones = _LoadDpaZones(kml_path, PORTAL_DPA_PROPERTIES)
+    _portal_dpa_zones = _LoadDpaZones(kml_path, PORTAL_DPA_PROPERTIES,
+                                      fix_invalid=False)
   return _portal_dpa_zones
 
 

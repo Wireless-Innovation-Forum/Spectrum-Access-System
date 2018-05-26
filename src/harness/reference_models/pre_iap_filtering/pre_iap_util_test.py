@@ -95,6 +95,54 @@ class preIapFilteringUtilTest(unittest.TestCase):
                                      self.create_frequency_range(3550, 3600))
           ])
 
+  def create_grant(self, low_freq, high_freq):
+    return {
+        'operationParam': {
+            'operationFrequencyRange':
+                self.create_frequency_range(low_freq, high_freq)
+        }
+    }
+
+  def test_frequency_overlap(self):
+    # Partial overlap, grant starts inside of the |frequency_range|.
+    self.assertTrue(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3680, 3690),
+            self.create_frequency_range(3650, 3700)))
+    # Partial overlap, grant ends inside of the |frequency_range|.
+    self.assertTrue(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3600, 3660),
+            self.create_frequency_range(3650, 3700)))
+    # Grant's frequency range inside the |frequency_range|.
+    self.assertTrue(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3660, 3680),
+            self.create_frequency_range(3650, 3700)))
+    # The |frequency_range| inside the grant's frequency range.
+    self.assertTrue(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3660, 3680),
+            self.create_frequency_range(3650, 3700)))
+    # No overlap
+    self.assertFalse(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3600, 3640),
+            self.create_frequency_range(3650, 3700)))
+    self.assertFalse(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3660, 3700),
+            self.create_frequency_range(3600, 3650)))
+    # Adjacant do not overlap
+    self.assertFalse(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3600, 3650),
+            self.create_frequency_range(3650, 3700)))
+    self.assertFalse(
+        pre_iap_util.checkForOverlappingGrants(
+            self.create_grant(3660, 3700),
+            self.create_frequency_range(3600, 3660)))
+
 
 if __name__ == '__main__':
   unittest.main()
