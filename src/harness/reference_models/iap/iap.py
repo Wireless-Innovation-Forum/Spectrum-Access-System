@@ -82,8 +82,8 @@ FSS_RBW_HZ = 1*MHZ
 ESC_RBW_HZ = 1*MHZ
 
 # The grid resolution for area based protection entities.
-GWPZ_GRID_RES_ARCSEC = 20
-PPA_GRID_RES_ARCSEC = 20
+GWPZ_GRID_RES_ARCSEC = 2
+PPA_GRID_RES_ARCSEC = 2
 
 
 def iapPointConstraint(protection_point, channels, low_freq, high_freq,
