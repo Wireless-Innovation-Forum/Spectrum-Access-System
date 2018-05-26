@@ -2,13 +2,12 @@
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
 <Document>
 	<name>E-DPAs</name>
-	<open>1</open>
 	<ExtendedData>
 		<Data name="version">
-			<value>1.0.1</value>
+			<value>1.0.2</value>
 		</Data>
 		<Data name="creationDate">
-			<value>2018-05-22</value>
+			<value>2018-05-25</value>
 		</Data>
 		<Data name="Disclaimer">
 			<value>The Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
@@ -51,7 +50,6 @@
 				<value>368</value>
 			</Data>
 		</ExtendedData>
-		<gx:balloonVisibility>1</gx:balloonVisibility>
 		<Polygon>
 			<outerBoundaryIs>
 				<LinearRing>
@@ -1365,7 +1363,7 @@
 				<value>360</value>
 			</Data>
 			<Data name="catBNeighborhoodDistanceKm">
-				<value>NaN</value>
+				<value>288</value>
 			</Data>
 		</ExtendedData>
 		<Polygon>
@@ -1401,7 +1399,7 @@
 				<value>360</value>
 			</Data>
 			<Data name="catBNeighborhoodDistanceKm">
-				<value>NaN</value>
+				<value>288</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -1431,7 +1429,7 @@
 				<value>360</value>
 			</Data>
 			<Data name="catBNeighborhoodDistanceKm">
-				<value>NaN</value>
+				<value>304</value>
 			</Data>
 		</ExtendedData>
 		<Point>
@@ -2194,7 +2192,7 @@
 				<value>360</value>
 			</Data>
 			<Data name="catBNeighborhoodDistanceKm">
-				<value>NaN</value>
+				<value>128</value>
 			</Data>
 		</ExtendedData>
 		<Polygon>
