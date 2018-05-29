@@ -450,14 +450,16 @@ def GetPart90ExclusionZones():
 def GetCoastalDpaZones(kml_path=None):
   """Gets Coastal DPA zones.
 
-  Coastal DPA zones are Dynamic Protection Area monitored through the use of ESC sensors.
+  Coastal DPA zones are Dynamic Protection Area monitored through the use of
+  ESC sensors.
 
   Args:
-    kml_path: Optional path to the Coastal DPA KML. If unspecified, use the default one
-      from the `data/ntia/` folder.
+    kml_path: Optional path to the Coastal DPA KML. If unspecified, use the
+      default one from the `data/ntia/` folder.
 
   Returns:
-    A dict of DPA struct keyed by their names, each one holding following attributes:
+    A dict of DPA struct keyed by their names, each one holding following
+    attributes:
       geometry: A |shapely.Polygon  or Point| defining the DPA.
       protectionCritDbmPer10MHz: The protection threshold (dBm/10MHz).
       refHeightMeters: The radar antenna height (meters).
@@ -470,25 +472,28 @@ def GetCoastalDpaZones(kml_path=None):
   global _coastal_dpa_path
   if _coastal_dpa_zones is None  or kml_path != _coastal_dpa_path:
     _coastal_dpa_path = kml_path
-    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), COASTAL_DPA_ZONE_FILE)
+    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(),
+                                                 COASTAL_DPA_ZONE_FILE)
     _coastal_dpa_zones = _LoadDpaZones(kml_path, COASTAL_DPA_PROPERTIES,
-                                       fix_invalid=True)
-    # TODO(sbdt): put fix_invalid=False once Hawaii6 is definitely fixed.
-    # This will provide auto issue detection in future updates
+                                       fix_invalid=False)
+    # fix_invalid to False to auto-detect issues with provided KML.
+
   return _coastal_dpa_zones
 
 
 def GetPortalDpaZones(kml_path=None):
   """Gets Portal DPA zones.
 
-  Portal DPA zones are Dynamic Protection Area monitored through the use of portal.
+  Portal DPA zones are Dynamic Protection Area monitored through the use of
+  internet portal.
 
   Args:
-    kml_path: Optional path to the Portal DPA KML. If unspecified, use the default one
-      from the `data/ntia/` folder.
+    kml_path: Optional path to the Portal DPA KML. If unspecified, use the
+      default one from the `data/ntia/` folder.
 
   Returns:
-    A dict of DPA struct keyed by their names, each one holding following attributes:
+    A dict of DPA struct keyed by their names, each one holding following
+    attributes:
       geometry: A |shapely.Polygon or Point| defining the DPA.
       protectionCritDbmPer10MHz: The protection threshold (dBm/10MHz).
       refHeightMeters: The radar antenna height (meters).
@@ -501,9 +506,12 @@ def GetPortalDpaZones(kml_path=None):
   global _portal_dpa_path
   if _portal_dpa_zones is None or kml_path != _portal_dpa_path:
     _portal_dpa_path = kml_path
-    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(), PORTAL_DPA_ZONE_FILE)
+    if kml_path is None: kml_path = os.path.join(CONFIG.GetNtiaDir(),
+                                                 PORTAL_DPA_ZONE_FILE)
     _portal_dpa_zones = _LoadDpaZones(kml_path, PORTAL_DPA_PROPERTIES,
                                       fix_invalid=False)
+    # fix_invalid to False to auto-detect issues with provided KML.
+
   return _portal_dpa_zones
 
 

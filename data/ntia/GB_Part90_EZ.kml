@@ -4,10 +4,10 @@
 	<name>GB_Part90_EZ</name>
 	<ExtendedData>
 		<Data name="version">
-			<value>1.0.1</value>
+			<value>1.0.3</value>
 		</Data>
 		<Data name="creationDate">
-			<value>2018-05-25</value>
+			<value>2018-05-29</value>
 		</Data>
 	</ExtendedData>
 	<Placemark>
@@ -1067,7 +1067,7 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>Nellis Air Force Base, NV</name>
+		<name>Nevada Test and Training Range</name>
 		<Snippet maxLines="0"></Snippet>
 		<Style>
 			<LineStyle>
@@ -1082,7 +1082,7 @@
 		</Style>
 		<ExtendedData>
 			<Data name="Exclusion Zone">
-				<value>Nellis Air Force Base, NV</value>
+				<value>Nevada Test and Training Range</value>
 			</Data>
 			<Data name="freqRangeMhz">
 				<value>3550-3650</value>
