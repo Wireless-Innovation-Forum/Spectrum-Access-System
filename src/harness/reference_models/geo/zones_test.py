@@ -35,7 +35,7 @@ class TestZones(unittest.TestCase):
   def test_read_exclusion(self):
     z = zones.GetGbsExclusionZones()
     self.assertTrue(z.is_valid)
-    self.assertTrue(z.area > 3 and z.area < 4)
+    self.assertTrue(z.area > 6 and z.area < 6.5)
 
     z = zones.GetPart90ExclusionZones()
     self.assertTrue(z.is_valid)
