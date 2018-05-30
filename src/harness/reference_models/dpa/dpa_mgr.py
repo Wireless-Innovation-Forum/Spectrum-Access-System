@@ -418,7 +418,7 @@ def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
   channels = set()
   for freq_range in freq_ranges_mhz:
     min_freq = int(freq_range[0] / DPA_CHANNEL_BANDWIDTH) * DPA_CHANNEL_BANDWIDTH
-    max_freq = int(freq_range[1] / DPA_CHANNEL_BANDWIDTH) * DPA_CHANNEL_BANDWIDTH
+    max_freq = freq_range[1]
     freqs = np.arange(min_freq, max_freq, DPA_CHANNEL_BANDWIDTH)
     for freq in freqs:
       channels.add((freq, freq + DPA_CHANNEL_BANDWIDTH))
