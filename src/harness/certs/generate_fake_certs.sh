@@ -600,7 +600,7 @@ cat ca.cert crl/ca_sxs11.crl > ca_crl_chain_sxs11.cert
 cat crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl crl/root_ca.crl > crl/ca_sxs16.crl
 cat ca.cert crl/ca_sxs16.crl > ca_crl_chain_sxs16.cert
 
-# Cleanup: remove all files not directly used by the testcases.
-rm -rf root
+# Cleanup: remove all files not directly used by the testcases or other scripts.
 rm *.csr
+
 
