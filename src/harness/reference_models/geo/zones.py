@@ -401,6 +401,10 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
   for name, zone in dpa_zones.items():
     # CatA neighborhood specified with default value if not in file,
     # so this is managed in the declaration.
+    # However since the KML are currently using NaN for that param, manage
+    # the NaN case here.
+    if np.isnan(zone.catANeighborhoodDistanceKm):
+      zone.catANeighborhoodDistanceKm = 150
     # Others seems mandatory:
     # CatB not yet defined set as NaN
     if np.isnan(zone.catBNeighborhoodDistanceKm):
