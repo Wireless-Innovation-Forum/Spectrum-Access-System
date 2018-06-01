@@ -71,6 +71,8 @@ USBORDER_FILE = 'usborder.kmz'
 URBAN_AREAS_FILE = 'Urban_Areas_3601.kmz'
 USCANADA_BORDER_FILE = 'uscabdry_sampled.kmz'
 
+# The constants
+DPA_CATA_DEFAULT_NEIGHBOR_DIST = 150
 
 # A frequency splitter - used as DPA properties converter.
 def _SplitFreqRange(freq_range):
@@ -103,7 +105,7 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('antennaBeamwidthDeg', float, 3.),
                           ('minAzimuthDeg', float, 0.),
                           ('maxAzimuthDeg', float, 360.),
-                          ('catANeighborhoodDistanceKm', float, 150),
+                          ('catANeighborhoodDistanceKm', float, DPA_CATA_DEFAULT_NEIGHBOR_DIST),
                           ('catBNeighborhoodDistanceKm', float, None),
                           ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
                           ('catBOOBNeighborhoodDistanceKm', float, float('nan'))]
@@ -115,7 +117,7 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('antennaBeamwidthDeg', float, None),
                          ('minAzimuthDeg', float, 0),
                          ('maxAzimuthDeg', float, 360),
-                         ('catANeighborhoodDistanceKm', float, 150),
+                         ('catANeighborhoodDistanceKm', float, DPA_CATA_DEFAULT_NEIGHBOR_DIST),
                          ('catBNeighborhoodDistanceKm', float, None),
                          ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
                          ('catBOOBNeighborhoodDistanceKm', float, float('nan')),
@@ -401,6 +403,10 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
   for name, zone in dpa_zones.items():
     # CatA neighborhood specified with default value if not in file,
     # so this is managed in the declaration.
+    # However since the KML are currently using NaN for that param, manage
+    # the NaN case here.
+    if np.isnan(zone.catANeighborhoodDistanceKm):
+      zone.catANeighborhoodDistanceKm = DPA_CATA_DEFAULT_NEIGHBOR_DIST
     # Others seems mandatory:
     # CatB not yet defined set as NaN
     if np.isnan(zone.catBNeighborhoodDistanceKm):
