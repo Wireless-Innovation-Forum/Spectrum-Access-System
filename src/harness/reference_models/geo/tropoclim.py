@@ -104,7 +104,7 @@ _ZONE_NAMES = [
     'Maritime Temperate, Over Sea'
 ]
 
-def ClimateZoneName(self, zone):
+def ClimateZoneName(zone):
   """Returns the name of a given climate code
   """
   if zone > 7: zone = 0
@@ -114,4 +114,4 @@ if __name__ == '__main__':
   indx = ClimateIndexer()
   clim = indx.TropoClim(float(sys.argv[1]), float(sys.argv[2]))
   print 'Climate zone = %d' % clim
-  print ' (%s)' % indx.ClimateZoneName(clim)
+  print ' (%s)' % ClimateZoneName(clim)
