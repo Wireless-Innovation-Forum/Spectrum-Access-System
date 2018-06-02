@@ -67,7 +67,7 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
     antenna_gain: The antenna nominal gain (dBi).
     antenna_beamwidth: The 3dB antenna beamwidth (degrees).
     cbsd_category: Either 'A' for Cat A or 'B' for Cat B CBSD.
-    max_eirp: The maximum EIRP of the CBSD (dBm).
+    max_eirp: The maximum EIRP of the CBSD (dBm per MHz).
     low_frequency: The grant min frequency (Hz).
     high_frequency: The gran max frequency (Hz).
     is_managed_grant: True iff the grant belongs to the managing SAS.
