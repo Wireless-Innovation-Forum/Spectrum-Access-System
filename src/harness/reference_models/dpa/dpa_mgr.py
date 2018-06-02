@@ -40,6 +40,7 @@ Example usage:
 """
 import functools
 import os
+import logging
 
 import numpy as np
 
@@ -380,6 +381,11 @@ class Dpa(object):
     if do_abs_check_single_uut and not self._has_th_grants:
       hard_threshold = self.threshold
 
+    logging.info('DPA Check interference - channel %s thresh %s bw %s'
+                 'iter %s azi_range %s nbor_dists %s',
+                 channel, hard_threshold if hard_threshold else 'MoveList',
+                 self.beamwidth, num_iter, self.azimuth_range, self.neighbor_distances)
+
     checkPointInterf = functools.partial(
         _CalcTestPointInterfDiff,
         channel=channel,
@@ -398,6 +404,10 @@ class Dpa(object):
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
     max_diff_interf = max(result)
+    if max_diff_interf > margin_db:
+      logging.warning('DPA Check Fail - channel %s thresh %s',
+                      channel, hard_threshold if hard_threshold else 'MoveList')
+
     return max_diff_interf <= margin_db
 
 
@@ -502,7 +512,15 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
     if threshold is not None:
-      return np.max(uut_interferences - threshold)
+      result = np.max(uut_interferences - threshold)
+      logging.debug('%s UUT interf @ %s Thresh %sdBm : %s',
+                    'Bad' if result > 0 else 'Ok',
+                    point, threshold, uut_interferences)
+      if result > 0:
+        logging.info('Bad UUT interf @ %s Thresh %sdBm : %s',
+                     point, threshold, uut_interferences)
+      return result
+
     th_interferences = ml.calcAggregatedInterference(
         point,
         low_freq=channel[0] * 1e6,
@@ -514,8 +532,16 @@ def _CalcTestPointInterfDiff(point,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
-    return np.max(uut_interferences - th_interferences)
 
+    result = np.max(uut_interferences - th_interferences)
+    logging.debug('%s UUT interf @ %s : %s',
+                  'Bad' if result > 0 else 'Ok',
+                  point, zip(th_interferences, uut_interferences))
+    if result > 0:
+      logging.info('Bad UUT interf @ %s : %s',
+                   point, zip(th_interferences, uut_interferences))
+
+    return result
 
 
 
