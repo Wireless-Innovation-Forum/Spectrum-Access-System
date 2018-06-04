@@ -645,7 +645,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           ppa_ap_iap_ref_values = self.ppa_ap_iap_ref_values_list[index]
         else:
-          ppa_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_PPA_DBM_PER_RBW)
+          ppa_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_PPA_DBM_PER_IAPBW)
         # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(ppa_ap_iap_ref_values, ppa_aggr_interference, 'area')
 
@@ -662,7 +662,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           gwpz_ap_iap_ref_values = self.gwpz_ap_iap_ref_values_list[index]
         else:
-          gwpz_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_GWPZ_DBM_PER_RBW)
+          gwpz_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_GWPZ_DBM_PER_IAPBW)
         # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(gwpz_ap_iap_ref_values, gwpz_aggr_interference, 'area')
 
@@ -688,7 +688,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
             fss_cochannel_ap_iap_ref_values = self.fss_cochannel_ap_iap_ref_values_list[index]
             fss_blocking_ap_iap_ref_values = self.fss_blocking_ap_iap_ref_values_list[index]
           else:
-            fss_cochannel_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_CO_CHANNEL_DBM_PER_RBW)
+            fss_cochannel_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_CO_CHANNEL_DBM_PER_IAPBW)
             fss_blocking_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_FSS_BLOCKING_DBM_PER_RBW)
           # Check and compare interference for FSS entity
           logging.info('Checking cochannel.')
@@ -722,7 +722,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         if self.num_peer_sases > 0:
           esc_ap_iap_ref_values = self.esc_ap_iap_ref_values_list[index]
         else:
-          esc_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_ESC_DBM_PER_RBW)
+          esc_ap_iap_ref_values = interference.dbToLinear(iap.THRESH_ESC_DBM_PER_IAPBW)
         # Compare the interference values calculated from both models
         self.compareIapAndAggregateResults(esc_ap_iap_ref_values, esc_aggr_interference, 'point')
 

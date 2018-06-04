@@ -71,17 +71,21 @@ MHZ = 1.e6
 # Channel bandwidth over which SASs execute the IAP process
 IAPBW_HZ = 5*MHZ
 
-# GWPZ Area Protection reference bandwidth for the IAP process
+# Reference bandwidth for the IAP process for each protection type
 GWPZ_RBW_HZ = 10*MHZ
-
-# PPA Area Protection reference bandwidth for the IAP process
 PPA_RBW_HZ = 10*MHZ
-
-# FSS Point Protection reference bandwidth for the IAP process
 FSS_RBW_HZ = 1*MHZ
-
-# ESC Point Protection reference bandwidth for the IAP process
 ESC_RBW_HZ = 1*MHZ
+
+# Normalized threshold on the IAP channel bandwidth
+THRESH_PPA_DBM_PER_IAPBW = (THRESH_PPA_DBM_PER_RBW +
+                            interf.linearToDb(IAPBW_HZ / PPA_RBW_HZ))
+THRESH_GWPZ_DBM_PER_IAPBW = (THRESH_GWPZ_DBM_PER_RBW +
+                             interf.linearToDb(IAPBW_HZ / GWPZ_RBW_HZ))
+THRESH_FSS_CO_CHANNEL_DBM_PER_IAPBW = (THRESH_FSS_CO_CHANNEL_DBM_PER_RBW
+                                       + interf.linearToDb(IAPBW_HZ / FSS_RBW_HZ))
+THRESH_ESC_DBM_PER_IAPBW = (THRESH_ESC_DBM_PER_RBW +
+                            interf.linearToDb(IAPBW_HZ / ESC_RBW_HZ))
 
 # The grid resolution for area based protection entities.
 GWPZ_GRID_RES_ARCSEC = 2
@@ -281,7 +285,7 @@ def performIapForEsc(esc_record, sas_uut_fad_object, sas_th_fad_objects):
         {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
       where the list holds all values per channel of that protection point.
   """
-  esc_thresh_q = THRESH_ESC_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / ESC_RBW_HZ)
+  esc_thresh_q = THRESH_ESC_DBM_PER_IAPBW
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
@@ -326,7 +330,7 @@ def performIapForGwpz(gwpz_record, sas_uut_fad_object, sas_th_fad_objects):
         {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
       where the list holds all values per channel of that protection point.
   """
-  gwpz_thresh_q = THRESH_GWPZ_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / GWPZ_RBW_HZ)
+  gwpz_thresh_q = THRESH_GWPZ_DBM_PER_IAPBW
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
@@ -389,7 +393,7 @@ def performIapForPpa(ppa_record, sas_uut_fad_object, sas_th_fad_objects,
         {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
       where the list holds all values per channel of that protection point.
   """
-  ppa_thresh_q = THRESH_PPA_DBM_PER_RBW + interf.linearToDb(IAPBW_HZ / PPA_RBW_HZ)
+  ppa_thresh_q = THRESH_PPA_DBM_PER_IAPBW
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
@@ -464,8 +468,7 @@ def performIapForFssCochannel(fss_record, sas_uut_fad_object, sas_th_fad_objects
         {latitude : {longitude : [interference(mW/IAPBW), .., interference(mW/IAPBW)]}}
       where the list holds all values per channel of that protection point.
   """
-  fss_cochannel_thresh_q = (THRESH_FSS_CO_CHANNEL_DBM_PER_RBW
-                            + interf.linearToDb(IAPBW_HZ / FSS_RBW_HZ))
+  fss_cochannel_thresh_q = THRESH_FSS_CO_CHANNEL_DBM_PER_IAPBW
 
   # Actual protection threshold used for IAP - calculated by applying
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
