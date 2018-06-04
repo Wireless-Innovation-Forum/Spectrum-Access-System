@@ -266,6 +266,10 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
           if not grants_satisfied[grant_idx]:
             grants_eirp[grant_idx] -= 1
 
+  logging.debug('IAP point_constraint @ point %s: %s',
+                (protection_point[1], protection_point[0]),
+                zip(asas_interf, aggr_interf))
+
   # Return the computed data
   return protection_point[1], protection_point[0], asas_interf, aggr_interf
 

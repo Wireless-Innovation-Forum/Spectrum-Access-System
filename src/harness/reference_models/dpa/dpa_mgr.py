@@ -40,6 +40,7 @@ Example usage:
 """
 import functools
 import os
+import logging
 
 import numpy as np
 
@@ -79,6 +80,7 @@ class Dpa(object):
   for which special protection logic is run.
 
   Attributes:
+    name: The DPA name (informative).
     channels: The list of 10MHz channels (freq_min_mhz, freq_max_mhz) to protect for
       that DPA.
     protected_points: A list of namedtuple (latitude, longitude) defining the actual
@@ -125,6 +127,7 @@ class Dpa(object):
     cls.num_iteration = num_iteration
 
   def __init__(self, protected_points,
+               name='None',
                threshold=DPA_DEFAULT_THRESHOLD_PER_10MHZ,
                radar_height=DPA_DEFAULT_RADAR_HEIGHT,
                beamwidth=DPA_DEFAULT_BEAMWIDTH,
@@ -133,6 +136,7 @@ class Dpa(object):
                neighbor_distances=DPA_DEFAULT_DISTANCES,
                monitor_type='esc'):
     """Initialize the DPA attributes."""
+    self.name = name
     self.protected_points = protected_points
     self.threshold = threshold
     self.radar_height = radar_height
@@ -213,6 +217,12 @@ class Dpa(object):
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
     """
+    logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
+                 'iter %s azi_range %s nbor_dists %s',
+                 self.name, self.channels, self.threshold, self.beamwidth,
+                 self.radar_height, Dpa.num_iteration,
+                 self.azimuth_range, self.neighbor_distances)
+    logging.debug('  protected points: %s', self.protected_points)
     pool = mpool.Pool()
     self.ResetLists()
     for low_freq, high_freq in self.channels:
@@ -236,6 +246,9 @@ class Dpa(object):
       nbor_list = set().union(*nbor_list)
       self.move_lists.append(move_list)
       self.nbor_lists.append(nbor_list)
+
+    logging.info('DPA Result movelist `%s`- MOVE_LIST:%s NBOR_LIST: %s',
+                 self.name, self.move_lists, self.nbor_lists)
 
   def _GetChanIdx(self, channel):
     """Gets the channel idx for a given channel."""
@@ -380,6 +393,15 @@ class Dpa(object):
     if do_abs_check_single_uut and not self._has_th_grants:
       hard_threshold = self.threshold
 
+    logging.info('DPA Check interf `%s`- channel %s thresh %s bw %s '
+                 'iter %s azi_range %s nbor_dists %s',
+                 self.name, channel, hard_threshold if hard_threshold else '`MoveList`',
+                 self.beamwidth, num_iter, self.azimuth_range, self.neighbor_distances)
+    logging.debug('DPA Check interf `%s` - KL_TH_MGR: %s KL_TH_OTHER: %s KL_UUT_MGR: %s',
+                  self.name,
+                  keep_list_th_managing_sas, keep_list_th_other_sas,
+                  keep_list_uut_managing_sas)
+
     checkPointInterf = functools.partial(
         _CalcTestPointInterfDiff,
         channel=channel,
@@ -398,6 +420,15 @@ class Dpa(object):
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
     max_diff_interf = max(result)
+
+    if max_diff_interf > margin_db:
+      logging.warning('DPA Check Fail `%s`- channel %s thresh %s max_diff %s',
+                      self.name, channel,
+                      hard_threshold if hard_threshold else '`MoveList`',
+                      max_diff_interf)
+    else:
+      logging.info('DPA Check Succeed - max_diff %s', max_diff_interf)
+
     return max_diff_interf <= margin_db
 
 
@@ -502,7 +533,15 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
     if threshold is not None:
-      return np.max(uut_interferences - threshold)
+      result = np.max(uut_interferences - threshold)
+      logging.debug('%s UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
+                    'Exceeded' if result > 0 else 'Ok',
+                    point, threshold, result, uut_interferences)
+      if result > 0:
+        logging.info('Exceeded UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
+                     point, threshold, result, uut_interferences)
+      return result
+
     th_interferences = ml.calcAggregatedInterference(
         point,
         low_freq=channel[0] * 1e6,
@@ -514,8 +553,18 @@ def _CalcTestPointInterfDiff(point,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
-    return np.max(uut_interferences - th_interferences)
 
+    result = np.max(uut_interferences - th_interferences)
+    logging.debug('%s UUT interf @ %s Diff %sdB: %s',
+                  'Exceeded' if result > 0 else 'Ok',
+                  point, result,
+                  zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+    if result > 0:
+      logging.info('Exceeded UUT interf @ %s Diff %sdB: %s',
+                   point, result,
+                   zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+
+    return result
 
 
 
@@ -583,6 +632,7 @@ def BuildDpa(dpa_name, protection_points_method=None):
                         dpa_zone.catAOOBNeighborhoodDistanceKm,
                         dpa_zone.catBOOBNeighborhoodDistanceKm)
   return Dpa(protection_points,
+             name=dpa_name,
              threshold=protection_threshold,
              radar_height=radar_height,
              beamwidth=radar_beamwidth,

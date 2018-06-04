@@ -403,7 +403,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       + the grants on the move list.
       + the grants in the neighborhood list.
   """
-  logging.info('Creating move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%r)',
+  logging.debug('DPA Create move list for point (%s), freq (%s, %s), threshold (%s), neighborhood distance (%r)',
                protection_point, low_freq, high_freq, threshold, neighbor_distances)
   if not grants:
     return [], []
@@ -466,7 +466,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 
       neighbor_grants.extend(extra_grants)
 
-  logging.info('Returning movelist_grants=(%s), neighbor_grants=(%s)',
+  logging.debug('DPA Returning movelist_grants=(%s), neighbor_grants=(%s)',
                movelist_grants, neighbor_grants)
   return (movelist_grants, neighbor_grants)
 
@@ -618,10 +618,6 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                         grant_requests) with TRUE elements at indices having
                         grants on the move list
   """
-  logging.info(
-      'Finding reference move list for protection specs (%s), protection points (%s), registration requests (%s), grant requests (%s), num iter (%s), num_processes (%s)',
-      protection_specs, protection_points, registration_requests,
-      grant_requests, num_iter, num_processes)
   grants = data.getGrantsFromRequests(registration_requests, grant_requests)
   # Find the move list of each protection constraint with a pool of parallel processes.
   if pool is None:
@@ -658,5 +654,4 @@ def findMoveList(protection_specs, protection_points, registration_requests,
     if grant in M:
       result[k] = True
   output = result.tolist()
-  logging.info('DPA ML output = %s', output)
   return output

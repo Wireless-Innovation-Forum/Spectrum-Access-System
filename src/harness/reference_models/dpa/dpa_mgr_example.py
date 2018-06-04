@@ -50,6 +50,7 @@ if __name__ == '__main__':
   # Configure operating parameters
   dpa_mgr.Dpa.Configure(num_iteration=num_iter)
   dpa_ref = dpa_mgr.Dpa(protection_points,
+                        name='test(East1)',
                         threshold=-144,
                         beamwidth=3,
                         radar_height=50,
@@ -110,6 +111,7 @@ if __name__ == '__main__':
                        ProtectionPoint(latitude=36.102, longitude=-73.312),
                        ProtectionPoint(latitude=36.12, longitude=-75.58)]
   dpa_uut = dpa_mgr.Dpa(protection_points,
+                        name='alt(East1)',
                         threshold=-144,
                         beamwidth=3,
                         radar_height=50,

@@ -115,7 +115,7 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
       if not neighborhood_grants:
         interferences.append(0)
         continue
-        
+
       cbsd_interferences = [
           interf.computeInterference(grant, grant.max_eirp, protection_constraint,
                                      fss_info, esc_antenna_info, region_type)
@@ -124,6 +124,8 @@ def aggregateInterferenceForPoint(protection_point, channels, grants,
       total_interference = convertAndSumInterference(cbsd_interferences)
       interferences.append(total_interference)
 
+  logging.debug('Agg Interf @ point %s: %s',
+                (protection_point[1], protection_point[0]), interferences)
   return protection_point[1], protection_point[0], interferences
 
 
@@ -149,9 +151,9 @@ def calculateAggregateInterferenceForFssCochannel(fss_record, grants):
 
   protection_channels = interf.getProtectedChannels(fss_low_freq, interf.CBRS_HIGH_FREQ_HZ)
 
-  logging.info(
-      'Computing aggregateInterferenceForPoint for FSS Coch: channels (%s), grants (%s), point (%s), fss_info (%s)',
-      protection_channels, grants, fss_point, fss_info)
+  logging.info('Computing aggregateInterferenceForPoint for FSS Coch: channels (%s), '
+               'point (%s), grants (%s), fss_info (%s)',
+               protection_channels, fss_point, grants, fss_info)
 
   interferences = aggregateInterferenceForPoint(fss_point,
                                 protection_channels,
@@ -192,9 +194,9 @@ def calculateAggregateInterferenceForFssBlocking(fss_record, grants):
   # FSS TT&C Blocking Algorithm
   protection_channels = [(interf.CBRS_LOW_FREQ_HZ, fss_low_freq)]
 
-  logging.info(
-      'Computing aggregateInterferenceForPoint for FSS Blocking: channels (%s), grants (%s), point (%s), fss_info (%s)',
-      protection_channels, grants, fss_point, fss_info)
+  logging.info('Computing aggregateInterferenceForPoint for FSS Blocking: channels (%s), '
+               'point (%s), grants (%s), fss_info (%s)',
+               protection_channels, fss_point, grants, fss_info)
 
   interferences = aggregateInterferenceForPoint(fss_point,
                                 protection_channels,
@@ -226,9 +228,9 @@ def calculateAggregateInterferenceForEsc(esc_record, grants):
   protection_channels = interf.getProtectedChannels(interf.ESC_LOW_FREQ_HZ,
                                                     interf.ESC_HIGH_FREQ_HZ)
 
-  logging.info(
-      'Computing aggregateInterferenceForPoint for ESC: channels (%s), grants (%s), point (%s), antenna_info (%s)',
-      protection_channels, grants, protection_point, esc_antenna_info)
+  logging.info('Computing aggregateInterferenceForPoint for ESC: channels (%s), '
+               'point (%s), grants (%s), antenna_info (%s)',
+               protection_channels, protection_point, grants, esc_antenna_info)
 
   interferences = aggregateInterferenceForPoint(protection_point,
                                 protection_channels,
@@ -268,9 +270,10 @@ def calculateAggregateInterferenceForGwpz(gwpz_record, grants):
 
   # Calculate aggregate interference from each protection constraint with a
   # pool of parallel processes.
-  logging.info(
-      'Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), grants (%s), region_type (%s) - nPoints (%d)',
-      gwpz_record, protection_channels, grants, gwpz_region, len(protection_points))
+  logging.info('Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), '
+               'nPoints (%d), grants (%s), region_type (%s)',
+               gwpz_record, protection_channels, len(protection_points), grants, gwpz_region)
+  logging.debug('  points: %s', protection_points)
 
   interfCalculator = partial(aggregateInterferenceForPoint,
                              channels=protection_channels,
@@ -323,9 +326,10 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_records, grants):
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(ppa_low_freq, ppa_high_freq)
 
-  logging.info(
-      'Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), grants (%s), region_type (%s) - nPoints (%d)',
-      ppa_record, protection_channels, grants, ppa_region, len(protection_points))
+  logging.info('Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), ',
+               'nPoints (%d), grants (%s), region_type (%s)',
+               ppa_record, protection_channels, len(protection_points), grants, ppa_region)
+  logging.debug('  points: %s', protection_points)
 
   # Calculate aggregate interference from each protection constraint with a
   # pool of parallel processes.
