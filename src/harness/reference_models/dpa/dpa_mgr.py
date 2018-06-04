@@ -222,6 +222,7 @@ class Dpa(object):
                  self.name, self.channels, self.threshold, self.beamwidth,
                  self.radar_height, Dpa.num_iteration,
                  self.azimuth_range, self.neighbor_distances)
+    logging.debug('  protected points: %s', self.protected_points)
     pool = mpool.Pool()
     self.ResetLists()
     for low_freq, high_freq in self.channels:
