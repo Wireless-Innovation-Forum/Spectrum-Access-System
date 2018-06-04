@@ -112,15 +112,6 @@ def GetGeoCacheSize(num_workers):
   return (num_tiles_master_ned, num_tiles_worker_ned,
           num_tiles_master_nlcd, num_tiles_worker_nlcd)
 
-def TestFunction(num_iter):
-  j = 0
-  for k in xrange(num_iter):
-    j *=k
-  return j
-
-def GetCacheSize(junk):
-  return (drive.terrain_driver.cache_size,
-          drive.nlcd_driver.cache_size, os.getpid())
 
 if __name__ == '__main__':
   # Configure the multiprocessing worker pool.
