@@ -204,8 +204,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas.cert'),
         'serverKey': getCertFilename('sas.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_iteration_0_sas_test_harness_0
+        'caCert': getCertFilename('ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -213,8 +212,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort() ,
         'serverCert': getCertFilename('sas_1.cert'),
         'serverKey': getCertFilename('sas_1.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_iteration_0_sas_test_harness_1
+        'caCert': getCertFilename('ca.cert')
     }
 
     # Create the actual config.
@@ -233,6 +231,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     }
 
     config = {
+        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRecords': [],
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': getCertFilename('domain_proxy.cert'),
@@ -458,8 +458,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas.cert'),
         'serverKey': getCertFilename('sas.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_sas_test_harness_0
+        'caCert': getCertFilename('ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -467,8 +466,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas_1.cert'),
         'serverKey': getCertFilename('sas_1.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_sas_test_harness_1
+        'caCert': getCertFilename('ca.cert')
     }
 
     iteration_config = {
@@ -489,6 +487,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
+        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
@@ -658,8 +658,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas.cert'),
         'serverKey': getCertFilename('sas.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_iteration_0_sas_test_harness_0
+        'caCert': getCertFilename('ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -667,8 +666,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas_1.cert'),
         'serverKey': getCertFilename('sas_1.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_iteration_0_sas_test_harness_1
+        'caCert': getCertFilename('ca.cert')
     }
 
     # Create the actual config.
@@ -687,6 +685,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     }
 
     config = {
+        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRecords': [],
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
         'domainProxyConfigs': [{'cert': getCertFilename('domain_proxy.cert'),
@@ -866,8 +866,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas.cert'),
         'serverKey': getCertFilename('sas.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_sas_test_harness_0
+        'caCert': getCertFilename('ca.cert')
     }
     sas_test_harness_1_config = {
         'sasTestHarnessName': 'SAS-TH-2',
@@ -875,8 +874,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         'port': getUnusedPort(),
         'serverCert': getCertFilename('sas_1.cert'),
         'serverKey': getCertFilename('sas_1.key'),
-        'caCert': getCertFilename('ca.cert'),
-        'initialFad': dump_records_sas_test_harness_1
+        'caCert': getCertFilename('ca.cert')
     }
 
     iteration_config = {
@@ -898,6 +896,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
+        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
                                   sas_test_harness_1_config],
