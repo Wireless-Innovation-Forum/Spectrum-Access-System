@@ -274,7 +274,7 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
         data_attrib = data.attrib['name']
         data_value = str(data.value)
         if data_attrib.lower() in data_fields_lower:
-          if getattr(zone, data_attrib) is None:
+          if getattr(zone, data_attrib, None) is None:
             setattr(zone, data_attrib, data_value)
           else:
             existing_data = getattr(zone, data_attrib)
@@ -376,12 +376,7 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
   """
   # Manage the case where some items are in a Folder structure instead of Placemark
   dpa_zones = _ReadKmlZones(kml_path, root_id_zone='Placemark',
-                            #ignore_if_parent='Folder', # useful if dpa_zones2 below used
                             data_fields=[attr for attr,_,_ in properties])
-  # Early version of KML files had some DPA as folder. Support it
-  #dpa_zones2 = _ReadKmlZones(kml_path, root_id_zone='Folder',
-  #                           data_fields=[attr for attr,_,_ in properties])
-  #dpa_zones.update(dpa_zones2)
 
   # Validity check that all required parameters are set properly
   _CheckDpaValidity(dpa_zones, [attr for attr, _, default in properties
