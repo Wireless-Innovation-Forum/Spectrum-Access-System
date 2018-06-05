@@ -326,7 +326,7 @@ def calculateAggregateInterferenceForPpa(ppa_record, pal_records, grants):
   # Get channels over which area incumbent needs partial/full protection
   protection_channels = interf.getProtectedChannels(ppa_low_freq, ppa_high_freq)
 
-  logging.info('Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), ',
+  logging.info('Computing aggregateInterferenceForPoint for PPA (%s), channels (%s), '
                'nPoints (%d), grants (%s), region_type (%s)',
                ppa_record, protection_channels, len(protection_points), grants, ppa_region)
   logging.debug('  points: %s', protection_points)
