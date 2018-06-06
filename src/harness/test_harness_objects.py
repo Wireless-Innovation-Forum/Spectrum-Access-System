@@ -172,9 +172,9 @@ class DomainProxy(object):
           conditional_registration_data=conditional_registration_data,
           cert=self.ssl_cert,
           key=self.ssl_key)
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
     # Copy the cbsdId from Registration response to grant requests.
     for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):
@@ -394,3 +394,4 @@ class DomainProxy(object):
       }
       relinquishment_responses.extend(self.testcase._sas.Relinquishment(relinquishment_requests_wrap, self.ssl_cert, self.ssl_key)['relinquishmentResponse'])
     return relinquishment_responses
+

@@ -564,9 +564,9 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], config['grantRequests'],
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # First relinquishment
     relinquishment_request = config['relinquishmentRequestsFirst']
@@ -624,4 +624,5 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
                 'grantId'] not in relinquished_grant_ids:
               self.assertEqual(response['grantId'],
                                relinquishment_request[i]['grantId'])
+
 

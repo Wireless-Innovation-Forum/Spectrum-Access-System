@@ -1011,9 +1011,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     for gwpz_record in config['gwpzRecords']:
       try:
         self._sas_admin.InjectWisp(gwpz_record)
-      except Exception as e:
+      except Exception:
         logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-        raise e
+        raise
 
     # 2 & 3. Register N2 CBSDs
     # Check registration response
@@ -1021,18 +1021,18 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                        config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
     # 4. Load N3 PPAs
     # Inject PAL Records for all PPAs
     for pal_record in config['palRecords']:
       try:
         self._sas_admin.InjectPalDatabaseRecord(pal_record)
-      except Exception as e:
+      except Exception:
         logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-        raise e
+        raise
 
     # Update PPA records with devices' CBSD IDs and Inject zone data
     for ppa in config['ppaRecords']:
@@ -1042,9 +1042,9 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       # Inject PPA into SAS UUT
       try:
         zone_id = self._sas_admin.InjectZoneData({"record": ppa['ppaRecord']})
-      except Exception as e:
+      except Exception:
         logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-        raise e
+        raise
 
     # 5. Trigger CPAS activity if GWPZ > 0 or PPA > 0
     if (len(config['gwpzRecords']) > 0 or len(config['ppaRecords']) > 0):
@@ -1156,3 +1156,4 @@ class SpectrumInquiryTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[resp_num]['response']['responseCode'], 0)
     # Third cbsd (blacklisted)
     self.assertEqual(response[2]['response']['responseCode'], 101)
+
