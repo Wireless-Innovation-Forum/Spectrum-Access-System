@@ -640,3 +640,4 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
              freq_ranges_mhz=freq_ranges_mhz,
              neighbor_distances=neighbor_distances,
              monitor_type=monitor_type)
+

@@ -1258,3 +1258,4 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     if dpa_database_server:
       dpa_database_server.shutdown()
       del dpa_database_server
+
