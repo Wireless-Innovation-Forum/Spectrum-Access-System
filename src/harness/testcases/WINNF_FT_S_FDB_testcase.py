@@ -572,19 +572,32 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load devices info
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
 
     # Load grant requests
     grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    grant_g_d = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the Respective FSSes.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
+    grant_g_d['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
+    }
+    grant_g_d['operationParam']['maxEirp'] = 0
 
     device_b['installationParam']['latitude'] = 39.2291
     device_b['installationParam']['longitude'] = -100.1
     device_b['installationParam']['antennaBeamwidth'] = 0
+    device_d['installationParam']['latitude'] = 39.7355
+    device_d['installationParam']['longitude'] = -107.9575
+    device_d['installationParam']['antennaBeamwidth'] = 0
+
 
 
     # Pre-load conditionals and remove reg conditional fields from registration
@@ -602,6 +615,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         for key in device_b
         if key not in reg_conditional_keys
     }
+    conditionals_d = {key: device_d[key] for key in conditional_keys}
+    device_d = {
+        key: device_d[key]
+        for key in device_d
+        if key not in reg_conditional_keys
+    }
 
     fss_database_config = {
         'hostName': getFqdnLocalhost(),
@@ -612,9 +631,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequests': [device_b],
-        'grantRequests': [grant_g_b],
-        'conditionalRegistrationData': [conditionals_b],
+        'registrationRequests': [device_b, device_d],
+        'grantRequests': [grant_g_b, grant_g_d],
+        'conditionalRegistrationData': [conditionals_b, conditionals_d],
         'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
@@ -1461,4 +1480,3 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     for resp in heartbeat_responses:
       self.assertEqual(resp['response']['responseCode'], 500)
-
