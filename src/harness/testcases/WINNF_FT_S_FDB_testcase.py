@@ -570,23 +570,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.3"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # Load grant requests
-    grant_g_a = json.load(
+    grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
-    grant_g_a['operationParam']['operationFrequencyRange'] = {
+    grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
 
-    grant_g_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    device_b['installationParam']['latitude'] = 39.2291
+    device_b['installationParam']['longitude'] = -100.1
+    device_b['installationParam']['antennaBeamwidth'] = 0
 
-    device_a['installationParam']['latitude'] = 39.353414
-    device_a['installationParam']['longitude'] = -100.195313
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
@@ -597,10 +596,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     reg_conditional_keys = [
         'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
     ]
-    conditionals_a = {key: device_a[key] for key in conditional_keys}
-    device_a = {
-        key: device_a[key]
-        for key in device_a
+    conditionals_b = {key: device_b[key] for key in conditional_keys}
+    device_b = {
+        key: device_b[key]
+        for key in device_b
         if key not in reg_conditional_keys
     }
 
@@ -613,9 +612,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequests': [device_a],
-        'grantRequests': [grant_g_a],
-        'conditionalRegistrationData': [conditionals_a],
+        'registrationRequests': [device_b],
+        'grantRequests': [grant_g_b],
+        'conditionalRegistrationData': [conditionals_b],
         'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
@@ -660,6 +659,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     fss_database.setFileToServe(
         config['fssDatabaseConfig']['fileUrl'],
         config['fssDatabaseConfig']['filePath'])
+
+    # Inject the FSS database URL into the SAS UUT
+    self._sas_admin.InjectDatabaseUrl({'type': 'FSS', 'url': fss_database.getBaseUrl() + config['fssDatabaseConfig']['fileUrl']})
 
     # Step 3: Trigger daily activities
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
