@@ -211,14 +211,16 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     # None of the N3 CBSDS should be authorized.
     logging.info('CHECK: None of the N3 Grants are authorized.')
-    cbsds = n3_domain_proxy.getCbsdsWithAtLeastOneAuthorizedGrant();
+    cbsds = n3_domain_proxy.getCbsdsWithAtLeastOneAuthorizedGrant()
     if cbsds:
       for cbsd in cbsds:
-        logging.info('CBSD (cbsd_id=%s, fcc_id=%s, sn=%s) '
-              'is authorized after IPR.1 step 7. SAS UUT FAILS this test. '
-              '(If this config is new please verify the CBSD is in a DPA neighborhood.)'
-              % (cbsd.getCbsdId(), cbsd.getRegistrationRequest()['fccId'],
-                 cbsd.getRegistrationRequest()['cbsdSerialNumber']))
+        logging.info(
+            'CBSD (cbsd_id=%s, fcc_id=%s, sn=%s) '
+            'is authorized after IPR.1 step 7. SAS UUT FAILS this test. '
+            '(If this config is new please verify the CBSD is in a DPA neighborhood.)',
+            cbsd.getCbsdId(),
+            cbsd.getRegistrationRequest()['fccId'],
+            cbsd.getRegistrationRequest()['cbsdSerialNumber'])
     self.assertEqual(
         len(cbsds),
         0,
@@ -270,7 +272,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for test_harness in test_harnesses:
       test_harness.shutdown()
       del test_harness
-
 
 
   def generate_IPR_2_default_config(self, filename):
@@ -502,7 +503,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     #   (D_i, C_l)
     #   (D_i+1, C_j)
     #   (D_k, C_l)
-    logging.info('Step 9: generate reference DPA move lists for all DPA/channel pairs.')
+    logging.info(
+        'Step 9: generate reference DPA move lists for all DPA/channel pairs.')
     all_dpas = []
     for dpa_config in config['dpas']:
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
@@ -527,7 +529,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         domain_proxy.heartbeatForAllActiveGrants()
       grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
 
-      logging.info('Step 12/15/18/21 + CHECK: DPA aggregate interference check.')
+      logging.info(
+          'Step 12/15/18/21 + CHECK: DPA aggregate interference check.')
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
         low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
@@ -547,7 +550,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       for test_harness in test_harnesses:
         test_harness.shutdown()
         del test_harness
-
 
   def generate_IPR_3_default_config(self, filename):
     """Generates the WinnForum configuration for IPR_3"""
@@ -668,8 +670,10 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           msg=
           'To specify an always-active DPA, omit the "dpa" field from the config.'
       )
-      self.assertTrue(config['dpa']['frequencyRange']['lowFrequency'] < config['dpa']['frequencyRange']['highFrequency'])
-      self.assertTrue(config['dpa']['frequencyRange']['highFrequency'] <= 3650000000)
+      self.assertTrue(config['dpa']['frequencyRange']['lowFrequency'] <
+                      config['dpa']['frequencyRange']['highFrequency'])
+      self.assertTrue(
+          config['dpa']['frequencyRange']['highFrequency'] <= 3650e6)
     self.GrantRequestInActiveDpaNeighborhood(config)
 
   def GrantRequestInActiveDpaNeighborhood(self, config):
@@ -685,7 +689,9 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       logging.info('Step 3: activating DPA: %s', config['dpa'])
       self._sas_admin.TriggerDpaActivation(config['dpa'])
     else:
-      logging.info('Step 3: skipping: no DPA specified (may be testing an always-active DPA).')
+      logging.info(
+          'Step 3: skipping: no DPA specified (may be testing an always-active DPA).'
+      )
 
     # Wait till SAS UUT must not authorize grants.
     logging.info('Step 4: wait 240 seconds.')
@@ -822,9 +828,11 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         _, heartbeat_responses = domain_proxy.heartbeatForAllActiveGrants()
         for response in heartbeat_responses:
           transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-          if response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
-            self.assertTrue(transmit_expire_time <= t_esc + timedelta(seconds=240),
-                           msg='Check failed for reponse %s' % response)
+          if response['response'][
+              'responseCode'] == ResponseCodes.SUCCESS.value:
+            self.assertTrue(
+                transmit_expire_time <= t_esc + timedelta(seconds=240),
+                msg='Check failed for reponse %s' % response)
       time.sleep(config['pauseTime'])
 
   def generate_IPR_6_default_config(self, filename):
@@ -1064,8 +1072,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         # This is the frequency range which will be activated (if applicable)
         # and checked.
         'frequencyRange': {
-            'lowFrequency': 3500000000,
-            'highFrequency': 3510000000
+            'lowFrequency': 3550000000,
+            'highFrequency': 3560000000
         },
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
@@ -1080,7 +1088,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'lowFrequency': frequency_range['lowFrequency'],
             'highFrequency': frequency_range['highFrequency'],
         },
-        'points_builder': 'default (25, 10, 10, 10)',
+        'points_builder':
+            'default (25, 10, 10, 10)',  # Not actually used since this is a single-point DPA.
         'movelistMargin': 10
     }
 
@@ -1114,12 +1123,24 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     using_esc_dpa = 'escDpa' in config
     using_portal_dpa = 'portalDpa' in config
     self.assertTrue(
-        (using_esc_dpa or using_portal_dpa) and
-        not (using_esc_dpa and using_portal_dpa),
+        using_esc_dpa ^ using_portal_dpa,
         msg=
         'Invalid config: must use exactly one ESC-monitored DPA OR one portal-controlled DPA.'
     )
+    if using_esc_dpa:
+      self.assertLessEqual(
+          3540e6,
+          config['escDpa']['frequencyRange']['lowFrequency'],
+          msg=
+          'For OOB ESC-monitored DPAs, we only compute the move list and check aggregate interference for 3540-3550 MHz.'
+      )
+
     dpa_config = config['escDpa'] if using_esc_dpa else config['portalDpa']
+    self.assertEqual(
+        10e6,
+        dpa_config['frequencyRange']['highFrequency'] -
+        dpa_config['frequencyRange']['lowFrequency'],
+        msg='DPAs must be activated and checked in 10 MHz segments.')
 
     num_peer_sases = len(config['sasTestHarnessConfigs'])
 
@@ -1177,9 +1198,10 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     logging.info('Step 5: Registering and Granting N2 CBSDs with SAS UUT.')
     domain_proxies = []
     for domain_proxy_config in config['domainProxies']:
-      domain_proxy = DomainProxy(self,
-                                 ssl_cert=domain_proxy_config['cert'],
-                                 ssl_key=domain_proxy_config['key'])
+      domain_proxy = DomainProxy(
+          self,
+          ssl_cert=domain_proxy_config['cert'],
+          ssl_key=domain_proxy_config['key'])
       domain_proxy.registerCbsdsAndRequestGrants(
           domain_proxy_config['registrationRequests'],
           domain_proxy_config['grantRequests'],
@@ -1258,4 +1280,3 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     if dpa_database_server:
       dpa_database_server.shutdown()
       del dpa_database_server
-
