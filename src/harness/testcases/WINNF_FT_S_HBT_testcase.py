@@ -886,9 +886,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                        config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
     # Request grant
     grant_request = config['grantRequests']
@@ -1095,5 +1095,6 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['grantId'], grant_id)
+
 
 

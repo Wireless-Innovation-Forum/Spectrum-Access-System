@@ -386,9 +386,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], config['grantRequests'],
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 4: First Heartbeat Request
     heartbeat_request = config['heartbeatRequests']
@@ -457,4 +457,5 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Actual response: %s', response)
       self.assertTrue(response['response']['responseCode'] in [103, 500])
+
 

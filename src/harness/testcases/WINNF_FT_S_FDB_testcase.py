@@ -173,9 +173,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], grant_request_g1,
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 2: Create exclusion zone database which contains the
     # CBSD location 'X' or is within 50 meters of the CBSD location 'X'.
@@ -400,9 +400,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], grant_request_g1,
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 2: Create DPA database which includes at least one inland DPA
     # Create DPA database server
@@ -644,9 +644,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], grant_request_g,
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     fss_database = DatabaseServer(
@@ -790,9 +790,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                       config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
     # Step 2: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server
@@ -1011,9 +1011,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], grant_request_g,
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 2: Create FSS database which includes at least one FSS site near location 'X'.
     # Create FSS database server
@@ -1190,9 +1190,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids = self.assertRegistered(config['registrationRequest'],
                                        config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
     # Step 2: Create FSS database which includes at least one FSS site near
     # CBSD location 'X'.
@@ -1384,9 +1384,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           config['registrationRequests'], grant_request_g,
           config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Step 3: Create FSS database which includes atleast one FSS site near location 'X'.
     # Create FSS database server
@@ -1459,3 +1459,4 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     for resp in heartbeat_responses:
       self.assertEqual(resp['response']['responseCode'], 500)
+

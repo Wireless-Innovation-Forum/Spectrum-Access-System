@@ -1414,9 +1414,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids = self.assertRegistered(config['registrationRequests'],
                                        config['conditionalRegistrationData'])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
-      raise e
+      raise
 
 
     # Inject PAL database record
@@ -1424,9 +1424,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
       for pal_record in config['palRecords']:
         try:
           self._sas_admin.InjectPalDatabaseRecord(pal_record)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     # Update PPA records with devices' CBSD ID and Inject zone data
     if ('ppas' in config) and (config['ppas']):
@@ -1438,9 +1438,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
         try:
           zone_id = self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']})
           self.assertTrue(zone_id)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     # Trigger daily activities
     if ('ppas' in config) and (config['ppas']):
@@ -1471,3 +1471,4 @@ class GrantTestcase(sas_testcase.SasTestCase):
             self.assertTrue('grantId' in response)
           else:
             self.assertFalse('grantId' in response)
+

@@ -281,9 +281,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting FSS record #%d', index)
           self._sas_admin.InjectFss(fss_record)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     if 'gwblRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting GWBL records.')
@@ -291,9 +291,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting GWBL record #%d', index)
           self._sas_admin.InjectWisp(gwbl_record)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     if 'gwpzRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting GWPZ records.')
@@ -301,9 +301,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting GWPZ record #%d', index)
           self._sas_admin.InjectWisp(gwpz_record)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
         grid_points = geoutils.GridPolygon(
             gwpz_record['zone']['features'][0]['geometry'], res_arcsec=1)
         gwpz_record['landCategory'] = drive.nlcd_driver.RegionNlcdVote(
@@ -316,9 +316,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting ESC record #%d', index)
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_record})
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     if 'palRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting PAL records.')
@@ -326,9 +326,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting PAL record #%d', index)
           self._sas_admin.InjectPalDatabaseRecord(pal_record)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     if 'ppaRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting PPA records.')
@@ -336,9 +336,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         try:
           logging.info('Injecting PPA record #%d', index)
           self._sas_admin.InjectZoneData({'record': ppa_record})
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
 
     for key in iteration_content['protectedEntities']:
       if not key in self.protected_entity_records:
@@ -1103,3 +1103,4 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     config = loadConfig(config_filename)
     # Invoke MCP test steps
     self.executeMcpTestSteps(config, 'MCP')
+

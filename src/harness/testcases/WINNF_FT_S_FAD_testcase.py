@@ -352,9 +352,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       for pal in config['palRecords']:
         try:
           self._sas_admin.InjectPalDatabaseRecord(pal)
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
       for ppa in config['ppaRecords']:
         # fill the PPA cbsdReferenceIds with values according to admin testing API spec
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
@@ -362,9 +362,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
           ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'].append(cbsd_ids[index])
         try:
           ppa_ids.append(self._sas_admin.InjectZoneData({'record': ppa['ppaRecord']}))
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
         # re-fill the PPA cbsdReferenceIds with the values expected in the dump according to SAS-SAS TS
         ppa['ppaRecord']['ppaInfo']['cbsdReferenceId'] = []
         for index in ppa['ppaClusterList']:
@@ -385,9 +385,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       for esc_sensor in config['escSensorRecords']:
         try:
           self._sas_admin.InjectEscSensorDataRecord({'record': esc_sensor})
-        except Exception as e:
+        except Exception:
           logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-          raise e
+          raise
       # step 7
       # Notify the SAS UUT about the SAS Test Harness
       for sas_th in config['sasTestHarnessConfigs']:
@@ -714,9 +714,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     try:
       cbsd_ids, grant_ids = self.assertRegisteredAndGranted(
           [device_c2, device_c4], [grant_g2, grant_g4])
-    except Exception as e:
+    except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION_AND_GRANT)
-      raise e
+      raise
 
     # Send the Heartbeat request for the Grant G2 and G4 of CBSD C2 and C4
     # respectively to SAS UUT.
@@ -732,9 +732,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     for pal_record in config['palRecords']:
       try:
         self._sas_admin.InjectPalDatabaseRecord(pal_record)
-      except Exception as e:
+      except Exception:
         logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
-        raise e
+        raise
 
     # Trigger CPAS in the SAS UUT and wait until complete.
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
@@ -766,3 +766,4 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     # Hence, explicitly stopping SAS Test Hanress and cleaning up
     sas_test_harness.shutdown()
     del sas_test_harness
+
