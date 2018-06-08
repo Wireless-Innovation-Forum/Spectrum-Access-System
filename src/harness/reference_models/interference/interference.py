@@ -184,7 +184,8 @@ def grantFrequencyOverlapCheck(grant, ch_low_freq, ch_high_freq, protection_ent_
   # constraint frequency range 3550-3660MHz
   if (protection_ent_type == data.ProtectedEntityType.ESC and
       grant.cbsd_category == 'A' and
-      ch_low_freq >= ESC_CAT_A_HIGH_FREQ_HZ):
+      (grant.low_frequency >= ESC_CAT_A_HIGH_FREQ_HZ or
+       ch_low_freq >= ESC_CAT_A_HIGH_FREQ_HZ)):
     return False
 
   # Check frequency range overlap
