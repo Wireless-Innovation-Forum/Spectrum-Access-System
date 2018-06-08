@@ -570,13 +570,22 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.3"""
 
     # Load devices info
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
     # Load grant requests
     grant_g_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS 'KA413' which is 3625-4200 MHz.
+    grant_g_a = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the Respective FSSes.
+    grant_g_a['operationParam']['operationFrequencyRange'] = {
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
+    }
+    grant_g_a['operationParam']['maxEirp'] = 0
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -585,7 +594,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b['installationParam']['latitude'] = 39.2291
     device_b['installationParam']['longitude'] = -100.1
     device_b['installationParam']['antennaBeamwidth'] = 0
-
+    device_a['installationParam']['latitude'] = 39.7355
+    device_a['installationParam']['longitude'] = -107.9575
+    device_a['installationParam']['antennaBeamwidth'] = 0
 
     # Pre-load conditionals and remove reg conditional fields from registration
     # request.
@@ -596,6 +607,12 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     reg_conditional_keys = [
         'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
     ]
+    conditionals_a = {key: device_a[key] for key in conditional_keys}
+    device_a = {
+        key: device_a[key]
+        for key in device_a
+        if key not in reg_conditional_keys
+    }
     conditionals_b = {key: device_b[key] for key in conditional_keys}
     device_b = {
         key: device_b[key]
@@ -612,9 +629,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Create the actual config.
     config = {
-        'registrationRequests': [device_b],
-        'grantRequests': [grant_g_b],
-        'conditionalRegistrationData': [conditionals_b],
+        'registrationRequests': [device_a, device_b],
+        'grantRequests': [grant_g_a, grant_g_b],
+        'conditionalRegistrationData': [conditionals_a, conditionals_b],
         'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
@@ -1304,61 +1321,63 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
 
-    # FSS database test harness configuration
-    fss_database_config = {
-        'hostName': getFqdnLocalhost(),
-        'port': getUnusedPort(),
-        'fileUrl': '/db_sync',
-        'filePath': os.path.join('testcases', 'testdata',  'fdb_8', 'FDB_8_default_allsitedata.json')
-    }
-
     # Load grant requests
+    grant_g_b = json.load(
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_g_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
+                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    # Set the grant frequency to overlap with the Respective FSSes.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-
-    grant_g_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
+    grant_g_a['operationParam']['maxEirp'] = 0
     grant_g_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3670000000,
-        'highFrequency': 3680000000
+        'lowFrequency': 3650000000,
+        'highFrequency': 3660000000
     }
 
-    # Update the location 'X' of CBSD devices to be near FSS sites
-    # with FSS Number 'FSS0001010'
-    device_a['installationParam']['latitude'] = 39.353414
-    device_a['installationParam']['longitude'] = -100.195313
-    # with FSS Number 'FSS0002010'
-    device_b['installationParam']['latitude'] = 35.51043
-    device_b['installationParam']['longitude'] = -100.27183
+    device_b['installationParam']['latitude'] = 39.2291
+    device_b['installationParam']['longitude'] = -100.1
+    device_b['installationParam']['antennaBeamwidth'] = 0
+    device_a['installationParam']['latitude'] = 39.7355
+    device_a['installationParam']['longitude'] = -107.9575
+    device_a['installationParam']['antennaBeamwidth'] = 0
 
-    # Creating conditionals for Cat B devices
-    self.assertEqual(device_b['cbsdCategory'], 'B')
-    conditionals_b = {
-        'cbsdCategory': device_b['cbsdCategory'],
-        'fccId': device_b['fccId'],
-        'cbsdSerialNumber': device_b['cbsdSerialNumber'],
-        'airInterface': device_b['airInterface'],
-        'installationParam': device_b['installationParam'],
-        'measCapability': device_b['measCapability']
+    # Pre-load conditionals and remove reg conditional fields from registration
+    # request.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_a = {key: device_a[key] for key in conditional_keys}
+    device_a = {
+        key: device_a[key]
+        for key in device_a
+        if key not in reg_conditional_keys
     }
-    del device_b['cbsdCategory']
-    del device_b['airInterface']
-    del device_b['installationParam']
-    del device_b['measCapability']
+    conditionals_b = {key: device_b[key] for key in conditional_keys}
+    device_b = {
+        key: device_b[key]
+        for key in device_b
+        if key not in reg_conditional_keys
+    }
 
-    conditionals = [conditionals_b]
+    fss_database_config = {
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'fileUrl': '/rest/fss/v1/allsitedata',
+        'filePath': os.path.join('testcases', 'testdata', 'fdb_8', 'FDB_8_default_allsitedata.json')
+    }
 
     # Create the actual config.
     config = {
         'registrationRequests': [device_a, device_b],
         'grantRequests': [grant_g_a, grant_g_b],
-        'conditionalRegistrationData': conditionals,
+        'conditionalRegistrationData': [conditionals_a, conditionals_b],
         'fssDatabaseConfig': fss_database_config
     }
     writeConfig(filename, config)
@@ -1461,4 +1480,3 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     for resp in heartbeat_responses:
       self.assertEqual(resp['response']['responseCode'], 500)
-
