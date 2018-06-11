@@ -582,8 +582,9 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
 
     # Move device_c4 in the neighborhood area of the PPA
-    device_c4['installationParam']['latitude'] = 38.805335
-    device_c4['installationParam']['longitude'] = -97.289500
+    device_c4['installationParam']['latitude'] = 38.8363
+    device_c4['installationParam']['longitude'] = -97.2642
+    device_c4['installationParam']['antennaBeamwidth'] = 0
 
     # Creating conditionals for Cat B devices.
     self.assertEqual(device_c4['cbsdCategory'], 'B')
