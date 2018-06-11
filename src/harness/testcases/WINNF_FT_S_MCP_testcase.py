@@ -46,6 +46,14 @@ ONE_MHZ = 1000000
 
 class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
+  def getEmptyCbsdRequestsWithDomainProxies(self, number_of_elements):
+    empty_cbsd_records_domain_proxy = {
+        'registrationRequests': [],
+        'grantRequests': [],
+        'conditionalRegistrationData': []
+    }
+    return [empty_cbsd_records_domain_proxy] * number_of_elements
+
   def checkMcpConfig(self, config, test_type):
     self.assertIn(test_type, ('MCP', 'xPR1', 'xPR2'))
 
@@ -80,6 +88,10 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           len(config['domainProxyConfigs']),
           'Mismatch in the number of domain proxies and the configuration for this iteration: %s.'
           % str(iteration_data))
+      self.assertEqual(
+          len(config['initialCbsdRequestsWithDomainProxies']),
+          len(config['domainProxyConfigs']),
+          'Mismatch in the number of domain proxies and the configuration of initial CbsdRequests')
       for domain_proxy in iteration_data['cbsdRequestsWithDomainProxies']:
         self.assertValidConfig(
             domain_proxy, {
@@ -1083,7 +1095,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
         'sasTestHarnessData': [dump_records_iteration_1_sas_test_harness_0, dump_records_iteration_1_sas_test_harness_1]
     }
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration0_config, iteration1_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],

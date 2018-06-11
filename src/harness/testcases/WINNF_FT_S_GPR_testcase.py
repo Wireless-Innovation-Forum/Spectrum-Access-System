@@ -142,7 +142,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
@@ -340,7 +340,7 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,

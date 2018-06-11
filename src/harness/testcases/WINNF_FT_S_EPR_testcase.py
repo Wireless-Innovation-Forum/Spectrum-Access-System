@@ -154,10 +154,9 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'dpaDeactivationList': [],
         'sasTestHarnessData': []
     }
-
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [],
@@ -364,7 +363,7 @@ class EscProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [

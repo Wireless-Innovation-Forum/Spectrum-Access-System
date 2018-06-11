@@ -231,7 +231,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     }
 
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
@@ -487,7 +487,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
@@ -685,7 +685,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     }
 
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration0_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config, sas_test_harness_1_config],
@@ -896,7 +896,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Create the actual config.
     config = {
-        'initialCbsdRequestsWithDomainProxies': [],
+        'initialCbsdRequestsWithDomainProxies': self.getEmptyCbsdRequestsWithDomainProxies(2),
         'initialCbsdRecords': [],
         'iterationData': [iteration_config],
         'sasTestHarnessConfigs': [sas_test_harness_0_config,
