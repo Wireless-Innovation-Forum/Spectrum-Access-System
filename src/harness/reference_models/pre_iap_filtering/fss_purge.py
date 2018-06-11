@@ -165,7 +165,7 @@ def calculateOobeInterference(grants_cbsds_oobe_info, fss_point, fss_info):
         fss_info.pointing_elevation,
         fss_info.max_gain_dbi)
     # The OOBE interference
-    oobe_interference = mcbsd + gcbsd - lcbsd + gfss
+    oobe_interference = mcbsd + gcbsd - lcbsd + gfss - interf.IN_BAND_INSERTION_LOSS
     grant['oobe_interference'] = oobe_interference
 
 
