@@ -80,6 +80,10 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           len(config['domainProxyConfigs']),
           'Mismatch in the number of domain proxies and the configuration for this iteration: %s.'
           % str(iteration_data))
+      self.assertLessEqual(
+          len(iteration_data['initialCbsdRequestsWithDomainProxies']),
+          len(config['domainProxyConfigs']),
+          'The number of domain proxies of initial CbsdRequests is bigger than the number of configured domain proxies')
       for domain_proxy in iteration_data['cbsdRequestsWithDomainProxies']:
         self.assertValidConfig(
             domain_proxy, {
