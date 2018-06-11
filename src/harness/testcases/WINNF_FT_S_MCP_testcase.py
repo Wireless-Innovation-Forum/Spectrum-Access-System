@@ -46,13 +46,13 @@ ONE_MHZ = 1000000
 
 class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
-  def getEmptyCbsdRequestsWithDomainProxies(numberOfElements):
+  def getEmptyCbsdRequestsWithDomainProxies(self, number_of_elements):
     empty_cbsd_records_domain_proxy = {
         'registrationRequests': [],
         'grantRequests': [],
         'conditionalRegistrationData': []
     }
-    return [empty_cbsd_records_domain_proxy] * numberOfElements
+    return [empty_cbsd_records_domain_proxy] * number_of_elements
 
   def checkMcpConfig(self, config, test_type):
     self.assertIn(test_type, ('MCP', 'xPR1', 'xPR2'))
