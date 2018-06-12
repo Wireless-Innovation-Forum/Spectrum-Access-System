@@ -70,49 +70,34 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yuma Proving Ground' frequency range 'F1'.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3640000000,
+        'highFrequency': 3650000000
     }
-    grant_g2_a = json.load(
+    grant_g2_a = grant_g1_a
+    grant_g3_a = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yuma Proving Ground' frequency range 'F1'.
-    grant_g2_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
-    }
-    grant_g3_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified
-    # exclusion zone 'Yuma Proving Ground' frequency range 'F2'.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3575000000,
-        'highFrequency': 3585000000
+        'lowFrequency': 3550000000,
+        'highFrequency': 3560000000
     }
-
     grant_g1_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yakima Firing Center' frequency range 'F1'.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3650000000,
-        'highFrequency': 3660000000
+        'lowFrequency': 3550000000,
+        'highFrequency': 3560000000
     }
-    grant_g2_b = json.load(
+    grant_g2_b = grant_g1_b
+    grant_g3_b = json.load(
                 open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yakima Firing Center' frequency range 'F1'.
-    grant_g2_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3675000000,
-        'highFrequency': 3685000000
-    }
-    grant_g3_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    # Set the grant frequency to overlap with the modified
-    # exclusion zone 'Yakima Firing Center' frequency range 'F2'.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
-        'lowFrequency': 3575000000,
-        'highFrequency': 3585000000
+        'lowFrequency': 3640000000,
+        'highFrequency': 3650000000
     }
 
     # Update the location 'X' of CBSD devices contained witin the exclusion zones
