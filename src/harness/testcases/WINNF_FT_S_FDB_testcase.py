@@ -736,8 +736,9 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Update the location 'X' of CBSD devices to be near FSS sites
     # with FSS Number 'FSS0001010'
-    device_a['installationParam']['latitude'] = 39.353414
-    device_a['installationParam']['longitude'] = -100.195313
+    device_a['installationParam']['latitude'] = 39.7355
+    device_a['installationParam']['longitude'] = -107.9575
+    device_a['installationParam']['antennaBeamwidth'] = 0
     # with FSS Number 'FSS0002010'
     device_b['installationParam']['latitude'] = 35.51043
     device_b['installationParam']['longitude'] = -100.27183
