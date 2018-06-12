@@ -268,7 +268,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # placed the device_c in between device_a and device_b within service area.
     device_c['installationParam']['latitude'], device_c['installationParam'][
-      'longitude'] = 39.0378, -100.4463
+      'longitude'] = 39.0426, -100.4457
+    device_c['installationParam']['heightType'] = 'AGL'
 
     # Set the AntennaGain and EIRP capability.
     device_a['installationParam']['eirpCapability'] = 30
@@ -440,6 +441,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # placed the device_c in between device_a and device_b within service area.
     device_c['installationParam']['latitude'], device_c['installationParam'][
         'longitude'] = 38.72281, -100.50103
+    device_c['installationParam']['heightType'] = 'AGL'
 
     # Set the AntennaGain and EIRP capability in a way that only
     # one PPA zone is created by those CBDSs using PPA Creation Reference Model.
@@ -670,6 +672,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # At least one of the CBSDs is located outside the service area.
     device_c['installationParam']['latitude'], device_c['installationParam'][
         'longitude'] = 39.09755, -99.9179
+    device_c['installationParam']['heightType'] = 'AGL'
 
     # Set the AntennaGain and EIRP capability chosen in a way that only one PPA zone is created
     # by those CBDSs
