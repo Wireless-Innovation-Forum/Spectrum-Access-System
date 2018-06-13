@@ -568,7 +568,7 @@ def _CalcTestPointInterfDiff(point,
 
 
 
-def BuildDpa(dpa_name, protection_points_method=None):
+def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
   """Builds a DPA parameterized correctly.
 
   The DPA special parameters are obtained from the DPA database.
@@ -612,7 +612,7 @@ def BuildDpa(dpa_name, protection_points_method=None):
     monitor_type = 'esc'
   except KeyError:
     try:
-      dpa_zone = zones.GetPortalDpaZones()[dpa_name]
+      dpa_zone = zones.GetPortalDpaZones(kml_path=portal_dpa_filename)[dpa_name]
       monitor_type = 'portal'
     except KeyError:
       raise ValueError('DPA %s not found in DPA database' % dpa_name)
@@ -640,3 +640,4 @@ def BuildDpa(dpa_name, protection_points_method=None):
              freq_ranges_mhz=freq_ranges_mhz,
              neighbor_distances=neighbor_distances,
              monitor_type=monitor_type)
+
