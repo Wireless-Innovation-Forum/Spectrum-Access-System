@@ -450,12 +450,15 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # Step 21: ESC Test harness deactivates previously-activated DPAs.
     logging.info('Step 21: activating and deactivating DPAs.')
     for dpa in iteration_content['dpaActivationList']:
+      if dpa in self.active_dpas:
+        logging.warning('DPA is already active, skipping activation: %s', dpa)
+        continue
       logging.info('Activating: %s', dpa)
-      self._sas_admin.TriggerDpaDeactivation(dpa)
-      self.active_dpas.append(dpa)
-    for dpa in iteration_content['dpaActivationList']:
-      logging.info('Deactivating: %s', dpa)
       self._sas_admin.TriggerDpaActivation(dpa)
+      self.active_dpas.append(dpa)
+    for dpa in iteration_content['dpaDeactivationList']:
+      logging.info('Deactivating: %s', dpa)
+      self._sas_admin.TriggerDpaDeactivation(dpa)
       self.active_dpas.remove(dpa)
 
     # Step 22: wait for 240 sec if any DPA is activated in Step 21, else 15 sec.
