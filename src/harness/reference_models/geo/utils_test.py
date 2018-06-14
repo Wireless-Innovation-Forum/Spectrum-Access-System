@@ -120,7 +120,6 @@ class TestUtils(unittest.TestCase):
     self.assertSetEqual(set(pts), exp_pts)
 
   def test_grid_border_included(self):
-    import ipdb; ipdb.set_trace()
     poly = sgeo.Polygon([(-108.05, 42.25),
                          (-107.90, 42.25),
                          (-107.90, 42.20),
@@ -149,7 +148,6 @@ class TestUtils(unittest.TestCase):
     shape_geo = utils.ToShapely(json_geo)
     exp_pts = {(-95, 40), (-95.5, 40.5), (-95.5, 40),
                (-96, 40), (-96.5, 40.5), (-96.5, 40)}
-    import ipdb; ipdb.set_trace()
     pts = utils.GridPolygon(json_geo, res_arcsec=1800)
     self.assertSetEqual(set(pts), exp_pts)
 
