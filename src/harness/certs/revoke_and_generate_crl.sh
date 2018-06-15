@@ -1,13 +1,23 @@
-#!/bin/bash 
+#!/bin/bash
 set -e
 
 mkdir -p crl
 
-function revoke_certificate()
-{
-  #Argument1: Name of the certificate to be revoked.
+# If this appears in an error message, then you should use openssl_db instead.
+export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
 
-  #Fetch the Common Name to find out the issuer.
+# Runs openssl using the database for a particular CA.
+# $1 should match an existing db/ directory.
+function openssl_db {
+  OPENSSL_CNF_CA_DIR="db/$1" openssl "${@:2}" \
+      -config ../../../cert/openssl.cnf \
+      -cert "$1.cert" -keyfile "private/$1.key"
+}
+
+function revoke_certificate() {
+  # Argument1: Name of the certificate to be revoked.
+
+  # Fetch the Common Name to find out the issuer.
   local CN=`openssl x509 -issuer -in $1 -noout | sed 's/^.*CN=//'`
   local CA=''
   if [[ "$CN" == *"CBSD OEM CA - Revoked"* ]]; then
@@ -29,50 +39,38 @@ function revoke_certificate()
     exit -1
   fi
   # Revoke certificate.
-  openssl ca -revoke $1 -keyfile private/$CA.key -cert $CA.cert \
-      -config ../../../cert/openssl.cnf
+  openssl_db $CA ca -revoke $1
   generate_crl_chain
 }
 
-function generate_crl_chain()
-{
-  # Create a CRL for root CA containing the revoked intermediate CA certificate.
-  echo -e "\n\n Generate CRL for root_ca"
-  openssl ca -gencrl -keyfile private/root_ca.key -cert root_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/root_ca.crl
-  echo -e "\n\n Generate CRL for sas_ca"
-  openssl ca -gencrl -keyfile private/sas_ca.key -cert sas_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/sas_ca.crl
-  echo -e "\n\n Generate CRL for proxy_ca"
-  openssl ca -gencrl -keyfile private/proxy_ca.key -cert proxy_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/proxy_ca.crl
-  echo -e "\n\n Generate CRL for cbsd_ca"
-  openssl ca -gencrl -keyfile private/cbsd_ca.key -cert cbsd_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/cbsd_ca.crl
-  echo -e "\n\n Generate CRL for revoked_cbsd_ca"
-  openssl ca -gencrl -keyfile private/revoked_cbsd_ca.key -cert revoked_cbsd_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/revoked_cbsd_ca.crl
-  echo -e "\n\n Generate CRL for revoked_sas_ca"
-  openssl ca -gencrl -keyfile private/revoked_sas_ca.key -cert revoked_sas_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/revoked_sas_ca.crl
-  echo -e "\n\n Generate CRL for revoked_proxy_ca"
-  openssl ca -gencrl -keyfile private/revoked_proxy_ca.key -cert revoked_proxy_ca.cert \
-      -config ../../../cert/openssl.cnf -crldays 365 \
-      -out crl/revoked_proxy_ca.crl
+declare -ra CA_NAMES=(
+  cbsd_ca
+  proxy_ca
+  revoked_cbsd_ca
+  revoked_proxy_ca
+  revoked_sas_ca
+  root_ca
+  sas_ca
+)
+
+function generate_crl_chain() {
+  # Create a CRL with the revoked certificates from each CA.
+  for ca in "${CA_NAMES[@]}"; do
+    printf "\n\n"
+    echo "Generating crl/$ca.crl"
+    openssl_db "$ca" ca -gencrl -crldays 365 -out "crl/$ca.crl"
+  done
 
   # Create CA certificate chain containing the CRLs of revoked leaf certificates.
+  # TODO: CRLs should be DER-encoded, with one file per CA:
+  #       https://tools.ietf.org/html/rfc5280#section-4.2.1.13
   cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl \
       crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl > crl/ca.crl
 }
-#Argument1 : Type (-r,-u)
+
+# Argument1: Type (-r, -u)
 if [ "$1" == "-r" ]; then
-  revoke_certificate  $2
+  revoke_certificate $2
 elif [ "$1" == "-u" ]; then
   generate_crl_chain
 else

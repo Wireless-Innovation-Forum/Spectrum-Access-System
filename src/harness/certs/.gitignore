@@ -4,5 +4,4 @@
 *.key
 *.csr
 *.crl
-index.txt*
-
+db/

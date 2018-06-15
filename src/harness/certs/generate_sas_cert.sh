@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# If this appears in an error message, then you should use openssl_db instead.
+export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
+
+# Runs openssl using the database for a particular CA.
+# $1 should match an existing db/* directory.
+function openssl_db {
+  OPENSSL_CNF_CA_DIR="db/$1" openssl "${@:2}" \
+      -cert "$1.cert" -keyfile "private/$1.key"
+}
+
 # Make sure we have the CN.
 if [ -z "$1" ]
   then
@@ -49,8 +59,8 @@ openssl req -new -newkey rsa:2048 -nodes \
     -reqexts sas_req_san_ext -config san.cnf \
     -out sas_uut.csr -keyout sas_uut.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=$1"
-openssl ca -cert sas_ca.cert -keyfile private/sas_ca.key -in sas_uut.csr \
-    -out sas_uut.cert -outdir ./root \
+openssl_db sas_ca ca -in sas_uut.csr \
+    -out sas_uut.cert \
     -policy policy_anything -extensions sas_req_san_ext_sign -config san.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
@@ -60,8 +70,8 @@ openssl req -new -nodes \
     -reqexts sas_req_san_ext -config san.cnf \
     -out sas_uut-ecc.csr -key sas_uut-ecc.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=$1"
-openssl ca -cert sas-ecc_ca.cert -keyfile private/sas-ecc_ca.key -in sas_uut-ecc.csr \
-    -out sas_uut-ecc.cert -outdir ./root \
+openssl_db sas-ecc_ca ca -in sas_uut-ecc.csr \
+    -out sas_uut-ecc.cert \
     -policy policy_anything -extensions sas_req_san_ext_sign -config san.cnf \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
