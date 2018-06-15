@@ -243,7 +243,7 @@ class NlcdDriver:
     elif isinstance(lat, np.ndarray):
       return codes
 
-  def RegionNlcdVote(self, points, out_forbid=True):
+  def RegionNlcdVote(self, points, out_forbid=False):
     """Vote on most common NLCD in a region.
 
     According to WinnForum spec R2-SGN-04.
