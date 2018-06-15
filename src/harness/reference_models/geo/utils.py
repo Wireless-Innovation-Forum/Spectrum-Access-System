@@ -241,10 +241,20 @@ def GridPolygon(poly, res_arcsec):
   lat_min = np.floor(bounds[1] / res) * res
   lng_max = np.ceil(bounds[2] / res) * res + res/2
   lat_max = np.ceil(bounds[3] / res) * res + res/2
-  mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res,
-                                lat_min:lat_max:res]
+  # The mesh creation is conceptually equivalent to
+  #mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res,
+  #                              lat_min:lat_max:res]
+  # but without the floating point accumulation errors
+  mesh_lng, mesh_lat = np.meshgrid(
+      np.arange(np.floor((lng_max - lng_min) / res) + 1),
+      np.arange(np.floor((lat_max - lat_min) / res) + 1),
+      indexing='ij')
+  mesh_lng = lng_min + mesh_lng * res
+  mesh_lat = lat_min + mesh_lat * res
   points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
-  pts = poly.intersection(sgeo.asMultiPoint(points))
+  # Performs slight buffering by 1mm to include border points in case they fall
+  # exactly on a multiple of 1 arcsec.
+  pts = poly.buffer(1e-8).intersection(sgeo.asMultiPoint(points))
   if isinstance(pts, sgeo.Point):
     return [(pts.x, pts.y)]
   return [(p.x, p.y) for p in pts]

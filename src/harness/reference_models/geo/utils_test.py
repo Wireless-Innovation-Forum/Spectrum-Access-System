@@ -119,6 +119,19 @@ class TestUtils(unittest.TestCase):
     pts = utils.GridPolygon(poly, res_arcsec=1800.)
     self.assertSetEqual(set(pts), exp_pts)
 
+  def test_grid_border_included(self):
+    poly = sgeo.Polygon([(-108.05, 42.25),
+                         (-107.90, 42.25),
+                         (-107.90, 42.20),
+                         (-108.05, 42.20),
+                         (-108.05, 42.25)])
+    pts = utils.GridPolygon(poly, res_arcsec=2.)
+    self.assertEqual(len(pts), (1800*0.15+1) * (1800*0.05+1))
+    self.assertAlmostEqual(pts[0][0], -108.05, 10)
+    self.assertAlmostEqual(pts[0][1], 42.20, 10)
+    self.assertAlmostEqual(pts[-1][0], -107.90, 10)
+    self.assertAlmostEqual(pts[-1][1], 42.25, 10)
+
   def test_grid_simple_with_hole(self):
     poly = sgeo.Polygon([(1.9, 3.9), (3.1, 3.9), (3.1, 4.4),
                          (2.5, 4.5), (2.4, 5.1), (1.9, 5.1)],
