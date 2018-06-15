@@ -558,12 +558,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                          % sas_uut_claimed_ppa_boundary_file_path)
 
     # Shrink the user claimed ppa boundary by approximately 1 kilometer.
-    user_claimed_ppa_contour_shapely = utils.ToShapely(
-        user_claimed_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
-    user_claimed_ppa_contour_geometry = utils.ToGeoJson(
-        user_claimed_ppa_contour_shapely, as_dict=True)
-    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
-
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(
+        utils.ShrinkAndCleanPolygon(
+            user_claimed_ppa_contour['features'][0]['geometry'], 1e-2))
+    # Create the actual config
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
         'userClaimedPpaContour': user_claimed_ppa_contour_feature_collection
@@ -846,11 +844,9 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                          % sas_uut_claimed_ppa_boundary_file_path)
 
     # Expand the user claimed ppa boundary by approximately 1 kilometer.
-    user_claimed_ppa_contour_shapely = utils.ToShapely(
-      user_claimed_ppa_contour['features'][0]['geometry']).buffer(1e-2)
-    user_claimed_ppa_contour_geometry = utils.ToGeoJson(
-      user_claimed_ppa_contour_shapely, as_dict=True)
-    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(user_claimed_ppa_contour_geometry, as_dict=True)
+    user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(
+        utils.ShrinkAndCleanPolygon(
+            user_claimed_ppa_contour['features'][0]['geometry'], -1e-2))
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
@@ -913,10 +909,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                          % sas_uut_claimed_ppa_boundary_file_path)
 
     # Shrink the user claimed ppa boundary by approximately 1 kilometer.
-    overlapping_ppa_contour_shapely = utils.ToShapely(
-        overlapping_ppa_contour['features'][0]['geometry']).buffer(-1e-2)
-    overlapping_ppa_contour_geometry = utils.ToGeoJson(
-        overlapping_ppa_contour_shapely, as_dict=True)
+    overlapping_ppa_contour_geometry = utils.ShrinkAndCleanPolygon(
+        overlapping_ppa_contour['features'][0]['geometry'], 1e-2)
 
     # Create ppa_record where user claimed PPA contour will be replaced.
     overlapping_ppa_record = json.load(
