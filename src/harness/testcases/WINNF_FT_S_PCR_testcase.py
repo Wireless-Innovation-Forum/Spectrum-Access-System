@@ -548,7 +548,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     sas_uut_claimed_ppa_boundary_file_path = getSasUutClaimedPpaBoundaryFilePath(
         'default.config')
 
-    # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
       with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
@@ -560,7 +559,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Shrink the user claimed ppa boundary by approximately 1 kilometer.
     user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(
         utils.ShrinkAndCleanPolygon(
-            user_claimed_ppa_contour['features'][0]['geometry'], 1e-2))
+            user_claimed_ppa_contour['features'][0]['geometry'], 1e-2),
+        as_dict=True)
     # Create the actual config
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
@@ -846,7 +846,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Expand the user claimed ppa boundary by approximately 1 kilometer.
     user_claimed_ppa_contour_feature_collection = utils.InsureFeatureCollection(
         utils.ShrinkAndCleanPolygon(
-            user_claimed_ppa_contour['features'][0]['geometry'], -1e-2))
+            user_claimed_ppa_contour['features'][0]['geometry'], -1e-2),
+        as_dict=True)
     # Create the actual config.
     config = {
         'configPCR_1': pcr_1_test_config_file_path,
