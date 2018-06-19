@@ -322,6 +322,24 @@ class TestUtils(unittest.TestCase):
     self.assertEqual(utils.InsureFeatureCollection(geometry_str),
                       feature_col_str)
 
+  def test_shrinks_polygon(self):
+    with open(os.path.join(TEST_DIR, 'test_shrink.json'), 'r') as fd:
+      ppa = json.load(fd)
+    geometry = ppa['features'][0]['geometry']
+    self.assertTrue(geometry['type'], 'Polygon')
+    spoly = utils.ToShapely(geometry)
+    mpoly = sgeo.MultiPolygon([sgeo.Point(0,0).buffer(1),
+                               sgeo.Point(2,0).buffer(0.1)])
+    poly1 = utils.ShrinkAndCleanPolygon(geometry, 1e-2)
+    poly2 = utils.ShrinkAndCleanPolygon(spoly, 1e-2)
+    with self.assertRaises(ValueError):
+      poly = utils.ShrinkAndCleanPolygon(mpoly, 1e-2)
+    self.assertEqual(poly1['type'], 'Polygon')
+    self.assertTrue(isinstance(poly2, sgeo.Polygon))
+    spoly1 = utils.ToShapely(poly1)
+    self.assertEqual(poly2.difference(spoly1).area, 0)
+    self.assertEqual(spoly1.difference(poly2).area, 0)
+
 
 if __name__ == '__main__':
   unittest.main()

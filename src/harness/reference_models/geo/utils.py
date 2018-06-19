@@ -382,6 +382,45 @@ def PolygonsAlmostEqual(poly_ref, poly, tol_perc=10):
           < tol_perc/100. * GeometryArea(poly_ref))
 
 
+def ShrinkAndCleanPolygon(poly, shrink_deg, min_poly_ratio=0.01):
+  """Shrinks and cleans a polygon.
+
+  This shrinks a polygon and makes sure small polygons due to shrinking
+  artifacts are removed.
+
+  Args:
+    poly: The polygon to shrink, either as shapely or geojson dict.
+    skrink_deg: The shrink amount in degrees. 1e-2 corresponds approximately
+      to 1km
+    min_poly_ratio: All small polygon smaller than this ratio are removed. These
+      are usually caused by artifacts during the shrinking operation using the
+      shapely `buffer(-shrink_deg)` operation. Use negative value for expansion.
+
+  Returns:
+    The shrinked polygon in same format as the input (ie either shapely or
+    geojson dict).
+
+  Raises:
+    ValueError: if the shrinking cannot produce a single Polygon within the
+      `min_poly_ratio` constraint.
+  """
+  is_json = isinstance(poly, dict)
+  if is_json:
+    poly = ToShapely(poly)
+  if not isinstance(poly, sgeo.Polygon):
+    raise ValueError('Input is not a polygon.')
+  poly = poly.buffer(shrink_deg)
+  if isinstance(poly, sgeo.MultiPolygon):
+    # Cleanup multi-polygon.
+    max_poly_area = max(p.area for p in poly)
+    polys = [p for p in poly if p.area > min_poly_ratio * max_poly_area]
+    if len(polys) > 1:
+      raise ValueError('Impossible to shrink polygon '
+                       'into a proper single polygon')
+    poly = polys[0]
+  return ToGeoJson(poly, as_dict=True) if is_json else poly
+
+
 def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
   """Returns the closest point on the canadian border within some distance.
 
