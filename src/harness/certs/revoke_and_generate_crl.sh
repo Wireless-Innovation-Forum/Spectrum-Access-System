@@ -3,9 +3,6 @@ set -e
 
 mkdir -p crl
 
-# If this appears in an error message, then you should use openssl_db instead.
-export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
-
 # Runs openssl using the database for a particular CA.
 # $1 should match an existing db/ directory.
 function openssl_db {
@@ -56,24 +53,26 @@ declare -ra CA_NAMES=(
 function generate_crl_chain() {
   # Create a CRL with the revoked certificates from each CA.
   for ca in "${CA_NAMES[@]}"; do
+    local pemfile="crl/$ca.crl.pem"
+    local derfile="crl/$ca.crl"
     printf "\n\n"
-    echo "Generating crl/$ca.crl"
-    openssl_db "$ca" ca -gencrl -crldays 365 -out "crl/$ca.crl"
+    echo "Generating CRL: $pemfile"
+    openssl_db $ca ca -gencrl -crldays 365 -out "$pemfile"
+    echo "Converting $pemfile (PEM) to $derfile (DER)"
+    openssl crl -inform pem -outform der -in "$pemfile" -out "$derfile"
   done
-
-  # Create CA certificate chain containing the CRLs of revoked leaf certificates.
-  # TODO: CRLs should be DER-encoded, with one file per CA:
-  #       https://tools.ietf.org/html/rfc5280#section-4.2.1.13
-  cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl \
-      crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl > crl/ca.crl
 }
 
 # Argument1: Type (-r, -u)
-if [ "$1" == "-r" ]; then
+if [ "$1" == "-r" ] && [ "$#" -eq 2 ]; then
   revoke_certificate $2
 elif [ "$1" == "-u" ]; then
   generate_crl_chain
 else
-  echo "Wrong option other than (-r, -u)"
+  echo "Usage:"
+  echo "  Revoke certificate:"
+  echo "    $0 -r example.cert"
+  echo "  Regenerate CRLs:"
+  echo "    $0 -u"
   exit -1
 fi

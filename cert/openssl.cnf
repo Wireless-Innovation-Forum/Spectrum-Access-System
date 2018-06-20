@@ -18,6 +18,11 @@
 # =============                                                    #
 ####################################################################
 
+# Default ENV values.  If these strings appear in a generated certificate or
+# error message, then a script should've set the environment variable prior
+# to invoking openssl.
+OPENSSL_CNF_CA_DIR = _ca_dir_not_set_by_environment_
+OPENSSL_CNF_CRLDP = _crldp_not_set_by_environment_
 
 ####################################################################
 # Defining OIDS registered by The Wireless Innovation Forum
@@ -132,7 +137,7 @@ keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
 [ crl_section ]
 
-URI.0 = http://localhost:9007/ca.crl
+URI.0 = ${ENV::OPENSSL_CNF_CRLDP}
 
 ####################################################################
 # Not used yet

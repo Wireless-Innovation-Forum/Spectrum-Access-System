@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# If this appears in an error message, then you should use openssl_db instead.
-export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
+. include_crldp_base.sh
+echo "Using CRL distribution points: $CRLDP_BASE<ca_name>.crl"
 
 # Runs openssl using the database for a particular CA.
 # $1 should match an existing db/* directory.
 function openssl_db {
-  OPENSSL_CNF_CA_DIR="db/$1" openssl "${@:2}" \
+  OPENSSL_CNF_CA_DIR="db/$1" OPENSSL_CNF_CRLDP="$CRLDP_BASE$1.crl" \
+      openssl "${@:2}" \
       -cert "$1.cert" -keyfile "private/$1.key"
 }
 

@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+. include_crldp_base.sh
+echo "Using CRL distribution points: $CRLDP_BASE<ca_name>.crl"
+
 declare -ra CA_NAMES=(
   cbsd_ca
   proxy_ca
@@ -12,13 +15,11 @@ for ca in "${CA_NAMES[@]}"; do
   echo -n "unique_subject = no" > "db/$ca/index.txt.attr"
 done
 
-# If this appears in an error message, then you should use openssl_db instead.
-export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
-
 # Runs openssl using the database for a particular CA.
 # $1 should match an entry from the CA_NAMES array.
 function openssl_db {
-  OPENSSL_CNF_CA_DIR="db/$1" openssl "${@:2}" \
+  OPENSSL_CNF_CA_DIR="db/$1" OPENSSL_CNF_CRLDP="$CRLDP_BASE$1.crl" \
+      openssl "${@:2}" \
       -config ../../../cert/openssl.cnf \
       -cert "$1.cert" -keyfile "private/$1.key"
 }
@@ -75,12 +76,12 @@ function generate_dp_short_lived_certificate() {
   return -1
 }
 
-# Argument1 : Type (CBSD, DomainProxy).
-if [ "$1" == "CBSD" ]; then
-  generate_cbsd_short_lived_certificate $2 $3
-elif [ "$1" == "DomainProxy" ]; then
-  generate_dp_short_lived_certificate $2 $3
+if [ "$1" == "CBSD" ] && [ "$#" -eq 3 ]; then
+  generate_cbsd_short_lived_certificate "$2" "$3"
+elif [ "$1" == "DomainProxy" ] && [ "$#" -eq 3 ]; then
+  generate_dp_short_lived_certificate "$2" "$3"
 else
-  echo "Wrong option other than (CBSD, DomainProxy)."
+  echo "Usage:"
+  echo "  $0 <CBSD|DomainProxy> <certificate name> <time in minutes>"
   exit -1
 fi

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+. include_crldp_base.sh
+echo "Using CRL distribution points: $CRLDP_BASE<ca_name>.crl"
+
 # Setup: build intermediate directories.
 rm -rf crl/
 mkdir -p private
@@ -31,13 +34,11 @@ for ca in "${CA_NAMES[@]}"; do
   echo -n "unique_subject = no" > "db/$ca/index.txt.attr"
 done
 
-# If this appears in an error message, then you should use openssl_db instead.
-export OPENSSL_CNF_CA_DIR="_use_openssl_db_instead_"
-
 # Runs openssl using the database for a particular CA.
 # $1 should match an entry from the CA_NAMES array.
 function openssl_db {
-  OPENSSL_CNF_CA_DIR="db/$1" openssl "${@:2}" \
+  OPENSSL_CNF_CA_DIR="db/$1" OPENSSL_CNF_CRLDP="$CRLDP_BASE$1.crl" \
+      openssl "${@:2}" \
       -config ../../../cert/openssl.cnf \
       -cert "$1.cert" -keyfile "private/$1.key"
 }
@@ -365,24 +366,6 @@ openssl_db sas_ca ca \
 # Revoke the sas_blacklisted.cert for WINNF.FT.S.SSS.11
 openssl_db sas_ca ca -revoke sas_blacklisted.cert
 
-# Create a CRL for root CA containing the revoked CBSD CA certificate
-printf "\n\n"
-echo "Generate CRL for root_ca"
-openssl_db root_ca ca -gencrl -crldays 365 -out crl/root_ca.crl
-
-# Creating CRL for blacklisted certificates xxS.11 test cases
-printf "\n\n"
-echo "Generate CRL for sas_ca"
-openssl_db sas_ca ca -gencrl -crldays 365 -out crl/sas_ca.crl
-
-printf "\n\n"
-echo "Generate CRL for proxy_ca"
-openssl_db proxy_ca ca -gencrl -crldays 365 -out crl/proxy_ca.crl
-
-printf "\n\n"
-echo "Generate CRL for cbsd_ca"
-openssl_db cbsd_ca ca -gencrl -crldays 365 -out crl/cbsd_ca.crl
-
 # Certificate for test case WINNF.FT.S.SCS.12 -
 # Expired certificate presented during registration
 printf "\n\n"
@@ -689,26 +672,6 @@ openssl_db revoked_sas_ca ca \
 # Revoke the SAS CA Certificate.
 openssl_db root_ca ca -revoke revoked_sas_ca.cert
 
-# Creating CRL for revoked CA xxS.16 test cases
-printf "\n\n"
-echo "Generate CRL for root_ca"
-openssl_db root_ca ca -gencrl -crldays 365 -out crl/root_ca.crl
-
-printf "\n\n"
-echo "Generate CRL for revoked_cbsd_ca"
-openssl_db revoked_cbsd_ca ca -gencrl -crldays 365 \
-    -out crl/revoked_cbsd_ca.crl
-
-printf "\n\n"
-echo "Generate CRL for revoked_sas_ca"
-openssl_db revoked_sas_ca ca -gencrl -crldays 365 \
-    -out crl/revoked_sas_ca.crl
-
-printf "\n\n"
-echo "Generate CRL for revoked_proxy_ca"
-openssl_db revoked_proxy_ca ca -gencrl -crldays 365 \
-    -out crl/revoked_proxy_ca.crl
-
 # Generate trusted CA bundle.
 printf "\n\n"
 echo "Generate 'ca' bundle"
@@ -723,13 +686,24 @@ echo | \
         -prexit < /dev/null 2>&1 | \
     sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p' >> ca.cert
 
-# Create CA certificate chain containing the CRLs with revoked leaf certificates.
-# TODO: CRLs should be DER-encoded, with one file per CA:
-#       https://tools.ietf.org/html/rfc5280#section-4.2.1.13
-cat crl/cbsd_ca.crl crl/sas_ca.crl crl/proxy_ca.crl crl/root_ca.crl > crl/ca_sxs11.crl
-cat ca.cert crl/ca_sxs11.crl > ca_crl_chain_sxs11.cert
-cat crl/revoked_cbsd_ca.crl crl/revoked_sas_ca.crl crl/revoked_proxy_ca.crl crl/root_ca.crl > crl/ca_sxs16.crl
-cat ca.cert crl/ca_sxs16.crl > ca_crl_chain_sxs16.cert
+# Generate a DER-formatted CRL for each CA, per
+# https://tools.ietf.org/html/rfc5280#section-4.2.1.13
+for ca in "${CA_NAMES[@]}"; do
+  pemfile="crl/$ca.crl.pem"
+  derfile="crl/$ca.crl"
+  printf "\n\n"
+  echo "Generating CRL: $pemfile"
+  openssl_db $ca ca -gencrl -crldays 365 -out "$pemfile"
+  echo "Converting $pemfile (PEM) to $derfile (DER)"
+  openssl crl -inform pem -outform der -in "$pemfile" -out "$derfile"
+done
+
+# Output crl_index files for fake_sas.py.  Real SASes should obtain this
+# information from client certificate CRL distribution points.
+printf "%s.crl\n" cbsd_ca sas_ca proxy_ca root_ca \
+    > crl/crl_index_sxs11.txt
+printf "%s.crl\n" revoked_cbsd_ca revoked_sas_ca revoked_proxy_ca root_ca \
+    > crl/crl_index_sxs16.txt
 
 # Cleanup: remove all files not directly used by the testcases or other scripts.
 rm *.csr
