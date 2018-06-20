@@ -399,24 +399,27 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       logging.info('Step 11: Performing IAP.')
       self.performIap()
 
-      # Step 12: Invoke DPA ML reference model for currently-active and
-      # will-be-active DPAs.
-      logging.info('Step 12: invoke the DPA ML reference model.')
-      self.dpa_managers = {}
-      for active_dpa in self.active_dpas + iteration_content['dpaActivationList']:
+    # Step 12: Invoke DPA ML reference model for currently-active and
+    # will-be-active DPAs.
+    logging.info('Step 12: invoke the DPA ML reference model.')
+    self.dpa_managers = {}
+    self.dpa_margins = {}
+    for active_dpa in self.active_dpas + iteration_content['dpaActivationList']:
+      dpa_config = self.config['dpas'][active_dpa['dpaId']]
+      dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
+      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
+      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
+      dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
+      if self.num_peer_sases:
         logging.info('Calculating  move list for DPA: %s', active_dpa)
-        dpa_config = self.config['dpas'][active_dpa['dpaId']]
-        dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
-        low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
-        high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
-        dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
         dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
         dpa.ComputeMoveLists()
 
-        dpa_combined_id = '%s,%s,%s' % (
-            active_dpa['dpaId'], active_dpa['frequencyRange']['lowFrequency'],
-            active_dpa['frequencyRange']['highFrequency'])
-        self.dpa_managers[dpa_combined_id] = dpa
+      dpa_combined_id = '%s,%s,%s' % (
+          active_dpa['dpaId'], active_dpa['frequencyRange']['lowFrequency'],
+          active_dpa['frequencyRange']['highFrequency'])
+      self.dpa_managers[dpa_combined_id] = dpa
+      self.dpa_margins[dpa_combined_id] = dpa_config['movelistMargin']
 
     logging.info('Waiting for CPAS to complete (Started in step 10).')
     self.cpas.result()
@@ -450,12 +453,15 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # Step 21: ESC Test harness deactivates previously-activated DPAs.
     logging.info('Step 21: activating and deactivating DPAs.')
     for dpa in iteration_content['dpaActivationList']:
+      if dpa in self.active_dpas:
+        logging.warning('DPA is already active, skipping activation: %s', dpa)
+        continue
       logging.info('Activating: %s', dpa)
-      self._sas_admin.TriggerDpaDeactivation(dpa)
-      self.active_dpas.append(dpa)
-    for dpa in iteration_content['dpaActivationList']:
-      logging.info('Deactivating: %s', dpa)
       self._sas_admin.TriggerDpaActivation(dpa)
+      self.active_dpas.append(dpa)
+    for dpa in iteration_content['dpaDeactivationList']:
+      logging.info('Deactivating: %s', dpa)
+      self._sas_admin.TriggerDpaDeactivation(dpa)
       self.active_dpas.remove(dpa)
 
     # Step 22: wait for 240 sec if any DPA is activated in Step 21, else 15 sec.
@@ -495,8 +501,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       dpa = self.dpa_managers[dpa_combined_id]
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
-          margin_db=dpa_config['movelistMargin'],
-          channel=(low_freq_mhz, high_freq_mhz),
+          margin_db=self.dpa_margins[dpa_combined_id],
           do_abs_check_single_uut=(self.num_peer_sases==0)))
     logging.info('Waiting for aggregate interference check to complete')
     self.aggregate_interference_check.result()
@@ -1115,4 +1120,3 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     config = loadConfig(config_filename)
     # Invoke MCP test steps
     self.executeMcpTestSteps(config, 'MCP')
-
