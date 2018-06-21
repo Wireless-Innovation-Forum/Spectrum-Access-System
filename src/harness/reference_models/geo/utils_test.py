@@ -332,6 +332,7 @@ class TestUtils(unittest.TestCase):
                                sgeo.Point(2,0).buffer(0.1)])
     poly1 = utils.ShrinkAndCleanPolygon(geometry, 1e-2)
     poly2 = utils.ShrinkAndCleanPolygon(spoly, 1e-2)
+    self.assertTrue(poly2.area < spoly.area)
     with self.assertRaises(ValueError):
       poly = utils.ShrinkAndCleanPolygon(mpoly, 1e-2)
     self.assertEqual(poly1['type'], 'Polygon')

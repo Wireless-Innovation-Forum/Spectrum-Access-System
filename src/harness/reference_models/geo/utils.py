@@ -409,7 +409,7 @@ def ShrinkAndCleanPolygon(poly, shrink_deg, min_poly_ratio=0.01):
     poly = ToShapely(poly)
   if not isinstance(poly, sgeo.Polygon):
     raise ValueError('Input is not a polygon.')
-  poly = poly.buffer(shrink_deg)
+  poly = poly.buffer(-shrink_deg)
   if isinstance(poly, sgeo.MultiPolygon):
     # Cleanup multi-polygon.
     max_poly_area = max(p.area for p in poly)
