@@ -716,16 +716,17 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     scalar = isinstance(ap_iap_ref_values, numbers.Number)
 
+    logging.info('IAP aggr interference checking - Entity: %s Thresh: %s',
+                 entity_type, str(ap_iap_ref_values) if scalar else 'from IAP')
+
     for lat_val, lat_dict in aggr_interference.iteritems():
       for long_val, interf_list in lat_dict.iteritems():
-        logging.info('Looking at lat %s long %s.', lat_val, long_val)
         if scalar:
           # iter produces a infinite generator of the scalar, as zip iterates
           # till one of the passed iterators is empty this will produce the same
           # result as a list of len(interf_list) with the scalar in every field,
           # but without having to construct the list.
           ref_interf_list = iter((lambda : ap_iap_ref_values), 1)
-          logging.info('Reference interference is a scalar: %s mW/IAPBW', ap_iap_ref_values)
         else:
           ref_interf_list = ap_iap_ref_values[lat_val][long_val]
           self.assertEqual(len(interf_list), len(ref_interf_list))
@@ -735,28 +736,28 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           iter_cnt += 1
           below_threshold = True
           list_index = 0
+          logging.debug('Check lat %s long %s: %s',
+                        lat_val, long_val, zip(interf_list, ref_interf_list))
           for interf, ref_interf in zip(interf_list, ref_interf_list):
-            logging.info(
-                'IAP aggregate interference comparison for index %d: interf=%s ref_interf=%s',
-                list_index, interf, ref_interf)
             list_index += 1
             if interf > ref_interf * iap_margin_lin:
               below_threshold = False
-              logging.info('This ^^^ point exceeded the threshold!')
+              logging.info('Threshold exceeded for chan %d: interf=%s ref_interf=%s',
+                           list_index, interf, ref_interf)
           if below_threshold:
             match_cnt += 1
         else:
           list_index = 0
+          logging.debug('Check lat %s long %s: %s',
+                        lat_val, long_val, zip(interf_list, ref_interf_list))
           for interf, ref_interf in zip(interf_list, ref_interf_list):
             iter_cnt += 1
-            logging.info(
-                'IAP aggregate interference comparison for index %d: interf=%s ref_interf=%s',
-                list_index, interf, ref_interf)
             list_index += 1
             if interf <= ref_interf * iap_margin_lin:
               match_cnt += 1
             else:
-              logging.info('This ^^^ point exceeded the threshold!')
+              logging.info('Threshold exceeded for chan %d: interf=%s ref_interf=%s',
+                           list_index, interf, ref_interf)
 
     # All types of protection must have at least one point.
     self.assertGreater(iter_cnt, 0, msg=common_strings.CONFIG_ERROR_SUSPECTED)
