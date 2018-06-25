@@ -570,7 +570,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g_a['operationParam']['maxEirp'] = 0
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
@@ -1317,7 +1316,6 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g_a['operationParam']['maxEirp'] = 0
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
