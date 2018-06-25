@@ -442,7 +442,7 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
   max_delta = max_dist_km / one_degree * 1.1
   border_cap = zones.GetUsCanadaBorder().intersection(
       sgeo.Point(longitude, latitude).buffer(max_delta))
-  if not border_cap or 'LineString' not in border_cap.type:
+  if not border_cap:
     return None
   points_dists = []
   # Find closest point
