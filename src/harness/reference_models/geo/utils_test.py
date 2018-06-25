@@ -265,6 +265,14 @@ class TestUtils(unittest.TestCase):
     self.assertAlmostEqual(res1[1], -83.14962, 4)
     self.assertAlmostEqual(res1[2], 4.0, 3)
     self.assertAlmostEqual(res1[3], 90, 2)
+    # the border point when distance causes one linestring intersection with canadian border
+    border_point = utils.GetClosestCanadianBorderPoint(45.1165, -71.35, 8)
+    # same point when distance causes multi-linestring intersection with canadian border
+    res2 = utils.GetClosestCanadianBorderPoint(45.1165, -71.35, 17)
+    self.assertAlmostEqual(border_point[0], res2[0], 4)
+    self.assertAlmostEqual(border_point[1], res2[1], 4)
+    self.assertAlmostEqual(border_point[2], res2[2], 4)
+    self.assertAlmostEqual(border_point[3], res2[3], 4)
 
   def test_check_sharing_zone(self):
     # Less than 8km
