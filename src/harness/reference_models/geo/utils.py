@@ -446,11 +446,11 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
     return None
   points_dists = []
   # Find closest point
-  if border_cap.type == 'LineString':
-    points_dists.extend(_distancesOfLineString(latitude, longitude, border_cap))
-  elif border_cap.type == 'MultiLineString':
-    for line in border_cap.geoms:
-      points_dists.extend(_distancesOfLineString(latitude, longitude, line))
+  if border_cap.type in ['LineString', 'Point']:
+       points_dists.extend(_distancesOfPoints(latitude, longitude, border_cap))
+  elif border_cap.type in ['MultiLineString', 'MultiPoint']:
+        for element in border_cap.geoms:
+          points_dists.extend(_distancesOfPoints(latitude, longitude, element))
   else:
     raise ValueError(border_cap.type + ', not treated type of intersection with canadian border')             
   closest = min(points_dists)
@@ -460,10 +460,10 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
   closest_bearing = closest[0][1]
   return closest[1][1], closest[1][0], closest_dist, closest_bearing
 
-def _distancesOfLineString(latitude, longitude, line_string):
+def _distancesOfPoints(latitude, longitude, points):
   return [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]),
                    point)
-                  for point in zip(*line_string.xy)]
+                  for point in zip(*points.xy)]
 
 def _angleBetween(angle, min_angle, max_angle):
   """Check if `angle` falls between `min_angle` and `max_angle`."""
