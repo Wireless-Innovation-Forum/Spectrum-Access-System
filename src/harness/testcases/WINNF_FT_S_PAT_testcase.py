@@ -218,12 +218,12 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
       this_test_passed = False
       if 'pathlossDb' in sas_response and 'txAntennaGainDbi' in sas_response:
         this_test_passed = ((sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1) and
-                            (sas_response['txAntennaGainDbi'] < (ref_response['txAntennaGainDbi'] + .2)))
+                            (sas_response['txAntennaGainDbi'] >= (ref_response['txAntennaGainDbi'] - .2)))
 
         if 'fss' in request and request['fss']['rxAntennaGainRequired']:
           if 'rxAntennaGainDbi' in sas_response:
             this_test_passed = (this_test_passed and
-                                (sas_response['rxAntennaGainDbi'] < (ref_response['rxAntennaGainDbi'] + .2)))
+                                (sas_response['rxAntennaGainDbi'] >= (ref_response['rxAntennaGainDbi'] - .2)))
           else:
             this_test_passed = False
 
