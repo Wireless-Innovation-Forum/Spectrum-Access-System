@@ -766,7 +766,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
             [grant_g1_a, grant_g1_b],
             [grant_g2_a, grant_g2_b]],
         'expectedResponseCodes': [
-            [(0, ), (0,)],
+            [(0, ), (0,501)],
             [(501, ), (501, )]],
         'conditionalRegistrationData': conditionals,
         'fssDatabaseConfig': fss_database_config
