@@ -460,6 +460,8 @@ class SasTestCase(unittest.TestCase):
     by invoking the PPA creation status API.If the status is complete then looks for
     withError set to True to declare ppa creation is failed. The status is checked
     every 10 secs for up to 2 hours.
+    - Fails if it gives an error code 20 times in a row.
+    - If the status is not changed within 2 hours it will throw an exception.
 
     Args:
       ppa_creation_request: A dictionary with a multiple key-value pair containing the
@@ -481,14 +483,21 @@ class SasTestCase(unittest.TestCase):
 
     logging.info('TriggerPpaCreation is in progress')
 
-    # Triggers most recent PPA Creation Status immediately and checks for the status
-    # of activity every 10 seconds until it is completed. If the status is not changed
-    # within 2 hours it will throw an exception.
-    # Timeout after 2 hours if it's not completed.
     timeout = datetime.now() + timedelta(hours=2)
 
     # Check the Status of most recent ppa creation every 10 seconds.
-    while not self._sas_admin.GetPpaCreationStatus()['completed']:
+    error_counter = 0
+    is_completed = False
+    while not is_completed:
+      try:
+        is_completed = self._sas_admin.GetPpaCreationStatus()['completed']
+        error_counter = 0
+      # If any error 20 times in a row, fail.
+      except Exception as ex:
+        logging.info('Exception: %s ', ex.message)
+        error_counter += 1
+        if error_counter == 20:
+          self.fail('Encountered errors 20 times. Failing immediately.')
       self.assertLess(datetime.now(), timeout, 'Timeout during PPA creation.')
       time.sleep(10)
 
@@ -497,3 +506,5 @@ class SasTestCase(unittest.TestCase):
     self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
+                                                                                                                                           504,3   
+  
