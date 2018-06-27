@@ -38,7 +38,7 @@ function generate_cbsd_short_lived_certificate() {
     # Generate normal operation short_lived certificate/key.
     echo -e "\n\nGenerate 'short_lived' certificate/key"
     openssl req -new -newkey rsa:2048 -nodes \
-        -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+        -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
         -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=test_fcc_id_a:test_serial_number_a"
     openssl_db cbsd_ca ca -in $1.csr -out $1.cert \
@@ -64,7 +64,7 @@ function generate_dp_short_lived_certificate() {
     # Generate normal operation short_lived domain proxy certificate/key.
     echo -e "\n\nGenerate 'short_lived' certificate/key"
     openssl req -new -newkey rsa:2048 -nodes \
-        -reqexts oper_req -config ../../../cert/openssl.cnf \
+        -config ../../../cert/openssl.cnf \
         -out $1.csr -keyout $1.key \
         -subj "/C=US/ST=District of Columbia/L=Washington/O=Wireless Innovation Forum/OU=www.wirelessinnovation.org/CN=0112233445:0011"
     openssl_db proxy_ca ca -in $1.csr -out $1.cert \

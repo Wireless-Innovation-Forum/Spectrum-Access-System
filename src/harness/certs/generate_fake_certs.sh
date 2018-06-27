@@ -50,7 +50,7 @@ function gen_cbsd_cert {
   # $3 = serial number (For example test_serial_number_a)
   echo "Generating cert $1 for device with fcc_id=$2 sn=$3"
   openssl req -new -newkey rsa:2048 -nodes \
-      -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+      -config ../../../cert/openssl.cnf \
       -out $1.csr -keyout $1.key \
       -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=$2:$3"
   echo "Signing cert $1 for device with fcc_id=$2 sn=$3"
@@ -101,7 +101,7 @@ openssl req -new -x509 -key private/root-ecc_ca.key -out root-ecc_ca.cert \
 printf "\n\n"
 echo "Generate 'sas_ca' and 'sas-ecc_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts sas_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas_ca.csr -keyout private/sas_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA SAS Provider CA0001/CN=WInnForum RSA SAS Provider CA"
 openssl_db root_ca ca -in sas_ca.csr \
@@ -111,7 +111,7 @@ openssl_db root_ca ca -in sas_ca.csr \
 
 openssl ecparam -genkey -out  private/sas-ecc_ca.key -name secp521r1
 openssl req -new -nodes \
-    -reqexts sas_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas-ecc_ca.csr -key private/sas-ecc_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=ECC SAS Provider CA0001/CN=WInnForum ECC SAS Provider CA"
 openssl_db root-ecc_ca ca \
@@ -122,7 +122,7 @@ openssl_db root-ecc_ca ca \
 printf "\n\n"
 echo "Generate 'cbsd_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out cbsd_ca.csr -keyout private/cbsd_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA CBSD OEM CA0001/CN=WInnForum RSA CBSD OEM CA"
 openssl_db root_ca ca -in cbsd_ca.csr \
@@ -132,7 +132,7 @@ openssl_db root_ca ca -in cbsd_ca.csr \
 
 openssl ecparam -genkey -out  private/cbsd-ecc_ca.key -name secp521r1
 openssl req -new -nodes \
-    -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out cbsd-ecc_ca.csr -key private/cbsd-ecc_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=ECC CBSD OEM CA0001/CN=WInnForum ECC CBSD OEM CA"
 openssl_db root-ecc_ca ca \
@@ -143,7 +143,7 @@ openssl_db root-ecc_ca ca \
 printf "\n\n"
 echo "Generate 'proxy_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out proxy_ca.csr -keyout private/proxy_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA Domain Proxy CA0001/CN=WInnForum RSA Domain Proxy CA"
 openssl_db root_ca ca -in proxy_ca.csr \
@@ -155,7 +155,7 @@ openssl_db root_ca ca -in proxy_ca.csr \
 printf "\n\n"
 echo "Generate 'server' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out server.csr -keyout server.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl_db sas_ca ca \
@@ -165,7 +165,7 @@ openssl_db sas_ca ca \
 
 openssl ecparam -genkey -out  server-ecc.key -name secp521r1
 openssl req -new -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out server-ecc.csr -key server-ecc.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl_db sas-ecc_ca ca \
@@ -177,7 +177,7 @@ openssl_db sas-ecc_ca ca \
 printf "\n\n"
 echo "Generate 'sas server' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas.csr -keyout sas.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl_db sas_ca ca -in sas.csr \
@@ -186,7 +186,7 @@ openssl_db sas_ca ca -in sas.csr \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas_1.csr -keyout sas_1.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate 001/CN=localhost"
 openssl_db sas_ca ca -in sas_1.csr \
@@ -211,7 +211,7 @@ gen_cbsd_cert device_j test_fcc_id_j test_serial_number_j
 printf "\n\n"
 echo "Generate 'admin' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out admin.csr -keyout admin.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Admin Certificate/CN=SAS admin Example"
 openssl_db sas_ca ca -in admin.csr \
@@ -223,7 +223,7 @@ openssl_db sas_ca ca -in admin.csr \
 printf "\n\n"
 echo "Generate 'domain_proxy' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out domain_proxy.csr -keyout domain_proxy.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0002"
 openssl_db proxy_ca ca \
@@ -232,7 +232,7 @@ openssl_db proxy_ca ca \
     -batch -notext -create_serial -utf8 -days 1185 -md sha384
 
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out domain_proxy_1.csr -keyout domain_proxy_1.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0003"
 openssl_db proxy_ca ca \
@@ -250,7 +250,7 @@ openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
     -subj "/C=US/O=Generic Certification Organization/OU=www.example.org/CN=Generic RSA Root CA"
 
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out unrecognized_device.csr -keyout unrecognized_device.key \
     -subj "/C=US/O=Generic Certification Organization/OU=www.example.org/CN=Unrecognized CBSD"
 openssl_db unrecognized_root_ca ca \
@@ -287,7 +287,7 @@ openssl req -new -x509 -newkey rsa:4096 -sha384 -nodes -days 7300 \
 printf "\n\n"
 echo "Generate 'non_cbrs_signed_cbsd_ca' certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_root_signed_cbsd_ca.csr \
     -keyout private/non_cbrs_root_signed_cbsd_ca.key \
     -subj "/C=US/O=Non CBRS company/OU=www.example.org/CN=Non CBRS CBSD CA"
@@ -300,7 +300,7 @@ openssl_db non_cbrs_root_ca ca \
 # Generate CBSD certificate signed by a intermediate CBSD CA which is signed
 # by a non-CBRS root CA
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_signed_device.csr -keyout non_cbrs_signed_device.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:0001"
 openssl_db non_cbrs_root_signed_cbsd_ca ca \
@@ -324,7 +324,7 @@ openssl_db sas_ca ca -in server.csr \
 printf "\n\n"
 echo "Generate blacklisted client certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out device_blacklisted.csr -keyout device_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:sn_0001"
 openssl_db cbsd_ca ca \
@@ -339,7 +339,7 @@ openssl_db cbsd_ca ca -revoke device_blacklisted.cert
 printf "\n\n"
 echo "Generate blacklisted domain proxy certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out domain_proxy_blacklisted.csr -keyout domain_proxy_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0004"
 openssl_db proxy_ca ca \
@@ -355,7 +355,7 @@ openssl_db proxy_ca ca -revoke domain_proxy_blacklisted.cert
 printf "\n\n"
 echo "Generate blacklisted sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas_blacklisted.csr -keyout sas_blacklisted.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost"
 openssl_db sas_ca ca \
@@ -371,7 +371,7 @@ openssl_db sas_ca ca -revoke sas_blacklisted.cert
 printf "\n\n"
 echo "Generate 'device_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out device_expired.csr -keyout device_expired.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:0002"
 openssl_db cbsd_ca ca \
@@ -394,7 +394,7 @@ openssl_db cbsd_ca ca -in device_a.csr \
 printf "\n\n"
 echo "Generate 'unrecognized_domain_proxy' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out unrecognized_domain_proxy.csr -keyout unrecognized_domain_proxy.key \
     -subj "/C=US/O=Generic Certification Organization/OU=www.example.org/CN=Unrecognized Domain Proxy"
 openssl_db unrecognized_root_ca ca \
@@ -425,7 +425,7 @@ openssl x509 -signkey domain_proxy.key -in domain_proxy.csr \
 printf "\n\n"
 echo "Generate non_cbrs_root_signed_oper_ca.csr certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts oper_ca -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_root_signed_oper_ca.csr \
     -keyout private/non_cbrs_root_signed_oper_ca.key \
     -subj "/C=US/O=Non CBRS company/OU=www.example.org/CN=Non CBRS Domain Proxy CA"
@@ -441,7 +441,7 @@ openssl_db non_cbrs_root_ca ca \
 printf "\n\n"
 echo "Generate domain_proxy certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_signed_domain_proxy.csr \
     -keyout non_cbrs_signed_domain_proxy.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0005"
@@ -467,7 +467,7 @@ openssl_db sas_ca ca -in server.csr \
 printf "\n\n"
 echo "Generate 'domain_proxy_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out domain_proxy_expired.csr -keyout domain_proxy_expired.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0006"
 openssl_db proxy_ca ca \
@@ -490,7 +490,7 @@ openssl_db proxy_ca ca \
 printf "\n\n"
 echo "Generate 'unrecognized_sas' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out unrecognized_sas.csr -keyout unrecognized_sas.key \
     -subj "/C=US/O=Generic Certification Organization/OU=www.example.org/CN=Unrecognized SAS Provider"
 openssl_db unrecognized_root_ca ca \
@@ -519,7 +519,7 @@ openssl x509 -signkey sas.key -in sas.csr \
 printf "\n\n"
 echo "Generate non_cbrs_root_signed_sas_ca.csr certificate/key"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts sas_ca -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_root_signed_sas_ca.csr \
     -keyout private/non_cbrs_root_signed_sas_ca.key \
     -subj "/C=US/O=Non CBRS company/OU=www.example.org/CN=Non CBRS SAS Provider CA"
@@ -535,7 +535,7 @@ openssl_db non_cbrs_root_ca ca \
 printf "\n\n"
 echo "Generate sas certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out non_cbrs_signed_sas.csr -keyout non_cbrs_signed_sas.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=non-cbrs.example.org"
 openssl_db non_cbrs_root_signed_sas_ca ca \
@@ -559,7 +559,7 @@ openssl_db cbsd_ca ca -in device_a.csr \
 printf "\n\n"
 echo "Generate 'sas_expired' certificate/key"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas_expired.csr -keyout sas_expired.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=expired.example.org"
 openssl_db sas_ca ca -in sas_expired.csr \
@@ -582,7 +582,7 @@ openssl_db sas_ca ca -in sas.csr \
 printf "\n\n"
 echo "Generate 'revoked_cbsd_ca' certificate/key to revoke intermediate CA"
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts cbsd_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out revoked_cbsd_ca.csr -keyout private/revoked_cbsd_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA CBSD OEM CA0002/CN=WInnForum RSA CBSD OEM CA - Revoked"
 openssl_db root_ca ca \
@@ -595,7 +595,7 @@ openssl_db root_ca ca \
 printf "\n\n"
 echo "Generate 'client' certificate/key signed by revoked_cbsd_ca"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts cbsd_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out device_cert_from_revoked_ca.csr \
     -keyout device_cert_from_revoked_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum CBSD Certificate/CN=test_fcc_id:revoked"
@@ -615,7 +615,7 @@ openssl_db root_ca ca -revoke revoked_cbsd_ca.cert
 printf "\n\n"
 echo "Generate 'revoked_proxy_ca' certificate/key to revoke intermediate CA."
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts oper_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out revoked_proxy_ca.csr -keyout private/revoked_proxy_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA Domain Proxy CA0002/CN=WInnForum RSA Domain Proxy CA - Revoked"
 openssl_db root_ca ca \
@@ -627,7 +627,7 @@ openssl_db root_ca ca \
 printf "\n\n"
 echo "Generate 'domain_proxy' certificate/key signed by revoked_proxy_ca"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts oper_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out domain_proxy_cert_from_revoked_ca.csr \
     -keyout domain_proxy_cert_from_revoked_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum Domain Proxy Certificate/CN=0123456789:0010 - Revoked"
@@ -647,7 +647,7 @@ openssl_db root_ca ca -revoke revoked_proxy_ca.cert
 printf "\n\n"
 echo "Generate 'sas_ca' certificate/key to revoke intermediate CA."
 openssl req -new -newkey rsa:4096 -nodes \
-    -reqexts sas_ca  -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out revoked_sas_ca.csr -keyout private/revoked_sas_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=RSA SAS Provider CA0002/CN=WInnForum RSA SAS Provider CA - Revoked"
 openssl_db root_ca ca \
@@ -660,7 +660,7 @@ openssl_db root_ca ca \
 printf "\n\n"
 echo "Generate 'sas server' certificate/key signed by revoked_sas_ca"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req -config ../../../cert/openssl.cnf \
+    -config ../../../cert/openssl.cnf \
     -out sas_cert_from_revoked_ca.csr -keyout sas_cert_from_revoked_ca.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=localhost - Revoked"
 openssl_db revoked_sas_ca ca \

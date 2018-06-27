@@ -33,15 +33,6 @@ echo "Using SAN = $SAN"
 # Create san.cnf
 normal=`cat ../../../cert/openssl.cnf`
 san_req="
-[sas_req_san_ext]
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth,clientAuth
-certificatePolicies=@cps,ROLE_SAS
-crlDistributionPoints=@crl_section
-subjectAltName = $SAN
-
 [ sas_req_san_ext_sign ]
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
@@ -57,7 +48,7 @@ echo -e "$normal$san_req" > san.cnf
 # Generate the certs.
 echo "Generating RSA cert"
 openssl req -new -newkey rsa:2048 -nodes \
-    -reqexts sas_req_san_ext -config san.cnf \
+    -config san.cnf \
     -out sas_uut.csr -keyout sas_uut.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=$1"
 openssl_db sas_ca ca -in sas_uut.csr \
@@ -68,7 +59,7 @@ openssl_db sas_ca ca -in sas_uut.csr \
 echo "Generating ECC cert"
 openssl ecparam -genkey -out sas_uut-ecc.key -name secp521r1
 openssl req -new -nodes \
-    -reqexts sas_req_san_ext -config san.cnf \
+    -config san.cnf \
     -out sas_uut-ecc.csr -key sas_uut-ecc.key \
     -subj "/C=US/O=Wireless Innovation Forum/OU=WInnForum SAS Provider Certificate/CN=$1"
 openssl_db sas-ecc_ca ca -in sas_uut-ecc.csr \

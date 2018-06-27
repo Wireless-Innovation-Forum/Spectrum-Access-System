@@ -161,14 +161,6 @@ policyIdentifier = 2.16.840.1.114412.2.1
 CPS.1 = "https://www.digicert.com/CPS"
 
 ####################################################################
-[ sas_ca ]
-
-subjectKeyIdentifier = hash
-#authorityKeyIdentifier = keyid:always, issuer
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_SAS
-
 [ sas_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -176,15 +168,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_SAS
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ oper_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_OPERATOR
-
 [ oper_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -192,15 +178,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_OPERATOR
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ pi_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_INSTALLER
-
 [ pi_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -208,15 +188,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_INSTALLER
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ pal_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_PAL
-
 [ pal_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -224,15 +198,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_PAL
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ cbsd_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:1
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
-
 [ cbsd_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -240,15 +208,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:1
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ cbsd_oem_ca ]
-
-subjectKeyIdentifier = hash
-basicConstraints = critical, CA:true, pathlen:0
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
-
 [ cbsd_oem_ca_sign ]
 
 subjectKeyIdentifier = hash
@@ -256,20 +218,9 @@ authorityKeyIdentifier = keyid:always, issuer
 basicConstraints = critical, CA:true, pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 certificatePolicies = @cps, ROLE_CA, ROLE_CBSD
-
+crlDistributionPoints = @crl_section
 
 ####################################################################
-
-[ sas_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, cRLSign
-extendedKeyUsage = serverAuth, clientAuth
-certificatePolicies = @cps, ROLE_SAS
-crlDistributionPoints = @crl_section
-#subjectAltName = DNS:localhost, otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
-
 [ sas_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -297,18 +248,9 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
 certificatePolicies = @cps, ROLE_SAS, ZONE
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ oper_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-extendedKeyUsage = clientAuth
-certificatePolicies = @cps, ROLE_OPERATOR
-crlDistributionPoints = @crl_section
-#subjectAltName = otherName:1.3.6.1.4.1.46609.1.6;UTF8:0123456789
-
 [ oper_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -328,16 +270,9 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies = @cps, ROLE_OPERATOR, ZONE
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ pi_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-certificatePolicies = @cps, ROLE_INSTALLER
-
 [ pi_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -346,17 +281,9 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies = @cps, ROLE_INSTALLER
+crlDistributionPoints = @crl_section
 
 ####################################################################
-[ pal_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-certificatePolicies = @cps, ROLE_PAL
-#subjectAltName = otherName:1.3.6.1.4.1.46609.1.2;UTF8:zone_id_1, otherName:1.3.6.1.4.1.46609.1.3;UTF8:3650
-
 [ pal_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -365,18 +292,10 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies = @cps, ROLE_PAL
+crlDistributionPoints = @crl_section
 #subjectAltName = otherName:1.3.6.1.4.1.46609.1.2;UTF8:zone_id, otherName:1.3.6.1.4.1.46609.1.3;UTF8:3650
 
 ####################################################################
-[ cbsd_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment, cRLSign
-certificatePolicies = @cps, ROLE_CBSD
-crlDistributionPoints = @crl_section
-#subjectAltName = otherName:1.3.6.1.4.1.46609.1.4;UTF8:fcc_id, otherName:1.3.6.1.4.1.46609.1.5;UTF8:serial
-
 [ cbsd_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -506,6 +425,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies = @cps, ROLE_CBSD, ZONE
+crlDistributionPoints = @crl_section
 
 [ wrong_cbsd_req_sign ]
 subjectKeyIdentifier = hash
@@ -514,16 +434,9 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 certificatePolicies = @cps, ROLE_SAS
+crlDistributionPoints = @crl_section
 
 ####################################################################
-
-[ cbsd_oem_req ]
-
-subjectKeyIdentifier = hash
-basicConstraints = CA:FALSE
-keyUsage = critical, digitalSignature, keyEncipherment
-certificatePolicies = @cps, ROLE_CBSD
-
 [ cbsd_oem_req_sign ]
 
 subjectKeyIdentifier = hash
@@ -532,6 +445,7 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 certificatePolicies = @cps, ROLE_CBSD
+crlDistributionPoints = @crl_section
 
 ####################################################################
 [ crl_ext ]
