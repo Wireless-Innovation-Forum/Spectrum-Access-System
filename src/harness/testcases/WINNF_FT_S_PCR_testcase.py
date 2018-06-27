@@ -175,52 +175,6 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     return uut_ppa_zone_data[0]
 
-  def assertPpaCreationFailure(self, ppa_creation_request):
-    """Trigger PPA Creation Admin API and asserts the failure response.
-
-    Triggers PPA creation to the SAS UUT and handles exception received if the
-    PPA creation returns error or times out.Checks the status of the PPA creation
-    by invoking the PPA creation status API.If the status is complete then looks for
-    withError set to True to declare ppa creation is failed. The status is checked
-    every 10 secs for up to 2 hours.
-
-    Args:
-      ppa_creation_request: A dictionary with a multiple key-value pair containing the
-        "cbsdIds", "palIds" and optional "providedContour"(a GeoJSON object).
-
-    Raises:
-      Exception for the following cases:
-         a. withError flag set to False even though most recent ppa creation
-         status is completed.
-         b. SAS UUT does not respond for longer time and timeout.
-         c. SAS UUT responds with success response rather than failure response.
-
-    """
-    try:
-        response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
-    except HTTPError:
-        # We are done if PPA creation failure is detected during TriggerPpaCreation.
-        return
-
-    logging.info('TriggerPpaCreation is in progress')
-
-    # Triggers most recent PPA Creation Status immediately and checks for the status
-    # of activity every 10 seconds until it is completed. If the status is not changed
-    # within 2 hours it will throw an exception.
-    # Timeout after 2 hours if it's not completed.
-    timeout = datetime.now() + timedelta(hours=2)
-
-    # Check the Status of most recent ppa creation every 10 seconds.
-    while not self._sas_admin.GetPpaCreationStatus()['completed']:
-      self.assertLess(datetime.now(), timeout, 'Timeout during PPA creation.')
-      time.sleep(10)
-
-    # Expect the withError flag in status response should be toggled on to True
-    # to indicate PPA creation failure.
-    self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
-                    msg='Expected:There is an error in create PPA. But '
-                        'PPA creation status indicates no error')
-
   def generate_PCR_1_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 1."""
     # Load PAL records.
