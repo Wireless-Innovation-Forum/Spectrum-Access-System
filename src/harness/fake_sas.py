@@ -51,12 +51,14 @@ import argparse
 from BaseHTTPServer import BaseHTTPRequestHandler
 from BaseHTTPServer import HTTPServer
 import ConfigParser
+from OpenSSL import crypto
 from datetime import datetime
 from datetime import timedelta
 import uuid
 import json
 import ssl
 import sys
+import tempfile
 import os
 import sas_interface
 
@@ -426,26 +428,52 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps(response))
 
-def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, ca_cert_path, verify_crl):
+def ParseCrlIndex(index_filename):
+  """Returns the list of CRL filenames from a CRL index file."""
+  dirname = os.path.dirname(index_filename)
+  return [os.path.join(dirname, line.rstrip())
+          for line in open(index_filename)]
+
+def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
-  try:
-    with open(ca_cert_path) as file_handle:
-      ca_cert_data = file_handle.read()
-  except IOError:
-    print "%s does not exist" % ca_cert_path
-    return
-  print "\nCA chain is loaded into fake_sas:%s" % ca_cert_path
+
   ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   ssl_context.options |= ssl.CERT_REQUIRED
 
-  # If verify CRL flag is set then load the ca chain with CRLs and verify that
-  # the client certificate is not revoked.
-  if verify_crl:
+  # If CRLs were provided, then enable revocation checking.
+  if crl_index is not None:
     ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
-  ssl_context.load_verify_locations(cafile=ca_cert_path)
+
+    try:
+      crl_files = ParseCrlIndex(crl_index)
+    except IOError as e:
+      print "Failed to parse CRL index file %r: %s" % (crl_index, e)
+
+    # https://tools.ietf.org/html/rfc5280#section-4.2.1.13 specifies that
+    # CRLs MUST be DER-encoded, but SSLContext expects the name of a PEM-encoded
+    # file, so we must convert it first.
+    for f in crl_files:
+      try:
+        with file(f) as handle:
+          der = handle.read()
+          try:
+            crl = crypto.load_crl(crypto.FILETYPE_ASN1, der)
+          except crypto.Error as e:
+            print "Failed to parse CRL file %r as DER format: %s" % (f, e)
+            return
+          with tempfile.NamedTemporaryFile() as tmp:
+            tmp.write(crypto.dump_crl(crypto.FILETYPE_PEM, crl))
+            tmp.flush()
+            ssl_context.load_verify_locations(cafile=tmp.name)
+        print "Loaded CRL file: %r" % f
+      except IOError as e:
+        print "Failed to load CRL file %r: %s" % (f, e)
+        return
+
+  ssl_context.load_verify_locations(cafile=CA_CERT)
   ssl_context.load_cert_chain(
       certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
       keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
@@ -461,13 +489,10 @@ if __name__ == '__main__':
   parser.add_argument(
       '--ecc', help='Use ECDSA certificate', action='store_true')
   parser.add_argument(
-      '--verify_crl', help='Enable CRL verification. If this flag is set then '
-                           '--ca <cert_file> argument is mandatory. The <cert_file> '
-                           'should contain the certificate chain and CRL chain.',
-      dest='verify_crl', action='store_true')
-  parser.add_argument('--ca', required='--verify_crl' in sys.argv,
-                      help='CA certiicate chain with or without CRL chain.',
-                      dest='ca_cert', action='store')
+      '--crl_index',
+      help=('Read a text file containing one DER-encoded CRL file per line, '
+            'and enable revocation checking.'),
+      dest='crl_index', action='store')
   try:
     args = parser.parse_args()
   except:
@@ -477,7 +502,4 @@ if __name__ == '__main__':
   config_parser.read(['sas.cfg'])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
-  ca_cert_path = CA_CERT if not args.ca_cert else os.path.join(
-      'certs', args.ca_cert)
-  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc, ca_cert_path,
-                args.verify_crl)
+  RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc, args.crl_index)

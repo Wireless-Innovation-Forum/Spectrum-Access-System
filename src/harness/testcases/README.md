@@ -6,13 +6,20 @@ The current test cases are based on the [WinnForum test specification](https://w
 
 ## Security Test Cases
 
-The SCS.11/16, SDS.11/16 and SSS.11/16 TCs just expect the handshake failure and do not validate the reason for failure.<br>
-The correct way to run the fake_sas for these test cases is
-<pre>
-<code>
-<b> $ python fake_sas.py --verify_crl --ca ca_crl_chain_sxs11/16.cert </b>
-</code>
-</pre>
+The following test cases expect handshake failures due to certificate revocation
+(though they don't validate the reason for the failure):
+
+- SCS_11
+- SCS_16
+- SDS_11
+- SDS_16
+- SSS_11
+- SSS_16
+
+They may be run against fake_sas by injecting the CRL files directly:
+
+    $ python fake_sas.py --crl_index certs/crl/crl_index_sxs11.txt
+    $ python fake_sas.py --crl_index certs/crl/crl_index_sxs16.txt
 
 As WinnF WG.2 and ITS approved to use CRL as the initial certificate blacklisting solution before OCSP is available, 
 came up with following agreements
@@ -38,20 +45,5 @@ CRL file is not implemented in fake_sas.
 To obtain the CRL file, the <b>simple CRL server</b> in <b>master</b> branch needs to be 
 executed and a CRL chain can be retrieved from this server.
 
-The steps are
-
-1. Run the ‘simple CRL server’
-<b> $ python simple_crl_server.py </b>
-2. Use the menu option to blacklist a certificate (client cert or DP cert or SAS cert).
-3. Use wget on the simple CRL server URL to get the CRL chain file.
-<b> wget http://localhost:9007/ca.crl </b>
-4. Concatenate the CA chain file and the CRL file to create a combined CA chain and CRL chain file.
-<b> cat certs/ca.cert ca.crl > certs/ca_crl_chain.cert </b>
-5. Run the fake_sas with the <b>--verify_crl</b> and <b>--ca ca_crl_chain.cert</b> option.
-
 The details of using the <b>simple CRL server</b> is documented under <b>harness/CRLServer-README.md file</b>. 
 The simple CRL server is also enhanced with simpler menu option and ability to blacklist intermediate CAs.
-
-However to make it bit more easier to run the SXS.11/16 test cases, a default CRL file containing the CA chain and 
-the CRL chain containing the blacklisted certificates for SXS.11/16 test cases is created. 
-So the fake_sas can be run with the ca file <b>ca_crl_chain_sxs11/16.cert</b> without running the <b>simple CRL server</b>.

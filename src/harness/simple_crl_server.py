@@ -17,6 +17,7 @@
 import inspect
 import logging
 import os
+import re
 import socket
 import sys
 import subprocess
@@ -24,7 +25,7 @@ import threading
 from urlparse import urlparse
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
-DEFAULT_CRL_URL = 'http://localhost:9007/ca.crl'
+CRLDP_BASE = 'http://localhost:9007/'
 DEFAULT_CRL_SERVER_PORT = 80
 MENU_ACTIONS = {}
 MENU_ID_MAIN_MENU = '-1'
@@ -53,27 +54,26 @@ class SimpleCrlServer(threading.Thread):
   The CRL server runs as a separate thread.
   """
 
-  def __init__(self, crl_url, crl_file_path):
+  def __init__(self, crl_url, crl_directory):
     """Constructor for simple CRL Server.
 
     Args:
-      crl_url: The URL that is mentioned in the CDP extension of the certificates.
-        The CRL server runs on this URL and responds only to this URL with the CRL file.
-      crl_file_path: Absolute path to the CRL file that will be served by this CRL server.
+      crl_url: Prefix of the CRL distribution point URL listed in certificates.
+          Must end with a slash. We will serve *.crl files under this virtual
+          directory.
+      crl_directory: Absolute path of the local directory containing *.crl
+          files to serve.
     """
 
     super(SimpleCrlServer, self).__init__()
     url_components = urlparse(crl_url)
-    self.host_name = url_components.hostname
     self.port = url_components.port if url_components.port is not None else \
-      DEFAULT_CRL_SERVER_PORT
-    self.crl_url_path = url_components.path
-    self.crl_file_path = crl_file_path
+        DEFAULT_CRL_SERVER_PORT
     self.setDaemon(True)
 
     # Setting the parameters for handler class.
-    self.server = CrlHttpServer(self.crl_url_path, self.crl_file_path,
-                                (self.host_name, self.port),
+    self.server = CrlHttpServer(url_components.path, crl_directory,
+                                ('', self.port),
                                 CrlServerHttpHandler)
 
   def run(self):
@@ -83,14 +83,14 @@ class SimpleCrlServer(threading.Thread):
     when the thread is started using thread.start().
     """
 
-    logging.info("Started CRL Server at %s", self.host_name + ":" + str(self.port))
+    logging.info("CRL Server listening on port %d", self.port)
     self.server.serve_forever()
 
   def stopServer(self):
     """This method is used to stop HTTPServer Socket"""
 
     self.server.shutdown()
-    logging.info('Stopped CRL Server at %s', self.host_name + ":" + str(self.port))
+    logging.info("Stopped CRL Server on port %d", self.port)
 
 class CrlHttpServer(HTTPServer):
   """The class CrlHttpServer overrides built-in HTTPServer.
@@ -99,9 +99,12 @@ class CrlHttpServer(HTTPServer):
   This is needed to have CRL Server to serve files from different directories.
   """
 
-  def __init__(self, crl_url_path, crl_file_path, server_address, RequestHandlerClass):
+  def __init__(self, crl_url_path, crl_directory, server_address,
+               RequestHandlerClass):
+    if not crl_url_path.endswith('/'):
+      raise ValueError("crl_url_path %r must end with a slash" % crl_url_path)
     self.crl_url_path = crl_url_path
-    self.crl_file_path = crl_file_path
+    self.crl_directory = crl_directory
     HTTPServer.__init__(self, server_address, RequestHandlerClass)
 
 class CrlServerHttpHandler(BaseHTTPRequestHandler):
@@ -114,26 +117,30 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     """Handles Pull/GET Request and returns path of the request to callback method."""
 
-    parsed_path = urlparse(self.path)
-    self.log_message('Received GET Request:{}'.format(parsed_path.path))
+    req_path = urlparse(self.path).path
+    self.log_message('Received GET Request: {}'.format(req_path))
 
-    # Handles the GET Requests.
-    # If the GET request path does not match the CRL URL path then respond with 404 response.
-    if parsed_path.path != self.server.crl_url_path:
-      self.log_message('Requested url :{0} does not match with CRL Server URL '
-                       'path:{1}'.format(parsed_path.path, self.server.crl_url_path))
+    # Check the requested prefix.
+    if not req_path.startswith(self.server.crl_url_path):
+      self.log_message('Requested path %r does not match URL prefix %r ' %
+                       (req_path, self.server.crl_url_path))
       self.send_response(404)
       return
 
-    # Load the ca.crl and write content in HTTP response stream with 200 OK response.
-    # If any exception occurs while reading CRL chain and handle error and respond
-    # with 404 'Not Found' response.
+    # Restrict the filename, to prevent arbitrary filesystem access.
+    req_filename = req_path[len(self.server.crl_url_path):]
+    if not isCrlFilename(req_filename):
+      self.log_message('Requested file %r is malformed' % req_filename)
+      self.send_response(404)
+      return
+
+    # Try to read the requested CRL file.
+    abs_filename = os.path.join(self.server.crl_directory, req_filename)
     try:
-      with open(os.path.join(self.server.crl_file_path)) as file_handle:
-        file_data = file_handle.read()
+      with file(abs_filename) as handle:
+        file_data = handle.read()
     except IOError:
-      self.log_message('There is an error reading file:{}'.format(
-          self.server.crl_file_path))
+      self.log_message('Failed to read CRL file: %r' % abs_filename)
       self.send_response(404)
       return
     else:
@@ -149,6 +156,10 @@ def getCertsDirectoryAbsolutePath():
   harness_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
   path = os.path.join(harness_dir, 'certs')
   return path
+
+def isCrlFilename(filename):
+  """Returns true if the input resembles a well-formed CRL filename."""
+  return re.match(r"^[a-z_]+[.]crl$", filename)
 
 def getCertificateNameToBlacklist():
   """Allows the user to select the certificate to blacklist from a displayed list."""
@@ -188,25 +199,21 @@ def revokeCertificate():
 
 
 def updateCrlUrlAndRegenerateCertificates():
-  """Updates the CDP  field and re-generates certificates.
+  """Updates the CRLDP field and re-generates certificates.
 
-  Updates URI.0 field in the in openssl.cnf file with the CRL URL of this simple CRL
-  server. Invokes the generate_fake_certs.sh script to regenerate all certificates.
+  Rewrites include_crldp_base.sh, which is consumed by generate_fake_certs.sh
+  and related scripts.  Invokes the generate_fake_certs.sh script to regenerate
+  all certificates.
   """
 
-  # Update CRL URL in openssl.cnf.
-  crl_url = 'URI.0 = {}'.format(DEFAULT_CRL_URL)
-  update_crl_section_command = (r"sed -i -e 's~^URI.0\s=\s.*$~%s~1' ../../cert/openssl.cnf"
-                                % crl_url)
-  command_exit_status = subprocess.call(update_crl_section_command, shell=True)
-  if command_exit_status:
-    raise Exception("RunTimeError:Could not update CRL URL in openssl.cnf:"
-                    "exit_code:{}".format(command_exit_status))
-  logging.info('CRL URL has been updated correctly in openssl.cnf')
+  # Populate the crldp file.
+  certs_path = getCertsDirectoryAbsolutePath()
+  with file(os.path.join(certs_path, 'include_crldp_base.sh'), 'w') as handle:
+    handle.write('CRLDP_BASE="{}"\n'.format(CRLDP_BASE))
 
   # Re-generate certificates.
   script_name = './generate_fake_certs.sh'
-  command = 'cd {0} && {1}'.format(getCertsDirectoryAbsolutePath(), script_name)
+  command = 'cd {0} && {1}'.format(certs_path, script_name)
   command_exit_status = subprocess.call(command, shell=True)
   if command_exit_status:
     raise Exception("RunTimeError:Regeneration of certificates failed:"
@@ -218,24 +225,28 @@ def updateCrlUrlAndRegenerateCertificates():
 
 
 def generateCrlChain():
-  """ Generate CRL Chain for the intermediate CAs.
+  """Generates CRL files for each CA.
 
-  It creates a CRL file for the intermediate CAs (CBSD CA, DP CA and SAS CA) and the root CA.
-  All the CRL files are concatenated to create CRL chain file named ca.crl and
-  placed in the 'harness/certs/crl/' directory.
+  DER-encoded *.crl files are placed in the 'harness/certs/crl' directory.
   """
-
   create_crl_chain_command = "cd {0} && bash ./revoke_and_generate_crl.sh -u".format(
       getCertsDirectoryAbsolutePath())
   command_exit_status = subprocess.call(create_crl_chain_command, shell=True)
   if command_exit_status:
-    raise Exception("RunTimeError:Creation CRL chain is failed:"
+    raise Exception("RunTimeError: Failed to generate CRL files "
                     "exit_code:{}".format(command_exit_status))
-  if not os.path.exists(os.path.join(getCertsDirectoryAbsolutePath(),
-                                     'crl/ca.crl')):
-    raise Exception("RunTimeError:crl/ca.crl is not found:"
-                    "exit_code:{}".format(command_exit_status))
-  logging.info('crl/ca.crl CRL chain is created successfully')
+
+  crl_files = []
+  try:
+    for filename in os.listdir(
+        os.path.join(getCertsDirectoryAbsolutePath(), "crl")):
+      if isCrlFilename(filename):
+        crl_files.append(filename)
+  except EnvironmentError as e:
+    raise Exception("RunTimeError: Failed to list crl directory: %s" % e)
+  if not crl_files:
+    raise Exception("RunTimeError: No CRL files found")
+  logging.info("Serving CRL files: %r", sorted(crl_files))
 
 
 def crlServerStart():
@@ -245,11 +256,12 @@ def crlServerStart():
   generateCrlChain()
 
   try:
-    crl_server = SimpleCrlServer(DEFAULT_CRL_URL, os.path.join(getCertsDirectoryAbsolutePath(),
-                                                               'crl/ca.crl'))
+    crl_server = SimpleCrlServer(
+        CRLDP_BASE,
+        os.path.join(getCertsDirectoryAbsolutePath(), 'crl'))
     crl_server.start()
     logging.info("CRL Server has been started")
-    logging.info('CRL Server URL:%s' % DEFAULT_CRL_URL)
+    logging.info('URL pattern: %s<ca_name>.crl' % CRLDP_BASE)
   except socket.error as err:
     raise Exception("RunTimeError:There is an error starting CRL Server:"
                     "exit_reason:{}".format(err.strerror))
