@@ -250,6 +250,7 @@ class DomainProxy(object):
       grant_object.authorized_in_last_heartbeat = True
     elif heartbeat_response_code == ResponseCodes.TERMINATED_GRANT.value:
       grant_object.is_terminated = True
+      grant_object.authorized_in_last_heartbeat = False
     elif heartbeat_response_code == ResponseCodes.SUSPENDED_GRANT.value:
       grant_object.authorized_in_last_heartbeat = False
     else:
