@@ -6,9 +6,123 @@ according to the R2-SGN-24 requirement in the WINNF-TS-0112 document, Version V1
 
 ## Main Interface 
 
-The main routine to find which CBSD grants are on the move-list is:
+The code is organized in 2 main files:
+ 
+  - `dpa_mgr.py`: the DPA manager code wrapping the move list code.
+  - `move_list.py`: the move list and interference check calculation code.
 
-    `Dpa.CalcMoveList()`
+A third file `dpa_builder.py` is provided for eventually plugging a custom builder for
+the DPA protected points.
+
+### DPA manager
+
+The DPA manager provides a `Dpa` class for managing fully a DPA, along with a `BuildDpa()`
+factory routine for building a DPA from basic information.
+
+The typical process for using the DPA is the following:
+
+```python
+  import dpa_mgr
+  # Create a DPA with the builder, from a JSON file defining all the DPA protected points:
+  dpa = BuildDpa('East1', 
+                 protection_points_method = 'filename.json', 
+                 portal_dpa_filename='My_P-DPA.kml')
+  #   or create it with a default builder - See BuildDpa() docs.
+  dpa = BuildDpa('East1', 
+                 protection_points_method = 'default (250,100,100,50,40,0.2,2,0.2,2)',
+                 portal_dpa_filename='My_P-DPA.kml')
+  #   or create it with your own custom builder - See section below. `dpa_builder.py`
+  dpa = BuildDpa('East1', 
+                 protection_points_method = 'my_builder (2500, "method1")'
+                 portal_dpa_filename='My_P-DPA.kml')
+
+  # Set the grants from the FAD objects.
+  dpa.SetGrantsFromFad(sas_uut_fad, sas_th_fads)
+  #   or set them from a list of `CbsdGrantInfo` objects
+  dpa.SetGrandsFromList(grants)
+  
+  # Eventually restrict artificially the protected band.
+  # (optional - just for speed up in simulations)
+  dpa.ResetFreqRange([(3550, 3570), (3600, 3650)])
+
+  # Now compute the DPA move list.
+  dpa.ComputeMoveLists()
+  
+  # Get The move list, neighbor list or keep list for a given channel.
+  ml_grants = dpa.GetMoveList((3550, 3560))
+  kl_grants = dpa.GetKeepList((3550, 3560))
+  nl_grants = dpa.GetNeighborList((3550, 3560))
+  
+  # Computes the maximum aggregated interference from the keep list on the DPA.
+  interf = dpa.CalcKeepListInterference((3550, 3560))
+  
+  # Performs the test harness interference check of SAS UUT versus reference model.
+  dpa.CheckInterference(sas_uut_active_grants, margin_db=10)
+```
+
+Notes:
+ - the `protection_points_method` argument is what needs to be specified on the
+ configuration file of the testcases related to DPA (IPR, MCP, ...).
+ - the `dpa_mgr` module uses multiprocessing to speed up calculation, using the common 
+ mpool facility.
+
+### Move List (move_list.py)
+
+The main routines are:
+ 
+  - `moveListConstraint()` : compute the move list for a single protection point and a set
+  of grants.
+  - `calcAggregateInterference()` : calculates the 95% aggregated interference quantile on
+  a protected point from a set of active grants (typically the grants in the Keep list).
+
+Notes: These routines are used by the DPA manager, and do not need to be called directly, 
+except in possible simulation environment unrelated to SAS certification where more control
+is required. Note that a legacy `findMoveList()` is provided as well as it was used in 
+early NIST simulation, as examplified in the `move_list_example.py` file.
+
+
+### DPA builder
+
+The DPA builder is automatically used by the `BuildDpa()` routine. It provides ability
+to load the protected points from a specified json file (use an absolute path or a 
+relative path to your script). 
+
+It also provides a simple `default` builder that performs a distribution of points 
+within the DPA with a simple strategy:
+
+- divide the DPA in 4 entities: front border, front zone, back border, back zone
+  - distribute points along the 2 borders in a linear fashion, and within the 2 zones
+  in a grid fashion. The number of points can be specified for each.
+  - the division of front to back is done by cutting the DPA with an expanded US border. 
+  Obviously inland DPA only contains a front border and front zone. The expansion parameter
+  is configurable (by default 40km).
+  - a minimum distance can be specified between protected points of each of these 4 entities
+  separately. By default 0.2km for front border, 0.5km for front zone, 1km for front zone
+  and 3km  for back zone. Note that the distance are approximative.
+
+The total number of points distributed is variable depending on these condition. A common 
+strategy would be:
+
+  - define a large maximum number of points for each of the entities.
+  - define a sensible distance between points.
+
+Finally this module allows for plugging in new types of builders.
+  
+```python
+  import dpa_builder
+  # Create your own custom builder.
+  def builder_fn(dpa_name, dpa_geometry, arg1, arg2, arg3):
+     ... do something here to build the points...
+
+  # Register the builder to the framework.
+  dpa_builder.RegisterMethod('my_builder', builder_fn)
+
+  # Now you can use it when building your DPA
+  dpa = BuildDpa('East1', 
+                 protection_points_method = 'my_builder (2500, "method1", 300)'
+                 portal_dpa_filename='My_P-DPA.kml')
+```
+
 
 ## Code Prerequisites
 
@@ -17,20 +131,28 @@ Reference models:
    - WinnForum ITM propagation reference model (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/propagation)   
    - WinnForum geo modules and geo data (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/geo)
    - WinnForum antenna gain models (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/antenna)
+   - WinnForum common modules (https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/common)
 
 Python software and packages:
 
    - python 2.7 (https://www.python.org/download/releases/2.7/)
    - shapely (https://pypi.python.org/pypi/Shapely)
    - numpy (http://www.scipy.org/scipylib/download.html)
-   
+   - pykml (https://pythonhosted.org/pykml/installation.html)
+
 ## Test Data
 
-To test the Move List for a co-channel offshore DPA protection, one can use
-the example given in the `move_list_example.py` file along with the test data 
-stored in the `\test_data` sub-folder. To run the example, use the command:
+The files described earlier are provided with unit tests `dpa_mgr_test.py` and
+`move_list_test.py` which validates the code against non regression and proper behavior.
 
-    `python move_list_example.py`.
+A set of example code are also provided that can be used to test the full code. See the
+`dpa_mgr_example.py` and `move_list_example.py` files.
+
+Finally a full small simulation (for time profiling purpose mainly) is also provided in
+the [`tools/benchmark/time_dpa.py`](https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/tools/benchmark/time_dpa.py). 
+This script use some of the `tools` facilities to automatically generate CBSDs in urban 
+aread and is a good example on how to develop more fancy DPA related simulations.
+
 
 ## Copyrights and Disclaimers
 

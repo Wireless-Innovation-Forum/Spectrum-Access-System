@@ -86,7 +86,7 @@ def DpaProtectionPoints(dpa_name, dpa_geometry, protection_points_method=None):
           min_dist_back_zone_pts_km: Minimum distance between back zone points (km).
         Example of encoding:
           'default (200,50,20,5)'
-        Note the default values are (25, 10, 10, 5, 40, 0.2, 2, 0.2, 2)
+        Note the default values are (25, 10, 10, 5, 40, 0.2, 1, 0.5, 3)
         Only the passed parameters will be redefined.
         The result are only approximate (actual distance and number of points may differ).
       + other 'my_method(p1, p2, ..pk)': The 'my_method` will be used, and passing to it
