@@ -11,10 +11,10 @@ The code is organized in 2 main files:
   - `dpa_mgr.py`: the DPA manager code wrapping the move list code.
   - `move_list.py`: the move list and interference check calculation code.
 
-A third file `dpa_builder.py` is provided for eventually plugging a custom builder for
-the DPA protected points.
+A third file `dpa_builder.py` is provided for managing the protected points distribution within
+the DPA and eventually plugging a custom builder.
 
-### DPA manager
+### DPA Manager
 
 The DPA manager provides a `Dpa` class for managing fully a DPA, along with a `BuildDpa()`
 factory routine for building a DPA from basic information.
@@ -66,7 +66,7 @@ Notes:
  - the `dpa_mgr` module uses multiprocessing to speed up calculation, using the common 
  mpool facility.
 
-### Move List (move_list.py)
+### Move List
 
 The main routines are:
  
@@ -81,7 +81,7 @@ is required. Note that a legacy `findMoveList()` is provided as well as it was u
 early NIST simulation, as examplified in the `move_list_example.py` file.
 
 
-### DPA builder
+### DPA Builder
 
 The DPA builder is automatically used by the `BuildDpa()` routine. It provides ability
 to load the protected points from a specified json file (use an absolute path or a 
@@ -90,7 +90,7 @@ relative path to your script).
 It also provides a simple `default` builder that performs a distribution of points 
 within the DPA with a simple strategy:
 
-- divide the DPA in 4 entities: front border, front zone, back border, back zone
+  - divide the DPA in 4 entities: front border, front zone, back border, back zone
   - distribute points along the 2 borders in a linear fashion, and within the 2 zones
   in a grid fashion. The number of points can be specified for each.
   - the division of front to back is done by cutting the DPA with an expanded US border. 
