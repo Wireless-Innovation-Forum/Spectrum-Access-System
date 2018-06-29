@@ -581,7 +581,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     frequency_range = grant_a['operationParam']['operationFrequencyRange']
     dpa_1 = {
-        'dpaId': 'East4',
+        'dpaId': 'East3',
         'frequencyRange': {
             'lowFrequency': frequency_range['lowFrequency'],
             'highFrequency': frequency_range['highFrequency']
