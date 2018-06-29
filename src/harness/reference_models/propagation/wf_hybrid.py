@@ -230,6 +230,10 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   height_cbsd_eff = ehata.CbsdEffectiveHeights(height_cbsd, its_elev)
   internals['effective_height_cbsd'] = height_cbsd_eff
 
+  # Get the distance
+  dist_km = internals['dist_km']
+  if not return_internals: internals = None
+
   # Use ITM if CBSD effective height greater than 200 m
   if height_cbsd_eff >= 200:
     return _BuildOutput(db_loss_itm, incidence_angles, internals,
@@ -241,7 +245,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   elif region == 'SUBURBAN':
     region_code = 22
   else:  # 'RURAL': use ITM
-    if not return_internals: return_internals = None
     return _BuildOutput(db_loss_itm, incidence_angles, internals,
                         HybridMode.ITM_RURAL, cbsd_indoor)
 
@@ -249,9 +252,6 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   offset_median_to_mean = _GetMedianToMeanOffsetDb(freq_mhz, region == 'URBAN')
 
   # Now process the different cases
-  dist_km = internals['dist_km']
-  if not return_internals: return_internals = None
-
   if dist_km <= 0.1:  # Use Free Space Loss
     db_loss = CalcFreeSpaceLoss(dist_km, freq_mhz, height_cbsd, height_rx)
     return _BuildOutput(db_loss, incidence_angles, internals,
