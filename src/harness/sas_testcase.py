@@ -506,5 +506,4 @@ class SasTestCase(unittest.TestCase):
     self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
-                                                                                                                                           504,3   
-  
+						
