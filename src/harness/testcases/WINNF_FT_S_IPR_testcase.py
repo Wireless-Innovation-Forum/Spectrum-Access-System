@@ -1104,22 +1104,22 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
   @configurable_testcase(generate_IPR_7_default_config)
   def test_WINNF_FT_S_IPR_7(self, config_filename):
     config = loadConfig(config_filename)
-    self.assertValidConfig(
-        config, {
-            'dpaDatabaseConfig': dict,
-            'sasTestHarnessConfigs': list,
-            'domainProxies': list
-        }, {
-            'escDpa': dict,
-            'portalDpa': dict
-        })
-    self.assertValidConfig(
-        config['dpaDatabaseConfig'], {
-            'hostName': basestring,
-            'port': int,
-            'fileUrl': basestring,
-            'filePath': basestring
-        })
+    self.assertValidConfig(config, {
+        'sasTestHarnessConfigs': list,
+        'domainProxies': list
+    }, {
+        'dpaDatabaseConfig': dict,
+        'escDpa': dict,
+        'portalDpa': dict
+    })
+    if 'dpaDatabaseConfig' in config:
+      self.assertValidConfig(
+          config['dpaDatabaseConfig'], {
+              'hostName': basestring,
+              'port': int,
+              'fileUrl': basestring,
+              'filePath': basestring
+          })
     using_esc_dpa = 'escDpa' in config
     using_portal_dpa = 'portalDpa' in config
     self.assertTrue(
@@ -1134,6 +1134,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           msg=
           'For OOB ESC-monitored DPAs, we only compute the move list and check aggregate interference for 3540-3550 MHz.'
       )
+    else:
+      self.assertIn('dpaDatabaseConfig', config)
 
     dpa_config = config['escDpa'] if using_esc_dpa else config['portalDpa']
     self.assertEqual(
@@ -1255,10 +1257,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     logging.info('Step 9, 12, + CHECK: DPA aggregate interference check.')
     logging.info('Checking DPA %s', dpa_config)
+    dpa_filename = config['dpaDatabaseConfig'][
+        'filePath'] if using_portal_dpa else None
     dpa = dpa_mgr.BuildDpa(
         dpa_config['dpaId'],
         dpa_config['points_builder'],
-        portal_dpa_filename=config['dpaDatabaseConfig']['filePath'])
+        portal_dpa_filename=dpa_filename)
     low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
     high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
     dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
@@ -1279,3 +1283,5 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     if dpa_database_server:
       del dpa_database_server
+     
+    
