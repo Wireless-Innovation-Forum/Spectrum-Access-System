@@ -3,10 +3,10 @@
 This folder holds all scripts used to retrieve and preprocess data used in the
 SAS reference implementation.
 
-## Geo Data for propagation models
+## Geo Data for propagation models and census
 
-The geo data used by propagation models are stored in Git LFS (Large File Storage)
-on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/SAS-Data).
+The geo data used by propagation models (as well as the census tract data) are stored 
+in Git LFS (Large File Storage) on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/SAS-Data).
 
 ### Integration
 
@@ -19,6 +19,7 @@ The process to plug the data into the environment is:
    + create soft links for:
       * `data/geo/ned` -> `SAS_Data/ned`
       * `data/geo/nlcd` -> SAS_Data/nlcd`
+      * `data/census_tracts` -> SAS_Data/census
    + or modify geo pointers in file `reference_models/geo/CONFIG.py`
 
 ### Process for creating NED terrain database
@@ -61,38 +62,26 @@ build NLCD tiles only where corresponding NED tile are available.
 So this process shall be done after a snapshot of the NED terrain tile is built.
       
 
-### Retrieval of census_tracts from USGS FTP site
+### Process for recreating census tract GeoJSON
 
-Retrieval of a census tracts of the year 2010 from USGS FTP site can be done using
-the script `extract_census_tracts_json.py`. They will be put in a directory `Spectrum-Access-System/data/census`.
-Split the census tracts of GeoJSON into individual files in the directory `Spectrum-Access-System/data/census_tracts`.
+There are three steps to recreate the census tract GeoJSON database as follows:
 
-There are three steps to retrieval of complete census tracts as follows:
   1. Download all original census tract data from the USGS web site. 
-    <pre>
-    <code>
-    <b>(For ex: $ python extract_census_tracts_json.py --retrieve)</b>
-    <b>Spectrum-Access-System/data/census</b> will be created and download all the original census tract data into this
-    directory
-    </pre>
-    </code>
-  2. Convert the shape file to GeoJSON.
-    <pre>
-    <code>
-    <b>(For ex: $ python extract_census_tracts_json.py --convert)</b>
-    <b>Spectrum-Access-System/data/census</b> will be used to convert shape file to GeoJSON file. Converted GeoJSON file
-    will dumped into the same directory.
-    </pre>
-    </code>
+       `$ python extract_census_tracts_json.py --retrieve`
+    `Spectrum-Access-System/data/census` will be created and all original census tract 
+    shapefile will be downloaded into this directory. Note that the current GitHub 
+    repository provide that directory with the original files from 2010 Census, so this
+    step is unnecessary.
+
+  2. Convert the shape files to GeoJSON.
+       `$ python extract_census_tracts_json.py --convert`
+    The shapefile from directory `Spectrum-Access-System/data/census` will be converted
+    to GeoJSON file within the same directory.
+
   3. Split the GeoJSON file into individual census tract files based on GEOID.
-    <pre>
-    <code>
-    <b>(For ex: $ python extract_census_tracts_json.py --split)</b>
-    <b>Spectrum-Access-System/data/census_tracts</b> will be created and considered for dumping the all GeoJSON files 
-    that are split individual GeoJSON per GEOID from converted GeoJSON file.
-    will dumped into the same directory.
-    </pre>
-    </code>
+       `$ python extract_census_tracts_json.py --split`
+    The converted census tract files will be split in individual GeoJSON tract file
+    and dumped into the `Spectrum-Access-System/data/census_tracts` directory.
 
 #### Usage and Sample Output
    <pre>
@@ -105,52 +94,49 @@ There are three steps to retrieval of complete census tracts as follows:
        --retrieve  Download original census tract data from the USGS web site.
        --convert   Convert the shape file to GeoJSON.
        --split     Split census tract files into individual based on FISP code.
-   usage: extract_census_tracts_json.py [-h] (--retrieve | --convert | --split)
-
-   optional arguments:
-       -h, --help  show this help message and exit
-       --retrieve  Download original census tract data from the USGS web site.
-       --convert   Convert the shape file to GeoJSON.
-       --split     Split census tract files into individual based on FISP code.
    </pre>
    </code>
   
-   1. <b> output for --convert option </b>
-   <pre>
-   <code>
-   <b> $ python extract_census_tracts_json.py --convert </b>
-       Namespace(convert=True, retrieve=False, split=False)
-       All census tracts will be converted into GeoJSON and placed in directory:<b>/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_test</b>
-       Convert the ShapelyFile to GeoJson format
-       Found 7 zip files to translate
-       Processing shp file tl_2010_02_tract10
-       ['tl_2010_02_tract10.shp']
-    
-   <b>tl_2010_02_tract10.shp was converted to tl_2010_02_tract10.json.</b>
-   </pre>
-   </code>
-   
-   2. <b> output for --split option </b>
-   <pre>
-   <code>
-   <b> $ python extract_census_tracts_json.py --split </b>
-       Namespace(convert=False, retrieve=False, split=True)
-       
-       All census tracts will be splited into single file based on FISP code placed in directory:
-       <b>/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts</b>
 
-       Splitting files...
-       
-       <b>census_tract of fispCode:02013000100 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02013000100.json successfully</b>
-       census_tract of fispCode:02016000200 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02016000200.json successfully
-       census_tract of fispCode:02016000100 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02016000100.json successfully
-       census_tract of fispCode:02240000100 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02240000100.json successfully
-       .
-       .
-       .
-       census_tract of fispCode:02020002823 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02020002823.json successfully
-       <b>census_tract of fispCode:02020002900 record split to the file:/home/cbrsdev/WINNF-GitHub/Spectrum-Access-System/data/census_tracts/02020002900.json successfully</b>
-   </pre>
-   </code>
+## Border related geo data
 
-**Section to be completed**.
+US border related geo data are used in various SAS operation such as US-Canada border 
+protection or rejection of CBSD registration outside of US territory.
+
+### Retrieving data
+
+The required data is retrieved using the scripts:
+
+ - `retrieve_fcc_files.py`: Retrieves the US-Mexican and US-Canada original file from
+ FCC online database. Note: Since recently, the US-canada file is no more available 
+ from the FCC site, and the retrieval of that file has been disabled (commented out).
+
+ - `retrieve_noaa_files.py`: Retrieves the NOAA files about maritime boundaries.
+ 
+
+### Pre-Processing US-Canada border
+
+The US-Canada border is processed by the following scripts in order:
+
+ - `uscabdry.py`: Takes the `uscabdry.kmz` file holding a set of independent geometries, 
+ and convert it into a clean `uscabdry.kml` file holding a single LineString geometry with
+ all duplication and artifacts removed.
+ 
+ - `resample_uscabdry.py`: Takes the `uscabdry.kml` file obtained by previous step and 
+ produces a `uscabdry_resampled.kml` file where  new vertices are added in order to have 
+ no more than 200m between 2 consecutive vertices. 
+ The generated KML file is suitable for deterministic characterization of closest border 
+ points by simple selection of closest vertex, as required by border protection reference 
+ model.
+ 
+
+### Forming the general US border file
+
+The general `usborder.kml` file is created by the script `usborder.py` which blends
+together the following KML/KMZ files:
+ 
+  - `data/fcc/uscabdry_resampled.kml`: the refined US-Canada border.
+  - `data/fcc/us_mex_boundary_kmz`: the US-Mexico border.
+  - 'data/noaa/USMaritimeLimitsAndBoundariesKML.kmz`: The maritime boundaries.
+  
+
