@@ -138,7 +138,7 @@ class MeasurementTestcase(unittest.TestCase):
   @winnforum_testcase
   def test_WINNF_FT_S_MES_2(self):
     """The sas under test to request measurement reporting
-    Register cbsds 6 CBSDs with measCapability make sure the SAS request 
+    Register cbsds 5 CBSDs with measCapability make sure the SAS request 
     The measurement report config after for heartbeat.
     """
 
@@ -175,7 +175,7 @@ class MeasurementTestcase(unittest.TestCase):
         if 'measReportConfig' in resp:
             self.assertFalse('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
         cbsd_ids.append(resp['cbsdId'])
-    # Check if SAS ask meas_report for the sixth device
+    # Check if SAS ask meas_report for the fifth device
     ask_meas_report = False
     if 'measReportConfig' in response[4] and 'RECEIVED_POWER_WITHOUT_GRANT' in response[4]['measReportConfig']:
         ask_meas_report = True
@@ -187,7 +187,7 @@ class MeasurementTestcase(unittest.TestCase):
         grant = json.load(
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant['cbsdId'] = cbsd_id
-        # Add meas_report for the sixth device if needed
+        # Add meas_report for the fifth device if needed
         if grant['cbsdId'] == cbsd_ids[4] and ask_meas_report:
             meas_report = json.load(
                 open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
