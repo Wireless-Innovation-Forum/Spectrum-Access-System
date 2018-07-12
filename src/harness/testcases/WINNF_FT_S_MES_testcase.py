@@ -151,11 +151,9 @@ class MeasurementTestcase(unittest.TestCase):
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_f = json.load(
         open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_g = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_g.json')))
     device_i = json.load(
         open(os.path.join('testcases', 'testdata', 'device_i.json')))
-    devices = [device_a, device_c, device_e, device_f, device_g, device_i]
+    devices = [device_a, device_c, device_e, device_f, device_i]
 
     for device in devices:
         device['measCapability'] = ['RECEIVED_POWER_WITH_GRANT']
@@ -170,7 +168,7 @@ class MeasurementTestcase(unittest.TestCase):
     request = {'registrationRequest': devices}
     response = self._sas.Registration(request)['registrationResponse']
     # Check registration response
-    self.assertEqual(len(response), 6)
+    self.assertEqual(len(response), 5)
     for resp in response:
         self.assertTrue('cbsdId' in resp)
         self.assertEqual(resp['response']['responseCode'], 0)
@@ -179,10 +177,10 @@ class MeasurementTestcase(unittest.TestCase):
         cbsd_ids.append(resp['cbsdId'])
     # Check if SAS ask meas_report for the sixth device
     ask_meas_report = False
-    if 'measReportConfig' in response[5] and 'RECEIVED_POWER_WITHOUT_GRANT' in response[5]['measReportConfig']:
+    if 'measReportConfig' in response[4] and 'RECEIVED_POWER_WITHOUT_GRANT' in response[4]['measReportConfig']:
         ask_meas_report = True
-
     del request, response
+
     # Request grant
     grant_request = []
     for cbsd_id in cbsd_ids:
@@ -190,7 +188,7 @@ class MeasurementTestcase(unittest.TestCase):
             open(os.path.join('testcases', 'testdata', 'grant_0.json')))
         grant['cbsdId'] = cbsd_id
         # Add meas_report for the sixth device if needed
-        if grant['cbsdId'] == cbsd_ids[5] and ask_meas_report:
+        if grant['cbsdId'] == cbsd_ids[4] and ask_meas_report:
             meas_report = json.load(
                 open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
             grant['measReport'] =  {'rcvdPowerMeasReports': meas_report}
@@ -206,10 +204,10 @@ class MeasurementTestcase(unittest.TestCase):
         self.assertEqual(resp['response']['responseCode'], 0)
         grant_ids.append(resp['grantId'])
     del request, response
-    
+
     # Trigger to request measurement report for all subsequent heartbeat request
     self._sas_admin.TriggerMeasurementReportHeartbeat()
-    
+
     # First heartbeat without measReport
     heartbeat_request = []
     for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
@@ -251,8 +249,8 @@ class MeasurementTestcase(unittest.TestCase):
         # Delete rcvdPowerMeasReports for 4th device
         elif cbsd_id == cbsd_ids[3]:
             del heartbeat_request['measReport']['rcvdPowerMeasReports']
-        # Delete measReport for devices 5 and 6
-        elif cbsd_id in (cbsd_ids[4], cbsd_ids[5]):
+        # Delete measReport for 5th device
+        elif cbsd_id == cbsd_ids[4]:
             del heartbeat_request['measReport']
         heartbeat_requests.append(heartbeat_request)
 
@@ -263,5 +261,4 @@ class MeasurementTestcase(unittest.TestCase):
     self.assertEqual(response[1]['response']['responseCode'], 102)
     self.assertEqual(response[2]['response']['responseCode'], 103)
     self.assertEqual(response[3]['response']['responseCode'], 102)
-    self.assertEqual(response[4]['response']['responseCode'], 102)
-    self.assertEqual(response[5]['response']['responseCode'], 0)
+    self.assertEqual(response[4]['response']['responseCode'], 0)
