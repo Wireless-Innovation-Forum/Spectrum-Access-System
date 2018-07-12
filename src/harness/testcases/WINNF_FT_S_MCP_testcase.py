@@ -391,13 +391,12 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     logging.info('Step 10: Triggering CPAS.')
     self.cpas = self.cpas_executor.submit(self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete)
 
-    if self.num_peer_sases:
-      # Step 11: Invoke IAP reference model
-      logging.info('Step 11: Performing pre-IAP filtering.')
-      pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
-                                     self.sas_uut_fad, self.test_harness_fads)
-      logging.info('Step 11: Performing IAP.')
-      self.performIap()
+    # Step 11: Invoke IAP reference model
+    logging.info('Step 11: Performing pre-IAP filtering.')
+    pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
+                                   self.sas_uut_fad, self.test_harness_fads)
+    logging.info('Step 11: Performing IAP.')
+    self.performIap()
 
     # Step 12: Invoke DPA ML reference model for currently-active and
     # will-be-active DPAs.
