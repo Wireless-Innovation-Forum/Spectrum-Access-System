@@ -80,12 +80,24 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Load Grant requests
     grant_request_1 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
+    grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
+
     grant_request_2 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
+    grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
+    
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
+    grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
+
+
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
+    grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
     # device_b and device_d are Category B
     # Load Conditional Data
