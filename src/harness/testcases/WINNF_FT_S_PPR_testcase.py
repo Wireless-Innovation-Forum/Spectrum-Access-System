@@ -93,7 +93,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-
     grant_request_4 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
