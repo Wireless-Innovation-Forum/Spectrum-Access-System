@@ -69,16 +69,19 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     """Resets the SAS UUT to its initial state."""
     self._sas_admin.Reset()
 
-  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
-    """Checks that the TLS handshake succeed with the given parameters.
+  def doTlsHandshake(self, base_url, client_cert, client_key,
+                     ciphers, ssl_method):
+    """Reports the success or failure of a TLS handshake.
 
-    Attempts to establish a TLS session with the given |base_url|, using the
-    given |ciphers| list and the given certificate key pair.
-    Checks that he SAS UUT response must satisfy all of the following conditions:
-    - The SAS UUT agrees to use a cipher specified in the |ciphers| list
-    - The SAS UUT agrees to use TLS Protocol Version 1.2
-    - Valid Finished message is returned by the SAS UUT immediately following
-      the ChangeCipherSpec message
+    Args:
+      base_url: Target host (defaults to port 443) or host:port.
+      client_cert: Filename of the client certificate file in PEM format.
+      client_key: Filename of the PEM-formatted key to use with |client_cert|.
+      ciphers: List of cipher method strings.
+      ssl_method: OpenSSL.SSL.*_METHOD value to use.
+
+    Returns:
+      True if the handshake succeeded, or False if it failed.
     """
     url = urlparse.urlparse('https://' + base_url)
     client = socket.socket()
@@ -92,7 +95,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     logging.debug('TLS handshake: certificate_chain_file=%s',
                   self._sas._tls_config.ca_cert)
 
-    ctx = SSL.Context(SSL.TLSv1_2_METHOD)
+    ctx = SSL.Context(ssl_method)
     ctx.set_cipher_list(':'.join(ciphers))
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
@@ -120,28 +123,58 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
+      handshake_ok = True
     except SSL.Error as e:
-      logging.exception('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
-      raise AssertionError('TLS handshake: failure: %s' % e.message)
+      logging.debug('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
+      handshake_ok = False
     finally:
       client_ssl.close()
 
     self.assertEqual(client_ssl.get_cipher_list(), ciphers)
-    self.assertEqual(client_ssl.get_protocol_version_name(), 'TLSv1.2')
 
-    # tricky part: exact logged message depends of the version of openssl...
-    cipher_check_regex = re.compile(r"change.cipher.spec", re.I)
-    finished_check_regex = re.compile(r"negotiation finished|finish_client_handshake", re.I)
-    def findIndexMatching(array, regex):
-      for i, x in enumerate(array):
-        if regex.search(x):
-          return i
-      return -1
-    cipher_check_idx = findIndexMatching(client_ssl_informations, cipher_check_regex)
-    finished_check_idx = findIndexMatching(client_ssl_informations, finished_check_regex)
-    self.assertTrue(cipher_check_idx > 0)
-    self.assertTrue(finished_check_idx > 0)
-    self.assertTrue(finished_check_idx > cipher_check_idx)
+    known_ssl_methods = {
+        SSL.TLSv1_1_METHOD: 'TLSv1.1',
+        SSL.TLSv1_2_METHOD: 'TLSv1.2',
+    }
+    self.assertEqual(client_ssl.get_protocol_version_name(),
+                     known_ssl_methods[ssl_method])
+
+    if handshake_ok:
+      # tricky part: exact logged message depends of the version of openssl...
+      cipher_check_regex = re.compile(
+          r"change.cipher.spec", re.I)
+      finished_check_regex = re.compile(
+          r"negotiation finished|finish_client_handshake", re.I)
+      def findIndexMatching(array, regex):
+        for i, x in enumerate(array):
+          if regex.search(x):
+            return i
+        return -1
+      cipher_check_idx = findIndexMatching(
+          client_ssl_informations, cipher_check_regex)
+      finished_check_idx = findIndexMatching(
+          client_ssl_informations, finished_check_regex)
+      self.assertTrue(cipher_check_idx > 0)
+      self.assertTrue(finished_check_idx > 0)
+      self.assertTrue(finished_check_idx > cipher_check_idx)
+
+    return handshake_ok
+
+  def assertTlsHandshakeSucceed(self, base_url, ciphers, client_cert, client_key):
+    """Checks that the TLS handshake succeed with the given parameters.
+
+    Attempts to establish a TLS session with the given |base_url|, using the
+    given |ciphers| list and the given certificate key pair.
+    Checks that he SAS UUT response must satisfy all of the following conditions:
+    - The SAS UUT agrees to use a cipher specified in the |ciphers| list
+    - The SAS UUT agrees to use TLS Protocol Version 1.2
+    - Valid Finished message is returned by the SAS UUT immediately following
+      the ChangeCipherSpec message
+    """
+    self.assertTrue(
+        self.doTlsHandshake(base_url, client_cert, client_key, ciphers,
+                            SSL.TLSv1_2_METHOD),
+        "Handshake failed unexpectedly")
 
   def doCbsdTestCipher(self, cipher, client_cert, client_key):
     """Does a cipher test as described in SCS/SDS tests 1 to 5 specification.
@@ -194,49 +227,22 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_cert: client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the
         given |client_cert|.
-      ciphers: optional cipher method
+      ciphers: optional cipher method. TODO: Rename to 'cipher'.
       ssl_method: optional ssl_method
     """
-    url = urlparse.urlparse('https://' + self._sas_admin._base_url)
-    client = socket.socket()
-    client.connect((url.hostname, url.port or 443))
-    logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
-    logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
-                  url.port or 443)
-    logging.debug('TLS handshake: privatekey_file=%s', client_key)
-    logging.debug('TLS handshake: certificate_file=%s', client_cert)
-    if ssl_method is not None:
-      ctx = SSL.Context(ssl_method)
+    if ciphers is None:
+      ciphers = [self._sas._tls_config.ciphers[0]]
+      self.assertEqual(ciphers, ['AES128-GCM-SHA256'])
     else:
-      ctx = SSL.Context(SSL.TLSv1_2_METHOD)
-    if ciphers is not None:
-      ctx.set_cipher_list(ciphers)
-    else:
-      # cipher 'AES128-GCM-SHA256' will be added by default if cipher arg is passed as None
-      ctx.set_cipher_list(self._sas._tls_config.ciphers[0])
+      ciphers = [ciphers]
 
-    ctx.use_certificate_file(client_cert)
-    ctx.use_privatekey_file(client_key)
+    if ssl_method is None:
+      ssl_method = SSL.TLSv1_2_METHOD
 
-    client_ssl_informations = []
-    def _InfoCb(conn, where, ok):
-      client_ssl_informations.append(conn.get_state_string())
-      logging.debug('TLS handshake info: %d|%d %s', where, ok, conn.get_state_string())
-      return ok
-    ctx.set_info_callback(_InfoCb)
-
-    client_ssl = SSL.Connection(ctx, client)
-    client_ssl.set_connect_state()
-    client_ssl.set_tlsext_host_name(url.hostname)
-
-    try:
-      client_ssl.do_handshake()
-      logging.debug('TLS handshake: succeed')
-      self.fail(msg="TLS Handshake is success. but Expected:TLS handshake failure")
-    except SSL.Error as e:
-      self.assertEquals(client_ssl.get_peer_finished(), None)
-    finally:
-      client_ssl.close()
+    self.assertFalse(
+        self.doTlsHandshake(self._sas_admin._base_url, client_cert, client_key,
+                            ciphers, ssl_method),
+        "Handshake succeeded unexpectedly")
 
   def assertTlsHandshakeFailureOrHttp403(self, client_cert, client_key, ciphers=None, ssl_method=None, is_sas=False):
     """
@@ -247,7 +253,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       client_cert: client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the
         given |client_cert|.
-      ciphers: optional cipher method
+      ciphers: optional cipher method. TODO: Rename to 'cipher'.
       ssl_method: optional ssl_method
       is_sas: boolean to determine next request
     """
