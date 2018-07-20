@@ -1257,7 +1257,7 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         cbsd_ids_g1.append(resp['cbsdId'])
 
     # If SAS UUT Responded with SUCCESS for Grant then Proceed with Relinquishment or else skip it
-    if len(grant_ids_g1):
+    if grant_ids_g1:
       # Step 6: Send relinquishment request for grant 'G1'
       relq_requests = {'relinquishmentRequest': []}
       for cbsd_id, grant_id in zip(cbsd_ids_g1, grant_ids_g1):
