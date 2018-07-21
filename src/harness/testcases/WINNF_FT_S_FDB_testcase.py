@@ -1256,22 +1256,25 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         grant_ids_g1.append(resp['grantId'])
         cbsd_ids_g1.append(resp['cbsdId'])
 
-    # Step 6: Send relinquishment request for grant 'G1'
-    relq_requests = {'relinquishmentRequest': []}
-    for cbsd_id, grant_id in zip(cbsd_ids_g1, grant_ids_g1):
-      # Update Relinquishment Request content
-      relq_requests['relinquishmentRequest'].append({
-        'cbsdId': cbsd_id,
-        'grantId': grant_id
-      })
-    relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
-    self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
+    # If SAS UUT Responded with SUCCESS for Grant then Proceed with Relinquishment or else skip it
+    if grant_ids_g1:
+      # Step 6: Send relinquishment request for grant 'G1'
+      relq_requests = {'relinquishmentRequest': []}
+      for cbsd_id, grant_id in zip(cbsd_ids_g1, grant_ids_g1):
+        # Update Relinquishment Request content
+        relq_requests['relinquishmentRequest'].append({
+          'cbsdId': cbsd_id,
+          'grantId': grant_id
+        })
+      relq_responses = self._sas.Relinquishment(relq_requests)['relinquishmentResponse']
+      self.assertEqual(len(relq_responses), len(relq_requests['relinquishmentRequest']))
 
-    # Check relinquishment response
-    for relq_resp in relq_responses:
-      self.assertEqual(relq_resp['response']['responseCode'], 0)
+      # Check relinquishment response
+      for relq_resp in relq_responses:
+        self.assertEqual(relq_resp['response']['responseCode'], 0)
 
-    del relq_requests, relq_responses
+      del relq_requests, relq_responses
+
     del grant_request_g1, grant_response_g1
 
     # TOD0
