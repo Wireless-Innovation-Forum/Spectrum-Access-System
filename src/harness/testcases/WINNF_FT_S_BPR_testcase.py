@@ -251,6 +251,14 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
 
     for i, index in enumerate(
         index_of_devices_with_success_registration_response):
+      logging.info('Looking at Grant response number: %d', i)
+      if (config['grantRequests'][i]['operationParam']
+          ['operationFrequencyRange']['highFrequency'] < 3650e6):
+        logging.info(
+            'Grant is not subject to Arrangement R because it does not overlap '
+            'with 3650-3700 MHz.')
+        continue
+
       if 'installationParam' in config['registrationRequests'][index]:
         cbsd_information = config['registrationRequests'][index]
       else:
@@ -260,7 +268,6 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
                   config['registrationRequests'][index]['cbsdSerialNumber'] ==
                   conditional['cbsdSerialNumber']):
             cbsd_information = conditional
-      logging.info('Looking at Grant response number: %d', i)
       cbsd_lat = cbsd_information['installationParam']['latitude']
       cbsd_lon = cbsd_information['installationParam']['longitude']
       cbsd_ant_azi = cbsd_information['installationParam']['antennaAzimuth']
