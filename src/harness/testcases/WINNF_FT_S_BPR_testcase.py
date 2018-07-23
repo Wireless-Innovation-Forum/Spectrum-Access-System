@@ -253,7 +253,7 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
         index_of_devices_with_success_registration_response):
       logging.info('Looking at Grant response number: %d', i)
       if (config['grantRequests'][i]['operationParam']
-          ['operationFrequencyRange']['highFrequency'] < 3650e6):
+          ['operationFrequencyRange']['highFrequency'] <= 3650e6):
         logging.info(
             'Grant is not subject to Arrangement R because it does not overlap '
             'with 3650-3700 MHz.')
