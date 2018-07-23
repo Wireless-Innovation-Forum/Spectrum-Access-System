@@ -630,8 +630,8 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessName': 'SAS-TH-1',
         'hostName': getFqdnLocalhost(),
         'port': getUnusedPort(),
-        'serverCert': "certs/server.cert",
-        'serverKey': "certs/server.key",
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
         'caCert': "certs/ca.cert"
     }
     # Generate FAD Records for each record type like cbsd,zone and esc_sensor
