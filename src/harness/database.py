@@ -108,6 +108,12 @@ class DatabaseServer(threading.Thread):
     logging.info('Shutting down Database Server:%s at %s', self.name,
                  self.address)
 
+  def shutdown(self):
+    """This method is used to stop HTTPServer Socket."""
+    self.stopped = True
+    self.server.shutdown()
+    logging.info('Stopped Database Server:%s', self.name)
+
   def setFileToServe(self, file_url, file_path):
     """Remove existing path mappings and set a single file url to path mapping.
 

@@ -20,6 +20,7 @@ import os
 from reference_models.common import mpool
 from functools import partial
 import logging
+import threading
 import sas
 import sas_testcase
 import test_harness_objects
@@ -822,7 +823,11 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    logging.info('Stopping all running servers, if any')
+    for thread in threading.enumerate():
+      if 'shutdown' in dir(thread):
+        logging.info('Stopping %s' % thread.name)
+        thread.shutdown()
 
   def generate_MCP_1_default_config(self, filename):
     """ Generates the WinnForum configuration for MCP.1. """

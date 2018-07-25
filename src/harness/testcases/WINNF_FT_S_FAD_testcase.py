@@ -17,6 +17,7 @@ import copy
 import hashlib
 import json
 import os
+import threading
 import common_strings
 import sas
 import sas_testcase
@@ -38,7 +39,11 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    logging.info('Stopping all running servers, if any')
+    for thread in threading.enumerate():
+      if 'shutdown' in dir(thread):
+        logging.info('Stopping %s' % thread.name)
+        thread.shutdown()
 
   def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, registration_request,\
                                                      preloaded_conditionals, record):

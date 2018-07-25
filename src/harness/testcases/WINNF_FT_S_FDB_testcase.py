@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import sas
+import threading
 import sas_testcase
 from database import DatabaseServer
 from datetime import date, datetime, time, timedelta
@@ -44,7 +45,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    logging.info('Stopping all running servers, if any')
+    for thread in threading.enumerate():
+      if 'shutdown' in dir(thread):
+        logging.info('Stopping %s' % thread.name)
+        thread.shutdown()
 
   def generate_FDB_1_default_config(self, filename):
     """Generates the WinnForum configuration for FDB.1"""
