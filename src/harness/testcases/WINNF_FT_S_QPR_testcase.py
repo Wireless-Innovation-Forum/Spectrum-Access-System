@@ -440,7 +440,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
                grant_request_n1[i]['operationParam']
                ['operationFrequencyRange']['lowFrequency']) / 1.e6
         logging.info('Grant 1 Bandwidth: %f', bw1)
-        grant1_eirp = (10**(p1/10)) * bw1
+        grant1_eirp = (10**(p1/10.0)) * bw1
         logging.info('Grant 1 EIRP is %f', grant1_eirp)
 
       grant2_eirp = 0
@@ -452,7 +452,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
                grant_request_n2[i]['operationParam']
                ['operationFrequencyRange']['lowFrequency']) / 1.e6
         logging.info('Grant 2 Bandwidth: %f', bw2)
-        grant2_eirp = (10**(p2/10)) * bw2
+        grant2_eirp = (10**(p2/10.0)) * bw2
         logging.info('Grant 2 EIRP is %f', grant2_eirp)
 
       # Step 4: Calculate Total Interference
@@ -842,7 +842,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
              config['grantRequest1']['operationParam']
              ['operationFrequencyRange']['lowFrequency']) / 1.e6
       logging.info('Grant 1 Bandwidth: %f', bw1)
-      grant1_eirp = (10**(p1/10)) * bw1
+      grant1_eirp = (10**(p1/10.0)) * bw1
       logging.info('Grant 1 nominal EIRP is %f', grant1_eirp)
 
     grant2_eirp = 0
@@ -854,7 +854,7 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
              config['grantRequest2']['operationParam']
              ['operationFrequencyRange']['lowFrequency']) / 1.e6
       logging.info('Grant 2 Bandwidth: %f', bw2)
-      grant2_eirp = (10**(p2/10)) * bw2
+      grant2_eirp = (10**(p2/10.0)) * bw2
       logging.info('Grant 2 nominal EIRP is %f', grant2_eirp)
 
     # Step 4: Calculate Total EIRP
