@@ -237,7 +237,6 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
       continue
 
     name = element.name.text
-    if name == 'Hawaii6': continue
     # Read the zone geometry
     geometry = None
     polygons = [_GetPolygon(poly)
