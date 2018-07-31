@@ -79,7 +79,6 @@ def ReadKMZ(filename):
       doc = parser.parse(kml_file).getroot()
       return doc
 
-
 # This function reads the KML file provided and returns the parsed
 # KML content. The file is assumed to be a .kml file.
 def ReadKML(filename):
@@ -423,10 +422,19 @@ longSplicedStrings = SpliceLists(shortSplicedStrings, .3)
 # have a couple largish gaps, so use a big threshold.
 lineStrings = CloseRings(longSplicedStrings, 1)
 
-# Reverse rings if necessary.
-for ls in lineStrings:
-  if ls[0] != ls[-1]:
-    print 'NOT A RING!'
+def FixAntiMeridianPolygon(ls):
+  """Detects and fix a 180deg crossing polygon.
+
+  Args:
+    ls: a linestring as a list of 'lon,lat,alt' strings.
+
+  Returns:
+    None if not a anti-meridian polygon otherwise the western part linestring.
+
+  Side effects:
+    If detected anti-meridian, the given linestring is modified to be the easter
+    part.
+  """
   coords = []
   found_anti_meridian = False
   for c in ls:
@@ -435,12 +443,6 @@ for ls in lineStrings:
     if float(xy[0]) == 180:
       found_anti_meridian = True
   lr = LinearRing(coords)
-  if not lr.is_ccw:
-    print 'Reversing non-CCW ring'
-    r = list(reversed(ls))
-    del(ls[:])
-    ls.extend(r)
-
   polygon = Polygon(lr)
   # The invalid polygon is the case of Semisopochnoi Island, which
   # zone crosses the antimeridian.
@@ -448,12 +450,11 @@ for ls in lineStrings:
     print 'POLYGON IS NOT VALID! : %d' % len(ls)
     explain_validity(polygon)
     if found_anti_meridian:
-      print 'Polygon spans anti-meridian'
+      print 'Polygon spans anti-meridian - Splitting in 2'
       # To deal with this case, we'll split the zone into two pieces,
       # one of which is in the eastern hemisphere and one in the
       # western hemisphere. This is purely a tooling issue to make
       # the zone easier to manage with other software.
-      xy = ls[0].split(',')
       new_piece = []
       begin_anti_meridian = -1
       end_anti_meridian = -1
@@ -470,10 +471,41 @@ for ls in lineStrings:
             new_piece.append(new_piece[0])
         elif begin_anti_meridian >= 0 and end_anti_meridian == -1:
           new_piece.append(ls[i])
-      del ls[begin_anti_meridian+1 : end_anti_meridian-1]
-      lineStrings.append(new_piece)
- 
 
+      del ls[begin_anti_meridian+1 : end_anti_meridian]
+      return new_piece
+  return None
+
+# Split polygons crossing anti-meridians.
+for ls in lineStrings:
+  if ls[0] != ls[-1]:
+    print 'NOT A RING!'
+  new_ls = FixAntiMeridianPolygon(ls)
+  if new_ls is not None:
+    lineStrings.append(new_ls)
+
+# Reverse rings if necessary.
+for k, ls in enumerate(lineStrings):
+  coords = []
+  for c in ls:
+    xy = c.split(',')
+    coords.append([float(xy[0]), float(xy[1])])
+  lr = LinearRing(coords)
+  if not lr.is_ccw:
+    print 'Reversing non-CCW ring'
+    r = list(reversed(ls))
+    lineStrings[k] = r
+
+# Cleanup the coordinates to be rounded correctly with 9 precision numbers
+# (ie about 0.1mm)
+for k, ls in enumerate(lineStrings):
+  new_ls = []
+  for c in ls:
+    xy = c.split(',')
+    new_ls.append('%.9f,%.9f,0' % (float(xy[0]), float(xy[1])))
+  lineStrings[k] = new_ls
+
+# Create output KML  
 doc = KML.kml(
   KML.Document(
     KML.name('US Area'),

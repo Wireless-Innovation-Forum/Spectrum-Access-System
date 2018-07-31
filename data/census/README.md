@@ -19,7 +19,7 @@ in retrieve mode:
    `python extract_census_tracts_json.py --retrieve`
    
 These raw files are then post-process to extract census tracts into individual GeoJSON
-files as explained in the [script README description]((https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/src/data/README.md).
+files as explained in the [script README description](https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/src/data/README.md).
 
 The final generated GeoJSON files are provided as part of the 
 [SAS-Data repository](https://github.com/Wireless-Innovation-Forum/SAS-Data) in the 
