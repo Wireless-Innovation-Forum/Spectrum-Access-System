@@ -108,6 +108,7 @@ def _Request(url, request, config, is_post_method):
       'Host: %s' % urlparse.urlparse(url).hostname,
       'content-type: application/json'
   ]
+  http_timeout_secs = 300
   conn.setopt(
       conn.VERBOSE,
       3  # Improve readability.
@@ -119,6 +120,7 @@ def _Request(url, request, config, is_post_method):
   conn.setopt(conn.CAINFO, config.ca_cert)
   conn.setopt(conn.HTTPHEADER, header)
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
+  conn.setopt(conn.TIMEOUT, http_timeout_secs)
   request = json.dumps(request) if request else ''
   if is_post_method:
     conn.setopt(conn.POST, True)
