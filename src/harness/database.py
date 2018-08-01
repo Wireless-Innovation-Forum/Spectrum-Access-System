@@ -112,6 +112,7 @@ class DatabaseServer(threading.Thread):
     """This method is used to stop HTTPServer Socket."""
     self.stopped = True
     self.server.shutdown()
+    self.server.server_close()
     logging.info('Stopped Database Server:%s', self.name)
 
   def setFileToServe(self, file_url, file_path):
