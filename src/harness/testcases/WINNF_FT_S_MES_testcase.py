@@ -28,6 +28,7 @@ class MeasurementTestcase(unittest.TestCase):
 
   def tearDown(self):
     pass
+
   @winnforum_testcase
   def test_WINNF_FT_S_MES_1(self):
     """The sas under test to request measurement reporting

@@ -14,6 +14,7 @@
 
 from datetime import datetime, timedelta
 import logging
+import threading
 import time
 import unittest
 import sas
@@ -506,4 +507,11 @@ class SasTestCase(unittest.TestCase):
     self.assertTrue(self._sas_admin.GetPpaCreationStatus()['withError'],
                     msg='Expected:There is an error in create PPA. But '
                         'PPA creation status indicates no error')
-						
+
+
+  def ShutdownServers(self):
+    logging.info('Stopping all running servers, if any')
+    for thread in threading.enumerate():
+      if 'shutdown' in dir(thread):
+        logging.info('Stopping %s' % thread.name)
+        thread.shutdown()

@@ -16,8 +16,6 @@
 import json
 import os
 import sas
-import logging
-import threading
 import sas_testcase
 from sas_test_harness import generateCbsdRecords
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
@@ -32,11 +30,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    logging.info('Stopping all running servers, if any')
-    for thread in threading.enumerate():
-      if 'shutdown' in dir(thread):
-        logging.info('Stopping %s' % thread.name)
-        thread.shutdown()
+    self.ShutdownServers()
 
   def generate_FPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.1. """

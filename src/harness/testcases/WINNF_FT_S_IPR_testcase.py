@@ -17,7 +17,6 @@ import logging
 import json
 import os
 import sas
-import threading
 import sas_testcase
 import time
 
@@ -44,11 +43,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    logging.info('Stopping all running servers, if any')
-    for thread in threading.enumerate():
-      if 'shutdown' in dir(thread):
-        logging.info('Stopping %s' % thread.name)
-        thread.shutdown()
+    self.ShutdownServers()
 
   def frequencyInBand(self, low_frequency, high_frequency):
     """Returns True iff the given range overlaps with the 3550-3650MHz range."""

@@ -48,7 +48,6 @@ import os
 import time
 import sas
 import sas_testcase
-import threading
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent, configurable_testcase, writeConfig, \
@@ -62,11 +61,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    logging.info('Stopping all running servers, if any')
-    for thread in threading.enumerate():
-      if 'shutdown' in dir(thread):
-        logging.info('Stopping %s' % thread.name)
-        thread.shutdown()
+    self.ShutdownServers()
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_1(self):

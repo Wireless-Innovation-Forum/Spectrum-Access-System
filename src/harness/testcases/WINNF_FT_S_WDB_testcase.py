@@ -18,7 +18,6 @@ import logging
 import os
 import sas
 import sas_testcase
-import threading
 from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
   convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, \
@@ -33,11 +32,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    logging.info('Stopping all running servers, if any')
-    for thread in threading.enumerate():
-      if 'shutdown' in dir(thread):
-        logging.info('Stopping %s' % thread.name)
-        thread.shutdown()
+    self.ShutdownServers()
 
   def generate_WDB_1_default_config(self, filename):
     """Generates the WinnForum configuration for WDB.1"""
