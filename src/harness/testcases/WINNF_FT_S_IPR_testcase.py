@@ -1177,7 +1177,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
               config['dpaDatabaseConfig']['fileUrl']
       })
 
-    if 'runEarlyCpas' in config and config['runEarlyCpas']:
+    if using_portal_dpa and 'runEarlyCpas' in config and config['runEarlyCpas']:
       logging.info('Step 3: Triggering CPAS.')
       self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
     else:
