@@ -30,7 +30,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def generate_PPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for PPR.1. """

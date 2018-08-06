@@ -61,7 +61,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_1(self):

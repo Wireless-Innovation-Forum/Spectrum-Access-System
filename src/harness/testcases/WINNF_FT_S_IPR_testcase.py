@@ -43,7 +43,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def frequencyInBand(self, low_frequency, high_frequency):
     """Returns True iff the given range overlaps with the 3550-3650MHz range."""

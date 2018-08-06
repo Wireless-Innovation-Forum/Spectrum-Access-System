@@ -32,7 +32,7 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def generate_WDB_1_default_config(self, filename):
     """Generates the WinnForum configuration for WDB.1"""

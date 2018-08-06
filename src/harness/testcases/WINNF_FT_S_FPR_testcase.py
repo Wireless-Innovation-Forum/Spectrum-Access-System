@@ -30,7 +30,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def generate_FPR_1_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.1. """

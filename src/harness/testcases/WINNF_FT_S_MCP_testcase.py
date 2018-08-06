@@ -822,7 +822,7 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def generate_MCP_1_default_config(self, filename):
     """ Generates the WinnForum configuration for MCP.1. """

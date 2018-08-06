@@ -38,7 +38,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
     self._sas_admin.Reset()
 
   def tearDown(self):
-    pass
+    self.ShutdownServers()
 
   def assertEqualToDeviceOrPreloadedConditionalParam(self, attr_name, registration_request,\
                                                      preloaded_conditionals, record):

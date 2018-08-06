@@ -180,6 +180,7 @@ class SasTestHarnessServer(threading.Thread):
     """This method is used to stop HTTPServer Socket."""
     self.stopped = True
     self.server.shutdown()
+    self.server.server_close()
     logging.info('Stopped Test Harness Server:%s', self.name)
 
 
