@@ -285,7 +285,7 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
       logging.info('Closest point in the border: Lat is %f', closest_point_lat)
       logging.info('Closest point in the border: Long is %f', closest_point_lon)
       # requested_eirp (p)
-      p = config['grantRequests'][i]['operationParam']['maxEirp']
+      p = config['grantRequests'][index]['operationParam']['maxEirp']
       # Calculate PL
       cbsd_height = cbsd_information['installationParam']['height']
       cbsd_height_type = cbsd_information['installationParam']['heightType']
