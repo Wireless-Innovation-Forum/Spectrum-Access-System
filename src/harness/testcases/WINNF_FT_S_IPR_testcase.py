@@ -1098,6 +1098,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'sasTestHarnessConfigs': [sas_test_harness_config],
         'domainProxies': [domain_proxy],
         'portalDpa': portal_dpa,
+        'runEarlyCpas': False
     }
     writeConfig(filename, config)
 
@@ -1110,7 +1111,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }, {
         'dpaDatabaseConfig': dict,
         'escDpa': dict,
-        'portalDpa': dict
+        'portalDpa': dict,
+        'runEarlyCpas': bool
     })
     if 'dpaDatabaseConfig' in config:
       self.assertValidConfig(
@@ -1154,7 +1156,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       self._sas_admin.TriggerBulkDpaActivation({'activate': False})
     else:
       logging.info(
-          'Step 1: load portal-controlled DPAs (active by default). Step 2 is skipped.'
+          'Step 1: create portal-controlled DPA database. Step 2 is skipped.'
       )
       # Create DPA database server
       dpa_database_server = DatabaseServer(
@@ -1175,8 +1177,14 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
               config['dpaDatabaseConfig']['fileUrl']
       })
 
-    # Steps 3 & 4 can be interleaved.
-    logging.info('Steps 3 + 4: activate and configure SAS Test Harnesses.')
+    if using_portal_dpa and 'runEarlyCpas' in config and config['runEarlyCpas']:
+      logging.info('Step 3: Triggering CPAS.')
+      self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
+    else:
+      logging.info('Step 3: (skipped).')
+
+    # Steps 4 & 5 can be interleaved.
+    logging.info('Steps 4 + 5: activate and configure SAS Test Harnesses.')
     test_harnesses = []
     for test_harness_config in config['sasTestHarnessConfigs']:
       # Create test harness, notify the SAS UUT, and load FAD records.
@@ -1197,7 +1205,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       test_harnesses.append(test_harness)
 
     # Register N2 CBSDs and request grants with SAS UUT from ND proxies.
-    logging.info('Step 5: Registering and Granting N2 CBSDs with SAS UUT.')
+    logging.info('Step 6: Registering and Granting N2 CBSDs with SAS UUT.')
     domain_proxies = []
     for domain_proxy_config in config['domainProxies']:
       domain_proxy = DomainProxy(
@@ -1211,7 +1219,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
               'conditionalRegistrationData'])
       domain_proxies.append(domain_proxy)
 
-    logging.info('Steps 6 + 7: generate and pull FAD.')
+    logging.info('Steps 7 + 8: generate and pull FAD.')
     sas_uut_fad = None
     test_harness_fads = []
     if num_peer_sases:
@@ -1226,36 +1234,38 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
                 test_harness.getSasTestHarnessInterface()))
 
     # Trigger CPAS.
-    logging.info('Step 8: Triggering CPAS.')
+    logging.info('Step 9: Triggering CPAS.')
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    logging.info('Step 9: (done below).')
+    logging.info('Step 10: (done below).')
 
     # Inform the SAS UUT that the ESC-monitored DPA is activated.
     if using_esc_dpa:
       if dpa_config['frequencyRange']['lowFrequency'] < LOW_FREQUENCY_LIMIT_HZ:
         logging.info(
-            'Skipping Step 10: an always-active DPA was specified, so there is no need to activate.'
+            'Skipping Step 11: an always-active DPA was specified, so there is '
+            'no need to activate.'
         )
       else:
         dpa_activation_request = {
             'dpaId': dpa_config['dpaId'],
             'frequencyRange': dpa_config['frequencyRange']
         }
-        logging.info('Step 10: activating DPA: %s', dpa_activation_request)
+        logging.info('Step 11: activating DPA: %s', dpa_activation_request)
         self._sas_admin.TriggerDpaActivation(dpa_activation_request)
     else:
       logging.info(
-          'Skipping Step 10: using portal-controlled DPA which is active by default.'
+          'Skipping Step 11: using portal-controlled DPA which is active by '
+          'default.'
       )
 
-    logging.info('Step 11: wait + heartbeat.')
+    logging.info('Step 12: wait + heartbeat.')
     time.sleep(240)
     for domain_proxy in domain_proxies:
       domain_proxy.heartbeatForAllActiveGrants()
     grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
 
-    logging.info('Step 9, 12, + CHECK: DPA aggregate interference check.')
+    logging.info('Step 10, 13, + CHECK: DPA aggregate interference check.')
     logging.info('Checking DPA %s', dpa_config)
     dpa_filename = config['dpaDatabaseConfig'][
         'filePath'] if using_portal_dpa else None
@@ -1283,5 +1293,5 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     if dpa_database_server:
       del dpa_database_server
-     
+
     
