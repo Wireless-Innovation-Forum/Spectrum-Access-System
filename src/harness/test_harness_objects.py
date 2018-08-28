@@ -50,7 +50,8 @@ class Grant(object):
     heartbeat_request = {
         'grantId': self.grant_id,
         'cbsdId': self.grant_request['cbsdId'],
-        'operationState': 'GRANTED'
+        'operationState': 'GRANTED',
+        'grantRenew': True
       }
     return heartbeat_request
 
