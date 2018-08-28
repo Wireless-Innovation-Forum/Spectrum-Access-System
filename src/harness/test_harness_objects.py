@@ -309,7 +309,7 @@ class DomainProxy(object):
             relinquishment_requests.append(relinquishment_request)
 
             # Construct grant request for relinquished grants
-            grant_requests.append(self._constructGrantRequest(heartbeat_request))
+            grant_requests.append(self._constructGrantRequest(heartbeat_response))
 
             # Delete the grant object
             del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
