@@ -139,6 +139,22 @@ if __name__ == '__main__':
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
 
+  # Simulate a single SAS UUT (no peer SAS) CheckInterference ().
+  # import ipdb; ipdb.set_trace()
+  print '-- Single UUT model - No Compute Move List --'
+  dpa_suut = dpa_mgr.Dpa(protection_points,
+                         name='alt(East1)',
+                         threshold=-144,
+                         beamwidth=3,
+                         radar_height=50,
+                         freq_ranges_mhz=[channel])
+  check = dpa_suut.CheckInterference(active_uut_grants,
+                                     margin_db=margin_db,
+                                     do_abs_check_single_uut=True)
+  print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
+  print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+
+
   # Simulate the BuildDpa feature for various types
   print '\n-- Test Build DPAs --'
   dpa_pt = dpa_mgr.BuildDpa('Pensacola')
