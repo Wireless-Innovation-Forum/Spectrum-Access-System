@@ -12,6 +12,33 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+# This software was developed in part by employees of the National Institute
+# of Standards and Technology (NIST), an agency of the Federal
+# Government. Pursuant to title 17 United States Code Section 105, works
+# of NIST employees are not subject to copyright protection in the United
+# States and are considered to be in the public domain. Permission to freely
+# use, copy, modify, and distribute this software and its documentation
+# without fee is hereby granted, provided that this notice and disclaimer
+# of warranty appears in all copies.
+#
+# THE SOFTWARE IS PROVIDED 'AS IS' WITHOUT ANY WARRANTY OF ANY KIND,
+# EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT LIMITED
+# TO, ANY WARRANTY THAT THE SOFTWARE WILL CONFORM TO SPECIFICATIONS, ANY
+# IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+# AND FREEDOM FROM INFRINGEMENT, AND ANY WARRANTY THAT THE DOCUMENTATION
+# WILL CONFORM TO THE SOFTWARE, OR ANY WARRANTY THAT THE SOFTWARE WILL BE
+# ERROR FREE. IN NO EVENT SHALL NIST BE LIABLE FOR ANY DAMAGES, INCLUDING,
+# BUT NOT LIMITED TO, DIRECT, INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES,
+# ARISING OUT OF, RESULTING FROM, OR IN ANY WAY CONNECTED WITH THIS
+# SOFTWARE, WHETHER OR NOT BASED UPON WARRANTY, CONTRACT, TORT, OR
+# OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED BY PERSONS OR PROPERTY
+# OR OTHERWISE, AND WHETHER OR NOT LOSS WAS SUSTAINED FROM, OR AROSE OUT
+# OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR SERVICES PROVIDED HEREUNDER.
+#
+# Distributions of NIST software should also include copyright and licensing
+# statements of any third-party software that are legally bundled with
+# the code in compliance with the conditions of those licenses.
+
 """DPA (Dynamic Protection Area) manager.
 
 This DPA manager manages the move list and interference calculation for a DPA.
@@ -209,13 +236,17 @@ class Dpa(object):
     self.ResetLists()
     self._has_th_grants = self._DetectIfPeerSas()
 
-  def ComputeMoveLists(self):
+  def ComputeMoveLists(self, moveListAlg=1, sortReliability=0.5):
     """Computes move/neighbor lists.
 
     This routine updates the internal grants move list and neighbor list.
     One set of list is maintained per protected channel.
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
+
+    Args:
+      move_list_alg: Move list algorithm selection (e.g., 1 or 2).
+      sort_reliability:  The path loss reliability value used to sort grants.    
     """
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
                  'iter %s azi_range %s nbor_dists %s',
@@ -237,7 +268,9 @@ class Dpa(object):
           beamwidth=self.beamwidth,
           min_azimuth=self.azimuth_range[0],
           max_azimuth=self.azimuth_range[1],
-          neighbor_distances=self.neighbor_distances)
+          neighbor_distances=self.neighbor_distances,
+          move_list_alg=moveListAlg,
+          sort_reliability=sortReliability)
 
       move_list, nbor_list = zip(*pool.map(moveListConstraint,
                                            self.protected_points))
@@ -282,6 +315,17 @@ class Dpa(object):
     """
     return self.GetNeighborList(channel).difference(self.GetMoveList(channel))
 
+  def GetGlobalKeepList(self, channel):
+    """Returns the keep list for a given channel, as a set of grants.
+
+    Includes grants both inside and outside the DPA neighborhood.
+
+    Args:
+      channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
+    """
+    global_set = set().union(self._grants)
+    return global_set.difference(self.GetMoveList(channel))
+
   def GetMoveListMask(self, channel):
     """Returns move list mask as a vector of bool.
 
@@ -295,6 +339,18 @@ class Dpa(object):
       if grant in move_list:
         mask[k] = True
     return mask
+
+  def SetMoveListFromMask(self, mask):
+    """Creates a move list from a move list mask.
+
+    Args:
+      mask: vector of bool ('True' means on move list).
+    """
+    move_list = []
+    for k, grant in enumerate(self._grants):
+      if mask[k]:
+        move_list.append(grant)
+    self.move_lists.append(move_list)
 
   def CalcKeepListInterference(self, channel, num_iter=None):
     """Calculates max aggregate interference per protected point.
@@ -323,6 +379,41 @@ class Dpa(object):
         max_azimuth=self.azimuth_range[1],
         neighbor_distances=self.neighbor_distances,
         do_max=True)
+
+    pool = mpool.Pool()
+    max_interf = pool.map(interfCalculator,
+                          self.protected_points)
+    return max_interf
+
+  def CalcGlobalKeepListInterference(self, channel, num_iter=None, do_max=True):
+    """Calculates max aggregate interference per protected point.
+
+    Includes grants both inside and outside the DPA neighborhood in the aggregate.
+
+    Args:
+      channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
+      num_iter: The number of Monte Carlo iteration when calculating the aggregate
+        interference.
+
+    Returns:
+      The 95% aggregate interference per protected point, as a list.
+      Each element is the maximum aggregate interference over all radar directions.
+    """
+    if num_iter is None:
+      num_iter = Dpa.num_iteration
+    keep_list = self.GetGlobalKeepList(channel)
+    interfCalculator = functools.partial(
+        ml.calcGlobalAggregatedInterference,
+        low_freq=channel[0] * 1e6,
+        high_freq=channel[1] * 1e6,
+        grants=keep_list,
+        inc_ant_height=self.radar_height,
+        num_iter=num_iter,
+        beamwidth=self.beamwidth,
+        min_azimuth=self.azimuth_range[0],
+        max_azimuth=self.azimuth_range[1],
+        neighbor_distances=self.neighbor_distances,
+        do_max=do_max)
 
     pool = mpool.Pool()
     max_interf = pool.map(interfCalculator,

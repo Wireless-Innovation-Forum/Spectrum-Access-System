@@ -32,6 +32,10 @@
 # The main routines are:
 #   - 'moveListConstraint()': calculates the move list for one point
 #   - 'calcAggregatedInterference()': calculates the 95% quantile interference for one point
+#
+# Added support for alternative algorithms as documented in M. Souryal, T. Thao,
+# and N. LaSorte, "3.5 GHz Federal Incumbent Protection Algorithms," to appear in
+# Proc. IEEE DySPAN 2018.
 #==================================================================================
 
 import functools
@@ -81,6 +85,11 @@ class DpaType(Enum):
   CO_CHANNEL = 1
   OUT_OF_BAND = 2
 
+
+# Move-list algorithm selections
+STANDARD = 1
+JOINT_AZI = 2
+  
 
 def findDpaType(low_freq, high_freq):
   """Finds the DPA protection type for a given frequency range.
@@ -188,7 +197,7 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
   return 10 * np.log10(power_mW)
 
 
-def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type):
+def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type, sort_reliability=0.5):
   """Calculate interference contribution of each grant in the neighborhood to
   the protection constraint c.
 
@@ -198,6 +207,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     inc_ant_height: reference incumbent antenna height (in meters)
     num_iteration:  a number of Monte Carlo iterations
     dpa_type:       an enum member of class DpaType
+    sort_reliability:  path loss reliability value used to sort grants
 
   Returns:
     A tuple of
@@ -205,7 +215,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
          'randomInterference' (K random interference contributions
          of the grant to protection constraint c), and 'bearing_c_cbsd'
          (bearing from c to CBSD grant location).
-      medianInterference: the median interference.
+      interf_key: the percentile of interference used for sorting grants.
   """
   # Get frequency information
   low_freq_cbsd = grant.low_frequency
@@ -217,7 +227,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
   # based on ITM model as defined in [R2-SGN-03] (in dB)
   reliabilities = np.random.uniform(0.001, 0.999, num_iteration)  # get K random
   # reliability values from an uniform distribution over [0.001,0.999)
-  reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
+  reliabilities = np.append(reliabilities, [sort_reliability])  # add sort reliability as
   # a last value to reliabilities array
   results = wf_itm.CalcItmPropagationLoss(
       grant.latitude, grant.longitude, grant.height_agl,
@@ -252,17 +262,17 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
   # Calculate the interference contributions
   interf = eirp_cbsd - path_loss
-  median_interf = interf[-1]      # last element is the median interference
+  interf_key = interf[-1]         # last element is the interference value for sorting
   K_interf = interf[:-1]          # first 'K' interference
 
   # Store interference contributions
   interference = InterferenceContribution(randomInterference=K_interf,
                                           bearing_c_cbsd=results.incidence_angles.hor_rx)
-  return interference, median_interf
+  return interference, interf_key
 
 
 def formInterferenceMatrix(grants, grants_ids, constraint,
-                           inc_ant_height, num_iter, dpa_type):
+                           inc_ant_height, num_iter, dpa_type, sort_reliability):
   """Form the matrix of interference contributions to protection constraint c.
 
   Inputs:
@@ -273,6 +283,7 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     inc_ant_height:     reference incumbent antenna height (in meters)
     num_iter:           number of random iterations
     dpa_type:           an enum member of class DpaType
+    sort_reliability:   path loss reliability value used to sort grants
 
   Returns:
     A tuple of:
@@ -284,14 +295,15 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   """
   # Compute interference contributions of each grant to the protection constraint
   interf_list = []
-  median_interf = []
+  interf_key = []
   for cbsd_grant in grants:
-    interf, median = computeInterference(cbsd_grant, constraint, inc_ant_height,
-                                         num_iter, dpa_type)
+    interf, key = computeInterference(cbsd_grant, constraint, inc_ant_height,
+                                      num_iter, dpa_type, sort_reliability)
     interf_list.append(interf)
-    median_interf.append(median)
-  # Sort grants by their median interference contribution, smallest to largest
-  sorted_idxs = sorted(range(len(median_interf)), key=median_interf.__getitem__)
+    interf_key.append(key)
+  # Sort grants by the specified percentile of their interference contribution,
+  # smallest to largest
+  sorted_idxs = sorted(range(len(interf_key)), key=interf_key.__getitem__)
   I = np.array([interf_list[k].randomInterference for k in sorted_idxs]).transpose()
   sorted_bearings = np.array([interf_list[k].bearing_c_cbsd for k in sorted_idxs])
   sorted_grant_ids = [grants_ids[k] for k in sorted_idxs]
@@ -364,6 +376,114 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
 
   return nc
 
+def moveListIdxsJointAzi(grants, grant_idx, constraint, inc_ant_height, num_iter,
+                         dpa_type, sort_reliability, t, beamwidth, min_azimuth, max_azimuth):
+  """Returns the indices of grants on the move list generated by the joint-azimuth
+  algorithm.
+
+  Inputs
+    grants:             a list of |data.CbsdGrantInfo| grants of all CBSDs inside the
+                        neighborhood of the protection constraint.
+    grant_idx:          the list of grants ids corresponding to `grants` list.
+    constraint:         protection constraint of type |data.ProtectionConstraint|
+    inc_ant_height:     reference incumbent antenna height (in meters)
+    num_iter:           number of random iterations
+    dpa_type:           an enum member of class DpaType
+    sort_reliability:   path loss reliability value used to sort grants
+    t:                  protection percentile threshold (dBm/10 MHz)
+    beamwidth:          protection antenna beamwidth (degree).
+    min_azimuth:        minimim protection azimuth (degree).
+    max_azimuth:        maximum protection azimuth (degree).
+
+  Returns
+    Indices of grants on the move list.
+  """
+  # Compute interference contributions of each grant to the protection constraint.
+  interf_list = []
+  prcntl_interf = []
+  for cbsd_grant in grants:
+    interf, key = computeInterference(cbsd_grant, constraint, inc_ant_height,
+                                      num_iter, dpa_type, sort_reliability)
+    interf_list.append(interf)
+    prcntl_interf.append(key)
+
+  # Obtain bearings and interference matrix of CBSDs to protection point.
+  bearings = np.array([interf.bearing_c_cbsd for interf in interf_list])
+  I = np.array([interf.randomInterference for interf in interf_list]).transpose()
+
+  # Create array of incumbent antenna azimuth angles (degrees).
+  if beamwidth == 360.0:
+    azimuths = [0]
+  else:
+    if max_azimuth < min_azimuth:
+      max_azimuth += 360
+    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
+    azimuths[azimuths>=360] -= 360
+
+  # Initialize boolean array of move list status to False, one per grant.
+  Nc = len(grants)
+  onMoveList = np.zeros(Nc, bool)
+
+  # Convert grant indices to a numpy array.
+  grant_indices = np.array(grant_idx)
+
+  # Convert protection threshold and interference matrix to linear units.
+  t_mW = np.power(10.0, t/10.0)
+  I_mW = np.power(10.0, I/10.0)
+
+  # Add grants to the move list until the aggregate interference at every
+  # receiver azimuth is below the threshold.
+  max_agg_interf = np.inf
+  while max_agg_interf > t_mW:
+    # Loop through every azimuth angle, and find the azimuth with the highest aggregate
+    # interference (the worst-case azimuth).
+    max_agg_interf = 0.0
+    for azi in azimuths:
+
+      # Calculate interference contributions at output of receiver antenna.
+      if beamwidth == 360.0:
+        dpa_gains = 0
+      else:
+        dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi, beamwidth)
+      IG = I_mW * 10**(dpa_gains/10.0)
+
+      # Compute the protection percentile of the aggregate interference of
+      # grants not on the move list.
+      agg_interf = np.percentile(np.sum(IG[:, np.logical_not(onMoveList)], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+
+      if agg_interf > max_agg_interf:
+        max2_agg_interf = max_agg_interf
+        max_agg_interf = agg_interf
+        max_agg_interf_azi = azi
+
+    # Place grants on the move list until the aggregate interference at
+    # the worst-case azimuth is no longer the highest.
+    if max_agg_interf > t_mW:
+      if beamwidth == 360.0:
+        dpa_gains = 0
+      else:
+        dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, max_agg_interf_azi, beamwidth)
+      IG = I_mW * 10**(dpa_gains/10.0)
+
+      # Sort remaining grants by a percentile of their interference contribution,
+      # largest to smallest.
+      prcntl_interf_gain = prcntl_interf + dpa_gains
+      prcntl_interf_gain[onMoveList] = -np.inf
+      idx = np.argsort(-prcntl_interf_gain)
+      
+      agg_interf = max_agg_interf
+      i = 0
+      while agg_interf > max2_agg_interf and agg_interf > t_mW and np.count_nonzero(onMoveList) < Nc:
+        onMoveList[idx[i]] = True
+        i += 1
+        agg_interf = np.percentile(np.sum(IG[:, np.logical_not(onMoveList)], axis=1), PROTECTION_PERCENTILE, interpolation='lower')
+      if np.count_nonzero(onMoveList) == Nc:
+        break
+
+  move_list_indices = grant_indices[onMoveList]
+
+  return move_list_indices.tolist()
+
 
 def _addMinFreqGrantToFront(l, grant):
   """Add the min freq `grant` to the front of list `l`."""
@@ -378,7 +498,9 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                        inc_ant_height,
                        num_iter, threshold, beamwidth,
                        neighbor_distances,
-                       min_azimuth=0, max_azimuth=360):
+                       min_azimuth=0, max_azimuth=360,
+                       move_list_alg=STANDARD,
+                       sort_reliability=0.5):
   """Returns the move list for a given protection constraint.
 
   Note that the returned indexes corresponds to the grant.grant_index
@@ -397,6 +519,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
+    move_list_alg:     Move list algorithm selection (e.g., 1 or 2).
+    sort_reliability:  The path loss reliability value used to sort grants.
 
   Returns:
     A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
@@ -433,17 +557,34 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 
   movelist_grants = []
   if len(neighbor_grants):  # Found CBSDs in the neighborhood
-    # Form the matrix of interference contributions
-    I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
-        neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type)
+    # Execute the selected move-list algorithm
+    if move_list_alg == STANDARD:
+      # Form the matrix of interference contributions
+      I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
+          neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type,
+          sort_reliability)
 
-    # Find the index (nc) of the grant in the ordered list of grants such that
-    # the protection percentile of the interference from the first nc grants is below
-    # the threshold for all azimuths of the receiver antenna.
-    nc = find_nc(I, bearings, threshold, beamwidth, min_azimuth, max_azimuth)
+      # Find the index (nc) of the grant in the ordered list of grants such that
+      # the protection percentile of the interference from the first nc grants is below
+      # the threshold for all azimuths of the receiver antenna.
+      nc = find_nc(I, bearings, threshold, beamwidth, min_azimuth, max_azimuth)
 
-    # Determine the associated move list (Mc)
-    movelist_grants = [grants[k] for k in sorted_neighbor_idxs[nc:]]
+      # Determine the associated move list (Mc)
+      movelist_grants = [grants[k] for k in sorted_neighbor_idxs[nc:]]
+
+    elif move_list_alg == JOINT_AZI:
+      movelist_idxs = moveListIdxsJointAzi(neighbor_grants, neighbor_idxs, constraint, 
+                                           inc_ant_height, num_iter, dpa_type, 
+                                           sort_reliability, threshold, beamwidth,
+                                           min_azimuth, max_azimuth)
+      movelist_grants = [grants[k] for k in movelist_idxs]
+
+    else:
+      # Otherwise, put all grants in the neighborhood on the move list.
+      print 'Warning: Invalid move-list algorithm selection ({}).'.format(move_list_alg)
+      print '         Putting all neighborhood grants on move list.'
+      print '         Valid values are ({}, {}).'.format(STANDARD, JOINT_AZI)
+      movelist_grants = neighbor_grants
 
     # DPA Purge Algorithm for OOB - reintegrated in move list
     if dpa_type is DpaType.OUT_OF_BAND:
@@ -534,6 +675,95 @@ def calcAggregatedInterference(protection_point,
   interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
   bearings = np.zeros(len(neighbor_grants))
   for k, grant in enumerate(neighbor_grants):
+    interf, _ = computeInterference(grant, constraint, inc_ant_height,
+                                    num_iter, dpa_type)
+    interf_matrix[:,k] = interf.randomInterference
+    bearings[k] = interf.bearing_c_cbsd
+
+  interf_matrix = 10**(interf_matrix / 10.)
+  if beamwidth == 360:
+    azimuths = [0]
+  else:
+    if max_azimuth < min_azimuth:
+      max_azimuth += 360
+    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
+    azimuths[azimuths>=360] -= 360
+
+  agg_interf = np.zeros(len(azimuths))
+  for k, azi in enumerate(azimuths):
+    dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi, beamwidth)
+    dpa_interf = interf_matrix * 10**(dpa_gains / 10.0)
+    agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
+                                  PROTECTION_PERCENTILE, interpolation='lower')
+  agg_interf = 10 * np.log10(agg_interf)
+  return np.max(agg_interf) if do_max else agg_interf
+
+
+def calcGlobalAggregatedInterference(protection_point,
+                               low_freq, high_freq,
+                               grants,
+                               inc_ant_height,
+                               num_iter,
+                               beamwidth,
+                               neighbor_distances,
+                               min_azimuth=0,
+                               max_azimuth=360,
+                               do_max=False):
+  """Computes the 95% aggregated interference quantile on a protected point.
+
+  Includes grants both inside and outside the DPA neighborhood in the aggregate.
+
+  Inputs:
+    protection_point:  A protection point location, having attributes 'latitude' and
+                       'longitude'.
+    low_freq:          The low frequency of protection constraint (Hz).
+    high_freq:         The high frequency of protection constraint (Hz).
+    grants:            A list of CBSD |data.CbsdGrantInfo| active grants.
+    inc_ant_height:    The reference incumbent antenna height (meters).
+    num_iter:          The number of Monte Carlo iterations.
+    beamwidth:         The protection antenna beamwidth (degree).
+    min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
+    max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+    do_max:            If True, returns the maximum interference over all radar azimuth.
+
+  Returns:
+    The 95% aggregated interference (dB) either:
+      - as a vector (ndarray) of length N, where the element k corresponds to
+          azimuth k * (beamwith/2). The length N is thus equal to 2 * 360 / beamwith,
+          (or 2 * azimuth_range / beamwidth if using a smaller azimuth range than
+           360 degrees, as specified by min_azimuth/max_azimuth).
+      - or the maximum over all radar azimuth, if `do_max` is set to True.
+  """
+  dpa_type = findDpaType(low_freq, high_freq)
+  if not beamwidth: beamwidth = 360
+
+  # Assign values to the protection constraint
+  constraint = data.ProtectionConstraint(latitude=protection_point.latitude,
+                                         longitude=protection_point.longitude,
+                                         low_frequency=low_freq,
+                                         high_frequency=high_freq,
+                                         entity_type=data.ProtectedEntityType.DPA)
+
+  # DPA Purge algorithm for OOB
+  if dpa_type is DpaType.OUT_OF_BAND:
+    cbsds_grants_map = defaultdict(list)
+    for grant in grants:
+      key = grant.uniqueCbsdKey()
+      _addMinFreqGrantToFront(cbsds_grants_map[key], grant)
+    # Reset the grants to the minimum frequency grant for each CBSDs.
+    grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
+
+##  # Identify CBSD grants in the neighborhood of the protection constraint
+##  neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
+##                                                    dpa_type,
+##                                                    neighbor_distances)
+  if not grants:
+    return np.asarray(-1000)
+  interf_matrix = np.zeros((num_iter, len(grants)))
+  bearings = np.zeros(len(grants))
+  for k, grant in enumerate(grants):
     interf, _ = computeInterference(grant, constraint, inc_ant_height,
                                     num_iter, dpa_type)
     interf_matrix[:,k] = interf.randomInterference
