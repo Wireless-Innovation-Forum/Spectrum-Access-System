@@ -102,6 +102,8 @@ def csvToRegGrants(data_dir, dpa_name, cbsd_channel):
     grant_request = deepcopy(grant_requestN)
     grant_request['cbsdId'] = 'sas1/cbsd' + str(i+1)
     grant_request['operationParam']['maxEirp'] = EIRPdBm10MHzA[i] - 10.0   # convert to dBm/MHz
+    grant_request['operationParam']['operationFrequencyRange']['lowFrequency'] = cbsd_channel[0] * int(1e6)
+    grant_request['operationParam']['operationFrequencyRange']['highFrequency'] = cbsd_channel[1] * int(1e6)
     grant_request_list.append(grant_request)
 
   # Populate Category B CBSD registration and grant requests
