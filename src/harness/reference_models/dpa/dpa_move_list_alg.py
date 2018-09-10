@@ -165,7 +165,7 @@ if __name__ == '__main__':
   dpa_mgr.Dpa.Configure(num_iteration=num_iter)
   dpa_ref = dpa_mgr.BuildDpa(dpa_name, protection_points_method='default (18, 0, 0, 0, 20)')
   dpa_ref.neighbor_distances = (cata_nd, catb_nd, cata_oob_nd, catb_oob_nd)
-  dpa_ref.channels = [dpa_channel]
+  dpa_ref.ResetFreqRange([dpa_channel])
 ##  dpa_ref.protected_points = protection_points
 
   # Configure the global pool manager
