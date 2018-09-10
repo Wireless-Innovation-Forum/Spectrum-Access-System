@@ -144,7 +144,7 @@ class Dpa(object):
     self.beamwidth = beamwidth
     self.neighbor_distances = neighbor_distances
     self.monitor_type = monitor_type
-    self.channels = None
+    self._channels = None
     self._grants = []
     self._has_th_grants = False
     self.ResetFreqRange(freq_ranges_mhz)
@@ -156,7 +156,7 @@ class Dpa(object):
             'beamwidth=%.1f, azimuth_range=%r, channels=%r,'
             'neighbor_distances=%r, monitor_type=%r)' % (
                 self.protected_points, self.threshold, self.radar_height,
-                self.beamwidth, self.azimuth_range, self.channels,
+                self.beamwidth, self.azimuth_range, self._channels,
                 self.neighbor_distances, self.monitor_type))
 
   def ResetFreqRange(self, freq_ranges_mhz):
@@ -170,14 +170,15 @@ class Dpa(object):
     """
     channels = GetDpaProtectedChannels(freq_ranges_mhz,
                                        is_portal_dpa=(self.monitor_type=='portal'))
-    if channels != self.channels:
+    if channels != self._channels:
+      self._channels = channels
       self.ResetLists()
-    self.channels = channels
+
 
   def ResetLists(self):
     """Reset move list and neighbor list."""
-    self.move_lists = []
-    self.nbor_lists = []
+    self.move_lists = [set() for _ in self._channels]
+    self.nbor_lists = [set() for _ in self._channels]
 
   def _DetectIfPeerSas(self):
     """Returns True if holding grants from peer TH SAS."""
@@ -219,13 +220,13 @@ class Dpa(object):
     """
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
                  'iter %s azi_range %s nbor_dists %s',
-                 self.name, self.channels, self.threshold, self.beamwidth,
+                 self.name, self._channels, self.threshold, self.beamwidth,
                  self.radar_height, Dpa.num_iteration,
                  self.azimuth_range, self.neighbor_distances)
     logging.debug('  protected points: %s', self.protected_points)
     pool = mpool.Pool()
     self.ResetLists()
-    for low_freq, high_freq in self.channels:
+    for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
       moveListConstraint = functools.partial(
           ml.moveListConstraint,
           low_freq=low_freq * 1.e6,
@@ -244,8 +245,8 @@ class Dpa(object):
       # Combine the individual point move lists
       move_list = set().union(*move_list)
       nbor_list = set().union(*nbor_list)
-      self.move_lists.append(move_list)
-      self.nbor_lists.append(nbor_list)
+      self.move_lists[chan_idx] = move_list
+      self.nbor_lists[chan_idx] = nbor_list
 
     logging.info('DPA Result movelist `%s`- MOVE_LIST:%s NBOR_LIST: %s',
                  self.name, self.move_lists, self.nbor_lists)
@@ -253,7 +254,7 @@ class Dpa(object):
   def _GetChanIdx(self, channel):
     """Gets the channel idx for a given channel."""
     try:
-      chan_idx = self.channels.index(channel)
+      chan_idx = self._channels.index(channel)
     except ValueError:
       raise ValueError('Channel {} not protected by this DPA'.format(channel))
     return chan_idx
@@ -357,7 +358,7 @@ class Dpa(object):
       (ie if at least one combined protection point / azimuth fails the test).
     """
     if channel is None:
-      for chan in self.channels:
+      for chan in self._channels:
         if not self.CheckInterference(sas_uut_active_grants, margin_db, chan, num_iter,
                                       do_abs_check_single_uut):
           return False
