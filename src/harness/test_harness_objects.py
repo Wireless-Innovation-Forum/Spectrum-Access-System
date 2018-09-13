@@ -355,7 +355,6 @@ class DomainProxy(object):
     Args:
       requests: The requests to split by batchsize.
       request_name: The name of the request. For logging.
-
     Yields:
       Lists of requests containing at most maximum_batch_size requests.
     """
@@ -374,7 +373,6 @@ class DomainProxy(object):
 
     Args:
       registration_requests: All registration requests we wish to send.
-
     Returns:
       The cbsd_ids from each registration request.
     Raises:
@@ -398,7 +396,6 @@ class DomainProxy(object):
 
     Args:
       grant_requests: All grant requests we wish to send.
-
     Returns:
       The grant responses for each grant_request.
     """
@@ -416,7 +413,6 @@ class DomainProxy(object):
 
     Args:
       heartbeat_requests: All heartbeat requests we wish to send.
-
     Returns:
       The heartbeat responses for each heartbeat_request.
     """
@@ -434,7 +430,6 @@ class DomainProxy(object):
 
     Args:
       relinquishment_requests: All relinquishment requests we wish to send.
-
     Returns:
       The relinquishment responses for each relinquishment_request.
     """
