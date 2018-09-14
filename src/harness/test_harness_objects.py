@@ -373,20 +373,28 @@ class DomainProxy(object):
 
     Args:
       registration_requests: All registration requests we wish to send.
+      conditional_registration_data: Optional, any conditional registration data
+        for the CBSDs.
     Returns:
       The cbsd_ids from each registration request.
     Raises:
       AssertionError: If any registration responses are invalid.
     """
+    # Make sure FccId and userId are injected before conditionals. The
+    # optimization in the SAS interface will prevent duplicate requests from
+    # being sent.
+    if conditional_registration_data:
+      for device in registration_requests:
+        self.testcase._sas_admin.InjectFccId({'fccId': device['fccId']})
+        self.testcase._sas_admin.InjectUserId({'userId': device['userId']})
+      self.testcase._sas_admin.PreloadRegistrationData({
+          'registrationData': conditional_registration_data
+      })
     cbsd_ids = []
-    for i, requests in enumerate(
-        self._withMaximumBatchSize(registration_requests, 'Registration')):
+    for requests in self._withMaximumBatchSize(registration_requests, 'Registration'):
       cbsd_ids.extend(
           self.testcase.assertRegistered(
               requests,
-              # Only send conditionals once.
-              conditional_registration_data=conditional_registration_data
-              if i == 0 else None,
               cert=self.ssl_cert,
               key=self.ssl_key))
     return cbsd_ids
