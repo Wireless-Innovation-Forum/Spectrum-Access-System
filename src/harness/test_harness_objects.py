@@ -294,9 +294,6 @@ class DomainProxy(object):
            if 'operationParam' in heartbeat_response:
              # Construct grant request for Terminated grants
              grant_requests.append(self._constructGrantRequest(heartbeat_response))
-           else:
-             logging.error('Invalid Response received for grantId=%s and cbsdId=%s',
-                           heartbeat_response['grantId'], heartbeat_response['cbsdId'])
            # Delete the grant object
            del self.cbsd_objects[heartbeat_response['cbsdId']].grant_objects[heartbeat_response['grantId']]
 
@@ -317,7 +314,7 @@ class DomainProxy(object):
 
     # Perform relinquishment since operation param present in heartbeat response.
     if len(relinquishment_requests):
-      relinquishment_responses = _relinquishmentRequestWithMaximumBatchSize(relinquishment_requests)
+      relinquishment_responses = self._relinquishmentRequestWithMaximumBatchSize(relinquishment_requests)
 
       # Check the length of relinquishment responses is the same as relinquishment request.
       self.testcase.assertEqual(len(relinquishment_responses), len(relinquishment_requests))
