@@ -35,6 +35,9 @@ REF_BW = 5.e6
 # OOBE Margin
 FSS_OOBE_MARGIN = 1
 
+# Offset to apply on MCBSD for the reference bandwidth
+OFFSET_REF_BW_DB = 10*np.log10(REF_BW / interf.MHZ)
+
 # Define named tuple
 grants_cbsds_namedtuple = namedtuple('grants_cbsds_namedtuple', ['grant', 'cbsd'])
 
@@ -170,9 +173,9 @@ def calculateOobeInterference(grants_cbsds_oobe_info, fss_point, fss_info):
 
 
 def getMcbsdValue(grant):
-  """Returns the MCBSD (OOBE emission mask) value in dB for a grant.
+  """Returns the MCBSD (OOBE emission mask) value for a grant.
 
-  MCBSD is the CBSD conducted power (in dBm) on the frequency segment,
+  MCBSD is the CBSD conducted power (in dBm) on the reference frequency segment,
   using the Tx mask of CBSD according to R0-DEV-05(e).
 
   Args:
@@ -180,7 +183,7 @@ def getMcbsdValue(grant):
   """
   return (-13
           if grant['operationParam']['operationFrequencyRange']['highFrequency'] > 3690e6
-          else -25)
+          else -25) + OFFSET_REF_BW_DB
 
 
 def getGrantInfoListForFssOobeCalculation(cbsds):
