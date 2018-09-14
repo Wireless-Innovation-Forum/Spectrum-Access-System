@@ -180,7 +180,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     """
     config = loadConfig(config_filename)
     try:
-      self.assertTlsHandshakeFailure(client_cert=config['clientCert'],
+      # This uses the same base_url as Registration().
+      self.assertTlsHandshakeFailure(self._sas.cbsd_sas_active_base_url,
+                                     client_cert=config['clientCert'],
                                      client_key=config['clientKey'])
     except AssertionError as e:
       self.SasReset()
@@ -283,7 +285,10 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     # Load the keys/certs and check that TLS handshake is valid
     device_a_cert = config['clientCert']
     device_a_key = config['clientKey']
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_a_cert, device_a_key)
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   device_a_cert, device_a_key)
    
     # Load device and inject fccId and userId
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -341,8 +346,10 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     device_cert = getCertFilename(device_cert_name + ".cert")
     device_key = getCertFilename(device_cert_name + ".key")
 
-    # Successful TLS Handshake
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+    # Successful TLS Handshake.
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
                                    device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
@@ -388,9 +395,11 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     device_cert = getCertFilename(device_cert_name + ".cert")
     device_key = getCertFilename(device_cert_name + ".key")
 
-    # Successful TLS Handshake
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_cert,
-                                   device_key)
+    # Successful TLS Handshake.
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
@@ -439,7 +448,9 @@ class SasCbsdSecurityTestcase(security_testcase.SecurityTestCase):
     device_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
                                    device_cert, device_key)
     logging.info("TLS Handshake Succeeded")
 
