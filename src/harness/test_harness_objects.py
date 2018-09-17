@@ -168,11 +168,8 @@ class DomainProxy(object):
     # There should be exactly one grant request per registration request.
     self.testcase.assertEqual(len(grant_requests), len(registration_requests))
     try:
-      cbsd_ids = self.testcase.assertRegistered(
-          registration_requests,
-          conditional_registration_data=conditional_registration_data,
-          cert=self.ssl_cert,
-          key=self.ssl_key)
+      cbsd_ids = self._assertRegisteredWithMaximumBatchSize(
+          registration_requests, conditional_registration_data)
     except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
       raise
@@ -225,12 +222,8 @@ class DomainProxy(object):
       heartbeat_requests.extend(cbsd_object_item.constructHeartbeatRequestForAllActiveGrants())
 
     if len(heartbeat_requests):
-      heartbeat_requests_wrapped = {
-        'heartbeatRequest': heartbeat_requests
-      }
-      # Perform heartbeat requests.
-      heartbeat_responses = self.testcase._sas.Heartbeat(
-        heartbeat_requests_wrapped, self.ssl_cert, self.ssl_key)['heartbeatResponse']
+      heartbeat_responses = self._heartbeatRequestWithMaximumBatchSize(
+          heartbeat_requests)
 
       # Check the length of heartbeat responses is the same as heartbeat requests.
       self.testcase.assertEqual(len(heartbeat_responses), len(heartbeat_requests))
@@ -356,6 +349,56 @@ class DomainProxy(object):
         cbsd_objects.append(cbsd_object)
     return cbsd_objects
 
+  def _withMaximumBatchSize(self, requests, request_name):
+    """Split the requests into batches and call the given function.
+
+    Args:
+      requests: The requests to split by batchsize.
+      request_name: The name of the request. For logging.
+    Yields:
+      Lists of requests containing at most maximum_batch_size requests.
+    """
+    maximum_batch_size = self.testcase._sas.maximum_batch_size
+    num_batches = int(math.ceil(len(requests) / float(maximum_batch_size)))
+    logging.info('Sending %i %s requests in batches of %i (%i batches)',
+                 len(requests), request_name, maximum_batch_size, num_batches)
+    for iteration in range(0, num_batches):
+      batch_requests = requests[iteration * maximum_batch_size:(iteration + 1) *
+                                maximum_batch_size]
+      yield batch_requests
+
+  def _assertRegisteredWithMaximumBatchSize(self, registration_requests,
+                                            conditional_registration_data):
+    """Sends registration requests in batches up to the maximum batch size.
+
+    Args:
+      registration_requests: All registration requests we wish to send.
+      conditional_registration_data: Optional, any conditional registration data
+        for the CBSDs.
+    Returns:
+      The cbsd_ids from each registration request.
+    Raises:
+      AssertionError: If any registration responses are invalid.
+    """
+    # Make sure FccId and userId are injected before conditionals. The
+    # optimization in the SAS interface will prevent duplicate requests from
+    # being sent.
+    if conditional_registration_data:
+      for device in registration_requests:
+        self.testcase._sas_admin.InjectFccId({'fccId': device['fccId']})
+        self.testcase._sas_admin.InjectUserId({'userId': device['userId']})
+      self.testcase._sas_admin.PreloadRegistrationData({
+          'registrationData': conditional_registration_data
+      })
+    cbsd_ids = []
+    for requests in self._withMaximumBatchSize(registration_requests, 'Registration'):
+      cbsd_ids.extend(
+          self.testcase.assertRegistered(
+              requests,
+              cert=self.ssl_cert,
+              key=self.ssl_key))
+    return cbsd_ids
+
   def _grantRequestWithMaximumBatchSize(self, grant_requests):
     """Sends grant requests in batches up to the maximum batch size.
 
@@ -365,15 +408,30 @@ class DomainProxy(object):
       The grant responses for each grant_request.
     """
     grant_responses = []
-    maximum_batch_size = self.testcase._sas.maximum_batch_size
-    for iteration in range(0, int(math.ceil(len(grant_requests)/float(maximum_batch_size)))):
-      grant_request_block = grant_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
+    for requests in self._withMaximumBatchSize(grant_requests, 'Grant'):
       # Wrapped version of the grant requests.
-      grant_requests_wrap = {
-        'grantRequest': grant_request_block
-      }
-      grant_responses.extend(self.testcase._sas.Grant(grant_requests_wrap, self.ssl_cert, self.ssl_key)['grantResponse'])
+      grant_requests_wrap = {'grantRequest': requests}
+      grant_responses.extend(
+          self.testcase._sas.Grant(grant_requests_wrap, self.ssl_cert,
+                                   self.ssl_key)['grantResponse'])
     return grant_responses
+
+  def _heartbeatRequestWithMaximumBatchSize(self, heartbeat_requests):
+    """Sends heartbeat requests in batches up to the maximum batch size.
+
+    Args:
+      heartbeat_requests: All heartbeat requests we wish to send.
+    Returns:
+      The heartbeat responses for each heartbeat_request.
+    """
+    heartbeat_responses = []
+    for requests in self._withMaximumBatchSize(heartbeat_requests, 'Heartbeat'):
+      # Wrapped version of the heartbeat requests.
+      heartbeat_requests_wrap = {'heartbeatRequest': requests}
+      heartbeat_responses.extend(
+          self.testcase._sas.Heartbeat(heartbeat_requests_wrap, self.ssl_cert,
+                                       self.ssl_key)['heartbeatResponse'])
+    return heartbeat_responses
 
   def _relinquishmentRequestWithMaximumBatchSize(self, relinquishment_requests):
     """Sends relinquishment requests in batches up to the maximum batch size.
@@ -384,13 +442,12 @@ class DomainProxy(object):
       The relinquishment responses for each relinquishment_request.
     """
     relinquishment_responses = []
-    maximum_batch_size = self.testcase._sas.maximum_batch_size
-    for iteration in range(0, int(math.ceil(len(relinquishment_requests)/float(maximum_batch_size)))):
-      relinquishment_request_block = relinquishment_requests[iteration*maximum_batch_size:(iteration+1)*maximum_batch_size]
+    for requests in self._withMaximumBatchSize(relinquishment_requests,
+                                               'Relinquishment'):
       # Wrapped version of the grant requests.
-      relinquishment_requests_wrap = {
-        'relinquishmentRequest': relinquishment_request_block
-      }
-      relinquishment_responses.extend(self.testcase._sas.Relinquishment(relinquishment_requests_wrap, self.ssl_cert, self.ssl_key)['relinquishmentResponse'])
+      relinquishment_requests_wrap = {'relinquishmentRequest': requests}
+      relinquishment_responses.extend(
+          self.testcase._sas.Relinquishment(
+              relinquishment_requests_wrap, self.ssl_cert,
+              self.ssl_key)['relinquishmentResponse'])
     return relinquishment_responses
-
