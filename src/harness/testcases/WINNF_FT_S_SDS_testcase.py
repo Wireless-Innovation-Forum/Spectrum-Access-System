@@ -180,7 +180,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     """
     config = loadConfig(config_filename)
     try:
-      self.assertTlsHandshakeFailure(client_cert=config['domainProxyCert'],
+      # This uses the same base_url as Registration().
+      self.assertTlsHandshakeFailure(self._sas.cbsd_sas_active_base_url,
+                                     client_cert=config['domainProxyCert'],
                                      client_key=config['domainProxyKey'])
     except AssertionError as e:
       self.SasReset()
@@ -278,7 +280,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     # Load the keys/certs and check that TLS handshake is valid
     device_a_cert = config['domainProxyCert']
     device_a_key = config['domainProxyKey']
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], device_a_cert, device_a_key)
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   device_a_cert, device_a_key)
 
     # Load device and inject fccId and userId
     device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
@@ -338,7 +343,9 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
                                    domain_proxy_cert, domain_proxy_key)
     logging.info("TLS Handshake Succeeded")
 
@@ -384,8 +391,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], domain_proxy_cert,
-                                   domain_proxy_key)
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   domain_proxy_cert, domain_proxy_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
@@ -433,8 +442,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     domain_proxy_key = getCertFilename(device_cert_name + ".key")
 
     # Successful TLS Handshake.
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'],domain_proxy_cert,
-                                   domain_proxy_key)
+    # This uses the same base_url as Registration().
+    self.assertTlsHandshakeSucceed(self._sas.cbsd_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   domain_proxy_cert, domain_proxy_key)
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file.
