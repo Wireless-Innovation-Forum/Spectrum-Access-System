@@ -368,7 +368,6 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                                                  self._sas_admin,
                                                  self.fad_cert,
                                                  self.fad_key)
-
     # Step 9: load SAS test harnesses and have the main test harness retrieve
     # those FADs for use in the reference models.
     if self.num_peer_sases:
@@ -378,6 +377,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           self.sas_test_harness_objects,
           iteration_content['sasTestHarnessData']):
         test_harness.writeFadRecords([test_harness_data['cbsdRecords']])
+        for cbsdIndex in range(len(test_harness_data['cbsdRecords'])):
+            logging.info('Step 9a: adding PeerSAS fccIds to SAS UUT whitelisted fccIds.' + test_harness_data['cbsdRecords'][cbsdIndex]["registration"]["fccId"])
+            self._sas_admin.InjectFccId({'fccId': test_harness_data['cbsdRecords'][cbsdIndex]["registration"]["fccId"]})
 
       # Pull FAD from SAS Test Harnesses; a FAD object is created for each SAS Test Harness.
       logging.info('Collecting SAS TH FADs.')
