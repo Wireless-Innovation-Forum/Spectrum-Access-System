@@ -377,6 +377,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       for test_harness, test_harness_data in zip(
           self.sas_test_harness_objects,
           iteration_content['sasTestHarnessData']):
+        self.InjectTestHarnessFccIds(test_harness_data['cbsdRecords'])
         test_harness.writeFadRecords([test_harness_data['cbsdRecords']])
 
       # Pull FAD from SAS Test Harnesses; a FAD object is created for each SAS Test Harness.

@@ -374,6 +374,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         config['sasTestHarnessConfig']['serverCert'],
         config['sasTestHarnessConfig']['serverKey'],
         config['sasTestHarnessConfig']['caCert'])
+    self.InjectTestHarnessFccIds(config['sasTestHarnessDumpRecords']['cbsdRecords'])
     sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
 
     # Start the SAS Test Harness server
@@ -489,6 +490,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         config['sasTestHarnessConfig']['serverCert'],
         config['sasTestHarnessConfig']['serverKey'],
         config['sasTestHarnessConfig']['caCert'])
+    self.InjectTestHarnessFccIds(config['sasTestHarnessDumpRecords']['cbsdRecords'])
     sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
 
     # Start the Test Harness server

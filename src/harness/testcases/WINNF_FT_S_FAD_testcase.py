@@ -684,7 +684,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
                                             config['sasTestHarnessConfig']['serverCert'],
                                             config['sasTestHarnessConfig']['serverKey'],
                                             config['sasTestHarnessConfig']['caCert'])
-
+    self.InjectTestHarnessFccIds(config['sasTestHarnessDumpRecords']['cbsdRecords'])
     sas_test_harness.writeFadRecords(sas_test_harness_dump_records)
 
 
