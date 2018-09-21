@@ -27,6 +27,10 @@ from reference_models.geo import drive
 from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
 from reference_models.geo import utils as geoutils
 
+# If enabled, the test harness will stop as soon as the failure threshold is reached.
+# If disabled, the test harness will execute all subtests and only PASS/FAIL at the end.
+EARLY_EXIT_ENABLED = False
+
 def computePropagationAntennaModel(request):
     reliability_level = request['reliabilityLevel']
     if reliability_level not in [-1, 0.05, 0.95]:
@@ -195,6 +199,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     max_fail_num = int ((1-test_pass_threshold) * num_tests)
     num_failed_tests = 0
     num_invalid_tests = 0
+    already_failed = False
 
     for test_num, request in enumerate(config):
       logging.info('Running test number %d: %s', test_num, str(request))
@@ -234,7 +239,11 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
       else:
         num_failed_tests += 1
       if num_failed_tests > max_fail_num: #test fails if number of failed tests greater than allowed
-        self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
+        if not already_failed:  # This value is False the first time we cross the threshold.
+          logging.error('Just failed the maximum number of tests (%d).', num_failed_tests)
+          already_failed = True
+        if EARLY_EXIT_ENABLED:
+          self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
 
     # Outside the 'for' loop.
     logging.info('Passed %d out of %d tests. Need %2.6f percent pass rate.',
