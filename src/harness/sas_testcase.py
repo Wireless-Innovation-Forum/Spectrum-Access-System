@@ -515,3 +515,8 @@ class SasTestCase(unittest.TestCase):
       if 'shutdown' in dir(thread):
         logging.info('Stopping %s' % thread.name)
         thread.shutdown()
+
+  def InjectTestHarnessFccIds(self, cbsd_records):
+    logging.info('Injecting FCC IDs for CBSDs in the SAS test harness into the SAS UUT.')
+    for cbsd_record in cbsd_records:
+        self._sas_admin.InjectFccId({'fccId': cbsd_record['registration']['fccId']}) 
