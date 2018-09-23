@@ -168,26 +168,38 @@ class DomainProxy(object):
     # There should be exactly one grant request per registration request.
     self.testcase.assertEqual(len(grant_requests), len(registration_requests))
     try:
-      cbsd_ids = self._assertRegisteredWithMaximumBatchSize(
+      cbsd_ids = self._tryRegistrationWithMaximumBatchSize(
           registration_requests, conditional_registration_data)
     except Exception:
       logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
       raise
 
-    # Copy the cbsdId from Registration response to grant requests.
+    # Copy the cbsdId from Registration response to grant requests, omitting
+    # grant requests for CBSDs which were not successfully registered.
+    actual_grant_requests = []
     for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):
-      grant_request['cbsdId'] = cbsd_id
+      if cbsd_id:  # cbsd_id is None if registration was unsuccessful.
+        grant_request['cbsdId'] = cbsd_id
+        actual_grant_requests.append(grant_request)
 
-    #perform grant operation.
-    grant_responses = self._grantRequestWithMaximumBatchSize(grant_requests)
+    # Perform grant operation.
+    grant_responses = self._grantRequestWithMaximumBatchSize(actual_grant_requests)
 
     # Check the length of grant responses is the same as grant requests.
-    self.testcase.assertEqual(len(grant_responses), len(grant_requests))
+    self.testcase.assertEqual(len(grant_responses), len(actual_grant_requests))
+
+    # Extract only the successful registration requests and corresponding CBSD IDs.
+    actual_registration_requests = [req for req, cbsd_id in zip(registration_requests, cbsd_ids) if cbsd_id]
+    actual_cbsd_ids = [cbsd_id for cbsd_id in cbsd_ids if cbsd_id]
 
     # Make one CBSD object per successful grant request.
+    # All arrays in the zip() will have the same length based on the filtering
+    # above, but we'll double-check to be sure.
+    self.testcase.assertEqual(len(actual_grant_requests), len(actual_registration_requests))
+    self.testcase.assertEqual(len(actual_grant_requests), len(actual_cbsd_ids))
     for grant_request, grant_response, \
-        registration_request, cbsd_id in zip(grant_requests,
-                                             grant_responses, registration_requests, cbsd_ids):
+        registration_request, cbsd_id in zip(actual_grant_requests,
+                                             grant_responses, actual_registration_requests, actual_cbsd_ids):
       if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
         self._mergeConditionals(registration_request, conditional_registration_data)
         cbsd_object = Cbsd(cbsd_id, registration_request,
@@ -367,7 +379,47 @@ class DomainProxy(object):
                                 maximum_batch_size]
       yield batch_requests
 
-  def _assertRegisteredWithMaximumBatchSize(self, registration_requests,
+  def _tryRegistration(self,
+                   registration_request,
+                   conditional_registration_data=None,
+                   cert=None,
+                   key=None):
+    """Similar to |SasTestCase.assertRegistered|, but ignores errors."""
+    if not registration_request:
+      return []
+    for device in registration_request:
+      self.testcase._sas_admin.InjectFccId({'fccId': device['fccId']})
+      self.testcase._sas_admin.InjectUserId({'userId': device['userId']})
+    if conditional_registration_data:
+      self.testcase._sas_admin.PreloadRegistrationData({
+          'registrationData': conditional_registration_data
+      })
+
+    # Pass the correct client cert and key in Registration request
+    ssl_cert = cert if cert is not None else self._sas._tls_config.client_cert
+    ssl_key = key if key is not None else self._sas._tls_config.client_key
+
+    request = {'registrationRequest': registration_request}
+    response = self.testcase._sas.Registration(
+        request, ssl_cert=ssl_cert, ssl_key=ssl_key)['registrationResponse']
+
+    self.testcase.assertEqual(len(response), len(registration_request))
+    # Check the registration response; collect CBSD IDs.
+    cbsd_ids = []
+    for request, resp in zip(registration_request, response):
+      if resp['response']['responseCode'] == 0:
+        self.testcase.assertTrue('cbsdId' in resp)
+        cbsd_ids.append(resp['cbsdId'])
+      else:
+        logging.warning(
+            'CBSD registration failed: unexpected response %s for request %s',
+            resp, request)
+        cbsd_ids.append(None)
+
+    # Return list of cbsd_ids
+    return cbsd_ids
+
+  def _tryRegistrationWithMaximumBatchSize(self, registration_requests,
                                             conditional_registration_data):
     """Sends registration requests in batches up to the maximum batch size.
 
@@ -391,12 +443,10 @@ class DomainProxy(object):
           'registrationData': conditional_registration_data
       })
     cbsd_ids = []
-    for requests in self._withMaximumBatchSize(registration_requests, 'Registration'):
+    for requests in self._withMaximumBatchSize(registration_requests,
+                                               'Registration'):
       cbsd_ids.extend(
-          self.testcase.assertRegistered(
-              requests,
-              cert=self.ssl_cert,
-              key=self.ssl_key))
+          self._tryRegistration(requests, cert=self.ssl_cert, key=self.ssl_key))
     return cbsd_ids
 
   def _grantRequestWithMaximumBatchSize(self, grant_requests):
