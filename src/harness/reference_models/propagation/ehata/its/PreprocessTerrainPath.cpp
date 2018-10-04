@@ -56,35 +56,30 @@ void FindAverageGroundHeight(float *pfl, InterValues *interValues)
         // ******* WinnForum extension *******
         if (_WinnForum_Extensions) {
           i_start = 2 + int(ceil(3.0 / xi));
-          i_end = np + 2;
-          for (int i = i_start; i <= i_end; i++)
-            sum = sum + pfl[i];
-          interValues->h_avg__meter[0] = pfl[2] - (pfl[2] - sum / (i_end - i_start + 1))
-              * (d__km - 3.0) / 12.0;
-
-          i_start = 2;
-          i_end = np + 2 - int(ceil(3.0 / xi));
-          sum = 0.0;
-          for (int i = i_start; i <= i_end; i++)
-            sum = sum + pfl[i];
-          interValues->h_avg__meter[1] = pfl[np+2] - (pfl[np+2] - sum / (i_end - i_start + 1))
-              * (d__km - 3.0) / 12.0;
-
         } else {
-          // Original ITS formula has an issue: it scales everything down
           i_start = 2 + int(3.0 / xi);
-          i_end = np + 2;
-          for (int i = i_start; i <= i_end; i++)
-            sum = sum + pfl[i];
-          interValues->h_avg__meter[0] = sum / (i_end - i_start + 1) * (d__km - 3.0) / 12.0;
-
-          i_start = 2;
-          i_end = np + 2 - int(3.0 / xi);
-          sum = 0.0;
-          for (int i = i_start; i <= i_end; i++)
-            sum = sum + pfl[i];
-          interValues->h_avg__meter[1] = sum / (i_end - i_start + 1) * (d__km - 3.0) / 12.0;
         }
+        // ******* End WinnForum extension *******
+        i_end = np + 2;
+        for (int i = i_start; i <= i_end; i++)
+          sum = sum + pfl[i];
+        interValues->h_avg__meter[0] = pfl[2] - (pfl[2] - sum / (i_end - i_start + 1))
+                                       * (d__km - 3.0) / 12.0;
+
+        i_start = 2;
+        // ******* WinnForum extension *******
+        if (_WinnForum_Extensions) {
+          i_end = np + 2 - int(ceil(3.0 / xi));
+        } else {
+          i_end = np + 2 - int(3.0 / xi);
+        }
+        // ******* End WinnForum extension *******
+        sum = 0.0;
+        for (int i = i_start; i <= i_end; i++)
+          sum = sum + pfl[i];
+        interValues->h_avg__meter[1] = pfl[np+2] - (pfl[np+2] - sum / (i_end - i_start + 1))
+                                       * (d__km - 3.0) / 12.0;
+
         // ******* End WinnForum extension *******
         interValues->trace_code = interValues->trace_code | TRACE__METHOD_01;
     }
