@@ -65,8 +65,8 @@ void printInterValues(InterValues *interValues)
 *   Outputs:
 *       plb : path loss, in dB
 */
-void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter,
-    int enviro_code, float *plb)
+void ExtendedHata(double pfl[], double f__mhz, double h_b__meter, double h_m__meter,
+    int enviro_code, double *plb)
 {
     InterValues interValues;
     ExtendedHata_DBG(pfl, f__mhz, h_b__meter, h_m__meter, enviro_code, plb, &interValues);
@@ -87,14 +87,14 @@ void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter,
 *       plb : path loss, in dB
 *       interValues : data structure containing intermediate calculated values
 */
-void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__meter,
-    int enviro_code, float *plb, InterValues *interValues)
+void ExtendedHata_DBG(double pfl[], double f__mhz, double h_b__meter, double h_m__meter,
+    int enviro_code, double *plb, InterValues *interValues)
 {
     int np = int(pfl[0]);
 
     PreprocessTerrainPath(pfl, h_b__meter, h_m__meter, interValues);
 
-    float h_m_gnd__meter, d1_hzn__km, d2_hzn__km;
+    double h_m_gnd__meter, d1_hzn__km, d2_hzn__km;
 
     h_m_gnd__meter = pfl[2];
     interValues->h_m_eff__meter = h_m__meter + pfl[2] - interValues->h_avg__meter[0];
@@ -122,7 +122,7 @@ void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__me
 
     // ******* End WinnForum change *******
 
-    float plb_median__db;
+    double plb_median__db;
     MedianBasicPropLoss(f__mhz, interValues->h_b_eff__meter, interValues->h_m_eff__meter, interValues->d__km, enviro_code, &plb_median__db, interValues);
 
     // apply correction factors based on path

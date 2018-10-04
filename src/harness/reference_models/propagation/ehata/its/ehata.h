@@ -12,23 +12,6 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 // ******* WinnForum extension *******
-// Change all inputs and intermediate value from float to double
-// The reason for that are:
-// - to make the interface more in line with the ITM model
-// - to suppress all mismatch between different implementations:
-//   By using float, every implementation will lead to slightly different
-//   results depending on the compiler and manual code optimisation done.
-//
-//   Because the propagation model is strongly non linear, this typically
-//   leads to variation which can exceed a fraction of a dB or more.
-//   By using double, this issue is strongly alleviated (with the appropriate
-//   compiler flag to force exactness of double calculation, for example the
-//   -fno-unsafe-math-optimizations in gcc or the /fp:precise (default) in
-//   Microsoft compiler).
-//
-// Note: Hacky but works perfect if ehata.h last #include in the C++ files.
-#define float double
-
 // Activate the Winnforum extensions
 extern bool _WinnForum_Extensions; // default is ON
 void SetWinnForumExtensions(bool on);
@@ -42,38 +25,38 @@ void SetWinnForumExtensions(bool on);
 //  One solution is to reset the distance used in calculation to proper integer
 //  values when detected as very close to an integer value.
 //  This function does exactly that.
-float GetDistanceInMeters(float pfl[]);
+double GetDistanceInMeters(double pfl[]);
 
 // ******* End WinnForum extension *******
 
 struct InterValues
 {
-    float d_bp__km;
-    float att_1km;
-    float att_100km;
+    double d_bp__km;
+    double att_1km;
+    double att_100km;
 
-    float h_b_eff__meter;
-    float h_m_eff__meter;
+    double h_b_eff__meter;
+    double h_m_eff__meter;
 
     // Terrain Stats
-    float pfl10__meter;
-    float pfl50__meter;
-    float pfl90__meter;
-    float deltah__meter;
+    double pfl10__meter;
+    double pfl50__meter;
+    double pfl90__meter;
+    double deltah__meter;
 
     // Path Geometry
-    float d__km;
-    float d_hzn__meter[2];
-    float h_avg__meter[2];
-    float theta_m__mrad;
-    float beta;
+    double d__km;
+    double d_hzn__meter[2];
+    double h_avg__meter[2];
+    double theta_m__mrad;
+    double beta;
     int iend_ov_sea;
-    float hedge_tilda;
+    double hedge_tilda;
     bool single_horizon;
 
     // Misc
-    float slope_max;
-    float slope_min;
+    double slope_max;
+    double slope_min;
 
     int trace_code;
 };
@@ -81,26 +64,26 @@ struct InterValues
 #define PI 3.14159265358979323846
 
 // public
-DLLEXPORT void ExtendedHata(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb);
-DLLEXPORT void ExtendedHata_DBG(float pfl[], float f__mhz, float h_b__meter, float h_m__meter, int environment, float *plb, InterValues *interValues);
+DLLEXPORT void ExtendedHata(double pfl[], double f__mhz, double h_b__meter, double h_m__meter, int environment, double *plb);
+DLLEXPORT void ExtendedHata_DBG(double pfl[], double f__mhz, double h_b__meter, double h_m__meter, int environment, double *plb, InterValues *interValues);
 
 // private
-void FindAverageGroundHeight(float *pfl, InterValues *interValues);
-void MobileTerrainSlope(float *pfl, InterValues *interValues);
-void LeastSquares(float *pfl_segment, float x1, float x2, float *z0, float *zn);
-void AnalyzeSeaPath(float* pfl, InterValues *interValues);
-void FindHorizons(float *pfl, float gme, float d__meter, float h_1__meter, float h_2__meter, float *d_hzn__meter);
-void SingleHorizonTest(float *pfl, float h_m__meter, float h_b__meter, InterValues *interValues);
-void ComputeTerrainStatistics(float *pfl, InterValues *interValues);
-float FindQuantile(const int &nn, float *apfl, const int &ir);
-void PreprocessTerrainPath(float *pfl, float h_b__meter, float h_m__meter, InterValues *interValues);
-float AverageTerrainHeight(float *pfl);
-float GeneralSlopeCorrectionFactor(float theta_m__mrad, float d__km);
-float FineRollingHillyTerrainCorectionFactor(InterValues *interValues, float h_m_gnd__meter);
-float MixedPathCorrectionFactor(float d__km, InterValues *interValues);
-float MedianRollingHillyTerrainCorrectionFactor(float deltah);
-void MedianBasicPropLoss(float f__mhz, float h_b__meter, float h_m__meter, float d__km, int environment, float* plb_med__db, InterValues *interValues);
-float IsolatedRidgeCorrectionFactor(float d1_hzn__km, float d2_hzn__km, float h_edge__meter);
+void FindAverageGroundHeight(double *pfl, InterValues *interValues);
+void MobileTerrainSlope(double *pfl, InterValues *interValues);
+void LeastSquares(double *pfl_segment, double x1, double x2, double *z0, double *zn);
+void AnalyzeSeaPath(double* pfl, InterValues *interValues);
+void FindHorizons(double *pfl, double gme, double d__meter, double h_1__meter, double h_2__meter, double *d_hzn__meter);
+void SingleHorizonTest(double *pfl, double h_m__meter, double h_b__meter, InterValues *interValues);
+void ComputeTerrainStatistics(double *pfl, InterValues *interValues);
+double FindQuantile(const int &nn, double *apfl, const int &ir);
+void PreprocessTerrainPath(double *pfl, double h_b__meter, double h_m__meter, InterValues *interValues);
+double AverageTerrainHeight(double *pfl);
+double GeneralSlopeCorrectionFactor(double theta_m__mrad, double d__km);
+double FineRollingHillyTerrainCorectionFactor(InterValues *interValues, double h_m_gnd__meter);
+double MixedPathCorrectionFactor(double d__km, InterValues *interValues);
+double MedianRollingHillyTerrainCorrectionFactor(double deltah);
+void MedianBasicPropLoss(double f__mhz, double h_b__meter, double h_m__meter, double d__km, int environment, double* plb_med__db, InterValues *interValues);
+double IsolatedRidgeCorrectionFactor(double d1_hzn__km, double d2_hzn__km, double h_edge__meter);
 
 // Trace Constants
 #define TRACE__METHOD_00    0x00000001;
