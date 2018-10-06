@@ -15,7 +15,7 @@ repository for instructions.
 ### Code prerequisites
 
 The scripts in the SAS repository depend on local environment setup to run.
-Here are packages and software needed to correctly operate the scripts.
+Here are packages and software needed to correctly operate the scripts. There is an attached Dockerfile which will build an Ubuntu container with all the below dependancies.
 
 * Python 2.7 (https://www.python.org/download/releases/2.7/)
 
