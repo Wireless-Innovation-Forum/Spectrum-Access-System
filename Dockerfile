@@ -7,8 +7,8 @@ RUN \
   apt-get -y upgrade && \
   apt-get install -y python-pip && \
   apt-get install -y cmake && \
+  apt-get install -y libgdal-dev && \
   apt-get install -y python-gdal && \
-  apt-get install libgdal-dev && \
   apt-get install -y git
 
 RUN \
