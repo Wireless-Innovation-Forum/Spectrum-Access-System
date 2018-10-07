@@ -36,3 +36,13 @@ RUN \
   pip install functools32 && \
   pip install psutil && \
   pip install portpicker
+
+# Compile ITM extension module
+RUN \
+  cd /root/src/harness/reference_models/propagation/itm && \
+  python setup.py build_ext -i
+
+# Compile E-Hata extension module
+RUN \
+  cd /root/src/harness/reference_models/propagation/ehata && \
+  python setup.py build_ext -i
