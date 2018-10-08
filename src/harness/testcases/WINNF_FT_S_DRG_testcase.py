@@ -429,8 +429,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       if response['response']['responseCode'] != 0:
         cbsd_to_be_removed_from_next_reg = registration_request[i]
         indexes_conditional_to_remove = [index for index, c in enumerate(conditional_registration_data) if c['cbsdSerialNumber'] == cbsd_to_be_removed_from_next_reg['cbsdSerialNumber'] and c['fccId'] == cbsd_to_be_removed_from_next_reg['fccId']]
-        if indexes_conditional_to_remove:
-          del conditional_registration_data[indexes_conditional_to_remove[0]]
+        for index in reversed(indexes_conditional_to_remove):
+          del conditional_registration_data[index]
     # Step 6: Send the Deregistration request from Step 5 again
     request = {'deregistrationRequest': deregister_request}
     responses_2 = self._sas.Deregistration(request)['deregistrationResponse']
