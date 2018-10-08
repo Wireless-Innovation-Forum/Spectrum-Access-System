@@ -113,7 +113,7 @@ class TestWfHybrid(unittest.TestCase):
     lat1, lng1, height1 = 37.751985, -122.443890, 20.0
     lat2, lng2, height2 = 37.771594, -122.253895, 10.0
     reliability = 0.5
-    expected_loss = 148.740
+    expected_loss = 150.680
     res = wf_hybrid.CalcHybridPropagationLoss(
         lat1, lng1, height1, lat2, lng2, height2,
         reliability=reliability, freq_mhz=3625.,

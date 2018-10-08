@@ -23,7 +23,7 @@ double FineRollingHillyTerrainCorectionFactor(InterValues *interValues, double h
 
     // deltaH must be at least 10 meters
     if (interValues->deltah__meter < 10.0)
-        deltah_use = 10.0;
+        return 0;
     else
         deltah_use = interValues->deltah__meter;
         
@@ -35,9 +35,6 @@ double FineRollingHillyTerrainCorectionFactor(InterValues *interValues, double h
         return -K_h;
     else if (h_m_gnd__meter < interValues->pfl10__meter && h_m_gnd__meter >= interValues->pfl50__meter)
         return K_h * (h_m_gnd__meter - interValues->pfl50__meter) / (interValues->pfl10__meter - interValues->pfl50__meter);
-    else {
-      // ** Winnforum fix - this condition is wrong and breaks the continuity **
-      //return -K_h * (h_m_gnd__meter - interValues->pfl90__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);
-      return -K_h * (interValues->pfl50__meter - h_m_gnd__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);      
-    }
+    else
+        return -K_h * (interValues->pfl50__meter - h_m_gnd__meter) / (interValues->pfl50__meter - interValues->pfl90__meter);
 }
