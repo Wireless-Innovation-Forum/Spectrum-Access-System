@@ -14,19 +14,19 @@
 *       interValues->trace_code : debug trace flag to document code
 *               execution path for tracing and testing purposes
 *   Return:
-*       [float] : correction factor
+*       [double] : correction factor
 */
-float MixedPathCorrectionFactor(float d__km, InterValues *interValues)
+double MixedPathCorrectionFactor(double d__km, InterValues *interValues)
 {
-    float slope_30[2];
-    float slope_60[2];
+    double slope_30[2];
+    double slope_60[2];
 
-    float beta_30[10]    =   { 0.0, 0.15, 0.35, 0.45, 0.6, 0.65, 0.725, 0.775, 0.85,  1.0 };
-    float corr_30[2][10] = { { 0.0, 1.0,  3.0,  4.0,  6.0, 7.0,  8.0,   9.0,  10.0,  11.0 },
+    double beta_30[10]    =   { 0.0, 0.15, 0.35, 0.45, 0.6, 0.65, 0.725, 0.775, 0.85,  1.0 };
+    double corr_30[2][10] = { { 0.0, 1.0,  3.0,  4.0,  6.0, 7.0,  8.0,   9.0,  10.0,  11.0 },
                              { 0.0, 4.0,  5.5,  7.0,  8.5, 9.0,  9.5,   9.8,  10.25, 11.0 } };
 
-    float beta_60[10]    =   { 0.0, 0.15, 0.3,  0.4,  0.5,  0.6,   0.725,  0.85,  0.9,   1.0 };
-    float corr_60[2][10] = { { 0.0, 2.0,  4.0,  5.5,  7.0,  9.0,  11.0,   13.0,  14.0,  15.0 },
+    double beta_60[10]    =   { 0.0, 0.15, 0.3,  0.4,  0.5,  0.6,   0.725,  0.85,  0.9,   1.0 };
+    double corr_60[2][10] = { { 0.0, 2.0,  4.0,  5.5,  7.0,  9.0,  11.0,   13.0,  14.0,  15.0 },
                              { 0.0, 4.25, 6.25, 9.2, 10.5, 11.75, 13.0,   14.0,  14.25, 15.0 } };
 
     if (interValues->beta == 0.0)
@@ -73,9 +73,9 @@ float MixedPathCorrectionFactor(float d__km, InterValues *interValues)
     }
     else
     {
-        float dist_fact = (d__km - 30.0) / 30.0;
-        float qmp_corr_30;
-        float qmp_corr_60;
+        double dist_fact = (d__km - 30.0) / 30.0;
+        double qmp_corr_30;
+        double qmp_corr_60;
 
         if (interValues->iend_ov_sea == 0 || interValues->iend_ov_sea == 1)
         {

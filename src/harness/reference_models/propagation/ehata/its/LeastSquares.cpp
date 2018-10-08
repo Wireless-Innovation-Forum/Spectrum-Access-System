@@ -9,13 +9,13 @@
 *                - pfl_segment[1] = step size, in meters
 *                - pfl_segment[i] = elevation above mean sea level, in meters
 */
-void LeastSquares(float *pfl_segment, float x1, float x2, float *z0, float *zn)
+void LeastSquares(double *pfl_segment, double x1, double x2, double *z0, double *zn)
 {
-    float xn = int(pfl_segment[0]);
-    float xi = pfl_segment[1];
+    double xn = int(pfl_segment[0]);
+    double xi = pfl_segment[1];
 
-    float xa = int(MAX(x1 / xi, 0.0));
-    float xb = xn - int(MAX(xn - x2 / xi, 0.0));
+    double xa = int(MAX(x1 / xi, 0.0));
+    double xb = xn - int(MAX(xn - x2 / xi, 0.0));
 
     if (xb <= xa)
     {
@@ -27,10 +27,10 @@ void LeastSquares(float *pfl_segment, float x1, float x2, float *z0, float *zn)
     int jb = xb;
     int n = jb - ja;
     xa = xb - xa;
-    float x = -0.5 * xa;
+    double x = -0.5 * xa;
     xb = xb + x;
-    float a = 0.5 * (pfl_segment[ja + 2] + pfl_segment[jb + 2]);
-    float b = 0.5 * (pfl_segment[ja + 2] - pfl_segment[jb + 2]) * x;
+    double a = 0.5 * (pfl_segment[ja + 2] + pfl_segment[jb + 2]);
+    double b = 0.5 * (pfl_segment[ja + 2] - pfl_segment[jb + 2]) * x;
     for (int i = 2; i <= n; i++)
     {
         ja = ja + 1;
