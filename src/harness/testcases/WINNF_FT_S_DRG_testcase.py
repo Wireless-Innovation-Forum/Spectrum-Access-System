@@ -409,6 +409,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     responses_1 = self._sas.Deregistration(request)['deregistrationResponse']
     # Check the deregistration response
     self.assertEqual(len(responses_1), len(config['expectedResponseCodes']))
+    registration_request = config['registrationRequests']
+    conditional_registration_data = config['conditionalRegistrationData']
     for i, response in enumerate(responses_1):
       expected_response_codes = config['expectedResponseCodes'][i]
       logging.debug('Looking at response number %d', i)
@@ -423,7 +425,12 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
           self.assertEqual(response['cbsdId'], deregister_request[i]['cbsdId'])
         else:
           self.assertFalse('cbsdId' in response)
-
+      # remove still registered CBSDs from the next preload conditional registration
+      if response['response']['responseCode'] != 0:
+        cbsd_to_be_removed_from_next_reg = registration_request[i]
+        indexes_conditional_to_remove = [index for index, c in enumerate(conditional_registration_data) if c['cbsdSerialNumber'] == cbsd_to_be_removed_from_next_reg['cbsdSerialNumber'] and c['fccId'] == cbsd_to_be_removed_from_next_reg['fccId']]
+        for index in reversed(indexes_conditional_to_remove):
+          del conditional_registration_data[index]
     # Step 6: Send the Deregistration request from Step 5 again
     request = {'deregistrationRequest': deregister_request}
     responses_2 = self._sas.Deregistration(request)['deregistrationResponse']
@@ -441,10 +448,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
         self.assertTrue(response2['response']['responseCode'] in [103, 105])
       self.assertFalse('cbsdId' in response2)
     del request, responses_2
-
     # Step 7: Send registration request from Step 2
-    cbsd_ids = self.assertRegistered(config['registrationRequests'],
-                                     config['conditionalRegistrationData'])
+    cbsd_ids = self.assertRegistered(registration_request,
+                                           conditional_registration_data)
 
     # Step 8: Heartbeat Request
     heartbeat_requests = config['heartbeatRequests']

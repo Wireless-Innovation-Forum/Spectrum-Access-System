@@ -1,8 +1,8 @@
 #include "ehata.h"
 
-float FindQuantile(const int &nn, float *a, const int &ir)
+double FindQuantile(const int &nn, double *a, const int &ir)
 {
-    float q, r;
+    double q, r;
     int m, n, i, j, j1, i0, k;
     bool done = false;
     bool goto10 = true;
