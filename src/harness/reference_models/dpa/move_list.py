@@ -298,6 +298,20 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   return I, sorted_grant_ids, sorted_bearings
 
 
+def findAzimuthRange(min_azimuth, max_azimuth, beamwidth):
+  """Returns the azimuth range for a given radar antenna 'beamwidth'."""
+  if beamwidth == 360:
+    azimuths = [0]
+  else:
+    if max_azimuth < min_azimuth:
+      max_azimuth += 360
+    azimuths = np.arange(min_azimuth, max_azimuth+beamwidth/2., beamwidth/2.0)
+    if azimuths[-1] > max_azimuth: azimuths[-1] = max_azimuth
+    if azimuths[-1] % 360. == azimuths[0]: azimuths = azimuths[:-1]
+    azimuths[azimuths>=360] -= 360
+  return azimuths
+
+
 def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
   """Returns the index (nc) of the grant in the ordered list of grants such that
   the protection percentile of the interference from the first nc grants is below the
@@ -316,13 +330,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     nc:     index nc that defines the move list to be {G_nc+1, G_nc+2, ..., G_Nc}
   """
   # Create array of incumbent antenna azimuth angles (degrees).
-  if beamwidth == 360.0:
-    azimuths = [0]
-  else:
-    if max_azimuth < min_azimuth:
-      max_azimuth += 360
-    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
-    azimuths[azimuths>=360] -= 360
+  azimuths = findAzimuthRange(min_azimuth, max_azimuth, beamwidth)
 
   # Initialize nc to Nc.
   Nc = I.shape[1]
@@ -540,13 +548,7 @@ def calcAggregatedInterference(protection_point,
     bearings[k] = interf.bearing_c_cbsd
 
   interf_matrix = 10**(interf_matrix / 10.)
-  if beamwidth == 360:
-    azimuths = [0]
-  else:
-    if max_azimuth < min_azimuth:
-      max_azimuth += 360
-    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
-    azimuths[azimuths>=360] -= 360
+  azimuths = findAzimuthRange(min_azimuth, max_azimuth, beamwidth)
 
   agg_interf = np.zeros(len(azimuths))
   for k, azi in enumerate(azimuths):
