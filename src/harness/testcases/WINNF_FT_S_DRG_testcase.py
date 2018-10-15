@@ -407,8 +407,10 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     addCbsdIdsToRequests(cbsd_ids, deregister_request)
     request = {'deregistrationRequest': deregister_request}
     responses_1 = self._sas.Deregistration(request)['deregistrationResponse']
+
     # Check the deregistration response
     self.assertEqual(len(responses_1), len(config['expectedResponseCodes']))
+    has_error = False
     registration_request = config['registrationRequests']
     conditional_registration_data = config['conditionalRegistrationData']
     for i, response in enumerate(responses_1):
@@ -416,8 +418,17 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error(
+            'Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+            i, expected_response_codes, response_code)
+        logging.error('Deregistration request: %s', config['deregistrationRequests'][i])
+        logging.error('Deregistration response: %s', response)
+
       # "If the corresponding request contained a valid cbsdId, the
       # response shall contain the same cbsdId."
       if 'cbsdId' in deregister_request[i]:
@@ -431,6 +442,13 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
         indexes_conditional_to_remove = [index for index, c in enumerate(conditional_registration_data) if c['cbsdSerialNumber'] == cbsd_to_be_removed_from_next_reg['cbsdSerialNumber'] and c['fccId'] == cbsd_to_be_removed_from_next_reg['fccId']]
         for index in reversed(indexes_conditional_to_remove):
           del conditional_registration_data[index]
+
+    # Outside the 'for' loop.
+    # Test will stop here if there are any errors, else continue.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
+
     # Step 6: Send the Deregistration request from Step 5 again
     request = {'deregistrationRequest': deregister_request}
     responses_2 = self._sas.Deregistration(request)['deregistrationResponse']
@@ -463,5 +481,4 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Actual response: %s', response)
       self.assertTrue(response['response']['responseCode'] in [103, 500])
-
 
