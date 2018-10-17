@@ -38,6 +38,7 @@ Example usage:
   # Check the interference according to Winnforum IPR tests
   status = dpa.CheckInterference(sas_uut_keep_list, margin_db=2)
 """
+from collections import namedtuple
 import functools
 import os
 import logging
@@ -65,6 +66,20 @@ class _EmptyFad(object):
   """Helper class for representing an empty FAD."""
   def getCbsdRecords(self):
     return []
+
+class DpaInterferenceResult(namedtuple('DpaInterferenceResult',
+                                       ['max_difference',
+                                        'A_DPA',
+                                        'A_DPA_ref',
+                                        ])):
+  """Holds detailed information on a DPA aggregate interference result.
+
+  Attributes:
+    max_difference: maximum difference between A_DPA and A_DPA_ref.
+    A_DPA: SAS UUT's interference to the DPA point.
+    A_DPA_ref: reference value for SAS UUT's interference to the DPA point.
+  """
+  __slots__ = ()
 
 
 # The main Dpa class representing a Dpa zone
@@ -358,11 +373,12 @@ class Dpa(object):
       (ie if at least one combined protection point / azimuth fails the test).
     """
     if channel is None:
+      test_passed = True
       for chan in self._channels:
         if not self.CheckInterference(sas_uut_active_grants, margin_db, chan, num_iter,
                                       do_abs_check_single_uut):
-          return False
-      return True
+          test_passed = False
+      return test_passed
 
     if num_iter is None:
       num_iter = Dpa.num_iteration
@@ -416,12 +432,13 @@ class Dpa(object):
         neighbor_distances=self.neighbor_distances,
         threshold=hard_threshold
     )
-    # TODO(sbdt): could do early stop as soon as one fails, although I would expect
-    # the criteria to be changed into checking 99.x% of success instead of 100%.
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
-    max_diff_interf = max(result)
 
+    logging.info('Printing stats for DPA %s, channel %s', self.name, channel)
+    self.__PrintStatistics(result, margin_db)
+
+    max_diff_interf = max([r.max_difference for r in result])
     if max_diff_interf > margin_db:
       logging.warning('DPA Check Fail `%s`- channel %s thresh %s max_diff %s',
                       self.name, channel,
@@ -432,6 +449,27 @@ class Dpa(object):
 
     return max_diff_interf <= margin_db
 
+  def __PrintStatistics(self, results, margin_db):
+    logging.debug('--- Individual point results ---')
+    differences = np.zeros([len(self.protected_points), len(results[0].A_DPA)])
+    for k, (result, point) in enumerate(zip(results, self.protected_points)):
+      logging.debug('Point: %s', point)
+      logging.debug('Result: %s', result)
+      difference = result.A_DPA - result.A_DPA_ref
+      logging.debug('A_DPA - A_DPA_ref: %s', difference)
+      differences[k, :] = difference
+    logging.info('--- Difference statistics ---')
+    logging.info('Min difference: %s', np.min(differences))
+    logging.info('Max difference: %s', np.max(differences))
+    for percentile in [50, 90, 99, 99.9, 99.99, 99.999, 99.9999]:
+      logging.info('%f percent of differences are <= %f', percentile,
+                   np.percentile(differences, percentile))
+    logging.info('Dynamic histogram (count, bin edges): %s',
+                 np.histogram(differences))
+    logging.info('More detailed histogram (count, bin edges): %s',
+                 np.histogram(differences, np.arange(-10, 10, .1)))
+
+    logging.info('--- End statistics ---')
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
   """ Gets protected channels list for DPA.
@@ -534,14 +572,15 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
     if threshold is not None:
-      result = np.max(uut_interferences - threshold)
+      max_diff = np.max(uut_interferences - threshold)
       logging.debug('%s UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
-                    'Exceeded' if result > 0 else 'Ok',
-                    point, threshold, result, uut_interferences)
-      if result > 0:
-        logging.info('Exceeded UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
-                     point, threshold, result, uut_interferences)
-      return result
+                    'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point, threshold,
+                    max_diff, uut_interferences)
+      if max_diff > 0:
+        logging.info('Exceeded (ignoring delta_DPA) UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
+                     point, threshold, max_diff, uut_interferences)
+      return DpaInterferenceResult(
+          max_difference=max_diff, A_DPA=uut_interferences, A_DPA_ref=threshold)
 
     th_interferences = ml.calcAggregatedInterference(
         point,
@@ -555,17 +594,22 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
 
-    result = np.max(uut_interferences - th_interferences)
-    logging.debug('%s UUT interf @ %s Diff %sdB: %s',
-                  'Exceeded' if result > 0 else 'Ok',
-                  point, result,
-                  zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
-    if result > 0:
-      logging.info('Exceeded UUT interf @ %s Diff %sdB: %s',
-                   point, result,
-                   zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+    max_diff = np.max(uut_interferences - th_interferences)
+    logging.debug(
+        '%s UUT interf @ %s Diff %sdB: %s',
+        'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point, max_diff,
+        zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+    if max_diff > 0:
+      logging.info(
+          'Exceeded (ignoring delta_DPA) UUT interf @ %s Diff %sdB: %s', point, max_diff,
+          zip(
+              np.atleast_1d(th_interferences),
+              np.atleast_1d(uut_interferences)))
 
-    return result
+    return DpaInterferenceResult(
+        max_difference=max_diff,
+        A_DPA=uut_interferences,
+        A_DPA_ref=th_interferences)
 
 
 
