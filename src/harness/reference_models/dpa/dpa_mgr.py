@@ -39,6 +39,7 @@ Example usage:
   status = dpa.CheckInterference(sas_uut_keep_list, margin_db=2)
 """
 from collections import namedtuple
+from datetime import datetime
 import functools
 import os
 import logging
@@ -67,17 +68,16 @@ class _EmptyFad(object):
   def getCbsdRecords(self):
     return []
 
-class DpaInterferenceResult(namedtuple('DpaInterferenceResult',
-                                       ['max_difference',
-                                        'A_DPA',
-                                        'A_DPA_ref',
-                                        ])):
+class DpaInterferenceResult(
+    namedtuple('DpaInterferenceResult',
+               ['max_difference', 'A_DPA', 'A_DPA_ref', 'azimuth_array'])):
   """Holds detailed information on a DPA aggregate interference result.
 
   Attributes:
     max_difference: maximum difference between A_DPA and A_DPA_ref.
     A_DPA: SAS UUT's interference to the DPA point.
     A_DPA_ref: reference value for SAS UUT's interference to the DPA point.
+    azimuth_array: azimuths (in degrees) used in the interference calculation.
   """
   __slots__ = ()
 
@@ -435,8 +435,7 @@ class Dpa(object):
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
 
-    logging.info('Printing stats for DPA %s, channel %s', self.name, channel)
-    self.__PrintStatistics(result, margin_db)
+    self.__PrintStatistics(result, margin_db, self.name, channel)
 
     max_diff_interf = max([r.max_difference for r in result])
     if max_diff_interf > margin_db:
@@ -449,14 +448,31 @@ class Dpa(object):
 
     return max_diff_interf <= margin_db
 
-  def __PrintStatistics(self, results, margin_db):
-    logging.debug('--- Individual point results ---')
+  def __PrintStatistics(self, results, margin_db, dpa_name, channel):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    filename='%s DPA=%s channel=%s.csv' % (timestamp, self.name, channel)
+    logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name, channel, filename)
+    with open(filename, 'w') as f:
+      # CSV header.
+      f.write('Latitude,Longitude,Azimuth (degrees),A_DPA (dBm),A_DPA_ref (dBm),A_DPA - A_DPA_ref,A_DPA + 144 dBm\n')
+      for result, point in zip(results, self.protected_points):
+        latitude = point.latitude
+        longitude = point.longitude
+        for k, azimuth in enumerate(result.azimuth_array):
+          A_DPA = result.A_DPA[k]
+          if isinstance(result.A_DPA_ref, float):  # Happens when there are no peer SASes.
+            A_DPA_ref = result.A_DPA_ref
+          else:
+            A_DPA_ref = result.A_DPA_ref[k]
+          line = ','.join('%3.10f' % val for val in [
+              latitude, longitude, azimuth, A_DPA, A_DPA_ref, A_DPA -
+              A_DPA_ref, A_DPA + 144
+          ])
+          f.write(line + '\n')
+
     differences = np.zeros([len(self.protected_points), len(results[0].A_DPA)])
     for k, (result, point) in enumerate(zip(results, self.protected_points)):
-      logging.debug('Point: %s', point)
-      logging.debug('Result: %s', result)
       difference = result.A_DPA - result.A_DPA_ref
-      logging.debug('A_DPA - A_DPA_ref: %s', difference)
       differences[k, :] = difference
     logging.info('--- Difference statistics ---')
     logging.info('Min difference: %s', np.min(differences))
@@ -464,11 +480,6 @@ class Dpa(object):
     for percentile in [50, 90, 99, 99.9, 99.99, 99.999, 99.9999]:
       logging.info('%f percent of differences are <= %f', percentile,
                    np.percentile(differences, percentile))
-    logging.info('Dynamic histogram (count, bin edges): %s',
-                 np.histogram(differences))
-    logging.info('More detailed histogram (count, bin edges): %s',
-                 np.histogram(differences, np.arange(-10, 10, .1)))
-
     logging.info('--- End statistics ---')
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
@@ -555,6 +566,7 @@ def _CalcTestPointInterfDiff(point,
     The maximum aggregated difference across all the radar pointing directions between
     the blended and the reference models.
   """
+  azimuths = ml.findAzimuthRange(azimuth_range[0], azimuth_range[1], beamwidth)
   # Perform caching of the per device interference, as to reduce the Monte-Carlo
   # variability on similar CBSD in keep list.
   # TODO(sbdt): check if better to context manage once per process, with clearing
@@ -580,7 +592,10 @@ def _CalcTestPointInterfDiff(point,
         logging.info('Exceeded (ignoring delta_DPA) UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
                      point, threshold, max_diff, uut_interferences)
       return DpaInterferenceResult(
-          max_difference=max_diff, A_DPA=uut_interferences, A_DPA_ref=threshold)
+          max_difference=max_diff,
+          A_DPA=uut_interferences,
+          A_DPA_ref=threshold,
+          azimuth_array=azimuths)
 
     th_interferences = ml.calcAggregatedInterference(
         point,
@@ -609,7 +624,7 @@ def _CalcTestPointInterfDiff(point,
     return DpaInterferenceResult(
         max_difference=max_diff,
         A_DPA=uut_interferences,
-        A_DPA_ref=th_interferences)
+        A_DPA_ref=th_interferences, azimuth_array=azimuths)
 
 
 
