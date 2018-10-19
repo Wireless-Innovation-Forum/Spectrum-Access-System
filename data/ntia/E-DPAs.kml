@@ -4,10 +4,10 @@
       <name>E-DPAs</name>
 <ExtendedData>
 <Data name="version">
-<value>1.0.6</value>
+<value>1.0.7</value>
 </Data> 
 <Data name="creationDate">
-<value>2018-10-16</value>
+<value>2018-10-19</value>
 </Data> 
 <Data name="Disclaimer">
 <value>The Category A and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
@@ -2158,7 +2158,7 @@
 <value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>150</value>
+<value>144</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
 <value>0</value>
@@ -2558,7 +2558,7 @@
 <value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>150</value>
+<value>128</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
 <value>0</value>
@@ -2668,7 +2668,7 @@
 <value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>150</value>
+<value>128</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
 <value>0</value>
