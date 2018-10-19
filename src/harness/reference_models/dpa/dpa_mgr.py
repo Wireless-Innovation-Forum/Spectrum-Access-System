@@ -395,6 +395,9 @@ class Dpa(object):
     # Find an extended keep list of UUT.
     keep_list_uut_managing_sas = list(sas_uut_active_grants)
 
+    self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
+                          keep_list_uut_managing_sas, self.name, channel)
+
     # Note: other code with pre filtering could be:
     #nbor_list = self.GetNeighborList(channel)
     #if nbor_list:
@@ -481,6 +484,38 @@ class Dpa(object):
       logging.info('%f percent of differences are <= %f', percentile,
                    np.percentile(differences, percentile))
     logging.info('--- End statistics ---')
+
+  def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
+                       keep_list_uut_managing_sas, dpa_name, channel):
+
+    def WriteKeepList(filename, keep_list):
+      logging.info('Writing keep list to file: %s', filename)
+      fields = [
+          'latitude', 'longitude', 'height_agl', 'indoor_deployment',
+          'cbsd_category', 'antenna_azimuth', 'antenna_gain',
+          'antenna_beamwidth', 'max_eirp', 'low_frequency', 'high_frequency',
+          'is_managed_grant'
+      ]
+      with open(filename, 'w') as f:
+        f.write(','.join(fields) + '\n')
+        for cbsd_grant_info in keep_list:
+          cbsd_grant_dict = cbsd_grant_info._asdict()
+          f.write(','.join([str(cbsd_grant_dict[key]) for key in fields]) + '\n')
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    base_filename = '%s DPA=%s channel=%s' % (timestamp, self.name, channel)
+
+    # SAS test harnesses (peer SASes) combined keep list
+    filename = '%s (combined peer SAS keep list).csv' % base_filename
+    WriteKeepList(filename, keep_list_th_other_sas)
+
+    # SAS UUT keep list (according to test harness)
+    filename = '%s (SAS UUT keep list, according to test harness).csv' % base_filename
+    WriteKeepList(filename, keep_list_th_managing_sas)
+
+    # SAS UUT keep list (according to SAS UUT)
+    filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
+    WriteKeepList(filename, keep_list_uut_managing_sas)
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
   """ Gets protected channels list for DPA.
