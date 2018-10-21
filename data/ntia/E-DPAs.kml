@@ -4,10 +4,10 @@
       <name>E-DPAs</name>
 <ExtendedData>
 <Data name="version">
-<value>1.0.4</value>
+<value>1.0.7</value>
 </Data> 
 <Data name="creationDate">
-<value>2018-08-07</value>
+<value>2018-10-19</value>
 </Data> 
 <Data name="Disclaimer">
 <value>The Category A and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
@@ -40,13 +40,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -95,13 +95,13 @@
 <value>464</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -150,13 +150,13 @@
 <value>336</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -205,13 +205,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -260,13 +260,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -315,13 +315,13 @@
 <value>384</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -370,13 +370,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -425,13 +425,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -480,13 +480,13 @@
 <value>416</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -535,13 +535,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -590,13 +590,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -645,13 +645,13 @@
 <value>416</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -700,13 +700,13 @@
 <value>336</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -755,13 +755,13 @@
 <value>336</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -810,13 +810,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -865,13 +865,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -920,13 +920,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -975,13 +975,13 @@
 <value>336</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1030,13 +1030,13 @@
 <value>384</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1085,13 +1085,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1140,13 +1140,13 @@
 <value>416</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1195,13 +1195,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1250,13 +1250,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1305,13 +1305,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1360,13 +1360,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1415,13 +1415,13 @@
 <value>352</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1470,13 +1470,13 @@
 <value>384</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1525,13 +1525,13 @@
 <value>368</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1580,13 +1580,13 @@
 <value>288</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1635,13 +1635,13 @@
 <value>288</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
 <Point>
@@ -1675,13 +1675,13 @@
 <value>304</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
 <Point>
@@ -1715,13 +1715,13 @@
 <value>176</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1770,13 +1770,13 @@
 <value>192</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1825,13 +1825,13 @@
 <value>160</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1880,13 +1880,13 @@
 <value>176</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1935,13 +1935,13 @@
 <value>176</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -1990,13 +1990,13 @@
 <value>160</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2045,13 +2045,13 @@
 <value>160</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2100,13 +2100,13 @@
 <value>208</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2155,13 +2155,13 @@
 <value>144</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>144</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2210,13 +2210,13 @@
 <value>192</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2265,13 +2265,13 @@
 <value>240</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2320,13 +2320,13 @@
 <value>224</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2386,13 +2386,13 @@
 <value>160</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -2445,13 +2445,13 @@
 <value>192</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2500,13 +2500,13 @@
 <value>224</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2555,13 +2555,13 @@
 <value>128</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>128</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2610,13 +2610,13 @@
 <value>192</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2665,13 +2665,13 @@
 <value>128</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>128</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2720,13 +2720,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2775,13 +2775,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2830,13 +2830,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2885,13 +2885,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -2940,13 +2940,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3006,13 +3006,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -3055,13 +3055,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3110,13 +3110,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3165,13 +3165,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3220,13 +3220,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3275,13 +3275,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3341,13 +3341,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -3390,13 +3390,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3445,13 +3445,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3500,13 +3500,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3555,13 +3555,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3610,13 +3610,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3665,13 +3665,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3731,13 +3731,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
 <MultiGeometry>
@@ -3784,13 +3784,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3850,13 +3850,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -3899,13 +3899,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -3954,13 +3954,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4009,13 +4009,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4064,13 +4064,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4119,13 +4119,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4174,13 +4174,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4240,13 +4240,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -4305,13 +4305,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -4354,13 +4354,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4409,13 +4409,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4464,13 +4464,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4519,13 +4519,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4585,13 +4585,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -4634,13 +4634,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4689,13 +4689,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4755,13 +4755,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -4804,13 +4804,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4859,13 +4859,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4914,13 +4914,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -4969,13 +4969,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5024,13 +5024,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5079,13 +5079,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5134,13 +5134,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5189,13 +5189,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5244,13 +5244,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5299,13 +5299,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5365,13 +5365,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -5414,13 +5414,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5480,13 +5480,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -5529,13 +5529,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5584,13 +5584,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5650,13 +5650,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
             <Polygon>
@@ -5709,13 +5709,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5764,13 +5764,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
@@ -5819,13 +5819,13 @@
 <value>200</value>
 </Data> 
 <Data name="catBOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>25</value>
 </Data> 
 <Data name="catANeighborhoodDistanceKm">
-<value>NaN</value>
+<value>150</value>
 </Data> 
 <Data name="catAOOBNeighborhoodDistanceKm">
-<value>NaN</value>
+<value>0</value>
 </Data> 
 </ExtendedData>
          <Style>
