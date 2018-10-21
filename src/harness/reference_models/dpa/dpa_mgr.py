@@ -440,7 +440,7 @@ class Dpa(object):
 
     self.__PrintStatistics(result, margin_db, self.name, channel)
 
-    max_diff_interf = max([r.max_difference for r in result])
+    max_diff_interf = max(r.max_difference for r in result)
     if max_diff_interf > margin_db:
       logging.warning('DPA Check Fail `%s`- channel %s thresh %s max_diff %s',
                       self.name, channel,
@@ -499,8 +499,7 @@ class Dpa(object):
       with open(filename, 'w') as f:
         f.write(','.join(fields) + '\n')
         for cbsd_grant_info in keep_list:
-          cbsd_grant_dict = cbsd_grant_info._asdict()
-          f.write(','.join([str(cbsd_grant_dict[key]) for key in fields]) + '\n')
+          f.write(','.join(str(getattr(cbsd_grant_info, key)) for key in fields) + '\n')
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     base_filename = '%s DPA=%s channel=%s' % (timestamp, self.name, channel)
