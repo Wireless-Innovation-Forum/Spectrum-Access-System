@@ -38,6 +38,8 @@ Example usage:
   # Check the interference according to Winnforum IPR tests
   status = dpa.CheckInterference(sas_uut_keep_list, margin_db=2)
 """
+from collections import namedtuple
+from datetime import datetime
 import functools
 import os
 import logging
@@ -65,6 +67,19 @@ class _EmptyFad(object):
   """Helper class for representing an empty FAD."""
   def getCbsdRecords(self):
     return []
+
+class DpaInterferenceResult(
+    namedtuple('DpaInterferenceResult',
+               ['max_difference', 'A_DPA', 'A_DPA_ref', 'azimuth_array'])):
+  """Holds detailed information on a DPA aggregate interference result.
+
+  Attributes:
+    max_difference: maximum difference between A_DPA and A_DPA_ref.
+    A_DPA: SAS UUT's interference to the DPA point.
+    A_DPA_ref: reference value for SAS UUT's interference to the DPA point.
+    azimuth_array: azimuths (in degrees) used in the interference calculation.
+  """
+  __slots__ = ()
 
 
 # The main Dpa class representing a Dpa zone
@@ -358,11 +373,12 @@ class Dpa(object):
       (ie if at least one combined protection point / azimuth fails the test).
     """
     if channel is None:
+      test_passed = True
       for chan in self._channels:
         if not self.CheckInterference(sas_uut_active_grants, margin_db, chan, num_iter,
                                       do_abs_check_single_uut):
-          return False
-      return True
+          test_passed = False
+      return test_passed
 
     if num_iter is None:
       num_iter = Dpa.num_iteration
@@ -378,6 +394,9 @@ class Dpa(object):
 
     # Find an extended keep list of UUT.
     keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
+    self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
+                          keep_list_uut_managing_sas, self.name, channel)
 
     # Note: other code with pre filtering could be:
     #nbor_list = self.GetNeighborList(channel)
@@ -416,12 +435,12 @@ class Dpa(object):
         neighbor_distances=self.neighbor_distances,
         threshold=hard_threshold
     )
-    # TODO(sbdt): could do early stop as soon as one fails, although I would expect
-    # the criteria to be changed into checking 99.x% of success instead of 100%.
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
-    max_diff_interf = max(result)
 
+    self.__PrintStatistics(result, margin_db, self.name, channel, self.threshold)
+
+    max_diff_interf = max(r.max_difference for r in result)
     if max_diff_interf > margin_db:
       logging.warning('DPA Check Fail `%s`- channel %s thresh %s max_diff %s',
                       self.name, channel,
@@ -432,6 +451,75 @@ class Dpa(object):
 
     return max_diff_interf <= margin_db
 
+  def __PrintStatistics(self, results, margin_db, dpa_name, channel, threshold):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+    filename = '%s DPA=%s channel=%s threshold=%s.csv' % (timestamp, dpa_name,
+                                                          channel, threshold)
+    logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name,
+                 channel, filename)
+    with open(filename, 'w') as f:
+      # CSV header.
+      f.write(
+          'Latitude,Longitude,Azimuth (degrees),A_DPA (dBm),A_DPA_ref (dBm),A_DPA - A_DPA_ref,A_DPA - threshold\n'
+      )
+      for result, point in zip(results, self.protected_points):
+        latitude = point.latitude
+        longitude = point.longitude
+        for k, azimuth in enumerate(result.azimuth_array):
+          A_DPA = result.A_DPA[k]
+          if isinstance(result.A_DPA_ref,
+                        float):  # Happens when there are no peer SASes.
+            A_DPA_ref = result.A_DPA_ref
+          else:
+            A_DPA_ref = result.A_DPA_ref[k]
+          line = ','.join('%3.10f' % val for val in [
+              latitude, longitude, azimuth, A_DPA, A_DPA_ref, A_DPA -
+              A_DPA_ref, A_DPA - threshold
+          ])
+          f.write(line + '\n')
+
+    differences = np.zeros([len(self.protected_points), len(results[0].A_DPA)])
+    for k, (result, point) in enumerate(zip(results, self.protected_points)):
+      difference = result.A_DPA - result.A_DPA_ref
+      differences[k, :] = difference
+    logging.info('--- Difference statistics ---')
+    logging.info('Min difference: %s', np.min(differences))
+    logging.info('Max difference: %s', np.max(differences))
+    for percentile in [50, 90, 99, 99.9, 99.99, 99.999, 99.9999]:
+      logging.info('%f percent of differences are <= %f', percentile,
+                   np.percentile(differences, percentile))
+    logging.info('--- End statistics ---')
+
+  def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
+                       keep_list_uut_managing_sas, dpa_name, channel):
+
+    def WriteKeepList(filename, keep_list):
+      logging.info('Writing keep list to file: %s', filename)
+      fields = [
+          'latitude', 'longitude', 'height_agl', 'indoor_deployment',
+          'cbsd_category', 'antenna_azimuth', 'antenna_gain',
+          'antenna_beamwidth', 'max_eirp', 'low_frequency', 'high_frequency',
+          'is_managed_grant'
+      ]
+      with open(filename, 'w') as f:
+        f.write(','.join(fields) + '\n')
+        for cbsd_grant_info in keep_list:
+          f.write(','.join(str(getattr(cbsd_grant_info, key)) for key in fields) + '\n')
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+    base_filename = '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel)
+
+    # SAS test harnesses (peer SASes) combined keep list
+    filename = '%s (combined peer SAS keep list).csv' % base_filename
+    WriteKeepList(filename, keep_list_th_other_sas)
+
+    # SAS UUT keep list (according to test harness)
+    filename = '%s (SAS UUT keep list, according to test harness).csv' % base_filename
+    WriteKeepList(filename, keep_list_th_managing_sas)
+
+    # SAS UUT keep list (according to SAS UUT)
+    filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
+    WriteKeepList(filename, keep_list_uut_managing_sas)
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
   """ Gets protected channels list for DPA.
@@ -517,6 +605,7 @@ def _CalcTestPointInterfDiff(point,
     The maximum aggregated difference across all the radar pointing directions between
     the blended and the reference models.
   """
+  azimuths = ml.findAzimuthRange(azimuth_range[0], azimuth_range[1], beamwidth)
   # Perform caching of the per device interference, as to reduce the Monte-Carlo
   # variability on similar CBSD in keep list.
   # TODO(sbdt): check if better to context manage once per process, with clearing
@@ -534,14 +623,18 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
     if threshold is not None:
-      result = np.max(uut_interferences - threshold)
+      max_diff = np.max(uut_interferences - threshold)
       logging.debug('%s UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
-                    'Exceeded' if result > 0 else 'Ok',
-                    point, threshold, result, uut_interferences)
-      if result > 0:
-        logging.info('Exceeded UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
-                     point, threshold, result, uut_interferences)
-      return result
+                    'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point, threshold,
+                    max_diff, uut_interferences)
+      if max_diff > 0:
+        logging.info('Exceeded (ignoring delta_DPA) UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
+                     point, threshold, max_diff, uut_interferences)
+      return DpaInterferenceResult(
+          max_difference=max_diff,
+          A_DPA=uut_interferences,
+          A_DPA_ref=threshold,
+          azimuth_array=azimuths)
 
     th_interferences = ml.calcAggregatedInterference(
         point,
@@ -555,17 +648,22 @@ def _CalcTestPointInterfDiff(point,
         max_azimuth=azimuth_range[1],
         neighbor_distances=neighbor_distances)
 
-    result = np.max(uut_interferences - th_interferences)
-    logging.debug('%s UUT interf @ %s Diff %sdB: %s',
-                  'Exceeded' if result > 0 else 'Ok',
-                  point, result,
-                  zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
-    if result > 0:
-      logging.info('Exceeded UUT interf @ %s Diff %sdB: %s',
-                   point, result,
-                   zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+    max_diff = np.max(uut_interferences - th_interferences)
+    logging.debug(
+        '%s UUT interf @ %s Diff %sdB: %s',
+        'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point, max_diff,
+        zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+    if max_diff > 0:
+      logging.info(
+          'Exceeded (ignoring delta_DPA) UUT interf @ %s Diff %sdB: %s', point, max_diff,
+          zip(
+              np.atleast_1d(th_interferences),
+              np.atleast_1d(uut_interferences)))
 
-    return result
+    return DpaInterferenceResult(
+        max_difference=max_diff,
+        A_DPA=uut_interferences,
+        A_DPA_ref=th_interferences, azimuth_array=azimuths)
 
 
 
