@@ -1,0 +1,2348 @@
+{
+  "domainProxyConfigs": [
+    {
+      "cert": "certs/domain_proxy.cert", 
+      "key": "certs/domain_proxy.key"
+    }, 
+    {
+      "cert": "certs/domain_proxy_1.cert", 
+      "key": "certs/domain_proxy_1.key"
+    }
+  ], 
+  "dpas": {
+    "East4": {
+      "movelistMargin": 10, 
+      "points_builder": "default (25, 10, 10, 10)"
+    }, 
+    "East5": {
+      "movelistMargin": 10, 
+      "points_builder": "default (25, 10, 10, 10)"
+    }, 
+    "East6": {
+      "movelistMargin": 10, 
+      "points_builder": "default (25, 10, 10, 10)"
+    }
+  }, 
+  "initialCbsdRecords": [], 
+  "initialCbsdRequestsWithDomainProxies": [
+    {
+      "conditionalRegistrationData": [], 
+      "grantRequests": [], 
+      "registrationRequests": []
+    }, 
+    {
+      "conditionalRegistrationData": [], 
+      "grantRequests": [], 
+      "registrationRequests": []
+    }
+  ], 
+  "iterationData": [
+    {
+      "cbsdRecords": [
+        {
+          "clientCert": "certs/device_g.cert", 
+          "clientKey": "certs/device_g.key", 
+          "grantRequest": {
+            "operationParam": {
+              "maxEirp": 10, 
+              "operationFrequencyRange": {
+                "highFrequency": 3660000000, 
+                "lowFrequency": 3650000000
+              }
+            }
+          }, 
+          "registrationRequest": {
+            "airInterface": {
+              "radioTechnology": "E_UTRA"
+            }, 
+            "callSign": "callsign_g", 
+            "cbsdCategory": "A", 
+            "cbsdSerialNumber": "test_serial_number_g", 
+            "fccId": "test_fcc_id_g", 
+            "installationParam": {
+              "antennaAzimuth": 270, 
+              "antennaBeamwidth": 12, 
+              "antennaGain": 45, 
+              "height": 4.1, 
+              "heightType": "AGL", 
+              "indoorDeployment": false, 
+              "latitude": 39.32705, 
+              "longitude": -100.604567
+            }, 
+            "measCapability": [], 
+            "userId": "test_user_id_g"
+          }
+        }
+      ], 
+      "cbsdRequestsWithDomainProxies": [
+        {
+          "conditionalRegistrationData": [
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "cbsdCategory": "B", 
+              "cbsdSerialNumber": "test_serial_number_b", 
+              "fccId": "test_fcc_id_b", 
+              "installationParam": {
+                "antennaAzimuth": 270, 
+                "antennaBeamwidth": 30, 
+                "antennaDowntilt": -90, 
+                "antennaGain": 16, 
+                "height": 7.6, 
+                "heightType": "AGL", 
+                "indoorDeployment": false, 
+                "latitude": 39.139836, 
+                "longitude": -97.770094
+              }, 
+              "measCapability": []
+            }
+          ], 
+          "grantRequests": [
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3630000000, 
+                  "lowFrequency": 3620000000
+                }
+              }
+            }, 
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3640000000, 
+                  "lowFrequency": 3630000000
+                }
+              }
+            }
+          ], 
+          "registrationRequests": [
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "callSign": "callsign_a", 
+              "cbsdCategory": "A", 
+              "cbsdSerialNumber": "test_serial_number_a", 
+              "fccId": "test_fcc_id_a", 
+              "installationParam": {
+                "antennaAzimuth": 90, 
+                "antennaBeamwidth": 30, 
+                "antennaGain": 16, 
+                "height": 9.3, 
+                "heightType": "AGL", 
+                "indoorDeployment": true, 
+                "latitude": 39.0119, 
+                "longitude": -98.4842
+              }, 
+              "measCapability": [], 
+              "userId": "test_user_id_a"
+            }, 
+            {
+              "callSign": "callsign_b", 
+              "cbsdSerialNumber": "test_serial_number_b", 
+              "fccId": "test_fcc_id_b", 
+              "userId": "test_user_id_b"
+            }
+          ]
+        }, 
+        {
+          "conditionalRegistrationData": [], 
+          "grantRequests": [
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3660000000, 
+                  "lowFrequency": 3650000000
+                }
+              }
+            }
+          ], 
+          "registrationRequests": [
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "callSign": "callsign_c", 
+              "cbsdCategory": "A", 
+              "cbsdSerialNumber": "test_serial_number_c", 
+              "fccId": "test_fcc_id_c", 
+              "installationParam": {
+                "antennaAzimuth": 270, 
+                "antennaBeamwidth": 0, 
+                "antennaGain": -127, 
+                "height": 4.5, 
+                "heightType": "AMSL", 
+                "indoorDeployment": false, 
+                "latitude": 38.815291, 
+                "longitude": -97.198805
+              }, 
+              "measCapability": [], 
+              "userId": "test_user_id_c"
+            }
+          ]
+        }
+      ], 
+      "dpaActivationList": [
+        {
+          "dpaId": "East4", 
+          "frequencyRange": {
+            "highFrequency": 3650000000, 
+            "lowFrequency": 3550000000
+          }
+        }, 
+        {
+          "dpaId": "East5", 
+          "frequencyRange": {
+            "highFrequency": 3650000000, 
+            "lowFrequency": 3550000000
+          }
+        }
+      ], 
+      "dpaDeactivationList": [], 
+      "protectedEntities": {
+        "escRecords": [
+          {
+            "id": "esc_sensor/admin_0/esc_sensor_0", 
+            "installationParam": {
+              "antennaAzimuth": 120, 
+              "azimuthRadiationPattern": [
+                {
+                  "angle": 0, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 1, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 2, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 3, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 4, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 5, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 6, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 7, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 8, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 9, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 10, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 11, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 12, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 13, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 14, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 15, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 16, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 17, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 18, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 19, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 20, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 21, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 22, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 23, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 24, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 25, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 26, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 27, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 28, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 29, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 30, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 31, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 32, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 33, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 34, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 35, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 36, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 37, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 38, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 39, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 40, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 41, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 42, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 43, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 44, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 45, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 46, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 47, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 48, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 49, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 50, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 51, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 52, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 53, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 54, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 55, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 56, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 57, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 58, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 59, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 60, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 61, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 62, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 63, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 64, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 65, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 66, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 67, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 68, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 69, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 70, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 71, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 72, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 73, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 74, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 75, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 76, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 77, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 78, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 79, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 80, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 81, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 82, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 83, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 84, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 85, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 86, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 87, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 88, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 89, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 90, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 91, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 92, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 93, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 94, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 95, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 96, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 97, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 98, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 99, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 100, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 101, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 102, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 103, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 104, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 105, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 106, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 107, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 108, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 109, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 110, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 111, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 112, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 113, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 114, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 115, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 116, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 117, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 118, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 119, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 120, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 121, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 122, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 123, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 124, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 125, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 126, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 127, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 128, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 129, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 130, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 131, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 132, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 133, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 134, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 135, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 136, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 137, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 138, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 139, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 140, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 141, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 142, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 143, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 144, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 145, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 146, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 147, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 148, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 149, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 150, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 151, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 152, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 153, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 154, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 155, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 156, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 157, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 158, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 159, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 160, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 161, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 162, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 163, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 164, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 165, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 166, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 167, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 168, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 169, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 170, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 171, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 172, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 173, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 174, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 175, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 176, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 177, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 178, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 179, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 180, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 181, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 182, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 183, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 184, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 185, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 186, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 187, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 188, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 189, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 190, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 191, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 192, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 193, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 194, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 195, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 196, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 197, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 198, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 199, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 200, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 201, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 202, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 203, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 204, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 205, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 206, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 207, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 208, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 209, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 210, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 211, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 212, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 213, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 214, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 215, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 216, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 217, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 218, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 219, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 220, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 221, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 222, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 223, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 224, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 225, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 226, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 227, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 228, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 229, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 230, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 231, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 232, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 233, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 234, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 235, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 236, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 237, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 238, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 239, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 240, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 241, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 242, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 243, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 244, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 245, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 246, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 247, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 248, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 249, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 250, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 251, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 252, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 253, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 254, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 255, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 256, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 257, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 258, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 259, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 260, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 261, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 262, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 263, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 264, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 265, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 266, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 267, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 268, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 269, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 270, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 271, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 272, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 273, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 274, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 275, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 276, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 277, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 278, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 279, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 280, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 281, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 282, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 283, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 284, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 285, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 286, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 287, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 288, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 289, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 290, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 291, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 292, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 293, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 294, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 295, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 296, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 297, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 298, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 299, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 300, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 301, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 302, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 303, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 304, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 305, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 306, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 307, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 308, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 309, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 310, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 311, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 312, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 313, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 314, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 315, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 316, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 317, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 318, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 319, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 320, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 321, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 322, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 323, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 324, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 325, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 326, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 327, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 328, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 329, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 330, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 331, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 332, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 333, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 334, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 335, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 336, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 337, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 338, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 339, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 340, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 341, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 342, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 343, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 344, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 345, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 346, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 347, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 348, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 349, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 350, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 351, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 352, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 353, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 354, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 355, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 356, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 357, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 358, 
+                  "gain": 30
+                }, 
+                {
+                  "angle": 359, 
+                  "gain": 30
+                }
+              ], 
+              "height": 9.3, 
+              "heightType": "AGL", 
+              "latitude": 38.8, 
+              "longitude": -100.25
+            }
+          }
+        ], 
+        "palRecords": [
+          {
+            "channelAssignment": {
+              "primaryAssignment": {
+                "highFrequency": 3560000000, 
+                "lowFrequency": 3550000000
+              }
+            }, 
+            "license": {
+              "licenseAreaExtent": "zone/census_tract/census/2010/20041084200", 
+              "licenseAreaIdentifier": "20041084200", 
+              "licenseDate": "2017-10-05T17:33:21Z", 
+              "licenseExpiration": "2019-10-05T17:33:21Z", 
+              "licenseFrequencyChannelId": "1", 
+              "licenseId": "test_fcc_id_pal_0"
+            }, 
+            "licenseStatus": "VALID", 
+            "licensee": "CBSD Operator No.1", 
+            "palId": "pal/10-2017/20041084200/1", 
+            "registrationInformation": {
+              "callSign": "call_sign_pal_0", 
+              "frn": "test_fcc_frn_pal_0", 
+              "licenseConditions": "license_pal_0", 
+              "registrationDate": "2017-10-05T17:33:21Z"
+            }, 
+            "userId": "test_user_1"
+          }
+        ], 
+        "ppaRecords": [
+          {
+            "creator": "admin_0", 
+            "id": "zone/ppa/admin_0/pal/10-2017/20041084200/1/63b4a13dd57e496d9738c9fec1ddb014", 
+            "name": "PPA Zone 0", 
+            "ppaInfo": {
+              "cbsdReferenceId": [], 
+              "palId": [
+                "pal/10-2017/20041084200/1"
+              ], 
+              "ppaBeginDate": "2017-10-05T17:33:21Z", 
+              "ppaExpirationDate": "2019-10-05T17:33:21Z", 
+              "ppaRegionType": "URBAN"
+            }, 
+            "terminated": false, 
+            "usage": "PPA", 
+            "zone": {
+              "features": [
+                {
+                  "geometry": {
+                    "coordinates": [
+                      [
+                        [
+                          -97.23861694335938, 
+                          38.865374851611634
+                        ], 
+                        [
+                          -97.31964111328125, 
+                          38.7615795117574
+                        ], 
+                        [
+                          -97.16995239257811, 
+                          38.739088441876866
+                        ], 
+                        [
+                          -97.16171264648436, 
+                          38.86751337001198
+                        ], 
+                        [
+                          -97.23861694335938, 
+                          38.865374851611634
+                        ]
+                      ]
+                    ], 
+                    "type": "Polygon"
+                  }, 
+                  "properties": {}, 
+                  "type": "Feature"
+                }
+              ], 
+              "type": "FeatureCollection"
+            }
+          }
+        ]
+      }, 
+      "sasTestHarnessData": [
+        {
+          "cbsdRecords": [
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_05444", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_g/d7a9fe1be84243ebdd50c1359cf0630c3d273350", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_a", 
+                "cbsdCategory": "A", 
+                "fccId": "test_fcc_id_g", 
+                "installationParam": {
+                  "antennaAzimuth": 90, 
+                  "antennaBeamwidth": 30, 
+                  "antennaGain": 16, 
+                  "height": 9.3, 
+                  "heightType": "AGL", 
+                  "indoorDeployment": true, 
+                  "latitude": 39.0119, 
+                  "longitude": -98.4842
+                }, 
+                "measCapability": []
+              }
+            }
+          ]
+        }, 
+        {
+          "cbsdRecords": [
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_85037", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "terminated": false
+                }, 
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_81697", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3660000000, 
+                      "lowFrequency": 3650000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3660000000, 
+                      "lowFrequency": 3650000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_j/1584f2ceda10e1c0f29ad72cccdb339f90aecf40", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_d", 
+                "cbsdCategory": "B", 
+                "fccId": "test_fcc_id_j", 
+                "installationParam": {
+                  "antennaAzimuth": 90, 
+                  "antennaBeamwidth": 68, 
+                  "antennaDowntilt": -45, 
+                  "antennaGain": -30, 
+                  "height": 8.9, 
+                  "heightType": "AGL", 
+                  "indoorDeployment": false, 
+                  "latitude": 39.190944, 
+                  "longitude": -99.022535
+                }, 
+                "measCapability": []
+              }
+            }, 
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_81941", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3670000000, 
+                      "lowFrequency": 3660000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3670000000, 
+                      "lowFrequency": 3660000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_k/1a57a6a304f29ccc1a5b814d661a8f8ef235bb9d", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_e", 
+                "cbsdCategory": "A", 
+                "fccId": "test_fcc_id_k", 
+                "installationParam": {
+                  "antennaAzimuth": 180, 
+                  "antennaBeamwidth": 20, 
+                  "antennaGain": 93, 
+                  "height": 2.6, 
+                  "heightType": "AGL", 
+                  "indoorDeployment": true, 
+                  "latitude": 39.173912, 
+                  "longitude": -99.923414
+                }, 
+                "measCapability": []
+              }
+            }
+          ]
+        }
+      ]
+    }, 
+    {
+      "cbsdRecords": [
+        {
+          "clientCert": "certs/device_h.cert", 
+          "clientKey": "certs/device_h.key", 
+          "conditionalRegistrationData": {
+            "airInterface": {
+              "radioTechnology": "E_UTRA"
+            }, 
+            "cbsdCategory": "B", 
+            "cbsdSerialNumber": "test_serial_number_h", 
+            "fccId": "test_fcc_id_h", 
+            "installationParam": {
+              "antennaAzimuth": 270, 
+              "antennaBeamwidth": 30, 
+              "antennaDowntilt": -90, 
+              "antennaGain": 20, 
+              "height": 4.5, 
+              "heightType": "AGL", 
+              "indoorDeployment": false, 
+              "latitude": 42.0001, 
+              "longitude": -110.0001
+            }, 
+            "measCapability": []
+          }, 
+          "grantRequest": {
+            "operationParam": {
+              "maxEirp": 10, 
+              "operationFrequencyRange": {
+                "highFrequency": 3670000000, 
+                "lowFrequency": 3660000000
+              }
+            }
+          }, 
+          "registrationRequest": {
+            "callSign": "callsign_h", 
+            "cbsdSerialNumber": "test_serial_number_h", 
+            "fccId": "test_fcc_id_h", 
+            "userId": "test_user_id_h"
+          }
+        }
+      ], 
+      "cbsdRequestsWithDomainProxies": [
+        {
+          "conditionalRegistrationData": [
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "cbsdCategory": "B", 
+              "cbsdSerialNumber": "test_serial_number_d", 
+              "fccId": "test_fcc_id_d", 
+              "installationParam": {
+                "antennaAzimuth": 90, 
+                "antennaBeamwidth": 68, 
+                "antennaDowntilt": -45, 
+                "antennaGain": -30, 
+                "height": 8.9, 
+                "heightType": "AGL", 
+                "indoorDeployment": false, 
+                "latitude": 39.190944, 
+                "longitude": -99.022535
+              }, 
+              "measCapability": []
+            }
+          ], 
+          "grantRequests": [
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3670000000, 
+                  "lowFrequency": 3660000000
+                }
+              }
+            }
+          ], 
+          "registrationRequests": [
+            {
+              "callSign": "callsign_d", 
+              "cbsdSerialNumber": "test_serial_number_d", 
+              "fccId": "test_fcc_id_d", 
+              "userId": "test_user_id_d"
+            }
+          ]
+        }, 
+        {
+          "conditionalRegistrationData": [], 
+          "grantRequests": [
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3630000000, 
+                  "lowFrequency": 3620000000
+                }
+              }
+            }, 
+            {
+              "operationParam": {
+                "maxEirp": 10, 
+                "operationFrequencyRange": {
+                  "highFrequency": 3640000000, 
+                  "lowFrequency": 3630000000
+                }
+              }
+            }
+          ], 
+          "registrationRequests": [
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "callSign": "callsign_e", 
+              "cbsdCategory": "A", 
+              "cbsdSerialNumber": "test_serial_number_e", 
+              "fccId": "test_fcc_id_e", 
+              "installationParam": {
+                "antennaAzimuth": 180, 
+                "antennaBeamwidth": 20, 
+                "antennaGain": 93, 
+                "height": 2.6, 
+                "heightType": "AGL", 
+                "indoorDeployment": true, 
+                "latitude": 39.173912, 
+                "longitude": -99.923414
+              }, 
+              "measCapability": [], 
+              "userId": "test_user_id_e"
+            }, 
+            {
+              "airInterface": {
+                "radioTechnology": "E_UTRA"
+              }, 
+              "callSign": "callsign_f", 
+              "cbsdCategory": "A", 
+              "cbsdSerialNumber": "test_serial_number_f", 
+              "fccId": "test_fcc_id_f", 
+              "installationParam": {
+                "antennaAzimuth": 0, 
+                "antennaBeamwidth": 60, 
+                "antennaGain": 90, 
+                "height": 3.4, 
+                "heightType": "AGL", 
+                "indoorDeployment": true, 
+                "latitude": 38.815291, 
+                "longitude": -100.253004
+              }, 
+              "measCapability": [], 
+              "userId": "test_user_id_f"
+            }
+          ]
+        }
+      ], 
+      "dpaActivationList": [
+        {
+          "dpaId": "East6", 
+          "frequencyRange": {
+            "highFrequency": 3650000000, 
+            "lowFrequency": 3550000000
+          }
+        }
+      ], 
+      "dpaDeactivationList": [
+        {
+          "dpaId": "East4", 
+          "frequencyRange": {
+            "highFrequency": 3650000000, 
+            "lowFrequency": 3550000000
+          }
+        }
+      ], 
+      "protectedEntities": {
+        "fssRecords": [
+          {
+            "record": {
+              "deploymentParam": [
+                {
+                  "installationParam": {
+                    "antennaAzimuth": 270, 
+                    "antennaBeamwidth": 30, 
+                    "antennaDowntilt": -90, 
+                    "antennaGain": 16, 
+                    "height": 7.6, 
+                    "heightType": "AGL", 
+                    "latitude": 39.2291, 
+                    "longitude": -100.1
+                  }, 
+                  "operationParam": {
+                    "operationFrequencyRange": {
+                      "highFrequency": 4200000000, 
+                      "lowFrequency": 3650000000
+                    }
+                  }
+                }
+              ], 
+              "id": "incumbent/ibfs/0", 
+              "type": "FSS"
+            }, 
+            "ttc": true
+          }
+        ], 
+        "gwpzRecords": [
+          {
+            "record": {
+              "deploymentParam": [
+                {
+                  "operationParam": {
+                    "operationFrequencyRange": {
+                      "highFrequency": 3700000000, 
+                      "lowFrequency": 3650000000
+                    }
+                  }
+                }
+              ], 
+              "id": "incumbent/uls/0", 
+              "type": "PART_90"
+            }, 
+            "zone": {
+              "features": [
+                {
+                  "geometry": {
+                    "coordinates": [
+                      [
+                        [
+                          -99.75, 
+                          39.05
+                        ], 
+                        [
+                          -99.65, 
+                          39.05
+                        ], 
+                        [
+                          -99.65, 
+                          39.15
+                        ], 
+                        [
+                          -99.75, 
+                          39.15
+                        ], 
+                        [
+                          -99.75, 
+                          39.05
+                        ]
+                      ]
+                    ], 
+                    "type": "Polygon"
+                  }, 
+                  "properties": {}, 
+                  "type": "Feature"
+                }
+              ], 
+              "type": "FeatureCollection"
+            }
+          }
+        ]
+      }, 
+      "sasTestHarnessData": [
+        {
+          "cbsdRecords": [
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_59644", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_h/b8a0c47f2aed5f2b0222c35cd9b91cff745d0c46", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_b", 
+                "cbsdCategory": "B", 
+                "fccId": "test_fcc_id_h", 
+                "installationParam": {
+                  "antennaAzimuth": 270, 
+                  "antennaBeamwidth": 30, 
+                  "antennaDowntilt": -90, 
+                  "antennaGain": 16, 
+                  "height": 7.6, 
+                  "heightType": "AGL", 
+                  "indoorDeployment": false, 
+                  "latitude": 39.139836, 
+                  "longitude": -97.770094
+                }, 
+                "measCapability": []
+              }
+            }, 
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_14081", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_i/33c81df2998eb5d587cea7dede0d35d034e79bcd", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_c", 
+                "cbsdCategory": "A", 
+                "fccId": "test_fcc_id_i", 
+                "installationParam": {
+                  "antennaAzimuth": 270, 
+                  "antennaBeamwidth": 0, 
+                  "antennaGain": -127, 
+                  "height": 4.5, 
+                  "heightType": "AMSL", 
+                  "indoorDeployment": false, 
+                  "latitude": 38.815291, 
+                  "longitude": -97.198805
+                }, 
+                "measCapability": []
+              }
+            }
+          ]
+        }, 
+        {
+          "cbsdRecords": [
+            {
+              "grants": [
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_81918", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3630000000, 
+                      "lowFrequency": 3620000000
+                    }
+                  }, 
+                  "terminated": false
+                }, 
+                {
+                  "channelType": "GAA", 
+                  "grantExpireTime": "2020-10-04T17:33:21Z", 
+                  "id": "SAMPLE_ID_45383", 
+                  "operationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "requestedOperationParam": {
+                    "maxEirp": 10, 
+                    "operationFrequencyRange": {
+                      "highFrequency": 3640000000, 
+                      "lowFrequency": 3630000000
+                    }
+                  }, 
+                  "terminated": false
+                }
+              ], 
+              "id": "cbsd/test_fcc_id_l/544fce4ed19d1269c8d53a0a5cae11083d9cea0e", 
+              "registration": {
+                "airInterface": {
+                  "radioTechnology": "E_UTRA"
+                }, 
+                "callSign": "callsign_f", 
+                "cbsdCategory": "A", 
+                "fccId": "test_fcc_id_l", 
+                "installationParam": {
+                  "antennaAzimuth": 0, 
+                  "antennaBeamwidth": 60, 
+                  "antennaGain": 90, 
+                  "height": 3.4, 
+                  "heightType": "AGL", 
+                  "indoorDeployment": true, 
+                  "latitude": 38.815291, 
+                  "longitude": -100.253004
+                }, 
+                "measCapability": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ], 
+  "sasTestHarnessConfigs": [
+    {
+      "caCert": "certs/ca.cert", 
+      "hostName": "localhost", 
+      "port": 26804, 
+      "sasTestHarnessName": "SAS-TH-1", 
+      "serverCert": "certs/sas.cert", 
+      "serverKey": "certs/sas.key"
+    }, 
+    {
+      "caCert": "certs/ca.cert", 
+      "hostName": "localhost", 
+      "port": 26546, 
+      "sasTestHarnessName": "SAS-TH-2", 
+      "serverCert": "certs/sas_1.cert", 
+      "serverKey": "certs/sas_1.key"
+    }
+  ]
+}
