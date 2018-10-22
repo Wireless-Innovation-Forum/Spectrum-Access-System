@@ -438,7 +438,7 @@ class Dpa(object):
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
 
-    self.__PrintStatistics(result, margin_db, self.name, channel)
+    self.__PrintStatistics(result, margin_db, self.name, channel, self.threshold)
 
     max_diff_interf = max(r.max_difference for r in result)
     if max_diff_interf > margin_db:
@@ -451,25 +451,30 @@ class Dpa(object):
 
     return max_diff_interf <= margin_db
 
-  def __PrintStatistics(self, results, margin_db, dpa_name, channel):
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    filename='%s DPA=%s channel=%s.csv' % (timestamp, self.name, channel)
-    logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name, channel, filename)
+  def __PrintStatistics(self, results, margin_db, dpa_name, channel, threshold):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+    filename = '%s DPA=%s channel=%s threshold=%s.csv' % (timestamp, dpa_name,
+                                                          channel, threshold)
+    logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name,
+                 channel, filename)
     with open(filename, 'w') as f:
       # CSV header.
-      f.write('Latitude,Longitude,Azimuth (degrees),A_DPA (dBm),A_DPA_ref (dBm),A_DPA - A_DPA_ref,A_DPA + 144 dBm\n')
+      f.write(
+          'Latitude,Longitude,Azimuth (degrees),A_DPA (dBm),A_DPA_ref (dBm),A_DPA - A_DPA_ref,A_DPA - threshold\n'
+      )
       for result, point in zip(results, self.protected_points):
         latitude = point.latitude
         longitude = point.longitude
         for k, azimuth in enumerate(result.azimuth_array):
           A_DPA = result.A_DPA[k]
-          if isinstance(result.A_DPA_ref, float):  # Happens when there are no peer SASes.
+          if isinstance(result.A_DPA_ref,
+                        float):  # Happens when there are no peer SASes.
             A_DPA_ref = result.A_DPA_ref
           else:
             A_DPA_ref = result.A_DPA_ref[k]
           line = ','.join('%3.10f' % val for val in [
               latitude, longitude, azimuth, A_DPA, A_DPA_ref, A_DPA -
-              A_DPA_ref, A_DPA + 144
+              A_DPA_ref, A_DPA - threshold
           ])
           f.write(line + '\n')
 
@@ -501,8 +506,8 @@ class Dpa(object):
         for cbsd_grant_info in keep_list:
           f.write(','.join(str(getattr(cbsd_grant_info, key)) for key in fields) + '\n')
 
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    base_filename = '%s DPA=%s channel=%s' % (timestamp, self.name, channel)
+    timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+    base_filename = '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel)
 
     # SAS test harnesses (peer SASes) combined keep list
     filename = '%s (combined peer SAS keep list).csv' % base_filename
