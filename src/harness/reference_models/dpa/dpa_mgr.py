@@ -395,8 +395,11 @@ class Dpa(object):
     # Find an extended keep list of UUT.
     keep_list_uut_managing_sas = list(sas_uut_active_grants)
 
-    self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
-                          keep_list_uut_managing_sas, self.name, channel)
+    try:
+      self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
+                            keep_list_uut_managing_sas, self.name, channel)
+    except Exception as e:
+      logging.error('Could not print DPA keep lists: %s', e)
 
     # Note: other code with pre filtering could be:
     #nbor_list = self.GetNeighborList(channel)
@@ -438,7 +441,10 @@ class Dpa(object):
     pool = mpool.Pool()
     result = pool.map(checkPointInterf, self.protected_points)
 
-    self.__PrintStatistics(result, margin_db, self.name, channel, self.threshold)
+    try:
+      self.__PrintStatistics(result, margin_db, self.name, channel, self.threshold)
+    except Exception as e:
+      logging.error('Could not print DPA statistics: %s', e)
 
     max_diff_interf = max(r.max_difference for r in result)
     if max_diff_interf > margin_db:
@@ -466,11 +472,21 @@ class Dpa(object):
         latitude = point.latitude
         longitude = point.longitude
         for k, azimuth in enumerate(result.azimuth_array):
-          A_DPA = result.A_DPA[k]
-          if isinstance(result.A_DPA_ref,
-                        float):  # Happens when there are no peer SASes.
-            A_DPA_ref = result.A_DPA_ref
+          if result.A_DPA.size == 1:
+            # Effectively a scalar, resulting from no neighbor grants (see
+            # function calcAggregatedInterference() which sets this).
+            A_DPA = result.A_DPA.item(0)
           else:
+            # Normal case: at least one grant in the neighborhood.
+            A_DPA = result.A_DPA[k]
+          if isinstance(result.A_DPA_ref, float):
+            # Happens when there are no peer SASes.
+            A_DPA_ref = result.A_DPA_ref
+          elif result.A_DPA.size == 1:
+            # Peer SAS case: no grants in the neighborhood.
+            A_DPA_ref = result.A_DPA_ref.item(0)
+          else:
+            # Peer SAS case: at least one grant in the neighborhood.
             A_DPA_ref = result.A_DPA_ref[k]
           line = ','.join('%3.10f' % val for val in [
               latitude, longitude, azimuth, A_DPA, A_DPA_ref, A_DPA -
@@ -478,7 +494,7 @@ class Dpa(object):
           ])
           f.write(line + '\n')
 
-    differences = np.zeros([len(self.protected_points), len(results[0].A_DPA)])
+    differences = np.zeros([len(self.protected_points), len(results[0].azimuth_array)])
     for k, (result, point) in enumerate(zip(results, self.protected_points)):
       difference = result.A_DPA - result.A_DPA_ref
       differences[k, :] = difference
