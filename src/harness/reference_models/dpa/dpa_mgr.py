@@ -494,7 +494,7 @@ class Dpa(object):
           ])
           f.write(line + '\n')
 
-    differences = np.zeros([len(self.protected_points), len(results[0].A_DPA)])
+    differences = np.zeros([len(self.protected_points), len(results[0].azimuth_array)])
     for k, (result, point) in enumerate(zip(results, self.protected_points)):
       difference = result.A_DPA - result.A_DPA_ref
       differences[k, :] = difference
