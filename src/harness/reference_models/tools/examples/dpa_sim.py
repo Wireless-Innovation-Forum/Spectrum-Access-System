@@ -34,26 +34,30 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
+from reference_models.common import mpool
 from reference_models.tools import sim_utils
 
 #----------------------------------------
 # Setup the command line arguments
 parser = argparse.ArgumentParser(description='DPA Simulator')
-parser.add_argument('--seed', type=int, help='Random seed.')
+parser.add_argument('--seed', type=int, default=12, help='Random seed.')
 parser.add_argument('--num_process', type=int, default=-1,
                     help='Number of parallel process. -2=all-1, -1=50%.')
 parser.add_argument('--size_tile_cache', type=int, default=32,
                     help='Number of parallel process. -2=all-1, -1=50%.')
-parser.add_argument('--num_ml', type=int, default=2,
+parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
+parser.add_argument('--dpa', type=str, default='',
+                    help='Optional: override DPA to consider. ')
 parser.add_argument('--dpa_builder', type=str, default='',
-                    help='Optional DPA builder to override the configuration'
-                    'DPA protected points. See BuildDpa().')
-parser.add_argument('--log_level', type=str, default='warning',
+                    help='Optional: override DPA builder to use '
+                    'for generating DPA protected points. See BuildDpa().')
+parser.add_argument('--log_level', type=str, default='info',
                     help='Logging level: debug, info, warning, error.')
-#parser.add_argument('--option', action='store_true', help='An option.')
 parser.add_argument('config_file', type=str,
                     help='The configuration file (IPR only)')
+# Example for a boolean flag:
+#parser.add_argument('--do_something', action='store_true', help='An option.')
 
 _LOGGER_MAP = {
     'info': logging.INFO,
@@ -73,10 +77,13 @@ def DpaSimulate(config_file, options):
   logging.getLogger().setLevel(logging.WARNING)
   num_workers = sim_utils.ConfigureRunningEnv(num_process=options.num_process,
                                               size_tile_cache=options.size_tile_cache)
+
   # Read the input config file into ref model entities.
   grants, dpas = sim_utils.ReadTestHarnessConfigFile(config_file)
   dpa = dpas[0]
-  if options.dpa_builder:
+  if options.dpa:  # Override with new DPA.
+    dpa = dpa_mgr.BuildDpa(options.dpa)
+  if options.dpa_builder:  # Override the points_builder
     dpa.protection_points = dpa_builder.DpaProtectionPoints(
         dpa.name, dpa.geometry, options.builder)
   print ('Simulation with DPA `%s` (%d points):\n'
@@ -97,10 +104,12 @@ def DpaSimulate(config_file, options):
                                                                 options.num_ml)
   dpa.SetGrantsFromList(grants)
   start_time = time.time()
+
   move_list_runs = []  # Save the move list of each run
   for k in xrange(options.num_ml):
     dpa.ComputeMoveLists()
     move_list_runs.append(copy.copy(dpa.move_lists))
+
   end_time = time.time()
   print '\nMove list Computation time: %.1fs' % (end_time - start_time)
 
@@ -119,32 +128,37 @@ def DpaSimulate(config_file, options):
   ml_size = [len(move_list[chan_idx]) for move_list in move_list_runs]
   plt.figure()
   plt.hist(ml_size)
-  plt.grid('on')
+  plt.grid(True)
   plt.xlabel('Count')
   plt.ylabel('')
   plt.title('Histogram of move list size across %d runs' % options.num_ml)
 
-  # - analyze aggregate interference for worst case (hopefully):
-  #   + taking the biggest move list (ie smallest keep list) as the reference
-  #   + spanning in turn the other move lists as UUT move list
-  ref_ml = move_list_runs[np.argmax(ml_size)]
-  dpa.move_list = ref_ml
+  # - analyze aggregate interference:
+  #   + ref: taking biggest move list (ie smallest keep list)
+  #   + uut: taking smallest move list (ie bigger keep list)
+  # Hopefully (!) this is a good proxy for worst case scenarios.
+  max_ml_idx = np.argmax(ml_size)
+  ref_ml = move_list_runs[max_ml_idx]  # smallest keep list
+  dpa.move_lists = ref_ml
+  min_ml_idx = np.argmin(ml_size)
+  uut_ml = move_list_runs[min_ml_idx]  # largest keep list
+  uut_keep_list = dpa.GetNeighborList(channel).difference(uut_ml[chan_idx])
   start_time = time.time()
-  for ml in move_list_runs:
-    uut_keep_list = dpa.GetNeighborList(channel).difference(ml[chan_idx])
-    success = dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel)
+  print '*****  CHECK INTERFERENCE ML=%d vs %d (size: %d vs %d) *****' % (
+      max_ml_idx, min_ml_idx, ml_size[max_ml_idx], ml_size[min_ml_idx])
+
+  success = dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel)
   end_time = time.time()
   print 'Check Interf Computation time: %.1fs' % (end_time - start_time)
 
   # Finalization
   sim_utils.CheckTerrainTileCacheOk()
 
+
 #--------------------------------------------------
 # The simulation
 if __name__ == '__main__':
   options = parser.parse_args()
-  import sys # test
-  print sys.argv
   print 'Running DPA simulator'
   DpaSimulate(options.config_file, options)
-  plt.show()
+  plt.show(block=False)
