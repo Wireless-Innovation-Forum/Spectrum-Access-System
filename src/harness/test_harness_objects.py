@@ -439,9 +439,11 @@ class DomainProxy(object):
       for device in registration_requests:
         self.testcase._sas_admin.InjectFccId({'fccId': device['fccId']})
         self.testcase._sas_admin.InjectUserId({'userId': device['userId']})
-      self.testcase._sas_admin.PreloadRegistrationData({
-          'registrationData': conditional_registration_data
-      })
+      for data in self._withMaximumBatchSize(conditional_registration_data,
+                                             'PreloadRegistrationData'):
+        self.testcase._sas_admin.PreloadRegistrationData({
+            'registrationData': data
+        })
     cbsd_ids = []
     for requests in self._withMaximumBatchSize(registration_requests,
                                                'Registration'):
