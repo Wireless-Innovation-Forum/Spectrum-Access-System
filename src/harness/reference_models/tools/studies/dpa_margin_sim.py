@@ -32,8 +32,13 @@ By default will use the exact configuration of the json file for DPA. However th
 can be overriden using some options:
   --dpa <dpa_name>: specify an alternative DPA to use from the standard E-DPA/P-DPA.
   --dpa_builder <"default(18,0,0,0,0)">: an alternative protected points builder.
+   Required if using --dpa option
   --dpa_builder_uut <"default(25,0,0,0,0)">: an alternative builder for UUT only. This is to
     further simulate a different UUT implementation using different protected points.
+
+Example on provided config:
+  python dpa_margin_sim.py  --num_process=3 --num_ml 20 --dpa West14  \
+                            --dpa_builder "default(18,0,0,0)" data/ipr7_1kCBSDs.config
 
 Other parameters:
 -----------------
@@ -56,12 +61,16 @@ Misc notes:
 import argparse
 import copy
 import logging
+import sys
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from reference_models.common import mpool
+from reference_models.dpa import dpa_mgr
+from reference_models.dpa import dpa_builder
+from reference_models.geo import zones
 from reference_models.tools import sim_utils
 
 #----------------------------------------
@@ -75,7 +84,8 @@ parser.add_argument('--size_tile_cache', type=int, default=32,
 parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
 parser.add_argument('--dpa', type=str, default='',
-                    help='Optional: override DPA to consider. ')
+                    help='Optional: override DPA to consider. Needs to specify '
+                    'also the --dpa_builder')
 parser.add_argument('--dpa_builder', type=str, default='',
                     help='Optional: override DPA builder to use '
                     'for generating DPA protected points. See BuildDpa().')
@@ -114,25 +124,24 @@ def DpaSimulate(config_file, options):
   # Read the input config file into ref model entities.
   grants, dpas = sim_utils.ReadTestHarnessConfigFile(config_file)
   dpa = dpas[0]
-  dpa.SetGrantsFromList(grants)
 
   # Apply the DPA modifications (DPA, builders)
   if options.dpa:  # Override with new DPA.
-    dpa = dpa_mgr.BuildDpa(options.dpa)
-  if options.dpa_builder:  # Override the points_builder
+    margin_db = dpa.margin_db
+    if not options.dpa_builder:
+      raise ValueError('Missing the --dpa_builder specification.')
+    dpa = dpa_mgr.BuildDpa(options.dpa, options.dpa_builder)
+    try: dpa_geometry = zones.GetCoastalDpaZones()[options.dpa]
+    except KeyError: dpa_geometry = zones.GetPortalDpaZones()[options.dpa]
+    dpa.geometry = dpa_geometry.geometry
+    dpa.margin_db = margin_db
+  elif options.dpa_builder:  # Override the points_builder
     dpa.protection_points = dpa_builder.DpaProtectionPoints(
         dpa.name, dpa.geometry, options.dpa_builder)
 
-  dpa_uut = copy.copy(dpa)
-  uut_has_diff_points = False
-  if options.dpa_builder_uut:
-    dpa_uut.protection_points = dpa_builder.DpaProtectionPoints(
-        dpa.name, dpa.geometry, options.dpa_builder_uut)
-    uut_has_diff_points = True
-
-  print ('Simulation with DPA `%s` (ref: %d pts - uut:%d pts):\n'
+  print ('Simulation with DPA `%s` (ref: %d pts):\n'
          '  %d granted CBSDs: %d CatB - %d CatA_out - %d CatA_in' % (
-         dpa.name, len(dpa.protected_points), len(dpa_uut.protected_points),
+         dpa.name, len(dpa.protected_points),
          len(grants),
          len([grant for grant in grants if grant.cbsd_category == 'B']),
          len([grant for grant in grants
@@ -144,15 +153,18 @@ def DpaSimulate(config_file, options):
   # Plot the entities.
   ax = sim_utils.CreateCbrsPlot(grants, dpa=dpa)
 
+  # Set the grants into DPA.
+  dpa.SetGrantsFromList(grants)
+
   # Run the move list N times on ref DPA
   print 'Running Move List algorithm (%d workers): %d times' % (
       num_workers, options.num_ml)
-
   start_time = time.time()
   ref_move_list_runs = []  # Save the move list of each run
   for k in xrange(options.num_ml):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
+    sys.stdout.write('.')
   end_time = time.time()
 
   # Plot the last move list on map.
@@ -160,14 +172,23 @@ def DpaSimulate(config_file, options):
     move_list = dpa.GetMoveList(channel)
     sim_utils.PlotGrants(ax, move_list, color='r')
 
+  # Now build the UUT dpa and move lists
+  dpa_uut = copy.copy(dpa)
+  uut_has_diff_points = False
+  if options.dpa_builder_uut:
+    dpa_uut.protection_points = dpa_builder.DpaProtectionPoints(
+        dpa_uut.name, dpa_uut.geometry, options.dpa_builder_uut)
+    uut_has_diff_points = True
+
   # If UUT has its own parameters, simulate it by running it,
-  # otherwise reuse the ml of the ref model.
+  # otherwise reuse the move lists of the ref model.
   uut_move_list_runs = ref_move_list_runs
   if uut_has_diff_points:
     uut_move_list_runs = []
-    for k in xrange(options.num__ml):  # Should we use a smaller number
+    for k in xrange(options.num_ml):  # Should we use a smaller number
       dpa_uut.ComputeMoveLists()
       uut_move_list_runs.append(copy.copy(dpa_uut.move_lists))
+      sys.stdout.write('+')
 
   print '\nMove list Computation time: %.1fs' % (end_time - start_time)
 
@@ -234,4 +255,4 @@ if __name__ == '__main__':
   options = parser.parse_args()
   print 'Running DPA simulator'
   DpaSimulate(options.config_file, options)
-  plt.show(block=False)
+  plt.show(block=True)
