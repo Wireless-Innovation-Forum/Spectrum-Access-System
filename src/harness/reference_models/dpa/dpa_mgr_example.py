@@ -125,6 +125,8 @@ if __name__ == '__main__':
                                     margin_db=margin_db)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+  # Coverage test of the 'best of N' movelist method
+  dpa_uut.ComputeMoveLists(best_of_n=3)
 
   # Simulate a single SAS UUT (no peer SAS)
   print '-- Single UUT model --'
@@ -140,7 +142,6 @@ if __name__ == '__main__':
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
 
   # Simulate a single SAS UUT (no peer SAS) CheckInterference ().
-  # import ipdb; ipdb.set_trace()
   print '-- Single UUT model - No Compute Move List --'
   dpa_suut = dpa_mgr.Dpa(protection_points,
                          name='alt(East1)',

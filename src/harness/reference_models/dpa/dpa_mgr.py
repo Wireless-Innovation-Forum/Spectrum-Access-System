@@ -225,41 +225,59 @@ class Dpa(object):
     self.ResetLists()
     self._has_th_grants = self._DetectIfPeerSas()
 
-  def ComputeMoveLists(self):
+  def _ComputeSingleMoveList(self, low_freq, high_freq):
+    """Computes a single move list: see ComputeMoveLists() for public interface."""
+    moveListConstraint = functools.partial(
+        ml.moveListConstraint,
+        low_freq=low_freq * 1.e6,
+        high_freq=high_freq * 1.e6,
+        grants=self._grants,
+        inc_ant_height=self.radar_height,
+        num_iter=Dpa.num_iteration,
+        threshold=self.threshold,
+        beamwidth=self.beamwidth,
+        min_azimuth=self.azimuth_range[0],
+        max_azimuth=self.azimuth_range[1],
+        neighbor_distances=self.neighbor_distances)
+
+    pool = mpool.Pool()
+    move_list, nbor_list = zip(*pool.map(moveListConstraint,
+                                         self.protected_points))
+    # Combine the individual point move lists
+    move_list = set().union(*move_list)
+    nbor_list = set().union(*nbor_list)
+    return move_list, nbor_list
+
+  def ComputeMoveLists(self, best_of_n=1):
     """Computes move/neighbor lists.
 
     This routine updates the internal grants move list and neighbor list.
     One set of list is maintained per protected channel.
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
+
+    Args:
+      best_of_n: The number of move list internally computed. The final one
+        will be the best of those, ie the smallest one.
     """
+    # TODO: add eventually the NTIA proposal which computes the intersection move list.
+    #       it is more involved as it requires more single move list calculation, but
+    #       likely produces a more stable 'composite' move list.
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
                  'iter %s azi_range %s nbor_dists %s',
                  self.name, self._channels, self.threshold, self.beamwidth,
                  self.radar_height, Dpa.num_iteration,
                  self.azimuth_range, self.neighbor_distances)
     logging.debug('  protected points: %s', self.protected_points)
-    pool = mpool.Pool()
     self.ResetLists()
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
-      moveListConstraint = functools.partial(
-          ml.moveListConstraint,
-          low_freq=low_freq * 1.e6,
-          high_freq=high_freq * 1.e6,
-          grants=self._grants,
-          inc_ant_height=self.radar_height,
-          num_iter=Dpa.num_iteration,
-          threshold=self.threshold,
-          beamwidth=self.beamwidth,
-          min_azimuth=self.azimuth_range[0],
-          max_azimuth=self.azimuth_range[1],
-          neighbor_distances=self.neighbor_distances)
-
-      move_list, nbor_list = zip(*pool.map(moveListConstraint,
-                                           self.protected_points))
-      # Combine the individual point move lists
-      move_list = set().union(*move_list)
-      nbor_list = set().union(*nbor_list)
+      move_list, nbor_list = self._ComputeSingleMoveList(low_freq, high_freq)
+      if best_of_n > 1:
+        for run in xrange(best_of_n - 1):
+          alt_move_list, alt_nbor_list = self._ComputeSingleMoveList(low_freq, high_freq)
+          if len(alt_move_list) < len(move_list):
+            move_list = alt_move_list
+            nbor_list = alt_nbor_list
       self.move_lists[chan_idx] = move_list
       self.nbor_lists[chan_idx] = nbor_list
 
