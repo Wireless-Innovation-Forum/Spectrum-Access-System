@@ -119,6 +119,7 @@ def _Request(url, request, config, is_post_method):
   conn.setopt(conn.CAINFO, config.ca_cert)
   conn.setopt(conn.HTTPHEADER, header)
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
+  conn.setopt(conn.TCP_KEEPALIVE, 1)
   request = json.dumps(request) if request else ''
   if is_post_method:
     conn.setopt(conn.POST, True)
