@@ -414,7 +414,10 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       if self.num_peer_sases:
         logging.info('Calculating  move list for DPA: %s', active_dpa)
         dpa.SetGrantsFromFad(self.sas_uut_fad, self.test_harness_fads)
-        dpa.ComputeMoveLists()
+        if 'bestOfN' in dpa_config:
+          dpa.ComputeMoveLists(dpa_config['bestOfN'])
+        else:
+          dpa.ComputeMoveLists()
 
       dpa_combined_id = '%s,%s,%s' % (
           active_dpa['dpaId'], active_dpa['frequencyRange']['lowFrequency'],
