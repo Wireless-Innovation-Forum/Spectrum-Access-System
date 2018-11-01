@@ -264,10 +264,10 @@ class Dpa(object):
     #       it is more involved as it requires more single move list calculation, but
     #       likely produces a more stable 'composite' move list.
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
-                 'iter %s azi_range %s nbor_dists %s',
+                 'iter %s azi_range %s nbor_dists %s best_of_n %s',
                  self.name, self._channels, self.threshold, self.beamwidth,
                  self.radar_height, Dpa.num_iteration,
-                 self.azimuth_range, self.neighbor_distances)
+                 self.azimuth_range, self.neighbor_distances, best_of_n)
     logging.debug('  protected points: %s', self.protected_points)
     self.ResetLists()
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
