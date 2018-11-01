@@ -270,7 +270,7 @@ def assertContainsRequiredFields(schema_filename, response):
   if os.name == 'nt':
       os_base_uri = 'file:///'
   else:
-      os_base_uri = 'file:'
+      os_base_uri = 'file://'
   resolver = RefResolver(referrer=schema, base_uri=os_base_uri + schema_dir + '/')
   # Raises ValidationError when incorrect response
   validate(response, schema, resolver=resolver)
