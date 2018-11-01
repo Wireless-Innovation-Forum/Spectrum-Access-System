@@ -402,7 +402,7 @@ class Dpa(object):
 
     # Manages the various margin_db methods.
     margin_method = 'std'
-    if isinstance(margin_db, str):
+    if isinstance(margin_db, basestring):
       idx1, idx2 = margin_db.find('('), margin_db.find(')')
       if idx1 == -1 or idx2 == -1:
         raise ValueError('DPA CheckInterference: margin_db: `%s` not allowed.'
