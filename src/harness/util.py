@@ -267,7 +267,11 @@ def assertContainsRequiredFields(schema_filename, response):
   schema_filename = os.path.join(schema_dir, schema_filename)
   schema = json.load(open(schema_filename))
   Draft4Validator.check_schema(schema)
-  resolver = RefResolver(referrer=schema, base_uri='file://' + schema_dir + '/')
+  if os.name == 'nt':
+      os_base_uri = 'file:///'
+  else:
+      os_base_uri = 'file://'
+  resolver = RefResolver(referrer=schema, base_uri=os_base_uri + schema_dir + '/')
   # Raises ValidationError when incorrect response
   validate(response, schema, resolver=resolver)
 
