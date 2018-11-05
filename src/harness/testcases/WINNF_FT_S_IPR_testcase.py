@@ -179,6 +179,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -470,6 +472,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -950,6 +954,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -1226,6 +1232,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -1319,3 +1327,4 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     if dpa_database_server:
       del dpa_database_server
+
