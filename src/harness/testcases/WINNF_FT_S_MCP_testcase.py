@@ -214,6 +214,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                  self.test_type, self.num_peer_sases)
     self.sas_uut_fad = None
     self.test_harness_fads = []
+    self.all_dpa_checks_succeeded = True
 
     logging.info('Creating domain proxies.')
     for domain_proxy in config['domainProxyConfigs']:
@@ -270,6 +271,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       logging.info('Step 5: execute iteration number %d', iteration_number)
       # Execute steps for single iteration
       self.executeSingleMCPIteration(iteration_content)
+
+    # Fail now (at the end) if any DPA check failed anywhere in the test.
+    self.assertTrue(
+        self.all_dpa_checks_succeeded,
+        'At least one DPA check failed; please see logs for details.')
 
     # Stop test harness servers.
     for test_harness in self.sas_test_harness_objects:
@@ -500,10 +506,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           active_dpa['dpaId'], active_dpa['frequencyRange']['lowFrequency'],
           active_dpa['frequencyRange']['highFrequency'])
       dpa = self.dpa_managers[dpa_combined_id]
-      self.assertTrue(dpa.CheckInterference(
+      this_dpa_check_succeeded = dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=self.dpa_margins[dpa_combined_id],
-          do_abs_check_single_uut=(self.num_peer_sases==0)))
+          do_abs_check_single_uut=(self.num_peer_sases == 0))
+      if not this_dpa_check_succeeded:
+        logging.error('Check for DPA %s FAILED.', active_dpa['dpaId'])
+        self.all_dpa_checks_succeeded = False
+
     logging.info('Waiting for aggregate interference check to complete')
     self.aggregate_interference_check.result()
     logging.info('Aggregate interference check is now COMPLETE.')
