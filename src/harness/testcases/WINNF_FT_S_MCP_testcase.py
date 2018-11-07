@@ -305,7 +305,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     if 'gwblRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting GWBL records.')
-      for index, gwbl_record in enumerate(iteration_content['protectedEntities']):
+      for index, gwbl_record in enumerate(iteration_content['protectedEntities']['gwblRecords']):
         try:
           logging.info('Injecting GWBL record #%d', index)
           self._sas_admin.InjectWisp(gwbl_record)
