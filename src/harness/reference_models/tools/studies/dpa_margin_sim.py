@@ -16,11 +16,10 @@
 
 This is a simulation of the DPA test harness process for purpose of analyzing
 the pass/fail criteria of the test harness. Because it looks at worst case, the
-SAS UUT is assumed to be a ref_model-like move list algorithm providing the smallest
-move list (ie the most optimal one). The 'ref model' move list can be chosen to be
-the biggest move list (default), the median size move list or a composite move list
-obtained by taking the intersection of xx%
-
+SAS UUT is assumed to be a ref_model-like move list algorithm providing the
+smallest move list (ie the most optimal one). The 'ref model' move list can be
+chosen to be the biggest move list (default), the median size move list or a
+composite move list obtained by taking the intersection of N move lists.
 
 Usage:
   python time_dpa.py <--option1 val1>  <--option2 val2>  config.json
@@ -28,13 +27,14 @@ where: config.json is an IPR config file
 
 Notes on modeling capabilties:
 -----------------------------
-By default will use the exact configuration of the json file for DPA. However this
-can be overriden using some options:
+By default will use the exact configuration of the json file for DPA. However
+this can be overriden using some options:
   --dpa <dpa_name>: specify an alternative DPA to use from the standard E-DPA/P-DPA.
   --dpa_builder <"default(18,0,0,0,0)">: an alternative protected points builder.
    Required if using --dpa option
-  --dpa_builder_uut <"default(25,0,0,0,0)">: an alternative builder for UUT only. This is to
-    further simulate a different UUT implementation using different protected points.
+  --dpa_builder_uut <"default(25,0,0,0,0)">: an alternative builder for UUT only.
+   This is to further simulate a different UUT implementation using different
+   protected points.
 
 Example on provided config:
   python dpa_margin_sim.py  --num_process=3 --num_ml 20 --dpa West14  \
@@ -43,17 +43,18 @@ Example on provided config:
 Other parameters:
 -----------------
   --seed <1234>: to specify a random seed.
-  --num_ml <10>: number of internal move list to compute for variability analysing.
+  --num_ml <10>: number of internal move list to compute for variability analysing,
+    both for reference and UUT. Can be individually overriden for ref and/or uut
+    with --num_ref_ml and --num_uut_ml.
   --ref_ml_method <number>: for the method used to generate the reference move list:
       0 (default): the biggest move list (ie smallest keep list)  - worst case
      -1: one median size move list
-     xx>0: an intersection move list made by using the [xx%;100-xx%] move list (NIST
-           Michael Souryal method).
+     xx>0: an intersection move list made by using xx move list (NIST method).
 
 Misc notes:
 -----------
-  - multiprocessing facility not tested on Windows (use 1 process if issues) using
-    otion `--num_process 1`.
+  - multiprocessing facility not tested on Windows. Use single process if experiencing
+    issues: `-num_process 1`.
   - if warning reported on cached tiles swapping, increase the cache size with
     option `--size_tile_cache XX`.
 """
@@ -83,6 +84,10 @@ parser.add_argument('--size_tile_cache', type=int, default=32,
                     help='Number of parallel process. -2=all-1, -1=50%.')
 parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
+parser.add_argument('--num_ref_ml', type=int, default=0,
+                    help='Number of move list to use for reference.')
+parser.add_argument('--num_uut_ml', type=int, default=0,
+                    help='Number of move list to use for UUT.')
 parser.add_argument('--dpa', type=str, default='',
                     help='Optional: override DPA to consider. Needs to specify '
                     'also the --dpa_builder')
@@ -94,9 +99,16 @@ parser.add_argument('--dpa_builder_uut', type=str, default='',
                     'for generating DPA protected points for UUT.')
 parser.add_argument('--ref_ml_method', type=int, default=-1,
                     help='Method of reference move list: '
-                    '-1=max size, -2:median size, >0: intersection [xx%-100-xx%]')
+                    '-1=max size, -2:median size, >0: intersection of N move list')
+parser.add_argument('--margin_db', type=str, default='',
+                    help='Optional: override `movelistMargin`, for ex:`linear(1.5)`.')
 parser.add_argument('--log_level', type=str, default='info',
                     help='Logging level: debug, info, warning, error.')
+parser.add_argument('--repeat', type=int, default=1,
+                    help='Number of times to repeat the procedure.')
+parser.add_argument('--do_extensive', action='store_true',
+                    help='Do extensive aggregate interference analysis. '
+                    'By checking all possible ref move list')
 parser.add_argument('config_file', type=str,
                     help='The configuration file (IPR only)')
 # Example for a boolean flag:
@@ -123,7 +135,13 @@ def DpaSimulate(config_file, options):
 
   # Read the input config file into ref model entities.
   grants, dpas = sim_utils.ReadTestHarnessConfigFile(config_file)
-  dpa = dpas[0]
+  if dpas is None:
+    if not options.dpa:
+      raise ValueError('Config file not defining a DPA and no --dpa option used.')
+    dpa = dpa_mgr.Dpa(None)
+    dpa.margin_db = 1.5
+  else:
+    dpa = dpas[0]
 
   # Apply the DPA modifications (DPA, builders)
   if options.dpa:  # Override with new DPA.
@@ -138,6 +156,10 @@ def DpaSimulate(config_file, options):
   elif options.dpa_builder:  # Override the points_builder
     dpa.protection_points = dpa_builder.DpaProtectionPoints(
         dpa.name, dpa.geometry, options.dpa_builder)
+
+  if options.margin_db:  # Override `movelistMargin` directive.
+    try: dpa.margin_db = float(options.margin_db)
+    except ValueError: dpa.margin_db = options.margin_db
 
   print ('Simulation with DPA `%s` (ref: %d pts):\n'
          '  %d granted CBSDs: %d CatB - %d CatA_out - %d CatA_in' % (
@@ -156,16 +178,22 @@ def DpaSimulate(config_file, options):
   # Set the grants into DPA.
   dpa.SetGrantsFromList(grants)
 
+  # Manages the number of move list
+  num_ref_ml = options.num_ref_ml or options.num_ml
+  num_uut_ml = options.num_uut_ml or options.num_ml
   # Run the move list N times on ref DPA
   print 'Running Move List algorithm (%d workers): %d times' % (
-      num_workers, options.num_ml)
+      num_workers, num_ref_ml)
   start_time = time.time()
   ref_move_list_runs = []  # Save the move list of each run
-  for k in xrange(options.num_ml):
+  num_base_ml = (num_ref_ml if options.dpa_builder_uut
+                 else max(num_ref_ml, num_uut_ml))
+  for k in xrange(num_base_ml):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
     sys.stdout.write('.')
   end_time = time.time()
+  sys.stdout.write('\n')
 
   # Plot the last move list on map.
   for channel in dpa._channels:
@@ -174,23 +202,20 @@ def DpaSimulate(config_file, options):
 
   # Now build the UUT dpa and move lists
   dpa_uut = copy.copy(dpa)
-  uut_has_diff_points = False
+  uut_move_list_runs = ref_move_list_runs[:num_uut_ml]
   if options.dpa_builder_uut:
     dpa_uut.protection_points = dpa_builder.DpaProtectionPoints(
         dpa_uut.name, dpa_uut.geometry, options.dpa_builder_uut)
-    uut_has_diff_points = True
-
-  # If UUT has its own parameters, simulate it by running it,
-  # otherwise reuse the move lists of the ref model.
-  uut_move_list_runs = ref_move_list_runs
-  if uut_has_diff_points:
+    # If UUT has its own parameters, simulate it by running it,
+    # otherwise reuse the move lists of the ref model.
     uut_move_list_runs = []
-    for k in xrange(options.num_ml):  # Should we use a smaller number
+    for k in xrange(options.num_uut_ml):
       dpa_uut.ComputeMoveLists()
       uut_move_list_runs.append(copy.copy(dpa_uut.move_lists))
       sys.stdout.write('+')
 
   print '\nMove list Computation time: %.1fs' % (end_time - start_time)
+  ref_move_list_runs = ref_move_list_runs[:num_ref_ml]
 
   # Analyse the move_list aggregate interference margin:
   #  - enable log level - usually 'info' allows concise report.
@@ -205,8 +230,6 @@ def DpaSimulate(config_file, options):
   # Plots the move lists size histogram.
   plt.figure()
   ml_size = ref_ml_size[:]
-  if uut_has_diff_points:
-    ml_size.extend(uut_ml_size)
   plt.hist(ml_size)
   plt.grid(True)
   plt.xlabel('Count')
@@ -214,9 +237,9 @@ def DpaSimulate(config_file, options):
   plt.title('Histogram of move list size across %d runs' % options.num_ml)
 
   # Analyze aggregate interference. By default:
+  #   + uut: taking smallest move list (ie bigger keep list)
   #   + ref: taking biggest move list (ie smallest keep list)
   #      or  taking a median or intersection move list
-  #   + uut: taking smallest move list (ie bigger keep list)
   # Hopefully (!) this is a good proxy for worst case scenarios.
   #
   # - The ref case first
@@ -227,12 +250,16 @@ def DpaSimulate(config_file, options):
     medan_idx = ref_ml_size.index(np.percentile(ref_ml_size, 50, interpolation='nearest'))
     ref_ml = ref_move_list_runs[median_idx]  # = median size keep list
   else:
-    # Intersection method of NTIA (Michael Souryal)
-    # To be done
-    raise ValueError('Unsupported method for now')
+    # Intersection method (similar to method of Michael Souryal).
+    # One difference is that we do intersection of N first move list.
+    ref_ml = []
+    for chan in xrange(len(ref_move_list_runs[0])):
+      ref_ml.append(set.intersection(*[ref_move_list_runs[k][chan]
+                                       for k in xrange(options.ref_ml_method)]))
+
   dpa.move_lists = ref_ml
 
-  # - The ref case first
+  # - The UUT case
   uut_ml = uut_move_list_runs[np.argmin(uut_ml_size)]  # = largest keep list
   dpa_uut.move_lists = uut_ml
   uut_keep_list = dpa_uut.GetKeepList(channel)
@@ -241,7 +268,8 @@ def DpaSimulate(config_file, options):
   print '*****  CHECK INTERFERENCE size ref_ML=%d vs %d *****' % (
       len(dpa.move_lists[chan_idx]), len(dpa_uut.move_lists[chan_idx]))
 
-  success = dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel)
+  success = dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel,
+                                  extensive_print=True)
   end_time = time.time()
   print 'Check Interf Computation time: %.1fs' % (end_time - start_time)
 

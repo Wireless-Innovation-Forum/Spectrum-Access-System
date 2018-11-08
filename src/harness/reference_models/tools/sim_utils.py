@@ -20,7 +20,9 @@ import json
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import shapely.geometry as sgeo
+import zipfile
 
 from reference_models.common import data
 from reference_models.common import mpool
@@ -159,28 +161,17 @@ def MergeConditionalData(registration_requests, conditional_datas):
   return reg_requests
 
 
-def ReadTestHarnessConfigFile(config_file):
-  """Reads the input config file in json format and build ref_model entities.
-
-  WARNING: This routine supports for now only the IPR7 config files, building
-  the CBSDs and DPAs. Will be extended in the future for others.
-
-  Note that the returned DPAs have additional non standard properties:
-    - geometry: the original |shapely| geometry.
-    - margin_db: the margin for interference check (in dB).
+def _Ipr7ConfigRead(config):
+  """Extracts DPA and grants from IPR7 config JSON.
 
   Args:
-    config_file: The path to a json config file as used by test harness.
-       Currently only IPR7 supported.
+    config: A JSON dictionary.
 
   Returns:
     A tuple (dpas, grants) where:
       dpas:  a list of objects of type |dpa_mgr.Dpa|.
       grants: a list of |data.CbsdGrantInfo|.
   """
-  with open(config_file, 'r') as fd:
-    config = json.load(fd)
-  # Reads the DPA info.
   if 'portalDpa' in config:
     dpa_tag = 'portalDpa'
   elif 'escDpa' in config:
@@ -220,3 +211,67 @@ def ReadTestHarnessConfigFile(config_file):
         dump_records, is_managing_sas=False))
 
   return grants, [dpa]
+
+def _RegGrantsRead(config):
+  """Extracts DPA and grants from Reg/Grants config JSON.
+
+  Args:
+    config: A JSON dictionary.
+
+  Returns:
+    A list of |data.CbsdGrantInfo|.
+  """
+  grants = [data.constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True)
+            for reg_request, grant_request in zip(
+                config['registrationRequests'], config['grantRequests'])]
+  return grants
+
+
+def ReadTestHarnessConfigFile(config_file):
+  """Reads the input config file in json format and build ref_model entities.
+
+  WARNING: This routine supports for now only the IPR7 config files, building
+  the CBSDs and DPAs. Will be extended in the future for others.
+
+  Note that the returned DPAs have additional non standard properties:
+    - geometry: the original |shapely| geometry.
+    - margin_db: the margin for interference check (in dB).
+
+  Args:
+    config_file: The path to a json config file as used by test harness.
+      Can be raw or zipped. Currently only supported config files are:
+       - IPR7 config file
+       - reg_grant type file
+
+  Returns:
+    A tuple (grants, dpas) where:
+      grants: a list of |data.CbsdGrantInfo|.
+      dpas:  a list of objects of type |dpa_mgr.Dpa| or None if the confg file
+        does not support DPAs.
+  """
+  # Read input JSON file (even if zipped).
+  if config_file.endswith('zip'):
+    with zipfile.ZipFile(config_file) as zip:
+      file_name = [info.filename for info in zip.infolist()
+                   if os.path.splitext(info.filename)[1] == '.json'][0]
+      with zip.open(file_name) as fd:
+        config = json.load(fd)
+  else:
+    with open(config_file, 'r') as fd:
+      config = json.load(fd)
+
+  # Supports the `reg_grant` raw format (no DPA defined).
+  try:
+    grants = _RegGrantsRead(config)
+    return grants, None
+  except Exception:
+    pass
+
+  # Supports IPR7 config format.
+  try:
+    grants, dpas = _Ipr7ConfigRead(config)
+    return grants, dpas
+  except Exception:
+    pass
+
+  raise ValueError('Unsupported config file: %s' % config_file)
