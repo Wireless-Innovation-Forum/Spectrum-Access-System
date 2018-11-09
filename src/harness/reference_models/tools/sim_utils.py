@@ -21,6 +21,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import scipy.stats
 import shapely.geometry as sgeo
 import zipfile
 
@@ -97,6 +98,27 @@ def CreateCbrsPlot(grants, dpa=None):
   ax.set_title('DPA: %s' % dpa.name)
   plt.show(block=False)
   return ax
+
+#----------------------------------------------
+# Useful statistical routines
+# Estimate PDF form a set of random samples
+#  - using a Smooth kernel estimator
+def GetPDFEstimator(s, bw_method=None):
+  """Gets a PDF estimator, using gaussian kernel method.
+
+  Args:
+    s: The signal samples.
+    bw_method: The kernel method to use. See: scipy.stats.gaussian_kde()
+  Returns:
+    A tuple (x, f(x)) where x is the sample space and f(x) the PDF
+    (probability distribution function).
+  """
+  s_min = np.min(s)
+  s_max = np.max(s)
+  r = np.linspace(s_min, s_max, 100)
+  kde = scipy.stats.gaussian_kde(s, bw_method=bw_method)
+  return (r, kde(r))
+
 
 #----------------------------------------------
 # Useful misc functions about environment.

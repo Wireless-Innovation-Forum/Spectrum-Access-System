@@ -27,11 +27,11 @@ In addition of generic Winnforum prerequesite, some of the code requires:
 
 * matplotlib (https://matplotlib.org/)
 
-This Python library can be installed with <code>pip</code>.
-
 * cartopy (http://scitools.org.uk/cartopy/)
 
-This Python library can be installed with <code>pip</code>.
+* scipy (https://www.scipy.org/)
+
+These Python library can be installed with <code>pip</code>.
 
 If issues in installing some of these libraries (for example in Windows), it 
 is recommended to use the Miniconda (or full Anaconda) python distribution. 
