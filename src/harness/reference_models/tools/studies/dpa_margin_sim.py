@@ -44,12 +44,13 @@ Other parameters:
 -----------------
   --seed <1234>: to specify a random seed.
   --num_ml <10>: number of internal move list to compute for variability analysing,
-    both for reference and UUT. Can be individually overriden for ref and/or uut
-    with --num_ref_ml and --num_uut_ml.
+    both for reference and UUT. Can be individually overriden for uut
+    with --num_uut_ml. Note that the UUT movelist is
   --ref_ml_method <number>: for the method used to generate the reference move list:
-      0 (default): the biggest move list (ie smallest keep list)  - worst case
-     -1: one median size move list
-     xx>0: an intersection move list made by using xx move list (NIST method).
+      'max': use the max move list
+      'med' or 'median': use the median move list
+      'inter' or 'intersect': use the intersection of move lists (NIST method)
+  --ref_ml_num: number of move list to consider in above method.
 
 Misc notes:
 -----------
@@ -74,6 +75,10 @@ from reference_models.dpa import dpa_builder
 from reference_models.geo import zones
 from reference_models.tools import sim_utils
 
+# Utility functions
+Db2Lin = dpa_mgr.Db2Lin
+Lin2Db = dpa_mgr.Lin2Db
+
 #----------------------------------------
 # Setup the command line arguments
 parser = argparse.ArgumentParser(description='DPA Simulator')
@@ -84,10 +89,9 @@ parser.add_argument('--size_tile_cache', type=int, default=32,
                     help='Number of parallel process. -2=all-1, -1=50%.')
 parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
-parser.add_argument('--num_ref_ml', type=int, default=0,
-                    help='Number of move list to use for reference.')
 parser.add_argument('--num_uut_ml', type=int, default=0,
-                    help='Number of move list to use for UUT.')
+                    help='Number of move list to use for UUT.'
+                    ' Optional: if unset uses num_ml instead')
 parser.add_argument('--dpa', type=str, default='',
                     help='Optional: override DPA to consider. Needs to specify '
                     'also the --dpa_builder')
@@ -97,15 +101,17 @@ parser.add_argument('--dpa_builder', type=str, default='',
 parser.add_argument('--dpa_builder_uut', type=str, default='',
                     help='Optional: override DPA builder to use '
                     'for generating DPA protected points for UUT.')
-parser.add_argument('--ref_ml_method', type=int, default=-1,
+parser.add_argument('--ref_ml_method', type=str, default='max',
                     help='Method of reference move list: '
-                    '-1=max size, -2:median size, >0: intersection of N move list')
+                    '`max`: max size move list, `med`: median size move list, '
+                    '`inter`: intersection of move lists')
+parser.add_argument('--ref_ml_num', type=int, default=0,
+                    help='Number of move list to use in method.'
+                    '0 means all, otherwise the specified number.')
 parser.add_argument('--margin_db', type=str, default='',
                     help='Optional: override `movelistMargin`, for ex:`linear(1.5)`.')
 parser.add_argument('--log_level', type=str, default='info',
                     help='Logging level: debug, info, warning, error.')
-parser.add_argument('--repeat', type=int, default=1,
-                    help='Number of times to repeat the procedure.')
 parser.add_argument('--do_extensive', action='store_true',
                     help='Do extensive aggregate interference analysis. '
                     'By checking all possible ref move list')
@@ -120,6 +126,38 @@ _LOGGER_MAP = {
     'warning': logging.WARNING,
     'error': logging.ERROR
 }
+
+def SyntheticMoveList(ml_list, method, num, chan_idx):
+  """Gets a synthetic move list from a list of them according to some criteria.
+
+  See options `ref_ml_method` and `ref_ml_num`.
+  """
+  if num == 0: num = len(ml_list)
+  ml_size = [len(ml[chan_idx]) for ml in ml_list]
+  if method.startswith('med'):
+    # Median method (median size keep list)
+    median_idx = ml_size.index(np.percentile(ml_size[:num], 50,
+                                             interpolation='nearest'))
+    ref_ml = ml_list[median_idx]
+  elif method.startswith('max'):
+    # Max method (bigger move list, ie smallest keep list).
+    max_idx = np.argmax(ml_size[:num])
+    ref_ml = ml_list[max_idx]
+  elif method.startswith('min'):
+    # Min method (smaller move list, ie bigger keep list).
+    min_idx = np.argmin(ml_size[:num])
+    ref_ml = ml_list[min_idx]
+  elif method.startswith('int'):
+    # Intersection method (similar to method of Michael Souryal - NIST).
+    # One difference is that we do not remove xx% of extrema.
+    ref_ml = []
+    for chan in xrange(len(ml_list[0])):
+      ref_ml.append(set.intersection(*[ml_list[k][chan]
+                                       for k in xrange(num)]))
+  else:
+    raise ValueError('Ref ML method %d unsupported' % method)
+  return ref_ml
+
 
 #-----------------------------------------------------
 # DPA aggregate interference variation simulator
@@ -179,7 +217,7 @@ def DpaSimulate(config_file, options):
   dpa.SetGrantsFromList(grants)
 
   # Manages the number of move list
-  num_ref_ml = options.num_ref_ml or options.num_ml
+  num_ref_ml = options.num_ml
   num_uut_ml = options.num_uut_ml or options.num_ml
   # Run the move list N times on ref DPA
   print 'Running Move List algorithm (%d workers): %d times' % (
@@ -192,8 +230,6 @@ def DpaSimulate(config_file, options):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
     sys.stdout.write('.')
-  end_time = time.time()
-  sys.stdout.write('\n')
 
   # Plot the last move list on map.
   for channel in dpa._channels:
@@ -214,23 +250,17 @@ def DpaSimulate(config_file, options):
       uut_move_list_runs.append(copy.copy(dpa_uut.move_lists))
       sys.stdout.write('+')
 
-  print '\nMove list Computation time: %.1fs' % (end_time - start_time)
+  print '\n   Computation time: %.1fs' % (time.time() - start_time)
   ref_move_list_runs = ref_move_list_runs[:num_ref_ml]
 
   # Analyse the move_list aggregate interference margin:
-  #  - enable log level - usually 'info' allows concise report.
-  logging.getLogger().setLevel(_LOGGER_MAP[options.log_level])
   #  - find a good channel to check: the one with maximum CBSDs.
   chan_idx = np.argmax([len(dpa.GetNeighborList(chan)) for chan in dpa._channels])
   channel = dpa._channels[chan_idx]
-  # - find the move list sizes for that channel.
+  # - plot the move list sizes histogram for that channel.
   ref_ml_size = [len(move_list[chan_idx]) for move_list in ref_move_list_runs]
-  uut_ml_size = [len(move_list[chan_idx]) for move_list in uut_move_list_runs]
-
-  # Plots the move lists size histogram.
   plt.figure()
-  ml_size = ref_ml_size[:]
-  plt.hist(ml_size)
+  plt.hist(ref_ml_size)
   plt.grid(True)
   plt.xlabel('Count')
   plt.ylabel('')
@@ -242,26 +272,14 @@ def DpaSimulate(config_file, options):
   #      or  taking a median or intersection move list
   # Hopefully (!) this is a good proxy for worst case scenarios.
   #
+  #  - enable log level - usually 'info' allows concise report.
+  logging.getLogger().setLevel(_LOGGER_MAP[options.log_level])
   # - The ref case first
-  if options.ref_ml_method == -1:
-    max_idx = np.argmax(ref_ml_size)
-    ref_ml = ref_move_list_runs[max_idx]  # = smallest keep list
-  elif options.ref_ml_method == -2:
-    medan_idx = ref_ml_size.index(np.percentile(ref_ml_size, 50, interpolation='nearest'))
-    ref_ml = ref_move_list_runs[median_idx]  # = median size keep list
-  else:
-    # Intersection method (similar to method of Michael Souryal).
-    # One difference is that we do intersection of N first move list.
-    ref_ml = []
-    for chan in xrange(len(ref_move_list_runs[0])):
-      ref_ml.append(set.intersection(*[ref_move_list_runs[k][chan]
-                                       for k in xrange(options.ref_ml_method)]))
-
-  dpa.move_lists = ref_ml
+  dpa.move_lists = SyntheticMoveList(ref_move_list_runs,
+                                     options.ref_ml_method, options.ref_ml_num, chan_idx)
 
   # - The UUT case
-  uut_ml = uut_move_list_runs[np.argmin(uut_ml_size)]  # = largest keep list
-  dpa_uut.move_lists = uut_ml
+  dpa_uut.move_lists = SyntheticMoveList(uut_move_list_runs, 'min', 0, chan_idx)
   uut_keep_list = dpa_uut.GetKeepList(channel)
 
   start_time = time.time()
@@ -270,11 +288,57 @@ def DpaSimulate(config_file, options):
 
   success = dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel,
                                   extensive_print=True)
-  end_time = time.time()
-  print 'Check Interf Computation time: %.1fs' % (end_time - start_time)
+  print '   Computation time: %.1fs' % (time.time() - start_time)
 
-  # Finalization
-  sim_utils.CheckTerrainTileCacheOk()
+  # Extensive mode
+  if options.do_extensive:
+    logging.getLogger().setLevel(logging.ERROR)
+    num_success = 0
+    ref_levels = []
+    diff_levels = []
+    print '*****  EXTENSIVE CHECK/SCATTER *****'
+    start_time = time.time()
+    num_synth_ml = 1 if not options.ref_ml_num else options.ref_ml_num
+    num_check = len(ref_move_list_runs) - num_synth_ml + 1
+    for k in xrange(num_check):
+      dpa.move_lists = SyntheticMoveList(ref_move_list_runs[k:],
+                                         options.ref_ml_method, options.ref_ml_num,
+                                         chan_idx)
+      interf_results = []
+      num_success += dpa.CheckInterference(uut_keep_list, dpa.margin_db, channel=channel,
+                                           extensive_print=False,
+                                           output_data=interf_results)
+      for pt_res in interf_results:
+        ref_levels.extend(pt_res.A_DPA_ref)
+        diff_levels.extend(pt_res.A_DPA - pt_res.A_DPA_ref)
+
+    ref_levels, diff_levels = np.asarray(ref_levels), np.asarray(diff_levels)
+    print '   Computation time: %.1fs' % (time.time() - start_time)
+    print 'Extensive Interference Check:  %d success / %d (%.3f%%)' % (
+        num_success, len(ref_move_list_runs),
+        (100. * num_success) / len(ref_move_list_runs))
+    # Find the maximum variation in mw
+    max_diff_mw = np.max(Db2Lin(ref_levels + diff_levels) - Db2Lin(ref_levels))
+    max_margin_db = Lin2Db(max_diff_mw + Db2Lin(dpa.threshold)) - dpa.threshold
+    print 'Max difference: %g mw ==> %.3fdB' % (max_diff_mw, max_margin_db)
+    # Plot the scatter plot
+    plt.figure()
+    plt.grid(True)
+    plt.title('Aggregate interference difference - DPA: %s' % dpa.name)
+    plt.xlabel('Reference aggregate interference (dBm/10MHz)')
+    plt.ylabel('SAS UUT difference (dB)')
+    plt.scatter(ref_levels, diff_levels, c = 'r', marker='.', s=10)
+    margin_mw = Db2Lin(dpa.threshold + 1.5) - Db2Lin(dpa.threshold)
+    x_data = np.arange(min(ref_levels), max(ref_levels), 0.01)
+    plt.plot(x_data, Lin2Db(Db2Lin(x_data) + margin_mw) - x_data, 'b',
+             label='Fixed Linear Margin @1.5dB')
+    plt.plot(x_data, Lin2Db(Db2Lin(x_data) + max_diff_mw) - x_data, 'g',
+             label='Fixed Linear Margin @%.3fdB' % max_margin_db)
+    plt.legend()
+
+  # Simulation finalization
+  print ''
+  sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
 
 
 #--------------------------------------------------
