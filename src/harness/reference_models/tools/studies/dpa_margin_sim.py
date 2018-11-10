@@ -275,6 +275,9 @@ def DpaSimulate(config_file, options):
     dpa.protection_points = dpa_builder.DpaProtectionPoints(
         dpa.name, dpa.geometry, options.dpa_builder)
 
+  if options.dpa_builder_uut == options.dpa_builder:
+    options.dpa_builder_uut = ''
+
   if options.margin_db:  # Override `movelistMargin` directive.
     try: dpa.margin_db = float(options.margin_db)
     except ValueError: dpa.margin_db = options.margin_db
@@ -287,8 +290,7 @@ def DpaSimulate(config_file, options):
          len([grant for grant in grants
               if grant.cbsd_category == 'A' and not grant.indoor_deployment]),
          len([grant for grant in grants
-              if grant.cbsd_category == 'A' and grant.indoor_deployment]))
-  )
+              if grant.cbsd_category == 'A' and grant.indoor_deployment])))
 
   # Plot the entities.
   ax = sim_utils.CreateCbrsPlot(grants, dpa=dpa)
@@ -312,7 +314,7 @@ def DpaSimulate(config_file, options):
   for k in xrange(num_base_ml):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
-    sys.stdout.write('.')
+    sys.stdout.write('.'); sys.stdout.flush()
 
   # Plot the last move list on map.
   for channel in dpa._channels:
@@ -331,7 +333,7 @@ def DpaSimulate(config_file, options):
     for k in xrange(num_uut_ml):
       dpa_uut.ComputeMoveLists()
       uut_move_list_runs.append(copy.copy(dpa_uut.move_lists))
-      sys.stdout.write('+')
+      sys.stdout.write('+'); sys.stdout.flush()
 
   ref_move_list_runs = ref_move_list_runs[:num_ref_ml]
   print '\n   Computation time: %.1fs' % (time.time() - start_time)
@@ -389,6 +391,7 @@ def DpaSimulate(config_file, options):
                                            channel=channel,
                                            extensive_print=False,
                                            output_data=interf_results)
+      sys.stdout.write('.'); sys.stdout.flush()
       for pt_res in interf_results:
         ref_levels.extend(pt_res.A_DPA_ref)
         diff_levels.extend(pt_res.A_DPA - pt_res.A_DPA_ref)

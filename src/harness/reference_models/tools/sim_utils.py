@@ -137,14 +137,19 @@ def ConfigureRunningEnv(num_process, size_tile_cache):
     size_tile_cache: Geo cache size in number of tiles. The memory usage is
       about: `num_process * size_tile_cache * 60 MB`
   """
-  # Configure the geo drivers to avoid swap
-  drive.ConfigureTerrainDriver(cache_size=size_tile_cache)
-  drive.ConfigureNlcdDriver(cache_size=size_tile_cache)
-
   # Configure the global pool of processes
   mpool.Configure(num_process)
-  return mpool.GetNumWorkerProcesses()
 
+  # Configure the geo drivers to avoid swap
+  # - for main process
+  drive.ConfigureTerrainDriver(cache_size=size_tile_cache)
+  drive.ConfigureNlcdDriver(cache_size=size_tile_cache)
+  # - for worker processes
+  mpool.RunOnEachWorkerProcess(drive.ConfigureTerrainDriver,
+                               terrain_dir=None, cache_size=size_tile_cache)
+  mpool.RunOnEachWorkerProcess(drive.ConfigureNlcdDriver,
+                               nlcd_dir=None, cache_size=size_tile_cache)
+  return mpool.GetNumWorkerProcesses()
 
 # Analysis of the terrain cache swap.
 def _getTileStats():
@@ -156,15 +161,22 @@ def _printTileStats():
 def CheckTerrainTileCacheOk():
   """Check tiles cache well behaved."""
   print  'Check of tile cache swap:'
-  tile_stats = mpool.RunOnEachWorkerProcess(_getTileStats)
+  num_workers = mpool.GetNumWorkerProcesses()
+  if num_workers:
+    tile_stats = mpool.RunOnEachWorkerProcess(_getTileStats)
+  else:
+    tile_stats = [_getTileStats()]
   num_active_tiles, cnt_per_tile = tile_stats[np.argmax([tile_stat[0]
                                                         for tile_stat in tile_stats])]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    pool = mpool.Pool()
-    pool.apply_async(_printTileStats)
+    if num_workers:
+      pool = mpool.Pool()
+      pool.apply_async(_printTileStats)
+    else:
+      _printTileStats()
   else:
     print '-- Cache tile: OK (no swapping)'
 
