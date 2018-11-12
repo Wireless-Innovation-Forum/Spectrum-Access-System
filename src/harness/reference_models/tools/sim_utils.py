@@ -20,10 +20,7 @@ import json
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import scipy.stats
 import shapely.geometry as sgeo
-import zipfile
 
 from reference_models.common import data
 from reference_models.common import mpool
@@ -59,11 +56,11 @@ def PlotGrants(ax, grants, color='r'):
   xy = ([grant.longitude for grant in grants if grant.cbsd_category=='B'],
         [grant.latitude for grant in grants if grant.cbsd_category=='B'])
   if len(xy[0]):
-    ax.scatter(*xy, c=color, marker='1', s=10)
+    ax.scatter(*xy, c=color, marker='1', s=20)
   xy = ([grant.longitude for grant in grants if grant.cbsd_category=='A'],
         [grant.latitude for grant in grants if grant.cbsd_category=='A'])
   if len(xy[0]):
-    ax.scatter(*xy, c=color, marker='.', s=10)
+    ax.scatter(*xy, c=color, marker='.', s=20)
 
 
 # TODO(sbdt): add other kind of entities (PPA, ..). For now only DPAs.
@@ -100,27 +97,6 @@ def CreateCbrsPlot(grants, dpa=None):
   return ax
 
 #----------------------------------------------
-# Useful statistical routines
-# Estimate PDF form a set of random samples
-#  - using a Smooth kernel estimator
-def GetPDFEstimator(s, bw_method=None):
-  """Gets a PDF estimator, using gaussian kernel method.
-
-  Args:
-    s: The signal samples.
-    bw_method: The kernel method to use. See: scipy.stats.gaussian_kde()
-  Returns:
-    A tuple (x, f(x)) where x is the sample space and f(x) the PDF
-    (probability distribution function).
-  """
-  s_min = np.min(s)
-  s_max = np.max(s)
-  r = np.linspace(s_min, s_max, 100)
-  kde = scipy.stats.gaussian_kde(s, bw_method=bw_method)
-  return (r, kde(r))
-
-
-#----------------------------------------------
 # Useful misc functions about environment.
 
 # Configure the environment
@@ -137,19 +113,14 @@ def ConfigureRunningEnv(num_process, size_tile_cache):
     size_tile_cache: Geo cache size in number of tiles. The memory usage is
       about: `num_process * size_tile_cache * 60 MB`
   """
-  # Configure the global pool of processes
-  mpool.Configure(num_process)
-
   # Configure the geo drivers to avoid swap
-  # - for main process
   drive.ConfigureTerrainDriver(cache_size=size_tile_cache)
   drive.ConfigureNlcdDriver(cache_size=size_tile_cache)
-  # - for worker processes
-  mpool.RunOnEachWorkerProcess(drive.ConfigureTerrainDriver,
-                               terrain_dir=None, cache_size=size_tile_cache)
-  mpool.RunOnEachWorkerProcess(drive.ConfigureNlcdDriver,
-                               nlcd_dir=None, cache_size=size_tile_cache)
+
+  # Configure the global pool of processes
+  mpool.Configure(num_process)
   return mpool.GetNumWorkerProcesses()
+
 
 # Analysis of the terrain cache swap.
 def _getTileStats():
@@ -161,22 +132,15 @@ def _printTileStats():
 def CheckTerrainTileCacheOk():
   """Check tiles cache well behaved."""
   print  'Check of tile cache swap:'
-  num_workers = mpool.GetNumWorkerProcesses()
-  if num_workers:
-    tile_stats = mpool.RunOnEachWorkerProcess(_getTileStats)
-  else:
-    tile_stats = [_getTileStats()]
+  tile_stats = mpool.RunOnEachWorkerProcess(_getTileStats)
   num_active_tiles, cnt_per_tile = tile_stats[np.argmax([tile_stat[0]
                                                         for tile_stat in tile_stats])]
   if not num_active_tiles:
     print '-- Cache ERROR: No active tiles read'
   elif max(cnt_per_tile) > 1:
     print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
-    if num_workers:
-      pool = mpool.Pool()
-      pool.apply_async(_printTileStats)
-    else:
-      _printTileStats()
+    pool = mpool.Pool()
+    pool.apply_async(_printTileStats)
   else:
     print '-- Cache tile: OK (no swapping)'
 
@@ -195,17 +159,28 @@ def MergeConditionalData(registration_requests, conditional_datas):
   return reg_requests
 
 
-def _Ipr7ConfigRead(config):
-  """Extracts DPA and grants from IPR7 config JSON.
+def ReadTestHarnessConfigFile(config_file):
+  """Reads the input config file in json format and build ref_model entities.
+
+  WARNING: This routine supports for now only the IPR7 config files, building
+  the CBSDs and DPAs. Will be extended in the future for others.
+
+  Note that the returned DPAs have additional non standard properties:
+    - geometry: the original |shapely| geometry.
+    - margin_db: the margin for interference check (in dB).
 
   Args:
-    config: A JSON dictionary.
+    config_file: The path to a json config file as used by test harness.
+       Currently only IPR7 supported.
 
   Returns:
     A tuple (dpas, grants) where:
       dpas:  a list of objects of type |dpa_mgr.Dpa|.
       grants: a list of |data.CbsdGrantInfo|.
   """
+  with open(config_file, 'r') as fd:
+    config = json.load(fd)
+  # Reads the DPA info.
   if 'portalDpa' in config:
     dpa_tag = 'portalDpa'
   elif 'escDpa' in config:
@@ -245,67 +220,3 @@ def _Ipr7ConfigRead(config):
         dump_records, is_managing_sas=False))
 
   return grants, [dpa]
-
-def _RegGrantsRead(config):
-  """Extracts DPA and grants from Reg/Grants config JSON.
-
-  Args:
-    config: A JSON dictionary.
-
-  Returns:
-    A list of |data.CbsdGrantInfo|.
-  """
-  grants = [data.constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True)
-            for reg_request, grant_request in zip(
-                config['registrationRequests'], config['grantRequests'])]
-  return grants
-
-
-def ReadTestHarnessConfigFile(config_file):
-  """Reads the input config file in json format and build ref_model entities.
-
-  WARNING: This routine supports for now only the IPR7 config files, building
-  the CBSDs and DPAs. Will be extended in the future for others.
-
-  Note that the returned DPAs have additional non standard properties:
-    - geometry: the original |shapely| geometry.
-    - margin_db: the margin for interference check (in dB).
-
-  Args:
-    config_file: The path to a json config file as used by test harness.
-      Can be raw or zipped. Currently only supported config files are:
-       - IPR7 config file
-       - reg_grant type file
-
-  Returns:
-    A tuple (grants, dpas) where:
-      grants: a list of |data.CbsdGrantInfo|.
-      dpas:  a list of objects of type |dpa_mgr.Dpa| or None if the confg file
-        does not support DPAs.
-  """
-  # Read input JSON file (even if zipped).
-  if config_file.endswith('zip'):
-    with zipfile.ZipFile(config_file) as zip:
-      file_name = [info.filename for info in zip.infolist()
-                   if os.path.splitext(info.filename)[1] == '.json'][0]
-      with zip.open(file_name) as fd:
-        config = json.load(fd)
-  else:
-    with open(config_file, 'r') as fd:
-      config = json.load(fd)
-
-  # Supports the `reg_grant` raw format (no DPA defined).
-  try:
-    grants = _RegGrantsRead(config)
-    return grants, None
-  except Exception:
-    pass
-
-  # Supports IPR7 config format.
-  try:
-    grants, dpas = _Ipr7ConfigRead(config)
-    return grants, dpas
-  except Exception:
-    pass
-
-  raise ValueError('Unsupported config file: %s' % config_file)
