@@ -158,8 +158,9 @@ static PyObject* itm_point_to_point_rels(PyObject* self, PyObject* args) {
     PyList_SET_ITEM(loss_obj, k, Py_BuildValue("d", db_losses[k]));
   }
   delete[] db_losses;
-
-  return Py_BuildValue("Oddsi", loss_obj, ver0, ver1, strmode, errnum);
+  // Note: use N instead of O here to avoid increment of ref count of loss_obj.
+  // Otherwise would have a mem leak, since it would never be released.
+  return Py_BuildValue("Nddsi", loss_obj, ver0, ver1, strmode, errnum);
 }
 
 static PyMethodDef ITMMethods[] = {
