@@ -90,7 +90,9 @@ Misc notes:
 
 import argparse
 import copy
+import cPickle
 import logging
+import os
 import sys
 import time
 
@@ -147,10 +149,12 @@ parser.add_argument('--uut_ml_num', type=int, default=0,
                     '0 means all, otherwise the specified number.')
 # - Simulation config
 parser.add_argument('--do_extensive', action='store_true',
-                    help='Do extensive aggregate interference analysis. '
-                    'By checking all possible ref move list')
+                    help='Do extensive aggregate interference analysis '
+                    'by checking all possible ref move list')
 parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
+parser.add_argument('--cache_file', type=str, default='',
+                    help='If defined, save simulation data to file. ')
 
 parser.add_argument('config_file', type=str,
                     help='The configuration file (IPR only)')
@@ -194,6 +198,8 @@ def SyntheticMoveList(ml_list, method, num, chan_idx):
   return ref_ml
 
 def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
+  """Plots scatter graph of interference variation."""
+  if not ref_levels: return
   ref_levels, diff_levels = np.asarray(ref_levels), np.asarray(diff_levels)
   # Find the maximum variation in mW
   diff_mw = Db2Lin(ref_levels + diff_levels) - Db2Lin(ref_levels)
@@ -201,6 +207,24 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
   max_margin_db = Lin2Db(max_diff_mw + Db2Lin(threshold_db)) - threshold_db
   print 'Max difference: %g mw ==> %.3fdB (norm to %.0fdBm)' % (
       max_diff_mw, max_margin_db, threshold_db)
+  print 'Statistics: '
+  max_diff_1_5 = Db2Lin(threshold_db + 1.5) - Db2Lin(threshold_db)
+  print '  < 1.5dB norm: %.4f%%' % (
+      np.count_nonzero(diff_mw < Db2Lin(threshold_db+1.5)-Db2Lin(threshold_db))
+      / float(len(diff_mw)) * 100.)
+  print '  < 2.0dB norm: %.4f%%' % (
+      np.count_nonzero(diff_mw < Db2Lin(threshold_db+2.0)-Db2Lin(threshold_db))
+      / float(len(diff_mw)) * 100.)
+  print '  < 2.5dB norm: %.4f%%' % (
+      np.count_nonzero(diff_mw < Db2Lin(threshold_db+2.5)-Db2Lin(threshold_db))
+      / float(len(diff_mw)) * 100.)
+  print '  < 3.0dB norm: %.4f%%' % (
+      np.count_nonzero(diff_mw < Db2Lin(threshold_db+3.0)-Db2Lin(threshold_db))
+      / float(len(diff_mw)) * 100.)
+  print '  < 3.5dB norm: %.4f%%' % (
+      np.count_nonzero(diff_mw < Db2Lin(threshold_db+3.5)-Db2Lin(threshold_db))
+      / float(len(diff_mw)) * 100.)
+
   # Plot the scatter plot
   plt.figure()
   plt.grid(True)
@@ -229,7 +253,57 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
   plt.plot(x, fx, color='g')
   plt.legend()
 
+def ExtensiveInterferenceCheck(dpa,
+                               uut_keep_list, ref_move_lists,
+                               ref_ml_num, ref_ml_method,
+                               channel, chan_idx):
+  """Performs extensive interference check of UUT vs many reference move lists.
+
+  Args:
+    dpa: A reference |dpa_mgr.Dpa|.
+    uut_keep_list: The UUT keep list for the given channel.
+    ref_move_lists: A list of reference move lists.
+    ref_ml_num & ref_ml_method: The method for building the reference move list
+      used for interference check. See module documentation.
+    channel & chan_idx: The channels info.
+
+  Returns:
+    A tuple of 2 lists (ref_level, diff_levels) holding all the interference
+    results over each points, each azimuth and each synthesized reference move list.
+  """
+  logging.getLogger().setLevel(logging.ERROR)
+  num_success = 0
+  ref_levels = []
+  diff_levels = []
+  print '*****  EXTENSIVE INTERFERENCE CHECK *****'
+  start_time = time.time()
+  num_synth_ml = 1 if not ref_ml_num else ref_ml_num
+  num_check = len(ref_move_lists) - num_synth_ml + 1
+  for k in xrange(num_check):
+    dpa.move_lists = SyntheticMoveList(ref_move_lists[k:],
+                                       ref_ml_method, ref_ml_num,
+                                       chan_idx)
+    interf_results = []
+    num_success += dpa.CheckInterference(uut_keep_list, dpa.margin_db,
+                                         channel=channel,
+                                         extensive_print=False,
+                                         output_data=interf_results)
+    sys.stdout.write('.'); sys.stdout.flush()
+    for pt_res in interf_results:
+      if not pt_res.A_DPA_ref.shape: continue
+      ref_levels.extend(pt_res.A_DPA_ref)
+      diff_levels.extend(pt_res.A_DPA - pt_res.A_DPA_ref)
+
+  print '   Computation time: %.1fs' % (time.time() - start_time)
+  print 'Extensive Interference Check:  %d success / %d (%.3f%%)' % (
+      num_success, num_check, (100. * num_success) / num_check)
+  if not ref_levels:
+    print 'Empty interference - Please check your setup'
+  ScatterAnalyze(ref_levels, diff_levels, dpa.threshold, 'DPA: %s' % dpa.name)
+  return ref_levels, diff_levels
+
 def PlotMoveListHistogram(move_lists, chan_idx):
+  """Plots an histogram of move lists size."""
   ref_ml_size = [len(ml[chan_idx]) for ml in move_lists]
   plt.figure()
   plt.hist(ref_ml_size)
@@ -238,6 +312,20 @@ def PlotMoveListHistogram(move_lists, chan_idx):
   plt.ylabel('')
   plt.title('Histogram of move list size across %d runs' % len(ref_ml_size))
 
+
+SimulationData = namedtuple(SimulationData,
+                            ('dpa', 'ref_ml', 'uut_ml', 'chan', 'chan_idx'))
+def SaveDataToCache(cache_file, sim_data)
+  """Save simulation data to pickled file."""
+  with open(cache_file, 'w') as fd:
+    cPickle.dump(sim_data, fd)
+  print 'Simulation data saved to %s' % cache_file
+
+
+def ReadDataFromCache(cache_file):
+  """Reads simulation data from pickled file."""
+  with open(cache_file, 'r') as fd:
+    return cPickle.load(fd)
 
 #-----------------------------------------------------
 # DPA aggregate interference variation simulator
@@ -248,6 +336,9 @@ def DpaSimulate(config_file, options):
     np.random.seed(options.seed)
 
   logging.getLogger().setLevel(logging.WARNING)
+  # TODO(sbdt): run a propag calculation once to fill up the geo cache, then
+  # do the multiprocess - this will insure that the geo tile are in fact shared
+  # between processes.
   num_workers = sim_utils.ConfigureRunningEnv(num_process=options.num_process,
                                               size_tile_cache=options.size_tile_cache)
 
@@ -338,6 +429,10 @@ def DpaSimulate(config_file, options):
   ref_move_list_runs = ref_move_list_runs[:num_ref_ml]
   print '\n   Computation time: %.1fs' % (time.time() - start_time)
 
+  # Save data
+  if options.cache_file:
+    pass
+
   # Analyse the move_list aggregate interference margin:
   #  - find a good channel to check: the one with maximum CBSDs.
   chan_idx = np.argmax([len(dpa.GetNeighborList(chan)) for chan in dpa._channels])
@@ -374,34 +469,9 @@ def DpaSimulate(config_file, options):
 
   # Extensive mode: compare UUT against many ref model move list
   if options.do_extensive:
-    logging.getLogger().setLevel(logging.ERROR)
-    num_success = 0
-    ref_levels = []
-    diff_levels = []
-    print '*****  EXTENSIVE INTERFERENCE CHECK *****'
-    start_time = time.time()
-    num_synth_ml = 1 if not options.ref_ml_num else options.ref_ml_num
-    num_check = len(ref_move_list_runs) - num_synth_ml + 1
-    for k in xrange(num_check):
-      dpa.move_lists = SyntheticMoveList(ref_move_list_runs[k:],
-                                         options.ref_ml_method, options.ref_ml_num,
-                                         chan_idx)
-      interf_results = []
-      num_success += dpa.CheckInterference(uut_keep_list, dpa.margin_db,
-                                           channel=channel,
-                                           extensive_print=False,
-                                           output_data=interf_results)
-      sys.stdout.write('.'); sys.stdout.flush()
-      for pt_res in interf_results:
-        ref_levels.extend(pt_res.A_DPA_ref)
-        diff_levels.extend(pt_res.A_DPA - pt_res.A_DPA_ref)
-
-    print '   Computation time: %.1fs' % (time.time() - start_time)
-    print 'Extensive Interference Check:  %d success / %d (%.3f%%)' % (
-        num_success, num_check, (100. * num_success) / num_check)
-
-    ScatterAnalyze(ref_levels, diff_levels, dpa.threshold, 'DPA: %s' % dpa.name)
-
+    ExtensiveInterferenceCheck(dpa, uut_keep_list, ref_move_list_runs,
+                               options.ref_ml_num, options.ref_ml_method,
+                               channel, chan_idx)
   # Simulation finalization
   print ''
   sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
