@@ -354,7 +354,8 @@ class Dpa(object):
 
   def CheckInterference(self, sas_uut_active_grants, margin_db,
                         channel=None, num_iter=None,
-                        do_abs_check_single_uut=False, extensive_print=True,
+                        do_abs_check_single_uut=False,
+                        extensive_print=True,
                         output_data=None):
     """Checks interference of keep list of SAS UUT vs test harness.
 
@@ -434,8 +435,19 @@ class Dpa(object):
         grant for grant in self._grants
         if (grant.is_managed_grant and grant in keep_list)]
 
-    # Find an extended keep list of UUT.
     keep_list_uut_managing_sas = list(sas_uut_active_grants)
+
+    # Note: alternative code with pre-filtering could be:
+    #ml_computed = sum(len(nl) for nl in self.nbor_lists) > 0
+    #if ml_computed:  # Regular case when ML computed
+    #  nbor_keys = set(grant.uniqueCbsdKey() for grant in self.GetNeighborList(channel))
+    #  keep_list_uut_managing_sas = [grant for grant in sas_uut_active_grants
+    #                                if grant.uniqueCbsdKey() in nbor_keys]
+    #else: # Case when ML not computed: MCP without peer SAS
+    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
+    #
+    # NOTE: prefiltering not activated to avoid any kind of regression. Done only in the
+    # printKeepList() routine.
 
     if extensive_print:
       try:
@@ -443,16 +455,6 @@ class Dpa(object):
                               keep_list_uut_managing_sas, self.name, channel)
       except Exception as e:
         logging.error('Could not print DPA keep lists: %s', e)
-
-    # Note: other code with pre filtering could be:
-    #nbor_list = self.GetNeighborList(channel)
-    #if nbor_list:
-    #  # Slight optimization by prefiltering the ones in the nbor list.
-    #  keep_list_uut_managing_sas = [
-    #      grant for grant in sas_uut_active_grants
-    #      if (grant in nbor_list and grant not in keep_list_th_other_sas)]
-    #else:
-    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
 
     # Do absolute threshold in some case
     hard_threshold = None
@@ -520,13 +522,14 @@ class Dpa(object):
                         self.name, channel,
                         Lin2Db(max_diff_interf_mw / margin_mw))
       else:
-        logging.info('DPA Check Succeed - margin_mw headroom by %.4dB',
+        logging.info('DPA Check Succeed - margin_mw headroom by %.4fdB',
                      Lin2Db(max_diff_interf_mw / margin_mw))
 
       return max_diff_interf_mw <= margin_mw
 
 
   def __PrintStatistics(self, results, dpa_name, channel, threshold, margin_mw=None):
+    """Prints result statistics."""
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
     filename = '%s DPA=%s channel=%s threshold=%s.csv' % (timestamp, dpa_name,
                                                           channel, threshold)
@@ -579,11 +582,12 @@ class Dpa(object):
                    np.percentile(differences, percentile))
     logging.info('--- End statistics ---')
 
-  def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
-                       keep_list_uut_managing_sas, dpa_name, channel):
-
-    def WriteKeepList(filename, keep_list):
-      logging.info('Writing keep list to file: %s', filename)
+  def __PrintKeepLists(self, keep_list_th_other_sas,
+                       keep_list_th_managing_sas, keep_list_uut_managing_sas,
+                       dpa_name, channel):
+    """Prints keep list and neighbor list."""
+    def WriteList(filename, keep_list):
+      logging.info('Writing list to file: %s', filename)
       fields = [
           'latitude', 'longitude', 'height_agl', 'indoor_deployment',
           'cbsd_category', 'antenna_azimuth', 'antenna_gain',
@@ -598,17 +602,29 @@ class Dpa(object):
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
     base_filename = '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel)
 
+    # SAS test harnesses (peer SASes) full neighbor list
+    filename = '%s (neighbor list).csv' % base_filename
+    WriteList(filename, self.GetNeighborList(channel))
+
     # SAS test harnesses (peer SASes) combined keep list
     filename = '%s (combined peer SAS keep list).csv' % base_filename
-    WriteKeepList(filename, keep_list_th_other_sas)
+    WriteList(filename, keep_list_th_other_sas)
 
     # SAS UUT keep list (according to test harness)
     filename = '%s (SAS UUT keep list, according to test harness).csv' % base_filename
-    WriteKeepList(filename, keep_list_th_managing_sas)
+    WriteList(filename, keep_list_th_managing_sas)
 
     # SAS UUT keep list (according to SAS UUT)
-    filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
-    WriteKeepList(filename, keep_list_uut_managing_sas)
+    # Perform filtering to neighbor list (only when possible)
+    filename = '%s (SAS UUT active grants, according to SAS UUT).csv' % base_filename
+    ml_computed = sum(len(nl) for nl in self.nbor_lists) > 0
+    if ml_computed:
+      # Regular case when ML computed - nbor list available so prefiltering possible.
+      # When no nbor list, all active grants output
+      nbor_keys = set(grant.uniqueCbsdKey() for grant in self.GetNeighborList(channel))
+      keep_list_uut_managing_sas = [grant for grant in keep_list_uut_managing_sas
+                                    if grant.uniqueCbsdKey() in nbor_keys]
+    WriteList(filename, keep_list_uut_managing_sas)
 
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
