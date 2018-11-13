@@ -19,7 +19,7 @@ import os
 import sas_testcase
 import uuid
 from shapely import ops
-import shapely.geometry
+import shapely.geometry as geometry
 from shapely.geometry import JOIN_STYLE
 from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
