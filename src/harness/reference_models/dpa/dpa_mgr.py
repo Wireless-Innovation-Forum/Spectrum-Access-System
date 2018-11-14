@@ -62,6 +62,13 @@ DPA_DEFAULT_DISTANCES = (150, 200, 0, 25)
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
 
+# The logging path
+def GetDpaLogDir():
+  dpa_log_dir = os.path.join(os.path.dirname(__file__),
+                             '..', '..', 'testcases', 'output')
+  if not os.path.exists(dpa_log_dir): os.makedirs(dpa_log_dir)
+  return dpa_log_dir
+
 # Help routine
 class _EmptyFad(object):
   """Helper class for representing an empty FAD."""
@@ -467,11 +474,6 @@ class Dpa(object):
                  hard_threshold if hard_threshold else
                  ('`MoveList`' if margin_method == 'std' else 'MoveList + Linear'),
                  self.beamwidth, num_iter, self.azimuth_range, self.neighbor_distances)
-    # Removed since redundant with printKeepList logs.
-    # logging.debug('DPA Check interf `%s` - KL_TH_MGR: %s KL_TH_OTHER: %s KL_UUT_MGR: %s',
-    #              self.name,
-    #              keep_list_th_managing_sas, keep_list_th_other_sas,
-    #              sas_uut_active_grants)
 
     checkPointInterf = functools.partial(
         _CalcTestPointInterfDiff,
@@ -531,8 +533,9 @@ class Dpa(object):
   def __PrintStatistics(self, results, dpa_name, channel, threshold, margin_mw=None):
     """Prints result statistics."""
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
-    filename = '%s DPA=%s channel=%s threshold=%s.csv' % (timestamp, dpa_name,
-                                                          channel, threshold)
+    filename = os.path.join(GetDpaLogDir(),
+                            '%s DPA=%s channel=%s threshold=%s.csv' % (
+                                timestamp, dpa_name, channel, threshold))
     logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name,
                  channel, filename)
     with open(filename, 'w') as f:
@@ -599,7 +602,8 @@ class Dpa(object):
           f.write(','.join(str(getattr(cbsd_grant_info, key)) for key in fields) + '\n')
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
-    base_filename = '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel)
+    base_filename = os.path.join(GetDpaLogDir(),
+                                 '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel))
 
     # SAS test harnesses (peer SASes) full neighbor list
     filename = '%s (neighbor list).csv' % base_filename
