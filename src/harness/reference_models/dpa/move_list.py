@@ -479,6 +479,44 @@ def moveListConstraint(protection_point, low_freq, high_freq,
   return (movelist_grants, neighbor_grants)
 
 
+def getDpaNeighborGrants(grants, protection_points,
+                         low_freq, high_freq, neighbor_distances):
+  """Gets the list of actual neighbor grants of a DPA, for a given channel.
+
+  This looks at the total keep list considering a bunch of protected points.
+
+  Args:
+    grants:  A list of CBSD |data.CbsdGrantInfo| active grants.
+    protection_points: A list of protection point locations defining the DPA, each one
+      having attributes 'latitude' and 'longitude'.
+    low_freq: The low frequency of protection constraint (Hz).
+    high_freq: The high frequency of protection constraint (Hz).
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+
+  Returns:
+    A set of |CbsdGrantInfo| neighbor grants.
+  """
+  dpa_type = findDpaType(low_freq, high_freq)
+
+  neighbor_grants = set()
+  for point in protection_points:
+    # Assign values to the protection constraint
+    constraint = data.ProtectionConstraint(latitude=point.latitude,
+                                           longitude=point.longitude,
+                                           low_frequency=low_freq,
+                                           high_frequency=high_freq,
+                                           entity_type=data.ProtectedEntityType.DPA)
+
+    # Identify CBSD grants in the neighborhood of the protection constraint
+    nbors, _ = findGrantsInsideNeighborhood(grants, constraint,
+                                                  dpa_type,
+                                                  neighbor_distances)
+    neighbor_grants.update(nbors)
+
+  return neighbor_grants
+
+
 def calcAggregatedInterference(protection_point,
                                low_freq, high_freq,
                                grants,

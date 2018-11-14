@@ -435,24 +435,23 @@ class Dpa(object):
         grant for grant in self._grants
         if (grant.is_managed_grant and grant in keep_list)]
 
-    keep_list_uut_managing_sas = list(sas_uut_active_grants)
-
-    # Note: alternative code with pre-filtering could be:
-    #ml_computed = sum(len(nl) for nl in self.nbor_lists) > 0
-    #if ml_computed:  # Regular case when ML computed
-    #  nbor_keys = set(grant.uniqueCbsdKey() for grant in self.GetNeighborList(channel))
-    #  keep_list_uut_managing_sas = [grant for grant in sas_uut_active_grants
-    #                                if grant.uniqueCbsdKey() in nbor_keys]
-    #else: # Case when ML not computed: MCP without peer SAS
-    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
-    #
-    # NOTE: prefiltering not activated to avoid any kind of regression. Done only in the
-    # printKeepList() routine.
+    # Makes sure we have a list of SAS UUT active grants
+    sas_uut_active_grants = list(sas_uut_active_grants)
 
     if extensive_print:
+      # Derive the estimated SAS UUT keep list, ie the SAS UUT active grants
+      # within the neighborhood (defined by distance and frequency). This is
+      # only insured to be a superset of the actual keep list.
+      # Note: to avoid any test harness regression, this list is currently only
+      # used for logging purpose (although it could be passed to the interference
+      # check routine for faster operation).
+      est_keep_list_uut_managing_sas = ml.getDpaNeighborGrants(
+          sas_uut_active_grants, self.protected_points,
+          low_freq=channel[0] * 1e6, high_freq=channel[1] * 1e6,
+          neighbor_distances=self.neighbor_distances)
       try:
         self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
-                              keep_list_uut_managing_sas, self.name, channel)
+                              est_keep_list_uut_managing_sas, self.name, channel)
       except Exception as e:
         logging.error('Could not print DPA keep lists: %s', e)
 
@@ -468,17 +467,18 @@ class Dpa(object):
                  hard_threshold if hard_threshold else
                  ('`MoveList`' if margin_method == 'std' else 'MoveList + Linear'),
                  self.beamwidth, num_iter, self.azimuth_range, self.neighbor_distances)
-    logging.debug('DPA Check interf `%s` - KL_TH_MGR: %s KL_TH_OTHER: %s KL_UUT_MGR: %s',
-                  self.name,
-                  keep_list_th_managing_sas, keep_list_th_other_sas,
-                  keep_list_uut_managing_sas)
+    # Removed since redundant with printKeepList logs.
+    # logging.debug('DPA Check interf `%s` - KL_TH_MGR: %s KL_TH_OTHER: %s KL_UUT_MGR: %s',
+    #              self.name,
+    #              keep_list_th_managing_sas, keep_list_th_other_sas,
+    #              sas_uut_active_grants)
 
     checkPointInterf = functools.partial(
         _CalcTestPointInterfDiff,
         channel=channel,
         keep_list_th_other_sas=keep_list_th_other_sas,
         keep_list_th_managing_sas=keep_list_th_managing_sas,
-        keep_list_uut_managing_sas=keep_list_uut_managing_sas,
+        keep_list_uut_managing_sas=sas_uut_active_grants,
         radar_height=self.radar_height,
         beamwidth=self.beamwidth,
         num_iter=num_iter,
@@ -582,9 +582,8 @@ class Dpa(object):
                    np.percentile(differences, percentile))
     logging.info('--- End statistics ---')
 
-  def __PrintKeepLists(self, keep_list_th_other_sas,
-                       keep_list_th_managing_sas, keep_list_uut_managing_sas,
-                       dpa_name, channel):
+  def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
+                       keep_list_uut_managing_sas, dpa_name, channel):
     """Prints keep list and neighbor list."""
     def WriteList(filename, keep_list):
       logging.info('Writing list to file: %s', filename)
@@ -615,15 +614,7 @@ class Dpa(object):
     WriteList(filename, keep_list_th_managing_sas)
 
     # SAS UUT keep list (according to SAS UUT)
-    # Perform filtering to neighbor list (only when possible)
-    filename = '%s (SAS UUT active grants, according to SAS UUT).csv' % base_filename
-    ml_computed = sum(len(nl) for nl in self.nbor_lists) > 0
-    if ml_computed:
-      # Regular case when ML computed - nbor list available so prefiltering possible.
-      # When no nbor list, all active grants output
-      nbor_keys = set(grant.uniqueCbsdKey() for grant in self.GetNeighborList(channel))
-      keep_list_uut_managing_sas = [grant for grant in keep_list_uut_managing_sas
-                                    if grant.uniqueCbsdKey() in nbor_keys]
+    filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
     WriteList(filename, keep_list_uut_managing_sas)
 
 
