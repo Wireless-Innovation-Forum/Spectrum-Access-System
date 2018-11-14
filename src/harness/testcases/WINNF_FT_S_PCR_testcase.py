@@ -19,6 +19,8 @@ import os
 import sas_testcase
 import uuid
 from shapely import ops
+import shapely.geometry as geometry
+from shapely.geometry import JOIN_STYLE
 from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
@@ -77,6 +79,10 @@ def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
           pal['license']['licenseAreaIdentifier'])
                       ['features'][0]['geometry']) for pal in pal_records]
   pal_service_area = ops.cascaded_union(census_tracts_for_pal)
+  
+  # add buffering to remove resulting gaps between census tracts 
+  pal_service_area = geometry.Polygon(pal_service_area.exterior)
+  pal_service_area = pal_service_area.buffer(1e-6,1,join_style=JOIN_STYLE.mitre).buffer(-1e-6,1,join_style=JOIN_STYLE.mitre)
 
   # Convert GeoJSON dictionary to Shapely object.
   ppa_zone_shapely_geometry = utils.ToShapely(ppa_zone_geometry)
