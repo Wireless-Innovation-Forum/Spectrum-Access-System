@@ -586,9 +586,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           # Store the IAP results for future comparison.
           self.fss_cochannel_ap_iap_ref_values_list.append(None)
           self.fss_blocking_ap_iap_ref_values_list.append(fss_blocking_ap_iap_ref_values)
-      else:
-        self.fss_cochannel_ap_iap_ref_values_list.append(None)
-        self.fss_blocking_ap_iap_ref_values_list.append(None)
+        else:
+          self.fss_cochannel_ap_iap_ref_values_list.append(None)
+          self.fss_blocking_ap_iap_ref_values_list.append(None)
     # Calculate the interference value for all ESCs.
     if 'escRecords' in self.protected_entity_records:
       for esc_record in self.protected_entity_records['escRecords']:
