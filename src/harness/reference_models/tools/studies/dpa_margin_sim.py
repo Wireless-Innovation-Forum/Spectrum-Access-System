@@ -85,14 +85,15 @@ Misc notes:
   - if warning reported on cached tiles swapping, increase the cache size with
     option `--size_tile_cache XX`.
   - use --seed <1234>: to specify a new random seed.
-
+  - use --cache_file <filename>: to generate a picked file containing the DPA
+  and move lists (a tuple). This allows to reload this later and
+  rerun detailed analysis with different parameters in interactive sessions.
 """
 
 import argparse
 import copy
 import cPickle
 import logging
-import os
 import sys
 import time
 
@@ -154,7 +155,8 @@ parser.add_argument('--do_extensive', action='store_true',
 parser.add_argument('--num_ml', type=int, default=10,
                     help='Number of move list to compute.')
 parser.add_argument('--cache_file', type=str, default='',
-                    help='If defined, save simulation data to file. ')
+                    help='If defined, save simulation data to file. '
+                    'Allows to rerun later detailed analysis')
 
 parser.add_argument('config_file', type=str,
                     help='The configuration file (IPR only)')
@@ -165,6 +167,14 @@ _LOGGER_MAP = {
     'warning': logging.WARNING,
     'error': logging.ERROR
 }
+
+# Simulation data saved to cache file when using --cache-file
+def SaveDataToCache(cache_file, sim_data):
+  """Save simulation data to pickled file."""
+  with open(cache_file, 'w') as fd:
+    cPickle.dump(sim_data, fd)
+  print 'Simulation data saved to %s' % cache_file
+
 
 def SyntheticMoveList(ml_list, method, num, chan_idx):
   """Gets a synthetic move list from a list of them according to some criteria.
@@ -240,18 +250,20 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
            label='Fixed Linear Margin @%.3fdB' % max_margin_db)
   plt.legend()
 
-  # Plot histogram and PDF of interference in mW
-  margins_db = Lin2Db(diff_mw + Db2Lin(threshold_db)) - threshold_db
-  try: x, fx = sim_utils.GetPDFEstimator(margins_db)
-  except Exception: return
-  plt.figure()
-  plt.grid(True)
-  plt.title('Aggregate interference difference - %s' % tag)
-  plt.ylabel('Density')
-  plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % threshold_db)
-  plt.hist(margins_db, density=True, color='b')
-  plt.plot(x, fx, color='g')
-  plt.legend()
+  # Plot histogram of interference
+  try:
+    margins_db = Lin2Db(diff_mw + Db2Lin(threshold_db)) - threshold_db
+    plt.figure()
+    plt.grid(True)
+    plt.title('Aggregate interference difference - %s' % tag)
+    plt.ylabel('Log-Density')
+    plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % threshold_db)
+    plt.hist(margins_db, density=True, color='b',
+             bins=np.arange(0, 5, 0.5))
+    plt.yscale('log', nonposy='clip')
+    plt.legend()
+  except Exception:
+    pass
 
 def ExtensiveInterferenceCheck(dpa,
                                uut_keep_list, ref_move_lists,
@@ -271,6 +283,7 @@ def ExtensiveInterferenceCheck(dpa,
     A tuple of 2 lists (ref_level, diff_levels) holding all the interference
     results over each points, each azimuth and each synthesized reference move list.
   """
+  # Note: disable extensive logging in extensive logging.
   logging.getLogger().setLevel(logging.ERROR)
   num_success = 0
   ref_levels = []
@@ -312,20 +325,12 @@ def PlotMoveListHistogram(move_lists, chan_idx):
   plt.ylabel('')
   plt.title('Histogram of move list size across %d runs' % len(ref_ml_size))
 
+def GetMostUsedChannel(dpa):
+  """Gets the (channel, chan_idx) of the most used channel in |dpa_mgr.Dpa|."""
+  chan_idx = np.argmax([len(dpa.GetNeighborList(chan)) for chan in dpa._channels])
+  channel = dpa._channels[chan_idx]
+  return channel, chan_idx
 
-SimulationData = namedtuple(SimulationData,
-                            ('dpa', 'ref_ml', 'uut_ml', 'chan', 'chan_idx'))
-def SaveDataToCache(cache_file, sim_data)
-  """Save simulation data to pickled file."""
-  with open(cache_file, 'w') as fd:
-    cPickle.dump(sim_data, fd)
-  print 'Simulation data saved to %s' % cache_file
-
-
-def ReadDataFromCache(cache_file):
-  """Reads simulation data from pickled file."""
-  with open(cache_file, 'r') as fd:
-    return cPickle.load(fd)
 
 #-----------------------------------------------------
 # DPA aggregate interference variation simulator
@@ -336,9 +341,9 @@ def DpaSimulate(config_file, options):
     np.random.seed(options.seed)
 
   logging.getLogger().setLevel(logging.WARNING)
-  # TODO(sbdt): run a propag calculation once to fill up the geo cache, then
-  # do the multiprocess - this will insure that the geo tile are in fact shared
-  # between processes.
+
+  # TODO: Run a terrain query once to fill up the geo cache tiles. Then set the
+  # multiprocess, which will insure that the tiles are mem shared across process.
   num_workers = sim_utils.ConfigureRunningEnv(num_process=options.num_process,
                                               size_tile_cache=options.size_tile_cache)
 
@@ -431,13 +436,14 @@ def DpaSimulate(config_file, options):
 
   # Save data
   if options.cache_file:
-    pass
+    SaveDataToCache(options.cache_file,
+                    (dpa, ref_move_list_runs,
+                     dpa_uut, uut_move_list_runs,
+                     options))
 
-  # Analyse the move_list aggregate interference margin:
-  #  - find a good channel to check: the one with maximum CBSDs.
-  chan_idx = np.argmax([len(dpa.GetNeighborList(chan)) for chan in dpa._channels])
-  channel = dpa._channels[chan_idx]
-  # - plot the move list sizes histogram for that channel.
+  # Find a good channel to check: the one with maximum CBSDs.
+  channel, chan_idx = GetMostUsedChannel(dpa)
+  # Plot the move list sizes histogram for that channel.
   PlotMoveListHistogram(ref_move_list_runs, chan_idx)
 
   # Analyze aggregate interference. By default:
@@ -476,6 +482,35 @@ def DpaSimulate(config_file, options):
   print ''
   sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
 
+
+#----------------------------------------------
+# Utility routines for re-analyse from cache pickle dumps (advanced mode only).
+# Usage:
+#  import dpa_margin_sim as dms
+#  sim_utils.ConfigureRunningEnv(-1, 40)
+#  sim_data = LoadDataFromCache(cache_file)
+#  CacheAnalyze(sim_data, 'max', 1, 'min', 100)
+def LoadDataFromCache(cache_file):
+  """Load simulation data from pickled file."""
+  with open(cache_file, 'r') as fd:
+    return cPickle.load(fd)
+
+def CacheAnalyze(sim_data,
+                 ref_ml_method, ref_ml_num,
+                 uut_ml_method, uut_ml_num):
+  """Extensive analyze from loaded simulation data. See module doc."""
+  dpa_ref = sim_data[0]
+  dpa_uut = sim_data[2]
+  channel, chan_idx = GetMostUsedChannel(dpa_ref)
+  dpa_uut.move_lists = SyntheticMoveList(sim_data[3],
+                                         uut_ml_method, uut_ml_num,
+                                         chan_idx)
+  uut_keep_list = dpa_uut.GetKeepList(channel)
+  ExtensiveInterferenceCheck(dpa_ref, uut_keep_list,
+                             sim_data[1],
+                             ref_ml_num, ref_ml_method,
+                             channel, chan_idx)
+  plt.show(block=False)
 
 #--------------------------------------------------
 # The simulation
