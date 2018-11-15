@@ -17,7 +17,6 @@ import json
 
 import numpy as np
 from shapely import geometry as sgeo
-from shapely.geometry import JOIN_STYLE
 from shapely import ops
 
 from reference_models.common import mpool
@@ -120,12 +119,6 @@ def _ClipPpaByCensusTract(contour_union, pal_records):
       drive.census_tract_driver.GetCensusTract(pal['license']['licenseAreaIdentifier'])
       ['features'][0]['geometry']).buffer(0) for pal in pal_records]
   census_tracts_union = ops.cascaded_union(census_tracts_for_pal)
-  
-  # Use exterior ring to remove resulting gaps between census tracts
-  census_tracts_union = sgeo.Polygon(census_tracts_union.exterior)
-  # Add and remove small buffer to remove any small gaps touching the exterior ring.
-  census_tracts_union = census_tracts_union.buffer(1e-6,1,join_style=JOIN_STYLE.mitre).buffer(-1e-6,1,join_style=JOIN_STYLE.mitre)
-
   return contour_union.intersection(census_tracts_union)
 
 
