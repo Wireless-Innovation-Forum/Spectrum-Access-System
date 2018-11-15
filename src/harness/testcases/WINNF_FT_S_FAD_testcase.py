@@ -56,7 +56,10 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       """
       attr_value = registration_request[attr_name] if attr_name in registration_request\
         else preloaded_conditionals[attr_name]
-      self.assertEqual(attr_value, record[attr_name])
+      if attr_name in ['latitude', 'longitude']:      
+        self.assertTrue(abs(attr_value-record[attr_name])<1e-6)
+      else:
+        self.assertEqual(attr_value, record[attr_name])
 
 
   def assertCbsdRecord(self, registration_request, grant_request, grant_response, cbsd_dump_data, reg_conditional_data):
