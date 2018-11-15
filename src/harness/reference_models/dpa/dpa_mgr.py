@@ -258,7 +258,8 @@ class Dpa(object):
 
     Args:
       best_of_n: The number of move list internally computed. The final one
-        will be the best of those, ie the smallest one.
+        will be the best of those, ie the smallest one. If number is negative,
+        intersection between the move list is performed instead.
     """
     # TODO: add eventually the NTIA proposal which computes the intersection move list.
     #       it is more involved as it requires more single move list calculation, but
@@ -270,14 +271,19 @@ class Dpa(object):
                  self.azimuth_range, self.neighbor_distances, best_of_n)
     logging.debug('  protected points: %s', self.protected_points)
     self.ResetLists()
+    num_calc_list = abs(best_of_n)
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
       move_list, nbor_list = self._ComputeSingleMoveList(low_freq, high_freq)
-      if best_of_n > 1:
-        for run in xrange(best_of_n - 1):
+      if num_calc_list > 1:
+        for run in xrange(num_calc_list - 1):
           alt_move_list, alt_nbor_list = self._ComputeSingleMoveList(low_freq, high_freq)
-          if len(alt_move_list) < len(move_list):
-            move_list = alt_move_list
-            nbor_list = alt_nbor_list
+          if best_of_n > 0:
+            if len(alt_move_list) < len(move_list):
+              move_list = alt_move_list
+              nbor_list = alt_nbor_list
+          else:
+            move_list.intersection_update(alt_move_list)
+            nbor_list.intersection_update(alt_nbor_list)
       self.move_lists[chan_idx] = move_list
       self.nbor_lists[chan_idx] = nbor_list
 

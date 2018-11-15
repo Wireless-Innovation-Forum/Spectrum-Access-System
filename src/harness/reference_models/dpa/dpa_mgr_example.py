@@ -127,6 +127,7 @@ if __name__ == '__main__':
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
   # Coverage test of the 'best of N' movelist method
   dpa_uut.ComputeMoveLists(best_of_n=3)
+  dpa_uut.ComputeMoveLists(best_of_n=-3)
 
   # Simulate a single SAS UUT (no peer SAS)
   print '-- Single UUT model --'

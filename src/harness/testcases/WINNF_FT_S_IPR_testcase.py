@@ -119,6 +119,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         },
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
+        'bestOfN': -3
     }
 
     config = {
@@ -260,10 +261,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
       dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-      if 'bestOfN' in dpa_config:
-        dpa.ComputeMoveLists(dpa_config['bestOfN'])
-      else:
-        dpa.ComputeMoveLists()
+      dpa.ComputeMoveLists(dpa_config.get('bestOfN', 1))
+
       # Check grants do not exceed each DPAs interference threshold.
       self.assertTrue(dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
@@ -515,10 +514,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
       dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-      if 'bestOfN' in dpa_config:
-        dpa.ComputeMoveLists(dpa_config['bestOfN'])
-      else:
-        dpa.ComputeMoveLists()
+      dpa.ComputeMoveLists(dpa_config.get('bestOfN', 1))
       all_dpas.append(dpa)
 
     # Activate each DPA in sequence and check the move list interference is
@@ -975,10 +971,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for dpa_config in config['dpas']:
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-      if 'bestOfN' in dpa_config:
-        dpa.ComputeMoveLists(dpa_config['bestOfN'])
-      else:
-        dpa.ComputeMoveLists()
+      dpa.ComputeMoveLists(dpa_config.get('bestOfN', 1))
       all_dpas.append(dpa)
 
     # Connectivity between ESCs and SAS UUT is broken.
@@ -1287,10 +1280,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
     dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
     dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-    if 'bestOfN' in dpa_config:
-      dpa.ComputeMoveLists(dpa_config['bestOfN'])
-    else:
-      dpa.ComputeMoveLists()
+    dpa.ComputeMoveLists(dpa_config.get('bestOfN', 1))
     # Check grants do not exceed each DPAs interference threshold.
     self.assertTrue(
         dpa.CheckInterference(
