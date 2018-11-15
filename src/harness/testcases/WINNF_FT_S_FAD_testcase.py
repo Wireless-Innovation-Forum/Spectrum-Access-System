@@ -57,7 +57,7 @@ class FullActivityDumpTestcase(sas_testcase.SasTestCase):
       attr_value = registration_request[attr_name] if attr_name in registration_request\
         else preloaded_conditionals[attr_name]
       if attr_name in ['latitude', 'longitude']:      
-        self.assertEqual(abs(attr_value-record[attr_name])<1e-6,True)
+        self.assertTrue(abs(attr_value-record[attr_name])<1e-6)
       else:
         self.assertEqual(attr_value, record[attr_name])
 
