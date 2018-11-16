@@ -79,7 +79,7 @@ def Db2Lin(x):
   return 10**(x / 10.)
 
 def Lin2Db(x):
-  return 10 * np.log10(x)
+  return 10 * np.log10(x.clip(min=1e-100))
 
 
 class DpaInterferenceResult(
