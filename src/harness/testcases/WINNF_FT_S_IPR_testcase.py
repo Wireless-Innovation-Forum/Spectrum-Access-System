@@ -119,7 +119,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         },
         'points_builder': 'default (25, 10, 10, 10)',
         'movelistMargin': 10
-        'bestOfN': -3
     }
 
     config = {
@@ -1093,7 +1092,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'points_builder':
             'default (25, 10, 10, 10)',  # Not actually used since this is a single-point DPA.
         'movelistMargin': 10,
-        'bestOfN': 3
     }
 
     config = {

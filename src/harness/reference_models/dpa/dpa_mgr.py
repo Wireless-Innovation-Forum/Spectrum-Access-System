@@ -261,9 +261,6 @@ class Dpa(object):
         will be the best of those, ie the smallest one. If number is negative,
         intersection between the move list is performed instead.
     """
-    # TODO: add eventually the NTIA proposal which computes the intersection move list.
-    #       it is more involved as it requires more single move list calculation, but
-    #       likely produces a more stable 'composite' move list.
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
                  'iter %s azi_range %s nbor_dists %s best_of_n %s',
                  self.name, self._channels, self.threshold, self.beamwidth,
