@@ -449,11 +449,9 @@ def generatePpaRecords(ppa_records, cbsd_reference_ids):
   for ppa_record, cbsd_reference_id in \
               zip(ppa_records, cbsd_reference_ids):
 
-    # Check cbsdReferenceID in ppaInfo and add cbsdReferenceID if not present.
-    if not ppa_record['ppaInfo'].has_key('cbsdReferenceId'):
-      ppa_record['ppaInfo'].update({'cbsdReferenceId': cbsd_reference_id})
-    elif len(ppa_record['ppaInfo']['cbsdReferenceId']) == 0:
-      ppa_record['ppaInfo'].update({'cbsdReferenceId': cbsd_reference_id})    
+    # Update cbsdReferenceID in ppaInfo
+    ppa_record['ppaInfo'].update({'cbsdReferenceId': cbsd_reference_id})
+    
     ppa_records_list.append(ppa_record)
 
   return ppa_records_list
