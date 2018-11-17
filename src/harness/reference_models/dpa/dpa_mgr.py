@@ -79,10 +79,7 @@ def Db2Lin(x):
   return 10**(x / 10.)
 
 def Lin2Db(x):
-  if not np.isscalar(x):
-    return 10 * np.log10(x.clip(min=1e-100))
-  return 10 * np.log10(max(x, 1e-100))
-
+  return 10 * np.log10(np.asarray(x).clip(min=1e-100))
 
 class DpaInterferenceResult(
     namedtuple('DpaInterferenceResult',
