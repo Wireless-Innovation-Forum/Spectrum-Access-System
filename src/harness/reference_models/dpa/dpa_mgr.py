@@ -62,6 +62,13 @@ DPA_DEFAULT_DISTANCES = (150, 200, 0, 25)
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
 
+# The logging path
+def GetDpaLogDir():
+  dpa_log_dir = os.path.join(os.path.dirname(__file__),
+                             '..', '..', 'testcases', 'output')
+  if not os.path.exists(dpa_log_dir): os.makedirs(dpa_log_dir)
+  return dpa_log_dir
+
 # Help routine
 class _EmptyFad(object):
   """Helper class for representing an empty FAD."""
@@ -72,8 +79,7 @@ def Db2Lin(x):
   return 10**(x / 10.)
 
 def Lin2Db(x):
-  return 10 * np.log10(x)
-
+  return 10 * np.log10(np.asarray(x).clip(min=1e-100))
 
 class DpaInterferenceResult(
     namedtuple('DpaInterferenceResult',
@@ -354,7 +360,8 @@ class Dpa(object):
 
   def CheckInterference(self, sas_uut_active_grants, margin_db,
                         channel=None, num_iter=None,
-                        do_abs_check_single_uut=False, extensive_print=True,
+                        do_abs_check_single_uut=False,
+                        extensive_print=True,
                         output_data=None):
     """Checks interference of keep list of SAS UUT vs test harness.
 
@@ -434,25 +441,25 @@ class Dpa(object):
         grant for grant in self._grants
         if (grant.is_managed_grant and grant in keep_list)]
 
-    # Find an extended keep list of UUT.
-    keep_list_uut_managing_sas = list(sas_uut_active_grants)
+    # Makes sure we have a list of SAS UUT active grants
+    sas_uut_active_grants = list(sas_uut_active_grants)
 
     if extensive_print:
+      # Derive the estimated SAS UUT keep list, ie the SAS UUT active grants
+      # within the neighborhood (defined by distance and frequency). This is
+      # only insured to be a superset of the actual keep list.
+      # Note: to avoid any test harness regression, this list is currently only
+      # used for logging purpose (although it could be passed to the interference
+      # check routine for faster operation).
+      est_keep_list_uut_managing_sas = ml.getDpaNeighborGrants(
+          sas_uut_active_grants, self.protected_points,
+          low_freq=channel[0] * 1e6, high_freq=channel[1] * 1e6,
+          neighbor_distances=self.neighbor_distances)
       try:
         self.__PrintKeepLists(keep_list_th_other_sas, keep_list_th_managing_sas,
-                              keep_list_uut_managing_sas, self.name, channel)
+                              est_keep_list_uut_managing_sas, self.name, channel)
       except Exception as e:
         logging.error('Could not print DPA keep lists: %s', e)
-
-    # Note: other code with pre filtering could be:
-    #nbor_list = self.GetNeighborList(channel)
-    #if nbor_list:
-    #  # Slight optimization by prefiltering the ones in the nbor list.
-    #  keep_list_uut_managing_sas = [
-    #      grant for grant in sas_uut_active_grants
-    #      if (grant in nbor_list and grant not in keep_list_th_other_sas)]
-    #else:
-    #  keep_list_uut_managing_sas = list(sas_uut_active_grants)
 
     # Do absolute threshold in some case
     hard_threshold = None
@@ -466,17 +473,13 @@ class Dpa(object):
                  hard_threshold if hard_threshold else
                  ('`MoveList`' if margin_method == 'std' else 'MoveList + Linear'),
                  self.beamwidth, num_iter, self.azimuth_range, self.neighbor_distances)
-    logging.debug('DPA Check interf `%s` - KL_TH_MGR: %s KL_TH_OTHER: %s KL_UUT_MGR: %s',
-                  self.name,
-                  keep_list_th_managing_sas, keep_list_th_other_sas,
-                  keep_list_uut_managing_sas)
 
     checkPointInterf = functools.partial(
         _CalcTestPointInterfDiff,
         channel=channel,
         keep_list_th_other_sas=keep_list_th_other_sas,
         keep_list_th_managing_sas=keep_list_th_managing_sas,
-        keep_list_uut_managing_sas=keep_list_uut_managing_sas,
+        keep_list_uut_managing_sas=sas_uut_active_grants,
         radar_height=self.radar_height,
         beamwidth=self.beamwidth,
         num_iter=num_iter,
@@ -520,16 +523,18 @@ class Dpa(object):
                         self.name, channel,
                         Lin2Db(max_diff_interf_mw / margin_mw))
       else:
-        logging.info('DPA Check Succeed - margin_mw headroom by %.4dB',
+        logging.info('DPA Check Succeed - margin_mw headroom by %.4fdB',
                      Lin2Db(max_diff_interf_mw / margin_mw))
 
       return max_diff_interf_mw <= margin_mw
 
 
   def __PrintStatistics(self, results, dpa_name, channel, threshold, margin_mw=None):
+    """Prints result statistics."""
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
-    filename = '%s DPA=%s channel=%s threshold=%s.csv' % (timestamp, dpa_name,
-                                                          channel, threshold)
+    filename = os.path.join(GetDpaLogDir(),
+                            '%s DPA=%s channel=%s threshold=%s.csv' % (
+                                timestamp, dpa_name, channel, threshold))
     logging.info('Saving stats for DPA %s, channel %s to file: %s', dpa_name,
                  channel, filename)
     with open(filename, 'w') as f:
@@ -581,9 +586,9 @@ class Dpa(object):
 
   def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
                        keep_list_uut_managing_sas, dpa_name, channel):
-
-    def WriteKeepList(filename, keep_list):
-      logging.info('Writing keep list to file: %s', filename)
+    """Prints keep list and neighbor list."""
+    def WriteList(filename, keep_list):
+      logging.info('Writing list to file: %s', filename)
       fields = [
           'latitude', 'longitude', 'height_agl', 'indoor_deployment',
           'cbsd_category', 'antenna_azimuth', 'antenna_gain',
@@ -596,19 +601,24 @@ class Dpa(object):
           f.write(','.join(str(getattr(cbsd_grant_info, key)) for key in fields) + '\n')
 
     timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
-    base_filename = '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel)
+    base_filename = os.path.join(GetDpaLogDir(),
+                                 '%s DPA=%s channel=%s' % (timestamp, dpa_name, channel))
+
+    # SAS test harnesses (peer SASes) full neighbor list
+    filename = '%s (neighbor list).csv' % base_filename
+    WriteList(filename, self.GetNeighborList(channel))
 
     # SAS test harnesses (peer SASes) combined keep list
     filename = '%s (combined peer SAS keep list).csv' % base_filename
-    WriteKeepList(filename, keep_list_th_other_sas)
+    WriteList(filename, keep_list_th_other_sas)
 
     # SAS UUT keep list (according to test harness)
     filename = '%s (SAS UUT keep list, according to test harness).csv' % base_filename
-    WriteKeepList(filename, keep_list_th_managing_sas)
+    WriteList(filename, keep_list_th_managing_sas)
 
     # SAS UUT keep list (according to SAS UUT)
     filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
-    WriteKeepList(filename, keep_list_uut_managing_sas)
+    WriteList(filename, keep_list_uut_managing_sas)
 
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):
