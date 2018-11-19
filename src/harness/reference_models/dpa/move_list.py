@@ -252,8 +252,6 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
   # Calculate the interference contributions
   interf = eirp_cbsd - path_loss
-  if np.isscalar(interf):
-     interf = np.full(num_iteration + 1, interf)
   median_interf = interf[-1]      # last element is the median interference
   K_interf = interf[:-1]          # first 'K' interference
 
