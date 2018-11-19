@@ -15,6 +15,7 @@
 """A collection of utility routines for simulation purposes.
 """
 import copy
+import csv
 import json
 
 import cartopy.crs as ccrs
@@ -67,7 +68,7 @@ def PlotGrants(ax, grants, color='r'):
 
 
 # TODO(sbdt): add other kind of entities (PPA, ..). For now only DPAs.
-def CreateCbrsPlot(grants, dpa=None):
+def CreateCbrsPlot(grants, dpa=None, tag=''):
   """Plots the grants in a map along with other entities (DPA, ..).
 
   Args:
@@ -77,6 +78,7 @@ def CreateCbrsPlot(grants, dpa=None):
   Returns:
     ax: the 'matplotlib.axes' object
   """
+  plt.figure()
   ax = plt.axes(projection=ccrs.PlateCarree())
   # Finds the bounding box of all geometries (DPA and CBSDs).
   box = sgeo.box(*sgeo.MultiPoint(
@@ -95,8 +97,7 @@ def CreateCbrsPlot(grants, dpa=None):
   PlotGrants(ax, grants, color='g')
   if dpa is not None:
     PlotDpa(ax, dpa, color='m')
-  ax.set_title('DPA: %s' % dpa.name)
-  plt.show(block=False)
+  ax.set_title('%sDPA: %s' % (tag, dpa.name))
   return ax
 
 #----------------------------------------------
@@ -264,8 +265,8 @@ def _RegGrantsRead(config):
 def ReadTestHarnessConfigFile(config_file):
   """Reads the input config file in json format and build ref_model entities.
 
-  WARNING: This routine supports for now only the IPR7 config files, building
-  the CBSDs and DPAs. Will be extended in the future for others.
+  This routine builds the CBSDs and possibly the DPAs (if defined in the config file).
+  Currently only IPR7 and reg/grant json file are supported.
 
   Note that the returned DPAs have additional non standard properties:
     - geometry: the original |shapely| geometry.
@@ -273,7 +274,7 @@ def ReadTestHarnessConfigFile(config_file):
 
   Args:
     config_file: The path to a json config file as used by test harness.
-      Can be raw or zipped. Currently only supported config files are:
+      Can be raw or zipped. Currently supported config files are:
        - IPR7 config file
        - reg_grant type file
 
@@ -309,3 +310,49 @@ def ReadTestHarnessConfigFile(config_file):
     pass
 
   raise ValueError('Unsupported config file: %s' % config_file)
+
+
+def ReadDpaLogFile(csv_file):
+  """Reads a set of DPA CSV logs produced by |dpa_mgr.CheckInterference|.
+
+  The log file contains neighbor and keep lists of the SAS UUT and ref model.
+
+  Args:
+    csv_file: One of the CSV file of the log set of files. Other related files will
+      be read automatically.
+
+  Returns:
+    A tuple (nbor_grants, ref_keep_list_grants, uut_keep_list_grants) where:
+      nbor_grants: the list of all neighborhood grants |data.CbsdGrantInfo|.
+      ref/uut_keep_list_grants: the list of all neighborhood grants within the keep list.
+  """
+  if not csv_file.endswith('csv'):
+    raise ValueError('File should be a valid CSV DPA log file: %s' % csv_file)
+
+  postfixes = {'nbor': '(neighbor list)',
+               'peer': '(combined peer SAS keep list)',
+               'sas_th': '(SAS UUT keep list, according to test harness)',
+               'sas_uut': '(SAS UUT keep list, according to SAS UUT)'}
+  idx_postfix = max(csv_file.find(postfix) for postfix in postfixes.values())
+  base_file = csv_file[:idx_postfix]
+  # Now read every file and build corresponding grant list
+  grants = {}
+  for key, postfix in postfixes.items():
+    grants[key] = []
+    with open(base_file + postfix + '.csv') as fd:
+      csv_reader = csv.DictReader(fd, delimiter=',')
+      for row in csv_reader:
+        grants[key].append(data.CbsdGrantInfo(
+            latitude=float(row['latitude']),
+            longitude=float(row['longitude']),
+            height_agl=float(row['height_agl']),
+            indoor_deployment=(row['indoor_deployment']=='True'),
+            cbsd_category=row['cbsd_category'],
+            antenna_azimuth=float(row['antenna_azimuth']),
+            antenna_gain=float(row['antenna_gain']),
+            antenna_beamwidth=float(row['antenna_beamwidth']),
+            max_eirp=float(row['max_eirp']),
+            low_frequency=float(row['low_frequency']),
+            high_frequency=float(row['high_frequency']),
+            is_managed_grant=(row['is_managed_grant'] == 'True')))
+  return grants['nbor'], grants['peer'] + grants['sas_th'], grants['sas_uut']
