@@ -101,7 +101,7 @@ Example analysis
 ------------------
   python dpa_margin_sim.py --num_process=3 --num_ml 100 --dpa West14  \
                             --dpa_builder "default(18,0,0,0)" \
-                 "output/2018-11-14 13_05_16 DPA=test_one_point channel=(3620.0, 3630.0) (neighbor list).csv"
+                 "output/2018-11-14 13_05_16 DPA=West14 channel=(3620.0, 3630.0) (neighbor list).csv"
   : Analysis of log files of a test, using west15 and a given point_builder.
     Internal statistical analysis will use 100 different regenerated ref move lists.
 
@@ -161,6 +161,7 @@ import numpy as np
 from reference_models.common import mpool
 from reference_models.dpa import dpa_mgr
 from reference_models.dpa import dpa_builder
+from reference_models.geo import drive
 from reference_models.geo import zones
 from reference_models.tools import sim_utils
 
@@ -175,7 +176,7 @@ parser = argparse.ArgumentParser(description='DPA Simulator')
 parser.add_argument('--seed', type=int, default=12, help='Random seed.')
 parser.add_argument('--num_process', type=int, default=-1,
                     help='Number of parallel process. -2=all-1, -1=50%.')
-parser.add_argument('--size_tile_cache', type=int, default=32,
+parser.add_argument('--size_tile_cache', type=int, default=40,
                     help='Number of parallel process. -2=all-1, -1=50%.')
 parser.add_argument('--log_level', type=str, default='info',
                     help='Logging level: debug, info, warning, error.')
@@ -479,6 +480,7 @@ def DpaSimulate(config_file, options):
 
   # Plot the entities.
   ax = sim_utils.CreateCbrsPlot(grants, dpa=dpa)
+  plt.show(block=False)
 
   # Set the grants into DPA.
   dpa.SetGrantsFromList(grants)
@@ -582,17 +584,27 @@ def DpaAnalyzeLogs(config_file, options):
 
   logging.getLogger().setLevel(logging.WARNING)
 
-  # TODO: Run a terrain query once to fill up the geo cache tiles. Then set the
-  # multiprocess, which will insure that the tiles are mem shared across process.
-  num_workers = sim_utils.ConfigureRunningEnv(num_process=options.num_process,
-                                              size_tile_cache=options.size_tile_cache)
-
   # Read the input CSV files into nbor and keep lists.
-  nbor_list, ref_keep_list, uut_keep_list = sim_utils.ReadDpaLogFile(config_file)
-  grants = nbor_list
+  grants, ref_keep_list, uut_keep_list = sim_utils.ReadDpaLogFile(config_file)
+  ref_keep_list = set(ref_keep_list)
+  uut_keep_list = set(uut_keep_list)
   if not grants:
     raise ValueError('Empty neighbor list. Is it a MCP test with no peer SAS?).'
                      'Analyze Aborted')
+
+  # Make sure terrain tiles loaded in main process memory.
+  # Then forking will make sure worker reuse those from shared memory (instead of
+  # reallocating and reloading the tiles).
+  # - disable workers
+  num_workers = sim_utils.ConfigureRunningEnv(num_process=0,
+                                              size_tile_cache=options.size_tile_cache)
+  # - read some altitudes just to load the terrain tiles in main process memory
+  junk_alt = drive.terrain_driver.GetTerrainElevation(
+      [g.latitude for g in grants], [g.longitude for g in grants], do_interp=False)
+  # - enable the workers
+  num_workers = sim_utils.ConfigureRunningEnv(num_process=options.num_process,
+                                              size_tile_cache=options.size_tile_cache)
+
   # This mode requires a DPA to be specified.
   if not options.dpa or not options.dpa_builder:
     raise ValueError('Log analyze required --dpa and --dpa_builder options.')
@@ -601,30 +613,26 @@ def DpaAnalyzeLogs(config_file, options):
   try: dpa_geometry = zones.GetCoastalDpaZones()[options.dpa]
   except KeyError: dpa_geometry = zones.GetPortalDpaZones()[options.dpa]
   dpa.geometry = dpa_geometry.geometry
-
   if options.margin_db:  # Override `movelistMargin` directive.
     try: dpa.margin_db = float(options.margin_db)
     except ValueError: dpa.margin_db = options.margin_db
   else:
     dpa.margin_db = 'linear(1.5)'
-    print '  --margin_db undefined - Using margin_db=%s' % dpa.margin_db
+    print ' Option --margin_db undefined - Using margin_db=%s' % dpa.margin_db
 
   if options.dpa_builder_uut:
     print ' Option --dpa_builder_uut unsupported in analyze mode: Ignored.'
 
   # Set the grants into DPA.
+  print 'Initialize DPA and internal structure.'
   dpa.SetGrantsFromList(grants)
+  dpa.ComputeMoveLists()
+  # Check cache is ok
+  sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
 
   # Find a good channel to check: the one with maximum CBSDs.
   channel, chan_idx = GetMostUsedChannel(dpa)
-
-  # Plot the entities.
-  print 'Plotting Map: Nbor list and keep list for channel %s' % channel
-  nbor_grants = dpa.GetNborList(channel)
-  ax1 = sim_utils.CreateCbrsPlot(nbor_grants, dpa=dpa, tag='Test Ref ')
-  sim_utils.PlotGrants(ax1, nbor_grants.difference(ref_keep_list))
-  ax2 = sim_utils.CreateCbrsPlot(nbor_grants, dpa=dpa, tag='Test UUT ')
-  sim_utils.PlotGrants(ax1, nbor_grants.difference(uut_keep_list))
+  nbor_grants = dpa.GetNeighborList(channel)
 
   # Manages the number of move list to compute.
   num_ref_ml = options.ref_ml_num or options.num_ml
@@ -632,41 +640,46 @@ def DpaAnalyzeLogs(config_file, options):
   num_base_ml = max(num_ref_ml, num_uut_ml)
 
   # Summary of the analyze.
-  print ('Analysing DPA `%s` (ref: %d pts):\n'
+  print ('======= Analysing DPA `%s` (ref: %d pts) on Channel %s:\n'
          '  %d granted CBSDs in neighbor list: %d CatB - %d CatA_out - %d CatA_in\n'
          'Modes of operation:\n'
-         '  Channel: %s\n'
-         '  UUT ref - Real or best of %d (smallest size)\n:'
+         '  UUT ref - Real or best of %d (smallest size)\n'
          '  Against original or %d different ref move list obtained through method:'
-         ' %s of %d\n' % (
-         dpa.name, len(dpa.protected_points),
+         '  %s of %d\n' % (
+         dpa.name, len(dpa.protected_points), channel,
          len(grants),
-         len([grant for grant in grants if grant.cbsd_category == 'B']),
-         len([grant for grant in grants
+         len([grant for grant in nbor_grants if grant.cbsd_category == 'B']),
+         len([grant for grant in nbor_grants
               if grant.cbsd_category == 'A' and not grant.indoor_deployment]),
-         len([grant for grant in grants
-              if grant.cbsd_category == 'A' and grant.indoor_deployment])),
-         channel,
+         len([grant for grant in nbor_grants
+              if grant.cbsd_category == 'A' and grant.indoor_deployment]),
          num_uut_ml,
          num_ref_ml,
-         ref_ml_method,
-         ref_ml_num
-  )
+         options.ref_ml_method,
+         max(options.ref_ml_num, 1)
+  ))
+
+  # Plot the entities.
+  print 'Plotting Map: Nbor list and keep list for channel %s' % (channel,)
+  ax1 = sim_utils.CreateCbrsPlot(nbor_grants, dpa=dpa, tag='Test Ref ')
+  sim_utils.PlotGrants(ax1, nbor_grants.difference(ref_keep_list))
+  ax2 = sim_utils.CreateCbrsPlot(nbor_grants, dpa=dpa, tag='Test UUT ')
+  sim_utils.PlotGrants(ax2, nbor_grants.difference(uut_keep_list))
+  plt.show(block=False)
 
   # Analyze aggregate interference of TEST-REF vs SAS_UUT keep list
   # ie we repeat the Check 50x but with the same ML
   start_time = time.time()
   num_check = max(10, num_base_ml / 2)
   print '*****  Re-testing REAL SAS UUT vs %d TEST-REF move list *****' % (num_check)
-  print '  Same ref move list each time - only interference check is random. '
+  print '  Same ref move list each time from TEST - only interference check is random. '
   full_ref_move_list_runs = [None] * len(dpa._channels)
-  full_ref_move_list_runs[chan_idx] = ref_keep_list
-  many_ref_move_list_runs = full_ref_move_list_runs * num_check
+  full_ref_move_list_runs[chan_idx] = nbor_grants.difference(ref_keep_list)
+  many_ref_move_list_runs = [full_ref_move_list_runs] * num_check
   ExtensiveInterferenceCheck(dpa, uut_keep_list, many_ref_move_list_runs,
-                             'max', 1, channel, chan_idx,
-                             tag='REAL-REF vs REAL (%dML) - ' % num_check)
+                             1, 'max', channel, chan_idx,
+                             tag='REAL-REF vs REAL-UUT (%dML) - ' % num_check)
   print '   Computation time: %.1fs' % (time.time() - start_time)
-
 
   # Run the move list N times on ref DPA
   print '*****  From now on: analysing against fresh ref move lists *****'
@@ -698,33 +711,32 @@ def DpaAnalyzeLogs(config_file, options):
   # Analyze aggregate interference of SAS_UUT keep list vs new reference
   # ie we check the SAS UUT versus many recomputed reference ML
   start_time = time.time()
-  print '*****  REAL SAS UUT vs %d random reference move list *****', options.ref_ml_num
-  print '  Every ref move list regenerated through move list process (+ %s/%d method)' % (
-      ref_ml_method, ref_ml_num)
+  print '*****  REAL SAS UUT vs %d random reference move list *****' % num_ref_ml
+  print '  Every ref move list regenerated through move list process (+ %s@%d method)' % (
+      options.ref_ml_method, options.ref_ml_num)
   ExtensiveInterferenceCheck(dpa, uut_keep_list, ref_move_list_runs,
                              options.ref_ml_num, options.ref_ml_method,
-                             channel, chan_idx)
+                             channel, chan_idx,
+                             tag='Rand-Ref vs REAL-UUT (%dML) - ' % num_ref_ml)
   print '   Computation time: %.1fs' % (time.time() - start_time)
 
   # Analyze aggregate interference of best SAS_UUT keep list vs new reference
   # ie we smallest size ML versus many recomputed reference ML (like in std simulation).
   start_time = time.time()
-  print '*****  GOOD SAS UUT vs %d random reference move list *****', options.ref_ml_num
-  print '  Every ref move list regenerated through move list process (+ %s/%d method)' % (
-      ref_ml_method, ref_ml_num)
-  print '  SAS UUT move list taken to be smallest of all ref move list.'
+  print '*****  GOOD SAS UUT vs %d random reference move list *****' % num_ref_ml
+  print '  Every ref move list regenerated through move list process (+ %s@%d method)' % (
+      options.ref_ml_method, options.ref_ml_num)
+  print '  SAS UUT move list taken with method: %s@%d' % (
+      options.uut_ml_method, options.uut_ml_num)
   dpa_uut.move_lists = SyntheticMoveList(ref_move_list_runs,
                                          options.uut_ml_method, options.uut_ml_num,
                                          chan_idx)
   uut_keep_list = dpa_uut.GetKeepList(channel)
   ExtensiveInterferenceCheck(dpa, uut_keep_list, ref_move_list_runs,
                              options.ref_ml_num, options.ref_ml_method,
-                             channel, chan_idx)
+                             channel, chan_idx,
+                             tag='Rand-Ref vs Good UUT (%dML) - ' % num_ref_ml)
   print '   Computation time: %.1fs' % (time.time() - start_time)
-
-  # Simulation finalization
-  print ''
-  sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
 
 
 #--------------------------------------------------

@@ -78,6 +78,7 @@ def CreateCbrsPlot(grants, dpa=None, tag=''):
   Returns:
     ax: the 'matplotlib.axes' object
   """
+  plt.figure()
   ax = plt.axes(projection=ccrs.PlateCarree())
   # Finds the bounding box of all geometries (DPA and CBSDs).
   box = sgeo.box(*sgeo.MultiPoint(
@@ -97,7 +98,6 @@ def CreateCbrsPlot(grants, dpa=None, tag=''):
   if dpa is not None:
     PlotDpa(ax, dpa, color='m')
   ax.set_title('%sDPA: %s' % (tag, dpa.name))
-  plt.show(block=False)
   return ax
 
 #----------------------------------------------
@@ -342,5 +342,17 @@ def ReadDpaLogFile(csv_file):
     with open(base_file + postfix + '.csv') as fd:
       csv_reader = csv.DictReader(fd, delimiter=',')
       for row in csv_reader:
-        grants[key].append(data.CbsdGrantInfo(**row))
+        grants[key].append(data.CbsdGrantInfo(
+            latitude=float(row['latitude']),
+            longitude=float(row['longitude']),
+            height_agl=float(row['height_agl']),
+            indoor_deployment=(row['indoor_deployment']=='True'),
+            cbsd_category=row['cbsd_category'],
+            antenna_azimuth=float(row['antenna_azimuth']),
+            antenna_gain=float(row['antenna_gain']),
+            antenna_beamwidth=float(row['antenna_beamwidth']),
+            max_eirp=float(row['max_eirp']),
+            low_frequency=float(row['low_frequency']),
+            high_frequency=float(row['high_frequency']),
+            is_managed_grant=(row['is_managed_grant'] == 'True')))
   return grants['nbor'], grants['peer'] + grants['sas_th'], grants['sas_uut']
