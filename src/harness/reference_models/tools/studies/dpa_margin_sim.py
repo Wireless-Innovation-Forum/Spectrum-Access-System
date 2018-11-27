@@ -190,6 +190,8 @@ parser.add_argument('--dpa_builder', type=str, default='',
 parser.add_argument('--dpa_builder_uut', type=str, default='',
                     help='Optional: override DPA builder to use '
                     'for generating DPA protected points for UUT.')
+parser.add_argument('--dpa_kml', type=str, default='',
+                    help='Optional: override DPA KML (use with --dpa only).')
 parser.add_argument('--margin_db', type=str, default='',
                     help='Optional: override `movelistMargin`, for ex:`linear(1.5)`.')
 # - Move list building methods
@@ -296,8 +298,10 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
 
   # Plot the scatter plot
   plt.figure()
+  plt.suptitle('Aggr Interf Delta - %s' % tag)
+
+  plt.subplot(2,1,1)
   plt.grid(True)
-  plt.title('Aggregate interference delta - %s' % tag)
   plt.xlabel('Reference aggregate interference (dBm/10MHz)')
   plt.ylabel('SAS UUT difference (dB)')
   plt.scatter(ref_levels, diff_levels, c = 'r', marker='.', s=10)
@@ -309,20 +313,16 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
            label='Fixed Linear Margin @%.3fdB' % max_margin_db)
   plt.legend()
 
-  # Plot histogram of interference
-  try:
-    margins_db = Lin2Db(diff_mw + Db2Lin(threshold_db)) - threshold_db
-    plt.figure()
-    plt.grid(True)
-    plt.title('Aggregate interference delta - %s' % tag)
-    plt.ylabel('Log-Density')
-    plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % threshold_db)
-    plt.hist(margins_db, density=True, color='b',
-             bins=np.arange(0, 5, 0.5))
-    plt.yscale('log', nonposy='clip')
-    plt.legend()
-  except Exception:
-    pass
+  plt.subplot(2,1,2)
+  margins_db = Lin2Db(diff_mw + Db2Lin(threshold_db)) - threshold_db
+  plt.grid(True)
+  plt.ylabel('Complement Log-CDF')
+  plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % threshold_db)
+  sorted_margins_db = np.sort(margins_db)
+  y_val = 1 - np.arange(len(margins_db), dtype=float) / len(margins_db)
+  plt.plot(sorted_margins_db, y_val)
+  plt.yscale('log', nonposy='clip')
+
 
 def ExtensiveInterferenceCheck(dpa,
                                uut_keep_list, ref_move_lists,
@@ -452,9 +452,11 @@ def DpaSimulate(config_file, options):
     margin_db = dpa.margin_db
     if not options.dpa_builder:
       raise ValueError('Missing the --dpa_builder specification.')
-    dpa = dpa_mgr.BuildDpa(options.dpa, options.dpa_builder)
+    dpa_kml_file = options.dpa_kml or None
+    dpa = dpa_mgr.BuildDpa(options.dpa, options.dpa_builder,
+                           portal_dpa_filename=dpa_kml_file)
     try: dpa_geometry = zones.GetCoastalDpaZones()[options.dpa]
-    except KeyError: dpa_geometry = zones.GetPortalDpaZones()[options.dpa]
+    except KeyError: dpa_geometry = zones.GetPortalDpaZones(kml_path=dpa_kml_file)[options.dpa]
     dpa.geometry = dpa_geometry.geometry
     dpa.margin_db = margin_db
   elif options.dpa_builder:  # Override the points_builder
@@ -609,9 +611,11 @@ def DpaAnalyzeLogs(config_file, options):
   if not options.dpa or not options.dpa_builder:
     raise ValueError('Log analyze required --dpa and --dpa_builder options.')
 
-  dpa = dpa_mgr.BuildDpa(options.dpa, options.dpa_builder)
+  dpa_kml_file = options.dpa_kml or None
+  dpa = dpa_mgr.BuildDpa(options.dpa, options.dpa_builder,
+                         portal_dpa_filename=dpa_kml_file)
   try: dpa_geometry = zones.GetCoastalDpaZones()[options.dpa]
-  except KeyError: dpa_geometry = zones.GetPortalDpaZones()[options.dpa]
+  except KeyError: dpa_geometry = zones.GetPortalDpaZones(kml_path=dpa_kml_file)[options.dpa]
   dpa.geometry = dpa_geometry.geometry
   if options.margin_db:  # Override `movelistMargin` directive.
     try: dpa.margin_db = float(options.margin_db)
