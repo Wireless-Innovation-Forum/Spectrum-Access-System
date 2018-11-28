@@ -176,14 +176,37 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     # Max. one protected entity.
     protected_entities = config['iterationData'][0]['protectedEntities']
-    if 'ppaRecords' in protected_entities:
-      self.assertTrue('palRecords' in protected_entities,
-                      'Must define PAL records if a PPA is to be injected.')
-      self.assertEqual(len(protected_entities.keys()), 2)
+
+    def getNumberOfEntities(entity_type):
+      if entity_type not in protected_entities:
+        return 0
+      else:
+        return len(protected_entities[entity_type])
+
+    if getNumberOfEntities('ppaRecords') > 0 or getNumberOfEntities(
+        'palRecords') > 0:
+      self.assertGreaterEqual(
+          getNumberOfEntities('ppaRecords'), 1,
+          'Must define at least one PPA record.')
+      self.assertGreaterEqual(
+          getNumberOfEntities('palRecords'), 1,
+          'Must define at least one PAL record if a PPA is to be injected.')
+      for entity_type in [
+          'escRecords', 'gwpzRecords', 'gwblRecords', 'fssRecords'
+      ]:
+        self.assertEqual(
+            getNumberOfEntities(entity_type), 0,
+            'May not define any additional protected entities in an xPR test case; found extra entities in "%s".'
+            % entity_type)
     else:
+      entity_count = 0
+      for entity_type in [
+          'escRecords', 'gwpzRecords', 'gwblRecords', 'fssRecords'
+      ]:
+        entity_count += getNumberOfEntities(entity_type)
       self.assertEqual(
-          len(protected_entities.keys()), 1,
-          'Must define only one protected entity for an xPR test case.')
+          entity_count, 1,
+          'Must define exactly one protected entity for an xPR test case.')
 
     if test_type == 'xPR1':
       # No SAS test harnesses.
