@@ -146,8 +146,9 @@ def DpaProtectionPoints(dpa_name, dpa_geometry, protection_points_method=None):
   else:
     mpoint = sgeo.MultiPoint([(pt.longitude, pt.latitude) for pt in protection_points])
     mpoint_inside = dpa_geometry.buffer(0.0005).intersection(mpoint)
-    if len(mpoint) != len(mpoint_inside):
-      raise ValueError('Some points for DPA `%s` are outside zone.' % dpa_name)
+    if (not isinstance(mpoint, sgeo.Point) and not isinstance(mpoint_inside, sgeo.Point)):
+      if len(mpoint) != len(mpoint_inside):
+        raise ValueError('Some points for DPA `%s` are outside zone.' % dpa_name)
 
   if not protection_points:
     raise ValueError('No valid points generated for DPA `%s`.' % dpa_name)
