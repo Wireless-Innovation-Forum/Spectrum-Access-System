@@ -17,6 +17,7 @@
 import copy
 import csv
 import json
+import itertools
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
@@ -161,7 +162,7 @@ def _printTileStats():
 
 def CheckTerrainTileCacheOk():
   """Check tiles cache well behaved."""
-  print  'Check of tile cache swap:'
+  print('Check of tile cache swap:')
   num_workers = mpool.GetNumWorkerProcesses()
   if num_workers:
     tile_stats = mpool.RunOnEachWorkerProcess(_getTileStats)
@@ -170,16 +171,16 @@ def CheckTerrainTileCacheOk():
   num_active_tiles, cnt_per_tile = tile_stats[np.argmax([tile_stat[0]
                                                         for tile_stat in tile_stats])]
   if not num_active_tiles:
-    print '-- Cache ERROR: No active tiles read'
+    print('-- Cache ERROR: No active tiles read')
   elif max(cnt_per_tile) > 1:
-    print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
+    print('-- Cache WARNING: cache tile too small - tiles are swapping from cache.')
     if num_workers:
       pool = mpool.Pool()
       pool.apply_async(_printTileStats)
     else:
       _printTileStats()
   else:
-    print '-- Cache tile: OK (no swapping)'
+    print('-- Cache tile: OK (no swapping)')
 
 
 #----------------------------------------
@@ -196,8 +197,10 @@ def MergeConditionalData(registration_requests, conditional_datas):
   return reg_requests
 
 
-def _Ipr7ConfigRead(config):
-  """Extracts DPA and grants from IPR7 config JSON.
+def _IprConfigRead(config):
+  """Extracts DPA and grants from IPR config JSON.
+
+  Note: All IPT suppprted except IPR1.
 
   Args:
     config: A JSON dictionary.
@@ -207,45 +210,156 @@ def _Ipr7ConfigRead(config):
       dpas:  a list of objects of type |dpa_mgr.Dpa|.
       grants: a list of |data.CbsdGrantInfo|.
   """
+  dpa_cfgs = None
   if 'portalDpa' in config:
-    dpa_tag = 'portalDpa'
+    dpa_cfgs = [config['portalDpa']]
   elif 'escDpa' in config:
-    dpa_tag = 'escDpa'
-  else:
-    raise ValueError('Unsupported config file. Please use a IPR7 config file')
+    dpa_cfgs = [config['escDpa']]
+  if dpa_cfgs is None:
+    if 'dpas' in config:
+      dpa_cfgs = config['dpas']
+    elif 'dpa' in config:
+      dpa_cfgs = [config['dpa']]
+  if dpa_cfgs is None or (
+      'domainProxies' not in config and 'registrationRequest' not in config):
+    raise ValueError('Unsupported config file. Please use a IPR config file')
 
-  # Build the DPA
-  dpa_id = config[dpa_tag]['dpaId']
-  try: dpa_kml_file = config['dpaDatabaseConfig']['filePath']
-  except KeyError: dpa_kml_file = None
-  points_builder = config[dpa_tag]['points_builder']
-  dpa = dpa_mgr.BuildDpa(dpa_id, protection_points_method=points_builder,
-                         portal_dpa_filename=dpa_kml_file)
-  freq_range_mhz = (config[dpa_tag]['frequencyRange']['lowFrequency'] / 1.e6,
-                    config[dpa_tag]['frequencyRange']['highFrequency'] / 1.e6)
-  dpa.ResetFreqRange([freq_range_mhz])
-  # - add extra properties for the geometry and margin
-  dpa.margin_db = config[dpa_tag]['movelistMargin']
-  try: dpa_zone = zones.GetCoastalDpaZones()[dpa_id]
-  except KeyError: dpa_zone = zones.GetPortalDpaZones(kml_path=dpa_kml_file)[dpa_id]
-  dpa.geometry = dpa_zone.geometry
+  # Build the DPAs
+  dpas = []
+  for dpa_cfg in dpa_cfgs:
+    dpa_id = dpa_cfg['dpaId']
+    try: dpa_kml_file = config['dpaDatabaseConfig']['filePath']
+    except KeyError: dpa_kml_file = None
+    try: points_builder = dpa_cfg['points_builder']
+    except KeyError: points_builder = None
+    try:
+      dpa = dpa_mgr.BuildDpa(dpa_id, protection_points_method=points_builder,
+                             portal_dpa_filename=dpa_kml_file)
+    except IOError:
+      print('Portal KML File not found: %s ' % dpa_kml_file)
+      raise
+    try:
+      freq_range_mhz = (dpa_cfg['frequencyRange']['lowFrequency'] / 1.e6,
+                        dpa_cfg['frequencyRange']['highFrequency'] / 1.e6)
+      dpa.ResetFreqRange([freq_range_mhz])
+    except KeyError:
+      pass
+    # - add extra properties for the geometry and margin
+    try: dpa.margin_db = dpa_cfg['movelistMargin']
+    except KeyError: dpa_margin_db = 'linear(1.5)'
+    try: dpa_zone = zones.GetCoastalDpaZones()[dpa_id]
+    except KeyError: dpa_zone = zones.GetPortalDpaZones(kml_path=dpa_kml_file)[dpa_id]
+    dpa.geometry = dpa_zone.geometry
+    dpas.append(dpa)
 
   # Read the CBSDs, assuming all granted, into list of |CbsdGrantInfo|.
   grants = []
-  #  - first the SAS UUT
-  for domain_proxy_config in config['domainProxies']:
-    grant_requests = domain_proxy_config['grantRequests']
-    reg_requests = MergeConditionalData(domain_proxy_config['registrationRequests'],
-                                        domain_proxy_config['conditionalRegistrationData'])
+  if 'domainProxies' in config:
+    #  - first the SAS UUT
+    for domain_proxy_config in config['domainProxies']:
+      grant_requests = domain_proxy_config['grantRequests']
+      reg_requests = MergeConditionalData(domain_proxy_config['registrationRequests'],
+                                          domain_proxy_config['conditionalRegistrationData'])
+      grants.extend(data.getGrantsFromRequests(reg_requests, grant_requests,
+                                               is_managing_sas=True))
+    #  - now the peer SASes.
+    if 'sasTestHarnessConfigs' in config:
+      for th_config in config['sasTestHarnessConfigs']:
+        dump_records = th_config['fullActivityDumpRecords'][0]
+        grants.extend(data.getAllGrantInfoFromCbsdDataDump(
+            dump_records, is_managing_sas=False))
+
+  elif 'registrationRequest' in config:
+    grants.extend(data.getGrantsFromRequests(
+        MergeConditionalData([config['registrationRequest']],
+                             [config['conditionalRegistrationData']]),
+        [config['grantRequest']],
+        is_managing_sas=True))
+
+  return grants, dpas
+
+
+def _McpConfigRead(config):
+  """Extracts DPA and grants from MCP config JSON.
+
+  Note: returns all grants involved in the test irrespective of iteration
+  process.
+
+  Args:
+    config: A JSON dictionary.
+
+  Returns:
+    A tuple (dpas, grants) where:
+      dpas:  a list of objects of type |dpa_mgr.Dpa|.
+      grants: a list of |data.CbsdGrantInfo|.
+  """
+  if ('iterationData' not in config or
+      'dpas' not in config or
+      'initialCbsdRequestsWithDomainProxies' not in config):
+    raise ValueError('Unsupported config file. Please use a MCP1 config file')
+
+  # Build the DPAs.
+  dpas = []
+  for dpa_id, dpa_data in config['dpas'].items():
+    dpa = dpa_mgr.BuildDpa(dpa_id,
+                           protection_points_method=dpa_data['points_builder'])
+    # - add extra properties for the geometry and margin.
+    dpa.margin_db = dpa_data['movelistMargin']
+    try: dpa_zone = zones.GetCoastalDpaZones()[dpa_id]
+    except KeyError: dpa_zone = zones.GetPortalDpaZones(kml_path=dpa_kml_file)[dpa_id]
+    dpa.geometry = dpa_zone.geometry
+
+    # - read also the activation list and freq range.
+    dpa.activation = None
+    for iter_data in config['iterationData']:
+      for activation in iter_data['dpaActivationList']:
+        if activation['dpaId'] == dpa_id:
+          dpa.activation = activation['frequencyRange']
+          break
+
+    dpas.append(dpa)
+
+  # Read the CBSDs, assuming all granted, into list of |CbsdGrantInfo|.
+  # - initial stuff into SAS UUT
+  grants = []
+  for records in config['initialCbsdRequestsWithDomainProxies']:
+    grant_requests = records['grantRequests']
+    reg_requests = MergeConditionalData(records['registrationRequests'],
+                                        records['conditionalRegistrationData'])
     grants.extend(data.getGrantsFromRequests(reg_requests, grant_requests,
                                              is_managing_sas=True))
-  #  - now the peer SASes.
-  for th_config in config['sasTestHarnessConfigs']:
-    dump_records = th_config['fullActivityDumpRecords'][0]
-    grants.extend(data.getAllGrantInfoFromCbsdDataDump(
-        dump_records, is_managing_sas=False))
+  for record in config['initialCbsdRecords']:
+    grant_request = [record['grantRequest']]
+    reg_request = MergeConditionalData([record['registrationRequest']],
+                                       [record['conditionalRegistrationData']])
+    grants.append(data.getGrantsFromRequests(reg_requests, grant_requests,
+                                             is_managing_sas=True))
 
-  return grants, [dpa]
+  # - then iterations for TH and UUT
+  for iter_data in config['iterationData']:
+    for th_data in iter_data['sasTestHarnessData']:
+      th_grants = data.getAllGrantInfoFromCbsdDataDump(
+          th_data['cbsdRecords'], is_managing_sas=False)
+      grants.extend([g for g in th_grants])
+
+    for records in iter_data['cbsdRequestsWithDomainProxies']:
+      grant_requests = records['grantRequests']
+      reg_requests = MergeConditionalData(records['registrationRequests'],
+                                          records['conditionalRegistrationData'])
+      uut_grants = data.getGrantsFromRequests(reg_requests, grant_requests,
+                                              is_managing_sas=True)
+      grants.extend([g for g in uut_grants])
+
+    for record in iter_data['cbsdRecords']:
+      grant_request = [record['grantRequest']]
+      reg_request = MergeConditionalData([record['registrationRequest']],
+                                         [record['conditionalRegistrationData']])
+      uut_grant = data.getGrantsFromRequests(reg_requests, grant_requests,
+                                             is_managing_sas=True)
+      grants.append(uut_grant)
+
+  return grants, dpas
+
 
 def _RegGrantsRead(config):
   """Extracts DPA and grants from Reg/Grants config JSON.
@@ -302,9 +416,16 @@ def ReadTestHarnessConfigFile(config_file):
   except Exception:
     pass
 
-  # Supports IPR7 config format.
+  # Supports IPR config format.
   try:
-    grants, dpas = _Ipr7ConfigRead(config)
+    grants, dpas = _IprConfigRead(config)
+    return grants, dpas
+  except Exception:
+    pass
+
+  # Support MCP1 config format.
+  try:
+    grants, dpas = _McpConfigRead(config)
     return grants, dpas
   except Exception:
     pass
