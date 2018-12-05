@@ -176,9 +176,14 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
 
   max_eirp, low_frequency, high_frequency = None, None, None
   if grant_request is not None:
-    max_eirp = grant_request['operationParam']['maxEirp']
-    low_frequency = grant_request['operationParam']['operationFrequencyRange']['lowFrequency']
-    high_frequency = grant_request['operationParam']['operationFrequencyRange']['highFrequency']
+    if 'requestedOperationParam' in grant_request:
+      max_eirp = grant_request['requestedOperationParam']['maxEirp']
+      low_frequency = grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency']
+      high_frequency = grant_request['requestedOperationParam']['operationFrequencyRange']['highFrequency']
+    else:
+      max_eirp = grant_request['operationParam']['maxEirp']
+      low_frequency = grant_request['operationParam']['operationFrequencyRange']['lowFrequency']
+      high_frequency = grant_request['operationParam']['operationFrequencyRange']['highFrequency']
   return CbsdGrantInfo(
       # Get information from the registration
       latitude=lat_cbsd,
