@@ -69,7 +69,8 @@ def PlotGrants(ax, grants, color='r'):
 
 
 # TODO(sbdt): add other kind of entities (PPA, ..). For now only DPAs.
-def CreateCbrsPlot(grants, dpa=None, tag=''):
+def CreateCbrsPlot(grants, dpa=None, tag='', color='g',
+                   subplot=None, fig=None):
   """Plots the grants in a map along with other entities (DPA, ..).
 
   Args:
@@ -79,8 +80,11 @@ def CreateCbrsPlot(grants, dpa=None, tag=''):
   Returns:
     ax: the 'matplotlib.axes' object
   """
-  plt.figure()
-  ax = plt.axes(projection=ccrs.PlateCarree())
+  if not fig:
+    fig = plt.figure()
+  if not subplot:
+    subplot = 111
+  ax = fig.add_subplot(subplot, projection=ccrs.PlateCarree())
   # Finds the bounding box of all geometries (DPA and CBSDs).
   box = sgeo.box(*sgeo.MultiPoint(
     [(grant.longitude, grant.latitude) for grant in grants]).bounds)
@@ -95,11 +99,11 @@ def CreateCbrsPlot(grants, dpa=None, tag=''):
   ax.axis([box.bounds[0], box.bounds[2], box.bounds[1], box.bounds[3]])
   ax.coastlines()
   ax.stock_img()
-  PlotGrants(ax, grants, color='g')
+  PlotGrants(ax, grants, color=color)
   if dpa is not None:
     PlotDpa(ax, dpa, color='m')
   ax.set_title('%sDPA: %s' % (tag, dpa.name))
-  return ax
+  return ax, fig
 
 #----------------------------------------------
 # Useful statistical routines
