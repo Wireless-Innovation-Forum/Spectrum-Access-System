@@ -2,6 +2,32 @@ This directory contains data files from the NTIA defining protection
 geometries for federal incumbent protection in the 3.5GHz band.
 Copyright on data files is by their creators.
 
+* DPA_KML_vX.Y.pdf 
+
+   Format definition for DPA KML files (both E-DPA.kml and P-DPA.kml).
+   
+* E-DPAs.kml
+
+   The ESC-based DPA definition. This is a KML file defining each DPA and associated parameters.
+
+* P-DPAs.kml
+ 
+   The portal-based DPA definition. This is a KML file defining each DPA and associated parameters.
+
+* GB_PART90_EZ.kml
+
+   This is a KML file defininig the Ground based and Part90 Exclusion zones.
+   
+
+The following files are provided for simulation and study purpose only, and not used in test harness:
+
+* Urban_Areas_3601.kmz
+    
+    This is a KMZ file defining the US urban areas as provided by the Census bureau. 
+    Used only for simulation and benchmark purposes.
+    
+
+The following files are provided for historical reasons and are currently not used:
 
 * ground_based_exclusion_zones.kml
 
@@ -31,17 +57,3 @@ Copyright on data files is by their creators.
     exclusion zones make use of the US border definition in data/fcc/usborder.kml to bound
     the exclusion zone borders provided by the NTIA.
 
-* DPA_xx_yyyy.kml
-
-    The latest DPA KML file defining the coastal DPAs.
-    
-* usborder.kmz
-
-    This is a KMZ file defining the US border. 
-    Used only for simulation and benchmark purposes.
-
-* UrbanAreas_3601.kmz
-    
-    This is a KMZ file defining the US urban areas as provided by the Census bureau. 
-    Used only for simulation and benchmark purposes.
-    
