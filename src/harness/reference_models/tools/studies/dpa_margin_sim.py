@@ -104,8 +104,9 @@ procedure seems to differ significantly from the Winnforum spec.
 
 Example analysis
 ------------------
-  python dpa_margin_sim.py --num_process=3 --num_ml 100
-         --log="output/2018-11-14 13_05_16 DPA=West14 channel=(3620.0, 3630.0) (neighbor list).csv"
+  python dpa_margin_sim.py \
+         --num_process=3 --num_ml 100 --do_extensive \
+         --log="output/2018-11-14 13_05_16 DPA=West14 channel=(3620.0, 3630.0) (neighbor list).csv" \
          data/ipr5_5kCBSDs.config
 
   : Analysis of log files of a test.
@@ -128,7 +129,6 @@ Note that --dpa and --dpa_builder are required if using a grant-only config file
 
 Other parameters:
 -----------------
-Genric:
   --num_ml <10>: number of internal move list for variability analysing.
   --ref_ml_method <method>: method used to generate the reference move list:
       'min': use the minimum size move list
@@ -138,9 +138,8 @@ Genric:
   --ref_ml_num <num>: number of move lists to consider in above method. If 0,
     then use --num_ml
   --uut_ml_method and --uut_ml_num: same for UUT.
-  --do_extensive: extensive variability analysis mode. Produces scatter plots
-    of UUT versus reference interference (across points and azimuth).
-
+  --do_extensive: extensive variability analysis mode. Produces advanced scatter
+    plots of UUT versus reference interference (across points and azimuth).
 
 Misc notes:
 -----------
@@ -329,14 +328,15 @@ def ScatterAnalyze(ref_levels, diff_levels, threshold_db, tag):
   plt.legend()
 
   plt.subplot(212)
-  import ipdb; ipdb.set_trace() #XXX
   margins_db = Lin2Db(diff_mw + Db2Lin(threshold_db)) - threshold_db
   plt.grid(True)
   plt.ylabel('Complement Log-CDF')
   plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % threshold_db)
   sorted_margins_db = np.sort(margins_db)
+  sorted_margins_db = sorted_margins_db[sorted_margins_db > -5]
   y_val = 1 - np.arange(len(margins_db), dtype=float) / len(margins_db)
-  plt.plot(sorted_margins_db, y_val)
+  if len(sorted_margins_db):
+    plt.plot(sorted_margins_db, y_val[-len(sorted_margins_db):])
   plt.yscale('log', nonposy='clip')
 
 
@@ -358,8 +358,6 @@ def ExtensiveInterferenceCheck(dpa,
     A tuple of 2 lists (ref_level, diff_levels) holding all the interference
     results over each points, each azimuth and each synthesized reference move list.
   """
-  # Note: disable extensive logging in extensive logging.
-  logging.getLogger().setLevel(logging.ERROR)
   num_success = 0
   ref_levels = []
   diff_levels = []
@@ -447,23 +445,26 @@ def FindOrBuildDpa(dpas, options, grants):
 
   return dpa
 
-def SetupSimProcessor(num_process, size_tile_cache, geo_points):
+def SetupSimProcessor(num_process, size_tile_cache, geo_points, load_cache=False):
   print('== Setup simulator resources - loading all terrain tiles..')
   # Make sure terrain tiles loaded in main process memory.
   # Then forking will make sure worker reuse those from shared memory (instead of
-  # reallocating and reloading the tiles).
+  # reallocating and reloading the tiles) on copy-on-write system (Linux).
+  # TODO(sbdt): review this as it does not seem to really work.
   # - disable workers
-  num_workers = sim_utils.ConfigureRunningEnv(
-      num_process=0, size_tile_cache=size_tile_cache)
-  # - read some altitudes just to load the terrain tiles in main process memory
-  junk_alt = drive.terrain_driver.GetTerrainElevation(
-      [g.latitude for g in geo_points], [g.longitude for g in geo_points],
-      do_interp=False)
+  if load_cache:
+    num_workers = sim_utils.ConfigureRunningEnv(
+        num_process=0, size_tile_cache=size_tile_cache)
+    # - read some altitudes just to load the terrain tiles in main process memory
+    junk_alt = drive.terrain_driver.GetTerrainElevation(
+        [g.latitude for g in geo_points], [g.longitude for g in geo_points],
+        do_interp=False)
   # - enable the workers
   num_workers = sim_utils.ConfigureRunningEnv(
       num_process=options.num_process, size_tile_cache=size_tile_cache)
-  # Check cache is ok
-  sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
+  if load_cache:
+    # Check cache is ok
+    sim_utils.CheckTerrainTileCacheOk()  # Cache analysis and report
   time.sleep(1)
   return num_workers
 
@@ -615,6 +616,9 @@ def DpaSimulate(config_file, options):
                                   extensive_print=True)
   print('   Computation time: %.1fs' % (time.time() - start_time))
 
+  # Note: disable extensive logging for further extensive interference check
+  logging.getLogger().setLevel(logging.ERROR)
+
   # Extensive mode: compare UUT against many ref model move list
   if options.do_extensive:
     print('*****  EXTENSIVE INTERFERENCE CHECK *****')
@@ -663,28 +667,35 @@ def DpaAnalyzeLogs(config_file, log_file, options):
 
   # Set the grants into DPA.
   print('== Initialize DPA, one reference move list and misc.')
+  print('  Num grants in cfg: %s' % (len(grants) if config_file else 'No Cfg'))
+  print('  Num grants in logs: nbor_l=%d  ref_kl=%d  uut_kl=%d' % (
+      len(ref_nbor_list), len(ref_keep_list), len(uut_keep_list)))
   dpa.SetGrantsFromList(grants)
   if options.channel_freq_mhz:
     dpa.ResetFreqRange([(options.channel_freq_mhz, options.channel_freq_mhz+10)])
   dpa.ComputeMoveLists()
 
+  # Note: disable extensive logging for further extensive interference check.
+  logging.getLogger().setLevel(logging.ERROR)
+
   # Find a good channel to check: the one with maximum CBSDs.
   channel, chan_idx = GetMostUsedChannel(dpa)
-  print('  DPA for analyze:  %s' % dpa.name)
-  print('  Channel for analyze: %s', channel)
-
-  # Initial step - plot CBSD on maps: UUT keep list vs ref model keep list
-  print '== Plot relevant lists on map.'
   nbor_list = dpa.GetNeighborList(channel)
   move_list = dpa.GetMoveList(channel)
   keep_list = dpa.GetKeepList(channel)
+  print('  DPA for analyze:  %s' % dpa.name)
+  print('  Channel for analyze: %s' % (channel,))
+  print('  Recalc on chan: nbor_l=%d kl=%d' % (len(nbor_list), len(keep_list)))
+  # Initial step - plot CBSD on maps: UUT keep list vs ref model keep list
+  print '== Plot relevant lists on map.'
   # Plot the entities.
   print('  Plotting Map: Nbor list and keep list for channel %s' % (channel,))
-  ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test Ref ', subplot=121)
-  sim_utils.PlotGrants(ax1, nbor_list.difference(ref_keep_list), color='r')
-  ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
-  sim_utils.PlotGrants(ax2, nbor_list.difference(uut_keep_list), color='r')
-  fig.suptitle('Neighbor and move list from Test Log - Chan %s' % (channel,))
+  if len(ref_nbor_list):
+    ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test Ref ', subplot=121)
+    sim_utils.PlotGrants(ax1, nbor_list.difference(ref_keep_list), color='r')
+    ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
+    sim_utils.PlotGrants(ax2, nbor_list.difference(uut_keep_list), color='r')
+    fig.suptitle('Neighbor and move list from Test Log - Chan %s' % (channel,))
 
   ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Calc Ref ', subplot=121)
   sim_utils.PlotGrants(ax1, move_list, color='r')
@@ -699,47 +710,44 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   num_base_ml = max(num_ref_ml, num_uut_ml)
 
   # Summary of the analyze.
-  print('======= Analysing DPA `%s` (ref: %d pts) on Channel %s:\n'
-        '  %d granted CBSDs in neighbor list: %d CatB - %d CatA_out - %d CatA_in\n'
-        'Modes of operation:\n'
-        '  UUT ref - Real or best of %d (smallest size)\n'
-        '  Against original or %d different ref move list obtained through method:'
-        '  %s of %d\n' % (
+  print('== Analysing DPA `%s` (ref: %d pts) on Channel %s:\n'
+        '  %d total grants (all channels)\n'
+        '  %d CBSDs in neighbor list: %d CatB - %d CatA_out - %d CatA_in\n' % (
          dpa.name, len(dpa.protected_points), channel,
          len(grants),
+         len(nbor_list),
          len([grant for grant in nbor_list if grant.cbsd_category == 'B']),
          len([grant for grant in nbor_list
               if grant.cbsd_category == 'A' and not grant.indoor_deployment]),
          len([grant for grant in nbor_list
-              if grant.cbsd_category == 'A' and grant.indoor_deployment]),
-         num_uut_ml,
-         num_ref_ml,
-         options.ref_ml_method,
-         max(options.ref_ml_num, 1)
-  ))
+              if grant.cbsd_category == 'A' and grant.indoor_deployment])))
 
   # Analyze aggregate interference of TEST-REF vs SAS_UUT keep list
-  # ie we repeat the Check 50x but with the same ML
-  start_time = time.time()
-  num_check = max(10, num_base_ml / 2)
-  print('*****  Re-testing REAL SAS UUT vs %d TEST-REF move list *****' % (num_check))
-  print('  Same ref move list each time from TEST - only interference check is random. ')
-  full_ref_move_list_runs = [None] * len(dpa._channels)
-  full_ref_move_list_runs[chan_idx] = nbor_list.difference(ref_keep_list)
-  many_ref_move_list_runs = [full_ref_move_list_runs] * num_check
-  ExtensiveInterferenceCheck(dpa, uut_keep_list, many_ref_move_list_runs,
-                             1, 'max', channel, chan_idx,
-                             tag='REAL-REF vs REAL-UUT (%dML) - ' % num_check)
-  print('   Computation time: %.1fs' % (time.time() - start_time))
-
+  # ie we repeat the Check N times but with the same ML
+  if len(ref_nbor_list):
+    start_time = time.time()
+    num_check = max(10, num_base_ml / 2)
+    print('*****  Re-testing REAL SAS UUT vs %d TEST-REF move list *****' % (num_check))
+    print('  Same ref move list each time from TEST - only interference check is random. ')
+    full_ref_move_list_runs = [None] * len(dpa._channels)
+    full_ref_move_list_runs[chan_idx] = nbor_list.difference(ref_keep_list)
+    many_ref_move_list_runs = [full_ref_move_list_runs] * num_check
+    ExtensiveInterferenceCheck(dpa, uut_keep_list, many_ref_move_list_runs,
+                               1, 'max', channel, chan_idx,
+                               tag='REAL-REF vs REAL-UUT (%dML) - ' % num_check)
+    print('   Computation time: %.1fs' % (time.time() - start_time))
 
   if not options.do_extensive:
     return
 
   # Run the move list N times on ref DPA
   print('*****  From now on: analysing against fresh ref move lists *****')
-  print('First computing reference move lists (%d workers): %d times' % (
-      num_workers, num_ref_ml))
+  print('Modes of operation:\n'
+        '  UUT ref - Real or best of %d (smallest size)\n'
+        '  Against %d different ref move list obtained through method: %s of %d\n' % (
+         num_uut_ml, num_ref_ml, options.ref_ml_method, max(options.ref_ml_num, 1)))
+
+  print('First computing %d reference move lists (%d workers)' % (num_ref_ml, num_workers))
   start_time = time.time()
   ref_move_list_runs = []  # Save the move list of each run
   for k in xrange(num_base_ml):
@@ -767,8 +775,8 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   # ie we check the SAS UUT versus many recomputed reference ML
   start_time = time.time()
   print('*****  REAL SAS UUT vs %d random reference move list *****' % num_ref_ml)
-  print('  Every ref move list regenerated through move list process (+ %s@%d method)' % (
-      options.ref_ml_method, options.ref_ml_num))
+  print('  Every ref move list regenerated through move list process (+ %s of %d method)' % (
+      options.ref_ml_method, max(options.ref_ml_num, 1)))
   real_levels, real_diffs = ExtensiveInterferenceCheck(
       dpa, uut_keep_list, ref_move_list_runs,
       options.ref_ml_num, options.ref_ml_method,
@@ -780,10 +788,10 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   # ie we smallest size ML versus many recomputed reference ML (like in std simulation).
   start_time = time.time()
   print('*****  GOOD SAS UUT vs %d random reference move list *****' % num_ref_ml)
-  print('  Every ref move list regenerated through move list process (+ %s@%d method)' % (
-      options.ref_ml_method, options.ref_ml_num))
-  print('  SAS UUT move list taken with method: %s@%d' % (
-      options.uut_ml_method, options.uut_ml_num))
+  print('  Every ref move list regenerated through move list process (+ %s of %d method)' % (
+      options.ref_ml_method, max(options.ref_ml_num, 1)))
+  print('  SAS UUT move list taken with method: %s of %d' % (
+      options.uut_ml_method, max(options.uut_ml_num, 1)))
   dpa_uut.move_lists = SyntheticMoveList(ref_move_list_runs,
                                          options.uut_ml_method, options.uut_ml_num,
                                          chan_idx)
@@ -808,9 +816,16 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   plt.ylabel('Complement Log-CDF')
   plt.xlabel('SAS UUT Normalized diff (dB to %ddBm)' % dpa.threshold)
   y_val = 1 - np.arange(len(real_levels), dtype=float) / len(real_levels)
-  plt.plot(sorted_margins_db, y_val)
+  sorted_good_margins_db = sorted_good_margins_db[sorted_good_margins_db > -1]
+  sorted_real_margins_db = sorted_real_margins_db[sorted_real_margins_db > -1]
+  if len(sorted_good_margins_db):
+    plt.plot(sorted_good_margins_db, y_val[-len(sorted_good_margins_db):],
+             color='g', label='Good ML')
+  if len(sorted_real_margins_db):
+    plt.plot(sorted_real_margins_db, y_val[-len(sorted_real_margins_db):],
+             color='b', label='Real ML')
   plt.yscale('log', nonposy='clip')
-
+  plt.legend()
 
 
 #--------------------------------------------------

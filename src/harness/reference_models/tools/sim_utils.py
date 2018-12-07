@@ -17,7 +17,6 @@
 import copy
 import csv
 import json
-import itertools
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
