@@ -14,6 +14,7 @@
 
 """A collection of utility routines for simulation purposes.
 """
+import ast
 import copy
 import csv
 import json
@@ -190,14 +191,26 @@ def CheckTerrainTileCacheOk():
 # Utility routines to read test harness config files into proper ref model objects.
 def MergeConditionalData(registration_requests, conditional_datas):
   """Returns copy of registration_requests with merged conditional datas."""
-  cond_data_map = {cond['cbsdSerialNumber']: cond
+  cond_data_map = {str(cond['fccId']) + str(cond['cbsdSerialNumber']): cond
                    for cond in conditional_datas}
   reg_requests = copy.deepcopy(registration_requests)
   for reg_request in reg_requests:
-    cbsd_serial_number = reg_request['cbsdSerialNumber']
-    if cbsd_serial_number in cond_data_map:
-      reg_request.update(cond_data_map[cbsd_serial_number])
+    unique_id = str(reg_request['fccId']) + str(reg_request['cbsdSerialNumber'])
+    if unique_id in cond_data_map:
+      reg_request.update(cond_data_map[unique_id])
   return reg_requests
+
+
+def CleanGrant(grant):
+  """Returns a "cleaned" grant by rounding properly the internal data.
+
+  This insures that 2 grants coming from 2 different sources are actually
+  identical, irrespective of the logging/storage precision used.
+  """
+  return grant._replace(latitude=round(grant.latitude, 6),
+                        longitude=round(grant.longitude, 6),
+                        height_agl=round(grant.height_agl, 2),
+                        max_eirp=round(grant.max_eirp, 3))
 
 
 def _IprConfigRead(config):
@@ -265,6 +278,7 @@ def _IprConfigRead(config):
                                           domain_proxy_config['conditionalRegistrationData'])
       grants.extend(data.getGrantsFromRequests(reg_requests, grant_requests,
                                                is_managing_sas=True))
+
     #  - now the peer SASes.
     if 'sasTestHarnessConfigs' in config:
       for th_config in config['sasTestHarnessConfigs']:

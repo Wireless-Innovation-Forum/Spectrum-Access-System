@@ -228,7 +228,7 @@ parser.add_argument('--num_ml', type=int, default=100,
 parser.add_argument('--cache_file', type=str, default='',
                     help='If defined, save simulation data to file. '
                     'Allows to rerun later detailed analysis')
-parser.add_argument('config_file', type=str,
+parser.add_argument('config_file', type=str, default='',
                     help='The configuration file (IPR or MCP)')
 
 # - Analyze mode
@@ -430,7 +430,7 @@ def FindOrBuildDpa(dpas, options, grants):
 
   try: dpa.margin_db
   except AttributeError:
-    dpa_margin_db = 'linear(1.5)'
+    dpa.margin_db = 'linear(1.5)'
   try: dpa.geometry
   except AttributeError:
     try: dpa_geometry = zones.GetCoastalDpaZones()[dpa.name]
@@ -641,10 +641,18 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   logging.getLogger().setLevel(logging.WARNING)
 
   # Read the input files: config and logs
+  if not log_file and config_file:
+    log_file = config_file
+    config_file = None
   ref_nbor_list, ref_keep_list, uut_keep_list = sim_utils.ReadDpaLogFile(log_file)
-
   if config_file:
     grants, dpas = sim_utils.ReadTestHarnessConfigFile(config_file)
+    # For best robustness, make sure all coordinates are properly rounded, so the
+    # 2 sources of data can be exactly compared.
+    grants = [sim_utils.CleanGrant(g) for g in grants]
+    ref_nbor_list = [sim_utils.CleanGrant(g) for g in ref_nbor_list]
+    ref_keep_list = [sim_utils.CleanGrant(g) for g in ref_keep_list]
+    uut_keep_list = [sim_utils.CleanGrant(g) for g in uut_keep_list]
   else:
     grants, dpas = ref_nbor_list, []
 
@@ -832,7 +840,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
 # The simulation
 if __name__ == '__main__':
   options = parser.parse_args()
-  if options.log_file:
+  if options.log_file or options.config_file.endswith('csv'):
     print('Analyzing log files')
     DpaAnalyzeLogs(options.config_file, options.log_file, options)
   else:
