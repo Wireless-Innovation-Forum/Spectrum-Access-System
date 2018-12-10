@@ -14,18 +14,17 @@
 
 """A collection of utility routines for simulation purposes.
 """
-import ast
 import copy
 import csv
 import json
+import os
+import zipfile
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import scipy.stats
 import shapely.geometry as sgeo
-import zipfile
 
 from reference_models.common import data
 from reference_models.common import mpool
