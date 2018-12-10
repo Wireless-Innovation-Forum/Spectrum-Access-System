@@ -676,7 +676,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   # Set the grants into DPA.
   print('== Initialize DPA, one reference move list and misc.')
   print('  Num grants in cfg: %s' % (len(grants) if config_file else 'No Cfg'))
-  print('  Num grants in logs: nbor_l=%d  ref_kl=%d  uut_kl=%d' % (
+  print('  Num grants in logs: nbor_l=%d  ref_kl_all=%d  uut_kl=%d' % (
       len(ref_nbor_list), len(ref_keep_list), len(uut_keep_list)))
   dpa.SetGrantsFromList(grants)
   if options.channel_freq_mhz:
@@ -698,17 +698,29 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   print '== Plot relevant lists on map.'
   # Plot the entities.
   print('  Plotting Map: Nbor list and keep list for channel %s' % (channel,))
+  uut_move_list_uut = [g for g in nbor_list
+                       if g.is_managed_grant and g not in uut_keep_list]
+  move_list_uut = [g for g in move_list if g.is_managed_grant]
+  move_list_other = [g for g in move_list if not g.is_managed_grant]
+
   if len(ref_nbor_list):
+    ref_move_list = nbor_list.difference(ref_keep_list)
+    ref_move_list_uut = [g for g in ref_move_list if g.is_managed_grant]
+    ref_move_list_other = [g for g in ref_move_list if not g.is_managed_grant]
     ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test Ref ', subplot=121)
-    sim_utils.PlotGrants(ax1, nbor_list.difference(ref_keep_list), color='r')
+    sim_utils.PlotGrants(ax1, ref_move_list_other, color='m')
+    sim_utils.PlotGrants(ax1, ref_move_list_uut, color='r')
     ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
-    sim_utils.PlotGrants(ax2, nbor_list.difference(uut_keep_list), color='r')
+    sim_utils.PlotGrants(ax2, ref_move_list_other, color='m')
+    sim_utils.PlotGrants(ax2, uut_move_list_uut, color='r')
     fig.suptitle('Neighbor and move list from Test Log - Chan %s' % (channel,))
 
   ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Calc Ref ', subplot=121)
-  sim_utils.PlotGrants(ax1, move_list, color='r')
+  sim_utils.PlotGrants(ax1, move_list_other, color='m')
+  sim_utils.PlotGrants(ax1, move_list_uut, color='r')
   ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
-  sim_utils.PlotGrants(ax2, nbor_list.difference(uut_keep_list), color='r')
+  sim_utils.PlotGrants(ax2, ref_move_list_other, color='m')
+  sim_utils.PlotGrants(ax2, uut_move_list_uut, color='r')
   fig.suptitle('Neighbor and move list from Calc + UUT Log - Chan %s' % (channel,))
   plt.show(block=False)
 

@@ -61,11 +61,11 @@ def PlotGrants(ax, grants, color='r'):
   xy = ([grant.longitude for grant in grants if grant.cbsd_category=='B'],
         [grant.latitude for grant in grants if grant.cbsd_category=='B'])
   if len(xy[0]):
-    ax.scatter(*xy, c=color, marker='1', s=10)
+    ax.scatter(*xy, c=color, marker='1', s=14)
   xy = ([grant.longitude for grant in grants if grant.cbsd_category=='A'],
         [grant.latitude for grant in grants if grant.cbsd_category=='A'])
   if len(xy[0]):
-    ax.scatter(*xy, c=color, marker='.', s=10)
+    ax.scatter(*xy, c=color, marker='.', s=14)
 
 
 # TODO(sbdt): add other kind of entities (PPA, ..). For now only DPAs.
