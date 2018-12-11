@@ -16,7 +16,7 @@ Copyright on data files is by their creators.
 
 * GB_PART90_EZ.kml
 
-   This is a KML file defininig the Ground based and Part90 Exclusion zones.
+   This is a KML file defining the Ground based and Part90 Exclusion zones.
    
 
 The following files are provided for simulation and study purpose only, and not used in test harness:
