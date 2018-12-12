@@ -183,6 +183,11 @@ if __name__ == '__main__':
   print '**East3: %dpts' % len(dpa_zone.protected_points)
   print dpa_zone
 
+  dpa_zone = dpa_mgr.BuildDpa('East3',
+                              protection_points_method='default(1,0,0,0)')
+  print '**East3 (single pt): %dpts' % len(dpa_zone.protected_points)
+  print dpa_zone
+
   dpa_portal = dpa_mgr.BuildDpa('BATH')
   print '**BATH: %dpts' % len(dpa_portal.protected_points)
   print dpa_portal
