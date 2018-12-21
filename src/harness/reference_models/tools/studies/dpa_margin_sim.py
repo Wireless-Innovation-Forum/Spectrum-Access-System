@@ -666,13 +666,17 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   uut_keep_list = set(uut_keep_list)
   no_peers = not ref_nbor_list and uut_keep_list
   if no_peers:
-    print('NOTE: MCP test with no peer SAS.')
-  if options.dpa_builder_uut and options.dpa_builder_uut != options.dpa_builder:
-    print(' Option --dpa_builder_uut unsupported in analyze mode: Ignored.')
+    print('NOTE: test with no peer SAS.')
   if not grants:
     raise ValueError('No grants specified - use a valid config file.')
   # Find reference DPA for analyzis.
   dpa = FindOrBuildDpa(dpas, options, grants)
+  dpa_uut = dpa
+  if options.dpa_builder_uut and options.dpa_builder_uut != options.dpa_builder:
+    dpa_uut = copy.copy(dpa)
+    dpa_uut.protected_points = dpa_builder.DpaProtectionPoints(
+        dpa_uut.name, dpa_uut.geometry, options.dpa_builder_uut)
+    import ipdb; ipdb.set_trace() #XXX
 
   # Setup the simulator processor: number of processor and cache.
   num_workers = SetupSimProcessor(options.num_process, options.size_tile_cache,
@@ -715,7 +719,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
     ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test Ref ', subplot=121)
     sim_utils.PlotGrants(ax1, ref_move_list_other, color='m')
     sim_utils.PlotGrants(ax1, ref_move_list_uut, color='r')
-    ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
+    ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa_uut, tag='Test UUT ', subplot=122, fig=fig)
     sim_utils.PlotGrants(ax2, ref_move_list_other, color='m')
     sim_utils.PlotGrants(ax2, uut_move_list_uut, color='r')
     fig.suptitle('Neighbor and move list from Test Log - Chan %s' % (channel,))
@@ -723,8 +727,8 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   ax1, fig = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Calc Ref ', subplot=121)
   sim_utils.PlotGrants(ax1, move_list_other, color='m')
   sim_utils.PlotGrants(ax1, move_list_uut, color='r')
-  ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa, tag='Test UUT ', subplot=122, fig=fig)
-  sim_utils.PlotGrants(ax2, ref_move_list_other, color='m')
+  ax2, _ = sim_utils.CreateCbrsPlot(nbor_list, dpa=dpa_uut, tag='Test UUT ', subplot=122, fig=fig)
+  sim_utils.PlotGrants(ax2, move_list_other, color='m')
   sim_utils.PlotGrants(ax2, uut_move_list_uut, color='r')
   fig.suptitle('Neighbor and move list from Calc + UUT Log - Chan %s' % (channel,))
   plt.show(block=False)

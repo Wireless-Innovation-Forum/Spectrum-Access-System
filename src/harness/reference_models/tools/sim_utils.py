@@ -102,7 +102,12 @@ def CreateCbrsPlot(grants, dpa=None, tag='', color='g',
   if dpa is not None:
     PlotDpa(ax, dpa, color='m')
   ax.set_title('%sDPA: %s' % (tag, dpa.name))
+  # Adds x and y axis.
+  gl = ax.gridlines(draw_labels=True)
+  gl.xlabels_top = False
+  gl.ylabels_right = False
   return ax, fig
+
 
 #----------------------------------------------
 # Useful statistical routines
