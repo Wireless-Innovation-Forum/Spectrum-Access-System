@@ -58,7 +58,7 @@ DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
 DPA_DEFAULT_RADAR_HEIGHT = 50
 DPA_DEFAULT_BEAMWIDTH = 3
 DPA_DEFAULT_FREQ_RANGE = (3550, 3650)
-DPA_DEFAULT_DISTANCES = (150, 200, 0, 25)
+DPA_DEFAULT_DISTANCES = (150, 200, 200, 0, 25)
 
 # The channel bandwidth
 DPA_CHANNEL_BANDWIDTH = 10
@@ -122,7 +122,7 @@ class Dpa(object):
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
     neighbor_distances: The neighborhood distances (km) as a sequence:
-      (cata_dist, catb_dist, cata_oob_dist, catb_oob_dist)
+      (cata_dist, catb_high_dist, catb_low_dist, cata_oob_dist, catb_oob_dist)
     monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
 
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
@@ -341,13 +341,55 @@ class Dpa(object):
         mask[k] = True
     return mask
 
-  def CalcKeepListInterference(self, channel, num_iter=None):
+  def GetNeighborListMask(self, channel):
+    """Returns neighbor list mask as a vector of bool.
+
+    Args:
+      channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
+    """
+    nbor_list = self.GetNeighborList(channel)
+    mask = np.zeros(len(self._grants), np.bool)
+    for k, grant in enumerate(self._grants):
+      if grant in nbor_list:
+        mask[k] = True
+    return mask
+
+  def SetMoveListFromMask(self, mask, channel):
+    """Creates a move list from a move list mask.
+
+    Args:
+      mask: vector of bool ('True' means on move list).
+      channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
+    """
+    move_list = []
+    for k, grant in enumerate(self._grants):
+      if mask[k]:
+        move_list.append(grant)
+    self.move_lists[self._GetChanIdx(channel)] = set(move_list)
+
+  def SetNeighborListFromMask(self, mask, channel):
+    """Creates a neighbor list from a neighbor list mask.
+
+    Args:
+      mask: vector of bool ('True' means on neighbor list).
+      channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
+    """
+    nbor_list = []
+    for k, grant in enumerate(self._grants):
+      if mask[k]:
+        nbor_list.append(grant)
+    self.nbor_lists[self._GetChanIdx(channel)] = set(nbor_list)
+
+  def CalcKeepListInterference(self, channel, num_iter=None, do_max=True, hybrid_prop=False):
     """Calculates max aggregate interference per protected point.
 
     Args:
       channel: A channel as tuple (low_freq_mhz, high_freq_mhz).
       num_iter: The number of Monte Carlo iteration when calculating the aggregate
         interference.
+      do_max: If True, returns the maximum interference over all radar azimuth.
+      hybrid_prop: If True, calculates the interference using the hybrid propagation
+        model.
 
     Returns:
       The 95% aggregate interference per protected point, as a list.
@@ -367,7 +409,8 @@ class Dpa(object):
         min_azimuth=self.azimuth_range[0],
         max_azimuth=self.azimuth_range[1],
         neighbor_distances=self.neighbor_distances,
-        do_max=True)
+        do_max=do_max,
+        hybrid_prop=hybrid_prop)
 
     pool = mpool.Pool()
     max_interf = pool.map(interfCalculator,
@@ -713,7 +756,7 @@ def _CalcTestPointInterfDiff(point,
     azimuth_range: The radar azimuth range (degrees) as a tuple of
       (min_azimuth, max_azimuth) relative to true north.
     neighbor_distances: The neighborhood distance (km) as a sequence:
-      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      [cata_dist, catb_high_dist, catb_low_dist, cata_oob_dist, catb_oob_dist]
     threshold: If set, do an absolute threshold check of SAS UUT interference against
       threshold. Otherwise compare against the reference model aggregated interference.
 
@@ -843,6 +886,7 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
   azimuth_range = (dpa_zone.minAzimuthDeg, dpa_zone.maxAzimuthDeg)
   freq_ranges_mhz = dpa_zone.freqRangeMHz
   neighbor_distances = (dpa_zone.catANeighborhoodDistanceKm,
+                        dpa_zone.catBNeighborhoodDistanceKm,
                         dpa_zone.catBNeighborhoodDistanceKm,
                         dpa_zone.catAOOBNeighborhoodDistanceKm,
                         dpa_zone.catBOOBNeighborhoodDistanceKm)
