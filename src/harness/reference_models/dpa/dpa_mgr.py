@@ -259,22 +259,19 @@ class Dpa(object):
     logging.debug('  protected points: %s', self.protected_points)
     pool = mpool.Pool()
     self.ResetLists()
-    # Manage inside grants by special processing: always on move list, and
-    # we filter them out from the per point move list process.
-    grants = self._grants
+    # Detect the inside "inside grants", which will allow to
+    # add them into move list for sure later on.
     inside_grants = set()
     if self.geometry and not isinstance(self.geometry, sgeo.Point):
       inside_grants = set(g for g in self._grants
                           if sgeo.Point(g.longitude, g.latitude).within(self.geometry))
-      if inside_grants:
-        grants = list(set(self._grants).difference(inside_grants))
 
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
       moveListConstraint = functools.partial(
           ml.moveListConstraint,
           low_freq=low_freq * 1.e6,
           high_freq=high_freq * 1.e6,
-          grants=grants,
+          grants=self._grants,
           inc_ant_height=self.radar_height,
           num_iter=Dpa.num_iteration,
           threshold=self.threshold,
