@@ -17,6 +17,7 @@ import os
 import unittest
 import numpy as np
 
+from reference_models.geo import zones
 from reference_models.tools import testutils
 from reference_models.tools import entities
 from reference_models.propagation import wf_itm
@@ -50,6 +51,34 @@ class TestDpa(unittest.TestCase):
     channels = dpa_mgr.GetDpaProtectedChannels([(3572, 3575)], is_portal_dpa=False)
     self.assertListEqual(channels, [(3570, 3580)])
 
+  def test_cbsdInsideDpaInMoveList(self):
+    dpa = dpa_mgr.BuildDpa('Alameda',
+                           protection_points_method='default(10,2,0,0)')
+    dpa.ResetFreqRange([(3540, 3650)])
+    alameda_geom = zones.GetCoastalDpaZones()['Alameda'].geometry
+    # Assign grants inside the DPA and inband + OOB in mix of CatA and CatB
+    np.random.seed(1234)
+    cbsds_a = entities.GenerateCbsdsInPolygon(
+        3, entities.CBSD_TEMPLATE_CAT_A_OUTDOOR, alameda_geom)
+    cbsds_b = entities.GenerateCbsdsInPolygon(
+        2, entities.CBSD_TEMPLATE_CAT_B, alameda_geom)
+    cbsds_a[1] = cbsds_a[1]._replace(eirp_dbm_mhz=-100)
+    cbsds_b[1] = cbsds_b[1]._replace(eirp_dbm_mhz=-100)
+    grants = []
+    grants.extend(entities.ConvertToCbsdGrantInfo(cbsds_a[0:2], 3550, 3560))
+    grants.extend(entities.ConvertToCbsdGrantInfo(cbsds_a[2:3], 3660, 3670))
+    grants.extend(entities.ConvertToCbsdGrantInfo(cbsds_b[0:1], 3550, 3570))
+    grants.extend(entities.ConvertToCbsdGrantInfo(cbsds_b[1:2], 3630, 3670))
+    dpa.SetGrantsFromList(grants)
+
+    dpa.ComputeMoveLists()
+
+    self.assertSetEqual(dpa.GetMoveList((3550, 3560)),
+                        set([grants[0], grants[1], grants[3]]))
+    self.assertSetEqual(dpa.GetMoveList((3640, 3650)),
+                        set([grants[4]]))
+    self.assertSetEqual(dpa.GetMoveList((3540, 3550)),
+                        set(grants))
 
 
 if __name__ == '__main__':
