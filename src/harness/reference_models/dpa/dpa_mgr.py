@@ -263,8 +263,9 @@ class Dpa(object):
     # add them into move list for sure later on.
     inside_grants = set()
     if self.geometry and not isinstance(self.geometry, sgeo.Point):
+      dpa_geometry = self.geometry.buffer(1e-6)
       inside_grants = set(g for g in self._grants
-                          if sgeo.Point(g.longitude, g.latitude).within(self.geometry))
+                          if sgeo.Point(g.longitude, g.latitude).within(dpa_geometry))
 
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
       moveListConstraint = functools.partial(
