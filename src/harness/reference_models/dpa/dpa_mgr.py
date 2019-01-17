@@ -45,6 +45,7 @@ import os
 import logging
 
 import numpy as np
+import shapely.geometry as sgeo
 
 from reference_models.geo import zones
 from reference_models.common import data
@@ -109,6 +110,7 @@ class Dpa(object):
 
   Attributes:
     name: The DPA name (informative).
+    geometry: The DPA geometry, as a shapely shape.
     channels: The list of 10MHz channels (freq_min_mhz, freq_max_mhz) to protect for
       that DPA.
     protected_points: A list of namedtuple (latitude, longitude) defining the actual
@@ -155,6 +157,7 @@ class Dpa(object):
     cls.num_iteration = num_iteration
 
   def __init__(self, protected_points,
+               geometry=None,
                name='None',
                threshold=DPA_DEFAULT_THRESHOLD_PER_10MHZ,
                radar_height=DPA_DEFAULT_RADAR_HEIGHT,
@@ -165,6 +168,7 @@ class Dpa(object):
                monitor_type='esc'):
     """Initialize the DPA attributes."""
     self.name = name
+    self.geometry = geometry
     self.protected_points = protected_points
     self.threshold = threshold
     self.radar_height = radar_height
@@ -180,10 +184,11 @@ class Dpa(object):
 
   def __str__(self):
     """Returns the DPA str."""
-    return ('Dpa(protected_points=%r, threshold=%.1f, radar_height=%.1f,'
+    return ('Dpa(protected_points=%r, geometry=%r, threshold=%.1f, radar_height=%.1f,'
             'beamwidth=%.1f, azimuth_range=%r, channels=%r,'
             'neighbor_distances=%r, monitor_type=%r)' % (
-                self.protected_points, self.threshold, self.radar_height,
+                self.protected_points, self.geometry,
+                self.threshold, self.radar_height,
                 self.beamwidth, self.azimuth_range, self._channels,
                 self.neighbor_distances, self.monitor_type))
 
@@ -254,6 +259,13 @@ class Dpa(object):
     logging.debug('  protected points: %s', self.protected_points)
     pool = mpool.Pool()
     self.ResetLists()
+    # Detect the inside "inside grants", which will allow to
+    # add them into move list for sure later on.
+    inside_grants = set()
+    if self.geometry and not isinstance(self.geometry, sgeo.Point):
+      inside_grants = set(g for g in self._grants
+                          if sgeo.Point(g.longitude, g.latitude).intersects(self.geometry))
+
     for chan_idx, (low_freq, high_freq) in enumerate(self._channels):
       moveListConstraint = functools.partial(
           ml.moveListConstraint,
@@ -273,6 +285,10 @@ class Dpa(object):
       # Combine the individual point move lists
       move_list = set().union(*move_list)
       nbor_list = set().union(*nbor_list)
+      include_grants = ml.filterGrantsForFreqRange(
+          inside_grants, low_freq * 1.e6, high_freq * 1.e6)
+      move_list.update(include_grants)
+      nbor_list.update(include_grants)
       self.move_lists[chan_idx] = move_list
       self.nbor_lists[chan_idx] = nbor_list
 
@@ -831,6 +847,7 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
                         dpa_zone.catAOOBNeighborhoodDistanceKm,
                         dpa_zone.catBOOBNeighborhoodDistanceKm)
   return Dpa(protection_points,
+             geometry=dpa_zone.geometry,
              name=dpa_name,
              threshold=protection_threshold,
              radar_height=radar_height,

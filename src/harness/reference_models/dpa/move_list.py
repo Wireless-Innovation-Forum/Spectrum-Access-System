@@ -99,6 +99,22 @@ def findDpaType(low_freq, high_freq):
   raise ValueError('Invalid DPA frequency range')
 
 
+def filterGrantsForFreqRange(grants, low_freq, high_freq):
+  """Returns a list of all grants affecting a protected frequency range.
+
+  Args:
+    grants: A list of |data.CbsdGrantInfo| grants.
+    low_freq: The minimum frequency (Hz).
+    high_freq: The maximum frequency (Hz).
+  """
+  chan_type = findDpaType(low_freq, high_freq)
+  if chan_type == DpaType.OUT_OF_BAND:
+    # All grants affect COCHANNEL, including those higher than 3650MHz.
+    return grants
+  return [g for g in grants
+          if (min(g.high_frequency, high_freq) - max(g.low_frequency, low_freq)) > 0]
+
+
 def findGrantsInsideNeighborhood(grants, constraint,
                                  dpa_type,
                                  neighbor_distances):
