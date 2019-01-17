@@ -146,14 +146,16 @@ def PpaCreationModel(devices, pal_records):
   # after Census Tract Clipping
   contour_union = ops.cascaded_union(device_polygon)
   logging.info('contour_union = %s', contour_union)
-  ppa_polygon = _ClipPpaByCensusTract(contour_union, pal_records)
+
+  ppa_without_small_holes = utils.PolyWithoutSmallHoles(contour_union)
+  logging.info('ppa_without_small_holes = %s', ppa_without_small_holes)
+
+  ppa_polygon = _ClipPpaByCensusTract(ppa_without_small_holes, pal_records)
   logging.info('contour_union clipped by census tracts: %s', ppa_polygon)
   if ppa_polygon.is_empty:
     raise Exception("Empty Polygon is generated, please check the inputs.")
   if ppa_polygon.geom_type == "MultiPolygon":
     raise Exception("Multi Polygon is not supported, please check the inputs.")
-  ppa_without_small_holes = utils.PolyWithoutSmallHoles(ppa_polygon)
-  logging.info('ppa_without_small_holes = %s', ppa_without_small_holes)
 
   # Convert Shapely Object to GeoJSON geometry string
-  return utils.ToGeoJson(ppa_without_small_holes)
+  return utils.ToGeoJson(ppa_polygon)
