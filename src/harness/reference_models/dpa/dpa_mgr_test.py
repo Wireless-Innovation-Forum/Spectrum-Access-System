@@ -16,9 +16,12 @@
 from collections import namedtuple
 import json
 import os
+import shutil
+import tempfile
 import unittest
 
 import numpy as np
+import shapely.geometry as sgeo
 
 from reference_models.common import data
 from reference_models.geo import zones
@@ -36,10 +39,13 @@ ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 class TestDpa(unittest.TestCase):
 
   def setUp(self):
-    self.original_itm = wf_itm.CalcItmPropagationLoss
+    self.temp_dir = tempfile.mkdtemp()
+    self.orig_dpa_log_dir = dpa_mgr.GetDpaLogDir
+    dpa_mgr.GetDpaLogDir = lambda: self.temp_dir
 
   def tearDown(self):
-    wf_itm.CalcItmPropagationLoss = self.original_itm
+    dpa_mgr.GetDpaLogDir = self.orig_dpa_log_dir
+    shutil.rmtree(self.temp_dir, ignore_errors=True)
 
   def test_channelization(self):
     channels = dpa_mgr.GetDpaProtectedChannels([(3550, 3650)], is_portal_dpa=False)
@@ -101,6 +107,8 @@ class TestDpa(unittest.TestCase):
     grants_th = data.getGrantsFromRequests(regs[4:], grants[4:])
     channel = (3600, 3610)
     dpa = dpa_mgr.Dpa(protection_points,
+                      geometry=sgeo.Polygon([(pt.longitude, pt.latitude)
+                                             for pt in protection_points]),
                       name='test(East1)',
                       threshold=-144,
                       beamwidth=3,
@@ -125,7 +133,7 @@ class TestDpa(unittest.TestCase):
     result = dpa.CheckInterference([grants_uut[2], grants_th[1]],
                                     margin_db=0.01,
                                     do_abs_check_single_uut=True,
-                                    extensive_print=False)
+                                    extensive_print=True)
     self.assertEqual(result, False)
 
 
