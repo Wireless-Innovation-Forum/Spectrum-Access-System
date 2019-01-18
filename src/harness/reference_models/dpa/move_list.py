@@ -40,6 +40,7 @@ from enum import Enum
 import logging
 
 import numpy as np
+import shapely.geometry as sgeo
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
 from shapely.geometry import MultiPolygon as MPolygon
@@ -54,7 +55,7 @@ from reference_models.antenna import antenna
 
 # Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 # Monte Carlo percentile for protection
-PROTECTION_PERCENTILE = 95      
+PROTECTION_PERCENTILE = 95
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
 FREQ_PROP_MODEL = 3625.0
@@ -495,7 +496,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
   return (movelist_grants, neighbor_grants)
 
 
-def getDpaNeighborGrants(grants, protection_points,
+def getDpaNeighborGrants(grants, protection_points, dpa_geometry,
                          low_freq, high_freq, neighbor_distances):
   """Gets the list of actual neighbor grants of a DPA, for a given channel.
 
@@ -505,6 +506,7 @@ def getDpaNeighborGrants(grants, protection_points,
     grants:  A list of CBSD |data.CbsdGrantInfo| active grants.
     protection_points: A list of protection point locations defining the DPA, each one
       having attributes 'latitude' and 'longitude'.
+    dpa_geometry: The DPA |shapely.geometry| for detection of inside grants.
     low_freq: The low frequency of protection constraint (Hz).
     high_freq: The high frequency of protection constraint (Hz).
     neighbor_distances: The neighborhood distances (km) as a sequence:
@@ -516,6 +518,11 @@ def getDpaNeighborGrants(grants, protection_points,
   dpa_type = findDpaType(low_freq, high_freq)
 
   neighbor_grants = set()
+  if dpa_geometry and not isinstance(dpa_geometry, sgeo.Point):
+    inside_grants = set(g for g in grants
+                        if sgeo.Point(g.longitude, g.latitude).intersects(dpa_geometry))
+    neighbor_grants = set(filterGrantsForFreqRange(inside_grants, low_freq, high_freq))
+
   for point in protection_points:
     # Assign values to the protection constraint
     constraint = data.ProtectionConstraint(latitude=point.latitude,

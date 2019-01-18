@@ -468,7 +468,7 @@ class Dpa(object):
       # used for logging purpose (although it could be passed to the interference
       # check routine for faster operation).
       est_keep_list_uut_managing_sas = ml.getDpaNeighborGrants(
-          sas_uut_active_grants, self.protected_points,
+          sas_uut_active_grants, self.protected_points, self.geometry,
           low_freq=channel[0] * 1e6, high_freq=channel[1] * 1e6,
           neighbor_distances=self.neighbor_distances)
       try:
