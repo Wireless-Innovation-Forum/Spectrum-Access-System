@@ -146,8 +146,8 @@ def _Request(url, request, config, is_post_method):
       error_message += ' %s\n' % str(e)
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
   if error_message:
-    raise Exception(error_message.strip())
-
+    logging.error(error_message.strip())
+    raise
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
