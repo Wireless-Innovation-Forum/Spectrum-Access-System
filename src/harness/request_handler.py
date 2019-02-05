@@ -145,7 +145,7 @@ def _Request(url, request, config, is_post_method):
     except Exception as e:
       error_message += ' %s\n' % str(e)
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
-  if error_message != '':
+  if error_message:
     raise Exception(error_message.strip())
 
   http_code = conn.getinfo(pycurl.HTTP_CODE)
