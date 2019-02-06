@@ -20,7 +20,10 @@ import StringIO
 import urlparse
 import os
 import pycurl
+import time
 
+MAX_REQUEST_ATTEMPT_COUNT = 6
+REQUEST_ATTEMPT_DELAY_SECOND = 5
 
 class HTTPError(Exception):
   """HTTP error, ie. any HTTP code not in range [200, 299].
@@ -100,6 +103,7 @@ def _Request(url, request, config, is_post_method):
     HTTPError: for any HTTP code not in the range [200, 299]. Refer to:
       https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   """
+  error_message = ''
   response = StringIO.StringIO()
   conn = pycurl.Curl()
   conn.setopt(conn.URL, url)
@@ -127,12 +131,29 @@ def _Request(url, request, config, is_post_method):
     logging.info('POST Request to URL %s :\n%s', url, request)
   else:
     logging.info('GET Request to URL %s', url)
-  try:
-    conn.perform()
-  except pycurl.error as e:
-    # e contains a tuple (libcurl_error_code, string_description).
-    # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-    raise CurlError(e.args[1], e.args[0])
+
+  error_occurred = False
+
+  for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
+    try:
+      conn.perform()
+      error_occurred = False
+      break
+    except pycurl.error as e:
+      # e contains a tuple (libcurl_error_code, string_description).
+      # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
+      error_occurred = True
+      logging.warning(str(CurlError(e.args[1], e.args[0])))
+      time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
+    except Exception as e:
+      error_occurred = True
+      logging.warning(str(e))
+      time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
+
+  if error_occurred:
+    logging.error('Connection to Host Failed after %d attempts' %MAX_REQUEST_ATTEMPT_COUNT)
+    raise
+
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
