@@ -132,22 +132,28 @@ def _Request(url, request, config, is_post_method):
   else:
     logging.info('GET Request to URL %s', url)
 
+  error_occurred = False
+
   for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
     try:
       conn.perform()
-      error_message = ''
+      error_occurred = False
       break
     except pycurl.error as e:
       # e contains a tuple (libcurl_error_code, string_description).
       # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-      error_message += ' %s\n' % str(CurlError(e.args[1], e.args[0]))
+      error_occurred = True
+      logging.warning(str(CurlError(e.args[1], e.args[0])))
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
     except Exception as e:
-      error_message += ' %s\n' % str(e)
+      error_occurred = True
+      logging.warning(str(e))
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
-  if error_message:
-    logging.error(error_message.strip())
+
+  if error_occurred:
+    logging.error('Connection to Host Failed after %d attempts' %MAX_REQUEST_ATTEMPT_COUNT)
     raise
+
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue()
