@@ -18,15 +18,23 @@ look here how the setup is performed.
 It is particularly important to correctly set the geo drivers
 and multiprocessing pool for best performance
 """
+import argparse
 import logging
 import os
 import sys
 import unittest
 
-
 from reference_models.common import mpool
 from reference_models.geo import drive
 
+#----------------------------------------
+# Setup the command line arguments
+parser = argparse.ArgumentParser(description='Test Main')
+# - Generic config.
+parser.add_argument('--log_level', type=str, default='info',
+                    help='Logging level: debug, info, warning or error')
+
+# Setup the logger
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(
@@ -34,6 +42,13 @@ handler.setFormatter(
         '[%(levelname)s] %(asctime)s %(filename)s:%(lineno)d %(message)s'))
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
+
+_LOGGER_MAP = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR
+}
 
 # Multi-processing
 # Number of worker processes allocated for heavy duty calculation,
@@ -114,6 +129,10 @@ def GetGeoCacheSize(num_workers):
 
 
 if __name__ == '__main__':
+  # Process the commad line arguments.
+  options = parser.parse_args()
+  logging.getLogger().setLevel(_LOGGER_MAP[options.log_level.lower()])
+
   # Configure the multiprocessing worker pool.
   # Your options are:
   #   0: single process (default if not called)

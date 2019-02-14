@@ -38,8 +38,8 @@ class TestPpa(unittest.TestCase):
     drive.ConfigureCensusTractDriver(TEST_DIR)
     # Load the common setup to all tests
     user_id = 'pal_user_id_0'
-    pal_record_filenames = ['pal_record_1.json']
-    device_filenames = ['device_b.json']
+    pal_record_filenames = ['pal_record_1.json', 'pal_record_2.json']
+    device_filenames = ['device_b.json', 'device_c.json']
     pal_low_frequency = 3550000000
     pal_high_frequency = 3650000000
     cls.devices = [json.load(open(os.path.join(TEST_DIR, device_filename)))
@@ -70,7 +70,7 @@ class TestPpa(unittest.TestCase):
             dist_km=16.0, bearing=angle)[1::-1]  # reverse to lng,lat
          for angle in xrange(360)])
 
-    ppa_zone = ppa.PpaCreationModel(TestPpa.devices, TestPpa.pal_records)
+    ppa_zone = ppa.PpaCreationModel(TestPpa.devices[0:1], TestPpa.pal_records[0:1])
     ppa_zone = json.loads(ppa_zone)
 
     self.assertAlmostSamePolygon(
@@ -83,11 +83,24 @@ class TestPpa(unittest.TestCase):
     expected_ppa = sgeo.Polygon([(-80.3, 30.3), (-80.7, 30.3),
                                  (-80.7, 30.7), (-80.3, 30.7)])
 
-    ppa_zone = ppa.PpaCreationModel(TestPpa.devices, TestPpa.pal_records)
+    ppa_zone = ppa.PpaCreationModel(TestPpa.devices[0:1], TestPpa.pal_records[0:1])
     ppa_zone = json.loads(ppa_zone)
 
     self.assertAlmostSamePolygon(
         utils.ToShapely(ppa_zone), expected_ppa, 0.001)
+
+  def test_ClippedPpaByCensusWithSmallHoles(self):
+    # Configuring for -96dBm circle above 40km
+    wf_hybrid.CalcHybridPropagationLoss = testutils.FakePropagationPredictor(
+        dist_type='REAL', factor=1.0, offset=(96+30-0.1) - 45.0)
+
+    ppa_zone = ppa.PpaCreationModel(TestPpa.devices[1:], TestPpa.pal_records[1:])
+    ppa_zone = json.loads(ppa_zone)
+
+    census_zone = utils.ToShapely(
+        drive.census_tract_driver.GetCensusTract('06027000100')
+        ['features'][0]['geometry'])
+    self.assertTrue(utils.ToShapely(ppa_zone).buffer(-1e-6).within(census_zone))
 
 
 if __name__ == '__main__':

@@ -220,10 +220,11 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self._sas.GetFullActivityDump(client_cert, client_key)
 
-  def assertTlsHandshakeFailure(self, client_cert, client_key, ciphers=None, ssl_method=None):
+  def assertTlsHandshakeFailure(self, base_url, client_cert, client_key, ciphers=None, ssl_method=None):
     """
     Checks that the TLS handshake failure by varying the given parameters
     Args:
+      base_url: Target host (defaults to port 443) or host:port.
       client_cert: client certificate file in PEM format to use.
       client_key: associated key file in PEM format to use with the
         given |client_cert|.
@@ -240,7 +241,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       ssl_method = SSL.TLSv1_2_METHOD
 
     self.assertFalse(
-        self.doTlsHandshake(self._sas_admin._base_url, client_cert, client_key,
+        self.doTlsHandshake(base_url, client_cert, client_key,
                             ciphers, ssl_method),
         "Handshake succeeded unexpectedly")
 
@@ -258,7 +259,14 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       is_sas: boolean to determine next request
     """
     try:
-      self.assertTlsHandshakeFailure(client_cert, client_key, ciphers, ssl_method)
+      if is_sas:
+        # This uses the same base_url as GetFullActivityDump().
+        base_url = self._sas.sas_sas_active_base_url
+      else:
+        # This uses the same base_url as Registration().
+        base_url = self._sas.cbsd_sas_active_base_url
+      self.assertTlsHandshakeFailure(base_url, client_cert, client_key,
+                                     ciphers, ssl_method)
     except AssertionError as e:
       try:
         if is_sas:

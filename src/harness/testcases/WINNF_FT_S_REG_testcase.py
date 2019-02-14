@@ -1014,18 +1014,42 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     # Check registration responses.
     self.assertEqual(len(responses), len(config['registrationRequests']))
+    has_error = False
     for i in range(len(responses)):
       response = responses[i]
       expected_response_codes = config['expectedResponseCodes'][i]
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error(
+            'Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+            i, expected_response_codes, response_code)
+        request = config['registrationRequests'][i]
+        logging.error('Registration request: %s', config['registrationRequests'][i])
+        for data in config['conditionalRegistrationData']:
+          if data['fccId'] == request['fccId'] and data[
+              'cbsdSerialNumber'] == request['cbsdSerialNumber']:
+            logging.error('Corresponding REG-conditional data: %s', data)
+
+      # Check for existence/absence of CBSD ID.
       if response['response']['responseCode'] == 0:  # SUCCESS
-        self.assertTrue('cbsdId' in response)
-      else:
-        self.assertFalse('cbsdId' in response)
+        if 'cbsdId' not in response:
+          has_error = True
+          logging.error('Error: CBSD ID not found in response %d (%s)', i, response)
+      else:  # Not SUCCESS
+        if 'cbsdId' in response:
+          has_error = True
+          logging.error('Error: CBSD ID found in response %d (%s)', i, response)
+
+    # Outside the 'for' loop.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
 
   def generate_REG_12_default_config(self, filename):
     """Generates the WinnForum configuration for REG.12."""
@@ -1119,6 +1143,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       self.assertEqual(response['response']['responseCode'], 0)
       self.assertTrue('cbsdId' in response)
+    original_responses = responses
     del request, responses
 
     # Blacklist N5 CBSD
@@ -1130,6 +1155,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     responses = self._sas.Registration(request)['registrationResponse']
 
     # Check registration responses.
+    has_error = False
     self.assertEqual(len(responses), len(config['reregistrationRequests']))
     for i, response in enumerate(responses):
       response = responses[i]
@@ -1137,12 +1163,41 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
-      if response['response']['responseCode'] == 0:
-        self.assertTrue('cbsdId' in response)
-      else:
-        self.assertFalse('cbsdId' in response)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error(
+            'Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+            i, expected_response_codes, response_code)
+        request = config['reregistrationRequests'][i]
+        logging.error('Re-registration request: %s', request)
+        for req, resp in zip(config['registrationRequests'],
+                             original_responses):
+          if request['fccId'] == req['fccId'] and request[
+              'cbsdSerialNumber'] == req['cbsdSerialNumber']:
+            logging.error('Original registration request: %s', req)
+            logging.error('Original registration response: %s', resp)
+        for data in config['conditionalRegistrationData']:
+          if data['fccId'] == request['fccId'] and data[
+              'cbsdSerialNumber'] == request['cbsdSerialNumber']:
+            logging.error('Corresponding REG-conditional data: %s', data)
+
+      # Check for existence/absence of CBSD ID.
+      if response['response']['responseCode'] == 0:  # SUCCESS
+        if 'cbsdId' not in response:
+          has_error = True
+          logging.error('Error: CBSD ID not found in response %d (%s)', i, response)
+      else:  # Not SUCCESS
+        if 'cbsdId' in response:
+          has_error = True
+          logging.error('Error: CBSD ID found in response %d (%s)', i, response)
+
+    # Outside the 'for' loop.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
 
   def generate_REG_13_default_config(self, filename):
     """Generates the WinnForum configuration for REG.13."""
@@ -1204,3 +1259,4 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     except HTTPError as e:
       # Allow HTTP status 404
       self.assertEqual(e.error_code, 404)
+

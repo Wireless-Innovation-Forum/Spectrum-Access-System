@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>P-DPAs</name>
+	<ExtendedData>
+		<Data name="version">
+			<value>1.0.3</value>
+		</Data>
+		<Data name="creationDate">
+			<value>2018-05-29</value>
+		</Data>
+		<Data name="Disclaimer">
+			<value>The Category and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
+		</Data>
+	</ExtendedData>
+	<gx:balloonVisibility>1</gx:balloonVisibility>
+	<Placemark>
+		<name>test_one_point</name>
+		<Snippet maxLines="0"></Snippet>
+		<ExtendedData>
+			<Data name="portalOrg">
+				<value>Portal test</value>
+			</Data>
+			<Data name="freqRangeMHz">
+				<value>3550-3650</value>
+			</Data>
+			<Data name="federalOp">
+				<value>True</value>
+			</Data>
+			<Data name="protectionCritDbmPer10MHz">
+				<value>-144</value>
+			</Data>
+			<Data name="refHeightMeters">
+				<value>12</value>
+			</Data>
+			<Data name="antennaBeamwidthDeg">
+				<value>3</value>
+			</Data>
+			<Data name="minAzimuthDeg">
+				<value>0</value>
+			</Data>
+			<Data name="maxAzimuthDeg">
+				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>NaN</value>
+			</Data>
+			<Data name="catBOOBNeighborhoodDistanceKm">
+				<value>NaN</value>
+			</Data>
+			<Data name="catANeighborhoodDistanceKm">
+				<value>NaN</value>
+			</Data>
+			<Data name="catAOOBNeighborhoodDistanceKm">
+				<value>NaN</value>
+			</Data>
+		</ExtendedData>
+		<Point>
+			<coordinates>-117.20591,32.47601,0</coordinates>
+		</Point>
+	</Placemark>
+	</Document>
+</kml>

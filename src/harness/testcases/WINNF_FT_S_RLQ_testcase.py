@@ -578,13 +578,23 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     # Check relinquishment response
     self.assertEqual(len(responses), len(config['expectedResponseCodesFirst']))
     relinquished_grant_ids = []
+    has_error = False
     for i, response in enumerate(responses):
       expected_response_codes = config['expectedResponseCodesFirst'][i]
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error(
+            'Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+            i, expected_response_codes, response_code)
+        logging.error('Relinquishment request: %s', config['relinquishmentRequestsFirst'][i])
+        logging.error('Relinquishment response: %s', response)
+
       # "If the corresponding request contained a valid cbsdId and grantId, the
       # response shall contain the same grantId."
       if 'cbsdId' and 'grantId' in relinquishment_request[i]:
@@ -599,6 +609,12 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
             relinquished_grant_ids.append(response['grantId'])
     del request, responses
 
+    # Outside the 'for' loop.
+    # Test will stop here if there are any errors, else continue.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
+
     # Second relinquishment
     relinquishment_request = config['relinquishmentRequestsSecond']
     addCbsdIdsToRequests(cbsd_ids, relinquishment_request)
@@ -612,8 +628,17 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error(
+            'Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+            i, expected_response_codes, response_code)
+        logging.error('Relinquishment request: %s', config['relinquishmentRequestsSecond'][i])
+        logging.error('Relinquishment response: %s', response)
+
       if 'cbsdId' and 'grantId' in relinquishment_request[i]:
         if (relinquishment_request[i]['cbsdId'] in cbsd_ids) and (
             relinquishment_request[i]['grantId'] in grant_ids):
@@ -625,4 +650,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
               self.assertEqual(response['grantId'],
                                relinquishment_request[i]['grantId'])
 
+    # Outside the 'for' loop.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
 

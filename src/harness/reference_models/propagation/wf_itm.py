@@ -130,7 +130,7 @@ def CalcItmPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
   # Case of same points
   if (lat_cbsd == lat_rx and lon_cbsd == lon_rx):
     return _PropagResult(
-        db_loss = 0,
+        db_loss = 0 if np.isscalar(reliability) else [0] * len(reliability),
         incidence_angles = _IncidenceAngles(0,0,0,0),
         internals = None)
 

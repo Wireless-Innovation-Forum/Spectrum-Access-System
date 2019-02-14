@@ -35,6 +35,9 @@ REF_BW = 5.e6
 # OOBE Margin
 FSS_OOBE_MARGIN = 1
 
+# Offset to apply on MCBSD for the reference bandwidth
+OFFSET_REF_BW_DB = 10*np.log10(REF_BW / interf.MHZ)
+
 # Define named tuple
 grants_cbsds_namedtuple = namedtuple('grants_cbsds_namedtuple', ['grant', 'cbsd'])
 
@@ -170,9 +173,9 @@ def calculateOobeInterference(grants_cbsds_oobe_info, fss_point, fss_info):
 
 
 def getMcbsdValue(grant):
-  """Returns the MCBSD (OOBE emission mask) value in dB for a grant.
+  """Returns the MCBSD (OOBE emission mask) value for a grant.
 
-  MCBSD is the CBSD conducted power (in dBm) on the frequency segment,
+  MCBSD is the CBSD conducted power (in dBm) on the reference frequency segment,
   using the Tx mask of CBSD according to R0-DEV-05(e).
 
   Args:
@@ -180,7 +183,7 @@ def getMcbsdValue(grant):
   """
   return (-13
           if grant['operationParam']['operationFrequencyRange']['highFrequency'] > 3690e6
-          else -25)
+          else -25) + OFFSET_REF_BW_DB
 
 
 def getGrantInfoListForFssOobeCalculation(cbsds):
@@ -228,10 +231,11 @@ def fssPurgeReferenceModel(sas_uut_fad, sas_test_harness_fads, fss_records):
   ids_to_purge = set()
 
   for fss_record in fss_records:
-    # If the FSS is of TT&C type then perform the FSS purge model for the FSS.
-    if fss_record['ttc']:
+    fss_point, fss_info, freq_range = data.getFssInfo(fss_record)
+    _, fss_high_freq = freq_range
+    # If the FSS is of TT&C type and the FSS high frequency is above 3700 MHz then perform the FSS purge model for the FSS.
+    if fss_record['ttc'] and fss_high_freq > interf.FSS_TTC_LOW_FREQ_HZ :
       logging.info('Running purge list for FSS record (%s).', fss_record)
-      fss_point, fss_info, _ = data.getFssInfo(fss_record)
       neighboring_cbsds_with_grants = pre_iap_util.getFssNeighboringCbsdsWithGrants(
           cbsds, fss_point, 40)
       if neighboring_cbsds_with_grants:

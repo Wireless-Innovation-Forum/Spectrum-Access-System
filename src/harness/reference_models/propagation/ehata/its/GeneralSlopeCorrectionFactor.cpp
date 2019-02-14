@@ -7,15 +7,15 @@
 *       theta_m__mrad : mobile terrain slope, in millirads
 *       d__km : path distance, in kilometers
 *   Return:
-*       [float] : correction factor
+*       [double] : correction factor
 */
-float GeneralSlopeCorrectionFactor(float theta_m__mrad, float d__km)
+double GeneralSlopeCorrectionFactor(double theta_m__mrad, double d__km)
 {
-    float emm1 = 0.25;
-    float emm2 = 0.8;
-    float emp1 = 0.125;
-    float emp2 = 0.35;
-    float emp3 = 0.6;
+    double emm1 = 0.25;
+    double emm2 = 0.8;
+    double emp1 = 0.125;
+    double emp2 = 0.35;
+    double emp3 = 0.6;
 
     // computing values from the curves on Fig 34 in Okumura
     if (theta_m__mrad <= 0.0)

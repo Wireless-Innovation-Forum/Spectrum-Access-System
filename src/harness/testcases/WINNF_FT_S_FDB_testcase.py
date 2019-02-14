@@ -1002,6 +1002,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load the configuration file
     config = loadConfig(config_filename)
 
+    self.check_default_test_not_expired()
+
     # Very light checking of the config file.
     self.assertEqual(len(config['registrationRequests']),
                      len(config['grantRequests']))
@@ -1185,6 +1187,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
 
     # Load the configuration file
     config = loadConfig(config_filename)
+
+    self.check_default_test_not_expired()
 
     # Very light checking of the config file.
     self.assertEqual(len(config['grantRequests']),
@@ -1419,13 +1423,11 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Fetching current time in CPAS time zone
     current_time = datetime.now(timezone(CPAS_TIME_ZONE))
 
+    # Calculate the scheduled CPAS start time.
+    scheduled_cpas_start_time =  timezone(CPAS_TIME_ZONE).localize(datetime.combine(current_time.date(), time(CPAS_START_TIME)))
+
     # Checks if CPAS start time is over then wait till next day otherwise
     # wait till scheduled CPAS starts
-    scheduled_cpas_start_time = datetime.combine(current_time.date(), time(CPAS_START_TIME))
-
-    # Scheduled CPAS start time is made consistent with the CPAS_TIME_ZONE
-    scheduled_cpas_start_time = scheduled_cpas_start_time.replace(tzinfo=timezone(CPAS_TIME_ZONE))
-
     if scheduled_cpas_start_time < current_time:
       scheduled_cpas_start_time += timedelta(days=1)
 
@@ -1467,3 +1469,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Check the heartbeat response code is 500(TERMINATED_GRANT)
     for resp in heartbeat_responses:
       self.assertEqual(resp['response']['responseCode'], 500)
+
+  def check_default_test_not_expired(self):
+    """Check the expiration date in the default configs has not been reached."""
+    if datetime.now() > datetime.strptime('2028-09-23', '%Y-%m-%d') - timedelta(days=1):
+      logging.error('Test is being run near or past the expiration date of the '
+                    'default database. This test may fail. Is this testcase '
+                    'still required?')

@@ -176,14 +176,37 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     # Max. one protected entity.
     protected_entities = config['iterationData'][0]['protectedEntities']
-    if 'ppaRecords' in protected_entities:
-      self.assertTrue('palRecords' in protected_entities,
-                      'Must define PAL records if a PPA is to be injected.')
-      self.assertEqual(len(protected_entities.keys()), 2)
+
+    def getNumberOfEntities(entity_type):
+      if entity_type not in protected_entities:
+        return 0
+      else:
+        return len(protected_entities[entity_type])
+
+    if getNumberOfEntities('ppaRecords') > 0 or getNumberOfEntities(
+        'palRecords') > 0:
+      self.assertGreaterEqual(
+          getNumberOfEntities('ppaRecords'), 1,
+          'Must define at least one PPA record.')
+      self.assertGreaterEqual(
+          getNumberOfEntities('palRecords'), 1,
+          'Must define at least one PAL record if a PPA is to be injected.')
+      for entity_type in [
+          'escRecords', 'gwpzRecords', 'gwblRecords', 'fssRecords'
+      ]:
+        self.assertEqual(
+            getNumberOfEntities(entity_type), 0,
+            'May not define any additional protected entities in an xPR test case; found extra entities in "%s".'
+            % entity_type)
     else:
+      entity_count = 0
+      for entity_type in [
+          'escRecords', 'gwpzRecords', 'gwblRecords', 'fssRecords'
+      ]:
+        entity_count += getNumberOfEntities(entity_type)
       self.assertEqual(
-          len(protected_entities.keys()), 1,
-          'Must define only one protected entity for an xPR test case.')
+          entity_count, 1,
+          'Must define exactly one protected entity for an xPR test case.')
 
     if test_type == 'xPR1':
       # No SAS test harnesses.
@@ -214,6 +237,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
                  self.test_type, self.num_peer_sases)
     self.sas_uut_fad = None
     self.test_harness_fads = []
+    self.all_dpa_checks_succeeded = True
 
     logging.info('Creating domain proxies.')
     for domain_proxy in config['domainProxyConfigs']:
@@ -271,6 +295,11 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       # Execute steps for single iteration
       self.executeSingleMCPIteration(iteration_content)
 
+    # Fail now (at the end) if any DPA check failed anywhere in the test.
+    self.assertTrue(
+        self.all_dpa_checks_succeeded,
+        'At least one DPA check failed; please see logs for details.')
+
     # Stop test harness servers.
     for test_harness in self.sas_test_harness_objects:
       test_harness.shutdown()
@@ -299,7 +328,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
     if 'gwblRecords' in iteration_content['protectedEntities']:
       logging.info('Injecting GWBL records.')
-      for index, gwbl_record in enumerate(iteration_content['protectedEntities']):
+      for index, gwbl_record in enumerate(iteration_content['protectedEntities']['gwblRecords']):
         try:
           logging.info('Injecting GWBL record #%d', index)
           self._sas_admin.InjectWisp(gwbl_record)
@@ -377,6 +406,7 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
       for test_harness, test_harness_data in zip(
           self.sas_test_harness_objects,
           iteration_content['sasTestHarnessData']):
+        self.InjectTestHarnessFccIds(test_harness_data['cbsdRecords'])
         test_harness.writeFadRecords([test_harness_data['cbsdRecords']])
 
       # Pull FAD from SAS Test Harnesses; a FAD object is created for each SAS Test Harness.
@@ -499,10 +529,14 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           active_dpa['dpaId'], active_dpa['frequencyRange']['lowFrequency'],
           active_dpa['frequencyRange']['highFrequency'])
       dpa = self.dpa_managers[dpa_combined_id]
-      self.assertTrue(dpa.CheckInterference(
+      this_dpa_check_succeeded = dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=self.dpa_margins[dpa_combined_id],
-          do_abs_check_single_uut=(self.num_peer_sases==0)))
+          do_abs_check_single_uut=(self.num_peer_sases == 0))
+      if not this_dpa_check_succeeded:
+        logging.error('Check for DPA %s FAILED.', active_dpa['dpaId'])
+        self.all_dpa_checks_succeeded = False
+
     logging.info('Waiting for aggregate interference check to complete')
     self.aggregate_interference_check.result()
     logging.info('Aggregate interference check is now COMPLETE.')
@@ -575,7 +609,9 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           # Store the IAP results for future comparison.
           self.fss_cochannel_ap_iap_ref_values_list.append(None)
           self.fss_blocking_ap_iap_ref_values_list.append(fss_blocking_ap_iap_ref_values)
-
+        else:
+          self.fss_cochannel_ap_iap_ref_values_list.append(None)
+          self.fss_blocking_ap_iap_ref_values_list.append(None)
     # Calculate the interference value for all ESCs.
     if 'escRecords' in self.protected_entity_records:
       for esc_record in self.protected_entity_records['escRecords']:

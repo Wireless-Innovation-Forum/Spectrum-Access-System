@@ -14,6 +14,7 @@
 
 """An example of the DPA move list and interference check."""
 import json
+import logging
 import os
 import time
 from collections import namedtuple
@@ -122,9 +123,24 @@ if __name__ == '__main__':
   active_uut_grants = [grant for grant in grants_uut
                        if grant in keep_list]
   check = dpa_ref.CheckInterference(active_uut_grants,
-                                    margin_db=margin_db)
+                                    margin_db=margin_db,
+                                    extensive_print=False)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+
+  # - same but with special margin modes
+  logging.getLogger().setLevel(logging.INFO)
+  dpa_uut.move_lists[0].pop()  # make it bad
+  keep_list = dpa_uut.GetKeepList(channel)
+  active_uut_grants = [grant for grant in grants_uut
+                       if grant in keep_list]
+  print '-- Failing UUT model - absolute target ---'
+  check = dpa_ref.CheckInterference(active_uut_grants,
+                                    margin_db='target (1.5)')
+  print '-- Failing UUT model - linear target ---'
+  check = dpa_ref.CheckInterference(active_uut_grants,
+                                    margin_db='linear (1.5)')
+  logging.getLogger().setLevel(logging.WARNING)
 
   # Simulate a single SAS UUT (no peer SAS)
   print '-- Single UUT model --'
@@ -135,7 +151,8 @@ if __name__ == '__main__':
                        if grant in keep_list]
   check = dpa_uut.CheckInterference(active_uut_grants,
                                     margin_db=margin_db,
-                                    do_abs_check_single_uut=True)
+                                    do_abs_check_single_uut=True,
+                                    extensive_print=False)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
 
@@ -150,10 +167,10 @@ if __name__ == '__main__':
                          freq_ranges_mhz=[channel])
   check = dpa_suut.CheckInterference(active_uut_grants,
                                      margin_db=margin_db,
-                                     do_abs_check_single_uut=True)
+                                     do_abs_check_single_uut=True,
+                                     extensive_print=False)
   print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
   print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
-
 
   # Simulate the BuildDpa feature for various types
   print '\n-- Test Build DPAs --'
@@ -164,6 +181,11 @@ if __name__ == '__main__':
   dpa_zone = dpa_mgr.BuildDpa('East3',
                               protection_points_method='default(4,2,1,1)')
   print '**East3: %dpts' % len(dpa_zone.protected_points)
+  print dpa_zone
+
+  dpa_zone = dpa_mgr.BuildDpa('East3',
+                              protection_points_method='default(1,0,0,0)')
+  print '**East3 (single pt): %dpts' % len(dpa_zone.protected_points)
   print dpa_zone
 
   dpa_portal = dpa_mgr.BuildDpa('BATH')

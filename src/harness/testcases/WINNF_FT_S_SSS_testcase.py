@@ -212,7 +212,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL})
     try:
-      self.assertTlsHandshakeFailure(client_cert=config['sasCert'],
+      # This uses the same base_url as GetFullActivityDump().
+      self.assertTlsHandshakeFailure(self._sas.sas_sas_active_base_url,
+                                     client_cert=config['sasCert'],
                                      client_key=config['sasKey'])
     except AssertionError:
       trigger_succeed = False
@@ -366,7 +368,10 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     certificate_hash = getCertificateFingerprint(config['sasCert'])
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL })
-    self.assertTlsHandshakeSucceed(self._sas_admin._base_url, ['AES128-GCM-SHA256'], config['sasCert'], config['sasKey'])
+    # This uses the same base_url as GetFullActivityDump().
+    self.assertTlsHandshakeSucceed(self._sas.sas_sas_active_base_url,
+                                   ['AES128-GCM-SHA256'],
+                                   config['sasCert'], config['sasKey'])
     trigger_succeed = False
     # Initiate Full Activity Dump
     try:
@@ -477,7 +482,9 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
 
     # Attempting FAD record download with different invalid cert,key pair
     try:
-      self.assertTlsHandshakeFailure(client_cert=config['invalidCertKeyPair']['cert'],
+      # This uses the same base_url as GetFullActivityDump().
+      self.assertTlsHandshakeFailure(self._sas.sas_sas_active_base_url,
+                                     client_cert=config['invalidCertKeyPair']['cert'],
                                      client_key=config['invalidCertKeyPair']['key'])
     except AssertionError as e:
       try:

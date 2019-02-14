@@ -1,598 +1,598 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
-<Document>
-	<name>P-DPAs</name>
-	<ExtendedData>
-		<Data name="version">
-			<value>1.0.3</value>
-		</Data>
-		<Data name="creationDate">
-			<value>2018-05-29</value>
-		</Data>
-		<Data name="Disclaimer">
-			<value>The Category and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
-		</Data>
-	</ExtendedData>
-	<gx:balloonVisibility>1</gx:balloonVisibility>
-	<Placemark>
-		<name>BARKING SANDS</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>BARKING SANDS</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>12</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-159.78305556,22.05027778,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>BATH</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>BATH</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>30</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>240</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-69.81388889,43.90555556,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>CHINA LAKE</name>
-		<Snippet maxLines="0"></Snippet>
-		<Style>
-			<LineStyle>
-				<color>ffff0000</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>80ffffff</color>
-				<fill>1</fill>
-				<outline>1</outline>
-			</PolyStyle>
-		</Style>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>CHINA LAKE</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>25</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>208</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Polygon>
-			<outerBoundaryIs>
-				<LinearRing>
-					<coordinates>
-						-117.67833333,37.2892601888781,0 -117.895107457528,37.2779914700817,0 -118.108133321222,37.244380364923,0 -118.313737592296,37.1890081003616,0 -118.508394542599,37.1128304216297,0 -118.688794303635,37.0171585645918,0 -118.851904833317,36.9036334341201,0 -118.995026050568,36.7741937460655,0 -119.115835005636,36.6310390289358,0 -119.212421387718,36.4765884726918,0 -119.283313096431,36.3134366559887,0 -119.327491989791,36.1443071833508,0 -119.344400246499,35.9720052267035,0 -119.333938030923,35.7993698997209,0 -119.296453320869,35.6292273075965,0 -119.232724853936,35.4643450178108,0 -119.143939177152,35.3073885968736,0 -119.031662759065,35.1608807599426,0 -118.897810057945,35.027163588969,0 -118.744608348228,34.9083641932142,0 -118.574560002492,34.8063641147103,0 -118.390402818655,34.7227727204301,0 -118.195068879788,34.6589047716676,0 -117.991642342463,34.6157623180151,0 -117.783316472629,34.5940210267429,0 -117.573350187371,34.5940210267429,0 -117.365024317537,34.6157623180151,0 -117.161597780212,34.6589047716676,0 -116.966263841345,34.7227727204301,0 -116.782106657508,34.8063641147103,0 -116.612058311772,34.9083641932142,0 -116.458856602055,35.027163588969,0 -116.325003900935,35.1608807599426,0 -116.212727482848,35.3073885968736,0 -116.123941806064,35.4643450178108,0 -116.060213339131,35.6292273075965,0 -116.022728629077,35.7993698997209,0 -116.012266413501,35.9720052267035,0 -116.029174670209,36.1443071833508,0 -116.073353563569,36.3134366559887,0 -116.144245272282,36.4765884726918,0 -116.240831654364,36.6310390289358,0 -116.361640609432,36.7741937460655,0 -116.504761826683,36.9036334341201,0 -116.667872356365,37.0171585645918,0 -116.848272117401,37.1128304216297,0 -117.042929067704,37.1890081003616,0 -117.248533338778,37.244380364923,0 -117.461559202472,37.2779914700817,0 -117.67833333,37.2892601888781,0 
-					</coordinates>
-				</LinearRing>
-			</outerBoundaryIs>
-		</Polygon>
-	</Placemark>
-	<Placemark>
-		<name>DAHLGREN</name>
-		<Snippet maxLines="0"></Snippet>
-		<Style>
-			<LineStyle>
-				<color>ffff0000</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>80ffffff</color>
-				<fill>1</fill>
-				<outline>1</outline>
-			</PolyStyle>
-		</Style>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>DAHLGREN</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>10</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>400</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Polygon>
-			<outerBoundaryIs>
-				<LinearRing>
-					<coordinates>
-						-77.03694444,38.3557642121184,0 -77.03987752974361,38.3556165072363,0 -77.0427624228314,38.3551758196907,0 -77.0455517163136,38.3544493908134,0 -77.0481995814679,38.3534491569209,0 -77.0506625181783,38.3521915527717,0 -77.0529000706611,38.3506972409914,0 -77.05487549269139,38.3489907719545,0 -77.0565563513448,38.3471001797641,0 -77.05791505931759,38.3450565210205,0 -77.0589293270988,38.342893364014,0 -77.0595825276243,38.3406462367845,0 -77.0598639675119,38.3383520431594,0 -77.05976906054229,38.3360484563981,0 -77.0592994006728,38.3337733004249,0 -77.0584627335375,38.3315639288213,0 -77.0572728270523,38.3294566117709,0 -77.0557492433947,38.3274859410038,0 -77.0539170162297,38.3256842624795,0 -77.0518062385831,38.324081146078,0 -77.0494515682006,38.3227029009544,0 -77.0468916585459,38.3215721444565,0 -77.044168524778,38.3207074316248,0 -77.041326855072,38.3201229512991,0 -77.0384132785147,38.319828293774,0 -77.0354756014853,38.319828293774,0 -77.032562024928,38.3201229512991,0 -77.029720355222,38.3207074316248,0 -77.0269972214541,38.3215721444565,0 -77.0244373117994,38.3227029009544,0 -77.0220826414169,38.324081146078,0 -77.01997186377029,38.3256842624795,0 -77.0181396366053,38.3274859410038,0 -77.0166160529478,38.3294566117709,0 -77.0154261464626,38.3315639288213,0 -77.0145894793272,38.3337733004249,0 -77.0141198194577,38.3360484563981,0 -77.0140249124881,38.3383520431594,0 -77.0143063523757,38.3406462367845,0 -77.0149595529012,38.342893364014,0 -77.0159738206824,38.3450565210205,0 -77.0173325286552,38.3471001797641,0 -77.0190133873087,38.3489907719545,0 -77.0209888093389,38.3506972409914,0 -77.0232263618217,38.3521915527717,0 -77.0256892985321,38.3534491569209,0 -77.0283371636864,38.3544493908134,0 -77.0311264571686,38.3551758196907,0 -77.03401135025641,38.3556165072363,0 -77.03694444,38.3557642121184,0 
-					</coordinates>
-				</LinearRing>
-			</outerBoundaryIs>
-		</Polygon>
-	</Placemark>
-	<Placemark>
-		<name>MCKINNEY</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>MCKINNEY</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>30</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>135</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>225</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>416</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-96.65666667000001,33.21611111,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>MOORESTOWN</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>MOORESTOWN</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>25</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>384</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-74.90138889000001,39.98,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>NEWPORT NEWS</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>NEWPORT NEWS</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>33</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>384</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-76.43888889,36.98055556,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>PORTSMOUTH</name>
-		<Snippet maxLines="0"></Snippet>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>PORTSMOUTH</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>30</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>245</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>340</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>400</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Point>
-			<coordinates>-71.31583333,41.52888889,0</coordinates>
-		</Point>
-	</Placemark>
-	<Placemark>
-		<name>WALLOPS ISLAND</name>
-		<Snippet maxLines="0"></Snippet>
-		<Style>
-			<LineStyle>
-				<color>ffff0000</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>80ffffff</color>
-				<fill>1</fill>
-				<outline>1</outline>
-			</PolyStyle>
-		</Style>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>WALLOPS ISLAND</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>25</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>384</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Polygon>
-			<outerBoundaryIs>
-				<LinearRing>
-					<coordinates>
-						-75.47638889,37.8714240881776,0 -75.4807594403856,37.8712025048916,0 -75.48505814868931,37.8705413973854,0 -75.4892143575692,37.8694516326472,0 -75.4931597593759,37.8679511231042,0 -75.4968295218756,37.8660645312878,0 -75.50016335599091,37.8638228632887,0 -75.5031065078161,37.8612629577842,0 -75.5056106584842,37.8584268791472,0 -75.5076347170574,37.8553612247341,0 -75.5091454934543,37.8521163578585,0 -75.5101182404853,37.8487455791693,0 -75.5105370562865,37.8453042501466,0 -75.5103951408036,37.8418488831946,0 -75.5096949024169,37.8384362133277,0 -75.5084479132862,37.8351222667176,0 -75.5066747144821,37.8319614413871,0 -75.5044044744218,37.8290056151026,0 -75.5016745064959,37.8263032950408,0 -75.49852965403031,37.8238988230956,0 -75.4950215528339,37.8218316497541,0 -75.49120778351509,37.8201356883386,0 -75.4871509274722,37.8188387600849,0 -75.4829175419636,37.8179621390421,0 -75.4785770709118,37.817520204156,0 -75.47420070908819,37.817520204156,0 -75.4698602380364,37.8179621390421,0 -75.46562685252771,37.8188387600849,0 -75.4615699964849,37.8201356883386,0 -75.4577562271661,37.8218316497541,0 -75.4542481259697,37.8238988230956,0 -75.4511032735041,37.8263032950408,0 -75.4483733055782,37.8290056151026,0 -75.4461030655179,37.8319614413871,0 -75.4443298667138,37.8351222667176,0 -75.443082877583,37.8384362133277,0 -75.4423826391964,37.8418488831946,0 -75.4422407237135,37.8453042501466,0 -75.44265953951469,37.8487455791693,0 -75.44363228654569,37.8521163578585,0 -75.44514306294261,37.8553612247341,0 -75.4471671215157,37.8584268791472,0 -75.44967127218391,37.8612629577842,0 -75.4526144240091,37.8638228632887,0 -75.45594825812439,37.8660645312878,0 -75.45961802062411,37.8679511231042,0 -75.4635634224308,37.8694516326472,0 -75.4677196313107,37.8705413973854,0 -75.47201833961429,37.8712025048916,0 -75.47638889,37.8714240881776,0 
-					</coordinates>
-				</LinearRing>
-			</outerBoundaryIs>
-		</Polygon>
-	</Placemark>
-	<Placemark>
-		<name>WHITE SANDS MISSILE RANGE</name>
-		<Snippet maxLines="0"></Snippet>
-		<Style>
-			<LineStyle>
-				<color>ffff0000</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>80ffffff</color>
-				<fill>1</fill>
-				<outline>1</outline>
-			</PolyStyle>
-		</Style>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>WHITE SANDS MISSILE RANGE</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>25</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>208</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Polygon>
-			<outerBoundaryIs>
-				<LinearRing>
-					<coordinates>
-						-106.34583333,34.3616520073984,0 -106.519945771886,34.3523018308499,0 -106.691086021066,34.3244110255237,0 -106.856338594907,34.278455702103,0 -107.012899905457,34.2152192552167,0 -107.158130469526,34.1357774695853,0 -107.289602841125,34.0414782347062,0 -107.405144166164,33.9339163989313,0 -107.502872502235,33.8149043988472,0 -107.581226310279,33.6864393758721,0 -107.6389867906,33.5506675380733,0 -107.675292985988,33.4098465426746,0 -107.689649795854,33.2663066666437,0 -107.681929227841,33.1224115034261,0 -107.652365352586,32.9805188783125,0 -107.601543522511,32.8429426181575,0 -107.530384469798,32.7119157479337,0 -107.440123917419,32.5895556209453,0 -107.332288327455,32.4778314245819,0 -107.208667380374,32.3785344414949,0 -107.071283734932,32.2932513883553,0 -106.9223605675,32.2233411014678,0 -106.764287337295,32.1699147904764,0 -106.599584174646,32.1338200377585,0 -106.430865245991,32.1156286812118,0 -106.260801414009,32.1156286812118,0 -106.092082485354,32.1338200377585,0 -105.927379322705,32.1699147904764,0 -105.7693060925,32.2233411014678,0 -105.620382925068,32.2932513883553,0 -105.482999279626,32.3785344414949,0 -105.359378332545,32.4778314245819,0 -105.251542742581,32.5895556209453,0 -105.161282190202,32.7119157479337,0 -105.090123137489,32.8429426181575,0 -105.039301307414,32.9805188783125,0 -105.009737432159,33.1224115034261,0 -105.002016864146,33.2663066666437,0 -105.016373674012,33.4098465426746,0 -105.0526798694,33.5506675380733,0 -105.110440349721,33.6864393758721,0 -105.188794157765,33.8149043988472,0 -105.286522493836,33.9339163989313,0 -105.402063818875,34.0414782347062,0 -105.533536190474,34.1357774695853,0 -105.678766754543,34.2152192552167,0 -105.835328065093,34.278455702103,0 -106.000580638934,34.3244110255237,0 -106.171720888114,34.3523018308499,0 -106.34583333,34.3616520073984,0 
-					</coordinates>
-				</LinearRing>
-			</outerBoundaryIs>
-		</Polygon>
-	</Placemark>
-	<Placemark>
-		<name>YUMA PROVING GROUNDS</name>
-		<Snippet maxLines="0"></Snippet>
-		<Style>
-			<LineStyle>
-				<color>ffff0000</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>80ffffff</color>
-				<fill>1</fill>
-				<outline>1</outline>
-			</PolyStyle>
-		</Style>
-		<ExtendedData>
-			<Data name="portalOrg">
-				<value>YUMA PROVING GROUNDS</value>
-			</Data>
-			<Data name="freqRangeMHz">
-				<value>3500-3650</value>
-			</Data>
-			<Data name="federalOp">
-				<value>True</value>
-			</Data>
-			<Data name="protectionCritDbmPer10MHz">
-				<value>-144</value>
-			</Data>
-			<Data name="refHeightMeters">
-				<value>5</value>
-			</Data>
-			<Data name="antennaBeamwidthDeg">
-				<value>3</value>
-			</Data>
-			<Data name="minAzimuthDeg">
-				<value>0</value>
-			</Data>
-			<Data name="maxAzimuthDeg">
-				<value>360</value>
-			</Data>
-			<Data name="catBNeighborhoodDistanceKm">
-				<value>208</value>
-			</Data>
-			<Data name="catBOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catANeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-			<Data name="catAOOBNeighborhoodDistanceKm">
-				<value>NaN</value>
-			</Data>
-		</ExtendedData>
-		<Polygon>
-			<outerBoundaryIs>
-				<LinearRing>
-					<coordinates>
-						-114.41472222,33.9039695641431,0 -114.511707697193,33.8987635832733,0 -114.607065919353,33.8832330110511,0 -114.699198708994,33.8576383946752,0 -114.786565399242,33.8224088012891,0 -114.867710001438,33.7781341719592,0 -114.941286531697,33.7255548550922,0 -115.00608198528,33.6655485465669,0 -115.061036526987,33.5991149145083,0 -115.105260555387,33.5273582278993,0 -115.138048393394,33.4514683393391,0 -115.158888452746,33.372700393005,0 -115.167469810797,33.2923536395757,0 -115.163685221252,33.2117497412786,0 -115.147630653337,33.1322109433959,0 -115.119601514855,33.0550384747875,0 -115.080085763069,32.9814915205955,0 -115.029754143568,32.9127670866336,0 -114.969447822269,32.8499810482447,0 -114.900163690879,32.7941506476983,0 -114.823037633329,32.7461786743625,0 -114.739326041739,32.7068395315861,0 -114.650385867244,32.6767673639386,0 -114.557653485306,32.6564463884616,0 -114.462622648301,32.6462035440541,0 -114.366821791699,32.6462035440541,0 -114.271790954694,32.6564463884616,0 -114.179058572756,32.6767673639386,0 -114.090118398261,32.7068395315861,0 -114.006406806671,32.7461786743625,0 -113.929280749121,32.7941506476983,0 -113.859996617731,32.8499810482447,0 -113.799690296432,32.9127670866336,0 -113.749358676931,32.9814915205955,0 -113.709842925145,33.0550384747875,0 -113.681813786663,33.1322109433959,0 -113.665759218748,33.2117497412786,0 -113.661974629203,33.2923536395757,0 -113.670555987254,33.372700393005,0 -113.691396046606,33.4514683393391,0 -113.724183884613,33.5273582278993,0 -113.768407913013,33.5991149145083,0 -113.82336245472,33.6655485465669,0 -113.888157908303,33.7255548550922,0 -113.961734438562,33.7781341719592,0 -114.042879040758,33.8224088012891,0 -114.130245731006,33.8576383946752,0 -114.222378520647,33.8832330110511,0 -114.317736742807,33.8987635832733,0 -114.41472222,33.9039695641431,0 
-					</coordinates>
-				</LinearRing>
-			</outerBoundaryIs>
-		</Polygon>
-	</Placemark>
-</Document>
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+   <Document>
+      <name>P-DPAs</name>
+<ExtendedData>
+<Data name="version">
+<value>1.0.6</value>
+</Data> 
+<Data name="creationDate">
+<value>2018-10-16</value>
+</Data> 
+<Data name="Disclaimer">
+<value>The Category and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
+</Data> 
+</ExtendedData>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>BARKING SANDS</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>BARKING SANDS</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>12</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>200</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-159.78305556,22.05027778,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>BATH</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>BATH</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>240</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-69.81388889,43.90555556,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>CHINA LAKE</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>CHINA LAKE</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>25</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>208</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+         <Style>
+            <LineStyle>
+               <color>ffff0000</color>
+               <width>3</width>
+            </LineStyle>
+            <PolyStyle>
+               <color>80ffffff</color>
+               <fill>1</fill>
+               <outline>1</outline>
+            </PolyStyle>
+         </Style>
+         <Polygon>
+            <outerBoundaryIs>
+               <LinearRing>
+                  <coordinates> -117.67833333,37.2892601888781,0 -117.895107457528,37.2779914700817,0 -118.108133321222,37.244380364923,0 -118.313737592296,37.1890081003616,0 -118.508394542599,37.1128304216297,0 -118.688794303635,37.0171585645918,0 -118.851904833317,36.9036334341201,0 -118.995026050568,36.7741937460655,0 -119.115835005636,36.6310390289358,0 -119.212421387718,36.4765884726918,0 -119.283313096431,36.3134366559887,0 -119.327491989791,36.1443071833508,0 -119.344400246499,35.9720052267035,0 -119.333938030923,35.7993698997209,0 -119.296453320869,35.6292273075965,0 -119.232724853936,35.4643450178108,0 -119.143939177152,35.3073885968736,0 -119.031662759065,35.1608807599426,0 -118.897810057945,35.027163588969,0 -118.744608348228,34.9083641932142,0 -118.574560002492,34.8063641147103,0 -118.390402818655,34.7227727204301,0 -118.195068879788,34.6589047716676,0 -117.991642342463,34.6157623180151,0 -117.783316472629,34.5940210267429,0 -117.573350187371,34.5940210267429,0 -117.365024317537,34.6157623180151,0 -117.161597780212,34.6589047716676,0 -116.966263841345,34.7227727204301,0 -116.782106657508,34.8063641147103,0 -116.612058311772,34.9083641932142,0 -116.458856602055,35.027163588969,0 -116.325003900935,35.1608807599426,0 -116.212727482848,35.3073885968736,0 -116.123941806064,35.4643450178108,0 -116.060213339131,35.6292273075965,0 -116.022728629077,35.7993698997209,0 -116.012266413501,35.9720052267035,0 -116.029174670209,36.1443071833508,0 -116.073353563569,36.3134366559887,0 -116.144245272282,36.4765884726918,0 -116.240831654364,36.6310390289358,0 -116.361640609432,36.7741937460655,0 -116.504761826683,36.9036334341201,0 -116.667872356365,37.0171585645918,0 -116.848272117401,37.1128304216297,0 -117.042929067704,37.1890081003616,0 -117.248533338778,37.244380364923,0 -117.461559202472,37.2779914700817,0 -117.67833333,37.2892601888781,0</coordinates>
+               </LinearRing>
+            </outerBoundaryIs>
+         </Polygon>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>DAHLGREN</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>DAHLGREN</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>10</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>400</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+         <Style>
+            <LineStyle>
+               <color>ffff0000</color>
+               <width>3</width>
+            </LineStyle>
+            <PolyStyle>
+               <color>80ffffff</color>
+               <fill>1</fill>
+               <outline>1</outline>
+            </PolyStyle>
+         </Style>
+         <Polygon>
+            <outerBoundaryIs>
+               <LinearRing>
+                  <coordinates> -77.03694444,38.3557642121184,0 -77.0398775297436,38.3556165072363,0 -77.0427624228314,38.3551758196907,0 -77.0455517163136,38.3544493908134,0 -77.0481995814679,38.3534491569209,0 -77.0506625181783,38.3521915527717,0 -77.0529000706611,38.3506972409914,0 -77.0548754926914,38.3489907719545,0 -77.0565563513448,38.3471001797641,0 -77.0579150593176,38.3450565210205,0 -77.0589293270988,38.342893364014,0 -77.0595825276243,38.3406462367845,0 -77.0598639675119,38.3383520431594,0 -77.0597690605423,38.3360484563981,0 -77.0592994006728,38.3337733004249,0 -77.0584627335375,38.3315639288213,0 -77.0572728270523,38.3294566117709,0 -77.0557492433947,38.3274859410038,0 -77.0539170162297,38.3256842624795,0 -77.0518062385831,38.324081146078,0 -77.0494515682006,38.3227029009544,0 -77.0468916585459,38.3215721444565,0 -77.044168524778,38.3207074316248,0 -77.041326855072,38.3201229512991,0 -77.0384132785147,38.319828293774,0 -77.0354756014853,38.319828293774,0 -77.032562024928,38.3201229512991,0 -77.029720355222,38.3207074316248,0 -77.0269972214541,38.3215721444565,0 -77.0244373117994,38.3227029009544,0 -77.0220826414169,38.324081146078,0 -77.0199718637703,38.3256842624795,0 -77.0181396366053,38.3274859410038,0 -77.0166160529478,38.3294566117709,0 -77.0154261464626,38.3315639288213,0 -77.0145894793272,38.3337733004249,0 -77.0141198194577,38.3360484563981,0 -77.0140249124881,38.3383520431594,0 -77.0143063523757,38.3406462367845,0 -77.0149595529012,38.342893364014,0 -77.0159738206824,38.3450565210205,0 -77.0173325286552,38.3471001797641,0 -77.0190133873087,38.3489907719545,0 -77.0209888093389,38.3506972409914,0 -77.0232263618217,38.3521915527717,0 -77.0256892985321,38.3534491569209,0 -77.0283371636864,38.3544493908134,0 -77.0311264571686,38.3551758196907,0 -77.0340113502564,38.3556165072363,0 -77.03694444,38.3557642121184,0</coordinates>
+               </LinearRing>
+            </outerBoundaryIs>
+         </Polygon>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>MCKINNEY</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>MCKINNEY</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>135</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>225</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>416</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-96.65666667,33.21611111,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>MOORESTOWN</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>MOORESTOWN</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>25</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>384</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-74.90138889,39.98,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>NEWPORT NEWS</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>NEWPORT NEWS</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>33</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>384</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-76.43888889,36.98055556,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>PORTSMOUTH</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>PORTSMOUTH</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>245</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>340</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>400</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+<Point>
+                  <coordinates>-71.31583333,41.52888889,0</coordinates>
+</Point>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>WALLOPS ISLAND</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>WALLOPS ISLAND</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>25</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>384</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+         <Style>
+            <LineStyle>
+               <color>ffff0000</color>
+               <width>3</width>
+            </LineStyle>
+            <PolyStyle>
+               <color>80ffffff</color>
+               <fill>1</fill>
+               <outline>1</outline>
+            </PolyStyle>
+         </Style>
+         <Polygon>
+            <outerBoundaryIs>
+               <LinearRing>
+                  <coordinates> -75.47638889,37.8714240881776,0 -75.4807594403856,37.8712025048916,0 -75.4850581486893,37.8705413973854,0 -75.4892143575692,37.8694516326472,0 -75.4931597593759,37.8679511231042,0 -75.4968295218756,37.8660645312878,0 -75.5001633559909,37.8638228632887,0 -75.5031065078161,37.8612629577842,0 -75.5056106584842,37.8584268791472,0 -75.5076347170574,37.8553612247341,0 -75.5091454934543,37.8521163578585,0 -75.5101182404853,37.8487455791693,0 -75.5105370562865,37.8453042501466,0 -75.5103951408036,37.8418488831946,0 -75.5096949024169,37.8384362133277,0 -75.5084479132862,37.8351222667176,0 -75.5066747144821,37.8319614413871,0 -75.5044044744218,37.8290056151026,0 -75.5016745064959,37.8263032950408,0 -75.4985296540303,37.8238988230956,0 -75.4950215528339,37.8218316497541,0 -75.4912077835151,37.8201356883386,0 -75.4871509274722,37.8188387600849,0 -75.4829175419636,37.8179621390421,0 -75.4785770709118,37.817520204156,0 -75.4742007090882,37.817520204156,0 -75.4698602380364,37.8179621390421,0 -75.4656268525277,37.8188387600849,0 -75.4615699964849,37.8201356883386,0 -75.4577562271661,37.8218316497541,0 -75.4542481259697,37.8238988230956,0 -75.4511032735041,37.8263032950408,0 -75.4483733055782,37.8290056151026,0 -75.4461030655179,37.8319614413871,0 -75.4443298667138,37.8351222667176,0 -75.443082877583,37.8384362133277,0 -75.4423826391964,37.8418488831946,0 -75.4422407237135,37.8453042501466,0 -75.4426595395147,37.8487455791693,0 -75.4436322865457,37.8521163578585,0 -75.4451430629426,37.8553612247341,0 -75.4471671215157,37.8584268791472,0 -75.4496712721839,37.8612629577842,0 -75.4526144240091,37.8638228632887,0 -75.4559482581244,37.8660645312878,0 -75.4596180206241,37.8679511231042,0 -75.4635634224308,37.8694516326472,0 -75.4677196313107,37.8705413973854,0 -75.4720183396143,37.8712025048916,0 -75.47638889,37.8714240881776,0</coordinates>
+               </LinearRing>
+            </outerBoundaryIs>
+         </Polygon>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>WHITE SANDS MISSILE RANGE</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>WHITE SANDS MISSILE RANGE</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>25</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>208</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+         <Style>
+            <LineStyle>
+               <color>ffff0000</color>
+               <width>3</width>
+            </LineStyle>
+            <PolyStyle>
+               <color>80ffffff</color>
+               <fill>1</fill>
+               <outline>1</outline>
+            </PolyStyle>
+         </Style>
+         <Polygon>
+            <outerBoundaryIs>
+               <LinearRing>
+                  <coordinates> -106.34583333,34.3616520073984,0 -106.519945771886,34.3523018308499,0 -106.691086021066,34.3244110255237,0 -106.856338594907,34.278455702103,0 -107.012899905457,34.2152192552167,0 -107.158130469526,34.1357774695853,0 -107.289602841125,34.0414782347062,0 -107.405144166164,33.9339163989313,0 -107.502872502235,33.8149043988472,0 -107.581226310279,33.6864393758721,0 -107.6389867906,33.5506675380733,0 -107.675292985988,33.4098465426746,0 -107.689649795854,33.2663066666437,0 -107.681929227841,33.1224115034261,0 -107.652365352586,32.9805188783125,0 -107.601543522511,32.8429426181575,0 -107.530384469798,32.7119157479337,0 -107.440123917419,32.5895556209453,0 -107.332288327455,32.4778314245819,0 -107.208667380374,32.3785344414949,0 -107.071283734932,32.2932513883553,0 -106.9223605675,32.2233411014678,0 -106.764287337295,32.1699147904764,0 -106.599584174646,32.1338200377585,0 -106.430865245991,32.1156286812118,0 -106.260801414009,32.1156286812118,0 -106.092082485354,32.1338200377585,0 -105.927379322705,32.1699147904764,0 -105.7693060925,32.2233411014678,0 -105.620382925068,32.2932513883553,0 -105.482999279626,32.3785344414949,0 -105.359378332545,32.4778314245819,0 -105.251542742581,32.5895556209453,0 -105.161282190202,32.7119157479337,0 -105.090123137489,32.8429426181575,0 -105.039301307414,32.9805188783125,0 -105.009737432159,33.1224115034261,0 -105.002016864146,33.2663066666437,0 -105.016373674012,33.4098465426746,0 -105.0526798694,33.5506675380733,0 -105.110440349721,33.6864393758721,0 -105.188794157765,33.8149043988472,0 -105.286522493836,33.9339163989313,0 -105.402063818875,34.0414782347062,0 -105.533536190474,34.1357774695853,0 -105.678766754543,34.2152192552167,0 -105.835328065093,34.278455702103,0 -106.000580638934,34.3244110255237,0 -106.171720888114,34.3523018308499,0 -106.34583333,34.3616520073984,0</coordinates>
+               </LinearRing>
+            </outerBoundaryIs>
+         </Polygon>
+      </Placemark>
+      <Placemark>
+         <Snippet maxLines="0"> </Snippet>
+         <description> </description>
+         <name>YUMA PROVING GROUNDS</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>YUMA PROVING GROUNDS</value>
+</Data> 
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>5</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+<value>208</value>
+</Data> 
+<Data name="catBOOBNeighborhoodDistanceKm">
+<value>25</value>
+</Data> 
+<Data name="catANeighborhoodDistanceKm">
+<value>150</value>
+</Data> 
+<Data name="catAOOBNeighborhoodDistanceKm">
+<value>0</value>
+</Data> 
+</ExtendedData>
+         <Style>
+            <LineStyle>
+               <color>ffff0000</color>
+               <width>3</width>
+            </LineStyle>
+            <PolyStyle>
+               <color>80ffffff</color>
+               <fill>1</fill>
+               <outline>1</outline>
+            </PolyStyle>
+         </Style>
+         <Polygon>
+            <outerBoundaryIs>
+               <LinearRing>
+                  <coordinates> -114.41472222,33.9039695641431,0 -114.511707697193,33.8987635832733,0 -114.607065919353,33.8832330110511,0 -114.699198708994,33.8576383946752,0 -114.786565399242,33.8224088012891,0 -114.867710001438,33.7781341719592,0 -114.941286531697,33.7255548550922,0 -115.00608198528,33.6655485465669,0 -115.061036526987,33.5991149145083,0 -115.105260555387,33.5273582278993,0 -115.138048393394,33.4514683393391,0 -115.158888452746,33.372700393005,0 -115.167469810797,33.2923536395757,0 -115.163685221252,33.2117497412786,0 -115.147630653337,33.1322109433959,0 -115.119601514855,33.0550384747875,0 -115.080085763069,32.9814915205955,0 -115.029754143568,32.9127670866336,0 -114.969447822269,32.8499810482447,0 -114.900163690879,32.7941506476983,0 -114.823037633329,32.7461786743625,0 -114.739326041739,32.7068395315861,0 -114.650385867244,32.6767673639386,0 -114.557653485306,32.6564463884616,0 -114.462622648301,32.6462035440541,0 -114.366821791699,32.6462035440541,0 -114.271790954694,32.6564463884616,0 -114.179058572756,32.6767673639386,0 -114.090118398261,32.7068395315861,0 -114.006406806671,32.7461786743625,0 -113.929280749121,32.7941506476983,0 -113.859996617731,32.8499810482447,0 -113.799690296432,32.9127670866336,0 -113.749358676931,32.9814915205955,0 -113.709842925145,33.0550384747875,0 -113.681813786663,33.1322109433959,0 -113.665759218748,33.2117497412786,0 -113.661974629203,33.2923536395757,0 -113.670555987254,33.372700393005,0 -113.691396046606,33.4514683393391,0 -113.724183884613,33.5273582278993,0 -113.768407913013,33.5991149145083,0 -113.82336245472,33.6655485465669,0 -113.888157908303,33.7255548550922,0 -113.961734438562,33.7781341719592,0 -114.042879040758,33.8224088012891,0 -114.130245731006,33.8576383946752,0 -114.222378520647,33.8832330110511,0 -114.317736742807,33.8987635832733,0 -114.41472222,33.9039695641431,0</coordinates>
+               </LinearRing>
+            </outerBoundaryIs>
+         </Polygon>
+      </Placemark>
+   </Document>
 </kml>

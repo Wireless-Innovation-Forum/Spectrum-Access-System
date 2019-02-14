@@ -374,6 +374,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         config['sasTestHarnessConfig']['serverCert'],
         config['sasTestHarnessConfig']['serverKey'],
         config['sasTestHarnessConfig']['caCert'])
+    self.InjectTestHarnessFccIds(config['sasTestHarnessDumpRecords']['cbsdRecords'])
     sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
 
     # Start the SAS Test Harness server
@@ -489,6 +490,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         config['sasTestHarnessConfig']['serverCert'],
         config['sasTestHarnessConfig']['serverKey'],
         config['sasTestHarnessConfig']['caCert'])
+    self.InjectTestHarnessFccIds(config['sasTestHarnessDumpRecords']['cbsdRecords'])
     sas_test_harness_server.writeFadRecords(sas_test_harness_dump_records)
 
     # Start the Test Harness server
@@ -1453,13 +1455,22 @@ class GrantTestcase(sas_testcase.SasTestCase):
     responses = self._sas.Grant(request)['grantResponse']
     # Check grant response
     self.assertEqual(len(responses), len(config['expectedResponseCodes']))
+    has_error = False
     for i, response in enumerate(responses):
       expected_response_codes = config['expectedResponseCodes'][i]
       logging.debug('Looking at response number %d', i)
       logging.debug('Expecting to see response code in set %s in response: %s',
                     expected_response_codes, response)
-      self.assertIn(response['response']['responseCode'],
-                    expected_response_codes)
+
+      # Check response code.
+      response_code = response['response']['responseCode']
+      if response_code not in expected_response_codes:
+        has_error = True
+        logging.error('Error: response %d is expected to have a responseCode in set %s but instead had responseCode %d.',
+                      i, expected_response_codes, response_code)
+        logging.error('Grant request: %s', grant_request[i])
+        logging.error('Grant response: %s', response)
+
       # If the corresponding request contained a valid cbsdId, the
       # response shall contain the same cbsdId.
       if 'cbsdId' in grant_request[i]:
@@ -1471,4 +1482,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
             self.assertTrue('grantId' in response)
           else:
             self.assertFalse('grantId' in response)
+
+    # Outside the 'for' loop.
+    self.assertFalse(
+        has_error,
+        'Error found in at least one of the responses. See logs for details.')
 

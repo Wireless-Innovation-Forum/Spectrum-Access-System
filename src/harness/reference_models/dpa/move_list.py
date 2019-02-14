@@ -44,6 +44,7 @@ from enum import Enum
 import logging
 
 import numpy as np
+import shapely.geometry as sgeo
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
 from shapely.geometry import MultiPolygon as MPolygon
@@ -58,7 +59,7 @@ from reference_models.antenna import antenna
 
 # Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 # Monte Carlo percentile for protection
-PROTECTION_PERCENTILE = 95      
+PROTECTION_PERCENTILE = 95
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
 FREQ_PROP_MODEL = 3625.0
@@ -106,6 +107,22 @@ def findDpaType(low_freq, high_freq):
   elif high_freq <= LOW_FREQ_COCH:
     return DpaType.OUT_OF_BAND
   raise ValueError('Invalid DPA frequency range')
+
+
+def filterGrantsForFreqRange(grants, low_freq, high_freq):
+  """Returns a list of all grants affecting a protected frequency range.
+
+  Args:
+    grants: A list of |data.CbsdGrantInfo| grants.
+    low_freq: The minimum frequency (Hz).
+    high_freq: The maximum frequency (Hz).
+  """
+  chan_type = findDpaType(low_freq, high_freq)
+  if chan_type == DpaType.OUT_OF_BAND:
+    # All grants affect COCHANNEL, including those higher than 3650MHz.
+    return grants
+  return [g for g in grants
+          if (min(g.high_frequency, high_freq) - max(g.low_frequency, low_freq)) > 0]
 
 
 def findGrantsInsideNeighborhood(grants, constraint,
@@ -310,6 +327,20 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   return I, sorted_grant_ids, sorted_bearings
 
 
+def findAzimuthRange(min_azimuth, max_azimuth, beamwidth):
+  """Returns the azimuth range for a given radar antenna 'beamwidth'."""
+  if beamwidth == 360:
+    azimuths = [0]
+  else:
+    if max_azimuth < min_azimuth:
+      max_azimuth += 360
+    azimuths = np.arange(min_azimuth, max_azimuth+beamwidth/2., beamwidth/2.0)
+    if azimuths[-1] > max_azimuth: azimuths[-1] = max_azimuth
+    if azimuths[-1] % 360. == azimuths[0]: azimuths = azimuths[:-1]
+    azimuths[azimuths>=360] -= 360
+  return azimuths
+
+
 def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
   """Returns the index (nc) of the grant in the ordered list of grants such that
   the protection percentile of the interference from the first nc grants is below the
@@ -328,13 +359,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     nc:     index nc that defines the move list to be {G_nc+1, G_nc+2, ..., G_Nc}
   """
   # Create array of incumbent antenna azimuth angles (degrees).
-  if beamwidth == 360.0:
-    azimuths = [0]
-  else:
-    if max_azimuth < min_azimuth:
-      max_azimuth += 360
-    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
-    azimuths[azimuths>=360] -= 360
+  azimuths = findAzimuthRange(min_azimuth, max_azimuth, beamwidth)
 
   # Initialize nc to Nc.
   Nc = I.shape[1]
@@ -612,6 +637,50 @@ def moveListConstraint(protection_point, low_freq, high_freq,
   return (movelist_grants, neighbor_grants)
 
 
+def getDpaNeighborGrants(grants, protection_points, dpa_geometry,
+                         low_freq, high_freq, neighbor_distances):
+  """Gets the list of actual neighbor grants of a DPA, for a given channel.
+
+  This looks at the total keep list considering a bunch of protected points.
+
+  Args:
+    grants:  A list of CBSD |data.CbsdGrantInfo| active grants.
+    protection_points: A list of protection point locations defining the DPA, each one
+      having attributes 'latitude' and 'longitude'.
+    dpa_geometry: The DPA |shapely.geometry| for detection of inside grants.
+    low_freq: The low frequency of protection constraint (Hz).
+    high_freq: The high frequency of protection constraint (Hz).
+    neighbor_distances: The neighborhood distances (km) as a sequence:
+      [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+
+  Returns:
+    A set of |CbsdGrantInfo| neighbor grants.
+  """
+  dpa_type = findDpaType(low_freq, high_freq)
+
+  neighbor_grants = set()
+  if dpa_geometry and not isinstance(dpa_geometry, sgeo.Point):
+    inside_grants = set(g for g in grants
+                        if sgeo.Point(g.longitude, g.latitude).intersects(dpa_geometry))
+    neighbor_grants = set(filterGrantsForFreqRange(inside_grants, low_freq, high_freq))
+
+  for point in protection_points:
+    # Assign values to the protection constraint
+    constraint = data.ProtectionConstraint(latitude=point.latitude,
+                                           longitude=point.longitude,
+                                           low_frequency=low_freq,
+                                           high_frequency=high_freq,
+                                           entity_type=data.ProtectedEntityType.DPA)
+
+    # Identify CBSD grants in the neighborhood of the protection constraint
+    nbors, _ = findGrantsInsideNeighborhood(grants, constraint,
+                                                  dpa_type,
+                                                  neighbor_distances)
+    neighbor_grants.update(nbors)
+
+  return neighbor_grants
+
+
 def calcAggregatedInterference(protection_point,
                                low_freq, high_freq,
                                grants,
@@ -681,13 +750,7 @@ def calcAggregatedInterference(protection_point,
     bearings[k] = interf.bearing_c_cbsd
 
   interf_matrix = 10**(interf_matrix / 10.)
-  if beamwidth == 360:
-    azimuths = [0]
-  else:
-    if max_azimuth < min_azimuth:
-      max_azimuth += 360
-    azimuths = np.arange(min_azimuth, max_azimuth, beamwidth/2.0)
-    azimuths[azimuths>=360] -= 360
+  azimuths = findAzimuthRange(min_azimuth, max_azimuth, beamwidth)
 
   agg_interf = np.zeros(len(azimuths))
   for k, azi in enumerate(azimuths):

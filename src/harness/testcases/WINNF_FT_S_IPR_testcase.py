@@ -179,6 +179,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -253,6 +255,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Initialize DPA objects and calculate movelist for each DPA.
     logging.info('Steps 11 + 13, CHECK: DPA aggregate interference check.')
     dpas = []
+    all_dpa_checks_succeeded = True
     for dpa_config in config['dpas']:
       logging.info('Checking DPA %s', dpa_config)
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
@@ -262,11 +265,18 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
       dpa.ComputeMoveLists()
       # Check grants do not exceed each DPAs interference threshold.
-      self.assertTrue(dpa.CheckInterference(
+      this_dpa_check_succeeded = dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
           channel=(low_freq_mhz, high_freq_mhz),
-          do_abs_check_single_uut=(num_peer_sases==0)))
+          do_abs_check_single_uut=(num_peer_sases == 0))
+      if not this_dpa_check_succeeded:
+        logging.error('Check for DPA %s FAILED.', dpa_config['dpaId'])
+        all_dpa_checks_succeeded = False
+
+    self.assertTrue(
+        all_dpa_checks_succeeded,
+        'At least one DPA check failed; please see logs for details.')
 
     # Stop test harness servers.
     for test_harness in test_harnesses:
@@ -462,6 +472,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -518,6 +530,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Activate each DPA in sequence and check the move list interference is
     # within the allowed margin. This contains steps 10 to 21.
     current_active_dpas = []
+    all_dpa_checks_succeeded = True
     for new_dpa, new_dpa_config in zip(all_dpas, config['dpas']):
       logging.info('Step 10/13/16/19: activate DPA: %s', new_dpa_config)
       self._sas_admin.TriggerDpaActivation(buildDpaActivationMessage(new_dpa_config))
@@ -535,21 +548,29 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
         low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
         high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
-        self.assertTrue(dpa.CheckInterference(
+        this_dpa_check_succeeded = dpa.CheckInterference(
             sas_uut_active_grants=grant_info,
             margin_db=dpa_config['movelistMargin'],
             channel=(low_freq_mhz, high_freq_mhz),
-            do_abs_check_single_uut=(num_peer_sases==0)))
+            do_abs_check_single_uut=(num_peer_sases == 0))
+        if not this_dpa_check_succeeded:
+          logging.error('Check for DPA %s FAILED.', dpa_config['dpaId'])
+          all_dpa_checks_succeeded = False
+
       if len(current_active_dpas) == len(all_dpas):
         break
 
       logging.info('Step 13/16/19: pause T seconds.')
       time.sleep(config['pauseTime'])
 
-      # Stop test harness servers.
-      for test_harness in test_harnesses:
-        test_harness.shutdown()
-        del test_harness
+    self.assertTrue(
+        all_dpa_checks_succeeded,
+        'At least one DPA check failed; please see logs for details.')
+
+    # Stop test harness servers.
+    for test_harness in test_harnesses:
+      test_harness.shutdown()
+      del test_harness
 
   def generate_IPR_3_default_config(self, filename):
     """Generates the WinnForum configuration for IPR_3"""
@@ -933,6 +954,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -982,13 +1005,22 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for domain_proxy in domain_proxies:
       domain_proxy.heartbeatForAllActiveGrants()
     grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
+
     # Check that for each DPA the SAS UUT has not exceeded the allowed
     # interference threshold.
+    all_dpa_checks_succeeded = True
     for dpa, dpa_config in zip(all_dpas, config['dpas']):
-      self.assertTrue(dpa.CheckInterference(
+      this_dpa_check_succeeded = dpa.CheckInterference(
           sas_uut_active_grants=grant_info,
           margin_db=dpa_config['movelistMargin'],
-          do_abs_check_single_uut=(num_peer_sases==0)))
+          do_abs_check_single_uut=(num_peer_sases == 0))
+      if not this_dpa_check_succeeded:
+        logging.error('Check for DPA %s FAILED.', dpa_config['dpaId'])
+        all_dpa_checks_succeeded = False
+
+    self.assertTrue(
+        all_dpa_checks_succeeded,
+        'At least one DPA check failed; please see logs for details.')
 
     # Stop test harness servers.
     for test_harness in test_harnesses:
@@ -1200,6 +1232,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'url':
               test_harness.getBaseUrl()
       })
+      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
+          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
       test_harness.writeFadRecords(
           test_harness_config['fullActivityDumpRecords'])
       test_harnesses.append(test_harness)
@@ -1294,4 +1328,3 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     if dpa_database_server:
       del dpa_database_server
 
-    

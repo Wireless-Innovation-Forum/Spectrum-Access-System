@@ -6,15 +6,15 @@
 *   Inputs:
 *       delta_h__meter : terrain irregularity factor
 *   Return:
-*       [float] : correction factor
+*       [double] : correction factor
 */
-float MedianRollingHillyTerrainCorrectionFactor(float deltah__meter)
+double MedianRollingHillyTerrainCorrectionFactor(double deltah__meter)
 {
-    float a = -1.5072013;
-    float b = 8.458676;
-    float c = -6.102538;
+    double a = -1.5072013;
+    double b = 8.458676;
+    double c = -6.102538;
 
-    float deltah_use;
+    double deltah_use;
 
     if (deltah__meter < 15.0)
         deltah_use = 15.0;
