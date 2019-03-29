@@ -209,7 +209,7 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
   return 10 * np.log10(power_mW)
 
 
-def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type, hybrid_prop=True):
+def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type, hybrid_prop=False, add_clutter=False):
   """Calculate interference contribution of each grant in the neighborhood to
   the protection constraint c.
 
@@ -220,6 +220,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     num_iteration:  a number of Monte Carlo iterations
     dpa_type:       an enum member of class DpaType
     hybrid_prop:    If True, calculates the interference using the hybrid propagation model.
+    add_clutter:    If True, includes clutter loss using the ITU P.2108 model.
 
   Returns:
     A tuple of
@@ -249,6 +250,16 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
       reliability=reliabilities,
       freq_mhz=FREQ_PROP_MODEL)
   path_loss = np.array(results.db_loss)
+
+  # Add clutter loss if enabled
+  if add_clutter:
+    reliabilities = np.random.uniform(0.001, 0.999, num_iteration)
+    reliabilities = np.append(reliabilities, [0.5])
+    clutter_loss_db = dpa_hybrid.ClutterLoss(
+	grant.latitude, grant.longitude, grant.height_agl,
+	constraint.latitude, constraint.longitude,
+	reliability=reliabilities, freq_mhz=FREQ_PROP_MODEL)
+    path_loss = path_loss + clutter_loss_db
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(
@@ -285,7 +296,8 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
 
 def formInterferenceMatrix(grants, grants_ids, constraint,
-                           inc_ant_height, num_iter, dpa_type):
+                           inc_ant_height, num_iter, dpa_type,
+			   hybrid_prop=False, add_clutter=False):
   """Form the matrix of interference contributions to protection constraint c.
 
   Inputs:
@@ -296,6 +308,8 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     inc_ant_height:     reference incumbent antenna height (in meters)
     num_iter:           number of random iterations
     dpa_type:           an enum member of class DpaType
+    hybrid_prop:        If True, calculates the interference using the hybrid propagation model.
+    add_clutter:        If True, includes clutter loss using the ITU P.2108 model.
 
   Returns:
     A tuple of:
@@ -310,7 +324,8 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   median_interf = []
   for cbsd_grant in grants:
     interf, median = computeInterference(cbsd_grant, constraint, inc_ant_height,
-                                         num_iter, dpa_type)
+                                         num_iter, dpa_type, hybrid_prop=hybrid_prop,
+					 add_clutter=add_clutter)
     interf_list.append(interf)
     median_interf.append(median)
   # Sort grants by their median interference contribution, smallest to largest
@@ -409,7 +424,9 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                        inc_ant_height,
                        num_iter, threshold, beamwidth,
                        neighbor_distances,
-                       min_azimuth=0, max_azimuth=360):
+                       min_azimuth=0, max_azimuth=360,
+                       hybrid_prop=False,
+                       add_clutter=False):
   """Returns the move list for a given protection constraint.
 
   Note that the returned indexes corresponds to the grant.grant_index
@@ -428,6 +445,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       [cata_dist, catb_high_dist, catb_low_dist, cata_oob_dist, catb_oob_dist]
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
+    hybrid_prop:       If True, computes the move list using the hybrid propagation model.
+    add_clutter:       If True, includes clutter loss using the ITU P.2108 model.
 
   Returns:
     A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
@@ -466,7 +485,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
   if len(neighbor_grants):  # Found CBSDs in the neighborhood
     # Form the matrix of interference contributions
     I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
-        neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type)
+        neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type,
+        hybrid_prop=hybrid_prop, add_clutter=add_clutter)
 
     # Find the index (nc) of the grant in the ordered list of grants such that
     # the protection percentile of the interference from the first nc grants is below
@@ -556,7 +576,8 @@ def calcAggregatedInterference(protection_point,
                                min_azimuth=0,
                                max_azimuth=360,
                                do_max=False,
-                               hybrid_prop=False):
+                               hybrid_prop=False,
+                               add_clutter=False):
   """Computes the 95% aggregated interference quantile on a protected point.
 
   Inputs:
@@ -574,6 +595,7 @@ def calcAggregatedInterference(protection_point,
       [cata_dist, catb_high_dist, catb_low_dist, cata_oob_dist, catb_oob_dist]
     do_max:            If True, returns the maximum interference over all radar azimuth.
     hybrid_prop:       If True, calculates the interference using the hybrid propagation model.
+    add_clutter:       If True, includes clutter loss using the ITU P.2108 model.
 
   Returns:
     The 95% aggregated interference (dB) either:
@@ -614,7 +636,7 @@ def calcAggregatedInterference(protection_point,
   bearings = np.zeros(len(neighbor_grants))
   for k, grant in enumerate(neighbor_grants):
     interf, _ = computeInterference(grant, constraint, inc_ant_height,
-                                    num_iter, dpa_type, hybrid_prop)
+                                    num_iter, dpa_type, hybrid_prop, add_clutter)
     interf_matrix[:,k] = interf.randomInterference
     bearings[k] = interf.bearing_c_cbsd
 

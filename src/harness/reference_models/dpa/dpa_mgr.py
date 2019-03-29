@@ -243,13 +243,18 @@ class Dpa(object):
     self.ResetLists()
     self._has_th_grants = self._DetectIfPeerSas()
 
-  def ComputeMoveLists(self):
+  def ComputeMoveLists(self, hybrid_prop=False, add_clutter=False):
     """Computes move/neighbor lists.
 
     This routine updates the internal grants move list and neighbor list.
     One set of list is maintained per protected channel.
     To retrieve the list, see the routines GetMoveList(), GetNeighborList() and
     GetKeepList().
+
+    Args:
+      hybrid_prop: If True, computes the move list using the hybrid propagation
+        model.
+      add_clutter: If True, computes the move list using ITU P.2108 clutter loss.
     """
     logging.info('DPA Compute movelist `%s`- channels %s thresh %s bw %s height %s '
                  'iter %s azi_range %s nbor_dists %s',
@@ -278,7 +283,9 @@ class Dpa(object):
           beamwidth=self.beamwidth,
           min_azimuth=self.azimuth_range[0],
           max_azimuth=self.azimuth_range[1],
-          neighbor_distances=self.neighbor_distances)
+          neighbor_distances=self.neighbor_distances,
+          hybrid_prop=hybrid_prop,
+          add_clutter=add_clutter)
 
       move_list, nbor_list = zip(*pool.map(moveListConstraint,
                                            self.protected_points))
@@ -380,7 +387,7 @@ class Dpa(object):
         nbor_list.append(grant)
     self.nbor_lists[self._GetChanIdx(channel)] = set(nbor_list)
 
-  def CalcKeepListInterference(self, channel, num_iter=None, do_max=True, hybrid_prop=False):
+  def CalcKeepListInterference(self, channel, num_iter=None, do_max=True, hybrid_prop=False, add_clutter=False):
     """Calculates max aggregate interference per protected point.
 
     Args:
@@ -390,6 +397,7 @@ class Dpa(object):
       do_max: If True, returns the maximum interference over all radar azimuth.
       hybrid_prop: If True, calculates the interference using the hybrid propagation
         model.
+      add_clutter: If True, calculates the interference using ITU P.2108 clutter loss.
 
     Returns:
       The 95% aggregate interference per protected point, as a list.
@@ -410,7 +418,8 @@ class Dpa(object):
         max_azimuth=self.azimuth_range[1],
         neighbor_distances=self.neighbor_distances,
         do_max=do_max,
-        hybrid_prop=hybrid_prop)
+        hybrid_prop=hybrid_prop,
+        add_clutter=add_clutter)
 
     pool = mpool.Pool()
     max_interf = pool.map(interfCalculator,
