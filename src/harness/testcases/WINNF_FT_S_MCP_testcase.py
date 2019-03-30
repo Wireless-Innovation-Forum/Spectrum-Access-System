@@ -42,7 +42,7 @@ from reference_models.geo import drive
 
 DELTA_IAP = 1 # Threshold value in dBm
 ONE_MHZ = 1000000
-
+LOW_FREQUENCY_LIMIT_HZ = 3550000000
 
 class McpXprCommonTestcase(sas_testcase.SasTestCase):
 
@@ -483,13 +483,25 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     # Step 21: ESC Test harness deactivates previously-activated DPAs.
     logging.info('Step 21: activating and deactivating DPAs.')
     for dpa in iteration_content['dpaActivationList']:
+      if dpa['frequencyRange']['lowFrequency'] < LOW_FREQUENCY_LIMIT_HZ:
+        logging.warning('DPA %s is always-active in frequency, so there is no need to activate.', dpa['dpaId'])
+        if dpa not in self.active_dpas:
+            self.active_dpas.append(dpa)
+        continue
+    
       if dpa in self.active_dpas:
         logging.warning('DPA is already active, skipping activation: %s', dpa)
         continue
+
       logging.info('Activating: %s', dpa)
       self._sas_admin.TriggerDpaActivation(dpa)
       self.active_dpas.append(dpa)
     for dpa in iteration_content['dpaDeactivationList']:
+      if dpa['frequencyRange']['lowFrequency'] < LOW_FREQUENCY_LIMIT_HZ:
+        logging.warning('DPA %s is always-active in frequency, so there is no need to deactivate.', dpa['dpaId'])
+        self.active_dpas.remove(dpa)
+        continue
+            
       logging.info('Deactivating: %s', dpa)
       self._sas_admin.TriggerDpaDeactivation(dpa)
       self.active_dpas.remove(dpa)
