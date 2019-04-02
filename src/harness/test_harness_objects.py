@@ -206,6 +206,81 @@ class DomainProxy(object):
                            [grant_response['grantId']], [grant_request])
         self.cbsd_objects[cbsd_id] = cbsd_object
 
+  def registerCbsdsAndRequestGrantsWithPpa(self,
+                                           registration_requests,
+                                           grant_requests,
+                                           ppa_record,
+                                           cluster_list,
+                                           conditional_registration_data=None):
+    """Construct CBSD object based on the result of registration and
+    grant requests.
+
+    Args
+      registration_requests: A list of dictionary elements, where each list
+        element is an individual CBSD registration request (which is itself a
+        dictionary).
+      grant_requests: A list of dictionary elements, where each list element is
+        an individual CBSD grant request (which is itself a dictionary).
+      ppa_record: the PPA record to inject after registration.
+      cluster_list: indices indicating which CBSDs are on the cluster list.
+      conditional_registration_data: A list of individual CBSD registration
+        data that need to be preloaded into SAS (each of which is a dictionary).
+        The dictionary is a RegistrationRequest object, the fccId and
+        cbsdSerialNumber fields are required, other fields are optional.
+    """
+    # Checking if the number of registration requests matches number of grant requests.
+    # There should be exactly one grant request per registration request.
+    self.testcase.assertEqual(len(grant_requests), len(registration_requests))
+    try:
+      cbsd_ids = self._tryRegistrationWithMaximumBatchSize(
+          registration_requests, conditional_registration_data)
+    except Exception:
+      logging.error(common_strings.EXPECTED_SUCCESSFUL_REGISTRATION)
+      raise
+
+    # BEGIN PPA-specific logic.
+    # Form the cluster list from the CBSD IDs corresponding to the input
+    # indices, taking care to only include those which were actually registered.
+    actual_cluster_list = [cbsd_ids[i] for i in cluster_list if cbsd_ids[i]]
+    ppa_record['ppaInfo']['cbsdReferenceId'] = actual_cluster_list
+    self.testcase._sas_admin.InjectZoneData({'record': ppa_record})
+    # END PPA-specific logic.
+
+    # Copy the cbsdId from Registration response to grant requests, omitting
+    # grant requests for CBSDs which were not successfully registered.
+    actual_grant_requests = []
+    for cbsd_id, grant_request in zip(cbsd_ids, grant_requests):
+      if cbsd_id:  # cbsd_id is None if registration was unsuccessful.
+        grant_request['cbsdId'] = cbsd_id
+        actual_grant_requests.append(grant_request)
+
+    # Perform grant operation.
+    grant_responses = self._grantRequestWithMaximumBatchSize(actual_grant_requests)
+
+    # Check the length of grant responses is the same as grant requests.
+    self.testcase.assertEqual(len(grant_responses), len(actual_grant_requests))
+
+    # Extract only the successful registration requests and corresponding CBSD IDs.
+    actual_registration_requests = [req for req, cbsd_id in zip(registration_requests, cbsd_ids) if cbsd_id]
+    actual_cbsd_ids = [cbsd_id for cbsd_id in cbsd_ids if cbsd_id]
+
+    # Make one CBSD object per successful grant request.
+    # All arrays in the zip() will have the same length based on the filtering
+    # above, but we'll double-check to be sure.
+    self.testcase.assertEqual(len(actual_grant_requests), len(actual_registration_requests))
+    self.testcase.assertEqual(len(actual_grant_requests), len(actual_cbsd_ids))
+    for grant_request, grant_response, \
+        registration_request, cbsd_id in zip(actual_grant_requests,
+                                             grant_responses, actual_registration_requests, actual_cbsd_ids):
+      if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
+        self._mergeConditionals(registration_request, conditional_registration_data)
+        cbsd_object = Cbsd(cbsd_id, registration_request,
+                           [grant_response['grantId']], [grant_request])
+        self.cbsd_objects[cbsd_id] = cbsd_object
+
+    return ppa_record
+
+
   def _mergeConditionals(self, registration_request, conditionals):
     if not conditionals:
       return
