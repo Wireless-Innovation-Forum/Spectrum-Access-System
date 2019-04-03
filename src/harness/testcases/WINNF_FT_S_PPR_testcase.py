@@ -510,9 +510,9 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     pal_record_1['fipsCode'] = 20041084500
     ppa_record_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
-    ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[
+    ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[[
         -97.13, 38.85
-    ], [-97.13, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.13, 38.85]]
+    ], [-97.13, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.13, 38.85]]]
     ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
         ppa_record_1, [pal_record_1], pal_low_frequency, pal_high_frequency,
         'test_user_2')
