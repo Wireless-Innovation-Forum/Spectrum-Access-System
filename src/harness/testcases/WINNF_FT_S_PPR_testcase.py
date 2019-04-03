@@ -95,7 +95,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
-    
+
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_2.json')))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
@@ -413,14 +413,13 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     """High-level description of the default config:
 
         SAS UUT has devices B, D; first gets a PAL grant and second is GAA.
-        SAS TH has devices A, C, E, none of which have a PAL grant.
+        SAS TH has devices A, C, E, all of which have a PAL grant.
 
         SAS UUT has one PPA, with device B as the only CBSD.
         SAS TH has one PPA, with only non-granted CBSDs.
         The PPAs derive from different but adjacent PALs.
 
-        Both PPAs are on 3620-3630 MHz, as are all grants except device D's.
-        Device D's grant overlaps 3620-3630 but extends beyond.
+        Both PPAs are on 3620-3630 MHz, as are all grants.
     """
     # Load Devices
     device_a = json.load(
@@ -429,16 +428,20 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     device_a['installationParam']['longitude'] = -97.092863
     device_b = json.load(
         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_b['installationParam']['latitude'] = 38.815291
-    device_b['installationParam']['longitude'] = -97.198805
+    device_b['installationParam']['latitude'] = 38.845323113
+    device_b['installationParam']['longitude'] = -97.15514587
+    device_b['installationParam']['antennaBeamwidth'] = 0
+    device_b['installationParam']['antennaDowntilt'] = 0
     device_c = json.load(
         open(os.path.join('testcases', 'testdata', 'device_c.json')))
     device_c['installationParam']['latitude'] = 38.816782
     device_c['installationParam']['longitude'] = -97.102965
     device_d = json.load(
         open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_d['installationParam']['latitude'] = 38.758462
-    device_d['installationParam']['longitude'] = -97.189036
+    device_d['installationParam']['latitude'] = 38.846125
+    device_d['installationParam']['longitude'] = -97.156184
+    device_d['installationParam']['antennaBeamwidth'] = 0
+    device_d['installationParam']['antennaDowntilt'] = 0
     device_e = json.load(
         open(os.path.join('testcases', 'testdata', 'device_e.json')))
     device_e['installationParam']['latitude'] = 38.761748
@@ -471,14 +474,12 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_b = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b['operationParam']['maxEirp'] = 30
     grant_c = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
     grant_d = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_d['operationParam']['operationFrequencyRange'][
-        'lowFrequency'] = 3620000000
-    grant_d['operationParam']['operationFrequencyRange'][
-        'highFrequency'] = 3640000000
+    grant_d['operationParam']['maxEirp'] = 30
     grant_e = json.load(
         open(os.path.join('testcases', 'testdata', 'grant_0.json')))
 
@@ -498,6 +499,9 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
     ppa_record_0 = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record_0['zone']['features'][0]['geometry']['coordinates'] = [[[
+        -97.155, 38.75
+    ], [-97.155, 38.85], [-97.165, 38.85], [-97.165, 38.75], [-97.155, 38.75]]]
     ppa_record_0, pal_records_0 = makePpaAndPalRecordsConsistent(
         ppa_record_0, [pal_record_0], pal_low_frequency, pal_high_frequency,
         'test_user_1')
@@ -511,24 +515,34 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     ppa_record_1 = json.load(
         open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
     ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[[
-        -97.13, 38.85
-    ], [-97.13, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.13, 38.85]]]
+        -97.145, 38.85
+    ], [-97.145, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.145, 38.85]]]
     ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
         ppa_record_1, [pal_record_1], pal_low_frequency, pal_high_frequency,
         'test_user_2')
 
     # Generate FAD records.
     cbsd_records = [device_a, device_c, device_e]
-    grant_record_list = [[grant_a], [grant_c], [grant_e]]
     # Create CBSD reference IDs.
-    cbsd_reference_id1 = generateCbsdReferenceId('test_fcc_id_x',
-                                                 'test_serial_number_x')
-    cbsd_reference_id2 = generateCbsdReferenceId('test_fcc_id_y',
-                                                 'test_serial_number_y')
-    cbsd_reference_ids = [[cbsd_reference_id1, cbsd_reference_id2]]
+    # Note: we prepend 'cbsd/' to ensure that these IDs match with the IDs of
+    # the CBSDs themselves.
+    cbsd_reference_id_a = 'cbsd/' + generateCbsdReferenceId(
+        device_a['fccId'], device_a['cbsdSerialNumber'])
+    cbsd_reference_id_c = 'cbsd/' + generateCbsdReferenceId(
+        device_c['fccId'], device_c['cbsdSerialNumber'])
+    cbsd_reference_id_e = 'cbsd/' + generateCbsdReferenceId(
+        device_e['fccId'], device_e['cbsdSerialNumber'])
+    cbsd_reference_ids = [[
+        cbsd_reference_id_a, cbsd_reference_id_c, cbsd_reference_id_e
+    ]]
+    grant_record_list = [[grant_a], [grant_c], [grant_e]]
+    cbsd_records = generateCbsdRecords(cbsd_records, grant_record_list)
+    for cbsd in cbsd_records:
+      for grant in cbsd['grants']:
+        grant['channelType'] = 'PAL'
     # Create records.
     sas_harness_dump_records = {
-        'cbsdRecords': generateCbsdRecords(cbsd_records, grant_record_list),
+        'cbsdRecords': cbsd_records,
         'ppaRecords': generatePpaRecords([ppa_record_1], cbsd_reference_ids),
     }
 
@@ -560,6 +574,21 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
   @configurable_testcase(generate_PPR_3_default_config)
   def test_WINNF_FT_S_PPR_3(self, config_filename):
     config = loadConfig(config_filename)
+    print(json.dumps(config))  # DO NOT SUBMIT
+
+    # Light config checking.
+    self.assertValidConfig(
+        config, {
+            'domainProxy': dict,
+            'ppaRecord': dict,
+            'ppaClusterList': list,
+            'palRecords': list,
+            'sasTestHarnessDumpRecords': dict,
+            'sasTestHarnessConfig': dict
+        })
+    self.assertEqual(
+        len(config['sasTestHarnessDumpRecords']['ppaRecords']), 1,
+        'Only one PPA is supported.')
 
     # Initialize test-wide variables, and state variables.
     self.config = config
@@ -620,7 +649,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     self.protected_entity_records['palRecords'] = config['palRecords']
 
     # Register, inject PPA, and request grants.
-    logging.info('Steps 3 - 5: register, inject PPA, request grants')
+    logging.info('Steps 3 - 5: register, inject PPA, request grants.')
     domain_proxy_config = config['domainProxy']
     domain_proxy = test_harness_objects.DomainProxy(self,
                                                     domain_proxy_config['cert'],
@@ -635,7 +664,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     self.protected_entity_records['ppaRecords'].append(ppa)
 
     # FAD exchange.
-    logging.info('Step 6 + 7: FAD exchange')
+    logging.info('Step 6 + 7: FAD exchange.')
     self.sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin,
                                                  self.fad_cert, self.fad_key)
     self.test_harness_fads.append(
@@ -643,11 +672,11 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
             self.sas_test_harness_objects[0].getSasTestHarnessInterface()))
 
     # Trigger CPAS in SAS UUT, and wait until completion.
-    logging.info('Step 8: trigger CPAS')
+    logging.info('Step 8: trigger CPAS.')
     self.cpas = self.cpas_executor.submit(
         self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete)
 
-    logging.info('Step 9: execute IAP reference model')
+    logging.info('Step 9: execute IAP reference model.')
     # Pre-IAP filtering.
     pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
                                            self.sas_uut_fad,
@@ -655,11 +684,15 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # IAP reference model.
     self.performIap()
 
+    logging.info('Waiting for CPAS to complete (started in step 8).')
+    self.cpas.result()
+    logging.info('CPAS started in step 8 complete.')
+
     # Heartbeat, relinquish, grant, heartbeat
     logging.info('Steps 10 - 13: heartbeat, relinquish, grant, heartbeat.')
     domain_proxy.performHeartbeatAndUpdateGrants()
 
     # Aggregate interference check
     logging.info(
-        'Step 14 and CHECK: calculating and checking aggregate interference')
+        'Step 14 and CHECK: calculating and checking aggregate interference.')
     self.performIapAndDpaChecks()
