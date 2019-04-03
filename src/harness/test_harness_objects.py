@@ -227,6 +227,9 @@ class DomainProxy(object):
         data that need to be preloaded into SAS (each of which is a dictionary).
         The dictionary is a RegistrationRequest object, the fccId and
         cbsdSerialNumber fields are required, other fields are optional.
+
+    Returns
+      ppa_record: the input PPA record with the cluster list added.
     """
     # Checking if the number of registration requests matches number of grant requests.
     # There should be exactly one grant request per registration request.
