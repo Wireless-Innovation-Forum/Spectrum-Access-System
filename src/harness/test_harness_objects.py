@@ -17,6 +17,7 @@
 import common_strings
 import logging
 import sas
+from sas_test_harness import generateCbsdReferenceId
 import math
 from common_types import ResponseCodes
 
@@ -244,9 +245,22 @@ class DomainProxy(object):
     # BEGIN PPA-specific logic.
     # Form the cluster list from the CBSD IDs corresponding to the input
     # indices, taking care to only include those which were actually registered.
-    actual_cluster_list = [cbsd_ids[i] for i in cluster_list if cbsd_ids[i]]
-    ppa_record['ppaInfo']['cbsdReferenceId'] = actual_cluster_list
+    cbsd_id_cluster_list = [cbsd_ids[i] for i in cluster_list if cbsd_ids[i]]
+    ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_id_cluster_list
     self.testcase._sas_admin.InjectZoneData({'record': ppa_record})
+    # But the reference model will be looking to compare with CBSD reference
+    # IDs, which are not necessarily the same as the CBSD IDs. So now that the
+    # PPA has been injected, we need to put the CBSD reference IDs into the PPA
+    # record so that the reference model will do the right thing.
+    def makeReferenceId(reg_request):
+      return 'cbsd/' + generateCbsdReferenceId(reg_request['fccId'],
+                                               reg_request['cbsdSerialNumber'])
+    reference_id_cluster_list = []
+    for i in cluster_list:
+      if not cbsd_ids[i]:
+        continue  # Skip if not registered.
+      reference_id_cluster_list.append(makeReferenceId(registration_requests[i]))
+    ppa_record['ppaInfo']['cbsdReferenceId'] = reference_id_cluster_list
     # END PPA-specific logic.
 
     # Copy the cbsdId from Registration response to grant requests, omitting
