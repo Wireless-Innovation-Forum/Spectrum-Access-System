@@ -525,14 +525,12 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Generate FAD records.
     cbsd_records = [device_a, device_c, device_e]
     # Create CBSD reference IDs.
-    # Note: we prepend 'cbsd/' to ensure that these IDs match with the IDs of
-    # the CBSDs themselves.
-    cbsd_reference_id_a = 'cbsd/' + generateCbsdReferenceId(
-        device_a['fccId'], device_a['cbsdSerialNumber'])
-    cbsd_reference_id_c = 'cbsd/' + generateCbsdReferenceId(
-        device_c['fccId'], device_c['cbsdSerialNumber'])
-    cbsd_reference_id_e = 'cbsd/' + generateCbsdReferenceId(
-        device_e['fccId'], device_e['cbsdSerialNumber'])
+    cbsd_reference_id_a = generateCbsdReferenceId(device_a['fccId'],
+                                                  device_a['cbsdSerialNumber'])
+    cbsd_reference_id_c = generateCbsdReferenceId(device_c['fccId'],
+                                                  device_c['cbsdSerialNumber'])
+    cbsd_reference_id_e = generateCbsdReferenceId(device_e['fccId'],
+                                                  device_e['cbsdSerialNumber'])
     cbsd_reference_ids = [[
         cbsd_reference_id_a, cbsd_reference_id_c, cbsd_reference_id_e
     ]]
@@ -589,12 +587,15 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     self.assertEqual(
         len(config['sasTestHarnessDumpRecords']['ppaRecords']), 1,
         'Only one PPA is supported.')
-    # Make sure ID formats are consistent.
+    # Make sure ID formats are correct.
     ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
     for cbsd_ref_id in ppa['ppaInfo']['cbsdReferenceId']:
-      self.assertTrue(cbsd_ref_id.startswith('cbsd/'))
+      self.assertFalse(
+          cbsd_ref_id.startswith('cbsd/'),
+          'IDs in the cluster list should not start with "cbsd/".')
     for cbsd in config['sasTestHarnessDumpRecords']['cbsdRecords']:
-      self.assertTrue(cbsd['id'].startswith('cbsd/'))
+      self.assertTrue(cbsd['id'].startswith('cbsd/'),
+                      'IDs of individual CBSDs must start with "cbsd/".')
 
     # Initialize test-wide variables, and state variables.
     self.config = config
@@ -641,6 +642,13 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
 
     # Extract PPA record from peer SAS and add to local protected entities.
     peer_sas_ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
+    # The ID for each CBSD's record is of the format "cbsd/$REFERENCE_ID". The
+    # IDs on the cluster list are of the format "$REFERENCE_ID". Here we prepend
+    # "cbsd/" so that the values will be correctly matched in the zone purge
+    # reference model.
+    cluster_list = peer_sas_ppa['ppaInfo']['cbsdReferenceId']
+    for i in range(len(cluster_list)):
+      cluster_list[i] = 'cbsd/%s' % cluster_list[i]
     self.protected_entity_records['ppaRecords'] = [peer_sas_ppa]
 
     # Inject all PALs (used by SAS UUT PPA and peer SAS PPA)
