@@ -412,11 +412,11 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
   def generate_PPR_3_default_config(self, filename):
     """High-level description of the default config:
 
-        SAS UUT has devices B, D; first gets a PAL grant and second is GAA.
+        SAS UUT has devices B, D; all of which have a PAL grant.
         SAS TH has devices A, C, E, all of which have a PAL grant.
 
-        SAS UUT has one PPA, with device B as the only CBSD.
-        SAS TH has one PPA, with only non-granted CBSDs.
+        SAS UUT has one PPA, with devices B and D on the cluster list.
+        SAS TH has one PPA, with devices A, C, and E on the cluster list.
         The PPAs derive from different but adjacent PALs.
 
         Both PPAs are on 3620-3630 MHz, as are all grants.
@@ -506,7 +506,8 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         ppa_record_0, [pal_record_0], pal_low_frequency, pal_high_frequency,
         'test_user_1')
     device_b['userId'] = 'test_user_1'
-    ppa_cluster_list = [0]  # The first device is device B.
+    device_d['userId'] = 'test_user_1'
+    ppa_cluster_list = [0, 1]
 
     # One PPA in the peer SAS test harness.
     pal_record_1 = json.load(
@@ -574,7 +575,6 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
   @configurable_testcase(generate_PPR_3_default_config)
   def test_WINNF_FT_S_PPR_3(self, config_filename):
     config = loadConfig(config_filename)
-    print(json.dumps(config))  # DO NOT SUBMIT
 
     # Light config checking.
     self.assertValidConfig(
@@ -589,6 +589,12 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     self.assertEqual(
         len(config['sasTestHarnessDumpRecords']['ppaRecords']), 1,
         'Only one PPA is supported.')
+    # Make sure ID formats are consistent.
+    ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
+    for cbsd_ref_id in ppa['ppaInfo']['cbsdReferenceId']:
+      self.assertTrue(cbsd_ref_id.startswith('cbsd/'))
+    for cbsd in config['sasTestHarnessDumpRecords']['cbsdRecords']:
+      self.assertTrue(cbsd['id'].startswith('cbsd/'))
 
     # Initialize test-wide variables, and state variables.
     self.config = config
