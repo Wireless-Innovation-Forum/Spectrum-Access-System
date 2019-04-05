@@ -215,7 +215,7 @@ class DomainProxy(object):
                                            cluster_list,
                                            conditional_registration_data=None):
     """Construct CBSD object based on the result of registration and
-    grant requests.
+    grant requests. Registers the CBSDs, injects the PPA, and requests grants.
 
     Args
       registration_requests: A list of dictionary elements, where each list
