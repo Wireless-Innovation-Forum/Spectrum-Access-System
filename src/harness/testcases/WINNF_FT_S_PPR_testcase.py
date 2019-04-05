@@ -14,14 +14,22 @@
 
 import json
 import os
+import logging
+import common_strings
+from concurrent.futures import ThreadPoolExecutor
+from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 import sas
 import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
-    generatePpaRecords
-from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
-  getFqdnLocalhost, getUnusedPort, getCertFilename
+    generatePpaRecords, generateCbsdReferenceId
+import test_harness_objects
+from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase, \
+  getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
+  addCbsdIdsToRequests, getCertFilename, getCertificateFingerprint, \
+  getFqdnLocalhost, getUnusedPort
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
+
+from reference_models.pre_iap_filtering import pre_iap_filtering
 
 class PpaProtectionTestcase(McpXprCommonTestcase):
 
@@ -87,7 +95,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
       open(os.path.join('testcases', 'testdata', 'grant_1.json')))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
-    
+
     grant_request_3 = json.load(
       open(os.path.join('testcases', 'testdata', 'grant_2.json')))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
@@ -401,3 +409,320 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Invoke MCP test steps 1 through 22.
     self.executeMcpTestSteps(config, 'xPR2')
 
+  def generate_PPR_3_default_config(self, filename):
+    """High-level description of the default config:
+
+        SAS UUT has devices B, D; all of which have a PAL grant.
+        SAS TH has devices A, C, E, all of which have a PAL grant.
+
+        SAS UUT has one PPA, with devices B and D on the cluster list.
+        SAS TH has one PPA, with devices A, C, and E on the cluster list.
+        The PPAs derive from different but adjacent PALs.
+
+        Both PPAs are on 3620-3630 MHz, as are all grants.
+    """
+    # Load Devices
+    device_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a['installationParam']['latitude'] = 38.842176
+    device_a['installationParam']['longitude'] = -97.092863
+    device_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b['installationParam']['latitude'] = 38.845323113
+    device_b['installationParam']['longitude'] = -97.15514587
+    device_b['installationParam']['antennaBeamwidth'] = 0
+    device_b['installationParam']['antennaDowntilt'] = 0
+    device_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c['installationParam']['latitude'] = 38.816782
+    device_c['installationParam']['longitude'] = -97.102965
+    device_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_d['installationParam']['latitude'] = 38.846125
+    device_d['installationParam']['longitude'] = -97.156184
+    device_d['installationParam']['antennaBeamwidth'] = 0
+    device_d['installationParam']['antennaDowntilt'] = 0
+    device_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_e['installationParam']['latitude'] = 38.761748
+    device_e['installationParam']['longitude'] = -97.118459
+
+    # Pre-load conditionals and remove REG-conditional fields from registration
+    # requests.
+    conditional_keys = [
+        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
+        'installationParam', 'measCapability'
+    ]
+    reg_conditional_keys = [
+        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
+    ]
+    conditionals_b = {key: device_b[key] for key in conditional_keys}
+    device_b = {
+        key: device_b[key]
+        for key in device_b
+        if key not in reg_conditional_keys
+    }
+    conditionals_d = {key: device_d[key] for key in conditional_keys}
+    device_d = {
+        key: device_d[key]
+        for key in device_d
+        if key not in reg_conditional_keys
+    }
+
+    # Load grant requests (default is 3620-3630).
+    grant_a = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b['operationParam']['maxEirp'] = 30
+    grant_c = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_d = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_d['operationParam']['maxEirp'] = 30
+    grant_e = json.load(
+        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+
+    # CBSDs in SAS UUT.
+    domain_proxy = {
+        'registrationRequests': [device_b, device_d],
+        'grantRequests': [grant_b, grant_d],
+        'conditionalRegistrationData': [conditionals_b, conditionals_d],
+        'cert': getCertFilename('domain_proxy.cert'),
+        'key': getCertFilename('domain_proxy.key')
+    }
+
+    # One PPA in SAS UUT.
+    pal_low_frequency = 3620000000
+    pal_high_frequency = 3630000000
+    pal_record_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record_0 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record_0['zone']['features'][0]['geometry']['coordinates'] = [[[
+        -97.155, 38.75
+    ], [-97.155, 38.85], [-97.165, 38.85], [-97.165, 38.75], [-97.155, 38.75]]]
+    ppa_record_0, pal_records_0 = makePpaAndPalRecordsConsistent(
+        ppa_record_0, [pal_record_0], pal_low_frequency, pal_high_frequency,
+        'test_user_1')
+    device_b['userId'] = 'test_user_1'
+    device_d['userId'] = 'test_user_1'
+    ppa_cluster_list = [0, 1]
+
+    # One PPA in the peer SAS test harness.
+    pal_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    pal_record_1['fipsCode'] = 20041084500
+    ppa_record_1 = json.load(
+        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[[
+        -97.145, 38.85
+    ], [-97.145, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.145, 38.85]]]
+    ppa_record_1, pal_records_1 = makePpaAndPalRecordsConsistent(
+        ppa_record_1, [pal_record_1], pal_low_frequency, pal_high_frequency,
+        'test_user_2')
+
+    # Generate FAD records.
+    cbsd_records = [device_a, device_c, device_e]
+    # Create CBSD reference IDs.
+    cbsd_reference_id_a = generateCbsdReferenceId(device_a['fccId'],
+                                                  device_a['cbsdSerialNumber'])
+    cbsd_reference_id_c = generateCbsdReferenceId(device_c['fccId'],
+                                                  device_c['cbsdSerialNumber'])
+    cbsd_reference_id_e = generateCbsdReferenceId(device_e['fccId'],
+                                                  device_e['cbsdSerialNumber'])
+    cbsd_reference_ids = [[
+        cbsd_reference_id_a, cbsd_reference_id_c, cbsd_reference_id_e
+    ]]
+    grant_record_list = [[grant_a], [grant_c], [grant_e]]
+    cbsd_records = generateCbsdRecords(cbsd_records, grant_record_list)
+    for cbsd in cbsd_records:
+      for grant in cbsd['grants']:
+        grant['channelType'] = 'PAL'
+    # Create records.
+    sas_harness_dump_records = {
+        'cbsdRecords': cbsd_records,
+        'ppaRecords': generatePpaRecords([ppa_record_1], cbsd_reference_ids),
+    }
+
+    # SAS test harness configuration.
+    sas_harness_config = {
+        'sasTestHarnessName': 'SAS-TH-1',
+        'hostName': getFqdnLocalhost(),
+        'port': getUnusedPort(),
+        'serverCert': getCertFilename('sas.cert'),
+        'serverKey': getCertFilename('sas.key'),
+        'caCert': 'certs/ca.cert'
+    }
+
+    config = {
+        'domainProxy':
+            domain_proxy,  # Includes registration and grant requests.
+        'ppaRecord': ppa_record_0,  # PPA in SAS UUT.
+        'ppaClusterList':
+            ppa_cluster_list,  # Same format and semantics as SIQ.12.
+        'palRecords': [pal_records_0[0],
+                       pal_records_1[0]],  # PALs for both PPAs.
+        'sasTestHarnessDumpRecords':
+            sas_harness_dump_records,  # CBSDs and one PPA.
+        'sasTestHarnessConfig':
+            sas_harness_config,  # Just the config, no records.
+    }
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_PPR_3_default_config)
+  def test_WINNF_FT_S_PPR_3(self, config_filename):
+    config = loadConfig(config_filename)
+
+    # Light config checking.
+    self.assertValidConfig(
+        config, {
+            'domainProxy': dict,
+            'ppaRecord': dict,
+            'ppaClusterList': list,
+            'palRecords': list,
+            'sasTestHarnessDumpRecords': dict,
+            'sasTestHarnessConfig': dict
+        })
+    self.assertEqual(
+        len(config['sasTestHarnessDumpRecords']['ppaRecords']), 1,
+        'Only one PPA is supported.')
+    # Make sure ID formats are correct.
+    ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
+    self.assertGreater(
+        len(ppa['ppaInfo']['cbsdReferenceId']), 0,
+        'Must have at least one ID on the cluster list.')
+    for cbsd_ref_id in ppa['ppaInfo']['cbsdReferenceId']:
+      self.assertFalse(
+          cbsd_ref_id.startswith('cbsd/'),
+          'IDs in the cluster list should not start with "cbsd/".')
+    for cbsd in config['sasTestHarnessDumpRecords']['cbsdRecords']:
+      self.assertTrue(cbsd['id'].startswith('cbsd/'),
+                      'IDs of individual CBSDs must start with "cbsd/".')
+
+    # Initialize test-wide variables, and state variables.
+    self.config = config
+    self.active_dpas = []
+    self.sas_test_harness_objects = []
+    self.domain_proxy_objects = []
+    self.protected_entity_records = {}
+    self.num_peer_sases = 1
+    self.cpas_executor = ThreadPoolExecutor(max_workers=1)
+    self.agg_interf_check_executor = ThreadPoolExecutor(max_workers=1)
+    self.sas_uut_fad = None
+    self.test_harness_fads = []  # List for consistency with MCP code.
+    self.all_dpa_checks_succeeded = True
+
+    # Notify SAS UUT that a peer SAS exists (and start the SAS server)
+    logging.info('Step 1: activate one SAS test harness and notify SAS UUT.')
+    test_harness = config['sasTestHarnessConfig']
+    logging.info('Creating SAS TH with config %s', test_harness)
+
+    # Initialize SAS Test Harness Server instance to dump FAD records
+    sas_test_harness_object = SasTestHarnessServer(
+        test_harness['sasTestHarnessName'], test_harness['hostName'],
+        test_harness['port'], test_harness['serverCert'],
+        test_harness['serverKey'], test_harness['caCert'])
+    self.InjectTestHarnessFccIds(
+        config['sasTestHarnessDumpRecords']['cbsdRecords'])
+    sas_test_harness_dump_records = [
+        config['sasTestHarnessDumpRecords']['cbsdRecords'],
+        config['sasTestHarnessDumpRecords']['ppaRecords']
+    ]
+    sas_test_harness_object.writeFadRecords(sas_test_harness_dump_records)
+    # Start the server
+    sas_test_harness_object.start()
+
+    # Inform SAS UUT about SAS Test Harness.
+    certificate_hash = getCertificateFingerprint(test_harness['serverCert'])
+    self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
+                                   'url': sas_test_harness_object.getBaseUrl()})
+
+    # Store required info in the test harness.
+    self.fad_cert = test_harness['serverCert']
+    self.fad_key = test_harness['serverKey']
+    self.sas_test_harness_objects.append(sas_test_harness_object)
+
+    # Extract PPA record from peer SAS and add to local protected entities.
+    peer_sas_ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
+    # The ID for each CBSD's record is of the format "cbsd/$REFERENCE_ID". The
+    # IDs on the cluster list are of the format "$REFERENCE_ID". Here we prepend
+    # "cbsd/" so that the values will be correctly matched in the zone purge
+    # reference model.
+    cluster_list = peer_sas_ppa['ppaInfo']['cbsdReferenceId']
+    for i in range(len(cluster_list)):
+      cluster_list[i] = 'cbsd/%s' % cluster_list[i]
+    self.protected_entity_records['ppaRecords'] = [peer_sas_ppa]
+
+    # Inject all PALs (used by SAS UUT PPA and peer SAS PPA)
+    logging.info('Step 2: inject PAL records.')
+    for index, pal_record in enumerate(config['palRecords']):
+      try:
+        logging.info('Injecting PAL record #%d', index)
+        self._sas_admin.InjectPalDatabaseRecord(pal_record)
+      except Exception:
+        logging.error(common_strings.CONFIG_ERROR_SUSPECTED)
+        raise
+    self.protected_entity_records['palRecords'] = config['palRecords']
+
+    # Register, inject PPA, and request grants.
+    logging.info('Steps 3 - 5: register, inject PPA, request grants.')
+    domain_proxy_config = config['domainProxy']
+    domain_proxy = test_harness_objects.DomainProxy(self,
+                                                    domain_proxy_config['cert'],
+                                                    domain_proxy_config['key'])
+    self.domain_proxy_objects.append(domain_proxy)
+    (sas_uut_ppa_record_with_cbsd_ids, sas_uut_ppa_record_with_reference_ids
+    ) = domain_proxy.registerCbsdsAndRequestGrantsWithPpa(
+        domain_proxy_config['registrationRequests'],
+        domain_proxy_config['grantRequests'], config['ppaRecord'],
+        config['ppaClusterList'],
+        domain_proxy_config['conditionalRegistrationData'])
+    # Make sure SAS UUT's PPA is also checked for protection.
+    # At this point, we use the "with reference IDs" version because the pre-IAP
+    # filtering code compares against the CBSD reference ID in the FAD.
+    self.protected_entity_records['ppaRecords'].append(
+        sas_uut_ppa_record_with_reference_ids)
+
+    # FAD exchange.
+    logging.info('Step 6 + 7: FAD exchange.')
+    self.sas_uut_fad = getFullActivityDumpSasUut(self._sas, self._sas_admin,
+                                                 self.fad_cert, self.fad_key)
+    self.test_harness_fads.append(
+        getFullActivityDumpSasTestHarness(
+            self.sas_test_harness_objects[0].getSasTestHarnessInterface()))
+
+    # Trigger CPAS in SAS UUT, and wait until completion.
+    logging.info('Step 8: trigger CPAS.')
+    self.cpas = self.cpas_executor.submit(
+        self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete)
+
+    logging.info('Step 9: execute IAP reference model.')
+    # Pre-IAP filtering.
+    pre_iap_filtering.preIapReferenceModel(self.protected_entity_records,
+                                           self.sas_uut_fad,
+                                           self.test_harness_fads)
+    # IAP reference model.
+    self.performIap()
+
+    logging.info('Waiting for CPAS to complete (started in step 8).')
+    self.cpas.result()
+    logging.info('CPAS started in step 8 complete.')
+
+    # Heartbeat, relinquish, grant, heartbeat
+    logging.info('Steps 10 - 13: heartbeat, relinquish, grant, heartbeat.')
+    domain_proxy.performHeartbeatAndUpdateGrants()
+
+    # Aggregate interference check
+    logging.info(
+        'Step 14 and CHECK: calculating and checking aggregate interference.')
+    # Before performing this check, we need to update the cluster list of SAS
+    # UUT's PPA to use the CBSD IDs -- rather than reference IDs -- since this
+    # is what the function getAuthorizedGrantsFromDomainProxies() expects. Note
+    # that we must keep the indexing the same since
+    # self.ppa_ap_iap_ref_values_list assumes consistent ordering of protected
+    # entities.
+    self.protected_entity_records['ppaRecords'][
+        1] = sas_uut_ppa_record_with_cbsd_ids
+
+    self.performIapAndDpaChecks()
