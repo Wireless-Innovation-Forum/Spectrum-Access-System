@@ -14,6 +14,7 @@
 
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
+import copy
 import common_strings
 import logging
 import sas
@@ -230,7 +231,10 @@ class DomainProxy(object):
         cbsdSerialNumber fields are required, other fields are optional.
 
     Returns
-      ppa_record: the input PPA record with the cluster list added.
+      ppa_record_with_cbsd_ids: the input PPA record with the cluster list (of
+        CBSD IDs) added.
+      ppa_record_with_reference_ids: the input PPA record with the cluster list
+        (of CBSD reference IDs) added.
     """
     # Checking if the number of registration requests matches number of grant requests.
     # There should be exactly one grant request per registration request.
@@ -248,10 +252,12 @@ class DomainProxy(object):
     cbsd_id_cluster_list = [cbsd_ids[i] for i in cluster_list if cbsd_ids[i]]
     ppa_record['ppaInfo']['cbsdReferenceId'] = cbsd_id_cluster_list
     self.testcase._sas_admin.InjectZoneData({'record': ppa_record})
+    ppa_record_with_cbsd_ids = ppa_record
     # But the reference model will be looking to compare with CBSD reference
     # IDs, which are not necessarily the same as the CBSD IDs. So now that the
     # PPA has been injected, we need to put the CBSD reference IDs into the PPA
     # record so that the reference model will do the right thing.
+    ppa_record_with_reference_ids = copy.deepcopy(ppa_record)
     def makeReferenceId(reg_request):
       return 'cbsd/' + generateCbsdReferenceId(reg_request['fccId'],
                                                reg_request['cbsdSerialNumber'])
@@ -260,8 +266,9 @@ class DomainProxy(object):
       if not cbsd_ids[i]:
         continue  # Skip if not registered.
       reference_id_cluster_list.append(makeReferenceId(registration_requests[i]))
-    ppa_record['ppaInfo']['cbsdReferenceId'] = reference_id_cluster_list
-    # END PPA-specific logic.
+    ppa_record_with_reference_ids['ppaInfo'][
+        'cbsdReferenceId'] = reference_id_cluster_list
+    # END PPA-specific logic. (Note: return statement also added.)
 
     # Copy the cbsdId from Registration response to grant requests, omitting
     # grant requests for CBSDs which were not successfully registered.
@@ -295,7 +302,7 @@ class DomainProxy(object):
                            [grant_response['grantId']], [grant_request])
         self.cbsd_objects[cbsd_id] = cbsd_object
 
-    return ppa_record
+    return ppa_record_with_cbsd_ids, ppa_record_with_reference_ids
 
 
   def _mergeConditionals(self, registration_request, conditionals):
