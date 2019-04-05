@@ -589,6 +589,9 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         'Only one PPA is supported.')
     # Make sure ID formats are correct.
     ppa = config['sasTestHarnessDumpRecords']['ppaRecords'][0]
+    self.assertGreater(
+        len(ppa['ppaInfo']['cbsdReferenceId']), 0,
+        'Must have at least one ID on the cluster list.')
     for cbsd_ref_id in ppa['ppaInfo']['cbsdReferenceId']:
       self.assertFalse(
           cbsd_ref_id.startswith('cbsd/'),
