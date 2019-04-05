@@ -669,13 +669,17 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
                                                     domain_proxy_config['cert'],
                                                     domain_proxy_config['key'])
     self.domain_proxy_objects.append(domain_proxy)
-    ppa = domain_proxy.registerCbsdsAndRequestGrantsWithPpa(
+    (sas_uut_ppa_record_with_cbsd_ids, sas_uut_ppa_record_with_reference_ids
+    ) = domain_proxy.registerCbsdsAndRequestGrantsWithPpa(
         domain_proxy_config['registrationRequests'],
         domain_proxy_config['grantRequests'], config['ppaRecord'],
         config['ppaClusterList'],
         domain_proxy_config['conditionalRegistrationData'])
     # Make sure SAS UUT's PPA is also checked for protection.
-    self.protected_entity_records['ppaRecords'].append(ppa)
+    # At this point, we use the "with reference IDs" version because the pre-IAP
+    # filtering code compares against the CBSD reference ID in the FAD.
+    self.protected_entity_records['ppaRecords'].append(
+        sas_uut_ppa_record_with_reference_ids)
 
     # FAD exchange.
     logging.info('Step 6 + 7: FAD exchange.')
@@ -709,4 +713,13 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # Aggregate interference check
     logging.info(
         'Step 14 and CHECK: calculating and checking aggregate interference.')
+    # Before performing this check, we need to update the cluster list of SAS
+    # UUT's PPA to use the CBSD IDs -- rather than reference IDs -- since this
+    # is what the function getAuthorizedGrantsFromDomainProxies() expects. Note
+    # that we must keep the indexing the same since
+    # self.ppa_ap_iap_ref_values_list assumes consistent ordering of protected
+    # entities.
+    self.protected_entity_records['ppaRecords'][
+        1] = sas_uut_ppa_record_with_cbsd_ids
+
     self.performIapAndDpaChecks()
