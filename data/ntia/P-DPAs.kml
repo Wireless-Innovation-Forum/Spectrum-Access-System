@@ -4,23 +4,66 @@
       <name>P-DPAs</name>
 <ExtendedData>
 <Data name="version">
-<value>1.0.6</value>
+<value>1.0.7</value>
 </Data> 
 <Data name="creationDate">
-<value>2018-10-16</value>
+<value>2019-04-15</value>
 </Data> 
 <Data name="Disclaimer">
-<value>The Category and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
+<value>The Category A and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
 </Data> 
 </ExtendedData>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>BARKING SANDS</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>BARKING SANDS</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>3132313135383533313333</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4241524b494e475f53414e44535f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4241524b494e475f53414e44535f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4241524b494e475f53414e44535f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4241524b494e475f53414e44535f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4241524b494e475f53414e44535f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4241524b494e475f53414e44535f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4241524b494e475f53414e44535f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4241524b494e475f53414e44535f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4241524b494e475f53414e44535f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4241524b494e475f53414e44535f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4241524b494e475f53414e44535f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4241524b494e475f53414e44535f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4241524b494e475f53414e44535f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4241524b494e475f53414e44535f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -60,13 +103,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>BATH</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>BATH</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>424154485f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>424154485f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>424154485f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>424154485f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>424154485f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>424154485f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>424154485f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>424154485f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>424154485f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>424154485f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>424154485f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>424154485f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>424154485f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>424154485f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>424154485f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -106,13 +192,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>CHINA LAKE</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>CHINA LAKE</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>4348494e415f4c414b455f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4348494e415f4c414b455f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4348494e415f4c414b455f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4348494e415f4c414b455f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4348494e415f4c414b455f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4348494e415f4c414b455f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4348494e415f4c414b455f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4348494e415f4c414b455f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4348494e415f4c414b455f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4348494e415f4c414b455f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4348494e415f4c414b455f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4348494e415f4c414b455f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4348494e415f4c414b455f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4348494e415f4c414b455f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4348494e415f4c414b455f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -167,13 +296,56 @@
          </Polygon>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>DAHLGREN</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>DAHLGREN</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>4441484c4752454e5f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4441484c4752454e5f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4441484c4752454e5f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4441484c4752454e5f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4441484c4752454e5f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4441484c4752454e5f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4441484c4752454e5f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4441484c4752454e5f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4441484c4752454e5f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4441484c4752454e5f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4441484c4752454e5f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4441484c4752454e5f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4441484c4752454e5f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4441484c4752454e5f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4441484c4752454e5f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -228,13 +400,56 @@
          </Polygon>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>MCKINNEY</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>MCKINNEY</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>3132313638373836313637</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4d434b494e4e45595f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4d434b494e4e45595f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4d434b494e4e45595f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4d434b494e4e45595f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4d434b494e4e45595f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4d434b494e4e45595f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4d434b494e4e45595f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4d434b494e4e45595f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4d434b494e4e45595f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4d434b494e4e45595f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4d434b494e4e45595f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4d434b494e4e45595f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4d434b494e4e45595f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4d434b494e4e45595f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -274,13 +489,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>MOORESTOWN</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>MOORESTOWN</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>4d434b494e4e45595f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4d4f4f524553544f574e5f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4d4f4f524553544f574e5f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4d4f4f524553544f574e5f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4d4f4f524553544f574e5f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4d4f4f524553544f574e5f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4d4f4f524553544f574e5f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4d4f4f524553544f574e5f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4d4f4f524553544f574e5f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4d4f4f524553544f574e5f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4d4f4f524553544f574e5f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4d4f4f524553544f574e5f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4d4f4f524553544f574e5f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4d4f4f524553544f574e5f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4d4f4f524553544f574e5f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -320,13 +578,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>NEWPORT NEWS</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>NEWPORT NEWS</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>4e4557504f52545f4e4557535f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>4e4557504f52545f4e4557535f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>4e4557504f52545f4e4557535f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>4e4557504f52545f4e4557535f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>4e4557504f52545f4e4557535f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>4e4557504f52545f4e4557535f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>4e4557504f52545f4e4557535f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>4e4557504f52545f4e4557535f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>4e4557504f52545f4e4557535f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>4e4557504f52545f4e4557535f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>4e4557504f52545f4e4557535f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>4e4557504f52545f4e4557535f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>4e4557504f52545f4e4557535f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>4e4557504f52545f4e4557535f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>4e4557504f52545f4e4557535f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -366,13 +667,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>PORTSMOUTH</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>PORTSMOUTH</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>504f5254534d4f5554485f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>504f5254534d4f5554485f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>504f5254534d4f5554485f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>504f5254534d4f5554485f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>504f5254534d4f5554485f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>504f5254534d4f5554485f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>504f5254534d4f5554485f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>504f5254534d4f5554485f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>504f5254534d4f5554485f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>504f5254534d4f5554485f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>504f5254534d4f5554485f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>504f5254534d4f5554485f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>504f5254534d4f5554485f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>504f5254534d4f5554485f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>504f5254534d4f5554485f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -412,13 +756,56 @@
 </Point>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>WALLOPS ISLAND</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>WALLOPS ISLAND</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>57414c4c4f50535f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>57414c4c4f50535f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>57414c4c4f50535f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>57414c4c4f50535f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>57414c4c4f50535f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>57414c4c4f50535f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>57414c4c4f50535f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>57414c4c4f50535f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>57414c4c4f50535f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>57414c4c4f50535f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>57414c4c4f50535f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>57414c4c4f50535f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>57414c4c4f50535f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>57414c4c4f50535f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>57414c4c4f50535f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -473,13 +860,56 @@
          </Polygon>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>WHITE SANDS MISSILE RANGE</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>WHITE SANDS MISSILE RANGE</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>57484954455f53414e44535f4d495353494c455f52414e47455f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
@@ -534,13 +964,56 @@
          </Polygon>
       </Placemark>
       <Placemark>
-         <Snippet maxLines="0"> </Snippet>
-         <description> </description>
          <name>YUMA PROVING GROUNDS</name>
 <ExtendedData> 
 <Data name="portalOrg"> 
 <value>YUMA PROVING GROUNDS</value>
 </Data> 
+<Data name="calendarId3500-3510">
+<value>59554d415f50524f56494e475f47524f554e44535f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>59554d415f50524f56494e475f47524f554e44535f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>59554d415f50524f56494e475f47524f554e44535f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>59554d415f50524f56494e475f47524f554e44535f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>59554d415f50524f56494e475f47524f554e44535f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>59554d415f50524f56494e475f47524f554e44535f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>59554d415f50524f56494e475f47524f554e44535f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>59554d415f50524f56494e475f47524f554e44535f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>59554d415f50524f56494e475f47524f554e44535f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>59554d415f50524f56494e475f47524f554e44535f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>59554d415f50524f56494e475f47524f554e44535f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>59554d415f50524f56494e475f47524f554e44535f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>59554d415f50524f56494e475f47524f554e44535f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>59554d415f50524f56494e475f47524f554e44535f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>59554d415f50524f56494e475f47524f554e44535f333634302d33363530</value>
+</Data>
 <Data name="freqRangeMHz">
 <value>3500-3650</value>
 </Data> 
