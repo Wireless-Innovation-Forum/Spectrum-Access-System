@@ -105,10 +105,10 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('antennaBeamwidthDeg', float, 3.),
                           ('minAzimuthDeg', float, 0.),
                           ('maxAzimuthDeg', float, 360.),
-                          ('catANeighborhoodDistanceKm', float, DPA_CATA_DEFAULT_NEIGHBOR_DIST),
+                          ('catANeighborhoodDistanceKm', float, None),
                           ('catBNeighborhoodDistanceKm', float, None),
-                          ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
-                          ('catBOOBNeighborhoodDistanceKm', float, float('nan'))]
+                          ('catAOOBNeighborhoodDistanceKm', float, None),
+                          ('catBOOBNeighborhoodDistanceKm', float, None)]
 
 # For portal DPAs.
 PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
@@ -117,14 +117,27 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('antennaBeamwidthDeg', float, None),
                          ('minAzimuthDeg', float, 0),
                          ('maxAzimuthDeg', float, 360),
-                         ('catANeighborhoodDistanceKm', float, DPA_CATA_DEFAULT_NEIGHBOR_DIST),
+                         ('catANeighborhoodDistanceKm', float, None),
                          ('catBNeighborhoodDistanceKm', float, None),
-                         ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
-                         ('catBOOBNeighborhoodDistanceKm', float, float('nan')),
+                         ('catAOOBNeighborhoodDistanceKm', float, None),
+                         ('catBOOBNeighborhoodDistanceKm', float, None),
                          ('portalOrg', str, None),
                          ('federalOp', bool, None),
-                         ('gmfSerialNumber', str, 'None'),
-                         ('fccCallSign', str, 'None')]
+                         ('calendarId3500-3510', str, ''),
+                         ('calendarId3510-3520', str, ''),
+                         ('calendarId3520-3530', str, ''),
+                         ('calendarId3530-3540', str, ''),
+                         ('calendarId3540-3550', str, ''),
+                         ('calendarId3550-3560', str, ''),
+                         ('calendarId3560-3570', str, ''),
+                         ('calendarId3570-3580', str, ''),
+                         ('calendarId3580-3590', str, ''),
+                         ('calendarId3590-3600', str, ''),
+                         ('calendarId3600-3610', str, ''),
+                         ('calendarId3610-3620', str, ''),
+                         ('calendarId3620-3630', str, ''),
+                         ('calendarId3630-3640', str, ''),
+                         ('calendarId3640-3650', str, '')]
 
 
 # One source of data is the the `protection_zones.kml` preprocessed by
@@ -389,27 +402,6 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
         setattr(zone, attr, default)
       else:
         setattr(zone, attr, cvt(value))
-
-  # Check on the neighbor distances and set defaults
-  # TODO(sbdt): This is temp while final KML are produced.
-  # Final code should raise an exception for those which are mandatory by the spec,
-  # and use the standard default for the optional ones.
-  for name, zone in dpa_zones.items():
-    # CatA neighborhood specified with default value if not in file,
-    # so this is managed in the declaration.
-    # However since the KML are currently using NaN for that param, manage
-    # the NaN case here.
-    if np.isnan(zone.catANeighborhoodDistanceKm):
-      zone.catANeighborhoodDistanceKm = DPA_CATA_DEFAULT_NEIGHBOR_DIST
-    # Others seems mandatory:
-    # CatB not yet defined set as NaN
-    if np.isnan(zone.catBNeighborhoodDistanceKm):
-      zone.catBNeighborhoodDistanceKm = 200
-    # OOB distances not yet provided in the KML files, so default to NaN
-    if np.isnan(zone.catAOOBNeighborhoodDistanceKm):
-      zone.catAOOBNeighborhoodDistanceKm = 0
-    if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
-      zone.catBOOBNeighborhoodDistanceKm = 25
 
   return dpa_zones
 
