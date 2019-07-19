@@ -105,10 +105,11 @@ COASTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                           ('antennaBeamwidthDeg', float, 3.),
                           ('minAzimuthDeg', float, 0.),
                           ('maxAzimuthDeg', float, 360.),
-                          ('catANeighborhoodDistanceKm', float, None),
+                          ('catANeighborhoodDistanceKm', float,
+                           DPA_CATA_DEFAULT_NEIGHBOR_DIST),
                           ('catBNeighborhoodDistanceKm', float, None),
-                          ('catAOOBNeighborhoodDistanceKm', float, None),
-                          ('catBOOBNeighborhoodDistanceKm', float, None)]
+                          ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                          ('catBOOBNeighborhoodDistanceKm', float, float('nan'))]
 
 # For portal DPAs.
 PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
@@ -117,10 +118,10 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('antennaBeamwidthDeg', float, None),
                          ('minAzimuthDeg', float, 0),
                          ('maxAzimuthDeg', float, 360),
-                         ('catANeighborhoodDistanceKm', float, None),
+                         ('catANeighborhoodDistanceKm', float, DPA_CATA_DEFAULT_NEIGHBOR_DIST),
                          ('catBNeighborhoodDistanceKm', float, None),
-                         ('catAOOBNeighborhoodDistanceKm', float, None),
-                         ('catBOOBNeighborhoodDistanceKm', float, None),
+                         ('catAOOBNeighborhoodDistanceKm', float, float('nan')),
+                         ('catBOOBNeighborhoodDistanceKm', float, float('nan')),
                          ('portalOrg', str, None),
                          ('federalOp', bool, None),
                          ('calendarId3500-3510', str, ''),
@@ -402,6 +403,27 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
         setattr(zone, attr, default)
       else:
         setattr(zone, attr, cvt(value))
+
+  # Check on the neighbor distances and set defaults
+  # TODO(sbdt): This is temp while final KML are produced.
+  # Final code should raise an exception for those which are mandatory by the spec,
+  # and use the standard default for the optional ones.
+  for name, zone in dpa_zones.items():
+    # CatA neighborhood specified with default value if not in file,
+    # so this is managed in the declaration.
+    # However since the KML are currently using NaN for that param, manage
+    # the NaN case here.
+    if np.isnan(zone.catANeighborhoodDistanceKm):
+      zone.catANeighborhoodDistanceKm = DPA_CATA_DEFAULT_NEIGHBOR_DIST
+    # Others seems mandatory:
+    # CatB not yet defined set as NaN
+    if np.isnan(zone.catBNeighborhoodDistanceKm):
+      zone.catBNeighborhoodDistanceKm = 200
+    # OOB distances not yet provided in the KML files, so default to NaN
+    if np.isnan(zone.catAOOBNeighborhoodDistanceKm):
+      zone.catAOOBNeighborhoodDistanceKm = 0
+    if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
+      zone.catBOOBNeighborhoodDistanceKm = 25
 
   return dpa_zones
 
