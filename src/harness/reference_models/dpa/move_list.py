@@ -53,7 +53,7 @@ from reference_models.common import cache
 from reference_models.common import data
 from reference_models.antenna import antenna
 
-import dpa_hybrid_prop as dpa_hybrid
+from reference_models.propagation import dpa_hybrid
 
 # Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 # Monte Carlo percentile for protection
