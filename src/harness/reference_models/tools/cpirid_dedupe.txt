@@ -1,0 +1,109 @@
+// This is a Google Sheets script that was used by WInnForum
+// to remove duplicate CPIR-ID entries in the CPI database
+// csv file, keeping only the latest entry. It is included in
+// the repository as a logic reference to show how the
+// "de-duping" is done, so that SASs can implement this logic
+// during CPI database ingestion rather than having WInnForum
+// do it, which was growing logistically difficult.
+// 
+// The only functions in this script that are directly relevant
+// are multiSortColumns (sorts the data in the CSV file by
+// CPIR-ID then by date), and keepLatest, which goes row-by-row,
+// and if the CPIR-ID of the current row is the same as the row
+// below it, it deletes the current row (because it's older due
+// to the way the Sheet was sorted).
+//
+// Original script author: Andrew Clegg, aclegg@google.com
+
+INFILE    = "Daily_CPI_Download.csv"
+DIRECTORY = "CPI Database"
+OUTFILE   = "CPI_Database-Public.csv"
+
+function importCSVFromGoogleDrive() {
+  var file = DriveApp.getFilesByName(INFILE).next();
+  var csvData = Utilities.parseCsv(file.getBlob().getDataAsString());
+  var sheet = SpreadsheetApp.getActiveSheet();
+  sheet.getRange(1, 1, csvData.length, csvData[0].length).setValues(csvData);
+}
+
+function multiSortColumns(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Sheet1');
+  var range = 'A2:D' + sheet.getLastRow();
+  var range = sheet.getRange(range);
+  // Sort by CPIR-ID (column 1) then DATE (column 4)
+  SORT_ORDER = [{column: 1, ascending: true}, {column: 4, ascending: true}];
+  range.sort(SORT_ORDER);
+}
+
+function keepLatest(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Sheet1');
+  row = 2
+  maxRow = sheet.getLastRow();
+  // For each row in the Sheet (now sorted by CPIR-ID then DATE, both
+  // ascending), if the CPIR-ID of this row is the same as the row
+  // below it, delete this row, because it's older
+  while (row <= maxRow-1){
+    var cpiidThisRow = sheet.getRange(row, 1).getValue();
+    var cpiidNextRow = sheet.getRange(row+1, 1).getValue();
+    if (cpiidThisRow == cpiidNextRow){
+      sheet.deleteRow(row)
+      row = row - 1;
+    }
+    row = row + 1;
+    maxRow = sheet.getLastRow();
+  }
+}
+
+function convertRangeToCsvFile_(csvFileName, sheet) {
+  // get available data range in the spreadsheet
+  var activeRange = sheet.getDataRange();
+  try {
+    var data = activeRange.getValues();
+    var csvFile = undefined;
+
+    // loop through the data in the range and build a string with the csv data
+    if (data.length > 1) {
+      var csv = "";
+      for (var row = 0; row < data.length; row++) {
+        for (var col = 0; col < data[row].length; col++) {
+          if (data[row][col].toString().indexOf(",") != -1) {
+            data[row][col] = "\"" + data[row][col] + "\"";
+          }
+        }
+
+        // join each row's columns
+        // add a carriage return to end of each row, except for the last one
+        if (row < data.length-1) {
+          csv += data[row].join(",") + "\r\n";
+        }
+        else {
+          csv += data[row];
+        }
+      }
+      csvFile = csv;
+    }
+    return csvFile;
+  }
+  catch(err) {
+    Logger.log(err);
+    Browser.msgBox(err);
+  }
+}
+
+function saveAsCsv(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Sheet1");
+  var file = DriveApp.getFileById(ss.getId());
+  var folder = DriveApp.getFoldersByName(DIRECTORY).next();
+  var csvFile = convertRangeToCsvFile_(OUTFILE, sheet);
+  var file = folder.createFile(OUTFILE, csvFile);
+}
+
+function main() {
+  importCSVFromGoogleDrive();
+  multiSortColumns();
+  keepLatest();
+  saveAsCsv();
+}
