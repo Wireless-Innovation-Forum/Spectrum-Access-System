@@ -46,15 +46,15 @@ class TileStats(object):
 
   def Report(self):
     num_active_tiles, counts = self.ActiveTilesCount()
-    print "Used tiles: {total} / {max}".format(
-        total=num_active_tiles, max=len(self._tiles_set))
-    print "Total load ops: {total}".format(
-        total=sum(counts))
-    print "Active tiles statistics (#loads per used tiles):"
-    print "  Avg:{avg} (std={std})".format(
-        avg=np.mean(counts), std=np.std(counts))
-    print "  Min:{min} Max:{max}".format(
-        min=np.min(counts), max=np.max(counts))
+    print("Used tiles: {total} / {max}".format(
+        total=num_active_tiles, max=len(self._tiles_set)))
+    print("Total load ops: {total}".format(
+        total=sum(counts)))
+    print("Active tiles statistics (#loads per used tiles):")
+    print("  Avg:{avg} (std={std})".format(
+        avg=np.mean(counts), std=np.std(counts)))
+    print("  Min:{min} Max:{max}".format(
+        min=np.min(counts), max=np.max(counts)))
 
 
 NED_TILES = set([
@@ -645,7 +645,7 @@ NED_TILES = set([
     (70,-143),  (70,-144),  (70,-145),
     (70,-146),  (70,-147),  (71,-143),
     (71,-144),  (71,-145),  (71,-146),
-    (71,-147)
+    (71,-147),
 ]
 )
 
@@ -1074,6 +1074,15 @@ NLCD_TILES = set([
     (60,-146),(63,-166),(67,-162),(72,-155),
     (60,-147),(63,-167),(67,-163),(72,-156),
     (60,-148),(64,-141),(67,-164),(72,-157),
-    (60,-149),(64,-142),(67,-165),(72,-158)
+    (60,-149),(64,-142),(67,-165),(72,-158),
+    # Following are for Puerto-Rico
+    (18,-66), (18,-67), (18,-68),
+    (19,-66), (19,-67), (19,-68),
+    # Following are for Hawaii
+    (19,-156),(20,-155),(20,-156),
+    (20,-157),(21,-156),(21,-157),
+    (21,-158),(22,-157),(22,-158),
+    (22,-159),(22,-160),(22,-161),
+    (23,-160),(23,-161)
 ]
 )

@@ -12,26 +12,27 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Provides a driver for reading original NLCD (National Land Cover) database
-provided by USGS.
+"""Provides a driver for reading original USGS NLCD (National Land Cover) database.
 
-This driver works with the original untiled files provided by
-USGS, under name:
+This driver works with the original untiled files provided by USGS, typically found
+in https://www.mrlc.gov/data. Currently 2011 and 2001 NLCD data:
    nlcd_2011_landcover_2011_edition_2014_10_10.XXX
    ak_nlcd_2011_landcover_2011_xxx.XXX
+   hi_landcover_wimperv_9-30-08_se5.XXX
+   pr_landcover_wimperv_10-28-08_se5.XXX
 
 Typical usage:
 
   # Create driver - One of following options:
   #   - with auto subtile loading (size 1x1 degrees) and LRU caching.
-  driver = NlcdOriginDriver(usgs_nlcd_directory, data_mode=8, tile_size=(1,1))
+  driver = NlcdOriginDriver(usgs_nlcd_file, data_mode=8, tile_size=(1,1))
 
   #   - With manual loading of rectangle box.
-  driver = NlcdOriginDriver(usgs_nlcd_directory, data_mode=0)
+  driver = NlcdOriginDriver(usgs_nlcd_file, data_mode=0)
   driver.CacheTileInBox(lat_min, lat_max, lon_min, lon_max)
 
   #   - Full tile load - Warning as it requires 32GB transient RAM.
-  driver = NlcdOriginDriver(usgs_nlcd_directory, data_mode=-1)
+  driver = NlcdOriginDriver(usgs_nlcd_file, data_mode=-1)
 
   # Now read NLCD codes for one or a list/array of points
   codes = driver.GetLandCoverCodes(lats, lons)
@@ -70,7 +71,7 @@ class NlcdOriginDriver(object):
     """Initializes the original NLCD driver.
 
     Inputs:
-      nlcd_directory: Directory for the original NLCD database.
+      nlcd_file: File holding the original NLCD data ('.img' format).
       data_mode: Internal data mode (default: 0).
                  If -1, load the full NLCD in memory (32GB transient RAM required).
                  If 0, load of working sub-tile in memory managed by user.
@@ -90,7 +91,7 @@ class NlcdOriginDriver(object):
     if not nlcd_file.endswith('.img'):
       raise ValueError('NLCD file is not an .img file: %s' % nlcd_file)
     if not os.path.exists(nlcd_file):
-      raise Exception('The file is not foundL %s' % nlcd_file)
+      raise Exception('The file is not found %s' % nlcd_file)
 
     self.img_path = nlcd_file
 
@@ -114,7 +115,8 @@ class NlcdOriginDriver(object):
                      key=None):
     """Caches NLCD within bounding box.
 
-    If no bounding box specified, cache the full NLCD (32GB transient RAM need).
+    If no bounding box specified, cache the full NLCD (up to 32GB transient RAM
+    needed for CONUS NLCD file).
     The internal cache element is a tuple (box, tile_cache)
         - box is a tuple (idx_row, idx_col) of the offset of the NW point
           of the returned ticompared to the original tile NW point.
@@ -376,7 +378,7 @@ class NlcdTileInfo:
       return int(idx_row), int(idx_col)
     else:
       res = self._transform.TransformPoints(np.column_stack((lon, lat)))
-      res = zip(*res)
+      res = list(zip(*res))
       x, y = np.array(res[0]), np.array(res[1])
       idx_col = self._inv_txf[0] + self._inv_txf[1] * x + self._inv_txf[2] * y
       idx_row = self._inv_txf[3] + self._inv_txf[4] * x + self._inv_txf[5] * y

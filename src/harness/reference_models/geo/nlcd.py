@@ -179,13 +179,14 @@ class NlcdDriver:
       encoding = '%c%02d%c%03d' % (
           'sn'[ilat >= 0], abs(ilat),
           'we'[ilon >= 0], abs(ilon))
-
       tile_name1 = 'nlcd_' + encoding + '_ref.int'
       tile_name2 = 'nlcd_' + encoding + '.int'
+      tile_name3 = os.path.join('nlcd_islands', tile_name1)
       tile_name = (tile_name1
                    if os.path.isfile(os.path.join(self._nlcd_dir, tile_name1))
-                   else tile_name2)
-
+                   else (tile_name2
+                         if os.path.isfile(os.path.join(self._nlcd_dir, tile_name2))
+                         else tile_name3))
       try:
         self._tile_cache[key] = np.fromfile(
             os.path.join(self._nlcd_dir, tile_name),
