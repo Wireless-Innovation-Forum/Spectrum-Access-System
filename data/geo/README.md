@@ -19,5 +19,5 @@ repository).
 To make use of them in the software, simply:
 
  - unzip all zip files in `nlcd_islands/`
- - copy the `nlcd_islands` into your main `nlcd/` folder (ie. the one
+ - copy the `nlcd_islands/` folder into your main `nlcd/` folder (ie. the one
  that you defined in the "Installation" section above).
