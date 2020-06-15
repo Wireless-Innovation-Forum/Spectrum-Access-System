@@ -43,7 +43,6 @@ NLCD_ORIG_DIR = os.path.join(data_dir, 'geo', 'orig_nlcd')
 OUT_DIR = os.path.join(data_dir, 'geo', 'nlcd_out')
 
 # - reference dir of existing tiles
-#  - where to put the generated tiles.
 REF_DIR = os.path.join(data_dir, 'geo', 'nlcd')
 
 # If set to True, will create a jpg file per tile.
@@ -51,9 +50,15 @@ create_jpg = True
 
 # ***** End Configuration *****
 
+# If you want to process only part of the original files, simply comment out
+# the files
 ORIG_NLCD_FILES = [
-    'nlcd_2011_landcover_2011_edition_2014_10_10.img',
-    'ak_nlcd_2011_landcover_1_15_15.img']
+    # Conus might be replaced by this one if upgrading NLCD at some point:
+    # #'NLCD_2011_Land_Cover_L48_20190424.img',
+    #'nlcd_2011_landcover_2011_edition_2014_10_10.img'
+    #'ak_nlcd_2011_landcover_1_15_15.img',
+    'hi_landcover_wimperv_9-30-08_se5.img',
+    'pr_landcover_wimperv_10-28-08_se5.img']
 
 
 def ParseLatLonFromNedFile(fname):
@@ -149,7 +154,7 @@ if __name__ == '__main__':
 
   # Loop on original NLCD files
   for orig_file in ORIG_NLCD_FILES:
-    print 'Processing NLCD file : %s' % orig_file
+    print('Processing NLCD file : %s' % orig_file)
 
     # Initialize the driver - in manual loading mode
     try:
@@ -157,13 +162,13 @@ if __name__ == '__main__':
           os.path.join(NLCD_ORIG_DIR, orig_file),
           data_mode=0)
     except Exception:
-      print '  ... FILE NOT FOUND'
+      print('  ... FILE NOT FOUND')
       continue
 
     for lat_nw, lon_nw in ned_latlon:
 
       if (lat_nw, lon_nw) in processed_latlon:
-        print 'Tile [%d %d] already done. Skipping...' % (lat_nw, lon_nw)
+        print('Tile [%d %d] already done. Skipping...' % (lat_nw, lon_nw))
         continue
 
       # Create the output file name
@@ -173,37 +178,36 @@ if __name__ == '__main__':
 
       tile_name = 'nlcd_' + encoding + '_ref.int'
 
-      print '** Processing NLCD tile: %s (Lat%d Lng%d)' % (tile_name, lat_nw, lon_nw)
+      print('** Processing NLCD tile: %s (Lat%d Lng%d)' % (tile_name, lat_nw, lon_nw))
 
       # Load the original required tile
       ret = driver.CacheTileInBox(lat_min=lat_nw-1, lat_max=lat_nw,
                                   lon_min=lon_nw, lon_max=lon_nw+1)
       if ret is None:
-        print '        ..Skipping - Outside'
+        print('        ..Skipping - Outside')
         continue
 
       # Check to see if a corresponding NLCD tile exists for the
       # midpoint of this lat/lon square
       nlcd = np.zeros((3600, 3600)).astype(np.uint8)
-
       lat = lat_nw - coord
       lon = lon_nw + coord
       cnt_codes_zero = 0
-      for k in xrange(3600):
+      for k in range(3600):
         if (k+1) % 600 == 0:
           sys.stdout.write('+')
           sys.stdout.flush()
         codes = driver.GetLandCoverCodes(lat[k] * np.ones(3600), lon)
         nlcd[k, :] = codes
         cnt_codes_zero += 3600 - np.count_nonzero(codes)
-      print '  Number of zero code = %d' % cnt_codes_zero
+      print('  Number of zero code = %d' % cnt_codes_zero)
 
       # Skip saving tile if fully empty
       if cnt_codes_zero >= 3600*3600:
-        print '        ..Skipping - All zero'
+        print('        ..Skipping - All zero')
         continue
 
-      print '        ..Saving & zipping'
+      print('        ..Saving & zipping')
       nlcd.tofile(os.path.join(OUT_DIR, tile_name))
 
       # Create the header files
