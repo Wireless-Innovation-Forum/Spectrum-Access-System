@@ -331,8 +331,10 @@ def performIapForEsc(esc_record, grants, sas_th_fad_objects):
   # a pre-defined Pre-IAP headroom (Mg) at each protection threshold(Q)
   esc_iap_threshold = interf.dbToLinear(esc_thresh_q - MARGIN_ESC_DB)
 
+  # *** PATCHED ***
   # grants = data.getGrantObjectsFromFAD(sas_uut_fad_object, sas_th_fad_objects)
-
+  # *** END PATCH ***
+  
   # Get number of SAS
   num_sas = len(sas_th_fad_objects) + 1
 
