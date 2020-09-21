@@ -13,5 +13,3 @@ number of CBSD deployed.
 This is done by gridding the sensor neighborhood area at a given resolution (`grid_arcsec`), 
 where the neighborhood is defined as all areas within 80km for CatB and 40km for CatA.
 The neighborhood distance can be forced to other value fo simulation speedup.
-
-run esc_pop_impact --fast_mode --esc_fads=socal_google_esc.txt grid_arcsec=20 --force_radius_km=50
