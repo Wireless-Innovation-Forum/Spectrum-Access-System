@@ -49,5 +49,26 @@ class UsgsPopDriverTest(unittest.TestCase):
     self.assertTrue(np.all(densities == exp_values),
                     'Different densities read')
 
+  def testReadBlockDataOk(self):
+    driver = usgs_pop_driver.UsgsPopDriver(TESTDATA_DIR)
+    driver.LoadRaster((37.7, -122.42, 37.73, -122.35))
+    latitudes = [37.702042, 37.721747, 37.722372]
+    longitudes = [-122.414730, -122.391210, -122.395741]
+    exp_values = [12686, 2500, 11359]
+    densities = driver.GetPopulationDensity(
+        latitudes, longitudes)
+    self.assertTrue(np.all(densities == exp_values),
+                    'Different densities read')
+
+  def testLazyReadDataOk(self):
+    driver = usgs_pop_driver.UsgsPopDriver(TESTDATA_DIR, lazy_load=True)
+    latitudes = [37.702042, 37.721747, 37.722372]
+    longitudes = [-122.414730, -122.391210, -122.395741]
+    exp_values = [12686, 2500, 11359]
+    densities = driver.GetPopulationDensity(
+        latitudes, longitudes)
+    self.assertTrue(np.all(densities == exp_values),
+                    'Different densities read')
+
 if __name__ == '__main__':
   unittest.main()

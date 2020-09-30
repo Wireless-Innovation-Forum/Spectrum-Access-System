@@ -47,11 +47,10 @@ from __future__ import print_function
 
 import glob
 import os
-import time
 
+import numpy as np
 from osgeo import gdal
 from osgeo import osr
-import numpy as np
 
 gdal.UseExceptions()
 
@@ -90,9 +89,10 @@ class UsgsPopDriver(object):
     raster_band = dataset.GetRasterBand(1)
     self._block_xsize, self._block_ysize = raster_band.GetBlockSize()
     dataset = None
-    self._raster_mask = np.zeros((self._raster_info.height // self._block_ysize + 1,
-                                  self._raster_info.width // self._block_xsize + 1),
-                                 dtype=np.bool)
+    self._raster_mask = np.zeros(
+        (self._raster_info.height // self._block_ysize + 1,
+         self._raster_info.width // self._block_xsize + 1),
+        dtype=np.bool)
 
   def LoadRaster(self, box=None):
     """Load raster in memory.
@@ -106,26 +106,30 @@ class UsgsPopDriver(object):
     row_min, row_max = 0, dataset.RasterYSize-1
     col_min, col_max = 0, dataset.RasterXSize-1
     if box:
-       row_se, col_se = self._raster_info.Indexes(box[0], box[1])
-       row_ne, col_ne = self._raster_info.Indexes(box[2], box[1])
-       row_sw, col_sw = self._raster_info.Indexes(box[0], box[3])
-       row_nw, col_nw = self._raster_info.Indexes(box[2], box[3])
-       row_min = max(min(row_ne, row_ne), 0)
-       row_max = min(max(row_se, row_sw), dataset.RasterYSize-1)
-       col_min = max(min(col_se, col_ne), 0)
-       col_max = min(max(col_sw, row_nw), dataset.RasterXSize-1)
-    b_y_min, b_y_max = row_min // self._block_ysize, row_max // self._block_ysize
-    b_x_min, b_x_max = col_min // self._block_xsize, col_max // self._block_xsize
+      row_se, col_se = self._raster_info.Indexes(box[0], box[1])
+      row_ne, col_ne = self._raster_info.Indexes(box[2], box[1])
+      row_sw, col_sw = self._raster_info.Indexes(box[0], box[3])
+      row_nw, col_nw = self._raster_info.Indexes(box[2], box[3])
+      row_min = max(min(row_ne, row_nw), 0)
+      row_max = min(max(row_se, row_sw), dataset.RasterYSize-1)
+      col_min = max(min(col_se, col_ne), 0)
+      col_max = min(max(col_sw, col_nw), dataset.RasterXSize-1)
+
+    b_y_min = int(row_min // self._block_ysize)
+    b_y_max = int(row_max // self._block_ysize)
+    b_x_min = int(col_min // self._block_xsize)
+    b_x_max = int(col_max // self._block_xsize)
     for b_y in range(b_y_min, b_y_max+1):
       for b_x in range(b_x_min, b_x_max+1):
-        if self._raster_mask[b_y, b_x ]:
+        if self._raster_mask[b_y, b_x]:
           continue
         yoff, xoff = b_y * self._block_ysize, b_x * self._block_xsize
         win_xsize, win_ysize = raster_band.GetActualBlockSize(b_x, b_y)
-        block = raster_band.ReadAsArray(xoff=xoff, yoff=yoff,
-                                        win_xsize=win_xsize, win_ysize=win_ysize)
-        self._raster[yoff:yoff+win_ysize, xoff:xoff+win_xsize] = np.minimum(block, 65500)
-        self._raster_mask[b_y, b_x ] = True
+        block = raster_band.ReadAsArray(
+            xoff=xoff, yoff=yoff, win_xsize=win_xsize, win_ysize=win_ysize)
+        self._raster[yoff:yoff+win_ysize,
+                     xoff:xoff+win_xsize] = np.minimum(block, 65500)
+        self._raster_mask[b_y, b_x] = True
 
     if box is None:
       self.all_loaded = True
@@ -142,7 +146,7 @@ class UsgsPopDriver(object):
     Returns:
       The population density (pop/km2) as a ndarray (dtype=int16).
     """
-    if not len(latitudes):
+    if len(latitudes) == 0:
       return 0
     latitudes = np.asarray(latitudes)
     longitudes = np.asarray(longitudes)
@@ -161,8 +165,8 @@ class UsgsPopDriver(object):
     return densities
 
 
-# This class contains metadata about a particular tile and can be used to quickly
-# determine the indexes of a lat/lon coordinate within the tile.
+# This class contains metadata about a particular tile and can be used to
+# quickly determine the indexes of a lat/lon coordinate within the tile.
 class _RasterInfo:
   """Manages raster information.
 
@@ -189,9 +193,9 @@ class _RasterInfo:
     self.width = dataset.RasterXSize
     self.height = dataset.RasterYSize
     # Gets the gdal geo transformation tuples
-    #gdal_version = gdal.__version__
+    # gdal_version = gdal.__version__
     self._txf = dataset.GetGeoTransform()
-    #self._inv_txf = gdal.InvGeoTransform(self._txf)[1]
+    # self._inv_txf = gdal.InvGeoTransform(self._txf)[1]
     self._inv_txf = gdal.InvGeoTransform(self._txf)
     # Gets the transformation from lat/lon to coordinates
     wgs84_ref = osr.SpatialReference()
