@@ -2,9 +2,16 @@
 
 Currently are provided the following data
 
-## Deployment Models
+## Global deployment model
 
-The per-DPA deployment model used by numerous studies  done by NTIA and NIST. 
+The Nation wide deployment model are provided in zipped CSV format:
+ - NationWide_CatA.csv
+ - NationWide_CatB.csv
+
+
+## Per-DPA deployment models
+
+The per-DPA deployment model used by numerous studies is done by NTIA and NIST. 
 Useful for any study requiring a more realistic set of CBSD deployment models
 taking into account population, etc..
 
