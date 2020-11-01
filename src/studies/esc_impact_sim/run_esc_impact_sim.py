@@ -19,10 +19,14 @@ required on each CBSD in the network.
 
 
 Inputs:
- - A JSON file defining the CBSD deployment model. For example one can use any
- NTIA model that was generated for DPA neighborhood studies, found in:
-   https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/data/research/deployment_models
  - Some JSON FADs file defining the ESC networks.
+ - A CBSD deployment model. It can be either:
+   + a JSON file defining the CBSD deployment model. For example one can use any
+     NTIA model that was generated for DPA neighborhood studies, found in:
+      https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/data/research/deployment_models
+   + The default NTIA nationwide deployment model (if no file specified): this
+     one is defined in the 2 CSV files NationWide_CatA, NationWide_CatB found
+     in the same data directory as above.
 
 Output:
  - A figure showing the impact of ESC protection on CBSDs power.
@@ -30,13 +34,13 @@ Output:
 
 Example Usage:
   # Run the simulation for a list of grants, on all sensors of 2 ESC FADS.
-  python run_esc_impact.py data/West14_reg_grant.json.zip \
+  python run_esc_impact.py --cbsd_file data/West14_reg_grant.json.zip \
        --esc_fads esc1_fad.json,esc2_fad.json
 
   # Run the simulation for a list of grants, on selected sensors of 2 ESC FADS:
   #  + only the sensors whose name contains `W12` and `W13` string.
   #  + also output one CSV per sensor containing all impacted CBSD.
-  python run_esc_impact.py data/West14_reg_grant.json.zip \
+  python run_esc_impact.py --cbsd_file data/West14_reg_grant.json.zip \
        --esc_fads esc1_fad.json,esc2_fad.json  \
        --sensors W12,W13 \
        --output_csv
@@ -52,16 +56,19 @@ import numpy as np
 import shapely.geometry as sgeo
 
 import iap_patch
+from deploy_model import deploy
 from reference_models.iap import iap
 from reference_models.geo import vincenty
+from reference_models.tools import entities
 from reference_models.tools import sim_utils
+
 
 #----------------------------------------
 # Setup the command line arguments
 parser = argparse.ArgumentParser(description='ESC Impact Simulator')
 
 # - Generic config.
-parser.add_argument('cbsd_file', type=str, default='',
+parser.add_argument('--cbsd_file', type=str, default='',
                     help='CBSD deployment file (JSON).')
 parser.add_argument('--esc_fads', type=str, default='',
                     help='The ESC FADs file (JSON) separated by a comma.')
@@ -69,6 +76,9 @@ parser.add_argument('--per_sensor', action='store_true',
                     help='If set, no ESC aggregation.')
 parser.add_argument('--output_csv', action='store_true',
                     help='If set, output CSV per sensor of all impacted CBSD.')
+parser.add_argument('--sectorized_catb', action='store_true',
+                    help='If set, modelize CatB as multi sector.')
+parser.set_defaults(sectorized_catb=False)
 parser.add_argument('--sensors', type=str, default='',
                     help='Sensors to analyse (prefix).')
 
@@ -80,7 +90,8 @@ options = parser.parse_args()
 def esc_impact_sim(cbsd_reg_grant, esc_fads,
                    sensor_filters=None,
                    per_sensor_mode=False,
-                   do_csv_output=False):
+                   do_csv_output=False,
+                   force_catb_omni=True):
   """ESC impact simulation.
 
   Performs simulation on given input (CBSD and ESC), creates resulting plots
@@ -94,8 +105,15 @@ def esc_impact_sim(cbsd_reg_grant, esc_fads,
       output is done.
     do_csv_output: If set, output
   """
-  # Read the grants from 'reg_grant' file
-  grants, _ = sim_utils.ReadTestHarnessConfigFile(cbsd_reg_grant)
+  # Read the grants:
+  if cbsd_reg_grant:
+    # .. from 'reg_grant' file
+    grants, _ = sim_utils.ReadTestHarnessConfigFile(cbsd_reg_grant)
+  else:
+    # .. from the default nation wide deployment model
+    print('Using NTIA NationWide deployment model')
+    cbsds = deploy.ReadNationWideDeploymentModel(force_omni=force_catb_omni)
+    grants = entities.ConvertToCbsdGrantInfo(cbsds, 3550, 3560)
 
   # Reads the ESC sensors from all FADs.
   sensors = []
@@ -179,7 +197,7 @@ def esc_impact_sim(cbsd_reg_grant, esc_fads,
   subplot = 111
   ax = fig.add_subplot(subplot, projection=ccrs.PlateCarree())
 
-  # Finds the bounding box of all geometries (DPA and CBSDs).
+  # Finds the bounding box (all CBSDs).
   box_margin = 0.1 # about 10km
   box = sgeo.box(*sgeo.MultiPoint(
     [(grant.longitude, grant.latitude) for grant in grants]).bounds)
@@ -234,5 +252,6 @@ if __name__ == '__main__':
   esc_fads = options.esc_fads.split(',')
   sensor_filters = options.sensors.split(',')
   esc_impact_sim(options.cbsd_file, esc_fads, sensor_filters,
-                 options.per_sensor, options.output_csv)
+                 options.per_sensor, options.output_csv,
+                 force_catb_omni=not options.sectorized_catb)
   plt.show(block=True)

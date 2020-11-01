@@ -31,5 +31,5 @@ near East1). You can run:
 ```
     python run_esc_impact_sim.py --esc_fads=testdata/esc_test.json \
         --sensors=E01  \
-        ../../../data/research/deployment_models/East1_reg_grant.json.zip
+        --cbsd_file=../../../data/research/deployment_models/East1_reg_grant.json.zip
 ```
