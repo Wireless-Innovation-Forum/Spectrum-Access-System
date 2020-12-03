@@ -11,12 +11,16 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
 import logging
-import common_strings
 from concurrent.futures import ThreadPoolExecutor
+
+import common_strings
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 import sas
 import sas_testcase
@@ -26,9 +30,8 @@ import test_harness_objects
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase, \
   getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
   addCbsdIdsToRequests, getCertFilename, getCertificateFingerprint, \
-  getFqdnLocalhost, getUnusedPort
+  getFqdnLocalhost, getUnusedPort, json_load
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
-
 from reference_models.pre_iap_filtering import pre_iap_filtering
 
 class PpaProtectionTestcase(McpXprCommonTestcase):
@@ -44,10 +47,10 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for PPR.1. """
 
     # Load PPA record
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json_load(
+      os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
+    pal_record = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_0.json'))
 
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
@@ -61,48 +64,48 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     )
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1 to a location within 40 KMs of PPA zone
     device_1['installationParam']['latitude'] = 38.8203
     device_1['installationParam']['longitude'] = -97.2741
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2 to a location outside 40 KMs of PPA zone
     device_2['installationParam']['latitude'] = 39.31476
     device_2['installationParam']['longitude'] = -96.75139
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3 to a location within PPA zone
     device_3['installationParam']['latitude'], \
     device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4 to a location within PPA zone
     device_4['installationParam']['latitude'], \
     device_4['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
@@ -200,10 +203,10 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for PPR.2. """
 
     # Load PPA record
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json_load(
+      os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
+    pal_record = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_0.json'))
 
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
@@ -217,48 +220,48 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     )
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1 to a location within 40 KMs of PPA zone
     device_1['installationParam']['latitude'] = 38.8203
     device_1['installationParam']['longitude'] = -97.2741
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2 to a location outside 40 KMs of PPA zone
     device_2['installationParam']['latitude'] = 39.31476
     device_2['installationParam']['longitude'] = -96.75139
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3 to a location within PPA zone
     device_3['installationParam']['latitude'], \
     device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4 to a location within PPA zone
     device_4['installationParam']['latitude'], \
     device_4['installationParam']['longitude'] = getRandomLatLongInPolygon(ppa_record_1)
 
     # Load Grant requests with overlapping frequency range for all devices
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3570000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3580000000
 
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3590000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3600000000
 
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
 
@@ -314,18 +317,18 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_e"
     sas_test_harness_device_1['userId'] = "test_user_id_e"
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
 
-    sas_test_harness_device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = "test_fcc_id_g"
     sas_test_harness_device_3['userId'] = "test_user_id_g"
 
@@ -422,28 +425,28 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
         Both PPAs are on 3620-3630 MHz, as are all grants.
     """
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 38.842176
     device_a['installationParam']['longitude'] = -97.092863
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 38.845323113
     device_b['installationParam']['longitude'] = -97.15514587
     device_b['installationParam']['antennaBeamwidth'] = 0
     device_b['installationParam']['antennaDowntilt'] = 0
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_c['installationParam']['latitude'] = 38.816782
     device_c['installationParam']['longitude'] = -97.102965
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_d = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_d['installationParam']['latitude'] = 38.846125
     device_d['installationParam']['longitude'] = -97.156184
     device_d['installationParam']['antennaBeamwidth'] = 0
     device_d['installationParam']['antennaDowntilt'] = 0
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     device_e['installationParam']['latitude'] = 38.761748
     device_e['installationParam']['longitude'] = -97.118459
 
@@ -470,18 +473,18 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     }
 
     # Load grant requests (default is 3620-3630).
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_b['operationParam']['maxEirp'] = 30
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_d = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_d['operationParam']['maxEirp'] = 30
-    grant_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # CBSDs in SAS UUT.
     domain_proxy = {
@@ -495,10 +498,10 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # One PPA in SAS UUT.
     pal_low_frequency = 3620000000
     pal_high_frequency = 3630000000
-    pal_record_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_record_0 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
+    ppa_record_0 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record_0['zone']['features'][0]['geometry']['coordinates'] = [[[
         -97.155, 38.75
     ], [-97.155, 38.85], [-97.165, 38.85], [-97.165, 38.75], [-97.155, 38.75]]]
@@ -510,11 +513,11 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     ppa_cluster_list = [0, 1]
 
     # One PPA in the peer SAS test harness.
-    pal_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+    pal_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
     pal_record_1['fipsCode'] = 20041084500
-    ppa_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    ppa_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_1.json'))
     ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[[
         -97.145, 38.85
     ], [-97.145, 38.75], [-97.05, 38.75], [-97.05, 38.85], [-97.145, 38.85]]]

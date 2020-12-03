@@ -38,20 +38,26 @@ Example usage:
   # Check the interference according to Winnforum IPR tests
   status = dpa.CheckInterference(sas_uut_keep_list, margin_db=2)
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
 from datetime import datetime
 import functools
-import os
 import logging
+import os
 
 import numpy as np
 import shapely.geometry as sgeo
+import six
+from six.moves import zip
 
-from reference_models.geo import zones
 from reference_models.common import data
 from reference_models.common import mpool
-from reference_models.dpa import move_list as ml
 from reference_models.dpa import dpa_builder
+from reference_models.dpa import move_list as ml
+from reference_models.geo import zones
 
 # The default DPA parameters, corresponding to legacy Coastal DPA.
 DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
@@ -280,8 +286,8 @@ class Dpa(object):
           max_azimuth=self.azimuth_range[1],
           neighbor_distances=self.neighbor_distances)
 
-      move_list, nbor_list = zip(*pool.map(moveListConstraint,
-                                           self.protected_points))
+      move_list, nbor_list = list(
+          zip(*pool.map(moveListConstraint, self.protected_points)))
       # Combine the individual point move lists
       move_list = set().union(*move_list)
       nbor_list = set().union(*nbor_list)
@@ -436,7 +442,7 @@ class Dpa(object):
 
     # Manages the various margin_db methods.
     margin_method = 'std'
-    if isinstance(margin_db, basestring):
+    if isinstance(margin_db, six.string_types):
       idx1, idx2 = margin_db.find('('), margin_db.find(')')
       if idx1 == -1 or idx2 == -1:
         raise ValueError('DPA CheckInterference: margin_db: `%s` not allowed.'
@@ -767,14 +773,16 @@ def _CalcTestPointInterfDiff(point,
     max_diff = np.max(uut_interferences - th_interferences)
     logging.debug(
         '%s UUT interf @ %s Diff %sdB: %s',
-        'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point, max_diff,
-        zip(np.atleast_1d(th_interferences), np.atleast_1d(uut_interferences)))
+        'Exceeded (ignoring delta_DPA)' if max_diff > 0 else 'Ok', point,
+        max_diff,
+        list(zip(np.atleast_1d(th_interferences),
+                 np.atleast_1d(uut_interferences))))
     if max_diff > 0:
       logging.info(
-          'Exceeded (ignoring delta_DPA) UUT interf @ %s Diff %sdB: %s', point, max_diff,
-          zip(
-              np.atleast_1d(th_interferences),
-              np.atleast_1d(uut_interferences)))
+          'Exceeded (ignoring delta_DPA) UUT interf @ %s Diff %sdB: %s', point,
+          max_diff,
+          list(zip(np.atleast_1d(th_interferences),
+                   np.atleast_1d(uut_interferences))))
 
     return DpaInterferenceResult(
         max_difference=max_diff,

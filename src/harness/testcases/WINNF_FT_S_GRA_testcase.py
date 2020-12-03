@@ -39,20 +39,24 @@
 # Distributions of NIST software should also include copyright and licensing
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import common_strings
 from datetime import datetime
 import json
 import logging
 import os
 import time
+
+import common_strings
 import sas
 import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 from util import winnforum_testcase, getRandomLatLongInPolygon, \
   makePpaAndPalRecordsConsistent, configurable_testcase, writeConfig, \
   loadConfig, getCertificateFingerprint, addCbsdIdsToRequests, \
-  getRandomLatLongInPolygon, getFqdnLocalhost, getUnusedPort, getCertFilename
+  getRandomLatLongInPolygon, getFqdnLocalhost, getUnusedPort, getCertFilename, json_load
 
 class GrantTestcase(sas_testcase.SasTestCase):
 
@@ -79,13 +83,13 @@ class GrantTestcase(sas_testcase.SasTestCase):
     pal_low_frequency = 3600000000
     pal_high_frequency = 3610000000
     # Load the device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     # Load PAL and PPA
-    pal_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
-    ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_2.json')))
+    pal_record = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_2.json'))
+    ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_2.json'))
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
                                                             [pal_record],
                                                             pal_low_frequency,
@@ -109,8 +113,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # wait for DPA activation
     time.sleep(240)
     # Send grant request
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange']['lowFrequency'] \
         = pal_low_frequency
@@ -159,8 +163,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json',
                             'device_f.json', 'device_g.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -175,23 +179,23 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Prepare grant requests.
     # 1. Missing cbsdId.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     # 2. Missing operationParam object.
     grant_1 = {'cbsdId': cbsd_ids[1]}
     # 3. Missing maxEirp.
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_ids[2]
     del grant_2['operationParam']['maxEirp']
     # 4. Missing highFrequency.
-    grant_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['cbsdId'] = cbsd_ids[3]
     del grant_3['operationParam']['operationFrequencyRange']['highFrequency']
     # 5. Missing lowFrequency.
-    grant_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_4['cbsdId'] = cbsd_ids[4]
     del grant_4['operationParam']['operationFrequencyRange']['lowFrequency']
 
@@ -218,8 +222,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     # Send grant request with CBSD ID not exists in SAS
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = 'A non-exist cbsd id'
     request = {'grantRequest': [grant_0]}
     response = self._sas.Grant(request)['grantResponse'][0]
@@ -239,8 +243,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_a_key = getCertFilename('device_a.key')
 
     # Register the first device with certificates
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
@@ -256,8 +260,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     device_c_key = getCertFilename('device_c.key')
 
     # Register the second device with certificates
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
     request = {'registrationRequest': [device_c]}
@@ -268,8 +272,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Send grant request for device_a using device_c_cert and device_c_key
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id_a
 
     request = {'grantRequest': [grant_0]}
@@ -284,16 +288,16 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Create the actual config for GRA_5
 
     # Load device_c1.
-    device_c1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load grant request.
-    grant_g1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Load device_c2.
-    device_c2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_c2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Creating conditionals for Cat B devices.
     self.assertEqual(device_c2['cbsdCategory'], 'B')
@@ -311,8 +315,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del device_c2['measCapability']
 
     # Load grant request
-    grant_g2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     conditionals = [conditional_parameters]
 
@@ -422,15 +426,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Create the actual config for GRA_6
 
     # Load device_a with registration in SAS Test Harness.
-    device_c1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_c1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load grant request.
-    grant_g1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
-    grant_g2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_g2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_g2['operationParam']['operationFrequencyRange'][
@@ -530,12 +534,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
     - 103 or 300 (UNSUPPORTED_SPECTRUM) for second and third requests.
     """
     # Register three devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
@@ -558,8 +562,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Prepare 3 grant requests.
     # 1. With lowFrequency > highFrequency.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
@@ -567,8 +571,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     }
 
     # 2. With frequency range completely outside the CBRS band.
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3350000000
@@ -576,8 +580,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
         'highFrequency'] = 3450000000
 
     # 3. With frequency range partially overlapping with the CBRS band.
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_ids[2]
     grant_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3450000000
@@ -604,16 +608,16 @@ class GrantTestcase(sas_testcase.SasTestCase):
     The Response Code should be 103.
     """
     # Load a device.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load data
-    pal_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_record = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
-    ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
                                                             [pal_record],
                                                             pal_low_frequency,
@@ -633,8 +637,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(zone_id)
 
     # Create grant request
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     # Set overlapping PAL frequency spectrum
     grant_0['operationParam']['operationFrequencyRange'] = {
@@ -660,18 +664,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     # Load the devices, data
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
-    pal_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_record = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
     user_id = device_a['userId']
-    ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
                                                             [pal_record],
                                                             pal_low_frequency,
@@ -697,8 +701,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
     # Create grant request for second device
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_c['cbsdId'] = cbsd_ids[1]
     # Set frequency range that overlaps with PAL frequency.
     grant_c['operationParam']['operationFrequencyRange'] = {
@@ -722,18 +726,18 @@ class GrantTestcase(sas_testcase.SasTestCase):
     Response Code '0' for first request and '401' for next request.
     """
     # Load two devices.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
     # Load data
-    pal_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_record = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
-    ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record, pal_record = makePpaAndPalRecordsConsistent(ppa_record,
                                                             [pal_record],
                                                             pal_low_frequency,
@@ -753,15 +757,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(zone_id)
 
     # Create grant request
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': pal_low_frequency,
         'highFrequency': pal_high_frequency
     }
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3560000000,
@@ -813,11 +817,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Register five devices
     # devices 1,2 category A
     # devices 3-5 category B
-    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_4 = json.load(open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_5 = json.load(open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_1 = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_2 = json_load(os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_3 = json_load(os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_4 = json_load(os.path.join('testcases', 'testdata', 'device_d.json'))
+    device_5 = json_load(os.path.join('testcases', 'testdata', 'device_h.json'))
 
     # Pre-load conditionals for cbsdIDs 3,4,5 (cbsdCategory B)
     conditionals_3 = {
@@ -900,19 +904,19 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Prepare 5 grant requests with various un-supported maxEirp values
-    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[0]
     grant_1['operationParam']['maxEirp'] = 11
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_ids[1]
     grant_2['operationParam']['maxEirp'] = 11
-    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['cbsdId'] = cbsd_ids[2]
     grant_3['operationParam']['maxEirp'] = 31
-    grant_4 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_4['cbsdId'] = cbsd_ids[3]
     grant_4['operationParam']['maxEirp'] = 31
-    grant_5 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_5 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_5['cbsdId'] = cbsd_ids[4]
     grant_5['operationParam']['maxEirp'] = 21
 
@@ -959,9 +963,9 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     # Register three devices
-    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_1 = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_2 = json_load(os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_3 = json_load(os.path.join('testcases', 'testdata', 'device_e.json'))
 
     self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
@@ -988,11 +992,11 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self._sas_admin.BlacklistByFccId({'fccId': device_3['fccId']})
 
     # Prepare the grant requests
-    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[0]
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_ids[1]
-    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['cbsdId'] = cbsd_ids[2]
 
     # Send the grant requests
@@ -1030,20 +1034,20 @@ class GrantTestcase(sas_testcase.SasTestCase):
     """
 
     # Load 3 devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
 
     # First PPA with device_a and FR1 = 3550 - 3560
     pal_low_frequency1 = 3550000000
     pal_high_frequency1 = 3560000000
-    pal_record1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_record1 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
+    ppa_record1 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record1, pal_record1 = makePpaAndPalRecordsConsistent(
         ppa_record1, [pal_record1], pal_low_frequency1, pal_high_frequency1,
         device_a['userId'])
@@ -1055,10 +1059,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     # Second PPA with device_c and FR2 = 3600 - 3610
     pal_low_frequency2 = 3600000000
     pal_high_frequency2 = 3610000000
-    pal_record2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    ppa_record2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_1.json')))
+    pal_record2 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    ppa_record2 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_1.json'))
     ppa_record2, pal_record2 = makePpaAndPalRecordsConsistent(
         ppa_record2, [pal_record2], pal_low_frequency2, pal_high_frequency2,
         device_c['userId'])
@@ -1085,12 +1089,12 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertTrue(zone_id)
 
     # Create grant requests
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_2['cbsdId'] = cbsd_ids[2]
@@ -1143,10 +1147,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
             103 (INVALID_VALUE) for second request.
     """
     # Register two devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
@@ -1164,14 +1168,14 @@ class GrantTestcase(sas_testcase.SasTestCase):
 
     # Prepare grant requests.
     # 1. maxEirp is missing.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     del grant_0['operationParam']['maxEirp']
 
     # 2. highFrequency is lower than the lowFrequency.
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
@@ -1199,8 +1203,8 @@ class GrantTestcase(sas_testcase.SasTestCase):
     Returns 401 (GRANT_CONFLICT) for at least one request.
     """
     # Register a device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
@@ -1209,15 +1213,15 @@ class GrantTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Prepare grant requests with overlapping frequency range
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3560000000,
         'highFrequency': 3570000000
     }
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3560000000,
@@ -1247,16 +1251,16 @@ class GrantTestcase(sas_testcase.SasTestCase):
   def generate_GRA_17_default_config(self, filename):
     """Generates the WinnForum configuration for GRA.17."""
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
+    device_f = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # device_a, device_c, device_e and device_f are Category A.
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -1348,10 +1352,10 @@ class GrantTestcase(sas_testcase.SasTestCase):
     devices_in_ppa_zone = [4]
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
-    pal_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    ppa_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    pal_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
+    ppa_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record_1, pal_records = makePpaAndPalRecordsConsistent(
         ppa_record_1, [pal_record_1], pal_low_frequency, pal_high_frequency,
         devices[ppa_cluster_list[0]]['userId'])
@@ -1487,4 +1491,3 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertFalse(
         has_error,
         'Error found in at least one of the responses. See logs for details.')
-

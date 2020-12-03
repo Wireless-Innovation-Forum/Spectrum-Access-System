@@ -11,6 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from datetime import datetime
 import json
@@ -18,13 +21,14 @@ import logging
 import os
 import time
 
+from six import string_types as basestring
+
 from request_handler import HTTPError
 import common_strings
 import sas
 import sas_testcase
-
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, generateCpiRsaKeys, generateCpiEcKeys, convertRequestToRequestWithCpiSignature
+  loadConfig, generateCpiRsaKeys, generateCpiEcKeys, convertRequestToRequestWithCpiSignature, json_load
 
 
 class RegistrationTestcase(sas_testcase.SasTestCase):
@@ -45,12 +49,12 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
     # Pre-load conditionals
     conditionals_a = {
@@ -125,16 +129,16 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_g = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
+    device_f = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_g = json_load(
+        os.path.join('testcases', 'testdata', 'device_g.json'))
 
     # Pre-load conditionals
     conditionals_a = {
@@ -212,10 +216,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
 
     # CBSDs C3 and C4 request a grant, exchange heartbeats to enter and stay in
     # Authorized state.
-    grant_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_f = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_e['cbsdId'] = cbsd_ids[2]
     grant_f['cbsdId'] = cbsd_ids[3]
     request = {'grantRequest': [grant_e, grant_f]}
@@ -289,12 +293,12 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Inject FCC ID and User ID
     for device in [device_a, device_c, device_b]:
@@ -331,10 +335,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load 2 devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Inject FCC ID and User ID
     for device in [device_a, device_b]:
@@ -369,8 +373,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     # Request grant
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -409,8 +413,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Re-register the two devices and register a third device
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
     self._sas_admin.InjectUserId({'userId': device_c['userId']})
     devices = [device_a, device_b, device_c]
@@ -467,8 +471,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     })
 
     # Load CBSD 1
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     conditionals_a = {
         'cbsdCategory': device_a['cbsdCategory'],
         'fccId': device_a['fccId'],
@@ -479,8 +483,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }
 
     # Load CBSD 2
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     conditionals_c = {
         'cbsdCategory': device_c['cbsdCategory'],
         'fccId': device_c['fccId'],
@@ -491,8 +495,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }
 
     # Load CBSD 3
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     conditionals_e = {
         'cbsdCategory': device_e['cbsdCategory'],
         'fccId': device_e['fccId'],
@@ -503,8 +507,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }
 
     # Load CBSD 4
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_f = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
     conditionals_f = {
         'cbsdCategory': device_f['cbsdCategory'],
         'fccId': device_f['fccId'],
@@ -515,8 +519,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }
 
     # Load CBSD 5
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
         'fccId': device_b['fccId'],
@@ -532,8 +536,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     del device_b['cpiSignatureData']['digitalSignature']
 
     # Load CBSD 6: Cat B, missing 'cpiId' in 'professionalInstallerData'.
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_d = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     conditionals_d = {
         'cbsdCategory': device_d['cbsdCategory'],
         'fccId': device_d['fccId'],
@@ -606,19 +610,19 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     })
 
     # Load CBSD 1: Cat A, Has all required parameters.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load CBSD 2: Cat A, missing 'indoorDeployment' in 'installationParam'.
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     del device_c['installationParam']['indoorDeployment']
 
     # Load CBSD 3: Cat B
     # Missing 'antennaAzimuth' in 'installationParam', both in Conditionals and
     # in the 'installationParam' signed by CPI.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     del device_b['installationParam']['antennaAzimuth']
     conditionals_b = {
         'cbsdCategory': device_b['cbsdCategory'],
@@ -661,49 +665,49 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load Devices Data
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_4['cbsdSerialNumber'] = 'device_4_serial_number'
-    device_5 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_5 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_5['cbsdSerialNumber'] = 'device_5_serial_number'
-    device_6 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_6 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_6['cbsdSerialNumber'] = 'device_6_serial_number'
     device_6['measCapability'] = ['invalid_measCapability']
-    device_7 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_8 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_7 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_8 = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     device_8['cbsdSerialNumber'] =  'device_8_serial_number'
-    device_9 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_10 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_9 = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_10 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_10['cbsdSerialNumber'] = 'device_10_serial_number'
-    device_11 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_11 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_11['cbsdSerialNumber'] = 'device_11_serial_number'
-    device_12 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_12 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_12['cbsdSerialNumber'] = 'device_12_serial_number'
-    device_13 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_13 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_13['cbsdSerialNumber'] = 'device_13_serial_number'
-    device_14 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_14 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_14['cbsdSerialNumber'] = 'device_14_serial_number'
-    device_15 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_15 = json_load(
+        os.path.join('testcases', 'testdata', 'device_g.json'))
     device_15['cbsdSerialNumber'] =  'device_15_serial_number'
-    device_16 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_16 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_16['cbsdSerialNumber'] =  'device_16_serial_number'
     # Devices that contain all necessary Fcc and user data
     devices_with_administrative_data = [device_1, device_2, device_7, device_8,\
@@ -810,7 +814,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self.assertLessEqual(len(response['registrationResponse'][0]['cbsdId']), 256)
     self.assertEqual(
           response['registrationResponse'][12]['response']['responseCode'], 0)
-    for index in range(1, 12) + range(13, 16):
+    for index in list(range(1, 12)) + list(range(13, 16)):
       self.assertEqual(
           response['registrationResponse'][index]['response']['responseCode'], 103)
 
@@ -822,9 +826,9 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load devices
-    device_1 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_1 = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_2 = json_load(os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_3 = json_load(os.path.join('testcases', 'testdata', 'device_e.json'))
 
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_1['fccId']})
@@ -863,12 +867,12 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     devices = [device_a, device_c, device_e]
     for device in devices:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
@@ -906,12 +910,12 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     self._sas.cbsd_sas_version = 'v5.0'
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     devices = [device_a, device_c, device_e]
     for device in devices:
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
@@ -930,14 +934,14 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
   def generate_REG_11_default_config(self, filename):
     """Generates the WinnForum configuration for REG.11."""
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_d = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
 
     # Device #1 is Category A.
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -1055,10 +1059,10 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for REG.12."""
 
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Device_a is Category A.
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -1203,8 +1207,8 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for REG.13."""
 
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Create the actual config.
     devices = [device_a]
@@ -1259,4 +1263,3 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     except HTTPError as e:
       # Allow HTTP status 404
       self.assertEqual(e.error_code, 404)
-

@@ -32,13 +32,18 @@ For WinnForum use, only 3 classification are used:
 # from those files.
 # See the src/data/ directory for the scripts doing the regridding.
 
-import numpy as np
-import os
-import time
-import threading
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-from reference_models.geo import tiles
+import os
+import threading
+import time
+
+import numpy as np
+
 from reference_models.geo import CONFIG
+from reference_models.geo import tiles
 
 
 class LandCoverCodes:
@@ -177,8 +182,9 @@ class NlcdDriver:
 
       # Load a tile in memory and manage the cache
       encoding = '%c%02d%c%03d' % (
-          'sn'[ilat >= 0], abs(ilat),
-          'we'[ilon >= 0], abs(ilon))
+          'sn'[int(ilat >= 0)], abs(ilat),
+          'we'[int(ilon >= 0)], abs(ilon))
+
       tile_name1 = 'nlcd_' + encoding + '_ref.int'
       tile_name2 = 'nlcd_' + encoding + '.int'
       tile_name3 = os.path.join('nlcd_islands', tile_name1)
@@ -187,6 +193,7 @@ class NlcdDriver:
                    else (tile_name2
                          if os.path.isfile(os.path.join(self._nlcd_dir, tile_name2))
                          else tile_name3))
+
       try:
         self._tile_cache[key] = np.fromfile(
             os.path.join(self._nlcd_dir, tile_name),
@@ -262,7 +269,7 @@ class NlcdDriver:
       (ie when code=0) AND out_forbid is True.
     """
     avg_code = 0
-    lat, lon = zip(*points)
+    lat, lon = list(zip(*points))
     codes = self.GetLandCoverCodes(lat, lon)
     codes22 = np.where(codes==LandCoverCodes.DEVELOPED_LOW)[0]
     codes23 = np.where(codes==LandCoverCodes.DEVELOPED_MEDIUM)[0]

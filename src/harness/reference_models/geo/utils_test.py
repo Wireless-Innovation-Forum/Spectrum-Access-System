@@ -11,7 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy as np
 import os
@@ -19,6 +21,7 @@ import unittest
 import json
 import shapely.geometry as sgeo
 from shapely import ops
+import six
 
 from reference_models.geo import utils
 
@@ -205,7 +208,7 @@ class TestUtils(unittest.TestCase):
 
     poly_str = json.dumps(poly_with_hole)
     corr_poly = utils.InsureGeoJsonWinding(poly_str)
-    self.assertIsInstance(corr_poly, str)
+    self.assertIsInstance(corr_poly, six.string_types)
     self.assertDictEqual(json.loads(corr_poly), poly_with_hole)
 
   def test_json_multicollection_correct_winding(self):

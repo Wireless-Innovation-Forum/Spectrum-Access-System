@@ -16,6 +16,7 @@
 # into the local directory. Run 'python setup.py build' to build the
 # module. See distutils documentation for more info.
 
+import six
 from distutils.core import Extension, setup
 from distutils.sysconfig import get_config_vars
 
@@ -37,7 +38,7 @@ ehata_module = Extension('ehata_its',
 # Remove the "-Wstrict-prototypes" compiler option (not valid for C++).
 cfg_vars = get_config_vars()
 for key, value in cfg_vars.items():
-  if isinstance(value, str):
+  if isinstance(value, six.string_types):
     cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 
 

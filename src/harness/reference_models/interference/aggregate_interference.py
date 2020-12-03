@@ -33,17 +33,21 @@
   is the aggregate interference value in mW for each of the protection constraint.
 ==================================================================================
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import numpy as np
 from functools import partial
 import logging
 
-from reference_models.common import mpool
-from reference_models.common import data
+import numpy as np
+
 from reference_models.common import cache
-from reference_models.propagation import wf_hybrid
-from reference_models.interference import interference as interf
+from reference_models.common import data
+from reference_models.common import mpool
 from reference_models.geo import utils
+from reference_models.interference import interference as interf
+from reference_models.propagation import wf_hybrid
 
 # The grid resolution for area based protection entities.
 GWPZ_GRID_RES_ARCSEC = 2

@@ -26,6 +26,7 @@ Typical usage:
 """
 import csv
 import collections
+import io
 import os
 import zipfile
 
@@ -122,8 +123,8 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
     with zipfile.ZipFile(cat_a_file) as zip:
       file_name = [info.filename for info in zip.infolist()
                    if os.path.splitext(info.filename)[1] == '.csv'][0]
-      with zip.open(file_name) as cata_fd:
-        cata_reader = csv.reader(cata_fd)
+      with zip.open(file_name, 'r') as cata_fd:
+        cata_reader = csv.reader(io.TextIOWrapper(cata_fd, 'utf-8'))
         cbsds.extend(_ReadCsvCbsds(cata_reader, 'A', force_omni))
   else:
     with open(cat_a_file, 'r') as cata_fd:
@@ -135,8 +136,8 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
     with zipfile.ZipFile(cat_b_file) as zip:
       file_name = [info.filename for info in zip.infolist()
                    if os.path.splitext(info.filename)[1] == '.csv'][0]
-      with zip.open(file_name) as catb_fd:
-        catb_reader = csv.reader(catb_fd)
+      with zip.open(file_name, 'r') as catb_fd:
+        catb_reader = csv.reader(io.TextIOWrapper(catb_fd, 'utf-8'))
         cbsds.extend(_ReadCsvCbsds(catb_reader, 'B', force_omni))
   else:
     with open(cat_b_file, 'r') as catb_fd:

@@ -11,10 +11,18 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import json
-import mock
+
+try:
+  from unittest import mock
+except ImportError:
+  import mock
+
 import numpy as np
 import unittest
 
@@ -30,6 +38,12 @@ from reference_models.interference import interference as interf
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
+
 class FreqRange(object):
   """Used for duck typing objects with freq range requirmeent."""
   def __init__(self, low, high):
@@ -41,7 +55,7 @@ class TestAggInterf(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls.fss_record = json.load(open(os.path.join(TEST_DIR, 'fss_ut.json')))
+    cls.fss_record = json_load(os.path.join(TEST_DIR, 'fss_ut.json'))
 
   def setUp(self):
     self.original_itm = wf_itm.CalcItmPropagationLoss

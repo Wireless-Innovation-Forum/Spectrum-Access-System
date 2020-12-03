@@ -14,6 +14,10 @@
 
 """A collection of utility routines for simulation purposes.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import copy
 import csv
 import json
@@ -25,6 +29,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 import shapely.geometry as sgeo
+
+import six
+from six.moves import zip
 
 from reference_models.common import data
 from reference_models.common import mpool
@@ -422,7 +429,7 @@ def ReadTestHarnessConfigFile(config_file):
       with zip.open(file_name) as fd:
         config = json.load(fd)
   else:
-    with open(config_file, 'r') as fd:
+    with open(config_file, 'rb') as fd:
       config = json.load(fd)
 
   # Supports the `reg_grant` raw format (no DPA defined).
@@ -470,7 +477,7 @@ def ReadDpaLogFile(csv_file):
                'peer': '(combined peer SAS keep list)',
                'sas_th': '(SAS UUT keep list, according to test harness)',
                'sas_uut': '(SAS UUT keep list, according to SAS UUT)'}
-  idx_postfix = max(csv_file.find(postfix) for postfix in postfixes.values())
+  idx_postfix = max(csv_file.find(postfix) for postfix in six.itervalues(postfixes))
   base_file = csv_file[:idx_postfix]
   # Now read every file and build corresponding grant list
   grants = {}

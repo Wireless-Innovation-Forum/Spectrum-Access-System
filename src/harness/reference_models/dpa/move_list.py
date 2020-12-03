@@ -34,24 +34,35 @@
 #   - 'calcAggregatedInterference()': calculates the 95% quantile interference for one point
 #==================================================================================
 
-import functools
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple, defaultdict
 from enum import Enum
+import functools
+from functools import partial
 import logging
 
 import numpy as np
 import shapely.geometry as sgeo
+from shapely.geometry import MultiPolygon as MPolygon
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
-from shapely.geometry import MultiPolygon as MPolygon
+import six
+from six.moves import range
+from six.moves import zip
 
-# Import WINNF reference models including propagation, geo, and CBSD antenna gain models
-from reference_models.propagation import wf_itm
-from reference_models.geo import drive
-from reference_models.geo import vincenty
+from reference_models.antenna import antenna
 from reference_models.common import cache
 from reference_models.common import data
-from reference_models.antenna import antenna
+from reference_models.common import data
+from reference_models.common import mpool
+from reference_models.geo import drive
+from reference_models.geo import vincenty
+from reference_models.propagation import wf_itm
+
+# Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 
 # Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 # Monte Carlo percentile for protection
@@ -308,7 +319,8 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     interf_list.append(interf)
     median_interf.append(median)
   # Sort grants by their median interference contribution, smallest to largest
-  sorted_idxs = sorted(range(len(median_interf)), key=median_interf.__getitem__)
+  sorted_idxs = sorted(
+      list(range(len(median_interf))), key=median_interf.__getitem__)
   I = np.array([interf_list[k].randomInterference for k in sorted_idxs]).transpose()
   sorted_bearings = np.array([interf_list[k].bearing_c_cbsd for k in sorted_idxs])
   sorted_grant_ids = [grants_ids[k] for k in sorted_idxs]
@@ -375,7 +387,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     hi = nc
     lo = 0
     while (hi - lo) > 1:
-      mid = (hi + lo) / 2
+      mid = (hi + lo) // 2
       agg_interf = np.percentile(np.sum(IG[:, 0:mid], axis=1),
                                  PROTECTION_PERCENTILE, interpolation='lower')
       if agg_interf > t_mW:
@@ -450,7 +462,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
       key = grant.uniqueCbsdKey()
       _addMinFreqGrantToFront(cbsds_grants_map[key], grant)
     # Reset the grants to the minimum frequency grant for each CBSDs.
-    grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
+    grants = [cbsd_grants[0] for cbsd_grants in six.itervalues(cbsds_grants_map)]
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, neighbor_idxs = findGrantsInsideNeighborhood(
@@ -592,7 +604,7 @@ def calcAggregatedInterference(protection_point,
       key = grant.uniqueCbsdKey()
       _addMinFreqGrantToFront(cbsds_grants_map[key], grant)
     # Reset the grants to the minimum frequency grant for each CBSDs.
-    grants = [cbsd_grants[0] for cbsd_grants in cbsds_grants_map.values()]
+    grants = [cbsd_grants[0] for cbsd_grants in six.itervalues(cbsds_grants_map)]
 
   # Identify CBSD grants in the neighborhood of the protection constraint
   neighbor_grants, _ = findGrantsInsideNeighborhood(grants, constraint,
@@ -641,14 +653,11 @@ class InterferenceCacheManager(cache.CacheManager):
       maxsize (int): The maximum cache size (managed in LRU fashion).
         If None, unlimited size.
     """
-    super(InterferenceCacheManager, self).__init__(computeInterference, maxsize)
+    cache.CacheManager.__init__(self, computeInterference, maxsize)
 
 
 #----------------------------------
 # Legacy routine, just to support existing client code using old interface.
-from reference_models.common import mpool
-from reference_models.common import data
-from functools import partial
 def findMoveList(protection_specs, protection_points, registration_requests,
                  grant_requests, num_iter, num_processes,
                  pool=None):
@@ -705,7 +714,7 @@ def findMoveList(protection_specs, protection_points, registration_requests,
                       min_azimuth=min_azimuth,
                       max_azimuth=max_azimuth,
                       neighbor_distances=neighbor_distances)
-  M_c, _ = zip(*pool.map(moveListC, protection_points))
+  M_c, _ = list(zip(*pool.map(moveListC, protection_points)))
 
   # Find the unique CBSD indices in the M_c list of lists.
   M = set().union(*M_c)

@@ -11,11 +11,15 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import logging
 import math
 import os
+
 import sas
 import sas_testcase
 from reference_models.propagation import wf_itm
@@ -23,8 +27,7 @@ from reference_models.propagation import wf_hybrid
 from reference_models.antenna import antenna
 from reference_models.ppa import ppa
 from reference_models.geo import drive
-
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig
+from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, json_load
 from reference_models.geo import utils as geoutils
 
 # If enabled, the test harness will stop as soon as the failure threshold is reached.
@@ -156,12 +159,12 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for PAT.1."""
     
     # Load Devices
-    device_a = json.load(
-    open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+    os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # load FSS
-    fss_data = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_data = json_load(
+      os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss_record_0 = fss_data['record']
     fss_record_0['rxAntennaGainRequired'] = True
     reliability_level = -1
@@ -171,8 +174,8 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                    'fss': fssdata(fss_record_0, True)})
 
     # Load PPA
-    ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_3.json')))
+    ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_3.json'))
      
     reliability_level = -1
     config.append({'reliabilityLevel': reliability_level,

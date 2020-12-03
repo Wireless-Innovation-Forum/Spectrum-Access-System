@@ -18,6 +18,10 @@
 # Expected result is dictionary containing aggregate interference
 # value at a protection constraint.
 # =============================================================================
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import os
 from pykml import parser
@@ -31,6 +35,11 @@ from reference_models.interference import aggregate_interference
 
 # Number of parallel processes
 NUM_OF_PROCESS = 30
+
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
 
 
 def CvtToList(data):
@@ -65,7 +74,7 @@ if __name__ == '__main__':
                    ]
   cbsd_list = []
   for cbsd_file in cbsd_filename:
-    cbsd_record = json.load(open(os.path.join(_BASE_DATA_DIR, cbsd_file)))
+    cbsd_record = json_load(os.path.join(_BASE_DATA_DIR, cbsd_file))
     cbsd_list.append(cbsd_record)
 
   fss_filename = ['fss_0.json', 'fss_1.json']
@@ -73,7 +82,7 @@ if __name__ == '__main__':
   fss_list = []
   for fss_file in fss_filename:
     # load and inject FSS data with Overlapping Frequency of CBSD
-    fss_record = json.load(open(os.path.join(_BASE_DATA_DIR, fss_file)))
+    fss_record = json_load(os.path.join(_BASE_DATA_DIR, fss_file))
     fss_list.append(fss_record)
 
   esc_filename = ['esc_0.json']
@@ -81,8 +90,8 @@ if __name__ == '__main__':
   esc_list = []
   for esc_file in esc_filename:
     # load and inject ESC data with Overlapping Frequency of CBSD
-    esc_record = json.load(
-      open(os.path.join(_BASE_DATA_DIR, esc_file)))
+    esc_record = json_load(
+      os.path.join(_BASE_DATA_DIR, esc_file))
     esc_list.append(esc_record)
 
   gwpz_filename = ['gwpz_0.json', 'gwpz_1.json']
@@ -91,8 +100,8 @@ if __name__ == '__main__':
 
   for gwpz_file in gwpz_filename:
     # load and inject GWPZ data with Overlapping Frequency of CBSD
-    gwpz_record = json.load(
-      open(os.path.join(_BASE_DATA_DIR, gwpz_file)))
+    gwpz_record = json_load(
+      os.path.join(_BASE_DATA_DIR, gwpz_file))
     gwpz_list.append(gwpz_record)
 
   ppa_filename = ['ppa_0.json', 'ppa_1.json', 'ppa_2.json', 'ppa_3.json']
@@ -101,7 +110,7 @@ if __name__ == '__main__':
 
   for ppa_file in ppa_filename:
     # load and inject PPA data with Overlapping Frequency of CBSD
-    ppa_record = json.load(open(os.path.join(_BASE_DATA_DIR, ppa_file)))
+    ppa_record = json_load(os.path.join(_BASE_DATA_DIR, ppa_file))
     ppa_list.append(ppa_record)
 
   # load and inject PAL to get the frequency for PPA calculation
@@ -109,7 +118,7 @@ if __name__ == '__main__':
   ppa_filename = []
   pal_list = []
   for pal_file in pal_filename:
-      pal_record = json.load(open(os.path.join(_BASE_DATA_DIR, pal_file)))
+      pal_record = json_load(os.path.join(_BASE_DATA_DIR, pal_file))
       pal_list.append(pal_record)
 
   # Determine aggregate interference caused by the grants in the neighborhood

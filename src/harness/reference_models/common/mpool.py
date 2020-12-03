@@ -46,9 +46,14 @@ pool.apply_async(...)
 #  - in a function that is not executed at time of import or within
 #    the routines delegated to workers.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from functools import partial
 import multiprocessing
 import time
+
 
 class _DummyPool(object):
   """A dummy pool for replacement of `multiprocessing.Pool`
@@ -56,8 +61,9 @@ class _DummyPool(object):
   Using single process. Implements `map` and `apply_async`.
   """
   _max_workers = 1
+
   def map(self, fn, iterable, chunksize=None):
-    return map(fn, iterable)
+    return [fn(x) for x in iterable]
 
   def apply_async(self, fn, args=(), kwds={}, callback=None):
     class Result(object):
@@ -155,7 +161,7 @@ def Configure(num_processes=-1, pool=None):
     # Actual multiprocessing pool of workers
     num_cpus = multiprocessing.cpu_count()
     if num_processes == -1:
-      num_processes = num_cpus / 2
+      num_processes = num_cpus // 2
     elif num_processes < 0:
       # Always reserve 1 for other things (multiprocessing Manager for ex)
       num_processes = num_cpus - 1

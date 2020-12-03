@@ -13,14 +13,20 @@
 #    limitations under the License.
 """Handles HTTP requests."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import copy
 import json
 import logging
-import StringIO
-import urlparse
 import os
-import pycurl
 import time
+
+import pycurl
+import six
+from six.moves import range
+import six.moves.urllib.parse as urlparse
 
 MAX_REQUEST_ATTEMPT_COUNT = 6
 REQUEST_ATTEMPT_DELAY_SECOND = 5
@@ -34,7 +40,7 @@ class HTTPError(Exception):
   """
 
   def __init__(self, error_code):
-    super(HTTPError, self).__init__('HTTP code %d' % error_code)
+    Exception.__init__(self, 'HTTP code %d' % error_code)
     self.error_code = error_code
 
 
@@ -47,7 +53,7 @@ class CurlError(Exception):
   """
 
   def __init__(self, message, error_code):
-    super(CurlError, self).__init__(message)
+    Exception.__init__(self, message)
     self.error_code = error_code
 
 
@@ -103,8 +109,13 @@ def _Request(url, request, config, is_post_method):
     HTTPError: for any HTTP code not in the range [200, 299]. Refer to:
       https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
   """
-  error_message = ''
-  response = StringIO.StringIO()
+  # manage case of request passed as byte
+  try:
+    request = request.decode('utf-8')
+  except (UnicodeDecodeError, AttributeError):
+    pass
+
+  response = six.BytesIO()
   conn = pycurl.Curl()
   conn.setopt(conn.URL, url)
   conn.setopt(conn.WRITEFUNCTION, response.write)
@@ -132,34 +143,32 @@ def _Request(url, request, config, is_post_method):
   else:
     logging.info('GET Request to URL %s', url)
 
-  error_occurred = False
-
+  error = None
   for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
     try:
       conn.perform()
-      error_occurred = False
       break
     except pycurl.error as e:
       # e contains a tuple (libcurl_error_code, string_description).
       # See https://curl.haxx.se/libcurl/c/libcurl-errors.html
-      error_occurred = True
+      error = e
       logging.warning(str(CurlError(e.args[1], e.args[0])))
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
     except Exception as e:
-      error_occurred = True
+      error = e
       logging.warning(str(e))
       time.sleep(REQUEST_ATTEMPT_DELAY_SECOND)
 
-  if error_occurred:
+  if error:
     logging.error('Connection to Host Failed after %d attempts' %MAX_REQUEST_ATTEMPT_COUNT)
-    raise
+    raise error
 
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
-  body = response.getvalue()
+  body = response.getvalue().decode('utf-8')
   logging.info('Response:\n' + body)
 
   if not (200 <= http_code <= 299):
     raise HTTPError(http_code)
   if body:
-    return json.loads(body.decode('utf-8'))
+    return json.loads(body)

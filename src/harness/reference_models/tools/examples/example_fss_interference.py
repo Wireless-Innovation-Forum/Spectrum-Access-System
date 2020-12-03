@@ -17,6 +17,10 @@
 This is just an example demonstrating how to call the propagation and antenna
 reference models.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
 import numpy as np
 import sys
@@ -158,8 +162,8 @@ for fss_entity in fss_entities:
 
 #---------------------------------------------------------------
 # Print out results
-print 'For FSS lat=%.7f lon=%.7f: %d CBSDs' % (
-    base_fss.latitude, base_fss.longitude, len(cbsds))
-print '   Max RSSI = %.2f dBm / MHz' % max(fss_total_rssi)
-print '   RSSI per possible pointing:'
-print [int(val*100)/100. for val in fss_total_rssi]
+print('For FSS lat=%.7f lon=%.7f: %d CBSDs' % (
+    base_fss.latitude, base_fss.longitude, len(cbsds)))
+print('   Max RSSI = %.2f dBm / MHz' % max(fss_total_rssi))
+print('   RSSI per possible pointing:')
+print([int(val*100)/100. for val in fss_total_rssi])

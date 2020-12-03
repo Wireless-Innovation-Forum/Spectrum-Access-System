@@ -18,11 +18,16 @@ Standalone execution:
   python refractivity.py lat lng
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import logging
 import math
-import numpy as np
 import os
 import sys
+
+import numpy as np
 
 from reference_models.geo import CONFIG
 
@@ -102,4 +107,4 @@ class RefractivityIndexer:
 if __name__ == '__main__':
   indx = RefractivityIndexer()
   r = indx.Refractivity(float(sys.argv[1]), float(sys.argv[2]))
-  print 'Surface Refractivity (n-units) = %s' % r
+  print('Surface Refractivity (n-units) = %s' % r)

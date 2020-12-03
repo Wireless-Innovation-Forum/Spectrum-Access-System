@@ -11,11 +11,15 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import shapely.geometry as sgeo
-from reference_models.geo import vincenty
-from sas_test_harness import generateCbsdReferenceId
+
 from reference_models.geo import utils
+from reference_models.geo import vincenty
+
 
 # GWBL parameters
 FSS_GWBL_PROTECTION_FREQ_RANGE = {'lowFrequency': 3650e6,
@@ -147,7 +151,7 @@ def getFssNeighboringCbsdsWithGrants(cbsds, fss_point,
         cbsd['registration']['installationParam']['longitude'])
     # Get the list of cbsds that are within 150kms from the FSS entity
     if distance <= distance_km and cbsd['grants']:
-        neighboring_cbsds_with_grants.append(cbsd)
+      neighboring_cbsds_with_grants.append(cbsd)
   return neighboring_cbsds_with_grants
 
 

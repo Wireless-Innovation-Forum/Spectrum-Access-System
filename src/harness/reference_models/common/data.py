@@ -17,12 +17,15 @@
 This defines the common objects used by the reference models, and
 the utility routines for creating them for example from FAD objects.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
 import enum
 import numpy as np
 
 from reference_models.geo import drive
-from sas_test_harness import generateCbsdReferenceId
 
 
 class ProtectedEntityType(enum.Enum):
@@ -152,7 +155,7 @@ def getEscInfo(esc_record):
   esc_point = (esc_install_params['longitude'], esc_install_params['latitude'])
   ant_pattern = esc_install_params['azimuthRadiationPattern']
   ant_pattern = sorted([(pat['angle'], pat['gain']) for pat in ant_pattern])
-  angles, gains = zip(*ant_pattern)
+  angles, gains = list(zip(*ant_pattern))
   if angles != tuple(range(360)):
     raise ValueError('ESC pattern inconsistent')
   ant_gain_pattern = np.array(gains)
@@ -201,21 +204,22 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
 
 
 def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
-    """Returns the CBSDs that are not part of a PPA cluster list.
+  """Returns the CBSDs that are not part of a PPA cluster list.
 
     Args:
       cbsds : List of CBSDData objects.
       ppa_record : A PPA record dictionary.
+
     Returns:
       A list of CBSDs that are not part of the PPA cluster list.
-    """
-    cbsds_not_part_of_ppa_cluster = []
-    # Compare the list of CBSDs with the PPA cluster list
-    for cbsd in cbsds:
-      if cbsd['id'] not in ppa_record['ppaInfo']['cbsdReferenceId']:
-        cbsds_not_part_of_ppa_cluster.append(cbsd)
+  """
+  cbsds_not_part_of_ppa_cluster = []
+  # Compare the list of CBSDs with the PPA cluster list
+  for cbsd in cbsds:
+    if cbsd['id'] not in ppa_record['ppaInfo']['cbsdReferenceId']:
+      cbsds_not_part_of_ppa_cluster.append(cbsd)
 
-    return cbsds_not_part_of_ppa_cluster
+  return cbsds_not_part_of_ppa_cluster
 
 
 def getAllGrantInfoFromCbsdDataDump(cbsd_data_records, is_managing_sas=True,

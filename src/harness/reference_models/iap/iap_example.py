@@ -17,6 +17,9 @@
 # Expected result is dictionary containing post IAP aggregate interference
 # value at a protection constraint. 
 # =============================================================================
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
@@ -31,54 +34,59 @@ from full_activity_dump import FullActivityDump
 # Number of processes for parallel execution
 NUM_OF_PROCESS = 30
 
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
+
 if __name__ == '__main__':
 
   # Configure the multiprocess pool
   mpool.Configure(NUM_OF_PROCESS)
 
-  cbsd_0 = json.load(open(os.path.join('test_data', 'cbsd_0.json')))
-  cbsd_1 = json.load(open(os.path.join('test_data', 'cbsd_1.json')))
-  cbsd_2 = json.load(open(os.path.join('test_data', 'cbsd_2.json')))
-  cbsd_3 = json.load(open(os.path.join('test_data', 'cbsd_3.json')))
-  cbsd_4 = json.load(open(os.path.join('test_data', 'cbsd_4.json')))
-  cbsd_5 = json.load(open(os.path.join('test_data', 'cbsd_5.json')))
-  cbsd_6 = json.load(open(os.path.join('test_data', 'cbsd_6.json')))
-  cbsd_7 = json.load(open(os.path.join('test_data', 'cbsd_7.json')))
-  cbsd_8 = json.load(open(os.path.join('test_data', 'cbsd_8.json')))
-  cbsd_9 = json.load(open(os.path.join('test_data', 'cbsd_9.json')))
-  cbsd_10 = json.load(open(os.path.join('test_data', 'cbsd_10.json')))
-  cbsd_11 = json.load(open(os.path.join('test_data', 'cbsd_11.json')))
-  cbsd_12 = json.load(open(os.path.join('test_data', 'cbsd_12.json')))
-  cbsd_13 = json.load(open(os.path.join('test_data', 'cbsd_13.json')))
-  cbsd_14 = json.load(open(os.path.join('test_data', 'cbsd_14.json')))
-  cbsd_15 = json.load(open(os.path.join('test_data', 'cbsd_15.json')))
-  cbsd_16 = json.load(open(os.path.join('test_data', 'cbsd_16.json')))
-  cbsd_17 = json.load(open(os.path.join('test_data', 'cbsd_17.json')))
-  cbsd_18 = json.load(open(os.path.join('test_data', 'cbsd_18.json')))
-  cbsd_19 = json.load(open(os.path.join('test_data', 'cbsd_19.json')))
-  cbsd_20 = json.load(open(os.path.join('test_data', 'cbsd_20.json')))
-  cbsd_21 = json.load(open(os.path.join('test_data', 'cbsd_21.json')))
-  cbsd_22 = json.load(open(os.path.join('test_data', 'cbsd_22.json')))
-  cbsd_23 = json.load(open(os.path.join('test_data', 'cbsd_23.json')))
+  cbsd_0 = json_load(os.path.join('test_data', 'cbsd_0.json'))
+  cbsd_1 = json_load(os.path.join('test_data', 'cbsd_1.json'))
+  cbsd_2 = json_load(os.path.join('test_data', 'cbsd_2.json'))
+  cbsd_3 = json_load(os.path.join('test_data', 'cbsd_3.json'))
+  cbsd_4 = json_load(os.path.join('test_data', 'cbsd_4.json'))
+  cbsd_5 = json_load(os.path.join('test_data', 'cbsd_5.json'))
+  cbsd_6 = json_load(os.path.join('test_data', 'cbsd_6.json'))
+  cbsd_7 = json_load(os.path.join('test_data', 'cbsd_7.json'))
+  cbsd_8 = json_load(os.path.join('test_data', 'cbsd_8.json'))
+  cbsd_9 = json_load(os.path.join('test_data', 'cbsd_9.json'))
+  cbsd_10 = json_load(os.path.join('test_data', 'cbsd_10.json'))
+  cbsd_11 = json_load(os.path.join('test_data', 'cbsd_11.json'))
+  cbsd_12 = json_load(os.path.join('test_data', 'cbsd_12.json'))
+  cbsd_13 = json_load(os.path.join('test_data', 'cbsd_13.json'))
+  cbsd_14 = json_load(os.path.join('test_data', 'cbsd_14.json'))
+  cbsd_15 = json_load(os.path.join('test_data', 'cbsd_15.json'))
+  cbsd_16 = json_load(os.path.join('test_data', 'cbsd_16.json'))
+  cbsd_17 = json_load(os.path.join('test_data', 'cbsd_17.json'))
+  cbsd_18 = json_load(os.path.join('test_data', 'cbsd_18.json'))
+  cbsd_19 = json_load(os.path.join('test_data', 'cbsd_19.json'))
+  cbsd_20 = json_load(os.path.join('test_data', 'cbsd_20.json'))
+  cbsd_21 = json_load(os.path.join('test_data', 'cbsd_21.json'))
+  cbsd_22 = json_load(os.path.join('test_data', 'cbsd_22.json'))
+  cbsd_23 = json_load(os.path.join('test_data', 'cbsd_23.json'))
 
 
-  fss_0 = json.load(open(os.path.join('test_data', 'fss_0.json')))
-  fss_1 = json.load(open(os.path.join('test_data', 'fss_1.json')))
+  fss_0 = json_load(os.path.join('test_data', 'fss_0.json'))
+  fss_1 = json_load(os.path.join('test_data', 'fss_1.json'))
 
-  ppa_0 = json.load(open(os.path.join('test_data', 'ppa_0.json')))
-  ppa_1 = json.load(open(os.path.join('test_data', 'ppa_1.json')))
-  ppa_2 = json.load(open(os.path.join('test_data', 'ppa_2.json')))
-  ppa_3 = json.load(open(os.path.join('test_data', 'ppa_3.json')))
+  ppa_0 = json_load(os.path.join('test_data', 'ppa_0.json'))
+  ppa_1 = json_load(os.path.join('test_data', 'ppa_1.json'))
+  ppa_2 = json_load(os.path.join('test_data', 'ppa_2.json'))
+  ppa_3 = json_load(os.path.join('test_data', 'ppa_3.json'))
 
-  esc_0 = json.load(open(os.path.join('test_data', 'esc_0.json')))
+  esc_0 = json_load(os.path.join('test_data', 'esc_0.json'))
 
-  gwpz_0 = json.load(open(os.path.join('test_data', 'gwpz_0.json')))
-  gwpz_1 = json.load(open(os.path.join('test_data', 'gwpz_1.json')))
+  gwpz_0 = json_load(os.path.join('test_data', 'gwpz_0.json'))
+  gwpz_1 = json_load(os.path.join('test_data', 'gwpz_1.json'))
 
-  pal_0 = json.load(open(os.path.join('test_data', 'pal_0.json')))
-  pal_1 = json.load(open(os.path.join('test_data', 'pal_1.json')))
-  pal_2 = json.load(open(os.path.join('test_data', 'pal_2.json')))
-  pal_3 = json.load(open(os.path.join('test_data', 'pal_3.json')))
+  pal_0 = json_load(os.path.join('test_data', 'pal_0.json'))
+  pal_1 = json_load(os.path.join('test_data', 'pal_1.json'))
+  pal_2 = json_load(os.path.join('test_data', 'pal_2.json'))
+  pal_3 = json_load(os.path.join('test_data', 'pal_3.json'))
 
   sas_uut = FullActivityDump({
             'cbsd': [cbsd_0, cbsd_1, cbsd_2, cbsd_3, cbsd_4, cbsd_5, cbsd_6,cbsd_7, cbsd_8, cbsd_9, cbsd_10, cbsd_11, cbsd_12, cbsd_13, cbsd_14, cbsd_15, cbsd_16, cbsd_17, cbsd_18, cbsd_19],

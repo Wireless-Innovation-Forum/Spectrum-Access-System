@@ -41,6 +41,9 @@ Usage:
   p.sort_stats('cumulative')
   p.print_stats(20) # 20 most significant lines
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import cProfile
 import os

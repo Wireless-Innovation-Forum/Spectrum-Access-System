@@ -11,23 +11,29 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-
 """Implementation of PCR tests."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import logging
+from datetime import datetime, timedelta
+import time
 import os
-import sas_testcase
 import uuid
 from shapely import ops
+
+from six import string_types as basestring
+
+import sas_testcase
 from full_activity_dump_helper import getFullActivityDumpSasUut
 from reference_models.ppa import ppa
 from reference_models.geo import drive, utils
 from util import configurable_testcase, loadConfig, \
      makePalRecordsConsistent, writeConfig, getCertificateFingerprint, \
-     makePpaAndPalRecordsConsistent, getCertFilename
+     makePpaAndPalRecordsConsistent, getCertFilename, json_load
 from request_handler import HTTPError
-from datetime import datetime, timedelta
-import time
 
 SAS_TEST_HARNESS_URL = 'https://test.harness.url.not.used/v1.2'
 
@@ -178,10 +184,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   def generate_PCR_1_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 1."""
     # Load PAL records.
-    pal_record_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    pal_record_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    pal_record_a = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    pal_record_b = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_2.json'))
 
     # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
@@ -192,12 +198,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_high_frequency = 3580000000
 
     # Load device info.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_c = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_c = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
 
     # Set the same user ID for all devices
     device_b['userId'] = device_a['userId']
@@ -328,7 +334,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                   json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
                              separators=(',', ': ')))
     logging.debug("Reference model PPA - retrieved through PpaCreationModel:%s",
-                  json.dumps(json.loads(test_harness_ppa_geometry), indent=2,
+                  json.dumps(json_loads(test_harness_ppa_geometry), indent=2,
                              sort_keys=False,
                              separators=(',', ': ')))
 
@@ -346,10 +352,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   def generate_PCR_2_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 2."""
     # Load PAL records.
-    pal_record_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    pal_record_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    pal_record_a = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    pal_record_b = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_2.json'))
 
     # Use the FIPS codes of adjacent census tracts.
     pal_record_a['fipsCode'] = 20063955100
@@ -360,12 +366,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_high_frequency = 3580000000
 
     # Load device info.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
     # Set the same user ID for all devices.
     device_b['userId'] = device_a['userId']
@@ -479,7 +485,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                   json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
                              separators=(',', ': ')))
     logging.debug("Reference model PPA - retrieved through PpaCreationModel:%s",
-                  json.dumps(json.loads(test_harness_ppa_geometry), indent=2, sort_keys=False,
+                  json.dumps(json_loads(test_harness_ppa_geometry), indent=2, sort_keys=False,
                              separators=(',', ': ')))
 
     uut_ppa_geometry = uut_ppa_zone_data['zone']['features'][0]['geometry']
@@ -504,8 +510,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
-        user_claimed_ppa_contour = json.load(claimed_ppa_file)
+      with sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file
+        user_claimed_ppa_contour = json_load(claimed_ppa_file)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
@@ -584,10 +590,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   def generate_PCR_4_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 4."""
     # Load PAL records.
-    pal_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    pal_record_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    pal_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    pal_record_2 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_2.json'))
 
     # Use the FIPS codes of adjacent census tracts.
     pal_record_1['fipsCode'] = 20063955100
@@ -598,12 +604,12 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_high_frequency = 3580000000
 
     # Load device info.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
 
     # Set the same user ID for all devices
     device_b['userId'] = device_a['userId']
@@ -691,10 +697,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
   def generate_PCR_5_default_config(self, filename):
     """Generate the WinnForum configuration for PCR 5."""
     # Load PAL records.
-    pal_record_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    pal_record_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    pal_record_1 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    pal_record_2 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_2.json'))
 
     # Use the FIPS codes of adjacent census tracts.
     pal_record_1['fipsCode'] = 20063955100
@@ -705,10 +711,10 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     pal_high_frequency = 3580000000
 
     # Load device info.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # light check to ensure CBSD userId is not same.
     self.assertNotEqual(device_a['userId'], device_b['userId'])
@@ -792,7 +798,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
       with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
-        user_claimed_ppa_contour = json.load(claimed_ppa_file)
+        user_claimed_ppa_contour = json_load(claimed_ppa_file)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
@@ -857,8 +863,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as overlapped_ppa_file:
-        overlapping_ppa_contour = json.load(overlapped_ppa_file)
+      with sas_uut_claimed_ppa_boundary_file_path, 'r') as overlapped_ppa_file
+        overlapping_ppa_contour = json_load(overlapped_ppa_file)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
@@ -868,8 +874,8 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
         overlapping_ppa_contour['features'][0]['geometry'], 1e-2)
 
     # Create ppa_record where user claimed PPA contour will be replaced.
-    overlapping_ppa_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    overlapping_ppa_record = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
 
     # Update the user_claimed ppa contour geometry required for overlaps ppa.
     overlapping_ppa_record['zone'] = {'type':'FeatureCollection',

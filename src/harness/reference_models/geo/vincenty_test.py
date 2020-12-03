@@ -11,6 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy as np
 import pygc
@@ -27,7 +30,7 @@ def geodesic_iterative(lat1, lon1, lat2, lon2, num_points):
   lat, lon = lat1, lon1
   dist, bearing, _ = vincenty.GeodesicDistanceBearing(lat, lon, lat2, lon2)
   step_km = dist / (float(num_points-1))
-  for _ in xrange(1, num_points-1):
+  for _ in range(1, num_points-1):
     lat, lon, _ = vincenty.GeodesicPoint(lat, lon, step_km, bearing)
     geodesic.append((lat, lon))
     _, bearing, _ = vincenty.GeodesicDistanceBearing(lat, lon, lat2, lon2)
@@ -107,7 +110,7 @@ class TestVincenty(unittest.TestCase):
 
     # Compare with dual iterative implementation (well used initially)
     lats11, lons11 = vincenty.GeodesicSampling(lat0, lng0, lat11, lng11, 1500)
-    pts11 = zip(lats11, lons11)
+    pts11 = list(zip(lats11, lons11))
     pts11it = geodesic_iterative(lat0, lng0, lat11, lng11, 1500)
     diff = np.array(pts11) - np.array(pts11it)
     self.assertLess(np.max(np.abs(diff)), 1e-10)

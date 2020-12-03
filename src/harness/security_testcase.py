@@ -13,21 +13,28 @@
 #    limitations under the License.
 """Specialized implementation of SasTestCase for all SCS/SDS/SSS testcases."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import inspect
 import json
 import logging
 import os
 import re
-import sas
-import sas_testcase
 import subprocess
 import socket
-import urlparse
+
+import six
+from six.moves.urllib import parse as urllib
 import inspect
 
 from OpenSSL import SSL, crypto
-from util import getCertificateFingerprint
-from request_handler import HTTPError
+
+import sas
+import sas_testcase
+import util
+import request_handler
 
 class CiphersOverload(object):
   """Overloads the ciphers and client certificate used by the SAS client.
@@ -83,9 +90,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     Returns:
       True if the handshake succeeded, or False if it failed.
     """
-    url = urlparse.urlparse('https://' + base_url)
+    url = urllib.urlparse('https://' + base_url)
     client = socket.socket()
     client.connect((url.hostname, url.port or 443))
+
     logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
     logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
                   url.port or 443)
@@ -96,14 +104,14 @@ class SecurityTestCase(sas_testcase.SasTestCase):
                   self._sas._tls_config.ca_cert)
 
     ctx = SSL.Context(ssl_method)
-    ctx.set_cipher_list(':'.join(ciphers))
+    ctx.set_cipher_list(six.ensure_binary(':'.join(ciphers)))
     ctx.use_certificate_file(client_cert)
     ctx.use_privatekey_file(client_key)
     ctx.load_verify_locations(self._sas._tls_config.ca_cert)
 
     client_ssl_informations = []
     def _InfoCb(conn, where, ok):
-      client_ssl_informations.append(conn.get_state_string())
+      client_ssl_informations.append(six.ensure_text(conn.get_state_string()))
       logging.debug('TLS handshake info: %d|%d %s', where, ok, conn.get_state_string())
       return ok
     ctx.set_info_callback(_InfoCb)
@@ -118,28 +126,29 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     client_ssl = SSL.Connection(ctx, client)
     client_ssl.set_connect_state()
-    client_ssl.set_tlsext_host_name(url.hostname)
+    client_ssl.set_tlsext_host_name(six.ensure_binary(url.hostname))
 
     try:
       client_ssl.do_handshake()
       logging.debug('TLS handshake: succeed')
       handshake_ok = True
     except SSL.Error as e:
-      logging.debug('TLS handshake: failed:\n%s', '\n'.join(client_ssl_informations))
+      logging.debug('TLS handshake: failed:\n%s\n%s', str(e),
+                    '\n'.join(client_ssl_informations))
       handshake_ok = False
     finally:
       client_ssl.close()
 
     self.assertEqual(client_ssl.get_cipher_list(), ciphers)
 
-    known_ssl_methods = {
-        SSL.TLSv1_1_METHOD: 'TLSv1.1',
-        SSL.TLSv1_2_METHOD: 'TLSv1.2',
-    }
-    self.assertEqual(client_ssl.get_protocol_version_name(),
-                     known_ssl_methods[ssl_method])
-
     if handshake_ok:
+      known_ssl_methods = {
+          SSL.TLSv1_1_METHOD: 'TLSv1.1',
+          SSL.TLSv1_2_METHOD: 'TLSv1.2',
+      }
+      self.assertEqual(client_ssl.get_protocol_version_name(),
+                       known_ssl_methods[ssl_method])
+
       # tricky part: exact logged message depends of the version of openssl...
       cipher_check_regex = re.compile(
           r"change.cipher.spec", re.I)
@@ -192,8 +201,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     # Does a regular CBSD registration
     self.SasReset()
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = util.json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
+
     with CiphersOverload(self._sas, [cipher], client_cert, client_key):
       self.assertRegistered([device_a])
 
@@ -210,7 +219,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     # Does a regular SAS registration
     self.SasReset()
-    certificate_hash = getCertificateFingerprint(client_cert)
+    certificate_hash = util.getCertificateFingerprint(client_cert)
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,
                                    'url': client_url})
     # Using pyOpenSSL low level API, does the SAS UUT server TLS session checks.
@@ -272,11 +281,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
         if is_sas:
           self._sas.GetFullActivityDump(client_cert, client_key)
         else:
-          device_a = json.load(
-            open(os.path.join('testcases', 'testdata', 'device_a.json')))
+          device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
           request = {'registrationRequest': [device_a]}
           self._sas.Registration(request, ssl_cert=client_cert, ssl_key=client_key)
-      except HTTPError as e:
+      except request_handler.HTTPError as e:
         logging.debug("TLS session established, expecting HTTP error 403; received %r", e)
         self.assertEqual(e.error_code, 403)
       else:

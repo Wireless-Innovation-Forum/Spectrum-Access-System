@@ -36,18 +36,23 @@
 ==================================================================================
 """
 
-import logging
-from functools import partial
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
+from functools import partial
+import logging
 
 import numpy as np
+from six.moves import zip
 
+from reference_models.common import cache
 from reference_models.common import data
 from reference_models.common import mpool
-from reference_models.common import cache
-from reference_models.propagation import wf_hybrid
 from reference_models.geo import utils
 from reference_models.interference import interference as interf
+from reference_models.propagation import wf_hybrid
 
 # values from WINNF-TS-0061-V1.1.0 - WG4 SAS Test and Certification Spec-Table
 # 8.4-2 Protected entity reference for IAP Protection
@@ -268,7 +273,7 @@ def iapPointConstraint(protection_point, channels, low_freq, high_freq,
 
   logging.debug('IAP point_constraint @ point %s: %s',
                 (protection_point[1], protection_point[0]),
-                zip(asas_interf, aggr_interf))
+                list(zip(asas_interf, aggr_interf)))
 
   # Return the computed data
   return protection_point[1], protection_point[0], asas_interf, aggr_interf

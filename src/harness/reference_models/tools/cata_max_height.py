@@ -25,6 +25,9 @@ Usage:
 The tool can also be called on the command line:
   python cata_max_height.py 45 -73
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from reference_models.geo import drive
 
@@ -49,11 +52,12 @@ def GetCatAOutdoorMaxHeight(lat, lon):
 if __name__ == '__main__':
   import sys
   if len(sys.argv) < 3 or sys.argv[1].find('h') != -1:
-    print 'Usage: cata_max_height.py <lat> <lon>'
+    print('Usage: cata_max_height.py <lat> <lon>')
     sys.exit()
   max_height_agl, max_height_amsl = GetCatAOutdoorMaxHeight(
       float(sys.argv[1]), float(sys.argv[2]))
-  print 'Maximum CatA Outdoor height:'
-  print '    AGL: %.2fm' % max_height_agl
-  print '    AMSL: %.2fm' % max_height_amsl
-  if max_height_agl < 0: print 'CatA Outdoor not allowed'
+  print('Maximum CatA Outdoor height:')
+  print('    AGL: %.2fm' % max_height_agl)
+  print('    AMSL: %.2fm' % max_height_amsl)
+  if max_height_agl < 0:
+    print('CatA Outdoor not allowed')

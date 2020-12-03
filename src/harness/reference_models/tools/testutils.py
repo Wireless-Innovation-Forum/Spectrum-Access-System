@@ -18,18 +18,23 @@ Provides a fake propagation and interference engine that can be used to replace 
 actual models for unit testing functional modules.
 And some other test utilities.
 """
-import glob
-import numpy as np
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from enum import Enum
+import glob
 import os
 import zipfile
 
+import numpy as np
+
+from reference_models.antenna import antenna
 from reference_models.common import data
 from reference_models.geo import vincenty
-from reference_models.propagation import wf_itm
-from reference_models.antenna import antenna
 from reference_models.interference import interference as interf
 from reference_models.propagation import wf_hybrid
+from reference_models.propagation import wf_itm
 
 
 class FakePropagationPredictor(object):

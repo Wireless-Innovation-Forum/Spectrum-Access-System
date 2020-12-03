@@ -11,8 +11,10 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import common_strings
 from datetime import datetime
 from datetime import timedelta
 import json
@@ -20,12 +22,14 @@ import logging
 import os
 import time
 
+from six.moves import zip
+
+import common_strings
 from request_handler import HTTPError
 import sas
 import sas_testcase
-
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests
+  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests, json_load
 
 
 class HeartbeatTestcase(sas_testcase.SasTestCase):
@@ -44,12 +48,12 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     Returns response code 0 (NO_ERROR) for all requests.
     """
     # Register 3 devices.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     # Inject FCC IDs
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectFccId({'fccId': device_c['fccId']})
@@ -68,12 +72,12 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Create and send grant requests for all 3 devices.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_1['cbsdId'] = cbsd_ids[1]
     grant_2['cbsdId'] = cbsd_ids[2]
@@ -154,8 +158,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Register three devices.
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -171,8 +175,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Request grants.
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -228,8 +232,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Register three devices.
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -245,8 +249,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Request grants.
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -299,8 +303,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json',
                             'device_f.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -316,8 +320,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Request grant.
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -384,7 +388,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
@@ -396,7 +400,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request grant
-    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant_0]}
 
@@ -466,13 +470,13 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     cbsd_ids = self.assertRegistered([device_a])
 
     # Request grant.
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     request = {'grantRequest': [grant_0]}
     # Check grant response.
@@ -538,8 +542,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Register the devices
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -555,8 +559,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Request grant
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -623,8 +627,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     registration_request = []
     fcc_ids = []
     for device_filename in ('device_a.json', 'device_c.json', 'device_e.json'):
-      device = json.load(
-          open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       fcc_ids.append(device['fccId'])
       registration_request.append(device)
 
@@ -633,8 +637,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     # Request grant
     grant_request = []
     for cbsd_id in cbsd_ids:
-      grant = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+      grant = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
       grant['cbsdId'] = cbsd_id
       grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -712,22 +716,22 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     """
     # STEP 1
     # register three devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     cbsd_ids = self.assertRegistered([device_a, device_c, device_e])
     # load and set Grants data
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_a['cbsdId'] = cbsd_ids[0]
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_c['cbsdId'] = cbsd_ids[1]
-    grant_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_e['cbsdId'] = cbsd_ids[2]
     grant_e['operationParam']['operationFrequencyRange']\
                              ['lowFrequency'] = 3650000000
@@ -759,20 +763,19 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
     # STEP 2
     # load and inject FSS data with Overlapping Frequency of CBSD
-    fss_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_e = json_load(
+        os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     self._sas_admin.InjectFss(fss_e)
     # load and inject GWBL data with Overlapping Frequency of CBSD
-    gwbl_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    gwbl_e = json_load(
+        os.path.join('testcases', 'testdata', 'gwbl_record_0.json'))
     self._sas_admin.InjectWisp(gwbl_e)
     # STEP 3
     # Trigger daily activities and wait for it to get it complete
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
     # Send Heartbeat after triggering the IAP
     request = []
-    for cbsd_id, grant_id in\
-     zip(cbsd_ids, grant_ids):
+    for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
       request.append({
           'cbsdId': cbsd_id,
           'grantId': grant_id,
@@ -803,20 +806,20 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for HBT.10."""
 
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load grant.json
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     heartbeat_a = {'operationState': 'GRANTED'}
     heartbeat_c = {'grantId': 'REMOVE', 'operationState': 'GRANTED'}
@@ -973,12 +976,12 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     Returns response code 502 (UNSYNC_OP_PARAM).
     """
     # Load a device.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load grant.json
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Register the device and get a grant
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_0])
@@ -1010,8 +1013,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self._sas_admin.TriggerBulkDpaActivation({'activate': False})
 
     # Load a device.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     # CBSD located in DPA 6 neighborhood
     device_a['installationParam']['latitude'] = 36.7115375795
     device_a['installationParam']['longitude'] = -76.0162751808
@@ -1020,8 +1023,8 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     cbsd_ids = self.assertRegistered([device_a])
 
     # Step 3: Send grant request and check grant response
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_ids[0]
     grant_0['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
@@ -1095,6 +1098,3 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response[0]['response']['responseCode'] in [500, 501])
     self.assertEqual(response[0]['cbsdId'], cbsd_ids[0])
     self.assertEqual(response[0]['grantId'], grant_id)
-
-
-

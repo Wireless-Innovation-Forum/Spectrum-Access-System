@@ -11,15 +11,23 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from concurrent.futures import ThreadPoolExecutor
 import json
 import numbers
 import time
 import os
-from reference_models.common import mpool
 from functools import partial
 import logging
+
+import six
+from six import string_types as basestring
+from six.moves import zip
+
+from reference_models.common import mpool
 import sas
 import sas_testcase
 import test_harness_objects
@@ -28,7 +36,7 @@ from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFull
 import common_strings
 from util import winnforum_testcase, configurable_testcase, getCertificateFingerprint, writeConfig, \
         loadConfig, makePpaAndPalRecordsConsistent, getFqdnLocalhost, \
-        getUnusedPort, getCertFilename
+        getUnusedPort, getCertFilename, json_load
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
         generatePpaRecords, generateCbsdReferenceId
 from reference_models.dpa import dpa_mgr
@@ -437,8 +445,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     for active_dpa in self.active_dpas + iteration_content['dpaActivationList']:
       dpa_config = self.config['dpas'][active_dpa['dpaId']]
       dpa = dpa_mgr.BuildDpa(active_dpa['dpaId'], dpa_config['points_builder'])
-      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] / ONE_MHZ
-      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] / ONE_MHZ
+      low_freq_mhz = active_dpa['frequencyRange']['lowFrequency'] // ONE_MHZ
+      high_freq_mhz = active_dpa['frequencyRange']['highFrequency'] // ONE_MHZ
       dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       if self.num_peer_sases:
         logging.info('Calculating  move list for DPA: %s', active_dpa)
@@ -767,8 +775,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
     logging.info('IAP aggr interference checking - Entity: %s Thresh: %s',
                  entity_type, str(ap_iap_ref_values) if scalar else 'from IAP')
 
-    for lat_val, lat_dict in aggr_interference.iteritems():
-      for long_val, interf_list in lat_dict.iteritems():
+    for lat_val, lat_dict in six.iteritems(aggr_interference):
+      for long_val, interf_list in six.iteritems(lat_dict):
         if scalar:
           # iter produces a infinite generator of the scalar, as zip iterates
           # till one of the passed iterators is empty this will produce the same
@@ -785,7 +793,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
           below_threshold = True
           list_index = 0
           logging.debug('Check lat %s long %s: %s',
-                        lat_val, long_val, zip(interf_list, ref_interf_list))
+                        lat_val, long_val,
+                        list(zip(interf_list, ref_interf_list)))
           for interf, ref_interf in zip(interf_list, ref_interf_list):
             list_index += 1
             if interf > ref_interf * iap_margin_lin:
@@ -797,7 +806,8 @@ class McpXprCommonTestcase(sas_testcase.SasTestCase):
         else:
           list_index = 0
           logging.debug('Check lat %s long %s: %s',
-                        lat_val, long_val, zip(interf_list, ref_interf_list))
+                        lat_val, long_val,
+                        list(zip(interf_list, ref_interf_list)))
           for interf, ref_interf in zip(interf_list, ref_interf_list):
             iter_cnt += 1
             list_index += 1
@@ -875,40 +885,40 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
   def generate_MCP_1_default_config(self, filename):
     """ Generates the WinnForum configuration for MCP.1. """
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
-    device_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_7 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_g.json')))
-    device_8 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
+    device_5 = json_load(
+      os.path.join('testcases', 'testdata', 'device_e.json'))
+    device_6 = json_load(
+      os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_7 = json_load(
+      os.path.join('testcases', 'testdata', 'device_g.json'))
+    device_8 = json_load(
+      os.path.join('testcases', 'testdata', 'device_h.json'))
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_3.json')))
-    grant_request_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_request_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
-    grant_request_7 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
-    grant_request_8 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_3.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_3.json'))
+    grant_request_5 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_request_6 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
+    grant_request_7 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
+    grant_request_8 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_3.json'))
 
     # device_b device_d and device_h are of Category B
     # Load Conditional Data
@@ -955,22 +965,22 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
     del device_8['measCapability']
 
     # Load GWPZ Record
-    gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+    gwpz_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'gwpz_record_0.json'))
 
     # Load FSS record
-    fss_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'fss_record_0.json'))
 
     # Load ESC record
-    esc_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+    esc_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))
 
     # Load PPA and PAL record
-    ppa_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
-    pal_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    ppa_record = json_load(
+      os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
+    pal_record = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_0.json'))
 
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
@@ -1044,33 +1054,33 @@ class MultiConstraintProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses for two iterations
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = 'test_fcc_id_g'
     sas_test_harness_device_1['userId'] = 'test_user_id_g'
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = 'test_fcc_id_h'
     sas_test_harness_device_2['userId'] = 'test_user_id_h'
 
-    sas_test_harness_device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = 'test_fcc_id_i'
     sas_test_harness_device_3['userId'] = 'test_user_id_i'
 
-    sas_test_harness_device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    sas_test_harness_device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     sas_test_harness_device_4['fccId'] = 'test_fcc_id_j'
     sas_test_harness_device_4['userId'] = 'test_user_id_j'
 
-    sas_test_harness_device_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    sas_test_harness_device_5 = json_load(
+      os.path.join('testcases', 'testdata', 'device_e.json'))
     sas_test_harness_device_5['fccId'] = 'test_fcc_id_k'
     sas_test_harness_device_5['userId'] = 'test_user_id_k'
 
-    sas_test_harness_device_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    sas_test_harness_device_6 = json_load(
+      os.path.join('testcases', 'testdata', 'device_f.json'))
     sas_test_harness_device_6['fccId'] = 'test_fcc_id_l'
     sas_test_harness_device_6['userId'] = 'test_user_id_l'
 

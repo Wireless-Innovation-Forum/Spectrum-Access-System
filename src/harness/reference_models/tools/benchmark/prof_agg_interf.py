@@ -22,6 +22,9 @@ where idx:
 
 Note: script derived from the aggregate_interference_example.py
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
@@ -36,6 +39,12 @@ from reference_models.tools import profpool
 
 # Number of parallel processes
 NUM_PROCESS = 4
+
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
 
 def CvtToList(data):
   """Convert interf to a sorted list suitable for comparison."""
@@ -79,30 +88,30 @@ if __name__ == '__main__':
                    ]
   cbsd_list = []
   for cbsd_file in cbsd_filename:
-    cbsd_record = json.load(open(os.path.join(_BASE_DATA_DIR, cbsd_file)))
+    cbsd_record = json_load(os.path.join(_BASE_DATA_DIR, cbsd_file))
     cbsd_list.append(cbsd_record)
 
   # Populate FSS
   fss_filename = ['fss_0.json', 'fss_1.json']
   fss_list = []
   for fss_file in fss_filename:
-    fss_record = json.load(open(os.path.join(_BASE_DATA_DIR, fss_file)))
+    fss_record = json_load(os.path.join(_BASE_DATA_DIR, fss_file))
     fss_list.append(fss_record)
 
   # Populate ESC
   esc_filename = ['esc_0.json']
   esc_list = []
   for esc_file in esc_filename:
-    esc_record = json.load(
-      open(os.path.join(_BASE_DATA_DIR, esc_file)))
+    esc_record = json_load(
+        os.path.join(_BASE_DATA_DIR, esc_file))
     esc_list.append(esc_record)
 
   # Populate GWPZ
   gwpz_filename = ['gwpz_0.json', 'gwpz_1.json']
   gwpz_list = []
   for gwpz_file in gwpz_filename:
-    gwpz_record = json.load(
-        open(os.path.join(_BASE_DATA_DIR, gwpz_file)))
+    gwpz_record = json_load(
+        os.path.join(_BASE_DATA_DIR, gwpz_file))
     gwpz_list.append(gwpz_record)
 
   # Populate PPA/PAL
@@ -110,14 +119,14 @@ if __name__ == '__main__':
   ppa_list = []
   for ppa_file in ppa_filename:
     # load and inject PPA data with Overlapping Frequency of CBSD
-    ppa_record = json.load(open(os.path.join(_BASE_DATA_DIR, ppa_file)))
+    ppa_record = json_load(os.path.join(_BASE_DATA_DIR, ppa_file))
     ppa_list.append(ppa_record)
 
   pal_filename = ['pal_0.json', 'pal_1.json', 'pal_2.json', 'pal_3.json']
   ppa_filename = []
   pal_list = []
   for pal_file in pal_filename:
-    pal_record = json.load(open(os.path.join(_BASE_DATA_DIR, pal_file)))
+    pal_record = json_load(os.path.join(_BASE_DATA_DIR, pal_file))
     pal_list.append(pal_record)
 
   #=======================================

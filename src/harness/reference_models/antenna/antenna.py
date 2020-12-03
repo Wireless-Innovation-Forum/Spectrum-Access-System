@@ -29,6 +29,9 @@ Typical usage:
   gains = GetFssAntennaGains(hor_dirs, ver_dirs,
                              fss_azimuth, fss_elevation, fss_ant_gain)
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy as np
 

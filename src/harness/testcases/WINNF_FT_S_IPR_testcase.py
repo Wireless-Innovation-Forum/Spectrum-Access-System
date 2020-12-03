@@ -11,29 +11,36 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-from database import DatabaseServer
+from datetime import datetime, timedelta
 import logging
 import json
 import os
-import sas
-import sas_testcase
 import time
 
+from six import string_types as basestring
+from six.moves import zip
+
+import sas
+import sas_testcase
+from database import DatabaseServer
 from util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
   loadConfig, getCertificateFingerprint, getFqdnLocalhost, getUnusedPort, \
-  getCertFilename
+  getCertFilename, json_load
 from test_harness_objects import DomainProxy
 from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
 from reference_models.dpa import dpa_mgr
 from reference_models.common import data
 from common_types import ResponseCodes
-from datetime import datetime, timedelta
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
 ONE_MHZ = 1000000
+
 
 
 class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
@@ -55,17 +62,17 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_1."""
 
     # Load Devices.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
 
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 30.71570
     device_b['installationParam']['longitude'] = -88.09350
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_c['installationParam']['latitude'] = 30.71570
     device_c['installationParam']['longitude'] = -88.09350
 
@@ -92,12 +99,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     sas_test_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
@@ -259,8 +266,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     for dpa_config in config['dpas']:
       logging.info('Checking DPA %s', dpa_config)
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
-      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
+      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
       dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
       dpa.ComputeMoveLists()
@@ -288,28 +295,28 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_2"""
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 30.23534
     device_a['installationParam']['longitude'] = -87.93972
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 30.47642
     device_b['installationParam']['longitude'] = -87.08096
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_c['installationParam']['latitude'] = 30.31534
     device_c['installationParam']['longitude'] = -86.08972
-    device_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_d = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_d['installationParam']['latitude'] = 30.30642
     device_d['installationParam']['longitude'] = -86.06096
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     device_e['installationParam']['latitude'] = 44.47642
     device_e['installationParam']['longitude'] = -124.08096
-    device_h = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_h = json_load(
+        os.path.join('testcases', 'testdata', 'device_h.json'))
     device_h['installationParam']['latitude'] = 44.46642
     device_h['installationParam']['longitude'] = -124.07096
 
@@ -342,24 +349,24 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_c['operationParam']['operationFrequencyRange']['lowFrequency'] = 3620000000
     grant_c['operationParam']['operationFrequencyRange']['highFrequency'] = 3630000000
-    grant_d = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_d = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_d['operationParam']['operationFrequencyRange']['lowFrequency'] = 3620000000
     grant_d['operationParam']['operationFrequencyRange']['highFrequency'] = 3630000000
-    grant_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_e = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_e['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
     grant_e['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
-    grant_h = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_h = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_h['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
     grant_h['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
 
@@ -520,8 +527,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     all_dpas = []
     for dpa_config in config['dpas']:
       dpa = dpa_mgr.BuildDpa(dpa_config['dpaId'], dpa_config['points_builder'])
-      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+      low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
+      high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
       dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
       dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
       dpa.ComputeMoveLists()
@@ -546,8 +553,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           'Step 12/15/18/21 + CHECK: DPA aggregate interference check.')
       # Check each active DPA does not exceed its allowed interference threshold.
       for dpa, dpa_config in zip(current_active_dpas, config['dpas']):
-        low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-        high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+        low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
+        high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
         this_dpa_check_succeeded = dpa.CheckInterference(
             sas_uut_active_grants=grant_info,
             margin_db=dpa_config['movelistMargin'],
@@ -576,8 +583,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_3"""
 
     # Load Device in DPA neighborhood.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
     # Pre-load conditionals and remove reg conditional fields from registration
@@ -597,8 +604,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant request.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     frequency_range = grant_a['operationParam']['operationFrequencyRange']
     dpa_1 = {
@@ -636,8 +643,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_4"""
 
     # Load Device.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     # Move the CBSD to be nearby the St. Inigoes site.
     device_b['installationParam']['latitude'] = 30.354917
     device_b['installationParam']['longitude'] = -88.532033
@@ -658,8 +665,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant request.
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     frequency_range = grant_b['operationParam']['operationFrequencyRange']
     dpa_1 = {
         'dpaId': 'Pascagoula',
@@ -739,8 +746,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_5"""
 
     # Load Device in DPA neighborhood.
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
     # Pre-load conditionals and remove reg conditional fields from registration
@@ -760,8 +767,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant request.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     frequency_range = grant_a['operationParam']['operationFrequencyRange']
     dpa_1 = {
@@ -860,12 +867,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for IPR_6"""
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 30.71570
     device_a['installationParam']['longitude'] = -88.09350
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 30.71571
     device_b['installationParam']['longitude'] = -88.09351
 
@@ -886,10 +893,10 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     sas_test_harness_config = {
         'sasTestHarnessName': 'SAS-Test-Harness-1',
@@ -1041,12 +1048,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load Devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_a['installationParam']['latitude'] = 43.910
     device_a['installationParam']['longitude'] = -69.700
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 43.902
     device_b['installationParam']['longitude'] = -69.850
 
@@ -1067,10 +1074,10 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests.
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     sas_test_harness_config = {
         'sasTestHarnessName':
@@ -1307,8 +1314,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         dpa_config['dpaId'],
         dpa_config['points_builder'],
         portal_dpa_filename=dpa_filename)
-    low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] / ONE_MHZ
-    high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] / ONE_MHZ
+    low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
+    high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
     dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
     dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
     dpa.ComputeMoveLists()
@@ -1327,4 +1334,3 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     if dpa_database_server:
       del dpa_database_server
-

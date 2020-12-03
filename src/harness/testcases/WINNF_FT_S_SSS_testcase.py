@@ -11,6 +11,10 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import logging
 import os
@@ -20,7 +24,7 @@ from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from request_handler import HTTPError
 import security_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, getCertificateFingerprint, getCertFilename
+  loadConfig, getCertificateFingerprint, getCertFilename, json_load
 from request_handler import HTTPError
 
 SAS_CERT = getCertFilename('sas.cert')
@@ -465,12 +469,12 @@ class SasToSasSecurityTestcase(security_testcase.SecurityTestCase):
     self._sas_admin.InjectPeerSas({'certificateHash': certificate_hash,\
                                      'url': SAS_TEST_HARNESS_URL })
     # Load a Device
-    device_a = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load grant request
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     cbsd_ids, grant_ids = self.assertRegisteredAndGranted([device_a], [grant_a])
 
     # Initiate Full Activity Dump with valid cert, key pair

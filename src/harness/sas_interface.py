@@ -13,17 +13,20 @@
 #    limitations under the License.
 """SAS interfaces for testing."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import abc
+import six
 
 
-class SasInterface(object):
+class SasInterface(six.with_metaclass(abc.ABCMeta, object)):
   """WinnForum standardized interfaces.
 
   Includes SAS-CBSD interface and (will include) SAS-SAS interface.
 
   """
-
-  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def Registration(self, request, ssl_cert=None, ssl_key=None):
@@ -194,10 +197,9 @@ class SasInterface(object):
     """
     pass
 
-class SasAdminInterface(object):
-  """Minimal test control interface for the SAS under test."""
 
-  __metaclass__ = abc.ABCMeta
+class SasAdminInterface(six.with_metaclass(abc.ABCMeta, object)):
+  """Minimal test control interface for the SAS under test."""
 
   @abc.abstractmethod
   def Reset(self):

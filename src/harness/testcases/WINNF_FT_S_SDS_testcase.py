@@ -11,14 +11,19 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import logging
-import security_testcase
 import os
 import time
 from OpenSSL import SSL
+
+import security_testcase
 from util import winnforum_testcase, configurable_testcase, \
-  writeConfig, loadConfig, getCertFilename
+  writeConfig, loadConfig, getCertFilename, json_load
 
 
 DOMAIN_PROXY_CERT = getCertFilename('domain_proxy.cert')
@@ -187,8 +192,8 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     except AssertionError as e:
       self.SasReset()
       # Load Devices
-      device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+      device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
       # Register the devices
       devices = [device_a]
       request = {'registrationRequest': devices}
@@ -286,7 +291,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
                                    device_a_cert, device_a_key)
 
     # Load device and inject fccId and userId
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
     self.SasReset()
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
@@ -350,7 +355,7 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file.
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Send Registration request with short lived certificates to SAS UUT.
     # The CiphersOverload approach is used in to override the default certificates with
@@ -398,10 +403,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load the grant_0 file
-    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Device is registered with short live certificate and ensure that response is successful.
     # The CiphersOverload approach is used in to override the default certificates with
@@ -449,10 +454,10 @@ class SasDomainProxySecurityTestcase(security_testcase.SecurityTestCase):
     logging.info("TLS Handshake Succeeded")
 
     # Load the device_a file.
-    device_a = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
 
     # Load the grant_0 file.
-    grant_0 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Register device and grant device with certs(short lived certificates) to SAS UUT.
     # Ensure the registration and grant requests are successful.

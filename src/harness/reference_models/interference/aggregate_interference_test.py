@@ -14,17 +14,27 @@
 
 # See the test_results/aggregate_interference_unit_test_calc_sheet.xlsx
 # for a detail on the calculations.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
+import json
 import os
 import unittest
-import json
+
 from reference_models.common import data
-from reference_models.tools import testutils
 from reference_models.interference import aggregate_interference
 from reference_models.interference import interference as interf
+from reference_models.tools import testutils
 
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
+
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
 
 
 class TestAggregateInterference(unittest.TestCase):
@@ -35,16 +45,16 @@ class TestAggregateInterference(unittest.TestCase):
     cbsd_filename = ['cbsd_uut_ut.json', 'cbsd_th1_ut.json']
     cbsd_list = []
     for cbsd_file in cbsd_filename:
-      cbsd_record = json.load(open(os.path.join(TEST_DIR, cbsd_file)))
+      cbsd_record = json_load(os.path.join(TEST_DIR, cbsd_file))
       cbsd_list.append(cbsd_record)
     cls.cbsd_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list)
     # Load the protection entity data with overlapping frequency of CBSD grants
-    cls.fss_record = json.load(open(os.path.join(TEST_DIR, 'fss_ut.json')))
-    cls.ppa_record = json.load(open(os.path.join(TEST_DIR, 'ppa_ut.json')))
+    cls.fss_record = json_load(os.path.join(TEST_DIR, 'fss_ut.json'))
+    cls.ppa_record = json_load(os.path.join(TEST_DIR, 'ppa_ut.json'))
     cls.ppa_cbsd_list = data.getAllGrantInfoFromCbsdDataDump(cbsd_list, ppa_record=cls.ppa_record)
-    cls.pal_record = json.load(open(os.path.join(TEST_DIR, 'pal_ut.json')))
-    cls.gwpz_record = json.load(open(os.path.join(TEST_DIR, 'gwpz_ut.json')))
-    cls.esc_record = json.load(open(os.path.join(TEST_DIR, 'esc_ut.json')))
+    cls.pal_record = json_load(os.path.join(TEST_DIR, 'pal_ut.json'))
+    cls.gwpz_record = json_load(os.path.join(TEST_DIR, 'gwpz_ut.json'))
+    cls.esc_record = json_load(os.path.join(TEST_DIR, 'esc_ut.json'))
 
   def setUp(self):
     self.original_interference = interf.computeInterference

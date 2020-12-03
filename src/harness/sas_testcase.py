@@ -12,11 +12,18 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from datetime import datetime, timedelta
 import logging
 import threading
 import time
 import unittest
+import six
+from six.moves import zip
+
 import sas
 import util
 from request_handler import HTTPError
@@ -251,7 +258,7 @@ class SasTestCase(unittest.TestCase):
       # If any other error (including HTTP errors other than 500) 20 times in a
       # row, fail.
       except Exception as ex:
-        logging.info('Exception: %s ', ex.message)
+        logging.info('Exception: %s ', str(ex))
         error_counter += 1
         if error_counter == 20:
           self.fail('Encountered errors 20 times. Failing immediately.')
@@ -362,19 +369,26 @@ class SasTestCase(unittest.TestCase):
       AssertError: When the given config does not include the required and
       optional fields or the config contains unexpected keys.
     """
-    for key, field_type in required_fields.iteritems():
+    def TypeName(a_type):
+      """Returns the type name, even if multiple type (as tuple of types)."""
+      try:
+        return a_type.__name__
+      except AttributeError:
+        return a_type[0].__name__
+
+    for key, field_type in six.iteritems(required_fields):
       self.assertTrue(key in config,
                       'Required config field \'%s\' is not present.' % key)
       self.assertTrue(
           isinstance(config[key], field_type),
           'Required config field \'%s\' is of type(%s) when it should be type(%s).'
-          % (key, type(config[key]).__name__, field_type.__name__))
-    for key, field_type in optional_fields.iteritems():
+          % (key, type(config[key]).__name__, TypeName(field_type)))
+    for key, field_type in six.iteritems(optional_fields):
       if key in config:
         self.assertTrue(
             isinstance(config[key], field_type),
             'Optional config field \'%s\' is of type(%s) when it should be type(%s).'
-            % (key, type(config[key]).__name__, field_type.__name__))
+            % (key, type(config[key]).__name__, TypeName(field_type)))
     # Check the config only contains the checked fields
     for key in config:
       self.assertTrue(
@@ -440,7 +454,7 @@ class SasTestCase(unittest.TestCase):
         error_counter = 0
       # If any error 20 times in a row, fail.
       except Exception as ex:
-        logging.info('Exception: %s ', ex.message)
+        logging.info('Exception: %s ', str(ex))
         error_counter += 1
         if error_counter == 20:
           self.fail('Encountered errors 20 times. Failing immediately.')
@@ -477,10 +491,10 @@ class SasTestCase(unittest.TestCase):
 
     """
     try:
-        response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
+      response = self._sas_admin.TriggerPpaCreation(ppa_creation_request)
     except HTTPError:
-        # We are done if PPA creation failure is detected during TriggerPpaCreation.
-        return
+      # We are done if PPA creation failure is detected during TriggerPpaCreation.
+      return
 
     logging.info('TriggerPpaCreation is in progress')
 
@@ -495,7 +509,7 @@ class SasTestCase(unittest.TestCase):
         error_counter = 0
       # If any error 20 times in a row, fail.
       except Exception as ex:
-        logging.info('Exception: %s ', ex.message)
+        logging.info('Exception: %s ', str(ex))
         error_counter += 1
         if error_counter == 20:
           self.fail('Encountered errors 20 times. Failing immediately.')
@@ -519,4 +533,4 @@ class SasTestCase(unittest.TestCase):
   def InjectTestHarnessFccIds(self, cbsd_records):
     logging.info('Injecting FCC IDs for CBSDs in the SAS test harness into the SAS UUT.')
     for cbsd_record in cbsd_records:
-        self._sas_admin.InjectFccId({'fccId': cbsd_record['registration']['fccId']}) 
+      self._sas_admin.InjectFccId({'fccId': cbsd_record['registration']['fccId']})

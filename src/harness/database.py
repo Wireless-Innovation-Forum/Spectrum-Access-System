@@ -28,19 +28,27 @@ d.setFilesToServe({
 })
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import base64
 import logging
 import ssl
 import threading
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-from util import releasePort
+
+import six
+from six.moves.BaseHTTPServer import HTTPServer
+from six.moves.SimpleHTTPServer import SimpleHTTPRequestHandler
+
+import util
 
 
 # Create the authorization string.
-_USERNAME = 'username'
-_PASSWORD = 'password'
-_AUTHORIZATION_STRING = 'Basic ' + base64.b64encode(_USERNAME+':'+_PASSWORD)
+_USERNAME = b'username'
+_PASSWORD = b'password'
+_AUTHORIZATION_STRING = 'Basic ' + six.ensure_str(
+    base64.b64encode(_USERNAME + b':' + _PASSWORD))
 
 _SSL_CERT = 'certs/server.cert'
 _SSL_KEY = 'certs/server.key'
@@ -65,13 +73,14 @@ class DatabaseServer(threading.Thread):
       authorization: Optional. Iff True require the request to contain the
         authorization header matching the baked in username/password.
     """
-    super(DatabaseServer, self).__init__()
+    threading.Thread.__init__(self)
     self.name = name
     self.address = host_name + ':' + str(port)
     self.port = port
     self.base_url = 'http' + ('s' if https else '') + '://' + self.address
     self.setDaemon(True)
-    self.server = DatabaseHTTPServer(('', port), DatabaseHandler, name, authorization)
+    self.server = DatabaseHTTPServer(('', port), DatabaseHandler,
+                                     name, authorization)
     if https:
       self.server.socket = ssl.wrap_socket(
           self.server.socket,
@@ -81,7 +90,7 @@ class DatabaseServer(threading.Thread):
           server_side=True)
 
   def __del__(self):
-    releasePort(self.port)
+    util.releasePort(self.port)
 
   def run(self):
     """ Starts the HTTPServer as background thread.
