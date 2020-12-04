@@ -126,7 +126,6 @@ if __name__ == '__main__':
   if not os.path.isfile(log_file):
     with open(log_file, 'w') as fd:
       fd.write('Lat,Lon,DateTime,NumZero\n')
-      fd.close()
   log_fd = open(log_file, 'a')
 
   # Initialise the terrain tile list

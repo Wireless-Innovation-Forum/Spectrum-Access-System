@@ -62,7 +62,7 @@ refDir =  os.path.join(curDir, '..', '..', 'data', 'geo', 'ned')
 # Retrieve the desired NED zip files from the USGS FTP site.
 def FindArcFloatFilenames(usgs):
   files = usgs.listdir('vdelivery/Datasets/Staged/Elevation/2/GridFloat/')
-  print 'Found %d files in USGS ftp dir' % len(files)
+  print('Found %d files in USGS ftp dir' % len(files))
   files.sort()
   files.reverse()
   matches = []
@@ -107,7 +107,7 @@ def FindArcFloatFilenames(usgs):
       if obsolete_filename in matches:
         matches.remove(obsolete_filename)
 
-  print 'Found %d matching elevation tiles in USGS ftp dir' % len(matches)
+  print('Found %d matching elevation tiles in USGS ftp dir' % len(matches))
   return matches
 
 
@@ -137,7 +137,7 @@ def ExtractArcFloatToZipAndResample(fname, out_dir, new_download):
   # Ignore the tile if at -180degree, as these ones need special processing
   # (different padding)
   if m.group(4) == '180':
-    print '....ignoring west bound 180deg tile %s' % fname
+    print('....ignoring west bound 180deg tile %s' % fname)
     return
   if fname.startswith('USGS_NED'):
     basename = 'usgs_ned_2_%s' % (tile_name)
@@ -150,9 +150,9 @@ def ExtractArcFloatToZipAndResample(fname, out_dir, new_download):
   # Early stop - ignore if the output zip already exist and not newer download
   exists = os.path.exists(out_zip_file)
   if exists and not new_download:
-    print '..alreay exist and latest'
+    print('..alreay exist and latest')
     return
-  print '..creating final archive'
+  print('..creating final archive')
   with zipfile.ZipFile(fname, 'r') as in_zip:
     with  zipfile.ZipFile(out_zip_file, 'w') as out_zip:
       for in_name in in_zip.namelist():
@@ -209,7 +209,7 @@ def RetrieveMissingElevationTilesAndProcess(out_dir, ref_dir):
   for f in files:
     if AlreadyExistInDatabase(f, ref_dir):
       continue
-    print 'Checking %s' % f
+    print('Checking %s' % f)
     downloaded = ned.download_if_newer(
         'vdelivery/Datasets/Staged/Elevation/2/GridFloat/' + f, f)
     # Optionally extract the actual data and save in ref dir
@@ -219,7 +219,7 @@ def RetrieveMissingElevationTilesAndProcess(out_dir, ref_dir):
 
 
 # Find the directory of this script.
-print 'Retrieving USGS 2-arc-second tiles to dir=%s' % downloadDir
+print('Retrieving USGS 2-arc-second tiles to dir=%s' % downloadDir)
 if not os.path.exists(downloadDir):
   os.makedirs(downloadDir)
 

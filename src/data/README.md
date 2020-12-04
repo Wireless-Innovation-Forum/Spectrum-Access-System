@@ -1,7 +1,13 @@
 # Data retrieval and processing scripts
 
-This folder holds all scripts used to retrieve and preprocess data used in the
-SAS reference implementation.
+This folder holds all scripts that were used to retrieve and preprocess data used 
+in the SAS reference implementation.
+
+These scripts are provided only for documenting the process in generating those data.
+You DO NOT need to run the scripts unless you want to verify the process.
+
+Note: the sripts are supporting both Python2 and Python3, but the original data were
+generated with Python2.
 
 ## Geo Data for propagation models and census
 

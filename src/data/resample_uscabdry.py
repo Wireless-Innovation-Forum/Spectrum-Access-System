@@ -30,7 +30,6 @@ corresponds to line of sight in practice, with one exception:
 By default: D=200m
 """
 import os
-import itertools
 from lxml import etree
 from pykml.factory import KML_ElementMaker as KML
 import numpy as np
@@ -61,10 +60,10 @@ def ResampleUsCanadaBorderLineString(ls, step_m):
     ls: A |shapely.LineString|
     step: The maximum distance between 2 vertices
   """
-  vertices = zip(*ls.xy)
+  vertices = list(zip(*ls.xy))
   step_km = step_m / 1000.
   out_vertices = []
-  for vertex0, vertex1 in itertools.izip(vertices[0:-1], vertices[1:]):
+  for vertex0, vertex1 in zip(vertices[0:-1], vertices[1:]):
     dist_km, _, _ = vincenty.GeodesicDistanceBearing(
         vertex0[1], vertex0[0], vertex1[1], vertex1[0])
     if dist_km < step_km:
@@ -79,14 +78,14 @@ def ResampleUsCanadaBorderLineString(ls, step_m):
         lats, lons = vincenty.GeodesicSampling(
             vertex0[1], vertex0[0], vertex1[1], vertex1[0], num_points)
 
-      points = zip(lats, lons)
+      points = list(zip(lats, lons))
       out_vertices.extend([(point[1], point[0]) for point in points[:-1]])
 
   out_vertices.append(vertex1)  # add the last vertex
   return sgeo.LineString(out_vertices)
 
 # --- Processing ---
-print 'Resampling US/Canadian border at %dm' % step_meters
+print('Resampling US/Canadian border at %dm' % step_meters)
 data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                         '..', '..', 'data', 'fcc')
 
@@ -98,8 +97,8 @@ uscabdry = zones._ReadKmlBorder(input_file)
 uscabdry_fine = {}
 for name, ls in uscabdry.items():
   uscabdry_fine[name] = ResampleUsCanadaBorderLineString(ls, step_meters)
-  print '  segment %s: Before %d After %d' % (
-      name, len(ls.xy[0]), len(uscabdry_fine[name].xy[0]))
+  print('  segment %s: Before %d After %d' % (
+      name, len(ls.xy[0]), len(uscabdry_fine[name].xy[0])))
 
 
 # Build the output KML
@@ -137,8 +136,8 @@ def FormatLonLat(lon, lat):
 
 for name, ls in uscabdry_fine.items():
   lons, lats = ls.xy
-  print '%s: coordinates=[(%.5f,%.5f) ... (%.5f,%.5f)] (num=%d)' % (
-      name, lons[0], lats[0], lons[-1], lats[-1], len(lons))
+  print('%s: coordinates=[(%.5f,%.5f) ... (%.5f,%.5f)] (num=%d)' % (
+      name, lons[0], lats[0], lons[-1], lats[-1], len(lons)))
 
   pm = KML.Placemark(
     KML.name('%s' % name),
@@ -153,7 +152,7 @@ for name, ls in uscabdry_fine.items():
   doc.Document.append(pm)
 
 # Save the output KML and KMZ
-kml_str = etree.tostring(doc, pretty_print=True)
+kml_str = etree.tostring(doc, encoding='utf-8', pretty_print=True).decode()
 with open(os.path.join(data_dir, output_kml), 'w') as output_file:
   output_file.write(kml_str)
 

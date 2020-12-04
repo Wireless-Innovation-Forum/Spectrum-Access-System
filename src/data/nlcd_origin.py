@@ -44,6 +44,7 @@ import numpy as np
 import os
 import osgeo.gdal
 import osr
+import sys
 import time
 
 gdal.UseExceptions()
@@ -51,6 +52,9 @@ gdal.UseExceptions()
 # The following line is needed on Windows OS
 if os.name == 'nt':
   os.putenv('GDAL_DATA', 'C:\\Program Files (x86)\\GDAL\\gdal-data')
+
+if sys.version.startswith('3'):
+  raise ValueError('Currently unsupported with Python3..')
 
 
 class NlcdOriginDriver(object):
@@ -88,8 +92,6 @@ class NlcdOriginDriver(object):
     self._use_default_tile = False
 
     # Read the tile info
-    if not nlcd_file.endswith('.img'):
-      raise ValueError('NLCD file is not an .img file: %s' % nlcd_file)
     if not os.path.exists(nlcd_file):
       raise Exception('The file is not found %s' % nlcd_file)
 
@@ -371,8 +373,10 @@ class NlcdTileInfo:
         or a ndarray if ndarray input vectors,
         or a list for other iterable cases.
     """
+    import ipdb; ipdb.set_trace() #XXX
+
     if np.isscalar(lat):
-      x, y, _ = self._transform.TransformPoint(lon, lat)
+      x, y, _ = self._transform.TransformPoint(float(lon), float(lat))
       idx_col = self._inv_txf[0] + self._inv_txf[1] * x + self._inv_txf[2] * y
       idx_row = self._inv_txf[3] + self._inv_txf[4] * x + self._inv_txf[5] * y
       return int(idx_row), int(idx_col)

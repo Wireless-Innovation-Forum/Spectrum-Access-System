@@ -16,12 +16,15 @@
 # The script writes the files into the data/ntia directory.
 
 import os
-import urllib2
+try:
+  from urllib.request import urlopen
+except ImportError:
+  from urllib2 import urlopen
 
 # Retrieve all the NTIA data files into the current directory.
 def RetrieveNTIA():
-  print 'Retrieving ground-based exclusion zone file...'
-  ground = urllib2.urlopen(
+  print('Retrieving ground-based exclusion zone file...')
+  ground = urlopen(
       'http://www.ntia.doc.gov/files/ntia/publications/ground_based_exclusion_zones.kml')
   if not ground.getcode() == 200:
     raise Exception('Could not find ground_based_exclusion_zones.kml file')
@@ -33,10 +36,10 @@ def RetrieveNTIA():
         break
       out.write(c)
   ground.close()
-  print 'Retrieved ground-based excluzion zone file...'
+  print('Retrieved ground-based excluzion zone file...')
 
-  print 'Retrieving ship-borne exclusion zone file...'
-  ship = urllib2.urlopen(
+  print('Retrieving ship-borne exclusion zone file...')
+  ship = urlopen(
       'http://www.ntia.doc.gov/files/ntia/publications/shipborne_radar_envelope_exclusion_zones.kml')
   if not ship.getcode() == 200:
     raise Exception('Could not find shipborne_radar_envelope_exclusion_zones.kml file')
@@ -48,17 +51,16 @@ def RetrieveNTIA():
         break
       out.write(c)
   ship.close()
-  print 'Retrieved ship-borne excluzion zone file...'
+  print('Retrieved ship-borne excluzion zone file...')
 
 
 # Find the directory of this script.
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dest = os.path.join(os.path.join(rootDir, 'data'), 'ntia')
-print 'Retrieving NTIA files to dir=%s' % dest
+print('Retrieving NTIA files to dir=%s' % dest)
 if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)
 
 RetrieveNTIA()
-

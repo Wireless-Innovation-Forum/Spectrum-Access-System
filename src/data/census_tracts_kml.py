@@ -44,7 +44,7 @@ def UnzipFiles():
   files = os.listdir('.')
   for f in files:
     if os.path.isfile(f) and re.match('.*\.zip$', f):
-      print 'Unzip %s' % f
+      print('Unzip %s' % f)
       with zipfile.ZipFile(f) as zf:
         zf.extractall()
   with open('UNZIPPED', 'w'):
@@ -60,7 +60,7 @@ def UnzipFiles():
 # KML since KML (and shapely) require counter-clockwise rings.
 def ConvertShapeToPlacemark(shape, geoid, aland, awater, kml):
   #if len(shape.parts) > 1:
-  #  print '----------geoid=%s aland=%s awater=%s' % (geoid, aland, awater)
+  #  print('----------geoid=%s aland=%s awater=%s' % (geoid, aland, awater))
   if shape.shapeType != 5:
     raise Exception('Unexpected shape type [%d] in file' % shape.shapeType)
 
@@ -93,14 +93,14 @@ def ConvertShapeToPlacemark(shape, geoid, aland, awater, kml):
   parentPoly = pm.MultiGeometry.Polygon
 
   #if len(shape.parts) > 1:
-  #  print 'shape has %d parts' % len(shape.parts)
+  #  print('shape has %d parts' % len(shape.parts))
   for i in range(0, len(shape.parts)):
     lo = shape.parts[i]
     hi = len(shape.points)
     if i < len(shape.parts) - 1:
       hi = shape.parts[i + 1]
     #if len(shape.parts) > 1:
-    #  print 'shape has points in [%d, %d) of %d' % (lo, hi, len(shape.points))
+    #  print('shape has points in [%d, %d) of %d' % (lo, hi, len(shape.points)))
     if (shape.points[lo][0] != shape.points[hi-1][0] or
         shape.points[lo][1] != shape.points[hi-1][1]):
       raise Exception('Loop endpoints in [%d, %d) do not match' % (lo, hi))
@@ -140,10 +140,10 @@ def ConvertShapeToPlacemark(shape, geoid, aland, awater, kml):
       # points.
       if not (parentSpoly.contains(SPoint(rring.coords[0])) or
               parentSpoly.contains(SPoint(rring.coords[1]))):
-        print 'Out-of-order enclave'
-        # print 'ring %s does not contain %s' % (parentSpoly, ring)
-        # print ring
-        # print rring
+        print('Out-of-order enclave')
+        # print('ring %s does not contain %s' % (parentSpoly, ring))
+        # print(ring)
+        # print(rring)
         # Note: if this triggers, we will need to store the polys
         # to figure out which one is the enclosing one. Hopefully
         # the census files will not exhibit this, although it is
@@ -183,7 +183,7 @@ def ConvertShapeToPlacemark(shape, geoid, aland, awater, kml):
 # placemark with the name of the GEOID of the geometries in
 # the shapefile, containing one or more polygons in it.
 def ProcessShpFile(f, basename, kml):
-  print 'Processing shp file %s' % basename
+  print('Processing shp file %s' % basename)
   with zipfile.ZipFile(f) as zf:
     shpfile = io.BytesIO(zf.read(basename + '.shp'))
     dbffile = io.BytesIO(zf.read(basename + '.dbf'))
@@ -205,7 +205,7 @@ def ProcessShpFile(f, basename, kml):
     raise Exception('Could not find GEOID,ALAND,AWATER in fields %s' % shpfile.fields)
 
   shapes = 0
-  print 'Converting %d shapes' % shpfile.numRecords
+  print('Converting %d shapes' % shpfile.numRecords)
   for i in range(0, shpfile.numRecords):
     geoid = shpfile.record(i)[geoidField]
     aland = shpfile.record(i)[alandField]
@@ -213,14 +213,14 @@ def ProcessShpFile(f, basename, kml):
     placemark = ConvertShapeToPlacemark(shpfile.shape(i), geoid, aland, awater, kml)
     shapes += 1
     kml.Document.append(placemark)
-  print 'Converted %d rings' % shapes
+  print('Converted %d rings' % shapes)
   zf.close()
 
 
 # Process a .zip file containing shapefile files and
 # create a KML file containing all the polygons described.
 def TranslateShpFileToKML(file):
-  print 'Translating file %s' % file
+  print('Translating file %s' % file)
   basename = os.path.splitext(os.path.basename(file))[0]
   doc = KML.kml(
     KML.Document(
@@ -240,21 +240,19 @@ def TranslateShpFileToKML(file):
   ProcessShpFile(file, basename, doc)
 
   kmlFilename = os.path.join(os.path.dirname(file), basename + '.kml')
-  print 'Writing output file %s' % kmlFilename
-  outputFile = open(kmlFilename, 'w+')
-  outputFile.write(etree.tostring(doc, pretty_print=True))
-  outputFile.close()
+  print('Writing output file %s' % kmlFilename)
+  with open(kmlFilename, 'w+') as outputFile:
+    outputFile.write(etree.tostring(doc, pretty_print=True).decode())
 
 
 # Find the shapefile container directory.
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dest = os.path.join(os.path.join(rootDir, 'data'), 'census')
-print 'Converting shapefile files in %s' % dest
+print('Converting shapefile files in %s' % dest)
 
 files = os.listdir(dest)
-print 'Found %d zip files to translate' % len(files)
+print('Found %d zip files to translate' % len(files))
 for f in files:
   if os.path.isfile(dest + '/' + f) and re.match('.*\.zip$', f):
     TranslateShpFileToKML(dest + '/' + f)
-

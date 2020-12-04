@@ -17,8 +17,14 @@
 # other relevant data. The script writes the files into the data/fcc directory.
 
 import os
-import urllib2
-import urlparse
+
+try:
+  from urllib.request import urlopen
+  import urllib.parse as urlparse
+except ImportError:
+  from urllib2 import urlopen
+  import urlparse
+
 
 # Retrieve the url passed to the current directory. Writes the file using
 # the filename of the passed URL.
@@ -26,8 +32,8 @@ def RetrieveURL(url):
   parsed = urlparse.urlparse(url)
   path = parsed.path.split('/')
   filename = path[-1]
-  print 'Retrieving file %s from %s ...' % (filename, parsed.netloc)
-  raw = urllib2.urlopen(url)
+  print('Retrieving file %s from %s ...' % (filename, parsed.netloc))
+  raw = urlopen(url)
   if not raw.getcode() == 200:
     raise Exception('Could not find %s file' % filename)
 
@@ -38,7 +44,7 @@ def RetrieveURL(url):
         break
       out.write(c)
   raw.close()
-  print 'Retrieved file %s from %s' % (filename, parsed.netloc)
+  print('Retrieved file %s from %s' % (filename, parsed.netloc))
 
 # Retrieve all the FCC data files into the current directory.
 def RetrieveFCC():
@@ -58,7 +64,7 @@ def RetrieveFCC():
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dest = os.path.join(os.path.join(rootDir, 'data'), 'fcc')
-print 'Retrieving FCC files to dir=%s' % dest
+print('Retrieving FCC files to dir=%s' % dest)
 if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)

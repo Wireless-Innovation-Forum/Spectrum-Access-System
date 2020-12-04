@@ -42,12 +42,12 @@ from collections import OrderedDict
 def FindStateTractFilenames(census):
   """Retrieve the desired state-level census tract zip files from the census FTP site."""
   files = census.listdir('geo/tiger/TIGER2010/TRACT/2010/')
-  print 'Found %d files in census ftp dir' % len(files)
+  print('Found %d files in census ftp dir' % len(files))
   matches = []
   for f in files:
     if re.match(r'tl_2010_\d\d_tract10.zip$', f):
       matches.append(f)
-  print 'Found %d matching state files in census tract ftp dir' % len(matches)
+  print('Found %d matching state files in census tract ftp dir' % len(matches))
   return matches
 
 
@@ -60,7 +60,7 @@ def RetrieveShapefiles(directory):
   files = FindStateTractFilenames(census)
 
   for f in files:
-    print 'Downloading %s' % f
+    print('Downloading %s' % f)
     census.download_if_newer('geo/tiger/TIGER2010/TRACT/2010/' + f, f)
   census.close()
 
@@ -99,7 +99,7 @@ def json_pp_dumps(obj, **kw):
 
 def ConvertShapefilesToGeoJson(census_tract_directory):
   """Convert Shapefile to GeoJson."""
-  print "Convert the Shapefiles to GeoJson format"
+  print("Convert the Shapefiles to GeoJson format")
 
   # Extract all files before convert to shapely.
   ExtractZipFiles(census_tract_directory)
@@ -140,7 +140,7 @@ def ConvertShapefilesToGeoJson(census_tract_directory):
                          ('name', base_name),
                          ('features',records)])))
         fd.write('\n')
-      print shp_file + " was converted to " + json_file + "."
+      print(shp_file + " was converted to " + json_file + ".")
 
   except Exception as err:
     raise Exception("There is an issue in ConvertShapefilesToGeoJson: %s"
@@ -150,7 +150,7 @@ def ConvertShapefilesToGeoJson(census_tract_directory):
 def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
   """Split Census Tracts GeoJson file with mulitiple single file based on FISP Code."""
   try:
-    print "\n" + "Splitting files..." + "\n"
+    print("\n" + "Splitting files..." + "\n")
     os.chdir(src_dir)
     json_files = glob.glob('*.json')
     # split all census_tracts based on FISP code and dump into separate directory
@@ -185,8 +185,8 @@ def SplitCensusTractsGeoJsonFile(src_dir, dest_dir):
                                  separators=(',', ':')))
           fd.write('\n')
 
-        print ("census_tract of fispCode: %s record split to the file:%s "
-               "successfully" % (fisp_code, out_path))
+        print("census_tract of fispCode: %s record split to the file:%s "
+              "successfully" % (fisp_code, out_path))
 
   except Exception as err:
     raise Exception("There is issue in SplitCensusTracts file : %s"
@@ -207,7 +207,7 @@ if __name__ == '__main__':
       dest='split', action='store_true')
   try:
     args = parser.parse_args()
-    print args
+    print(args)
   except:
     parser.print_help()
     sys.exit(0)
@@ -223,20 +223,20 @@ if __name__ == '__main__':
 
   if args.retrieve:
     # Retrieve Census tracts shapely files from FTP site/
-    print 'Downloading census shapefiles from USGS site to directory=%s' % census_directory
+    print('Downloading census shapefiles from USGS site to directory=%s' % census_directory)
     if not os.path.exists(census_directory):
       os.makedirs(census_directory)
     RetrieveShapefiles(census_directory)
 
   if args.convert:
     # Convert the shapely file to GeoJSON format.
-    print 'All census tracts will be converted into GeoJSON and placed ' \
-          'in directory:%s' % census_directory
+    print('All census tracts will be converted into GeoJSON and placed '
+          'in directory:%s' % census_directory)
     ConvertShapefilesToGeoJson(census_directory)
 
   if args.split:
-    print 'All census tracts will be splited into single file based on FISP code placed ' \
-          'in directory:%s' % census_tract_directory
+    print('All census tracts will be splited into single file based on FISP code placed '
+          'in directory:%s' % census_tract_directory)
     if not os.path.exists(census_tract_directory):
       os.makedirs(census_tract_directory)
 

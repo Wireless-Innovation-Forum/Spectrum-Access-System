@@ -45,9 +45,9 @@ def ReadKML(filename):
 # Note: this method is custom-coded to account for a few oddities in
 # the source data.
 def ConvertSegmentToLineString(seg):
-  print 'Converting segment %s' % seg.Folder.name
+  print('Converting segment %s' % seg.Folder.name)
   placemarks = list(seg.Folder.Placemark)
-  print '  Got %d placemarks' % len(placemarks)
+  print('  Got %d placemarks' % len(placemarks))
   raw_coords = {}
   last_coord = ''
   for pm in placemarks:
@@ -127,7 +127,7 @@ def ConvertSegmentToLineString(seg):
       coord = '%s,%s,0' % (latlng[0], latlng[1])
       last_coord = c
       if seg.Folder.name == 'QBDRY':
-        print '%s coord=%s' % (sequence, latlng)
+        print('%s coord=%s' % (sequence, latlng))
     # If the placemark is a linestring, record that.
     elif pm.find('.//{http://www.opengis.net/kml/2.2}LineString'):
       c = pm.LineString.coordinates.text.strip()
@@ -135,20 +135,20 @@ def ConvertSegmentToLineString(seg):
       first_coord = latlng[0]
       second_coord = latlng[1]
       if first_coord != last_coord:
-        print '!!!! Discontinuity %s and %s' % (first_coord, last_coord)
+        print('!!!! Discontinuity %s and %s' % (first_coord, last_coord))
       latlng = latlng[1].split(',')
 
       # Observed data problem: sometimes the sequence number is repeated. The LBDRY section
       # has this problem, resulting in a confused part of the sequencing.
       if sequence in raw_coords:
-        print 'Re-sequence!'
+        print('Re-sequence!')
         # Hack to boost re-used sequence members up to higher values.
         sequence += 5000
         if seg.Folder.name == 'LBDRY' and sequence >= 10000 and sequence < 10500:
-          print 'problem %d : %s' % (sequence, c)
+          print('problem %d : %s' % (sequence, c))
         #latlng = c.split(' ')
         #latlng = latlng[0].split(',')
-        print 'new %d = latlng=%s' % (sequence, latlng)
+        print('new %d = latlng=%s' % (sequence, latlng))
 
       coord = '%s,%s,0' % (latlng[0], latlng[1])
       last_coord = second_coord
@@ -161,9 +161,9 @@ def ConvertSegmentToLineString(seg):
   for c in sorted(raw_coords):
     coordinates.append(raw_coords[c])
 
-  print '%s coordinates=[%s ... %s] (%d)' % (
+  print('%s coordinates=[%s ... %s] (%d)' % (
       seg.Folder.name.text, coordinates[0], coordinates[len(coordinates)-1],
-      len(coordinates))
+      len(coordinates)))
   return coordinates
 
 
@@ -172,31 +172,31 @@ def ConvertSegmentToLineString(seg):
 # and last elements of each list to the other lists, and combining
 # them when the values are the same.
 def ConsolidateLists(coordinateLists):
-  print 'Comparing %d lists...' % len(coordinateLists)
+  print('Comparing %d lists...' % len(coordinateLists))
   final = []
   for lst in coordinateLists:
-    print 'On list size %d' % len(lst)
+    print('On list size %d' % len(lst))
     if len(final) == 0:
       final.append(lst)
       continue
     found = False
     for f in final:
-      # print '%s : %s compare %s : %s' % (f[0], f[len(f)-1], lst[0], lst[len(lst)-1])
+      # print('%s : %s compare %s : %s' % (f[0], f[len(f)-1], lst[0], lst[len(lst)-1]))
       if f[0] == lst[len(lst)-1]:
-        # print 'Joining new element list ...%s with %s...' % (lst[len(lst)-3:], f[0:3])
+        # print('Joining new element list ...%s with %s...' % (lst[len(lst)-3:], f[0:3]))
         lst.extend(f[1:])
         del(f[:])
         f.extend(lst)
-        # print 'Now f=%d', len(f)
+        # print('Now f=%d'% len(f))
         found = True
         break
       elif f[len(f)-1] == lst[0]:
-        # print 'Joining list ...%s with new element list %s...' % (f[len(f)-3:], lst[0:3])
+        # print('Joining list ...%s with new element list %s...' % (f[len(f)-3:], lst[0:3]))
         f.extend(lst[1:])
         found = True
         break
       elif f[0] == lst[0]:
-        # print 'Reverse joining list %s... with new element list %s...' % (f[0:3], lst[0:3])
+        # print('Reverse joining list %s... with new element list %s...' % (f[0:3], lst[0:3]))
         r = list(reversed(lst))
         r.extend(f[1:])
         del(f[:])
@@ -205,16 +205,16 @@ def ConsolidateLists(coordinateLists):
         break
     if not found:
       final.append(lst)
-  print 'Have %d final lists' % len(final)
+  print('Have %d final lists' % len(final))
   return final
 
 
 # This function splices lists whose endpoints are within a fraction of a degree of touching.
 def SpliceLists(coordinateLists):
-  print 'Splicing %d lists...' % len(coordinateLists)
+  print('Splicing %d lists...' % len(coordinateLists))
   final = []
   for lst in coordinateLists:
-    print 'On list size %d' % len(lst)
+    print('On list size %d' % len(lst))
     if len(final) == 0:
       final.append(lst)
       continue
@@ -229,19 +229,19 @@ def SpliceLists(coordinateLists):
       if (abs(float(latlngLstN[0]) - float(latlngFN[0])) < .002 and
           abs(float(latlngLstN[1]) - float(latlngFN[1])) < .002):
         found = True
-        # print 'reverse splice list ...%s with new element list %s' % (f[len(f)-3:], lst[len(lst)-3:])
+        # print('reverse splice list ...%s with new element list %s' % (f[len(f)-3:], lst[len(lst)-3:]))
         r = list(reversed(lst))
         f.extend(r)
       elif (abs(float(latlngLst0[0]) - float(latlngF0[0])) < 2 and
             abs(float(latlngLst0[1]) - float(latlngF0[1])) < 2):
-        # print 'splice list %s... with new element list %s...' % (f[len(f)-3:], lst[0:3])
+        # print('splice list %s... with new element list %s...' % (f[len(f)-3:], lst[0:3]))
         f.extend(lst)
         found = Truej
         break
 
     if not found:
       final.append(lst)
-  print 'Have %d final lists' % len(final)
+  print('Have %d final lists' % len(final))
   return final
 
 
@@ -287,8 +287,8 @@ doc = KML.kml(
 )
 
 for ls in lineStrings:
-  print 'coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls))
-  print 'Have latitude %s' % ls[0].split(',')[1]
+  print('coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls)))
+  print('Have latitude %s' % ls[0].split(',')[1])
   if float(ls[0].split(',')[1]) > 50:
     geo_name = 'AK-CA Boundary'
   else:
@@ -307,7 +307,7 @@ for ls in lineStrings:
 # For debugging: optionally include the paths of the original source data.
 #ns = 100
 #for ls in coordx:
-#  print 'x coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls))
+#  print('x coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls)))
 #  pm = KML.Placemark(
 #    KML.name('%d' % ns),
 #    KML.styleUrl('#stlx'),
@@ -320,7 +320,6 @@ for ls in lineStrings:
 #  ns = ns + 1
 #  doc.Document.append(pm)
 
-outputFile = open(os.path.join(dataDir, 'uscabdry.kml'), 'w+')
-outputFile.write(etree.tostring(doc, pretty_print=True))
-outputFile.close()
+with open(os.path.join(dataDir, 'uscabdry.kml'), 'w+') as outputFile:
+  outputFile.write(etree.tostring(doc, encoding='utf-8', pretty_print=True).decode())
 

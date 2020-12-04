@@ -16,13 +16,19 @@
 # The script writes the files into the data/itu directory.
 
 import os
-import urllib2
 import zipfile
+
+try:
+  from urllib.request import urlopen
+except ImportError:
+  from urllib2 import urlopen
+
+
 
 # Retrieve all the ITU data files into the current directory.
 def RetrieveITU():
-  print 'Retrieving ITU climate zone file...'
-  border = urllib2.urlopen(
+  print('Retrieving ITU climate zone file...')
+  border = urlopen(
       'https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.617-3-201309-S!!ZIP-E.zip')
   if not border.getcode() == 200:
     raise Exception('Could not find border definition file')
@@ -34,10 +40,10 @@ def RetrieveITU():
         break
       out.write(c)
   border.close()
-  print 'Retrieved climate zone definition file...'
+  print('Retrieved climate zone definition file...')
 
-  print 'Retrieving ITU refractivity file...'
-  border = urllib2.urlopen(
+  print('Retrieving ITU refractivity file...')
+  border = urlopen(
       'https://www.itu.int/dms_pubrec/itu-r/rec/p/R-REC-P.452-16-201507-I!!ZIP-E.zip')
   if not border.getcode() == 200:
     raise Exception('Could not find border definition file')
@@ -49,27 +55,27 @@ def RetrieveITU():
         break
       out.write(c)
   border.close()
-  print 'Retrieved refractivity file...'
+  print('Retrieved refractivity file...')
 
 def ExtractITU():
-  print 'Extracting data files from ITU zip files'
+  print('Extracting data files from ITU zip files')
 
   zf = zipfile.ZipFile('R-REC-P.617-3-201309-I!!ZIP-E.zip', 'r')
   for datfile in zf.infolist():
     if datfile.filename.endswith('.TXT') or datfile.filename.endswith('.txt'):
       try:
-        print '   extracting %s' % datfile.filename
+        print('   extracting %s' % datfile.filename)
         zf.extract(datfile, '.')
-      except Exception, err:
+      except Exception:
         raise Exception('Cannot extract ' + datfile.filename)
 
   zf = zipfile.ZipFile('R-REC-P.452-16-201507-I!!ZIP-E.zip', 'r')
   for datfile in zf.infolist():
     if datfile.filename.endswith('.TXT') or datfile.filename.endswith('.txt'):
       try:
-        print '   extracting %s' % datfile.filename
+        print('   extracting %s' % datfile.filename)
         zf.extract(datfile, '.')
-      except Exception, err:
+      except Exception:
         raise Exception('Cannot extract ' + datfile.filename)
       if 'TXT' in datfile.filename:
         os.rename(datfile.filename, datfile.filename.lower())
@@ -79,7 +85,7 @@ def ExtractITU():
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dest = os.path.join(os.path.join(rootDir, 'data'), 'itu')
-print 'Retrieving ITU files to dir=%s' % dest
+print('Retrieving ITU files to dir=%s' % dest)
 if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)

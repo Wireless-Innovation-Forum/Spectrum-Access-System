@@ -183,3 +183,9 @@ Additionally for the test harness:
     conda install pycurl
     pip install psutil
 ```
+
+Additionally for the data scripts:
+
+```shell
+    pip install ftputil
+```

@@ -59,7 +59,7 @@ def ExtractInlandZones(doc):
     # TODO: make a more general KML->Shapely converter or import one
     # from somewhere.
     polygons = list(pm.MultiGeometry.Polygon)
-    print 'Found zone %s with %d polygons' % (name, len(polygons))
+    print('Found zone %s with %d polygons' % (name, len(polygons)))
     for poly in polygons:
       coordinates = poly.outerBoundaryIs.LinearRing.coordinates.text
       coords = coordinates.split(' ')
@@ -85,7 +85,7 @@ def ExtractInlandZones(doc):
         raise Exception('Invalid polygon for %s' % name)
       if not name in zones:
         zones[name] = []
-      print 'Got polygon (%f) for %s' % (spolygon.area, name)
+      print('Got polygon (%f) for %s' % (spolygon.area, name))
       zones[name].append(spolygon)
 
   return zones
@@ -104,16 +104,16 @@ def AttemptCollapse(name, zone):
       break
 
   if overlaps:
-    print 'Found overlapping zone on %s!' % name
+    print('Found overlapping zone on %s!' % name)
     mp = SMultiPolygon(zone)
     collapsed = cascaded_union(mp)
     if type(collapsed) == SPolygon:
       return [collapsed]
     else:
-      print 'Got multipolygon len %d' % len(collapsed.geoms)
+      print('Got multipolygon len %d' % len(collapsed.geoms))
       return collapsed.geoms
   else:
-    print 'Non-overlapping zone on %s (%d)' % (name, len(zone))
+    print('Non-overlapping zone on %s (%d)' % (name, len(zone)))
     return zone
 
 
@@ -122,7 +122,7 @@ def GetConusBorder(doc):
     coordinates = pm.Polygon.outerBoundaryIs.LinearRing.coordinates.text
     coords = coordinates.split(' ')
     if len(coords) > 60000:
-      print 'Found CONUS border at %s with length %d' % (pm.name, len(coords))
+      print('Found CONUS border at %s with length %d' % (pm.name, len(coords)))
       latLng = []
       for c in coords:
         if c.strip():
@@ -174,13 +174,13 @@ zones = ExtractInlandZones(inlandZoneDoc)
 for name in zones:
   if len(zones[name]) > 1:
     collapsed = AttemptCollapse(name, zones[name])
-    print 'resetting content for %s' % name
+    print('resetting content for %s' % name)
     zones[name] = collapsed
 
 conusBorder = GetConusBorder(borderDoc)
 
 # Collect the coastal zones
-print '\n'
+print('\n')
 for pm in list(coastalZoneDoc.Document.Folder.Placemark):
   name = pm.name.text
   line = pm.LineString.coordinates.text
@@ -200,38 +200,38 @@ for pm in list(coastalZoneDoc.Document.Folder.Placemark):
     p2 = latLng[1]
     pnew = [p1[0] + (p1[0]-p2[0]), p1[1] + (p1[1]-p2[1])]
     latLng.insert(0, pnew)
-    print 'Prepending %s...%s -> %s' % (p2, p1, pnew)
+    print('Prepending %s...%s -> %s' % (p2, p1, pnew))
     p1 = latLng[-1]
     p2 = latLng[-2]
     pnew = [p1[0] + (p1[0]-p2[0]), p1[1] + (p1[1]-p2[1])]
     latLng.append(pnew)
-    print 'Appending %s...%s -> %s' % (p2, p1, pnew)
-  print 'Found exclusion zone border %s (%d)' % (name, len(latLng))
-  print '   From %s to %s' % (latLng[0], latLng[-1])
+    print('Appending %s...%s -> %s' % (p2, p1, pnew))
+  print('Found exclusion zone border %s (%d)' % (name, len(latLng)))
+  print('   From %s to %s' % (latLng[0], latLng[-1]))
   linestring = SLineString(latLng)
 
   # Create polygon masks along the coasts using the protection
   # boundary contours.
   if name == 'East-Gulf Combined Contour':
     phigh = [-58, latLng[0][1]]
-    print 'Prepend %s' % phigh
+    print('Prepend %s' % phigh)
     latLng.insert(0, phigh)
     latLng.append([-98.4, 25.6])
     latLng.append([-80, 23])
     plow = [-58, latLng[-1][1]]
     latLng.append(plow)
     latLng.append(phigh)
-    print 'Append %s' % plow
-    print 'Append %s' % phigh
+    print('Append %s' % plow)
+    print('Append %s' % phigh)
   if name == 'West Combined Contour':
     phigh = [-126, latLng[0][1]]
-    print 'Prepend %s' % phigh
+    print('Prepend %s' % phigh)
     latLng.insert(0, phigh)
     plow = [-126, latLng[-1][1]]
     latLng.append(plow)
     latLng.append(phigh)
-    print 'Append %s' % plow
-    print 'Append %s' % phigh
+    print('Append %s' % plow)
+    print('Append %s' % phigh)
 
 
   conusArea = SPolygon(conusBorder)
@@ -278,7 +278,7 @@ doc = KML.kml(
 
 # Create the KML structure for export
 for name in zones:
-  print 'Exporting %s' % name
+  print('Exporting %s' % name)
   if len(zones[name]) == 1:
     if name == 'Fort Polk Military Reservation':
       continue
@@ -317,7 +317,7 @@ for name in zones:
           )))
   
   elif len(zones[name]) > 1:
-    print 'Exporting multigeometry for %s' % name
+    print('Exporting multigeometry for %s' % name)
     pm = KML.Placemark(
       KML.name(name),
       KML.styleUrl('#stl'),
@@ -347,7 +347,6 @@ for name in zones:
   doc.Document.append(pm)
 
 
-outputFile = open(os.path.join(ntiaDir, 'protection_zones.kml'), 'w+')
-outputFile.write(etree.tostring(doc, pretty_print=True))
-outputFile.close()
+with open(os.path.join(ntiaDir, 'protection_zones.kml'), 'w+') as outputFile:
+  outputFile.write(etree.tostring(doc, encoding='utf-8', pretty_print=True).decode())
 

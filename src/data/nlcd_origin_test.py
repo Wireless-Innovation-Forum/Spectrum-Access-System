@@ -17,10 +17,12 @@ import os
 import numpy as np
 import unittest
 
-from reference_models.geo import testutils
+from reference_models.tools import testutils
 import nlcd_origin as nlcd
 
-TEST_DIR = os.path.join(os.path.dirname(__file__), 'testdata', 'nlcd')
+TEST_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'geo',
+                        'orig_nlcd', 'hi_landcover_wimperv_9-30-08_se5.img')
+                        # 'NLCD_2011_Land_Cover_L48_20190424.ige')
 logging.disable(30)
 
 

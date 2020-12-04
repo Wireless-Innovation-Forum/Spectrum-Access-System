@@ -16,12 +16,16 @@
 # The script writes the files into the data/noaa directory.
 
 import os
-import urllib2
+
+try:
+  from urllib.request import urlopen
+except ImportError:
+  from urllib2 import urlopen
 
 # Retrieve all the NOAA data files into the current directory.
 def RetrieveNOAA():
-  print 'Retrieving border definition file...'
-  border = urllib2.urlopen(
+  print('Retrieving border definition file...')
+  border = urlopen(
       'http://maritimeboundaries.noaa.gov/downloads/USMaritimeLimitsAndBoundariesKML.kmz')
   if not border.getcode() == 200:
     raise Exception('Could not find border definition file')
@@ -33,17 +37,16 @@ def RetrieveNOAA():
         break
       out.write(c)
   border.close()
-  print 'Retrieved border definition file...'
+  print('Retrieved border definition file...')
 
 
 # Find the directory of this script.
 dir = os.path.dirname(os.path.realpath(__file__))
 rootDir = os.path.dirname(os.path.dirname(dir))
 dest = os.path.join(os.path.join(rootDir, 'data'), 'noaa')
-print 'Retrieving NOAA files to dir=%s' % dest
+print('Retrieving NOAA files to dir=%s' % dest)
 if not os.path.exists(dest):
   os.makedirs(dest)
 os.chdir(dest)
 
 RetrieveNOAA()
-
