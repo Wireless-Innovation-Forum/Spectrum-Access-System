@@ -53,8 +53,8 @@ gdal.UseExceptions()
 if os.name == 'nt':
   os.putenv('GDAL_DATA', 'C:\\Program Files (x86)\\GDAL\\gdal-data')
 
-if sys.version.startswith('3'):
-  raise ValueError('Currently unsupported with Python3..')
+#if sys.version.startswith('3'):
+#  raise ValueError('Currently unsupported with Python3..')
 
 
 class NlcdOriginDriver(object):
@@ -313,6 +313,10 @@ class NlcdTileInfo:
     wgs84_ref.ImportFromEPSG(4326)   # WGS84
     sref = osr.SpatialReference()
     sref.ImportFromWkt(ds.GetProjection())
+    if int(osgeo.gdal.__version__[0]) >= 3:
+      # Output order has changed in osgeo v3
+      wgs84_ref.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+      sref.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
     self._transform = osr.CoordinateTransformation(wgs84_ref, sref)
     inv_transform = osr.CoordinateTransformation(sref, wgs84_ref)
     # Find a loose lat/lon bounding box  for quick check without
@@ -373,8 +377,6 @@ class NlcdTileInfo:
         or a ndarray if ndarray input vectors,
         or a list for other iterable cases.
     """
-    import ipdb; ipdb.set_trace() #XXX
-
     if np.isscalar(lat):
       x, y, _ = self._transform.TransformPoint(float(lon), float(lat))
       idx_col = self._inv_txf[0] + self._inv_txf[1] * x + self._inv_txf[2] * y

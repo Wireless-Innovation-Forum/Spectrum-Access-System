@@ -49,14 +49,16 @@ import glob
 import os
 
 import numpy as np
+import osgeo
 from osgeo import gdal
 from osgeo import osr
 
-gdal.UseExceptions()
 
 # The default pop dir
 DEFAULT_POP_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                '..', '..', '..', 'data', 'pop', 'pden2010_block')
+
+gdal.UseExceptions()
 
 
 class UsgsPopDriver(object):
@@ -202,6 +204,11 @@ class _RasterInfo:
     wgs84_ref.ImportFromEPSG(4326)   # WGS84
     sref = osr.SpatialReference()
     sref.ImportFromWkt(dataset.GetProjection())
+    if int(osgeo.__version__[0]) >= 3:
+      # Output order has changed in osgeo v3
+      wgs84_ref.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+      sref.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
     self._transform = osr.CoordinateTransformation(wgs84_ref, sref)
     inv_transform = osr.CoordinateTransformation(sref, wgs84_ref)
     # Find a loose lat/lon bounding box  for quick check without

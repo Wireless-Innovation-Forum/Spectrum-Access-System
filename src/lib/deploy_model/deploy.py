@@ -145,36 +145,3 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
       cbsds.extend(_ReadCsvCbsds(catb_reader, 'B', force_omni))
 
   return cbsds
-
-
-'''
-with open(cat_b_fd, 'r') as a:
-    a_reader = csv.reader(a)
-
-  # Read Category B CBSD file
-  with open(cat_b_file, 'r') as b:
-    b_reader = csv.reader(b)
-    next(b_reader)
-    for row in b_reader:
-      max_eirp = float(row[4])
-      lat_cbsd = float(row[0])
-      lon_cbsd = float(row[1])
-      height_cbsd = float(row[2])
-      grants.append(data.CbsdGrantInfo(
-          latitude=lat_cbsd,
-          longitude=lon_cbsd,
-          height_agl=height_cbsd,
-          indoor_deployment=False,
-          antenna_azimuth=0,
-          antenna_gain=0,
-          antenna_beamwidth=360,
-          cbsd_category='B',
-          max_eirp=max_eirp,
-          iap_eirp={max_eirp},
-          low_frequency=3550000000,
-          high_frequency=3560000000,
-          is_managed_grant=True))
-
-
-
-'''
