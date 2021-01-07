@@ -23,7 +23,7 @@ from datetime import datetime
 from six.moves import zip
 
 import sas
-from util import winnforum_testcase
+from util import winnforum_testcase, json_load
 
 
 class MeasurementTestcase(unittest.TestCase):

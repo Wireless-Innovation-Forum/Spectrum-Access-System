@@ -334,7 +334,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                   json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
                              separators=(',', ': ')))
     logging.debug("Reference model PPA - retrieved through PpaCreationModel:%s",
-                  json.dumps(json_loads(test_harness_ppa_geometry), indent=2,
+                  json.dumps(json.loads(test_harness_ppa_geometry), indent=2,
                              sort_keys=False,
                              separators=(',', ': ')))
 
@@ -485,7 +485,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
                   json.dumps(uut_ppa_zone_data, indent=2, sort_keys=False,
                              separators=(',', ': ')))
     logging.debug("Reference model PPA - retrieved through PpaCreationModel:%s",
-                  json.dumps(json_loads(test_harness_ppa_geometry), indent=2, sort_keys=False,
+                  json.dumps(json.loads(test_harness_ppa_geometry), indent=2, sort_keys=False,
                              separators=(',', ': ')))
 
     uut_ppa_geometry = uut_ppa_zone_data['zone']['features'][0]['geometry']
@@ -510,8 +510,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
 
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file
-        user_claimed_ppa_contour = json_load(claimed_ppa_file)
+      user_claimed_ppa_contour = json_load(sas_uut_claimed_ppa_boundary_file_path)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
@@ -797,8 +796,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with open(sas_uut_claimed_ppa_boundary_file_path, 'r') as claimed_ppa_file:
-        user_claimed_ppa_contour = json_load(claimed_ppa_file)
+      user_claimed_ppa_contour = json_load(sas_uut_claimed_ppa_boundary_file_path)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)
@@ -863,8 +861,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Load SAS UUT claimed ppa boundary and check if any error while retrieving
     # SAS UUT claimed ppa boundary generated in PCR.1 test.
     try:
-      with sas_uut_claimed_ppa_boundary_file_path, 'r') as overlapped_ppa_file
-        overlapping_ppa_contour = json_load(overlapped_ppa_file)
+      overlapping_ppa_contour = json_load(sas_uut_claimed_ppa_boundary_file_path)
     except IOError:
       raise RuntimeError('ConfigError:There is an error in reading path:%s \n\n'
                          % sas_uut_claimed_ppa_boundary_file_path)

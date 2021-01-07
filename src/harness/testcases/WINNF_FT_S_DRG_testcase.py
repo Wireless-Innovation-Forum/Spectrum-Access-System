@@ -287,9 +287,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
 
     # Load device info
     device_a = json_load(
-        os.path.join('testcases', 'testdata', 'device_a.json')))
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_c = json_load(
-        os.path.join('testcases', 'testdata', 'device_c.json')))
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_b = json_load(
         os.path.join('testcases', 'testdata', 'device_b.json'))
 
