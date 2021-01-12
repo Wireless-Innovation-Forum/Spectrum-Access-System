@@ -32,6 +32,9 @@ Typical usage:
               freq_mhz=3625.,
               region='URBAN')
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from collections import namedtuple
 import math
@@ -134,7 +137,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                               freq_mhz=3625.,
                               region='RURAL',
                               is_height_cbsd_amsl=False,
-                              return_internals=False):
+                              return_internals=False,
+                              its_elev=None):
   """Implements the Hybrid ITM/eHata NTIA propagation model.
 
   As specified by Winforum, see:
@@ -196,6 +200,10 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
         internals = None)
 
   # Sanity checks on input parameters
+  do_ehata_corr = False
+  if freq_mhz < 0:
+    do_ehata_corr = True
+  freq_mhz = abs(freq_mhz)
   if freq_mhz < 40 or freq_mhz > 10000:
     raise Exception('Frequency outside range [40MHz - 10GHz].')
   if region not in ['RURAL', 'URBAN', 'SUBURBAN']:
@@ -209,10 +217,11 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
 
   # Get the terrain profile, using Vincenty great circle route, and WF
   # standard (bilinear interp; 1501 pts for all distances over 45 km)
-  its_elev = drive.terrain_driver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
-                                                 lat2=lat_rx, lon2=lon_rx,
-                                                 target_res_meter=30.,
-                                                 do_interp=True, max_points=1501)
+  if its_elev is None:
+    its_elev = drive.terrain_driver.TerrainProfile(lat1=lat_cbsd, lon1=lon_cbsd,
+                                                   lat2=lat_rx, lon2=lon_rx,
+                                                   target_res_meter=30.,
+                                                   do_interp=True, max_points=1501)
 
   # Structural CBSD and mobile height corrections
   height_cbsd = max(height_cbsd, 20.)
@@ -273,7 +282,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
                         HybridMode.EHATA_FSL_INTERP, cbsd_indoor)
 
   elif dist_km >= 1 and dist_km <= 80:  # Use best of E-Hata / ITM
-    ehata_loss_med = ehata.ExtendedHata(its_elev, freq_mhz, height_cbsd, height_rx,
+    freq = -freq_mhz if do_ehata_corr else freq_mhz
+    ehata_loss_med = ehata.ExtendedHata(its_elev, freq, height_cbsd, height_rx,
                                         region_code)
     if reliability == 0.5:
       ehata_loss = ehata_loss_med
@@ -301,7 +311,8 @@ def CalcHybridPropagationLoss(lat_cbsd, lon_cbsd, height_cbsd,
         lat_cbsd, lon_cbsd, lat_80km, lon_80km,
         target_res_meter=30.,
         do_interp=True, max_points=1501)
-    ehata_loss_80km = ehata.ExtendedHata(its_elev_80km, freq_mhz,
+    freq = -freq_mhz if do_ehata_corr else freq_mhz
+    ehata_loss_80km = ehata.ExtendedHata(its_elev_80km, freq,
                                          height_cbsd, height_rx,
                                          region_code)
     itm_loss_80km = wf_itm.CalcItmPropagationLoss(

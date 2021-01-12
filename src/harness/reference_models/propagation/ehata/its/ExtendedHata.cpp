@@ -92,6 +92,12 @@ void ExtendedHata_DBG(double pfl[], double f__mhz, double h_b__meter, double h_m
 {
     int np = int(pfl[0]);
 
+    bool corr_ridge = false;
+    if (f__mhz < 0) {
+      corr_ridge = true;
+      f__mhz = -f__mhz;
+    }
+
     PreprocessTerrainPath(pfl, h_b__meter, h_m__meter, interValues);
 
     double h_m_gnd__meter, d1_hzn__km, d2_hzn__km;
@@ -126,12 +132,19 @@ void ExtendedHata_DBG(double pfl[], double f__mhz, double h_b__meter, double h_m
     MedianBasicPropLoss(f__mhz, interValues->h_b_eff__meter, interValues->h_m_eff__meter, interValues->d__km, enviro_code, &plb_median__db, interValues);
 
     // apply correction factors based on path
+    //fprintf(stdout, "Median proploss= %.2f\n", plb_median__db);
+    //printInterValues(interValues);
     if (interValues->single_horizon)
     {
+      //fprintf(stdout, "Single Horizon\n");
+      if (corr_ridge) {
+        *plb = plb_median__db - IsolatedRidgeCorrectionFactorCorr(d1_hzn__km, d2_hzn__km, interValues->hedge_tilda)
+            - MixedPathCorrectionFactor(interValues->d__km, interValues);
+      } else {
         *plb = plb_median__db - IsolatedRidgeCorrectionFactor(d1_hzn__km, d2_hzn__km, interValues->hedge_tilda)
             - MixedPathCorrectionFactor(interValues->d__km, interValues);
-
-        interValues->trace_code = interValues->trace_code | TRACE__METHOD_17;
+      }
+      interValues->trace_code = interValues->trace_code | TRACE__METHOD_17;
     }
     else // two horizons
     {

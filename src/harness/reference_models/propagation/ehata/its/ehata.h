@@ -84,6 +84,7 @@ double MixedPathCorrectionFactor(double d__km, InterValues *interValues);
 double MedianRollingHillyTerrainCorrectionFactor(double deltah);
 void MedianBasicPropLoss(double f__mhz, double h_b__meter, double h_m__meter, double d__km, int environment, double* plb_med__db, InterValues *interValues);
 double IsolatedRidgeCorrectionFactor(double d1_hzn__km, double d2_hzn__km, double h_edge__meter);
+double IsolatedRidgeCorrectionFactorCorr(double d1_hzn__km, double d2_hzn__km, double h_edge__meter);
 
 // Trace Constants
 #define TRACE__METHOD_00    0x00000001;
