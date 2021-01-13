@@ -219,7 +219,7 @@ def AnalyzeCbsd(tx_lat, tx_lon, tx_height, indoor, category):
     return None
 
   # Find evaluatio radial points around the tx
-  azimuths = np.arange(0, 360., 2)
+  azimuths = np.arange(0, 360., 3)
   orig_loss = []
   corr_loss = []
   num_links = 0
@@ -273,7 +273,7 @@ def AnalyzeCbsd(tx_lat, tx_lon, tx_height, indoor, category):
           lat2=rx_lat, lon2=rx_lon,
           target_res_meter=30.,
           do_interp=True, max_points=2700)
-      span_dists = np.arange(eff_dist, 2, -2)
+      span_dists = np.arange(eff_dist, 2, -3)
       rx_lats, rx_lons, _ = GreatCirclePoints(tx_lat, tx_lon, span_dists, azimuth)
       profile = its_elev
       for k,dist in enumerate(span_dists):
@@ -331,7 +331,7 @@ def SimHybridCorr(fad_files):
   print('   Total sites = %d' % len(cbsds))
 
   # Sort the CBSDs for better locality
-  # cbsds = sorted(cbsds, key = lambda c: return (c.latitude, c.longitude)))
+  cbsds = sorted(cbsds, key = lambda c: (c[0], c[1]))
 
   num_rural = 0
   num_mod = 0
@@ -399,6 +399,7 @@ def SimHybridCorr(fad_files):
   return {'num_cbsd':len(cbsds),
           'num_rural': num_rural,
           'num_non_rural': num_non_rural,
+          'num_links': num_links,
           'num_mod': num_mod,
           'num_pos_mod': num_pos_mod,
           'num_neg_mod': num_neg_mod,
@@ -415,6 +416,5 @@ def SimHybridCorr(fad_files):
 if __name__ == '__main__':
   print('Running Hybrid corr simulation')
   start_time = time.time()
-  #res = SimHybridCorr(['cbsd_net/goo/cbsd_google.json'])
-  res = SimHybridCorr(['cbsd_net/red/cbsd_red.json'])
+  res = SimHybridCorr(['cbsd_net/goo/cbsd_google.json'])
   print('Run in %ds' % (time.time() - start_time))
