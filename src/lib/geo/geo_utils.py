@@ -12,7 +12,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-"""Useful geo routines."""
+"""Useful geo routines. Outside regular use"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -31,6 +31,7 @@ _WGS_EQUATORIAL_RADIUS_KM2 = 6378.137
 _WGS_POLAR_RADIUS_KM2 = 6356.753
 _EQUATORIAL_DIST_PER_DEGREE = 2 * np.pi * _WGS_EQUATORIAL_RADIUS_KM2 / 360
 _POLAR_DIST_PER_DEGREE = 2 * np.pi * _WGS_POLAR_RADIUS_KM2 / 360
+
 
 def _ProjectEqc(geometry, ref_latitude=None):
   """Projects a geometry using equirectangular projection.
@@ -92,6 +93,96 @@ def Buffer(geometry, distance_km, ref_latitude=None, **kwargs):
     return geom
   else:
     return utils.ToGeoJson(geom, as_dict=isinstance(geometry, dict))
+
+
+def GridPolygonApprox(poly, res_km):
+  """Grids a polygon or multi-polygon with approximate resolution (in km).
+
+  This is a replacement of `geo.utils.GridPolygon()` for gridding with
+  approximate metric distance on both latitude and longitude directions. The
+  regular gridding is still done in PlateCarree (equirectangular) projection,
+  but with different steps in degrees in lat and long direction.
+  Points falling in the boundary of polygon will be included.
+
+  Args:
+    poly: A Polygon or MultiPolygon in WGS84 or NAD83, defined either as a
+      shapely, GeoJSON (dict or str) or generic  geometry.
+      A generic geometry is any object implementing the __geo_interface__
+      protocol.
+    res_km: The resolution (in km) used for gridding.
+
+  Returns:
+    A list of (lon, lat) defining the grid points.
+  """
+  poly = utils.ToShapely(poly)
+  bound_area = ((poly.bounds[2] - poly.bounds[0]) *
+                (poly.bounds[3] - poly.bounds[1]))
+  if isinstance(poly, sgeo.MultiPolygon) and poly.area < bound_area * 0.01:
+    # For largely disjoint polygons, we process per polygon
+    # to avoid inefficiencies if polygons largely disjoint.
+    pts = ops.unary_union(
+        [sgeo.asMultiPoint(GridPolygonApprox(p, res_km))
+         for p in poly])
+    return [(p.x, p.y) for p in pts]
+
+  # Note: using as reference the min latitude, ie actual resolution < res_km.
+  # This is to match NTIA procedure.
+  ref_latitude = poly.bounds[1]  # ref_latitude = poly.centroid.y
+  res_lat = res_km / _POLAR_DIST_PER_DEGREE
+  res_lng = res_km / (
+      _EQUATORIAL_DIST_PER_DEGREE * np.cos(np.radians(ref_latitude)))
+  bounds = poly.bounds
+  lng_min = np.floor(bounds[0] / res_lng) * res_lng
+  lat_min = np.floor(bounds[1] / res_lat) * res_lat
+  lng_max = np.ceil(bounds[2] / res_lng) * res_lng + res_lng/2.
+  lat_max = np.ceil(bounds[3] / res_lat) * res_lat + res_lat/2.
+  # The mesh creation is conceptually equivalent to
+  # mesh_lng, mesh_lat = np.mgrid[lng_min:lng_max:res_lng,
+  #                               lat_min:lat_max:res_lat]
+  # but without the floating point accumulation errors
+  mesh_lng, mesh_lat = np.meshgrid(
+      np.arange(np.floor((lng_max - lng_min) / res_lng) + 1),
+      np.arange(np.floor((lat_max - lat_min) / res_lat) + 1),
+      indexing='ij')
+  mesh_lng = lng_min + mesh_lng * res_lng
+  mesh_lat = lat_min + mesh_lat * res_lat
+  points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
+  # Performs slight buffering by 1mm to include border points in case they fall
+  # exactly on a multiple of
+  pts = poly.buffer(1e-8).intersection(sgeo.asMultiPoint(points))
+  if isinstance(pts, sgeo.Point):
+    return [(pts.x, pts.y)]
+  return [(p.x, p.y) for p in pts]
+
+
+def SampleLine(line, res_km, ref_latitude=None,
+               equal_intervals=False, precision=5, ratio=1.0):
+  """Samples a line with approximate resolution (in km).
+
+  Args:
+    line: A shapely or GeoJSON |LineString|.
+    res_km: The resolution (in km).
+    ref_latitude: A reference latitude for the Eqc projection. If None, using
+      the centroid of the line.
+    equal_intervals: If True, all intervals are equal to finish on the edges.
+    precision: Simplify final coordinates with provided precision.
+    ratio: Only span the given line length.
+  Returns:
+    A list of (lon, lat) along the line every `res_km`.
+  """
+  line = utils.ToShapely(line)
+  proj_line, ref_latitude = _ProjectEqc(line, ref_latitude)
+  if not equal_intervals:
+    points = sgeo.MultiPoint(
+        [proj_line.interpolate(dist)
+         for dist in np.arange(0, ratio * proj_line.length - 1e-6, res_km)])
+  else:
+    n_intervals = ratio * proj_line.length // res_km
+    points = sgeo.MultiPoint(
+        [proj_line.interpolate(dist)
+         for dist in np.linspace(0, ratio * proj_line.length, n_intervals)])
+  points = _InvProjectEqc(points, ref_latitude)
+  return [(round(p.x, precision), round(p.y, precision)) for p in points]
 
 
 def AreaPlateCarreePixel(res_arcsec, ref_latitude):

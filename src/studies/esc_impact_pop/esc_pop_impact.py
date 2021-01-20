@@ -20,10 +20,10 @@ covered by a whisper zone.
 Usage:
   # Measure ESC impact for category B, in a reasonably "fast mode".
   # (for all sensors in New Jersey and NYC + Long Island)
-  esc_impact --esc_fads=a_fad.json,other_fad.json \
-             --grid_arcsec=10 --category=B \
-             --filter_box="(39, -75, 41, -72)"  \
-             --fast_mode --force_radius_km=50
+  esc_pop_impact --esc_fads=a_fad.json,other_fad.json \
+                 --grid_arcsec=10 --category=B \
+                 --filter_box="(39, -75, 41, -72)"  \
+                 --fast_mode --force_radius_km=50
 
 Notes:
   - One or several ESC fads can be specified. Aggregated statistics will be
@@ -41,11 +41,12 @@ Notes:
     + with force_radius_km: one can specify 50k CatB neighborhood for example
       (instead of regular 80km), as it is usually sufficient to capture the effective
       whisper zones.
+  - A special mode '--nbor_pop_only' allows to compute the total population in the
+    neighborhood, without any consideration of path loss.
 """
 import argparse
 import ast
 import collections
-import cPickle
 import json
 import os
 import time
@@ -58,7 +59,7 @@ from reference_models.geo import utils
 from reference_models.geo import zones
 from reference_models.propagation import wf_itm
 from usgs_pop import usgs_pop_driver
-import geo_utils
+from geo import geo_utils
 
 #----------------------------------------
 # Setup the command line arguments
@@ -90,6 +91,10 @@ parser.add_argument('--lazy_pop', dest='lazy_pop', action='store_true',
 parser.add_argument('--nolazy_pop', dest='lazy_pop', action='store_false',
                     help='Disable lazy population loading - Load all at init.')
 parser.set_defaults(lazy_pop=True)
+
+parser.add_argument('--nbor_pop_only', dest='nbor_pop_only', action='store_true',
+                    help='Only compute neighborhood population.')
+parser.set_defaults(nbor_pop_only=False)
 
 FLAGS = parser.parse_args()
 
@@ -224,7 +229,8 @@ def PopulationImpact(networks,
                      offset_db,
                      popper,
                      filter_box=None,
-                     forced_radius_km=None):
+                     forced_radius_km=None,
+                     nbor_pop_only=False):
   """Analyse some ESC network(s) in terms of population impact.
 
   Args:
@@ -237,6 +243,7 @@ def PopulationImpact(networks,
     filter_box: A tuple (min_lat, min_lon, max_lat, max_lon) defining a bounding
       box for sensors to be processed.
     forced_radius_km: If set, override the regular radius of the CBSD category.
+    nbor_pop_only: If set, computes only the neighborhood population
 
   Returns:
     A tuple (total_pop, pop_per_network, pop_per_sensor) holding:
@@ -289,16 +296,20 @@ def PopulationImpact(networks,
                                                 sensor.longitude,
                                                 nbor_radius_km, res_arcsec)
       lats, lons = np.array(lats), np.array(lons)
-      losses_db, esc_bearings, _ = CalcEscPathLoss(sensor.latitude,
-                                                   sensor.longitude,
-                                                   sensor.height, lats, lons,
-                                                   cbsd_height)
-      masked_losses_db = MaskPathLoss(losses_db, esc_bearings,
-                                      sensor.ant_pattern, sensor.ant_azimuth)
-      sig_level_dbm = cbsd_eirp_dbm_per_mhz - masked_losses_db - extra_loss
+      if not nbor_pop_only:
+        losses_db, esc_bearings, _ = CalcEscPathLoss(sensor.latitude,
+                                                     sensor.longitude,
+                                                     sensor.height, lats, lons,
+                                                     cbsd_height)
+        masked_losses_db = MaskPathLoss(losses_db, esc_bearings,
+                                        sensor.ant_pattern, sensor.ant_azimuth)
+        sig_level_dbm = cbsd_eirp_dbm_per_mhz - masked_losses_db - extra_loss
 
-      # Detect the points that are impacted
-      idxs = np.where(sig_level_dbm >= sensor.protection_level - offset_db)[0]
+        # Detect the points that are impacted
+        idxs = np.where(sig_level_dbm >= sensor.protection_level - offset_db)[0]
+
+      else:
+        idxs = np.arange(len(lats))
 
       # Compute the standalone population impact for that sensor.
       pop_per_sensor[sensor.name] = (
@@ -373,10 +384,12 @@ if __name__ == '__main__':
 
   # Compute the population impact
   print('** Evaluating population impact **')
+  if FLAGS.nbor_pop_only:
+    print('**  SPECIAL MODE: population within neighborhood. **')
   start_time = time.time()
   total_pop, pop_per_network, pop_per_sensor = PopulationImpact(
       networks, FLAGS.category, FLAGS.grid_arcsec, FLAGS.budget_offset_db,
-      popper, filter_box, FLAGS.force_radius_km)
+      popper, filter_box, FLAGS.force_radius_km, FLAGS.nbor_pop_only)
   print('.. done in %ds' % int(time.time() - start_time))
 
   # Ouput final statistics
