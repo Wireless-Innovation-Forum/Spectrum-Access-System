@@ -60,7 +60,7 @@ from reference_models.geo import utils
 from reference_models.geo import zones
 from reference_models.propagation import wf_itm
 from usgs_pop import usgs_pop_driver
-import geo_utils
+from geo import geo_utils
 
 #----------------------------------------
 # Setup the command line arguments
