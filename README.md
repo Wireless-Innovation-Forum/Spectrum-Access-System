@@ -12,6 +12,44 @@ for such software, and for the devices authorized by it.
 To contribute, please first read the CONTRIBUTING file in the
 repository for instructions.
 
+### Background
+
+#### Test Harness
+
+The code was developped primarily in the view of running a SAS test harness
+that provides extensive testing of the SAS as defined by the Winnforum.
+This is for example used by:
+
+ - ITS for SAS certification.
+ - The SAS themselves for continuous integration purposes.
+
+The test harness is not meant to be run as is, and specific integration (with 
+connectivity to real SAS, security setup, etc..) are required before test
+harness can be fully run. Contact a Winnforum representative if you need to 
+go this route.
+
+#### Generic libraries
+
+The code includes generic libraries and `reference models` that are used
+by the test harness, but that can also be of general interest for researchers
+for various simulation and studies. Using these libraries and reference models
+can be done without the full test harness setup.
+
+These libraries are found primarily in the `src/lib` and `src/harness/reference_models`
+folders.
+
+To use those libraries, have a look at following README:
+
+  - https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models
+    ==> in summary setup your PYTHONPATH to include the `src/harness` and `src/lib` folders.
+    
+  -  https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/data/geo#placeholder-for-nednlcd-geo-data
+    ==> For instruction in setting up the geo data. This will lead you to [another GitHub repository](https://github.com/Wireless-Innovation-Forum/SAS-Data) that holds all the required geo data.
+
+   + https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/src/harness/reference_models/propagation#the-winnforum-r2-sgn-04-propagation-model-reference-implementation
+     ==> For propagation model compilation
+
+
 ### Code prerequisites
 
 The scripts in the SAS repository depend on local environment setup to run.
@@ -123,8 +161,8 @@ that the package is installed successfully.
 
 ### Data
 
-Some of the required data is provided in folder data/. Scripts used to
-retrieve or generate these data are in src/data/.
+Some of the required data is provided in folder `data/`. Scripts used to
+retrieve or generate these data are in `src/data/`.
 
 USGS NED Terrain and NLCD Land cover data are not provided as part of the
 data/ folder, but kept instead in a separate Git repository found at:
