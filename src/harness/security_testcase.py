@@ -91,8 +91,7 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       True if the handshake succeeded, or False if it failed.
     """
     url = urllib.urlparse('https://' + base_url)
-    client = socket.socket()
-    client.connect((url.hostname, url.port or 443))
+    client = socket.create_connection((url.hostname, url.port or 443))
 
     logging.debug("OPENSSL version: %s" % SSL.SSLeay_version(SSL.SSLEAY_VERSION))
     logging.debug('TLS handshake: connecting to: %s:%d', url.hostname,
