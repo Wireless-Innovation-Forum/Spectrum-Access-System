@@ -60,6 +60,7 @@ from reference_models.geo import zones
 from reference_models.propagation import wf_itm
 from usgs_pop import usgs_pop_driver
 from geo import geo_utils
+import xlsxwriter
 
 #----------------------------------------
 # Setup the command line arguments
@@ -95,6 +96,9 @@ parser.set_defaults(lazy_pop=True)
 parser.add_argument('--nbor_pop_only', dest='nbor_pop_only', action='store_true',
                     help='Only compute neighborhood population.')
 parser.set_defaults(nbor_pop_only=False)
+
+parser.add_argument('--excel_output_filename', type=str, default='output.xlsx',
+                    help='Name of excel file for output statistics')
 
 FLAGS = parser.parse_args()
 
@@ -382,6 +386,20 @@ if __name__ == '__main__':
     popper.LoadRaster()
   print('.. done in %ds' % int(time.time() - start_time))
 
+  # Initialize the output excel file
+  excel_filename = FLAGS.excel_output_filename    
+  if os.path.exists(excel_filename):
+    os.remove(excel_filename)
+  workbook = xlsxwriter.Workbook(excel_filename)
+  worksheet = workbook.add_worksheet()
+  bold_format = workbook.add_format({'bold': True})
+  bold_format.set_align('left')
+  number_format = workbook.add_format({'num_format': '#,##0'})
+  number_format.set_align('right')
+  worksheet.set_column('A:B',20)
+  worksheet.write(0, 0,'Sensor Name', bold_format)
+  worksheet.write(0, 1,'Population Impact', bold_format)
+
   # Compute the population impact
   print('** Evaluating population impact **')
   if FLAGS.nbor_pop_only:
@@ -392,6 +410,7 @@ if __name__ == '__main__':
       popper, filter_box, FLAGS.force_radius_km, FLAGS.nbor_pop_only)
   print('.. done in %ds' % int(time.time() - start_time))
 
+
   # Ouput final statistics
   print('** Final results **')
   print('Total Population: {total_pop:.3f} kpops (1000s)'.format(
@@ -400,7 +419,14 @@ if __name__ == '__main__':
   for k, pop_impact in enumerate(pop_per_network):
     print('    {k} : {pop_impact:.3f} kpops (1000s)'.format(
         k=k, pop_impact=pop_impact / 1000.))
+  row = 1
   print('Sensors:')
   for sensor_name in sorted(pop_per_sensor):
     print('    {sensor_name} : {num_pop:.3f} kpops (1000s)'.format(
         sensor_name=sensor_name, num_pop=pop_per_sensor[sensor_name] / 1000.))
+    worksheet.write(row, 0, sensor_name)
+    worksheet.write(row, 1, pop_per_sensor[sensor_name], number_format)
+    row += 1
+  
+  workbook.close()
+
