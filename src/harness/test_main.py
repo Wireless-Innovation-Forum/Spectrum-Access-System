@@ -18,6 +18,10 @@ look here how the setup is performed.
 It is particularly important to correctly set the geo drivers
 and multiprocessing pool for best performance
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import argparse
 import logging
 import os

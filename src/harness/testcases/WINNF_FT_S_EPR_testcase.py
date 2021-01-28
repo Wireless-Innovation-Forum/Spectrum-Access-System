@@ -11,16 +11,18 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
 import sas
 import sas_testcase
-from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
-    generatePpaRecords
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, generatePpaRecords
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, makePpaAndPalRecordsConsistent, getFqdnLocalhost, getUnusedPort, \
-  getCertFilename
+  getCertFilename, json_load
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
@@ -37,36 +39,36 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for EPR.1. """
 
     # Load ESC record
-    esc_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+    esc_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
     device_1['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
     device_1['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
     device_2['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
     device_2['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
     device_3['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
     device_3['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
     device_4['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
@@ -75,20 +77,20 @@ class EscProtectionTestcase(McpXprCommonTestcase):
 
     # Load Grant requests
     # Loading grant_request_1 for device_1 with In-band frequency range of 3620 to 3630 MHz
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Loading grant_request_2 for device_2 with In-band frequency range of 3630 to 3640 MHz
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
 
     # Loading grant_request_3 for device_3 with Out-of-band frequency range of 3650 to 3660 MHz
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
 
     # Loading grant_request_4 for device_4 with In-band frequency range of 3620 to 3630 MHz
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # device_b and device_d are Category B
     # Load Conditional Data
@@ -182,36 +184,36 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for EPR.2. """
 
     # Load ESC record
-    esc_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+    esc_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1(Cat A) to a location within 40 KMs of ESC sensor
     device_1['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.20
     device_1['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2(Cat B) to a location within 80 KMs of ESC sensor
     device_2['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.70
     device_2['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3(Cat A) to a location outside 40 KMs of ESC sensor
     device_3['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 0.50
     device_3['installationParam'][
         'longitude'] = esc_record_1['installationParam']['longitude']
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4(Cat B) to a location outside 80 KMs of ESC sensor
     device_4['installationParam'][
         'latitude'] = esc_record_1['installationParam']['latitude'] + 1.0
@@ -219,23 +221,23 @@ class EscProtectionTestcase(McpXprCommonTestcase):
         'longitude'] = esc_record_1['installationParam']['longitude']
 
     # Load Grant requests with In-band frequency range for all devices
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3550000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3560000000
 
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3570000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3580000000
 
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3590000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3600000000
 
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3610000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
 
@@ -291,18 +293,18 @@ class EscProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_e"
     sas_test_harness_device_1['userId'] = "test_user_id_e"
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
 
-    sas_test_harness_device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = "test_fcc_id_g"
     sas_test_harness_device_3['userId'] = "test_user_id_g"
 
@@ -386,4 +388,3 @@ class EscProtectionTestcase(McpXprCommonTestcase):
     config = loadConfig(config_filename)
     # Invoke MCP test steps 1 through 22.
     self.executeMcpTestSteps(config, 'xPR2')
-

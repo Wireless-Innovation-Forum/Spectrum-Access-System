@@ -1,5 +1,6 @@
-import sas_testcase
 import unittest
+
+import sas_testcase
 from util import compareDictWithUnorderedLists
 #===============================================================================
 # this class unit tests AssertChannelsContainFrequencyRange method with different

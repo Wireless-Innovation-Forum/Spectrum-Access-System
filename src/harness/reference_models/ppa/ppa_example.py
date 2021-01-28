@@ -17,13 +17,23 @@ PPA Reference Model Sample File
 Note: The Census Tract in the testdata is not the actual Census Tract, 
 it is only intended to be used for testing purpose.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import logging
 import os
 
-import util
+import util2
 from reference_models.geo import drive
 from reference_models.ppa import ppa
+
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
 
 # Configuration
 user_id = 'pal_user_id_0'
@@ -37,14 +47,14 @@ TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 drive.ConfigureCensusTractDriver(TEST_DIR)
 
 # Load Devices and PAL Records
-devices = [json.load(open(os.path.join(TEST_DIR, device_filename)))
+devices = [json_load(os.path.join(TEST_DIR, device_filename))
            for device_filename in device_filenames]
-pal_records = [json.load(open(os.path.join(TEST_DIR, pal_record_filename)))
+pal_records = [json_load(os.path.join(TEST_DIR, pal_record_filename))
                for pal_record_filename in pal_record_filenames]
 
 # Modify PAL Record to comply with WINNF-TS-0245
-pal_records = util.makePalRecordsConsistent(pal_records, pal_low_frequency,
+pal_records = util2.makePalRecordsConsistent(pal_records, pal_low_frequency,
                                                   pal_high_frequency, user_id)
 
 ppa = ppa.PpaCreationModel(devices, pal_records)
-print ppa
+print(ppa)

@@ -46,20 +46,24 @@
 A local test server could be run by using "python fake_sas.py".
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import argparse
-from BaseHTTPServer import BaseHTTPRequestHandler
-from BaseHTTPServer import HTTPServer
-import ConfigParser
-from OpenSSL import crypto
-from datetime import datetime
-from datetime import timedelta
 import uuid
 import json
 import ssl
 import sys
 import tempfile
 import os
+from datetime import datetime, timedelta
+
+from six.moves.BaseHTTPServer import HTTPServer
+from six.moves.BaseHTTPServer import BaseHTTPRequestHandler
+from six.moves import configparser
+from OpenSSL import crypto
+
 import sas_interface
 
 # Fake SAS server configurations.
@@ -188,8 +192,9 @@ class FakeSas(sas_interface.SasInterface):
 
   def GetEscSensorRecord(self, request, ssl_cert=None, ssl_key=None):
     # Get the Esc Sensor record
-    esc_sensor_record = json.load(
-      open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')))
+    with open(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json')) as fd:
+      esc_sensor_record = json.load(fd)
+
     if request == esc_sensor_record['id']:
       return esc_sensor_record
     else:
@@ -450,7 +455,7 @@ def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
     try:
       crl_files = ParseCrlIndex(crl_index)
     except IOError as e:
-      print "Failed to parse CRL index file %r: %s" % (crl_index, e)
+      print("Failed to parse CRL index file %r: %s" % (crl_index, e))
 
     # https://tools.ietf.org/html/rfc5280#section-4.2.1.13 specifies that
     # CRLs MUST be DER-encoded, but SSLContext expects the name of a PEM-encoded
@@ -462,15 +467,15 @@ def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
           try:
             crl = crypto.load_crl(crypto.FILETYPE_ASN1, der)
           except crypto.Error as e:
-            print "Failed to parse CRL file %r as DER format: %s" % (f, e)
+            print("Failed to parse CRL file %r as DER format: %s" % (f, e))
             return
           with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(crypto.dump_crl(crypto.FILETYPE_PEM, crl))
             tmp.flush()
             ssl_context.load_verify_locations(cafile=tmp.name)
-        print "Loaded CRL file: %r" % f
+        print("Loaded CRL file: %r" % f)
       except IOError as e:
-        print "Failed to load CRL file %r: %s" % (f, e)
+        print("Failed to load CRL file %r: %s" % (f, e))
         return
 
   ssl_context.load_verify_locations(cafile=CA_CERT)
@@ -480,7 +485,7 @@ def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
   ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
   ssl_context.verify_mode = ssl.CERT_REQUIRED
   server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
-  print 'Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT
+  print('Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT)
   server.serve_forever()
 
 
@@ -498,7 +503,7 @@ if __name__ == '__main__':
   except:
     parser.print_help()
     sys.exit(0)
-  config_parser = ConfigParser.RawConfigParser()
+  config_parser = configparser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')

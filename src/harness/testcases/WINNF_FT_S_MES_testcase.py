@@ -11,13 +11,19 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
 import unittest
-import sas
-from util import winnforum_testcase
 from datetime import datetime
+
+from six.moves import zip
+
+import sas
+from util import winnforum_testcase, json_load
 
 
 class MeasurementTestcase(unittest.TestCase):
@@ -37,18 +43,18 @@ class MeasurementTestcase(unittest.TestCase):
     """
 
     # Load the devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_g = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_g.json')))
-    device_i = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_i.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
+    device_f = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_g = json_load(
+        os.path.join('testcases', 'testdata', 'device_g.json'))
+    device_i = json_load(
+        os.path.join('testcases', 'testdata', 'device_i.json'))
     devices = [device_a, device_c, device_e, device_f, device_g, device_i]
 
     for device in devices:
@@ -77,8 +83,8 @@ class MeasurementTestcase(unittest.TestCase):
     for cbsd_id in cbsd_ids:
         spectrum_inquiry = {}
         spectrum_inquiry['cbsdId'] = cbsd_id
-        meas_report = json.load(
-            open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
+        meas_report = json_load(
+            os.path.join('testcases', 'testdata', 'meas_report_1.json'))
         spectrum_inquiry['measReport'] =  {'rcvdPowerMeasReports': meas_report}
         # Delete measRcvdPower for second devide
         if cbsd_id == cbsd_ids[1]:
@@ -115,8 +121,8 @@ class MeasurementTestcase(unittest.TestCase):
     # Create Grant Request for the six devices
     grant_request = []
     for spectrum_num, spectrum_inquiry in enumerate(spectrum_inquiries):
-        grant_0 = json.load(
-            open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        grant_0 = json_load(
+            os.path.join('testcases', 'testdata', 'grant_0.json'))
         grant_0['operationParam']['operationFrequencyRange'][
             'lowFrequency'] = 3550000000
         grant_0['operationParam']['operationFrequencyRange'][
@@ -144,16 +150,16 @@ class MeasurementTestcase(unittest.TestCase):
     """
 
     # Load the devices
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_e = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
-    device_f = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
-    device_i = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_i.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_e = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
+    device_f = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
+    device_i = json_load(
+        os.path.join('testcases', 'testdata', 'device_i.json'))
     devices = [device_a, device_c, device_e, device_f, device_i]
 
     for device in devices:
@@ -185,13 +191,13 @@ class MeasurementTestcase(unittest.TestCase):
     # Request grant
     grant_request = []
     for cbsd_id in cbsd_ids:
-        grant = json.load(
-            open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        grant = json_load(
+            os.path.join('testcases', 'testdata', 'grant_0.json'))
         grant['cbsdId'] = cbsd_id
         # Add meas_report for the fifth device if needed
         if grant['cbsdId'] == cbsd_ids[4] and ask_meas_report:
-            meas_report = json.load(
-                open(os.path.join('testcases', 'testdata', 'meas_report_1.json')))
+            meas_report = json_load(
+                os.path.join('testcases', 'testdata', 'meas_report_1.json'))
             grant['measReport'] =  {'rcvdPowerMeasReports': meas_report}
         grant_request.append(grant)
     request = {'grantRequest': grant_request}
@@ -234,8 +240,8 @@ class MeasurementTestcase(unittest.TestCase):
     # Second heartbeat request with measReport
     heartbeat_requests = []
     for cbsd_id, grant_id in zip(cbsd_ids, grant_ids):
-        meas_report = json.load(
-            open(os.path.join('testcases', 'testdata', 'meas_report_0.json')))
+        meas_report = json_load(
+            os.path.join('testcases', 'testdata', 'meas_report_0.json'))
         heartbeat_request = {}
         heartbeat_request['cbsdId'] = cbsd_id
         heartbeat_request['grantId'] = grant_id

@@ -13,15 +13,24 @@
 #    limitations under the License.
 """Request handler test case"""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import unittest
 import json
 import os
-import mock
-from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, generateCbsdReferenceId, generatePpaRecords
-from util import makePpaAndPalRecordsConsistent
-from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from functools import partial
 from datetime import datetime
+
+try:
+  from unittest import mock
+except ImportError:
+  import mock
+
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, generateCbsdReferenceId, generatePpaRecords
+from util import makePpaAndPalRecordsConsistent, json_load
+from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
 from sas import SasImpl
 
 
@@ -34,23 +43,23 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
 
   def setUp(self):
     cbsd_records = [
-        json.load(open(os.path.join('testcases', 'testdata', 'device_a.json'))),
-        json.load(open(os.path.join('testcases', 'testdata', 'device_b.json'))),
-        json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+        json_load(os.path.join('testcases', 'testdata', 'device_a.json')),
+        json_load(os.path.join('testcases', 'testdata', 'device_b.json')),
+        json_load(os.path.join('testcases', 'testdata', 'device_c.json'))
     ]
     grant_records = [[
-        json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+        json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     ], [
-        json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    ], [json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))]]
+        json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
+    ], [json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))]]
     cbsd_fad_records = generateCbsdRecords(cbsd_records, grant_records)
 
-    pal_record_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
+    pal_record_0 = json_load(
+        os.path.join('testcases', 'testdata', 'pal_record_0.json'))
     pal_low_frequency = 3550000000
     pal_high_frequency = 3560000000
-    ppa_record_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'ppa_record_0.json')))
+    ppa_record_0 = json_load(
+        os.path.join('testcases', 'testdata', 'ppa_record_0.json'))
     ppa_record_a, pal_records = makePpaAndPalRecordsConsistent(
         ppa_record_0, [pal_record_0], pal_low_frequency, pal_high_frequency,
         'test_user_1')
@@ -62,10 +71,9 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     ppa_fad_records = generatePpaRecords(ppa_records, cbsd_reference_ids)
 
     esc_fad_records = [
-        json.load(
-            open(
-                os.path.join('testcases', 'testdata',
-                             'esc_sensor_record_0.json')))
+        json_load(os.path.join('testcases', 'testdata', 'esc_sensor_record_0.json'))
+
+
     ]
     self._test_data = [cbsd_fad_records, ppa_fad_records, esc_fad_records]
 
@@ -161,3 +169,6 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     sas_test_harness.shutdown()
     del sas_uut
     del sas_test_harness
+
+if __name__ == '__main__':
+  unittest.main()

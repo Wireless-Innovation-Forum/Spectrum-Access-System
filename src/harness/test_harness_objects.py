@@ -14,13 +14,22 @@
 
 """Implementation of multiple objects (Grant, Cbsd and DomainProxy).
    Mainly used in MCP and related test cases."""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import copy
-import common_strings
 import logging
-import sas
-from sas_test_harness import generateCbsdReferenceId
 import math
+
+import six
+from six.moves import zip
+
+import sas
+import common_strings
 from common_types import ResponseCodes
+from sas_test_harness import generateCbsdReferenceId
 
 class Grant(object):
   """Holds the Grant request parameters."""
@@ -94,20 +103,20 @@ class Cbsd(object):
     return self.registration_request
 
   def hasActiveGrant(self):
-    for grant_object in self.grant_objects.itervalues():
+    for grant_object in six.itervalues(self.grant_objects):
       if grant_object.isActive():
         return True
     return False
 
   def hasAuthorizedGrant(self):
-    for grant_object in self.grant_objects.itervalues():
+    for grant_object in six.itervalues(self.grant_objects):
       if grant_object.isGrantAuthorizedInLastHeartbeat():
         return True
     return False
 
   def getAuthorizedGrants(self):
     grants = []
-    for grant_object in self.grant_objects.itervalues():
+    for grant_object in six.itervalues(self.grant_objects):
       if grant_object.isGrantAuthorizedInLastHeartbeat():
         grants.append(grant_object)
     return grants
@@ -115,7 +124,7 @@ class Cbsd(object):
   def constructHeartbeatRequestForAllActiveGrants(self):
     """Construct list of heartbeat requests of all active grants."""
     heartbeat_requests = []
-    for grant_object in self.grant_objects.itervalues():
+    for grant_object in  six.itervalues(self.grant_objects):
       if grant_object.isActive():
         heartbeat_requests.append(grant_object.constructHeartbeatRequest())
     return heartbeat_requests
@@ -123,7 +132,7 @@ class Cbsd(object):
   def getOperationParamsOfAllAuthorizedGrants(self):
     """Returns the list of operation params of all authorized grants."""
     operation_params = []
-    for grant_object in self.grant_objects.itervalues():
+    for grant_object in six.itervalues(self.grant_objects):
       if grant_object.isGrantAuthorizedInLastHeartbeat():
         operation_params.append(grant_object.getRequestOperationParam())
     return operation_params
@@ -199,9 +208,8 @@ class DomainProxy(object):
     # above, but we'll double-check to be sure.
     self.testcase.assertEqual(len(actual_grant_requests), len(actual_registration_requests))
     self.testcase.assertEqual(len(actual_grant_requests), len(actual_cbsd_ids))
-    for grant_request, grant_response, \
-        registration_request, cbsd_id in zip(actual_grant_requests,
-                                             grant_responses, actual_registration_requests, actual_cbsd_ids):
+    for grant_request, grant_response, registration_request, cbsd_id in zip(
+        actual_grant_requests, grant_responses, actual_registration_requests, actual_cbsd_ids):
       if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
         self._mergeConditionals(registration_request, conditional_registration_data)
         cbsd_object = Cbsd(cbsd_id, registration_request,
@@ -293,9 +301,8 @@ class DomainProxy(object):
     # above, but we'll double-check to be sure.
     self.testcase.assertEqual(len(actual_grant_requests), len(actual_registration_requests))
     self.testcase.assertEqual(len(actual_grant_requests), len(actual_cbsd_ids))
-    for grant_request, grant_response, \
-        registration_request, cbsd_id in zip(actual_grant_requests,
-                                             grant_responses, actual_registration_requests, actual_cbsd_ids):
+    for grant_request, grant_response, registration_request, cbsd_id in zip(
+        actual_grant_requests, grant_responses, actual_registration_requests, actual_cbsd_ids):
       if grant_response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
         self._mergeConditionals(registration_request, conditional_registration_data)
         cbsd_object = Cbsd(cbsd_id, registration_request,
@@ -310,7 +317,7 @@ class DomainProxy(object):
       return
     for conditional in conditionals:
       if conditional['fccId'] == registration_request['fccId'] and conditional['cbsdSerialNumber'] == registration_request['cbsdSerialNumber']:
-        for key, value in conditional.iteritems():
+        for key, value in six.iteritems(conditional):
           if key not in registration_request:
             registration_request[key] = value
         break
@@ -329,7 +336,7 @@ class DomainProxy(object):
     # Concatenate all the heartbeat request of CBSD into single request.
     heartbeat_requests = []
     heartbeat_responses = []
-    for cbsd_object_item in self.cbsd_objects.itervalues():
+    for cbsd_object_item in six.itervalues(self.cbsd_objects):
       heartbeat_requests.extend(cbsd_object_item.constructHeartbeatRequestForAllActiveGrants())
 
     if len(heartbeat_requests):
@@ -424,8 +431,8 @@ class DomainProxy(object):
       self.testcase.assertEqual(len(relinquishment_responses), len(relinquishment_requests))
 
       # Validate the response of the relinquishment request.
-      for relinquishment_request, relinquishment_response in \
-              zip(relinquishment_requests, relinquishment_responses):
+      for relinquishment_request, relinquishment_response in zip(
+          relinquishment_requests, relinquishment_responses):
         self.testcase.assertEqual(relinquishment_response['response']['responseCode'],
                                   ResponseCodes.SUCCESS.value)
         self.testcase.assertEqual(relinquishment_response['cbsdId'], relinquishment_request['cbsdId'])
@@ -455,7 +462,7 @@ class DomainProxy(object):
     returns: list of CBSD objects.
     """
     cbsd_objects = []
-    for cbsd_object in self.cbsd_objects.itervalues():
+    for cbsd_object in six.itervalues(self.cbsd_objects):
       if cbsd_object.hasAuthorizedGrant():
         cbsd_objects.append(cbsd_object)
     return cbsd_objects

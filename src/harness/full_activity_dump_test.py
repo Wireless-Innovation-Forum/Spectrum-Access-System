@@ -13,7 +13,12 @@
 #    limitations under the License.
 """Tests for the Full Activity Dump object."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import unittest
+
 from full_activity_dump import FullActivityDump
 
 
@@ -124,3 +129,7 @@ class FullActivityDumpTest(unittest.TestCase):
         'esc_sensor': [],
         'zone': []
     })
+
+
+if __name__ == '__main__':
+  unittest.main()

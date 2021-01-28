@@ -11,6 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import logging
@@ -19,8 +22,7 @@ import numpy as np
 
 import sas
 import sas_testcase
-from util import configurable_testcase, writeConfig, loadConfig
-
+from util import configurable_testcase, writeConfig, loadConfig, json_load
 from reference_models.antenna import antenna
 from reference_models.geo import vincenty
 from reference_models.geo import zones
@@ -47,15 +49,15 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     # Load device info
     # CBSD 1: Category A CBSD located within the boundary of the NRAO / NRRO
     # Quiet Zone.
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = 39.244586
     device_1['installationParam']['longitude'] = -78.505269
 
     # CBSD 2: Category B CBSD located within the boundary of the NRAO / NRRO
     # Quiet Zone.
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = 39.247287
     device_2['installationParam']['longitude'] = -80.489236
 
@@ -126,32 +128,32 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for QPR.5."""
 
     # CBSD 1: Category A CBSD within 3.8 km of the Table Mountain QZ
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = 40.121452
     device_1['installationParam']['longitude'] = -105.23381
 
     # CBSD 2: Category B CBSD within 38 km of the Table Mountain QZ
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = 40.271668
     device_2['installationParam']['longitude'] = -105.101395
 
     # CBSD 3: Category B CBSD within 54 km of the Table Mountain QZ
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_3['installationParam']['latitude'] = 40.175726
     device_3['installationParam']['longitude'] = -104.654388
 
     # CBSD 4: Category B CBSD within 64 km of the Table Mountain QZ
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_h.json'))
     device_4['installationParam']['latitude'] = 40.074919
     device_4['installationParam']['longitude'] = -104.523926
 
     # CBSD 5: Category B CBSD located within 80 km of the Table Mountain QZ
-    device_5 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_j.json')))
+    device_5 = json_load(
+        os.path.join('testcases', 'testdata', 'device_j.json'))
     device_5['installationParam']['latitude'] = 40.525283
     device_5['installationParam']['longitude'] = -104.547272
 
@@ -468,14 +470,14 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
 
     # Load device info
     # CBSD 1: Category A within 2.4 km of Waipahu, Hawaii FCC Field Office.
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = 21.377719
     device_1['installationParam']['longitude'] = -157.973411
 
     # CBSD 2: Category B within 2.4 km of Allegan, Michigan FCC Field Office.
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = 42.586213
     device_2['installationParam']['longitude'] = -85.955594
 
@@ -547,8 +549,8 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
 
     # Load device info
     # Cat B - between 2.4 km - 4.8 km of Waipahu, Hawaii Field Office.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 21.397934
     device_b['installationParam']['longitude'] = -158.034459
 
@@ -689,8 +691,8 @@ class QuietZoneProtectionTestcase(sas_testcase.SasTestCase):
 
     # Load device info
     # Cat B - between 2.4 km - 4.8 km of Waipahu, Hawaii Field Office.
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_b['installationParam']['latitude'] = 21.397934
     device_b['installationParam']['longitude'] = -158.034459
 

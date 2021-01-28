@@ -11,12 +11,16 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import csv
 import os
-import numpy as np
 import random
 import unittest
+
+import numpy as np
 
 from reference_models.propagation.ehata import ehata
 
@@ -42,7 +46,7 @@ def ReadProfileFile(filename):
 def ReadTestInputs(filename):
   with open(filename) as fd:
     rows = csv.reader(fd)
-    columns = rows.next()
+    columns = next(rows)
     tests = [row for row in rows]
     return (columns, tests)
   return None
@@ -75,7 +79,7 @@ class TestEHata(unittest.TestCase):
       exp_ploss = float(test[self.columns.index('Path Loss(dB)')])
 
       ploss = ehata.ExtendedHata(profile, freq_mhz, hb, hm, env_code)
-      #print "%s: %f vs %f" % (scenario, ploss, exp_ploss)
+      #print("%s: %f vs %f" % (scenario, ploss, exp_ploss))
       self.assertAlmostEqual(ploss, exp_ploss, 4)
 
   def test_eff_height_within3km(self):

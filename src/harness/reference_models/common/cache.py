@@ -14,7 +14,17 @@
 
 """Cache engine.
 """
-import functools32
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import six
+
+try:  # Python3
+  from functools import lru_cache
+  import functools
+except ImportError:  # Python2
+  from functools32 import lru_cache
 
 # Note: for now only use the lru_cache from functools, backported to Python 2.7 as
 # functools32. A better cache engine needs to be implemented that:
@@ -32,7 +42,7 @@ def LruCache(maxsize=None):
     maxsize: the maximum cache size, or None for unlimited size.
   """
   def wrapper(fn):
-    return functools32.lru_cache(maxsize=maxsize)(fn)
+    return lru_cache(maxsize=maxsize)(fn)
 
   return wrapper
 
@@ -59,7 +69,7 @@ class CacheManager(object):
     self._maxsize = maxsize
 
   def __enter__(self):
-    self._wrapper_fn = functools32.lru_cache(maxsize=self._maxsize)(self._fn)
+    self._wrapper_fn = lru_cache(maxsize=self._maxsize)(self._fn)
     self._overrideModuleFunctionWith(self._wrapper_fn)
     return self
 
@@ -76,4 +86,4 @@ class CacheManager(object):
       self._wrapper_fn.cache_info()
 
   def _overrideModuleFunctionWith(self, fn):
-    self._fn.func_globals[self._fn.__name__] = fn
+    six.get_function_globals(self._fn)[self._fn.__name__] = fn

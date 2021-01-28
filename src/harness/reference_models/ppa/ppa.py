@@ -12,21 +12,26 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import logging
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
+import logging
 
 import numpy as np
 from shapely import geometry as sgeo
 from shapely import ops
+from six.moves import zip
 
-from reference_models.common import mpool
+import util2
 from reference_models.antenna import antenna
+from reference_models.common import mpool
 from reference_models.geo import drive
-from reference_models.geo import vincenty
 from reference_models.geo import nlcd
 from reference_models.geo import utils
+from reference_models.geo import vincenty
 from reference_models.propagation import wf_hybrid
-import util
 
 THRESHOLD_PER_10MHZ = -96
 RX_HEIGHT = 1.5
@@ -59,7 +64,7 @@ def _CalculateDbLossForEachPointAndGetContour(install_param, eirp_capability, an
 
 def _HammingFilter(x, window_len=15):
   """Process a full radial at a given azimuth for all distance ranges"""
-  s = np.r_[x[-(window_len / 2):], x, x[0:window_len / 2]]
+  s = np.r_[x[-(window_len // 2):], x, x[0:window_len // 2]]
   w = np.hamming(window_len)
   y = np.convolve(w / w.sum(), s, mode='valid')
   return y
@@ -76,10 +81,12 @@ def _GetPolygon(device):
   # Compute all the Points in 0-359 every 200m up to 40km
   distances = np.arange(0.2, 40.1, 0.2)
   azimuths = np.arange(0.0, 360.0)
-  latitudes, longitudes, _ = zip(*[vincenty.GeodesicPoints(install_param['latitude'],
-                                                           install_param['longitude'],
-                                                           distances, azimuth)
-                                   for azimuth in azimuths])
+  latitudes, longitudes, _ = list(
+      zip(*[
+          vincenty.GeodesicPoints(install_param['latitude'],
+                                  install_param['longitude'], distances,
+                                  azimuth) for azimuth in azimuths
+      ]))
   # Compute the Gain for all Direction
   # Note: some parameters are optional for catA, so falling back to None (omni) then
   antenna_gains = antenna.GetStandardAntennaGains(
@@ -102,12 +109,14 @@ def _GetPolygon(device):
                                                      longitudes,
                                                      antenna_gains)])
   # Generating lat, lon for Contour
-  contour_lats, contour_lons, _ = zip(*[
-      vincenty.GeodesicPoint(install_param['latitude'], install_param['longitude'],
-                             dists, az)
-      for dists, az in zip(contour_dists_km, azimuths)])
+  contour_lats, contour_lons, _ = list(
+      zip(*[
+          vincenty.GeodesicPoint(install_param['latitude'],
+                                 install_param['longitude'], dists, az)
+          for dists, az in zip(contour_dists_km, azimuths)
+      ]))
 
-  return sgeo.Polygon(zip(contour_lons, contour_lats)).buffer(0)
+  return sgeo.Polygon(list(zip(contour_lons, contour_lats))).buffer(0)
 
 
 def _ClipPpaByCensusTract(contour_union, pal_records):
@@ -133,10 +142,10 @@ def PpaCreationModel(devices, pal_records):
   # Validation for Inputs
   for device in devices:
     logging.info('Validating device', device)
-    util.assertContainsRequiredFields("RegistrationRequest.schema.json", device)
+    util2.assertContainsRequiredFields("RegistrationRequest.schema.json", device)
   for pal_rec in pal_records:
     logging.info('Validating pal_rec', pal_rec)
-    util.assertContainsRequiredFields("PalRecord.schema.json", pal_rec)
+    util2.assertContainsRequiredFields("PalRecord.schema.json", pal_rec)
 
   # Create Contour for each CBSD
   pool = mpool.Pool()

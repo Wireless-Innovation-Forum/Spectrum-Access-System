@@ -14,6 +14,10 @@
 
 """Benchmark the propagation model timing.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import timeit
 import numpy as np
 import matplotlib.pyplot as plt
@@ -70,14 +74,14 @@ if __name__ == '__main__':
 
 
   # First calc to load the terrain data in cache
-  print '# Pre-Loading the terrain'
+  print('# Pre-Loading the terrain')
   res_last = CalcHybrid(0.5, rx_lats[-1], rx_lngs[-1])
   res_first = CalcHybrid(0.5, rx_lats[-1], rx_lngs[-1])
-  print '## Initial driver report'
+  print('## Initial driver report')
   drive.terrain_driver.stats.Report()
 
-  print ''
-  print '# Propagation calculation time at various distances'
+  print('')
+  print('# Propagation calculation time at various distances')
   for k, dist in enumerate(distances):
     # ITM
     times = timeit.repeat(setup = 'import time_prop',
@@ -92,12 +96,12 @@ if __name__ == '__main__':
                               rx_lats[k], rx_lngs[k]),
                           repeat=repeat, number=num)
     t_hybrid_avg.append(min(times))
-    print '{0}km: {1:5f}ms (itm)  {2:5f}ms (hybrid)'.format(
+    print('{0}km: {1:5f}ms (itm)  {2:5f}ms (hybrid)'.format(
         int(dist),
         t_itm_avg[-1] / num * 1000,
-        t_hybrid_avg[-1] / num * 1000)
+        t_hybrid_avg[-1] / num * 1000))
 
-  print '# Final driver report'
+  print('# Final driver report')
   wf_itm.terrainDriver.stats.Report()
 
   PlotProp()

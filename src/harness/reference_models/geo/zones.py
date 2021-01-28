@@ -47,6 +47,10 @@ Interface:
   GetUsBorder()
   GetUrbanAreas()
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import logging
 import os
 import re
@@ -55,6 +59,7 @@ import shapely.geometry as sgeo
 import shapely.ops as ops
 from pykml import parser
 import zipfile
+import six
 
 from reference_models.geo import CONFIG
 
@@ -239,7 +244,7 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
       with kmz.open(kml_name) as kml_file:
         root = parser.parse(kml_file).getroot()
   else:
-    with open(kml_path, 'r') as kml_file:
+    with open(kml_path, 'rb') as kml_file:
       root = parser.parse(kml_file).getroot()
   tag = root.tag[:root.tag.rfind('}')+1]
   zones = {}
@@ -296,7 +301,6 @@ def _ReadKmlZones(kml_path, root_id_zone='Placemark', ignore_if_parent=None,
               setattr(zone, data_attrib, existing_data)
             except:
               setattr(zone, data_attrib, [existing_data, str(data_value)])
-
   return zones
 
 
@@ -317,7 +321,7 @@ def _ReadKmlBorder(kml_path, root_id='Placemark'):
       with kmz.open(kml_name) as kml_file:
         root = parser.parse(kml_file).getroot()
   else:
-    with open(kml_path, 'r') as kml_file:
+    with open(kml_path, 'rb') as kml_file:
       root = parser.parse(kml_file).getroot()
 
   tag = root.tag[:root.tag.rfind('}') + 1]
@@ -352,7 +356,7 @@ def _GetAllExclusionZones():
     zones = _ReadKmlZones(kml_file, data_fields=['freqRangeMhz'])
     gbs_zones = []
     p90_zones = []
-    for name, zone in zones.items():
+    for name, zone in six.iteritems(zones):
       freq_range = _SplitFreqRange(zone.freqRangeMhz)
       if (3550, 3650) in freq_range:
         gbs_zones.append(zone.geometry)
@@ -371,7 +375,7 @@ def _CheckDpaValidity(dpa_zones, attributes):
   Raise:
     ValueError: if some attributes unset.
   """
-  for name, zone in dpa_zones.items():
+  for name, zone in six.iteritems(dpa_zones):
     for attr in attributes:
       if getattr(zone, attr) is None:
         raise ValueError('DPA %s: attribute %s is unset' % (name, attr))
@@ -396,7 +400,7 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
                                 if default is None])
 
   # Now adapt the data with converters and set defaults
-  for name, zone in dpa_zones.items():
+  for name, zone in six.iteritems(dpa_zones):
     for attr, cvt, default in properties:
       value = getattr(zone, attr)
       if value is None:
@@ -408,7 +412,7 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
   # TODO(sbdt): This is temp while final KML are produced.
   # Final code should raise an exception for those which are mandatory by the spec,
   # and use the standard default for the optional ones.
-  for name, zone in dpa_zones.items():
+  for name, zone in six.iteritems(dpa_zones):
     # CatA neighborhood specified with default value if not in file,
     # so this is managed in the declaration.
     # However since the KML are currently using NaN for that param, manage
@@ -535,7 +539,7 @@ def GetUsCanadaBorder():
   if _uscanada_border is None:
     kml_file = os.path.join(CONFIG.GetFccDir(), USCANADA_BORDER_FILE)
     lines = _ReadKmlBorder(kml_file)
-    _uscanada_border = ops.unary_union(lines.values())
+    _uscanada_border = ops.unary_union(list(lines.values()))
   return _uscanada_border
 
 
@@ -548,7 +552,7 @@ def GetUsBorder():
   if _border_zone is None:
     kml_file = os.path.join(CONFIG.GetFccDir(), USBORDER_FILE)
     zones = _ReadKmlZones(kml_file)
-    _border_zone = ops.unary_union(zones.values())
+    _border_zone = ops.unary_union(list(zones.values()))
   return _border_zone
 
 
@@ -563,7 +567,7 @@ def GetUrbanAreas(simplify_deg=1e-3):
   """
   kml_file = os.path.join(CONFIG.GetNtiaDir(), URBAN_AREAS_FILE)
   zones = _ReadKmlZones(kml_file, root_id_zone='Document', simplify=simplify_deg)
-  urban_areas = sgeo.GeometryCollection(zones.values())  # ops.unary_union(zones.values())
+  urban_areas = sgeo.GeometryCollection(list(zones.values()))  # ops.unary_union(list(zones.values()))
   return urban_areas
 
 

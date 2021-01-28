@@ -20,6 +20,10 @@ when reading a tile (such as missing tile) and fail gracefully.
 Also provides a simple statistic counter for tile hit analysis.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 
 
@@ -48,8 +52,7 @@ class TileStats(object):
     num_active_tiles, counts = self.ActiveTilesCount()
     print("Used tiles: {total} / {max}".format(
         total=num_active_tiles, max=len(self._tiles_set)))
-    print("Total load ops: {total}".format(
-        total=sum(counts)))
+    print("Total load ops: {total}".format(total=sum(counts)))
     print("Active tiles statistics (#loads per used tiles):")
     print("  Avg:{avg} (std={std})".format(
         avg=np.mean(counts), std=np.std(counts)))
@@ -57,7 +60,7 @@ class TileStats(object):
         min=np.min(counts), max=np.max(counts)))
 
 
-NED_TILES = set([
+NED_TILES = frozenset([
     ( 6, 162), (44, -81), (67,-165),
     ( 6, 163), (44, -82), (67,-166),
     ( 7, 134), (44, -83), (67,-167),
@@ -649,7 +652,7 @@ NED_TILES = set([
 ]
 )
 
-NLCD_TILES = set([
+NLCD_TILES = frozenset([
     (25, -81),  (37,-106),  (43,-112),
     (25, -82),  (37,-107),  (43,-113),
     (25, -83),  (37,-108),  (43,-114),

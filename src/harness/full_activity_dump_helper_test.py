@@ -13,12 +13,21 @@
 #    limitations under the License.
 """Tests for the Full Activity Dump Helper."""
 
-import full_activity_dump_helper
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from datetime import datetime
 import unittest
-import mock
 import logging
 import copy
+
+try:
+  from unittest import mock
+except ImportError:
+  import mock
+
+import full_activity_dump_helper
 
 
 class FullActivityDumpHelperTest(unittest.TestCase):
@@ -110,3 +119,7 @@ class FullActivityDumpHelperTest(unittest.TestCase):
             'esc_sensor': [{'d': 1}],
             'zone': [{'g': 1}]
         })
+
+
+if __name__ == '__main__':
+  unittest.main()

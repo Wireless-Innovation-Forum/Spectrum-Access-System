@@ -57,7 +57,7 @@ outDir =  os.path.join(curDir, '..', '..', 'data', 'geo', 'ned_out')
 # Retrieve the desired NED zip files from the USGS FTP site.
 def FindArcFloatFilenames(usgs):
   files = usgs.listdir('vdelivery/Datasets/Staged/Elevation/1/GridFloat/')
-  print 'Found %d files in USGS ftp dir' % len(files)
+  print('Found %d files in USGS ftp dir' % len(files))
   files.sort()
   files.reverse()
   matches = []
@@ -103,7 +103,7 @@ def FindArcFloatFilenames(usgs):
       if obsolete_filename in matches:
         matches.remove(obsolete_filename)
 
-  print 'Found %d matching elevation tiles in USGS ftp dir' % len(matches)
+  print('Found %d matching elevation tiles in USGS ftp dir' % len(matches))
   return matches
 
 
@@ -137,19 +137,19 @@ def RetrieveElevationTilesAndProcess(out_dir):
   files = FindArcFloatFilenames(ned)
   downloaded_files = []
   for f in files:
-    print 'Checking %s' % f
+    print('Checking %s' % f)
     downloaded = ned.download_if_newer(
         'vdelivery/Datasets/Staged/Elevation/1/GridFloat/' + f, f)
     if downloaded:
       # Extract the actual data and save in out dir
-      print '..creating final archive for %s' % f
+      print('..creating final archive for %s' % f)
       ExtractArcFloatToZip(f, out_dir)
 
   ned.close()
 
 
 # Find the directory of this script.
-print 'Retrieving USGS 1-arc-second tiles to dir=%s' % downloadDir
+print('Retrieving USGS 1-arc-second tiles to dir=%s' % downloadDir)
 if not os.path.exists(downloadDir):
   os.makedirs(downloadDir)
 if not os.path.exists(outDir):

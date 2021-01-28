@@ -12,9 +12,16 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 """Tests for the util.py."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import unittest
-import mock
+
+try:
+  from unittest import mock
+except ImportError:
+  import mock
 
 import util
 
@@ -56,3 +63,7 @@ class UtilTest(unittest.TestCase):
     self.assertEqual(util.getUnusedPort(), START_PORT + 2)
     with self.assertRaises(AssertionError):
       util.getUnusedPort()
+
+
+if __name__ == '__main__':
+  unittest.main()

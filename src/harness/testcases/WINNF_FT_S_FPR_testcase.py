@@ -12,6 +12,9 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 """Implementation of FPR test cases."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
@@ -19,7 +22,7 @@ import sas
 import sas_testcase
 from sas_test_harness import generateCbsdRecords
 from util import winnforum_testcase, writeConfig, loadConfig, configurable_testcase,\
- addCbsdIdsToRequests, getFqdnLocalhost, getUnusedPort, getCertFilename
+ addCbsdIdsToRequests, getFqdnLocalhost, getUnusedPort, getCertFilename, json_load
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
@@ -36,53 +39,53 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for FPR.1. """
 
     # Load FSS record
-    fss_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss_record_1['ttc'] = False
 
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
         # Moving device_1 to a location within 40 KMs of FSS zone (9.596km)
     device_1['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.08
     device_1['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.08
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
     device_2['installationParam']['latitude'] = \
        fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1
     device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
         # Moving device_3 to a location outside 40 KMs of FSS zone(60.861km)
     device_3['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5
     device_3['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
     device_4['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude']  +  1.2
 
     device_4['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 1.2
-    device_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_5 = json_load(
+      os.path.join('testcases', 'testdata', 'device_e.json'))
         # Moving device_5 to a location within 40 KMs of FSS zone (5.425km)
     device_5['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.02
     device_5['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.02
 
-    device_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_6 = json_load(
+      os.path.join('testcases', 'testdata', 'device_f.json'))
         # Moving device_6 to a location outside 40 KMs of FSS zone (44.504km)
     device_6['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] +0.3
@@ -90,28 +93,28 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.3
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency']  = 3575000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3585000000
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency']  = 3580000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency']  = 3610000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
-    grant_request_5 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_5 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_5['operationParam']['operationFrequencyRange']['lowFrequency']  = 3675000000
     grant_request_5['operationParam']['operationFrequencyRange']['highFrequency'] = 3685000000
-    grant_request_6 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_6 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_6['operationParam']['operationFrequencyRange']['lowFrequency']  = 3690000000
     grant_request_6['operationParam']['operationFrequencyRange']['highFrequency'] = 3700000000
 
@@ -165,8 +168,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses for two iterations
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_g"
     sas_test_harness_device_1['userId'] = "test_user_id_g"
     sas_test_harness_device_1['installationParam']['latitude'] = \
@@ -174,8 +177,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     sas_test_harness_device_1['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_h"
     sas_test_harness_device_2['userId'] = "test_user_id_h"
     sas_test_harness_device_2['installationParam']['latitude'] = \
@@ -254,8 +257,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """Generates the WinnForum configuration for FPR.2."""
 
     # Load FSS station operating at range below 3700 to 4200 MHz, TT&C flag ON.
-    fss_data = json.load(
-        open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_data = json_load(
+        os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss_record = fss_data['record']
     fss_record['deploymentParam'][0]['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3625000000
@@ -266,14 +269,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Load devices and grant info for Scenario 1.
     # Loading device_1 (Cat A) to a location within 40 km of FSS,
     # frequency range outside of FSS band.
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 0.20
     device_1['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude']
-    grant_request_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3560000000
     grant_request_1['operationParam'][
@@ -281,14 +284,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_2 (Cat B) to a location within 40 km of FSS,
     # frequency range outside of FSS band, overlapping device 1 band.
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude']
     device_2['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] + 0.20
-    grant_request_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_2['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3565000000
     grant_request_2['operationParam'][
@@ -296,14 +299,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_3 (Cat A) to a location within 40 km of FSS,
     # frequency range outside of FSS band.
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_3['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 0.05
     device_3['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] + 0.05
-    grant_request_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_3 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_3['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3590000000
     grant_request_3['operationParam'][
@@ -311,14 +314,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_4 (Cat B) to a location within 40 km of FSS,
     # frequency range overlapping FSS band.
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_4['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] - 0.05
     device_4['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] - 0.05
-    grant_request_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3620000000
     grant_request_4['operationParam'][
@@ -326,14 +329,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_5 (Cat A) to a location within 40 km of FSS,
     # frequency range inside of FSS band.
-    device_5 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_5 = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     device_5['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 0.05
     device_5['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] - 0.05
-    grant_request_5 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_5 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_5['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_request_5['operationParam'][
@@ -341,14 +344,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_6 (Cat A) to a location between 40 to 150 km of FSS,
     # frequency range inside of FSS band.
-    device_6 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_f.json')))
+    device_6 = json_load(
+        os.path.join('testcases', 'testdata', 'device_f.json'))
     device_6['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 1.00
     device_6['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude']
-    grant_request_6 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_6 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_6['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3690000000
     grant_request_6['operationParam'][
@@ -356,14 +359,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_7 (Cat A) to a location outside 150 km of FSS,
     # frequency range inside of FSS band.
-    device_7 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_g.json')))
+    device_7 = json_load(
+        os.path.join('testcases', 'testdata', 'device_g.json'))
     device_7['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 1.50
     device_7['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] + 0.50
-    grant_request_7 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_7 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_7['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3670000000
     grant_request_7['operationParam'][
@@ -419,18 +422,18 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses
-    sas_test_harness_device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = 'test_fcc_id_1'
     sas_test_harness_device_1['userId'] = 'test_user_id_1'
 
-    sas_test_harness_device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = 'test_fcc_id_2'
     sas_test_harness_device_2['userId'] = 'test_user_id_2'
 
-    sas_test_harness_device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = 'test_fcc_id_3'
     sas_test_harness_device_3['userId'] = 'test_user_id_3'
 
@@ -513,36 +516,36 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
   def generate_FPR_3_default_config(self, filename):
     """ Generates the WinnForum configuration for FPR.3. """
       # Load FSS record
-    fss_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss_record_1['ttc'] = False
     fss_record_1['record']['deploymentParam'][0]['operationParam']['operationFrequencyRange']['lowFrequency']  = 3700000000
 
     # Load devices for SAS UUT for multiple iterations through multiple domain proxy's
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
         # Moving device_1 to a location within 40 KMs of FSS zone (9.596km)
     device_1['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] - 0.02
     device_1['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +0.02
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
         # Moving device_2 to a location within 150 KMs of FSS zone (115.243km)
     device_2['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1
     device_2['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] +1
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
         # Moving device_3 to a location outside 40 KMs of FSS zone(60.861km)
     device_3['installationParam']['latitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 0.5
     device_3['installationParam']['longitude'] = fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] + 0.5
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
         # Moving device_4 to a location outside 150 KMs of FSS zone (182.158km)
     device_4['installationParam']['latitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['latitude'] + 1.2
@@ -551,20 +554,20 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency']  = 3575000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3585000000
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency']  = 3580000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3590000000
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency']  = 3610000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3620000000
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency']  = 3645000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
 
@@ -619,8 +622,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses for two iterations
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_e"
     sas_test_harness_device_1['userId'] = "test_user_id_e"
     sas_test_harness_device_1['installationParam']['latitude'] = \
@@ -628,8 +631,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     sas_test_harness_device_1['installationParam']['longitude'] = \
         fss_record_1['record']['deploymentParam'][0]['installationParam']['longitude'] -1.2
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
     sas_test_harness_device_2['installationParam']['latitude'] =  \
@@ -707,8 +710,8 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """Generates the WinnForum configuration for FPR.4."""
 
     # Load FSS station operating at range 3700 to 4200 MHz, TT&C flag ON.
-    fss_data = json.load(
-        open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_data = json_load(
+        os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss_record = fss_data['record']
     fss_record['deploymentParam'][0]['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3700000000
@@ -719,14 +722,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     # Load devices and grant info for Scenario 1.
     # Loading device_1 (Cat A) to a location within 40 km of FSS,
     # frequency range outside of FSS band.
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 0.20
     device_1['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude']
-    grant_request_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3560000000
     grant_request_1['operationParam'][
@@ -734,14 +737,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_2 (Cat B) to a location within 40 km of FSS,
     # frequency range outside of FSS band, overlapping device 1 band.
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude']
     device_2['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] + 0.20
-    grant_request_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_2['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3565000000
     grant_request_2['operationParam'][
@@ -749,14 +752,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_3 (Cat A) to a location within 40 km of FSS,
     # frequency range outside of FSS band.
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_3['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] + 0.05
     device_3['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] + 0.05
-    grant_request_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_3 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_3['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3590000000
     grant_request_3['operationParam'][
@@ -764,14 +767,14 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # Loading device_4 (Cat B) to a location within 40 km of FSS,
     # frequency range overlapping FSS band.
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_4['installationParam']['latitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['latitude'] - 0.05
     device_4['installationParam']['longitude'] = fss_record[
         'deploymentParam'][0]['installationParam']['longitude'] - 0.05
-    grant_request_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam'][
         'operationFrequencyRange']['lowFrequency'] = 3620000000
     grant_request_4['operationParam'][
@@ -827,18 +830,18 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses
-    sas_test_harness_device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = 'test_fcc_id_1'
     sas_test_harness_device_1['userId'] = 'test_user_id_1'
 
-    sas_test_harness_device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = 'test_fcc_id_2'
     sas_test_harness_device_2['userId'] = 'test_user_id_2'
 
-    sas_test_harness_device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = 'test_fcc_id_3'
     sas_test_harness_device_3['userId'] = 'test_user_id_3'
 
@@ -923,7 +926,7 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     """Generates the WinnForum configuration for FPR.5."""
 
     # Load FSS station operating at range 3600 - 3700 MHz.
-    fss_data = json.load(open(os.path.join('testcases', 'testdata', 'fss_record_0.json')))
+    fss_data = json_load(os.path.join('testcases', 'testdata', 'fss_record_0.json'))
     fss = fss_data['record']
     fss['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
         ['lowFrequency'] = 3600000000
@@ -931,20 +934,20 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         ['highFrequency'] = 3700000000
 
     # Load GWBL operating at range 3650 - 3700 MHz.
-    gwbl = json.load(
-        open(os.path.join('testcases', 'testdata', 'gwbl_record_0.json')))
+    gwbl = json_load(
+        os.path.join('testcases', 'testdata', 'gwbl_record_0.json'))
     gwbl['record']['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
         ['lowFrequency'] = 3650000000
     gwbl['record']['deploymentParam'][0]['operationParam']['operationFrequencyRange']\
         ['highFrequency'] = 3700000000
 
     # Load device info
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
 
     # Move devices within 150km of FSS
     device_1['installationParam']['latitude'] = \
@@ -967,13 +970,13 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
         fss['deploymentParam'][0]['installationParam']['longitude']
 
     # Create info for grants
-    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
-    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3660000000
 
@@ -1036,5 +1039,3 @@ class FSSProtectionTestcase(McpXprCommonTestcase):
     self.assertEqual(len(response), len(cbsd_ids))
     for response_num in response:
       self.assertEqual(response_num['response']['responseCode'], 400)
-
-

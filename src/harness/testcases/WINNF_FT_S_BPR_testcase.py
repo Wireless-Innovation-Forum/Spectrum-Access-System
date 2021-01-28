@@ -11,6 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import logging
@@ -19,10 +22,9 @@ import os
 from reference_models.antenna import antenna
 from reference_models.geo import utils
 from reference_models.propagation import wf_itm
-
 import sas
 import sas_testcase
-from util import configurable_testcase, writeConfig, loadConfig
+from util import configurable_testcase, writeConfig, loadConfig, json_load
 
 
 class BorderProtectionTestcase(sas_testcase.SasTestCase):
@@ -39,47 +41,47 @@ class BorderProtectionTestcase(sas_testcase.SasTestCase):
 
     # CBSD 1: Category A CBSD within 56 km of the Canadian border with
     # omni-directional antenna.
-    device_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_1['installationParam']['latitude'] = 48.99781
     device_1['installationParam']['longitude'] = -100.959089
     device_1['installationParam']['antennaBeamwidth'] = 0
     device_1['installationParam']['height'] = 1.2
     # CBSD 2: Category B CBSD within 56 km of the Canadian border with
     # omni-directional antenna.
-    device_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_2['installationParam']['latitude'] = 42.273371
     device_2['installationParam']['longitude'] = -83.746700
     device_2['installationParam']['antennaBeamwidth'] = 0
     device_1['installationParam']['antennaGain'] = 90
     # CBSD 3: Category A CBSD located within 8 km of the Canadian border with
     # directive antenna
-    device_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_3['installationParam']['latitude'] = 48.939190
     device_3['installationParam']['longitude'] = -122.475071
     device_3['installationParam']['antennaBeamwidth'] = 30
     # CBSD 4: Category B CBSD located within 8 km of the Canadian border with
     # directive antenna
-    device_4 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+        os.path.join('testcases', 'testdata', 'device_d.json'))
     device_4['installationParam']['latitude'] = 48.964667
     device_4['installationParam']['longitude'] = -122.441425
     device_4['installationParam']['antennaBeamwidth'] = 60
     # CBSD 5: Category A CBSD located between 8 km and 56 km of the Canadian
     # border with directive antenna of which any part of the main beam looks
     # within 200-degree sector toward the closest point on the Canadian border.
-    device_5 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_e.json')))
+    device_5 = json_load(
+        os.path.join('testcases', 'testdata', 'device_e.json'))
     device_5['installationParam']['latitude'] = 48.806222
     device_5['installationParam']['longitude'] = -111.874259
     device_5['installationParam']['antennaAzimuth'] = 0
     # CBSD 6: Category B CBSD located between 8 km and 56 km of the Canadian
     # border with directive antenna of which any part of the main beam looks
     # within 200-degree sector toward the closest point on the Canadian border.
-    device_6 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_h.json')))
+    device_6 = json_load(
+        os.path.join('testcases', 'testdata', 'device_h.json'))
     device_6['installationParam']['latitude'] = 42.273371
     device_6['installationParam']['longitude'] = -83.746700
     device_6['installationParam']['antennaAzimuth'] = 0

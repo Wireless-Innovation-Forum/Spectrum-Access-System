@@ -12,18 +12,36 @@ for such software, and for the devices authorized by it.
 To contribute, please first read the CONTRIBUTING file in the
 repository for instructions.
 
+### Data
+
+Some of the required data is provided in folder data/. Scripts used to
+retrieve or generate these data are in src/data/.
+
+USGS NED Terrain and NLCD Land cover data are not provided as part of the
+data/ folder, but kept instead in a separate Git repository found at:
+ https://github.com/Wireless-Innovation-Forum/SAS-Data
+
+See the corresponding README.md for more details.
+
+
 ### Code prerequisites
+
+Note: see last section for an example of full installation.
 
 The scripts in the SAS repository depend on local environment setup to run.
 Here are packages and software needed to correctly operate the scripts.
 
-* Python 2.7 (https://www.python.org/download/releases/2.7/)
+* Python 3.7 (https://www.python.org/download/releases/3.7/)
 
 This is the Python runtime which interprets the scripts in the
 <code>src/</code> directory. It may already be running on many platforms, and
 if it is not already installed, is widely available. Type the command
 <code>python --version</code> to check the Python version installed on your
 platform.
+
+**NOTE**: The current code is designed to work with both Python 2.7 and 3.7.
+It is recommended to only use Python 3.7 from now on (Python 2.7 support will
+be removed in coming months). Currently untested with Python 3.8 and above.
 
 * pip (https://pip.pypa.io/en/stable/installing/)
 
@@ -121,13 +139,53 @@ that the package is installed successfully.
 * Security certificates, as described in
 <code>src/harness/testcases/testdata/certs/README.md</code>
 
-### Data
 
-Some of the required data is provided in folder data/. Scripts used to
-retrieve or generate these data are in src/data/.
+### Example of installation: Python3 installation using miniconda in Linux
 
-USGS NED Terrain and NLCD Land cover data are not provided as part of the
-data/ folder, but kept instead in a separate Git repository found at:
- https://github.com/Wireless-Innovation-Forum/SAS-Data
+This example uses the MiniConda environment manager.
 
-See the corresponding README.md for more details.
+Install miniconda from this page: https://docs.conda.io/en/latest/miniconda.html
+
+Create a conda Python 3.7 environment named `winnf3`:
+
+```shell
+    conda create --name winnf3 python=3.7
+```
+
+Activate the environment on a command shell:
+
+```shell
+    conda activate winnf3
+```
+
+Install the required packages.
+
+For the reference models and various libs:
+
+```shell
+    conda install numpy
+    conda install shapely
+    conda install gdal
+    conda install lxml
+    conda install jsonschema
+    conda install matplotlib
+    conda install cartopy
+    pip install pygc
+```
+
+Additionally for the test harness:
+
+```shell
+    conda install cryptography
+    pip install jwt
+    pip install portpicker
+    conda install pyopenssl
+    conda install pycurl
+    pip install psutil
+```
+
+Additionally for the data scripts:
+
+```shell
+    pip install ftputil
+```

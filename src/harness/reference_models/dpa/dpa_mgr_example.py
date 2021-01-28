@@ -13,11 +13,17 @@
 #    limitations under the License.
 
 """An example of the DPA move list and interference check."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import logging
 import os
 import time
 from collections import namedtuple
+
+from six.moves import getcwd
 
 from reference_models.common import data
 from reference_models.common import mpool
@@ -27,6 +33,9 @@ from reference_models.dpa import dpa_mgr
 # 'latitude', 'longitude'
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
 
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
 
 if __name__ == '__main__':
   # Number of Monte Carlo iterations
@@ -59,7 +68,7 @@ if __name__ == '__main__':
                         freq_ranges_mhz=[channel])
 
   # Read all grants
-  current_dir = os.getcwd()
+  current_dir = getcwd()
   _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
 
   # Populate a list of CBSD registration requests
@@ -71,7 +80,7 @@ if __name__ == '__main__':
                           'RegistrationRequest_6.json']
   reg_request_list = []
   for reg_file in reg_request_filename:
-    reg_request = json.load(open(os.path.join(_BASE_DATA_DIR, reg_file)))
+    reg_request = json_load(os.path.join(_BASE_DATA_DIR, reg_file))
     reg_request_list.append(reg_request)
 
   # Populate a list of grant requests
@@ -83,7 +92,7 @@ if __name__ == '__main__':
                             'GrantRequest_6.json']
   grant_request_list = []
   for grant_file in grant_request_filename:
-    grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
+    grant_request = json_load(os.path.join(_BASE_DATA_DIR, grant_file))
     grant_request_list.append(grant_request)
 
   grants_uut = data.getGrantsFromRequests(reg_request_list[:4], grant_request_list[:4])
@@ -96,17 +105,17 @@ if __name__ == '__main__':
   start_time = time.time()
   dpa_ref.ComputeMoveLists()
   end_time = time.time()
-  print '-- Reference model --'
-  print 'Move list output: ' + str(dpa_ref.GetMoveListMask(channel))
-  print 'Computation time: ' + str(end_time - start_time)
+  print('-- Reference model --')
+  print('Move list output: ' + str(dpa_ref.GetMoveListMask(channel)))
+  print('Computation time: ' + str(end_time - start_time))
 
   # Compute the resulting interference
   interf = dpa_ref.CalcKeepListInterference(channel)
-  print 'Keep List Interf: %s' % (' '.join([('%.3f' % i) for i in interf]))
+  print('Keep List Interf: %s' % (' '.join([('%.3f' % i) for i in interf])))
 
   # Simulate the SAS UUT
   # same algo but with a slightly different set of points
-  print '-- UUT model --'
+  print('-- UUT model --')
   protection_points = [ProtectionPoint(latitude=36.945, longitude=-76.),
                        ProtectionPoint(latitude=37.76, longitude=-75.405),
                        ProtectionPoint(latitude=36.102, longitude=-73.312),
@@ -125,8 +134,8 @@ if __name__ == '__main__':
   check = dpa_ref.CheckInterference(active_uut_grants,
                                     margin_db=margin_db,
                                     extensive_print=False)
-  print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
-  print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+  print('Move list output: ' + str(dpa_uut.GetMoveListMask(channel)))
+  print('Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL'))
 
   # - same but with special margin modes
   logging.getLogger().setLevel(logging.INFO)
@@ -134,16 +143,16 @@ if __name__ == '__main__':
   keep_list = dpa_uut.GetKeepList(channel)
   active_uut_grants = [grant for grant in grants_uut
                        if grant in keep_list]
-  print '-- Failing UUT model - absolute target ---'
+  print('-- Failing UUT model - absolute target ---')
   check = dpa_ref.CheckInterference(active_uut_grants,
                                     margin_db='target (1.5)')
-  print '-- Failing UUT model - linear target ---'
+  print('-- Failing UUT model - linear target ---')
   check = dpa_ref.CheckInterference(active_uut_grants,
                                     margin_db='linear (1.5)')
   logging.getLogger().setLevel(logging.WARNING)
 
   # Simulate a single SAS UUT (no peer SAS)
-  print '-- Single UUT model --'
+  print('-- Single UUT model --')
   dpa_uut.SetGrantsFromList(grants_uut)
   dpa_uut.ComputeMoveLists()
   keep_list = dpa_uut.GetKeepList(channel)
@@ -153,12 +162,12 @@ if __name__ == '__main__':
                                     margin_db=margin_db,
                                     do_abs_check_single_uut=True,
                                     extensive_print=False)
-  print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
-  print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+  print('Move list output: ' + str(dpa_uut.GetMoveListMask(channel)))
+  print('Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL'))
 
   # Simulate a single SAS UUT (no peer SAS) CheckInterference ().
   # import ipdb; ipdb.set_trace()
-  print '-- Single UUT model - No Compute Move List --'
+  print('-- Single UUT model - No Compute Move List --')
   dpa_suut = dpa_mgr.Dpa(protection_points,
                          name='alt(East1)',
                          threshold=-144,
@@ -169,40 +178,40 @@ if __name__ == '__main__':
                                      margin_db=margin_db,
                                      do_abs_check_single_uut=True,
                                      extensive_print=False)
-  print 'Move list output: ' + str(dpa_uut.GetMoveListMask(channel))
-  print 'Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL')
+  print('Move list output: ' + str(dpa_uut.GetMoveListMask(channel)))
+  print('Check Interference @%.2fdB margin: %s' % (margin_db, 'OK' if check else 'FAIL'))
 
   # Simulate the BuildDpa feature for various types
-  print '\n-- Test Build DPAs --'
+  print('\n-- Test Build DPAs --')
   dpa_pt = dpa_mgr.BuildDpa('Pensacola')
-  print '**Pensacola: %dpts' % len(dpa_pt.protected_points)
-  print dpa_pt
+  print('**Pensacola: %dpts' % len(dpa_pt.protected_points))
+  print(dpa_pt)
 
   dpa_zone = dpa_mgr.BuildDpa('East3',
                               protection_points_method='default(4,2,1,1)')
-  print '**East3: %dpts' % len(dpa_zone.protected_points)
-  print dpa_zone
+  print('**East3: %dpts' % len(dpa_zone.protected_points))
+  print(dpa_zone)
 
   dpa_zone = dpa_mgr.BuildDpa('East3',
                               protection_points_method='default(1,0,0,0)')
-  print '**East3 (single pt): %dpts' % len(dpa_zone.protected_points)
-  print dpa_zone
+  print('**East3 (single pt): %dpts' % len(dpa_zone.protected_points))
+  print(dpa_zone)
 
   dpa_portal = dpa_mgr.BuildDpa('BATH')
-  print '**BATH: %dpts' % len(dpa_portal.protected_points)
-  print dpa_portal
+  print('**BATH: %dpts' % len(dpa_portal.protected_points))
+  print(dpa_portal)
 
   dpa_inland = dpa_mgr.BuildDpa('Alameda',
                                 protection_points_method='default(1000,2000,1,1,40,0.5,2)')
-  print '**Alameda: %dpts' % len(dpa_inland.protected_points)
-  print dpa_inland
+  print('**Alameda: %dpts' % len(dpa_inland.protected_points))
+  print(dpa_inland)
 
   dpa_multigeo = dpa_mgr.BuildDpa('Alaska9',
                                 protection_points_method='default(10,5,2,1,40,0.5,2)')
-  print '**Alaska9: %dpts' % len(dpa_multigeo.protected_points)
-  print dpa_multigeo
+  print('**Alaska9: %dpts' % len(dpa_multigeo.protected_points))
+  print(dpa_multigeo)
 
   dpa_file = dpa_mgr.BuildDpa('Alameda',
                               protection_points_method='./test_data/points_alameda.json')
-  print '**Alameda (file): %dpts' % len(dpa_file.protected_points)
-  print dpa_file
+  print('**Alameda (file): %dpts' % len(dpa_file.protected_points))
+  print(dpa_file)

@@ -11,18 +11,24 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import csv
 import json
 import logging
 import os
+
+from six.moves import zip
+
 import sas
 import sas_testcase
 from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig,\
   convertRequestToRequestWithCpiSignature, makePalRecordsConsistent, \
   generateCpiRsaKeys, ensureFileDirectoryExists, getFqdnLocalhost, \
-  getUnusedPort, getCertFilename
+  getUnusedPort, getCertFilename, json_load
 
 
 class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
@@ -38,18 +44,18 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for WDB.1"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load PAL records
-    pal_record_a_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    pal_record_a_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
-    pal_record_b_0 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
+    pal_record_a_0 = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_0.json'))
+    pal_record_a_1 = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_1.json'))
+    pal_record_b_0 = json_load(
+      os.path.join('testcases', 'testdata', 'pal_record_2.json'))
 
     # FIPS codes of adjacent census tracts
     pal_record_a_0['fipsCode'] = 20063955100
@@ -178,10 +184,10 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for WDB.2"""
 
     # Load category B devices info
-    device_b = json.load(
-         open(os.path.join('testcases', 'testdata', 'device_b.json')))
-    device_d = json.load(
-         open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_b = json_load(
+         os.path.join('testcases', 'testdata', 'device_b.json'))
+    device_d = json_load(
+         os.path.join('testcases', 'testdata', 'device_d.json'))
 
     # Device_b and Device_d are of Category B
     self.assertEqual(device_b['cbsdCategory'], 'B')

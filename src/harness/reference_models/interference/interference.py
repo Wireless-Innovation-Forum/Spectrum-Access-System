@@ -1,4 +1,3 @@
-#
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
 #    You may obtain a copy of the License at
@@ -34,14 +33,20 @@
   FSS/GWPZ/PPA/ESC incumbent types
 ==================================================================================
 """
-from collections import namedtuple
-import numpy as np
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-from reference_models.common import data
+from collections import namedtuple
+
+import numpy as np
+from six.moves import zip
+
 from reference_models.antenna import antenna
+from reference_models.common import data
 from reference_models.geo import vincenty
-from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
+from reference_models.propagation import wf_itm
 
 # Set constant parameters based on requirements in the WINNF-TS-0112
 # [R2-SGN-16]

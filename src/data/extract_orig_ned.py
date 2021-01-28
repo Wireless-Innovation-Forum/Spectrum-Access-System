@@ -28,7 +28,7 @@ def UnzipNeededFiles(zip_filename, tmp_dir):
         datfile.filename.endswith('.hdr') or
         datfile.filename.endswith('.prj')):
       try:
-        print '   extracting %s' % datfile.filename
+        print('   extracting %s' % datfile.filename)
         zf.extract(datfile, tmp_dir)
       except:
         raise Exception('Cannot extract ' + datfile.filename + ' from ' + zip_filename)
@@ -43,8 +43,8 @@ def ExtractData(directory):
 # Find the directory of this script.
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.dirname(os.path.dirname(cur_dir))
-ned_dir = os.path.join(os.path.join(root_dir, 'data'), 'ned_orig')
+ned_dir = os.path.join(root_dir, 'data', 'geo', 'orig_ned')
 
 
-print 'Extracting NED data files from zip files in dir=%s' % ned_dir
+print('Extracting NED data files from zip files in dir=%s' % ned_dir)
 ExtractData(ned_dir)

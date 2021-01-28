@@ -44,6 +44,7 @@ class UsgsPopDriverTest(unittest.TestCase):
     latitudes = [37.702042, 37.721747, 37.722372]
     longitudes = [-122.414730, -122.391210, -122.395741]
     exp_values = [12686, 2500, 11359]
+
     densities = driver.GetPopulationDensity(
         latitudes, longitudes)
     self.assertTrue(np.all(densities == exp_values),

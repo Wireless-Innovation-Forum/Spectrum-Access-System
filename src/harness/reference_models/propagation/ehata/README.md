@@ -67,6 +67,7 @@ To build this extension, use the make command:
 which basically runs:
 
     `python setup.py build_ext --inplace`
+    `python3 setup.py build_ext --inplace`    
 
 For Windows specific compilation, see upper level [README.md](../README.md).
 

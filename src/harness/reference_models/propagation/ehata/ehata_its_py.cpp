@@ -142,6 +142,18 @@ static PyMethodDef EHATAMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initehata_its(void) {
-  Py_InitModule3("ehata_its", EHATAMethods, "eHata WinnForum Propagation Module");
+#if PY_MAJOR_VERSION >= 3  // Python3
+PyMODINIT_FUNC PyInit_ehata_its(void) {
+  static struct PyModuleDef module_def = {
+    PyModuleDef_HEAD_INIT, "ehata_its",
+    "eHata WinnForum Propagation Module", -1,
+    EHATAMethods, NULL, NULL, NULL, NULL};
+  PyObject* module = PyModule_Create(&module_def);
+  return module;
 }
+#else  // Python2
+PyMODINIT_FUNC initehata_its(void) {
+  Py_InitModule3("ehata_its",  EHATAMethods,
+                 "eHata WinnForum Propagation Module");
+}
+#endif

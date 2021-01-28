@@ -13,22 +13,31 @@
 #    limitations under the License.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import json
 import os
 import unittest
-import json
 
 import shapely.geometry as sgeo
+from six.moves import range
 
-import util
+import util2
 from reference_models.geo import drive
-from reference_models.geo import vincenty
 from reference_models.geo import utils
+from reference_models.geo import vincenty
+from reference_models.ppa import ppa
 from reference_models.propagation import wf_hybrid
 from reference_models.tools import testutils
 
-from reference_models.ppa import ppa
-
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
 
 class TestPpa(unittest.TestCase):
 
@@ -42,11 +51,11 @@ class TestPpa(unittest.TestCase):
     device_filenames = ['device_b.json', 'device_c.json']
     pal_low_frequency = 3550000000
     pal_high_frequency = 3650000000
-    cls.devices = [json.load(open(os.path.join(TEST_DIR, device_filename)))
+    cls.devices = [json_load(os.path.join(TEST_DIR, device_filename))
                    for device_filename in device_filenames]
-    cls.pal_records = [json.load(open(os.path.join(TEST_DIR, pal_record_filename)))
+    cls.pal_records = [json_load(os.path.join(TEST_DIR, pal_record_filename))
                    for pal_record_filename in pal_record_filenames]
-    cls.pal_records = util.makePalRecordsConsistent(
+    cls.pal_records = util2.makePalRecordsConsistent(
         cls.pal_records, pal_low_frequency, pal_high_frequency, user_id)
 
   def setUp(self):
@@ -63,12 +72,14 @@ class TestPpa(unittest.TestCase):
     # Configuring for -96dBm circle at 16km includes
     wf_hybrid.CalcHybridPropagationLoss = testutils.FakePropagationPredictor(
         dist_type='REAL', factor=1.0, offset=(96+30-0.1) - 16.0)
-    expected_ppa = sgeo.Polygon(
-        [vincenty.GeodesicPoint(
+    expected_ppa = sgeo.Polygon([
+        vincenty.GeodesicPoint(
             TestPpa.devices[0]['installationParam']['latitude'],
             TestPpa.devices[0]['installationParam']['longitude'],
-            dist_km=16.0, bearing=angle)[1::-1]  # reverse to lng,lat
-         for angle in xrange(360)])
+            dist_km=16.0,
+            bearing=angle)[1::-1]  # reverse to lng,lat
+        for angle in range(360)
+    ])
 
     ppa_zone = ppa.PpaCreationModel(TestPpa.devices[0:1], TestPpa.pal_records[0:1])
     ppa_zone = json.loads(ppa_zone)

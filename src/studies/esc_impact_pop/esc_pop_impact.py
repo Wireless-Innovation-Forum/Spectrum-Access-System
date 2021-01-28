@@ -48,7 +48,6 @@ import argparse
 import ast
 import collections
 import json
-import os
 import time
 
 import numpy as np

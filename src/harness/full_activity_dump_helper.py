@@ -13,12 +13,17 @@
 #    limitations under the License.
 """Container for Full Activity Dump information."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from datetime import datetime, timedelta
 import logging
 import time
-from full_activity_dump import FullActivityDump
-import util
 import traceback
+
+import full_activity_dump
+import util
 
 
 def getFullActivityDumpSasUut(sas, sas_admin, ssl_cert=None, ssl_key=None):
@@ -125,4 +130,4 @@ def _processDump(sas, dump, ssl_cert=None, ssl_key=None):
     logging.debug('%s record added to Full Activity Dump',
                   dump_file['recordType'])
 
-  return FullActivityDump(dump_data)
+  return full_activity_dump.FullActivityDump(dump_data)

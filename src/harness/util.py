@@ -13,30 +13,41 @@
 #    limitations under the License.
 """Helper functions for test harness."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import defaultdict
-import ConfigParser
 from datetime import datetime
 from functools import wraps
 import inspect
 import json
-from jsonschema import validate, Draft4Validator, RefResolver
 import logging
 import os
+import random
 import sys
 import time
-import random
 import uuid
-import jwt
-import portpicker
-from OpenSSL.crypto import load_certificate, FILETYPE_PEM
+
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-from OpenSSL.crypto import load_certificate, FILETYPE_PEM
+from jsonschema import validate, Draft4Validator, RefResolver
 import jwt
+import portpicker
+from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from shapely.geometry import shape, Point, LineString
+import six
+from six.moves import configparser
+from six.moves import range
+
+from util2 import makePalRecordsConsistent, makePpaAndPalRecordsConsistent, assertContainsRequiredFields
 from reference_models.geo import utils
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
 
 def _log_testcase_header(name, doc):
   if not len(logging.getLogger().handlers):
@@ -75,7 +86,7 @@ def configurable_testcase(default_config_function):
         if generate_default_func:
           generate_default_func(*a)
           _releaseAllPorts()
-        _log_testcase_header(name, func.func_doc)
+        _log_testcase_header(name, func.__doc__)
         return func(*a, config_filename=config)
       _func.__name__ = name
       return _func
@@ -89,14 +100,15 @@ def configurable_testcase(default_config_function):
     # Create config directory for this function if it doesn't already exist.
     harness_dir = os.path.dirname(
               os.path.abspath(inspect.getfile(inspect.currentframe())))
-    config_dir = os.path.join(harness_dir, 'testcases', 'configs', testcase.func_name)
+    config_dir = os.path.join(harness_dir, 'testcases', 'configs',
+                              testcase.__name__)
     config_names = os.listdir(config_dir) if os.path.exists(config_dir) else []
 
     # No existing configs => generate default config.
     generate_default_func = None
     if not config_names:
       default_config_filename = os.path.join(config_dir, 'default.config')
-      logging.info("%s: Creating default config at '%s'", testcase.func_name,
+      logging.info("%s: Creating default config at '%s'", testcase.__name__,
                    default_config_filename)
       generate_default_func = generate_default(default_config_function,
                                                default_config_filename)
@@ -108,7 +120,7 @@ def configurable_testcase(default_config_function):
     frame_locals = frame[0].f_locals
     for i, config_name in enumerate(config_names):
       base_config_name = os.path.splitext(config_name)[0]
-      name = '%s_%d_%s' % (testcase.func_name, i, base_config_name)
+      name = '%s_%d_%s' % (testcase.__name__, i, base_config_name)
       config_filename = os.path.join(config_dir, config_name)
       frame_locals[name] = wrapper_function(testcase, name, config_filename,
                                             generate_default_func)
@@ -118,7 +130,7 @@ def configurable_testcase(default_config_function):
 
 def loadConfig(config_filename):
   """Loads a configuration file."""
-  with open(config_filename, 'r') as f:
+  with open(config_filename, 'rb') as f:
     return json.loads(f.read())
 
 
@@ -150,8 +162,7 @@ def getRandomLatLongInPolygon(ppa):
     min_lng, min_lat, max_lng, max_lat = ppa_polygon.bounds
     lng = random.uniform(min_lng, max_lng)
     lng_line = LineString([(lng, min_lat), (lng, max_lat)])
-    lng_line_intercept_min, lng_line_intercept_max = \
-      lng_line.intersection(ppa_polygon).xy[1].tolist()
+    lng_line_intercept_min, lng_line_intercept_max = lng_line.intersection(ppa_polygon).xy[1].tolist()
     lat = random.uniform(lng_line_intercept_min, lng_line_intercept_max)
     if Point([lng, lat]).within(ppa_polygon):
       return lat, lng
@@ -160,120 +171,6 @@ def getRandomLatLongInPolygon(ppa):
   except NotImplementedError:
     # Cannot get the intercept call it again
     return getRandomLatLongInPolygon(ppa)
-
-
-def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
-                             user_id, fcc_channel_id="1",
-                             start_date=None, end_date=None):
-  """Make Pal object consistent with the inputs
-
-    Args:
-      pal_records: (list) A list of PAL Records in the form of dictionary.
-      low_frequency: (number) The Primary Low Frequency in Hz for PAL.
-      high_frequency: (number) The Primary High Frequency in Hz for PAL.
-      user_id: (string) The userId to put in PAL Records.
-      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
-      start_date: (string) PAL license start date, generally set as one year
-      before the current date
-      end_date: (string) PAL license expiration date, generally set as more than
-      one year after the current date
-    Returns:
-      A list containing individual PAL records in the form of dictionary
-    Note: The PAL Dictionary must contain censusYear(number) and
-          fipsCode(number)
-  """
-  start_date = datetime.now().replace(year=datetime.now().year - 1) \
-    if start_date is None else start_date
-  end_date = datetime.now().replace(year=datetime.now().year + 1) \
-    if end_date is None else end_date
-
-  for index, pal_rec in enumerate(pal_records):
-    pal_fips_code = pal_rec['fipsCode']
-    pal_census_year = pal_rec['censusYear']
-    del pal_rec['fipsCode'], pal_rec['censusYear']
-
-    pal_rec = defaultdict(lambda: defaultdict(dict), pal_rec)
-    # Change the FIPS Code and Registration Date-Year in Pal Id
-    pal_rec['palId'] = '/'.join(['pal', '%s-%d' %
-                                 ('{:02d}'.format(start_date.month),
-                                  start_date.year),
-                                 str(pal_fips_code), fcc_channel_id])
-    pal_rec['userId'] = user_id
-    # Make the date consistent in Pal Record for Registration and License
-    pal_rec['registrationInformation']['registrationDate'] = \
-      start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    # Change License Information in Pal
-    pal_rec['license']['licenseAreaIdentifier'] = str(pal_fips_code)
-    pal_rec['license']['licenseAreaExtent'] = \
-      'zone/census_tract/census/{}/{}'.format(pal_census_year, pal_fips_code)
-    pal_rec['license']['licenseDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    pal_rec['license']['licenseExpiration'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-    pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
-    # Change Frequency Information in Pal
-    pal_rec['channelAssignment']['primaryAssignment']['lowFrequency'] = low_frequency
-    pal_rec['channelAssignment']['primaryAssignment']['highFrequency'] = high_frequency
-    # Converting from defaultdict to dict
-    pal_records[index] = json.loads(json.dumps(pal_rec))
-  return pal_records
-
-
-def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
-                                   high_frequency, user_id,
-                                   fcc_channel_id="1"):
-  """Make PPA and PAL object consistent with the inputs
-
-    Args:
-      ppa_record: (dictionary) A dictionary containing PPA Record.
-      pal_records: (list) A list of PAL Records in the form of dictionary
-      which has to be associated with the PPA.
-      low_frequency: (number) The Primary Low Frequency in Hz for PAL.
-      high_frequency: (number) The Primary High Frequency in Hz for PAL.
-      user_id: (string) The userId from the CBSD.
-      fcc_channel_id: (string) The FCC-supplied frequency channel identifier.
-
-    Returns:
-      A tuple containing PPA record which itself is a dictionary and PAL records
-      list which contains individual PAL records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear(number) and
-          fipsCode(number)
-  """
-  start_date = datetime.now().replace(year=datetime.now().year - 1)
-  end_date = datetime.now().replace(year=datetime.now().year + 1)
-
-  pal_records = makePalRecordsConsistent(pal_records, low_frequency,
-                                         high_frequency, user_id,
-                                         fcc_channel_id, start_date, end_date)
-  # Add PAL Ids into the PPA Record
-  ppa_record = defaultdict(lambda: defaultdict(dict), ppa_record)
-
-  ppa_record['ppaInfo']['palId'] = [pal['palId'] for pal in pal_records]
-  ppa_record['id'] = 'zone/ppa/%s/%s/%s' % (ppa_record['creator'],
-                                            ppa_record['ppaInfo']['palId'][0],
-                                            uuid.uuid4().hex)
-
-  # Make the date consistent in PPA Record
-  ppa_record['ppaInfo']['ppaBeginDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  ppa_record['ppaInfo']['ppaExpirationDate'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-  # Converting from defaultdict to dict
-  ppa_record = json.loads(json.dumps(ppa_record))
-
-  return ppa_record, pal_records
-
-
-def assertContainsRequiredFields(schema_filename, response):
-  schema_dir = os.path.abspath(os.path.join(os.path.dirname(
-      inspect.getfile(inspect.currentframe())), '..', '..', 'schema'))
-  schema_filename = os.path.join(schema_dir, schema_filename)
-  schema = json.load(open(schema_filename))
-  Draft4Validator.check_schema(schema)
-  if os.name == 'nt':
-      os_base_uri = 'file:///'
-  else:
-      os_base_uri = 'file://'
-  resolver = RefResolver(referrer=schema, base_uri=os_base_uri + schema_dir + '/')
-  # Raises ValidationError when incorrect response
-  validate(response, schema, resolver=resolver)
 
 
 def generateCpiRsaKeys():
@@ -291,7 +188,7 @@ def generateCpiRsaKeys():
   rsa_public_key = rsa_key.public_key().public_bytes(
       encoding=serialization.Encoding.PEM,
       format=serialization.PublicFormat.SubjectPublicKeyInfo)
-  return rsa_private_key, rsa_public_key
+  return six.ensure_text(rsa_private_key), six.ensure_text(rsa_public_key)
 
 
 def generateCpiEcKeys():
@@ -308,7 +205,7 @@ def generateCpiEcKeys():
   ec_public_key = ec_key.public_key().public_bytes(
       encoding=serialization.Encoding.PEM,
       format=serialization.PublicFormat.SubjectPublicKeyInfo)
-  return ec_private_key, ec_public_key
+  return six.ensure_text(ec_private_key), six.ensure_text(ec_public_key)
 
 
 def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
@@ -338,7 +235,7 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
           '%Y-%m-%dT%H:%M:%SZ')
   compact_jwt_message = jwt.encode(
       cpi_signed_data, private_key, jwt_algorithm)
-  jwt_message = compact_jwt_message.split('.')
+  jwt_message = six.ensure_text(compact_jwt_message).split('.')
   request['cpiSignatureData'] = {}
   request['cpiSignatureData']['protectedHeader'] = jwt_message[0]
   request['cpiSignatureData']['encodedCpiSignedData'] = jwt_message[1]
@@ -400,7 +297,7 @@ def getCertificateFingerprint(certificate):
   certificate_string = open(certificate,"rb").read()
   cert = load_certificate(FILETYPE_PEM, certificate_string)
   sha1_fingerprint = cert.digest("sha1")
-  return sha1_fingerprint
+  return six.ensure_text(sha1_fingerprint)
 
 def filterChannelsByFrequencyRange(channels, freq_range):
   """Returns channels which partially or fully overlap with 'freq_range'.
@@ -543,7 +440,7 @@ class _TestConfig(object):
 
   @classmethod
   def FromFile(cls, file='test.cfg'):
-    parser = ConfigParser.RawConfigParser()
+    parser = configparser.RawConfigParser()
     parser.read([file])
     test_config = _TestConfig()
     test_config.hostname = parser.get('TestConfig', 'hostname')
@@ -575,7 +472,7 @@ def getUnusedPort():
     return portpicker.pick_unused_port()
   global _ports
   # Find the first available port in the defined range.
-  for p in xrange(config.min_port, config.max_port):
+  for p in range(config.min_port, config.max_port):
     if p not in _ports and portpicker.is_port_free(p):
       _ports.add(p)
       return p

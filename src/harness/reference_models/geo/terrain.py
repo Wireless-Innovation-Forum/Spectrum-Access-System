@@ -25,15 +25,19 @@ Original data available at: https://nationalmap.gov/3DEP/.
 # - there is a standard 6-pixel overlap between tiles
 # The terrain tiles are stored in the directory referenced by:
 #     CONFIG.GetTerrainDir()
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import os
+import threading
+import time
 
 import numpy as np
-import os
-import time
-import threading
 
+from reference_models.geo import CONFIG
 from reference_models.geo import tiles
 from reference_models.geo import vincenty
-from reference_models.geo import CONFIG
 
 
 _RADIUS_EARTH_METERS = 6378.e3 # Mean radius of the Earth in km
@@ -137,9 +141,8 @@ class TerrainDriver:
 
       # Load a tile in memory and manage the cache.
       encoding = '%c%02d%c%03d' % (
-          'sn'[ilat >= 0], abs(ilat),
-          'we'[ilon >= 0], abs(ilon))
-
+          'sn'[int(ilat >= 0)], abs(ilat),
+          'we'[int(ilon >= 0)], abs(ilon))
       tile_name1 = 'usgs_ned_1_' + encoding + '_gridfloat_std.flt'
       tile_name2 = 'float' + encoding + '_1_std.flt'
       tile_name = (tile_name1
@@ -310,7 +313,7 @@ class TerrainDriver:
         the HAAT for an antenna at height 0 above ground level.
         the terrain altitude at given location
     """
-    radial_angles = np.linspace(0, 360, 8., endpoint=False)
+    radial_angles = np.linspace(0, 360, 8, endpoint=False)
     distances_km = np.linspace(3, 16, 50)
     all_lat = [lat]
     all_lon = [lon]

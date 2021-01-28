@@ -13,6 +13,10 @@
 #    limitations under the License.
 """Container for Full Activity Dump information."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 
 class FullActivityDump(object):
 
@@ -54,7 +58,7 @@ class FullActivityDump(object):
       return list(self._dump_data[record_type])
     response = self._dump_data[record_type]
     for f in filters:
-      response = filter(f, response)
+      response = [r for r in response if f(r)]
     return response
 
   def getCbsdRecords(self, filters=[]):

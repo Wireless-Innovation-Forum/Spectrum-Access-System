@@ -23,6 +23,9 @@ Usage:
     - run:
       kernprof -l -v prof_prop.py > line_profile.txt
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
@@ -57,13 +60,13 @@ def CalcItm(rel, rx_lat, rx_lng):
 
 if __name__ == '__main__':
   # First calc to load the terrain data in cache
-  print '# Pre-Loading the terrain'
+  print('# Pre-Loading the terrain')
   res = CalcItm(0.5, rx_lat, rx_lng)
-  print '## Initial driver report'
+  print('## Initial driver report')
   drive.terrain_driver.stats.Report()
-  print ''
-  print '# Propagation calculation'
-  for k in xrange(1000):
+  print('')
+  print('# Propagation calculation')
+  for k in range(1000):
     CalcItm(-1, rx_lat, rx_lng)
-  print '## Final driver report'
+  print('## Final driver report')
   drive.terrain_driver.stats.Report()

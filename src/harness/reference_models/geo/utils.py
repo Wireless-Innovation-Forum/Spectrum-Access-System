@@ -15,10 +15,16 @@
 """Utility geometry routines.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import numpy as np
 import shapely.geometry as sgeo
 import shapely.ops as ops
+import six
+from six.moves import zip
 
 from reference_models.geo import vincenty
 from reference_models.geo import zones
@@ -40,7 +46,7 @@ def HasCorrectGeoJsonWinding(geometry):
   Raises:
     ValueError: If invalid input or GeoJSON geometry type.
   """
-  if isinstance(geometry, basestring):
+  if isinstance(geometry, six.string_types):
     geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
@@ -89,7 +95,7 @@ def InsureGeoJsonWinding(geometry):
     return geometry
 
   is_str = False
-  if isinstance(geometry, basestring):
+  if isinstance(geometry, six.string_types):
     geometry = json.loads(geometry)
     is_str = True
   if not isinstance(geometry, dict) or 'type' not in geometry:
@@ -106,7 +112,7 @@ def InsureGeoJsonWinding(geometry):
 
   def _list_convert(x):
     # shapely mapping returns a nested tuple.
-    return map(_list_convert, x) if isinstance(x, (tuple, list)) else x
+    return [_list_convert(xx) for xx in x] if isinstance(x, (tuple, list)) else x
 
   if 'coordinates' in geometry:
     geometry['coordinates'] = _list_convert(geometry['coordinates'])
@@ -134,7 +140,7 @@ def _GeoJsonToShapelyGeometry(geometry):
   Raises:
     ValueError: If invalid GeoJSON geometry is passed.
   """
-  if isinstance(geometry, basestring):
+  if isinstance(geometry, six.string_types):
     geometry = json.loads(geometry)
   if not isinstance(geometry, dict) or 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
@@ -189,7 +195,7 @@ def InsureFeatureCollection(geometry, as_dict=False):
     geometry: A geojson geometry, either as dict or str. Can be any type
       of GeoJSON: standard geometry, feature or feature collection.
   """
-  if isinstance(geometry, basestring):
+  if isinstance(geometry, six.string_types):
     geometry = json.loads(geometry)
   if 'type' not in geometry:
     raise ValueError('Invalid GeoJSON geometry.')
@@ -227,6 +233,8 @@ def GridPolygon(poly, res_arcsec):
   """
   poly = ToShapely(poly)
   bound_area = (poly.bounds[2] - poly.bounds[0]) * (poly.bounds[3] - poly.bounds[1])
+  if not poly:
+    return []
   if isinstance(poly, sgeo.MultiPolygon) and poly.area < bound_area * 0.01:
     # For largely disjoint polygons, we process per polygon
     # to avoid inefficiencies if polygons largely disjoint.
@@ -255,6 +263,8 @@ def GridPolygon(poly, res_arcsec):
   # Performs slight buffering by 1mm to include border points in case they fall
   # exactly on a multiple of 1 arcsec.
   pts = poly.buffer(1e-8).intersection(sgeo.asMultiPoint(points))
+  if not pts:
+    return []
   if isinstance(pts, sgeo.Point):
     return [(pts.x, pts.y)]
   return [(p.x, p.y) for p in pts]
@@ -314,7 +324,8 @@ def GeometryArea(geometry, merge_geometries=False):
     The approximate area within the geometry (in square kilometers).
   """
   geometry = ToShapely(geometry)
-  if (isinstance(geometry, sgeo.Point) or
+  if (not geometry or
+      isinstance(geometry, sgeo.Point) or
       isinstance(geometry, sgeo.LineString) or
       isinstance(geometry, sgeo.LinearRing)):
     # Lines, rings and points have null area
@@ -447,12 +458,13 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
   points_dists = []
   # Find closest point
   if border_cap.type in ['LineString', 'Point']:
-       points_dists.extend(_distancesOfPoints(latitude, longitude, border_cap))
+    points_dists.extend(_distancesOfPoints(latitude, longitude, border_cap))
   elif border_cap.type in ['MultiLineString', 'MultiPoint']:
-        for element in border_cap.geoms:
-          points_dists.extend(_distancesOfPoints(latitude, longitude, element))
+    for element in border_cap.geoms:
+      points_dists.extend(_distancesOfPoints(latitude, longitude, element))
   else:
-    raise ValueError(border_cap.type + ', not treated type of intersection with canadian border')             
+    raise ValueError(border_cap.type +
+                     ', not treated type of intersection with canadian border')
   closest = min(points_dists)
   closest_dist = closest[0][0]
   if closest_dist > max_dist_km:
@@ -461,9 +473,8 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
   return closest[1][1], closest[1][0], closest_dist, closest_bearing
 
 def _distancesOfPoints(latitude, longitude, points):
-  return [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]),
-                   point)
-                  for point in zip(*points.xy)]
+  return [(vincenty.GeodesicDistanceBearing(latitude, longitude, point[1], point[0]), point)
+          for point in zip(*points.xy)]
 
 def _angleBetween(angle, min_angle, max_angle):
   """Check if `angle` falls between `min_angle` and `max_angle`."""

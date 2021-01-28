@@ -18,6 +18,10 @@ The grants from FAD CBSD objects of SAS UUT and SAS test harnesses are purged if
   - FSS+GWBL: within 150 KMs from a list of FSSs
 and the grant frequency range overlaps with the protected entity's frequency range.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import logging
 from reference_models.common import data
 from reference_models.pre_iap_filtering import pre_iap_util

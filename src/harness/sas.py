@@ -13,13 +13,21 @@
 #    limitations under the License.
 """Implementation of SasInterface."""
 
-import ConfigParser
-from request_handler import TlsConfig, RequestPost, RequestGet
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
+
+from six.moves import configparser
+
+from request_handler import TlsConfig, RequestPost, RequestGet
 import sas_interface
 
+
+
 def GetTestingSas():
-  config_parser = ConfigParser.RawConfigParser()
+  config_parser = configparser.RawConfigParser()
   config_parser.read(['sas.cfg'])
   admin_api_base_url = config_parser.get('SasConfig', 'AdminApiBaseUrl')
   cbsd_sas_rsa_base_url = config_parser.get('SasConfig', 'CbsdSasRsaBaseUrl')
@@ -61,8 +69,9 @@ def GetDefaultSasSSLKeyPath():
 class SasImpl(sas_interface.SasInterface):
   """Implementation of SasInterface for SAS certification testing."""
 
-  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,\
-    sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version, sas_sas_version, sas_admin_id, maximum_batch_size):
+  def __init__(self, cbsd_sas_rsa_base_url, cbsd_sas_ec_base_url,
+               sas_sas_rsa_base_url, sas_sas_ec_base_url, cbsd_sas_version,
+               sas_sas_version, sas_admin_id, maximum_batch_size):
     self._cbsd_sas_rsa_base_url = cbsd_sas_rsa_base_url
     self._cbsd_sas_ec_base_url = cbsd_sas_ec_base_url
     self._sas_sas_rsa_base_url = sas_sas_rsa_base_url

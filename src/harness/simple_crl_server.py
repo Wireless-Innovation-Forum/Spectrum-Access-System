@@ -14,6 +14,10 @@
 
 """A simple Certificate Revocation List (CRL) server implementation."""
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import inspect
 import logging
 import os
@@ -22,8 +26,13 @@ import socket
 import sys
 import subprocess
 import threading
-from urlparse import urlparse
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.urllib import parse as urllib
+
+import six
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves import input
+from six.moves import zip
+
 
 CRLDP_BASE = 'http://localhost:9007/'
 DEFAULT_CRL_SERVER_PORT = 80
@@ -65,8 +74,8 @@ class SimpleCrlServer(threading.Thread):
           files to serve.
     """
 
-    super(SimpleCrlServer, self).__init__()
-    url_components = urlparse(crl_url)
+    threading.Thread.__init__(self)
+    url_components = urllib.urlparse(crl_url)
     self.port = url_components.port if url_components.port is not None else \
         DEFAULT_CRL_SERVER_PORT
     self.setDaemon(True)
@@ -117,7 +126,7 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
   def do_GET(self):
     """Handles Pull/GET Request and returns path of the request to callback method."""
 
-    req_path = urlparse(self.path).path
+    req_path = urllib.urlparse(self.path).path
     self.log_message('Received GET Request: {}'.format(req_path))
 
     # Check the requested prefix.
@@ -171,11 +180,11 @@ def getCertificateNameToBlacklist():
 
   # Creates the mapping menu ID for each certificate file to displayed list.
   cert_files_with_options = dict(zip(range(len(cert_files)), sorted(cert_files)))
-  print "Select the certificate to blacklist:"
-  print "\n".join("[%s] %s" % (cert_file_option_id, cert_file_name)
+  print("Select the certificate to blacklist:")
+  print("\n".join("[%s] %s" % (cert_file_option_id, cert_file_name)
                   for (cert_file_option_id, cert_file_name) in
-                  sorted(cert_files_with_options.iteritems()))
-  option_id = int(raw_input(CLI_PROMPT_TEXT))
+                  sorted(six.iteritems(cert_files_with_options))))
+  option_id = int(input(CLI_PROMPT_TEXT))
   if option_id not in cert_files_with_options:
     raise Exception('RunTimeError:Invalid input:{}. Please select a valid '
                     'certificate'.format(option_id))
@@ -280,8 +289,8 @@ def crlServerStop(crl_server):
 def readInput():
   """Display the CRL server menu and executes the selected option."""
 
-  print BANNER_TITLE + MENU_OPTIONS
-  choice = raw_input(CLI_PROMPT_TEXT)
+  print(BANNER_TITLE + MENU_OPTIONS)
+  choice = input(CLI_PROMPT_TEXT)
   executeSelectedMenu(choice)
   return
 
@@ -298,9 +307,9 @@ def executeSelectedMenu(choice):
     try:
       MENU_ACTIONS[choice]()
     except KeyError:
-      print "Invalid selection, please try again"
+      print("Invalid selection, please try again")
     except Exception as err:
-      logging.error(err.message)
+      logging.error(str(err))
     MENU_ACTIONS[MENU_ID_MAIN_MENU]()
   return
 
@@ -326,4 +335,4 @@ if __name__ == '__main__':
     readInput()
     crlServerStop(crl_server_instance)
   except Exception as err:
-    logging.error(err.message)
+    logging.error(str(err))

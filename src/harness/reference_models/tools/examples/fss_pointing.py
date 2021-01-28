@@ -26,6 +26,9 @@ Typical usage:
                                    west_elevation_limit, east_elevation_limit,
                                    west_azimuth_limit, east_azimuth_limit)
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import math
 

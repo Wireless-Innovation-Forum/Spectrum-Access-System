@@ -158,17 +158,22 @@ Misc notes:
   and rerun detailed analysis with different parameters in interactive sessions
   (advanced use only).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import argparse
 import copy
-import cPickle
+from six.moves import cPickle
 import logging
 import sys
 import time
 
+from absl import app
 import matplotlib.pyplot as plt
 import numpy as np
 import shapely.geometry as sgeo
+from six.moves import range
 
 from reference_models.common import mpool
 from reference_models.dpa import dpa_mgr
@@ -280,9 +285,12 @@ def SyntheticMoveList(ml_list, method, num, chan_idx):
     # Intersection method (similar to method of Michael Souryal - NIST).
     # One difference is that we do not remove xx% of extrema.
     ref_ml = []
-    for chan in xrange(len(ml_list[0])):
+    for chan in range(len(ml_list[0])):
       ref_ml.append(set.intersection(*[ml_list[k][chan]
-                                       for k in xrange(num)]))
+                                       for k in range(num)]))
+  elif method.startswith('idx'):
+    idx = int(method.split('idx')[1])
+    ref_ml = ml_list[idx]
   else:
     raise ValueError('Ref ML method %d unsupported' % method)
   return ref_ml
@@ -369,7 +377,7 @@ def ExtensiveInterferenceCheck(dpa,
   start_time = time.time()
   num_synth_ml = 1 if not ref_ml_num else ref_ml_num
   num_check = len(ref_move_lists) - num_synth_ml + 1
-  for k in xrange(num_check):
+  for k in range(num_check):
     dpa.move_lists = SyntheticMoveList(ref_move_lists[k:],
                                        ref_ml_method, ref_ml_num,
                                        chan_idx)
@@ -420,7 +428,15 @@ def FindOrBuildDpa(dpas, options, grants):
   """
   if options.dpa:
     dpa_kml_file = options.dpa_kml or None
-    dpa = dpa_mgr.BuildDpa(options.dpa, None, portal_dpa_filename=dpa_kml_file)
+    dpa = None
+    if dpas:
+      for d in dpas:
+        if d.name.lower() == options.dpa.lower():
+          dpa = d
+          break
+    if not dpa:
+      print('Cannot find DPA in config - creating a default one')
+      dpa = dpa_mgr.BuildDpa(options.dpa, None, portal_dpa_filename=dpa_kml_file)
   else:
     if not dpas:
       raise ValueError('Config file not defining a DPA and no --dpa option used.')
@@ -555,7 +571,7 @@ def DpaSimulate(config_file, options):
       num_workers, num_ref_ml))
   start_time = time.time()
   ref_move_list_runs = []  # Save the move list of each run
-  for k in xrange(num_base_ml):
+  for k in range(num_base_ml):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
     sys.stdout.write('.'); sys.stdout.flush()
@@ -574,7 +590,7 @@ def DpaSimulate(config_file, options):
     # If UUT has its own parameters, simulate it by running it,
     # otherwise reuse the move lists of the ref model.
     uut_move_list_runs = []
-    for k in xrange(num_uut_ml):
+    for k in range(num_uut_ml):
       dpa_uut.ComputeMoveLists()
       uut_move_list_runs.append(copy.copy(dpa_uut.move_lists))
       sys.stdout.write('+'); sys.stdout.flush()
@@ -700,7 +716,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   print('  Channel for analyze: %s' % (channel,))
   print('  Recalc on chan: nbor_l=%d kl=%d' % (len(nbor_list), len(keep_list)))
   # Initial step - plot CBSD on maps: UUT keep list vs ref model keep list
-  print '== Plot relevant lists on map.'
+  print('== Plot relevant lists on map.')
   # Plot the entities.
   print('  Plotting Map: Nbor list and keep list for channel %s' % (channel,))
   uut_move_list_uut = [g for g in nbor_list
@@ -751,7 +767,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   # ie we repeat the Check N times but with the same ML
   if len(ref_nbor_list):
     start_time = time.time()
-    num_check = max(10, num_base_ml / 2)
+    num_check = max(10, num_base_ml // 2)
     print('*****  Re-testing REAL SAS UUT vs %d TEST-REF move list *****' % (num_check))
     print('  Same ref move list each time from TEST - only interference check is random. ')
     full_ref_move_list_runs = [None] * len(dpa._channels)
@@ -775,7 +791,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   print('First computing %d reference move lists (%d workers)' % (num_ref_ml, num_workers))
   start_time = time.time()
   ref_move_list_runs = []  # Save the move list of each run
-  for k in xrange(num_base_ml):
+  for k in range(num_base_ml):
     dpa.ComputeMoveLists()
     ref_move_list_runs.append(copy.copy(dpa.move_lists))
     sys.stdout.write('.'); sys.stdout.flush()
@@ -816,7 +832,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   print('  Every ref move list regenerated through move list process (+ %s of %d method)' % (
       options.ref_ml_method, max(options.ref_ml_num, 1)))
   print('  SAS UUT move list taken with method: %s of %d' % (
-      options.uut_ml_method, max(options.uut_ml_num, 1)))
+      options.uut_ml_method, options.uut_ml_num or len(ref_move_list_runs)))
   dpa_uut.move_lists = SyntheticMoveList(ref_move_list_runs,
                                          options.uut_ml_method, options.uut_ml_num,
                                          chan_idx)
@@ -852,8 +868,7 @@ def DpaAnalyzeLogs(config_file, log_file, options):
   plt.yscale('log', nonposy='clip')
   plt.legend()
 
-
-#--------------------------------------------------
+#---------------------------
 # The simulation
 if __name__ == '__main__':
   options = parser.parse_args()

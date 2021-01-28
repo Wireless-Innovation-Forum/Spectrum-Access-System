@@ -17,16 +17,21 @@
 This is a subset of the Pre-IAP reference model which implements the FSS purge list
 algorithm described in R2-SGN-29.
 """
-import numpy as np
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
 import logging
 
-from reference_models.common import data
+import numpy as np
+
 from reference_models.antenna import antenna
-from reference_models.interference import interference as interf
+from reference_models.common import data
 from reference_models.geo import vincenty
-from reference_models.propagation import wf_itm
+from reference_models.interference import interference as interf
 from reference_models.pre_iap_filtering import pre_iap_util
+from reference_models.propagation import wf_itm
 
 # Definition of constants and data types for FSS purge model.
 # Reference Channel bandwidth for FSS OOBE calculation

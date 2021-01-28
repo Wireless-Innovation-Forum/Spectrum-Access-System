@@ -11,18 +11,20 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import logging
 import os
+from datetime import datetime
 
 import common_strings
 import sas
 import sas_testcase
+from util import addCbsdIdsToRequests, configurable_testcase, writeConfig, loadConfig, json_load
 
-from datetime import datetime
-from util import addCbsdIdsToRequests, configurable_testcase, writeConfig, \
-  loadConfig
 
 class ExclusionZoneTestcase(sas_testcase.SasTestCase):
 
@@ -36,8 +38,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
   def generate_EXZ_1_default_config(self, filename):
     """Generates the WinnForum configuration for EXZ.1."""
     # Load Exclusion Zones
-    exz_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'exz_record_0.json')))
+    exz_record = json_load(
+        os.path.join('testcases', 'testdata', 'exz_record_0.json'))
     frequency_ranges = [{'lowFrequency': 3550000000, 'highFrequency': 3600000000},
                         {'lowFrequency': 3600000000, 'highFrequency': 3650000000}
                        ]
@@ -46,8 +48,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
         'frequencyRanges': frequency_ranges
     }
 
-    exz_record = json.load(
-        open(os.path.join('testcases', 'testdata', 'exz_record_1.json')))
+    exz_record = json_load(
+        os.path.join('testcases', 'testdata', 'exz_record_1.json'))
     frequency_ranges = [{'lowFrequency': 3650000000, 'highFrequency': 3660000000},
                         {'lowFrequency': 3660000000, 'highFrequency': 3670000000}
                        ]
@@ -57,88 +59,88 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     }
 
     # Load N2 devices info and move them to each located outside 50 meters of exclusion zone exz_record_2
-    device_N2_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_N2_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_N2_1['installationParam']['latitude'] = 42.37477
     device_N2_1['installationParam']['longitude'] = -100.93139
-    device_N2_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N2_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_N2_2['installationParam']['latitude'] = 42.42548
     device_N2_2['installationParam']['longitude'] = -99.8767
 
     # Forming N2 grant request with exz_record_2 overlapping frequency
-    grant_N2_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N2_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N2_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3650000000
     grant_N2_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3660000000
-    grant_N2_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N2_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N2_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3660000000
     grant_N2_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3670000000
 
     # Load N3_1 device located within exclusion zone exz_record_1
-    device_N3_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_N3_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     device_N3_1['installationParam']['latitude'] = 39.66068
     device_N3_1['installationParam']['longitude'] = -96.63024
     device_N3_1['fccId'] = "test_fcc_id_aa"
     device_N3_1['cbsdSerialNumber'] = "test_serial_number_aa"
 
     # Forming N3_1 grant request with exz_record_1 overlapping frequency
-    grant_N3_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N3_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3560000000
 
     # Load N3_2 device located within exclusion zone exz_record_2
-    device_N3_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N3_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_N3_2['installationParam']['latitude'] = 42.65012
     device_N3_2['installationParam']['longitude'] = -100.79956
     device_N3_2['fccId'] = "test_fcc_id_bb"
     device_N3_2['cbsdSerialNumber'] = "test_serial_number_bb"
 
     # Forming N3_2 grant request with exz_record_2 overlapping frequency
-    grant_N3_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N3_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N3_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3650000000
     grant_N3_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3660000000
 
     # Load N4_1 device located within 50 meters of exclusion zone exz_record_1
-    device_N4_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N4_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     device_N4_1['installationParam']['latitude'] = 39.91706
     device_N4_1['installationParam']['longitude'] = -96.68082
     device_N4_1['fccId'] = "test_fcc_id_bbb"
     device_N4_1['cbsdSerialNumber'] = "test_serial_number_bbb"
 
     # Forming N4_1 grant request with exz_record_1 overlapping frequency
-    grant_N4_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N4_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N4_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
     grant_N4_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3560000000
 
     # Load N4_2 device located within 50 meters of exclusion zone exz_record_2
-    device_N4_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_N4_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     device_N4_2['installationParam']['latitude'] = 42.89723
     device_N4_2['installationParam']['longitude'] = -100.74354
     device_N4_2['fccId'] = "test_fcc_id_ccc"
     device_N4_2['cbsdSerialNumber'] = "test_serial_number_ccc"
 
     # Forming N4_2 grant request with exz_record_2 overlapping frequency
-    grant_N4_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N4_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N4_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3650000000
     grant_N4_2['operationParam']['operationFrequencyRange'][
@@ -321,30 +323,30 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for EXZ.2."""
 
     # Loading N1 set of CBSDs each located outside 50 meters of all Exclusion Zones
-    device_N1_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_N1_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_N1_1 just outside of 50 meters from exclusion zone of
     # 'East-Gulf Combined Contour'
     device_N1_1['installationParam']['latitude'] = 40.31260
     device_N1_1['installationParam']['longitude'] = -96.25100
 
-    device_N1_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N1_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_N1_2 just outside of 50 meters from exclusion zone of
     # 'West Combined Contour'
     device_N1_2['installationParam']['latitude'] = 33.58101 
     device_N1_2['installationParam']['longitude'] = -114.35775 
 
-    device_N1_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_N1_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_N1_3 just outside of 50 meters from exclusion zone of
     # 'West Combined Contour'
     device_N1_3['installationParam']['latitude'] = 33.85263
     device_N1_3['installationParam']['longitude'] = -106.57198
 
     # Loading N2 set of CBSDs each located within at least one Exclusion Zone
-    device_N2_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N2_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_N2_1 to a location inside the exclusion zone of
     # 'West Combined Contour'
     device_N2_1['installationParam']['latitude'] = 37.26531 
@@ -352,8 +354,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N2_1['fccId'] = "test_fcc_id_bb"
     device_N2_1['cbsdSerialNumber'] = "test_serial_number_bb"
 
-    device_N2_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_N2_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_N2_2 to a location inside the exclusion zone of
     # 'East-Gulf Combined Contour'
     device_N2_2['installationParam']['latitude'] = 30.69461
@@ -362,8 +364,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N2_2['cbsdSerialNumber'] = "test_serial_number_cc"
 
     # Loading N3 set of CBSDs each located within 50 meters of at least one Exclusion Zone
-    device_N3_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_N3_1 = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_N3_1 to a location within 50 meters from the exclusion zone
     # of 'East-Gulf Combined Contour'
     device_N3_1['installationParam']['latitude'] = 43.936508
@@ -371,8 +373,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N3_1['fccId'] = "test_fcc_id_aaa"
     device_N3_1['cbsdSerialNumber'] = "test_serial_number_aaa"
 
-    device_N3_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_N3_2 = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_N3_2 to a location within 50 meters from the exclusion zone
     # of 'West Combined Contour'
     device_N3_2['installationParam']['latitude'] = 47.34734
@@ -380,8 +382,8 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N3_2['fccId'] = "test_fcc_id_bbb"
     device_N3_2['cbsdSerialNumber'] = "test_serial_number_bbb"
 
-    device_N3_3 = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_N3_3 = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_N3_3 to a location within 50 meters from the exclusion zone
     # of 'East-Gulf Combined Contour'
     device_N3_3['installationParam']['latitude'] = 39.489834
@@ -390,54 +392,54 @@ class ExclusionZoneTestcase(sas_testcase.SasTestCase):
     device_N3_3['cbsdSerialNumber'] = "test_serial_number_ccc"
 
     # Forming N1 grant request with overlapping frequency
-    grant_N1_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N1_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N1_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N1_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
-    grant_N1_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N1_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N1_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N1_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
-    grant_N1_3 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N1_3 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N1_3['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N1_3['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
 
     # Forming N2 grant request
-    grant_N2_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N2_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N2_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
     grant_N2_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3555000000
-    grant_N2_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N2_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N2_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3550000000
     grant_N2_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3555000000
 
     # Forming N3 grant request with overlapping frequency
-    grant_N3_1 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N3_1 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N3_1['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
-    grant_N3_2 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N3_2 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N3_2['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N3_2['operationParam']['operationFrequencyRange'][
         'highFrequency'] = 3655000000
-    grant_N3_3 = json.load(
-          open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_N3_3 = json_load(
+          os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_N3_3['operationParam']['operationFrequencyRange'][
         'lowFrequency'] = 3645000000
     grant_N3_3['operationParam']['operationFrequencyRange'][

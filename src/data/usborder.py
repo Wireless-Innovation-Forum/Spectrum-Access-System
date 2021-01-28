@@ -92,53 +92,53 @@ def ReadKML(filename):
 # and last elements of each list to the other lists, and combining
 # the new list to the first neighbor when the values are the same.
 def ConsolidateLists(coordinateLists):
-  print 'Comparing %d lists...' % len(coordinateLists)
+  print('Comparing %d lists...' % len(coordinateLists))
   final = []
   for lst in coordinateLists:
     if lst[0] == lst[-1]:
-      print '    --> on RING %s...%s' % (lst[0], lst[-1])
+      print('    --> on RING %s...%s' % (lst[0], lst[-1]))
     else:
-      print '    --> on %s...%s' % (lst[0], lst[-1])
+      print('    --> on %s...%s' % (lst[0], lst[-1]))
     if len(final) == 0:
       final.append(lst)
       continue
     found = False
     for f in final:
-      #print '%s...%s compare %s...%s' % (f[0], f[-1], lst[0], lst[-1])
+      #print('%s...%s compare %s...%s' % (f[0], f[-1], lst[0], lst[-1]))
       if f[0] == lst[len(lst)-1]:
-        print 'Joining new element list %s...%s with %s...%s' % (lst[0], lst[-1], f[0], f[-1])
+        print('Joining new element list %s...%s with %s...%s' % (lst[0], lst[-1], f[0], f[-1]))
         lst.extend(f[1:])
         del(f[:])
         f.extend(lst)
         found = True
-        print '    = New list = %s...%s' % (f[0], f[-1])
+        print('    = New list = %s...%s' % (f[0], f[-1]))
         break
       elif f[len(f)-1] == lst[0]:
-        print 'Joining list %s...%s with new element list %s...%s' % (f[0], f[-1], lst[0], lst[-1])
+        print('Joining list %s...%s with new element list %s...%s' % (f[0], f[-1], lst[0], lst[-1]))
         f.extend(lst[1:])
-        print '    = New list = %s...%s' % (f[0], f[-1])
+        print('    = New list = %s...%s' % (f[0], f[-1]))
         found = True
         break
       elif f[0] == lst[0]:
-        print 'Reverse joining list %s...%s with new element list %s...%s' % (f[0], f[-1], lst[0], lst[-1])
+        print('Reverse joining list %s...%s with new element list %s...%s' % (f[0], f[-1], lst[0], lst[-1]))
         r = list(reversed(lst))
         r.extend(f[1:])
         del(f[:])
         f.extend(r)
-        print '    = New list = %s...%s' % (f[0], f[-1])
+        print('    = New list = %s...%s' % (f[0], f[-1]))
         found = True
         break
       elif f[len(f)-1] == lst[len(lst)-1]:
-        print 'Reverse joining new list %s...%s with list %s...%s' % (f[0], f[-1], lst[0], lst[-1])
+        print('Reverse joining new list %s...%s with list %s...%s' % (f[0], f[-1], lst[0], lst[-1]))
         r = list(reversed(lst))
         f.extend(r[1:])
         found = True
-        print '    = New list = %s...%s' % (f[0], f[-1])
+        print('    = New list = %s...%s' % (f[0], f[-1]))
         break
     if not found:
-      #print '  Appending...'
+      #print('  Appending...')
       final.append(lst)
-  print 'Have %d final lists' % len(final)
+  print('Have %d final lists' % len(final))
   return final
 
 
@@ -156,7 +156,7 @@ def Distance(p0, p1):
 
 # Close any nearly-closed rings by appending the first point to the last point.
 def CloseRings(coordinateLists, distance):
-  print 'Closing near-closed rings'
+  print('Closing near-closed rings')
   final = []
   for lst in coordinateLists:
     if lst[0] == lst[len(lst)-1]:
@@ -166,7 +166,7 @@ def CloseRings(coordinateLists, distance):
     latlngLst0 = lst[0].split(',')
     latlngLstN = lst[len(lst)-1].split(',')
     if Distance(lst[0], lst[len(lst)-1]) < distance:
-      print 'Closing ring %s...%s' % (lst[0], lst[len(lst)-1])
+      print('Closing ring %s...%s' % (lst[0], lst[len(lst)-1]))
       lst.append(lst[0])
     final.append(lst)
   return final
@@ -174,7 +174,7 @@ def CloseRings(coordinateLists, distance):
 
 # This function splices lists whose endpoints are within a fraction of a degree of touching.
 def SpliceLists(coordinateLists, threshold):
-  print 'Splicing %d lists...' % len(coordinateLists)
+  print('Splicing %d lists...' % len(coordinateLists))
   final = []
   n = 0
   for lst in coordinateLists:
@@ -188,7 +188,7 @@ def SpliceLists(coordinateLists, threshold):
       final.append(lst)
       continue
 
-    #print '   on list [%d] %s...%s' % (len(lst), lst[0], lst[len(lst)-1])
+    #print('   on list [%d] %s...%s' % (len(lst), lst[0], lst[len(lst)-1]))
 
     for f in final:
       latlngLst0 = lst[0].split(',')
@@ -199,8 +199,8 @@ def SpliceLists(coordinateLists, threshold):
       if (abs(float(latlngLst0[0]) - float(latlngF0[0])) < threshold and
           abs(float(latlngLst0[1]) - float(latlngF0[1])) < threshold and
           latlngLst0[0] == latlngF0[0]):
-        print 'EXACT splice found %s...%s' % (f[0], f[-1])
-        print '  with             %s...%s' % (lst[0], lst[-1])
+        print('EXACT splice found %s...%s' % (f[0], f[-1]))
+        print('  with             %s...%s' % (lst[0], lst[-1]))
         # Strip the last point from the new segment.
         r = list(reversed(f))
         r.extend(lst[1:])
@@ -211,16 +211,16 @@ def SpliceLists(coordinateLists, threshold):
       elif (abs(float(latlngLstN[0]) - float(latlngFN[0])) < threshold and
           abs(float(latlngLstN[1]) - float(latlngFN[1])) < threshold):
         found = True
-        print 'reverse splice     list %s...%s ' % (f[0], f[len(f)-1])
-        print '  with new element list %s...%s\n' % (lst[0], lst[len(lst)-1])
+        print('reverse splice     list %s...%s ' % (f[0], f[len(f)-1]))
+        print('  with new element list %s...%s\n' % (lst[0], lst[len(lst)-1]))
         r = list(reversed(lst))
         f.extend(r)
         found = True
         break
       elif (abs(float(latlngLst0[0]) - float(latlngF0[0])) < threshold and
             abs(float(latlngLst0[1]) - float(latlngF0[1])) < threshold):
-        print 'splice 0,0 list         %s...%s' % (f[0], f[len(f)-1])
-        print '  with new element list %s...%s\n' % (lst[0], lst[len(lst)-1])
+        print('splice 0,0 list         %s...%s' % (f[0], f[len(f)-1]))
+        print('  with new element list %s...%s\n' % (lst[0], lst[len(lst)-1]))
         r = list(reversed(lst))
         r.extend(f)
         del(f[:])
@@ -229,27 +229,27 @@ def SpliceLists(coordinateLists, threshold):
         break
       elif (abs(float(latlngLstN[0]) - float(latlngF0[0])) < threshold and
             abs(float(latlngLstN[1]) - float(latlngF0[1])) < threshold):
-        print 'splice new list  [%d]     %s...%s' % (len(lst), lst[0], lst[len(lst)-1])
-        print '  with element list [%d]  %s...%s\n' % (len(f), f[0], f[len(f)-1])
+        print('splice new list  [%d]     %s...%s' % (len(lst), lst[0], lst[len(lst)-1]))
+        print('  with element list [%d]  %s...%s\n' % (len(f), f[0], f[len(f)-1]))
         lst.extend(f)
         del(f[:])
         f.extend(lst)
-        print '  new list [%d] = %s...%s' % (len(f), f[0], f[-1])
+        print('  new list [%d] = %s...%s' % (len(f), f[0], f[-1]))
         found = True
         break
       elif (abs(float(latlngFN[0]) - float(latlngLst0[0])) < threshold and
             abs(float(latlngFN[1]) - float(latlngLst0[1])) < threshold):
-        print 'splice list   [%d]   %s...%s' % (len(f), f[0], f[len(f)-1])
-        print '  with new element list [%d] %s...%s\n' % (len(lst), lst[0], lst[len(lst)-1])
+        print('splice list   [%d]   %s...%s' % (len(f), f[0], f[len(f)-1]))
+        print('  with new element list [%d] %s...%s\n' % (len(lst), lst[0], lst[len(lst)-1]))
         f.extend(lst)
-        print '  new list [%d] = %s...%s' % (len(f), f[0], f[-1])
+        print('  new list [%d] = %s...%s' % (len(f), f[0], f[-1]))
         found = True
         break
     n += 1
 
     if not found:
       final.append(lst)
-  print 'Have %d final lists' % len(final)
+  print('Have %d final lists' % len(final))
   return final
 
 # Need a method to close rings?
@@ -259,7 +259,7 @@ def FindBorderSegments(doc):
   folders = list(doc.Document.Folder)
   coordinates = []
   for f in folders:
-    print 'Found folder %s' % f.name.text
+    print('Found folder %s' % f.name.text)
     placemarks = list(f.Placemark)
     line = ''
     for p in placemarks:
@@ -277,11 +277,11 @@ def FindBorderSegments(doc):
           continue
 
         ls = list(p.MultiGeometry.LineString)
-        #print 'keep place %s = %s with %d segments' % (p.attrib['id'], p.name.text, len(ls))
+        #print('keep place %s = %s with %d segments' % (p.attrib['id'], p.name.text, len(ls)))
         for l in ls:
           line = l.coordinates.text
           points = line.split(' ')
-          #print '  seg size %d' % len(points)
+          #print('  seg size %d' % len(points))
           coords = []
           for pt in points:
             if pt is not '':
@@ -309,7 +309,7 @@ def FindBorderSegments(doc):
             desc.find('B0081') != -1 or
             desc.find('B0082') != -1):
           ls = list(p.MultiGeometry.LineString)
-          print 'keep place %s = %s with %d segments' % (p.attrib['id'], p.name.text, len(ls))
+          print('keep place %s = %s with %d segments' % (p.attrib['id'], p.name.text, len(ls)))
           for l in ls:
             line = l.coordinates.text
             points = line.split(' ')
@@ -320,10 +320,10 @@ def FindBorderSegments(doc):
               if pt is not '':
                 c = pt.split(',')
                 coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
-            print '  have segment [%d] %s...%s' % (len(coords), coords[0], coords[-1])
+            print('  have segment [%d] %s...%s' % (len(coords), coords[0], coords[-1]))
             coordinates.append(coords)
 
-  print 'Found %d segments' % len(coordinates)
+  print('Found %d segments' % len(coordinates))
   return coordinates 
 
 
@@ -335,7 +335,7 @@ def AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists):
     if f.name.text == 'US_Mex_Boundary':
       line = p.LineString.coordinates.text
       points = line.split(' ')
-      print 'Adding US-Mex boundary size %d' % len(points)
+      print('Adding US-Mex boundary size %d' % len(points))
       coords = []
       for pt in points:
         if pt.strip() is not '':
@@ -344,7 +344,7 @@ def AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists):
           # boundaries. Eliminating it from the polygon creates the right
           # shape.
           if float(c[0]) < -117.4:
-            print 'Trimmed westernmost point of US-MEX border %s' % c
+            print('Trimmed westernmost point of US-MEX border %s' % c)
             continue
           coords.append('%s,%s,0' % (c[0].strip(), c[1].strip()))
       coordinateLists.append(coords)
@@ -360,7 +360,7 @@ def AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists):
       # authorization areas.
       if p.name.text == 'CONUS-CA Boundary':
         points = points[3:]
-      print 'Adding %s size %d' % (p.name.text, len(points))
+      print('Adding %s size %d' % (p.name.text, len(points)))
       coords = []
       for pt in points:
         if pt is not '':
@@ -383,7 +383,7 @@ canadaDoc = ReadKML(os.path.join(fccDir, 'uscabdry.kml'))
 coordinateLists = FindBorderSegments(noaaDoc)
 AddBorderSegments(mexicoDoc, canadaDoc, coordinateLists)
 
-print 'Total segments = %d' % len(coordinateLists)
+print('Total segments = %d' % len(coordinateLists))
 
 # Note: this deep copy is for debugging purposes: to add the source data
 # to the output KML file for comparison to the derived data.
@@ -410,7 +410,7 @@ spliceStringsB = SpliceLists(spliceStringsA, .002)
 # Google Earth can show the LineString boundaries for
 # comparison to the various source data files.
 coordy = copy.deepcopy(spliceStringsB)
-print '===================='
+print('====================')
 shortSplicedStrings = SpliceLists(spliceStringsB, .002)
 
 # At this point the only holes remaining are fairly large ones.
@@ -447,10 +447,10 @@ def FixAntiMeridianPolygon(ls):
   # The invalid polygon is the case of Semisopochnoi Island, which
   # zone crosses the antimeridian.
   if not polygon.is_valid:
-    print 'POLYGON IS NOT VALID! : %d' % len(ls)
+    print('POLYGON IS NOT VALID! : %d' % len(ls))
     explain_validity(polygon)
     if found_anti_meridian:
-      print 'Polygon spans anti-meridian - Splitting in 2'
+      print('Polygon spans anti-meridian - Splitting in 2')
       # To deal with this case, we'll split the zone into two pieces,
       # one of which is in the eastern hemisphere and one in the
       # western hemisphere. This is purely a tooling issue to make
@@ -479,7 +479,7 @@ def FixAntiMeridianPolygon(ls):
 # Split polygons crossing anti-meridians.
 for ls in lineStrings:
   if ls[0] != ls[-1]:
-    print 'NOT A RING!'
+    print('NOT A RING!')
   new_ls = FixAntiMeridianPolygon(ls)
   if new_ls is not None:
     lineStrings.append(new_ls)
@@ -492,7 +492,7 @@ for k, ls in enumerate(lineStrings):
     coords.append([float(xy[0]), float(xy[1])])
   lr = LinearRing(coords)
   if not lr.is_ccw:
-    print 'Reversing non-CCW ring'
+    print('Reversing non-CCW ring')
     r = list(reversed(ls))
     lineStrings[k] = r
 
@@ -544,7 +544,7 @@ doc = KML.kml(
 
 num = 1
 for ls in lineStrings:
-  print 'Have final poly len=%d' % len(ls)
+  print('Have final poly len=%d' % len(ls))
   geo_name = '%d' % num
   num += 1
   pm = KML.Placemark(
@@ -565,7 +565,7 @@ for ls in lineStrings:
 # For debugging: optionally include the paths of the original source data.
 #ns = 10000
 #for ls in coordx:
-#  # print 'x coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls))
+#  # print('x coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls)))
 #  pm = KML.Placemark(
 #    KML.name('%d' % ns),
 #    KML.styleUrl('#stlx'),
@@ -581,7 +581,7 @@ for ls in lineStrings:
 # For debugging: optionally include the joined paths
 #ns = 20000
 #for ls in coordy:
-#  # print 'y coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls))
+#  # print('y coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls)))
 #  pm = KML.Placemark(
 #    KML.name('%d' % ns),
 #    KML.styleUrl('#stly'),
@@ -597,7 +597,7 @@ for ls in lineStrings:
 # For debugging: optionally include the spliced paths
 #ns = 30000
 #for ls in lineStrings:
-#  # print 'z coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls))
+#  # print('z coordinates=[%s ... %s] (%d)' % (ls[0], ls[len(ls)-1], len(ls)))
 #  pm = KML.Placemark(
 #    KML.name('%d' % ns),
 #    KML.styleUrl('#stly'),
@@ -610,7 +610,6 @@ for ls in lineStrings:
 #  ns += 1
 #  doc.Document.append(pm)
 
-outputFile = open(os.path.join(fccDir, 'usborder.kml'), 'w+')
-outputFile.write(etree.tostring(doc, pretty_print=True))
-outputFile.close()
+with open(os.path.join(fccDir, 'usborder.kml'), 'w+') as outputFile:
+  outputFile.write(etree.tostring(doc, encoding='utf-8', pretty_print=True).decode())
 

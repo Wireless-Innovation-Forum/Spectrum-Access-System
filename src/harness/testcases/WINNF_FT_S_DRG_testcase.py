@@ -11,6 +11,10 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from datetime import datetime
 import json
 import logging
@@ -20,7 +24,7 @@ import common_strings
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests
+  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests, json_load
 
 
 class DeregistrationTestcase(sas_testcase.SasTestCase):
@@ -43,8 +47,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     # Register the devices
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json'):
-      device = json.load(
-        open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+        os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -71,9 +75,9 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Prepare grant requests for two cbsdIds
-    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_ids[0]
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_ids[1]
 
     # Send the grant requests
@@ -99,8 +103,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     # Register two devices
     registration_request = []
     for device_filename in ('device_a.json', 'device_c.json'):
-      device = json.load(
-        open(os.path.join('testcases', 'testdata', device_filename)))
+      device = json_load(
+          os.path.join('testcases', 'testdata', device_filename))
       self._sas_admin.InjectFccId({'fccId': device['fccId']})
       self._sas_admin.InjectUserId({'userId': device['userId']})
       registration_request.append(device)
@@ -138,8 +142,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -176,8 +180,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -206,8 +210,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -218,8 +222,8 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request for grant
-    grant = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant['cbsdId'] = cbsd_id
     request = {'grantRequest': [grant]}
     # Check grant response
@@ -282,20 +286,20 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for DRG.6."""
 
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load grant.json
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Heartbeat requests (where testcode will insert cbsdId and grantId)
     heartbeat_a = {'operationState': 'GRANTED'}
@@ -481,4 +485,3 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
       logging.debug('Looking at response number %d', i)
       logging.debug('Actual response: %s', response)
       self.assertTrue(response['response']['responseCode'] in [103, 500])
-

@@ -18,6 +18,9 @@ Used solely for running various examples of the protection logic, or scenario
 generating scripts.
 This is *NOT* designed to be used within the actual test harness.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from collections import namedtuple
 import numpy as np
@@ -137,7 +140,7 @@ def GenerateCbsdList(n_cbsd, template_cbsd,
   azimuths = (t.antenna_azimuth if isinstance(t.antenna_azimuth, list)
               else [t.antenna_azimuth])
   cbsds = []
-  for k in xrange(n_cbsd):
+  for k in range(n_cbsd):
     lat, lng, _ = vincenty.GeodesicPoint(ref_latitude, ref_longitude,
                                          distances[k], bearings[k])
     for azimuth in azimuths:
@@ -170,16 +173,16 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
     n_block = int((num_cbsds - len(cbsds)) / ratio * 1.2)
     lngs = np.random.uniform(bounds[0], bounds[2], n_block)
     lats = np.random.uniform(bounds[1], bounds[3], n_block)
-    in_points = sgeo.MultiPoint(zip(lngs, lats))
+    in_points = sgeo.MultiPoint(list(zip(lngs, lats)))
     in_points = polygon.intersection(in_points)
-    if urban_areas is not None:
+    if in_points and urban_areas is not None:
       in_points = urban_areas.intersection(in_points)
-    if isinstance(in_points, sgeo.Point):
-      in_points = [in_points]
     total_asked += n_block
-    total_got += len(in_points)
     if not in_points:
       continue
+    if isinstance(in_points, sgeo.Point):
+      in_points = [in_points]
+    total_got += len(in_points)
     ratio = total_got / float(total_asked)
     for point in in_points:
       if len(cbsds) > num_cbsds: break
@@ -202,8 +205,7 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
 
 # Utility routines to convert Cbsd object into registration and grant requests.
 def GetCbsdRegistrationRequest(cbsd):
-  """Returns a CBSD registration request from the |Cbsd| object.
-  """
+  """Returns a CBSD registration request from the |Cbsd| object."""
   return {
       'cbsdCategory': cbsd.category,
       'installationParam': {
@@ -212,9 +214,15 @@ def GetCbsdRegistrationRequest(cbsd):
           'height': cbsd.height_agl,
           'heightType': 'AGL',
           'indoorDeployment': cbsd.is_indoor,
-          'antennaBeamwidth': cbsd.antenna_beamwidth,
-          'antennaAzimuth': cbsd.antenna_azimuth,
-          'antennaGain': cbsd.antenna_gain,
+          'antennaBeamwidth': (int(cbsd.antenna_beamwidth) % 360
+                               if cbsd.antenna_beamwidth is not None
+                               else None),
+          'antennaAzimuth': (int(cbsd.antenna_azimuth) % 360
+                             if cbsd.antenna_azimuth is not None
+                             else None),
+          'antennaDowntilt': 0,
+          'antennaGain': (int(cbsd.antenna_gain) if cbsd.antenna_gain
+                          else 0)
       }
   }
 
@@ -228,7 +236,7 @@ def GetCbsdGrantRequest(cbsd, min_freq_mhz, max_freq_mhz):
               'lowFrequency': int(min_freq_mhz * 1e6),
               'highFrequency': int(max_freq_mhz * 1e6)
           },
-          'maxEirp': cbsd.eirp_dbm_mhz
+          'maxEirp': int(cbsd.eirp_dbm_mhz)
       }
   }
 

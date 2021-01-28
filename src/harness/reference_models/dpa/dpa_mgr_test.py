@@ -13,6 +13,10 @@
 #    limitations under the License.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from collections import namedtuple
 import json
 import os
@@ -24,17 +28,20 @@ import numpy as np
 import shapely.geometry as sgeo
 
 from reference_models.common import data
-from reference_models.geo import zones
-from reference_models.tools import testutils
-from reference_models.tools import entities
-from reference_models.propagation import wf_itm
-
 from reference_models.dpa import dpa_mgr
+from reference_models.geo import zones
+from reference_models.propagation import wf_itm
+from reference_models.tools import entities
+from reference_models.tools import testutils
 
 TEST_DIR = os.path.join(os.path.dirname(__file__),'test_data')
 
 
 ProtectionPoint = namedtuple('ProtectionPoint', ['latitude', 'longitude'])
+
+def json_load(fname):
+  with open(fname, 'r') as fd:
+    return json.load(fd)
 
 class TestDpa(unittest.TestCase):
 
@@ -99,9 +106,9 @@ class TestDpa(unittest.TestCase):
                          ProtectionPoint(latitude=37.7579, longitude=-75.4105),
                          ProtectionPoint(latitude=36.1044, longitude=-73.3147),
                          ProtectionPoint(latitude=36.1211, longitude=-75.5939)]
-    regs = [json.load(open(os.path.join(TEST_DIR, 'RegistrationRequest_%d.json' % k)))
+    regs = [json_load(os.path.join(TEST_DIR, 'RegistrationRequest_%d.json' % k))
             for k in range(1, 7)]
-    grants = [json.load(open(os.path.join(TEST_DIR, 'GrantRequest_%d.json' % k)))
+    grants = [json_load(os.path.join(TEST_DIR, 'GrantRequest_%d.json' % k))
               for k in range(1, 7)]
     grants_uut = data.getGrantsFromRequests(regs[:4], grants[:4])
     grants_th = data.getGrantsFromRequests(regs[4:], grants[4:])

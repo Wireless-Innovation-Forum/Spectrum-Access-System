@@ -169,6 +169,18 @@ static PyMethodDef ITMMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC inititm_its(void) {
-  Py_InitModule3("itm_its", ITMMethods, "Longley-Rice ITM Propagation Module");
+#if PY_MAJOR_VERSION >= 3  // Python3
+PyMODINIT_FUNC PyInit_itm_its(void) {
+  static struct PyModuleDef module_def = {
+    PyModuleDef_HEAD_INIT, "itm_its",
+    "Longley-Rice ITM Propagation Module", -1,
+    ITMMethods, NULL, NULL, NULL, NULL};
+  PyObject* module = PyModule_Create(&module_def);
+  return module;
 }
+#else  // Python2
+PyMODINIT_FUNC inititm_its(void) {
+  Py_InitModule3("itm_its",  ITMMethods,
+                 "Longley-Rice ITM Propagation Module");
+}
+#endif

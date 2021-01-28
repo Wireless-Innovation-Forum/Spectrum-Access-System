@@ -89,7 +89,7 @@ drive.ConfigureNlcdDriver(cache_size=num_cached_tiles)
 # Preparing all simulation parameters
 def PrepareSimulation():
   # Read the DPA zone
-  print 'Preparing Zones'
+  print('Preparing Zones')
   dpa_zone = zones.GetCoastalDpaZones()[dpa_name]
   dpa_geometry = dpa_zone.geometry
   us_border = zones.GetUsBorder()
@@ -97,7 +97,7 @@ def PrepareSimulation():
   protection_zone = zones.GetCoastalProtectionZone()
 
   # Distribute random CBSD of various types around the FSS.
-  print 'Distributing random CBSDs in DPA neighborhood'
+  print('Distributing random CBSDs in DPA neighborhood')
   # - Find the zone where to distribute the CBSDs
   typical_lat = dpa_geometry.centroid.y
   km_per_lon_deg = 111. * np.cos(typical_lat * np.pi / 180)
@@ -112,21 +112,21 @@ def PrepareSimulation():
     urban_areas = urban_areas.intersection(zone_catb)
 
   # - Distribute the CBSDs
-  print ' - Cat A indoor'
+  print(' - Cat A indoor')
   cbsds_cat_a_indoor = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_a_indoor,
       entities.CBSD_TEMPLATE_CAT_A_INDOOR,
       zone_cata,
       drive.nlcd_driver,
       urban_areas)
-  print ' - Cat A outdoor'
+  print(' - Cat A outdoor')
   cbsds_cat_a_outdoor = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_a_outdoor,
       entities.CBSD_TEMPLATE_CAT_A_OUTDOOR,
       zone_cata,
       drive.nlcd_driver,
       urban_areas)
-  print ' - Cat B'
+  print(' - Cat B')
   cbsds_cat_b = entities.GenerateCbsdsInPolygon(
       num_sites * ratio_cat_b,
       entities.CBSD_TEMPLATE_CAT_B,
@@ -208,44 +208,44 @@ if __name__ == '__main__':
   plt.show(block=False)
 
   # Run the move list algorithm a first time to fill up geo cache
-  print 'Running Move List algorithm (%d workers)' % num_workers
-  print '  + once to populate the terrain cache (small run)'
+  print('Running Move List algorithm (%d workers)' % num_workers)
+  print('  + once to populate the terrain cache (small run)')
   dpa.SetGrantsFromList(grants[0:50])
   dpa.ComputeMoveLists()
 
   # Run it for real and measure time
-  print '  + actual run (timed)'
+  print('  + actual run (timed)')
   dpa.SetGrantsFromList(grants)
   start_time = time.time()
   dpa.ComputeMoveLists()
   end_time = time.time()
 
   # Print results
-  print 'Move List mask:'
-  print dpa.GetMoveListMask((fmin, fmax))
+  print('Move List mask:')
+  print(dpa.GetMoveListMask((fmin, fmax)))
   len_move_list = len(dpa.move_lists[0])
-  print ''
-  print 'Num Cores (Parallelization): %d' % num_workers
-  print 'Num Protection Points: %d' % len(dpa.protected_points)
-  print 'Num CBSD: %d (A: %d %d - B %d)' % (
-      len(grants), n_a_indoor, n_a_outdoor, n_b)
-  print 'Distribution: %s' % ('uniform' if not do_inside_urban_area
-                              else 'urban areas only')
-  print 'Move list size: %d' % len_move_list
-  print 'Computation time: %.1fs' % (end_time - start_time)
+  print('')
+  print('Num Cores (Parallelization): %d' % num_workers)
+  print('Num Protection Points: %d' % len(dpa.protected_points))
+  print('Num CBSD: %d (A: %d %d - B %d)' % (
+      len(grants), n_a_indoor, n_a_outdoor, n_b))
+  print('Distribution: %s' % ('uniform' if not do_inside_urban_area
+                              else 'urban areas only'))
+  print('Move list size: %d' % len_move_list)
+  print('Computation time: %.1fs' % (end_time - start_time))
 
   # Check tiles cache well behaved
-  print  ''
+  print('')
   tile_stats = mpool.RunOnEachWorkerProcess(getTileStats)
   num_active_tiles, cnt_per_tile = tile_stats[0]
   if not num_active_tiles:
-    print '-- Cache ERROR: No active tiles read'
+    print('-- Cache ERROR: No active tiles read')
   elif max(cnt_per_tile) > 1:
-    print '-- Cache WARNING: cache tile too small - tiles are swapping from cache.'
+    print('-- Cache WARNING: cache tile too small - tiles are swapping from cache.')
     pool = mpool.Pool()
     pool.apply_async(printTileStats)
   else:
-    print '-- Cache tile: OK (no swapping)'
+    print('-- Cache tile: OK (no swapping)')
 
   # Plot the move list
   if len_move_list:

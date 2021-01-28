@@ -40,12 +40,14 @@ the unit tests:
 
 In Linux:
 ```
-    ./run_all_tests.sh
+    ./run_all_tests_py2.sh
+    ./run_all_tests_py3.sh
 ```
 
 In Windows:
 
 ```
     python -m unittest discover -p '*_test.py'
+    python3 -m unittest discover -p '*_test.py'    
 ```
 

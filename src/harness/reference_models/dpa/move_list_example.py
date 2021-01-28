@@ -30,13 +30,16 @@
 # Expected result is 'Move list output: [True, True, True, False, True, False]'.
 #================================================================================
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
-from pykml import parser
 from collections import namedtuple
-# from shapely.geometry import Polygon as SPolygon
 import time
+
+from six.moves import getcwd
 
 from reference_models.dpa import move_list
 
@@ -53,6 +56,11 @@ ProtectionSpecs = namedtuple('ProtectionSpecs',
                              ['lowFreq', 'highFreq',
                               'antHeight', 'beamwidth', 'threshold',
                               'neighbor_distances'])
+
+def json_load(fname):
+  with open(fname) as fd:
+    return json.load(fd)
+
 
 if __name__ == '__main__':
 
@@ -74,7 +82,7 @@ if __name__ == '__main__':
   num_processes = 0
 
   # Data directory
-  current_dir = os.getcwd()
+  current_dir = getcwd()
   _BASE_DATA_DIR = os.path.join(current_dir, 'test_data')
 
   # Populate a list of CBSD registration requests
@@ -86,7 +94,7 @@ if __name__ == '__main__':
                           'RegistrationRequest_6.json']
   reg_request_list = []
   for reg_file in reg_request_filename:
-    reg_request = json.load(open(os.path.join(_BASE_DATA_DIR, reg_file)))
+    reg_request = json_load(os.path.join(_BASE_DATA_DIR, reg_file))
     reg_request_list.append(reg_request)
 
   # Populate a list of grant requests
@@ -98,7 +106,7 @@ if __name__ == '__main__':
                             'GrantRequest_6.json']
   grant_request_list = []
   for grant_file in grant_request_filename:
-    grant_request = json.load(open(os.path.join(_BASE_DATA_DIR, grant_file)))
+    grant_request = json_load(os.path.join(_BASE_DATA_DIR, grant_file))
     grant_request_list.append(grant_request)
 
   # Determine which CBSD grants are on the move list
@@ -108,5 +116,5 @@ if __name__ == '__main__':
                                num_iter, num_processes)
 
   end_time = time.time()
-  print 'Move list output: ' + str(res)
-  print 'Computation time: ' + str(end_time - start_time)
+  print('Move list output: ' + str(res))
+  print('Computation time: ' + str(end_time - start_time))

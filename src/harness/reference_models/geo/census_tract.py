@@ -13,8 +13,13 @@
 #    limitations under the License.
 
 """Driver for access to Census tract data."""
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import os
+
 from reference_models.geo import CONFIG
 
 class CensusTractDriver(object):
@@ -39,4 +44,3 @@ class CensusTractDriver(object):
           raise IOError('Error occurred in opening Census Tract File: %s' % census_tract_file.name)
     else:
       raise Exception("Census Tract data not found with FIPS Code: %s" % fips_code)
-

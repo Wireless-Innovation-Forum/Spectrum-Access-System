@@ -14,6 +14,10 @@
 
 """Defines all the geo drivers singletons.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from reference_models.geo import census_tract
 from reference_models.geo import nlcd
 from reference_models.geo import refractivity

@@ -11,19 +11,25 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import common_strings
 import json
 import logging
 import os
-import sas
-import sas_testcase
-from database import DatabaseServer
 from datetime import date, datetime, time, timedelta
 from pytz import timezone
 from time import sleep, strftime, gmtime
+
+from six.moves import zip
+
+import sas
+import sas_testcase
+from database import DatabaseServer
 from util import configurable_testcase, writeConfig, loadConfig, \
-  addCbsdIdsToRequests, getFqdnLocalhost, getUnusedPort,getCertFilename
+  addCbsdIdsToRequests, getFqdnLocalhost, getUnusedPort,getCertFilename, json_load
 
 # Time zone in which CPAS is scheduled
 CPAS_TIME_ZONE = 'US/Pacific'
@@ -50,10 +56,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.1"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Exclusion zone database test harness configuration
     exclusion_zone_database_config = {
@@ -65,8 +71,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests.
-    grant_g1_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yuma Proving Ground' frequency range 'F1'.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
@@ -74,16 +80,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'highFrequency': 3650000000
     }
     grant_g2_a = grant_g1_a
-    grant_g3_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g3_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yuma Proving Ground' frequency range 'F1'.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3550000000,
         'highFrequency': 3560000000
     }
-    grant_g1_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yakima Firing Center' frequency range 'F1'.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
@@ -91,8 +97,8 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
         'highFrequency': 3560000000
     }
     grant_g2_b = grant_g1_b
-    grant_g3_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g3_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the exclusion zone
     # 'Yakima Firing Center' frequency range 'F1'.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
@@ -268,10 +274,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.2"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # DPA database test harness configuration
     dpa_database_config = {
@@ -283,44 +289,44 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests
-    grant_g1_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3640000000,
         'highFrequency': 3650000000
     }
-    grant_g2_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the DPA 'BATH' which is 3500-3650 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3615000000,
         'highFrequency': 3625000000
     }
-    grant_g3_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g3_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the modified DPA 'BATH' which is 3500-3700 MHz.
     grant_g3_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
         'highFrequency': 3585000000
     }
 
-    grant_g1_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3630000000,
         'highFrequency': 3640000000
     }
-    grant_g2_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the DPA 'China Lake' which is 3500-3650 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3645000000,
         'highFrequency': 3655000000
     }
-    grant_g3_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g3_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the modified DPA 'China Lake' which is 3500-3700 MHz.
     grant_g3_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3575000000,
@@ -555,16 +561,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.3"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load grant requests
-    grant_g_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_g_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_g_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the Respective FSSes.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
@@ -688,10 +694,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.4"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # FSS database test harness configuration
     fss_database_config = {
@@ -703,30 +709,30 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests
-    grant_g1_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g2_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
 
-    grant_g1_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
-    grant_g2_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
@@ -914,10 +920,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.5"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # FSS database test harness configuration
     # The database File FDB_5_default_allsitedata.json has FSS sites information.
@@ -940,16 +946,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests
-    grant_g_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
 
-    grant_g_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with FSS frequency range which is 3650-4200 MHz.
     grant_g_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3670000000,
@@ -1081,10 +1087,10 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.6"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # FSS database test harness configuration.
     # The database File FDB_6_default_allsitedata.json has FSS sites information.
@@ -1111,30 +1117,30 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     }
 
     # Load grant requests
-    grant_g1_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,
         'highFrequency': 3660000000
     }
-    grant_g2_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3675000000,
         'highFrequency': 3685000000
     }
 
-    grant_g1_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g1_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g1_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3660000000,
         'highFrequency': 3670000000
     }
-    grant_g2_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g2_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the FSS frequency range which is 3650-4200 MHz.
     grant_g2_b['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3685000000,
@@ -1308,16 +1314,16 @@ class FederalGovernmentDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for FDB.8"""
 
     # Load devices info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load grant requests
-    grant_g_b = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_g_a = json.load(
-                open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_g_b = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_g_a = json_load(
+                os.path.join('testcases', 'testdata', 'grant_0.json'))
     # Set the grant frequency to overlap with the Respective FSSes.
     grant_g_a['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3650000000,

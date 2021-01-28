@@ -18,6 +18,10 @@ Standalone execution:
   python tropoclim.py lat lng
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import logging
 import os
 import sys
@@ -113,5 +117,5 @@ def ClimateZoneName(zone):
 if __name__ == '__main__':
   indx = ClimateIndexer()
   clim = indx.TropoClim(float(sys.argv[1]), float(sys.argv[2]))
-  print 'Climate zone = %d' % clim
-  print ' (%s)' % ClimateZoneName(clim)
+  print('Climate zone = %d' % clim)
+  print(' (%s)' % ClimateZoneName(clim))

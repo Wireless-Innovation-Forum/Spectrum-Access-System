@@ -25,6 +25,9 @@ Typical usage:
   # Get N equidistant points along the geodesic between 2 locations
   points = GeodesicSampling(lat, lon1, lat2, lon2, N)
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from math import pi, radians, degrees, atan, atan2, tan, cos, sin
 import numpy as np

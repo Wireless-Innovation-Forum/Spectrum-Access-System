@@ -26,6 +26,7 @@ Typical usage:
 """
 import csv
 import collections
+import io
 import os
 import zipfile
 
@@ -122,8 +123,8 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
     with zipfile.ZipFile(cat_a_file) as zip:
       file_name = [info.filename for info in zip.infolist()
                    if os.path.splitext(info.filename)[1] == '.csv'][0]
-      with zip.open(file_name) as cata_fd:
-        cata_reader = csv.reader(cata_fd)
+      with zip.open(file_name, 'r') as cata_fd:
+        cata_reader = csv.reader(io.TextIOWrapper(cata_fd, 'utf-8'))
         cbsds.extend(_ReadCsvCbsds(cata_reader, 'A', force_omni))
   else:
     with open(cat_a_file, 'r') as cata_fd:
@@ -135,8 +136,8 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
     with zipfile.ZipFile(cat_b_file) as zip:
       file_name = [info.filename for info in zip.infolist()
                    if os.path.splitext(info.filename)[1] == '.csv'][0]
-      with zip.open(file_name) as catb_fd:
-        catb_reader = csv.reader(catb_fd)
+      with zip.open(file_name, 'r') as catb_fd:
+        catb_reader = csv.reader(io.TextIOWrapper(catb_fd, 'utf-8'))
         cbsds.extend(_ReadCsvCbsds(catb_reader, 'B', force_omni))
   else:
     with open(cat_b_file, 'r') as catb_fd:
@@ -144,36 +145,3 @@ def ReadNationWideDeploymentModel(cat_a_file=None, cat_b_file=None,
       cbsds.extend(_ReadCsvCbsds(catb_reader, 'B', force_omni))
 
   return cbsds
-
-
-'''
-with open(cat_b_fd, 'r') as a:
-    a_reader = csv.reader(a)
-
-  # Read Category B CBSD file
-  with open(cat_b_file, 'r') as b:
-    b_reader = csv.reader(b)
-    next(b_reader)
-    for row in b_reader:
-      max_eirp = float(row[4])
-      lat_cbsd = float(row[0])
-      lon_cbsd = float(row[1])
-      height_cbsd = float(row[2])
-      grants.append(data.CbsdGrantInfo(
-          latitude=lat_cbsd,
-          longitude=lon_cbsd,
-          height_agl=height_cbsd,
-          indoor_deployment=False,
-          antenna_azimuth=0,
-          antenna_gain=0,
-          antenna_beamwidth=360,
-          cbsd_category='B',
-          max_eirp=max_eirp,
-          iap_eirp={max_eirp},
-          low_frequency=3550000000,
-          high_frequency=3560000000,
-          is_managed_grant=True))
-
-
-
-'''

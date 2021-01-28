@@ -11,16 +11,20 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import os
+
 import sas
 import sas_testcase
 from sas_test_harness import SasTestHarnessServer, generateCbsdRecords, \
     generatePpaRecords
 from util import addCbsdIdsToRequests, winnforum_testcase, configurable_testcase, writeConfig, \
   loadConfig, getRandomLatLongInPolygon, makePpaAndPalRecordsConsistent, \
-  getFqdnLocalhost, getUnusedPort, getCertFilename
+  getFqdnLocalhost, getUnusedPort, getCertFilename, json_load
 from testcases.WINNF_FT_S_MCP_testcase import McpXprCommonTestcase
 
 
@@ -37,43 +41,43 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for GPR.1. """
 
     # Load GWPZ Record
-    gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+    gwpz_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'gwpz_record_0.json'))
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1 to a location within 40 KMs of GWPZ zone
     device_1['installationParam']['latitude'] = 39.10448
     device_1['installationParam']['longitude'] = -99.7792
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2 to a location outside 40 KMs of GWPZ zone
     device_2['installationParam']['latitude'] = 37.83075
     device_2['installationParam']['longitude'] = -107.65025
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
     device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4 to a location outside 40 KMs of GWPZ zone
     device_4['installationParam']['latitude'] = 38.0934
     device_4['installationParam']['longitude'] = -106.91676
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # device_b and device_d are Category B
     # Load Conditional Data
@@ -168,52 +172,52 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for GPR.2. """
 
     # Load GWPZ Record
-    gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+    gwpz_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'gwpz_record_0.json'))
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1 to a location within 40 KMs of GWPZ zone
     device_1['installationParam']['latitude'] = 39.10448
     device_1['installationParam']['longitude'] = -99.7792
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2 to a location outside 40 KMs of GWPZ zone
     device_2['installationParam']['latitude'] = 37.83075
     device_2['installationParam']['longitude'] = -107.65025
 
-    device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     # Moving device_3 to a location inside GWPZ zone
     device_3['installationParam']['latitude'], \
     device_3['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
-    device_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_d.json')))
+    device_4 = json_load(
+      os.path.join('testcases', 'testdata', 'device_d.json'))
     # Moving device_4 to a location outside 40 KMs of GWPZ zone
     device_4['installationParam']['latitude'] = 38.0934
     device_4['installationParam']['longitude'] = -106.91676
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
 
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3660000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3665000000
 
-    grant_request_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_2.json')))
+    grant_request_3 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_2.json'))
     grant_request_3['operationParam']['operationFrequencyRange']['lowFrequency'] = 3670000000
     grant_request_3['operationParam']['operationFrequencyRange']['highFrequency'] = 3680000000
 
-    grant_request_4 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_4 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_4['operationParam']['operationFrequencyRange']['lowFrequency'] = 3690000000
     grant_request_4['operationParam']['operationFrequencyRange']['highFrequency'] = 3700000000
 
@@ -268,18 +272,18 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
 
     # SAS Test Harnesses configurations,
     # Following configurations are for two SAS test harnesses
-    sas_test_harness_device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    sas_test_harness_device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     sas_test_harness_device_1['fccId'] = "test_fcc_id_e"
     sas_test_harness_device_1['userId'] = "test_user_id_e"
 
-    sas_test_harness_device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    sas_test_harness_device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     sas_test_harness_device_2['fccId'] = "test_fcc_id_f"
     sas_test_harness_device_2['userId'] = "test_user_id_f"
 
-    sas_test_harness_device_3 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    sas_test_harness_device_3 = json_load(
+      os.path.join('testcases', 'testdata', 'device_c.json'))
     sas_test_harness_device_3['fccId'] = "test_fcc_id_g"
     sas_test_harness_device_3['userId'] = "test_user_id_g"
 
@@ -366,30 +370,30 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     """ Generates the WinnForum configuration for GPR.3 """
 
     # Load GWPZ Record
-    gwpz_record_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'gwpz_record_0.json')))
+    gwpz_record_1 = json_load(
+      os.path.join('testcases', 'testdata', 'gwpz_record_0.json'))
 
     # Load devices info
-    device_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_1 = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
     # Moving device_1 to a location inside GWPZ zone
     device_1['installationParam']['latitude'], \
     device_1['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
-    device_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_2 = json_load(
+      os.path.join('testcases', 'testdata', 'device_b.json'))
     # Moving device_2 to a location inside GWPZ zone
     device_2['installationParam']['latitude'], \
     device_2['installationParam']['longitude'] = getRandomLatLongInPolygon(gwpz_record_1)
 
     # Load Grant requests
-    grant_request_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_request_1 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_request_1['operationParam']['operationFrequencyRange']['lowFrequency'] = 3650000000
     grant_request_1['operationParam']['operationFrequencyRange']['highFrequency'] = 3655000000
 
-    grant_request_2 = json.load(
-      open(os.path.join('testcases', 'testdata', 'grant_1.json')))
+    grant_request_2 = json_load(
+      os.path.join('testcases', 'testdata', 'grant_1.json'))
     grant_request_2['operationParam']['operationFrequencyRange']['lowFrequency'] = 3660000000
     grant_request_2['operationParam']['operationFrequencyRange']['highFrequency'] = 3665000000
 
@@ -452,4 +456,3 @@ class GwpzProtectionTestcase(McpXprCommonTestcase):
     for response_num, response in enumerate(response):
       self.assertEqual(response['cbsdId'], request['grantRequest'][response_num]['cbsdId'])
       self.assertEqual(response['response']['responseCode'], 400)
-

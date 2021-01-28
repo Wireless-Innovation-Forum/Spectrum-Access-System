@@ -11,6 +11,9 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import json
 import logging
@@ -21,7 +24,7 @@ from request_handler import HTTPError
 import sas
 import sas_testcase
 from util import winnforum_testcase, configurable_testcase, writeConfig, \
-  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests
+  loadConfig, addCbsdIdsToRequests, addGrantIdsToRequests, json_load
 
 
 class RelinquishmentTestcase(sas_testcase.SasTestCase):
@@ -41,8 +44,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device_a['fccId']})
     self._sas_admin.InjectUserId({'userId': device_a['userId']})
     request = {'registrationRequest': [device_a]}
@@ -53,15 +56,15 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request two grants
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3600000000,
         'highFrequency': 3610000000
     }
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3610000000,
@@ -133,8 +136,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -145,22 +148,22 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request grants
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3600000000,
         'highFrequency': 3610000000
     }
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3610000000,
         'highFrequency': 3620000000
     }
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_id
     grant_2['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3620000000,
@@ -225,8 +228,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device_2 = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_4 = json.load(open(os.path.join('testcases', 'testdata', 'device_c.json')))
+    device_2 = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_4 = json_load(os.path.join('testcases', 'testdata', 'device_c.json'))
     self._sas_admin.InjectFccId({'fccId': device_2['fccId']})
     self._sas_admin.InjectUserId({'userId': device_2['userId']})
     self._sas_admin.InjectFccId({'fccId': device_4['fccId']})
@@ -243,19 +246,19 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request grants
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_id_2
     grant_2['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3600000000,
          'highFrequency': 3610000000
     }
-    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['cbsdId'] = cbsd_id_2
     grant_3['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3610000000,
          'highFrequency': 3620000000
     }
-    grant_4 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_4 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_4['cbsdId'] = cbsd_id_4
     grant_4['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3620000000,
@@ -323,7 +326,7 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -335,19 +338,19 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request grants
-    grant_1 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3600000000,
          'highFrequency': 3610000000
     }
-    grant_2 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_id
     grant_2['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3610000000,
          'highFrequency': 3620000000
     }
-    grant_3 = json.load(open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_3 = json_load(os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_3['cbsdId'] = cbsd_id
     grant_3['operationParam']['operationFrequencyRange'] = {
          'lowFrequency': 3620000000,
@@ -397,8 +400,8 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """
 
     # Register the device
-    device = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
+    device = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
     self._sas_admin.InjectFccId({'fccId': device['fccId']})
     self._sas_admin.InjectUserId({'userId': device['userId']})
     request = {'registrationRequest': [device]}
@@ -409,22 +412,22 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Request grants
-    grant_0 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_0 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_0['cbsdId'] = cbsd_id
     grant_0['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3600000000,
         'highFrequency': 3610000000
     }
-    grant_1 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_1 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_1['cbsdId'] = cbsd_id
     grant_1['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3610000000,
         'highFrequency': 3620000000
     }
-    grant_2 = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_2 = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
     grant_2['cbsdId'] = cbsd_id
     grant_2['operationParam']['operationFrequencyRange'] = {
         'lowFrequency': 3620000000,
@@ -462,20 +465,20 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     """Generates the WinnForum configuration for RLQ.6."""
 
     # Load device info
-    device_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_a.json')))
-    device_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_c.json')))
-    device_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'device_b.json')))
+    device_a = json_load(
+        os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_c = json_load(
+        os.path.join('testcases', 'testdata', 'device_c.json'))
+    device_b = json_load(
+        os.path.join('testcases', 'testdata', 'device_b.json'))
 
     # Load grant.json
-    grant_a = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_c = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
-    grant_b = json.load(
-        open(os.path.join('testcases', 'testdata', 'grant_0.json')))
+    grant_a = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_c = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
+    grant_b = json_load(
+        os.path.join('testcases', 'testdata', 'grant_0.json'))
 
     # Device_a and device_c are Category A.
     self.assertEqual(device_a['cbsdCategory'], 'A')
@@ -654,4 +657,3 @@ class RelinquishmentTestcase(sas_testcase.SasTestCase):
     self.assertFalse(
         has_error,
         'Error found in at least one of the responses. See logs for details.')
-

@@ -24,8 +24,8 @@ import sys
 try:
   from reference_models.geo import vincenty
 except ImportError:
-  print ('FAILURE: python path not correctly setup.\n'
-         '  Add the `harness/` directory in your PYTHONPATH.')
+  print('FAILURE: python path not correctly setup.\n'
+        '  Add the `harness/` directory in your PYTHONPATH.')
   sys.exit()
 
 ext_fail = False
@@ -33,15 +33,15 @@ ext_fail = False
 try:
   from reference_models.propagation.itm import itm
 except Exception:
-  print ('FAILURE: ITM model not compiled as an extension module.\n'
-         '  Use the `make all` command in propagation directory.')
+  print('FAILURE: ITM model not compiled as an extension module.\n'
+        '  Use the `make all` command in propagation directory.')
   ext_fail = True
 
 try:
   from reference_models.propagation.ehata import ehata
 except Exception:
-  print ('FAILURE: E-Hata model not compiled as an extension module.\n'
-         '  Use the `make all` command in propagation directory.')
+  print('FAILURE: E-Hata model not compiled as an extension module.\n'
+        '  Use the `make all` command in propagation directory.')
   ext_fail = True
 
 # Load the geo drivers and test if configured properly
@@ -58,10 +58,10 @@ try:
     terrain_driver.GetTile(*key)
     break
 except IOError:
-  print ('FAILURE: NED terrain database cannot be read.\n'
-         '  Configure the `harness/reference_models/geo/CONFIG.py` file.\n'
-         '  Make sure that the tiles are unzipped with script:\n'
-         '    src/data/extract_geo.py')
+  print('FAILURE: NED terrain database cannot be read.\n'
+        '  Configure the `harness/reference_models/geo/CONFIG.py` file.\n'
+        '  Make sure that the tiles are unzipped with script:\n'
+        '    src/data/extract_geo.py')
   geo_fail = True
 
 try:
@@ -69,10 +69,10 @@ try:
     nlcd_driver.GetTile(*key)
     break
 except IOError:
-  print ('FAILURE: NLCD Land cover database cannot be read.\n'
-         '  Configure the `harness/reference_models/geo/CONFIG.py` file.\n'
-         '  Make sure that the tiles are unzipped with script:\n'
-         '    src/data/extract_geo.py')
+  print('FAILURE: NLCD Land cover database cannot be read.\n'
+        '  Configure the `harness/reference_models/geo/CONFIG.py` file.\n'
+        '  Make sure that the tiles are unzipped with script:\n'
+        '    src/data/extract_geo.py')
   geo_fail = True
 
 if geo_fail:
@@ -94,8 +94,8 @@ for key in tiles.NED_TILES:
     missing_tiles.append(key)
 
 if missing_tiles:
-  print ('FAILURE: Missing NED terrain tiles:\n'
-         '  %r' % missing_tiles)
+  print('FAILURE: Missing NED terrain tiles:\n'
+        '  %r' % missing_tiles)
   geo_fail = True
 
 missing_tiles = []
@@ -113,11 +113,11 @@ for key in tiles.NLCD_TILES:
     missing_tiles.append(key)
 
 if missing_tiles:
-  print ('FAILURE: Missing NLCD land cover tiles:\n'
-         '  %r' % missing_tiles)
+  print('FAILURE: Missing NLCD land cover tiles:\n'
+        '  %r' % missing_tiles)
   geo_fail = True
 
 if not geo_fail and not ext_fail:
-  print 'SUCCESS: everything properly configured.'
+  print('SUCCESS: everything properly configured.')
 else:
-  print 'FAILURE: see above messages.'
+  print('FAILURE: see above messages.')

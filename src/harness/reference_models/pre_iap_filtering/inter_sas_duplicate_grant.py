@@ -18,6 +18,9 @@ This is a subset of the pre-IAP reference model which implements inter-SAS
 duplicate CBSD removal. If a CBSD has registered with multiple SASs then the
 CBSD is removed from the FAD objects of the respective SASs.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import logging
 from collections import defaultdict
