@@ -105,6 +105,10 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     ctx = SSL.Context(ssl_method)
     ctx.set_cipher_list(six.ensure_binary(':'.join(ciphers)))
     ctx.use_certificate_file(client_cert)
+    if util.get_openssl_version() >= 111:
+      with open(client_cert) as f:
+        if f.read().count('-----BEGIN ') > 1:
+          ctx.use_certificate_chain_file(client_cert)
     ctx.use_privatekey_file(client_key)
     ctx.load_verify_locations(self._sas._tls_config.ca_cert)
 
@@ -132,13 +136,24 @@ class SecurityTestCase(sas_testcase.SasTestCase):
       logging.debug('TLS handshake: succeed')
       handshake_ok = True
     except SSL.Error as e:
-      logging.debug('TLS handshake: failed:\n%s\n%s', str(e),
+      logging.error('TLS handshake: failed:\n%s\n%s', str(e),
                     '\n'.join(client_ssl_informations))
       handshake_ok = False
     finally:
       client_ssl.close()
 
-    self.assertEqual(client_ssl.get_cipher_list(), ciphers)
+    # From https://github.com/pyca/pyopenssl/blob/main/src/OpenSSL/SSL.py#L1169:
+    # In OpenSSL 1.1.1 setting the cipher list will always return TLS 1.3
+    # ciphers even if you pass an invalid cipher. Applications (like
+    # Twisted) have tests that depend on an error being raised if an
+    # invalid cipher string is passed, but without the following check
+    # for the TLS 1.3 specific cipher suites it would never error.
+    client_cipher_list = client_ssl.get_cipher_list()
+    if util.get_openssl_version() >= 111:
+      client_cipher_list.remove('TLS_AES_256_GCM_SHA384')
+      client_cipher_list.remove('TLS_CHACHA20_POLY1305_SHA256')
+      client_cipher_list.remove('TLS_AES_128_GCM_SHA256')
+    self.assertEqual(client_cipher_list, ciphers)
 
     if handshake_ok:
       known_ssl_methods = {

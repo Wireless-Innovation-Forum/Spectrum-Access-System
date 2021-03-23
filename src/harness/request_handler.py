@@ -139,9 +139,9 @@ def _Request(url, request, config, is_post_method):
   if is_post_method:
     conn.setopt(conn.POST, True)
     conn.setopt(conn.POSTFIELDS, request)
-    logging.info('POST Request to URL %s :\n%s', url, request)
+    logging.debug('POST Request to URL %s :\n%s', url, request)
   else:
-    logging.info('GET Request to URL %s', url)
+    logging.debug('GET Request to URL %s', url)
 
   error = None
   for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
@@ -166,7 +166,7 @@ def _Request(url, request, config, is_post_method):
   http_code = conn.getinfo(pycurl.HTTP_CODE)
   conn.close()
   body = response.getvalue().decode('utf-8')
-  logging.info('Response:\n' + body)
+  logging.debug('Response:\n' + body)
 
   if not (200 <= http_code <= 299):
     raise HTTPError(http_code)

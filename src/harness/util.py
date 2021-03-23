@@ -25,6 +25,7 @@ import json
 import logging
 import os
 import random
+import re
 import sys
 import time
 import uuid
@@ -37,6 +38,7 @@ from jsonschema import validate, Draft4Validator, RefResolver
 import jwt
 import portpicker
 from OpenSSL.crypto import load_certificate, FILETYPE_PEM
+from OpenSSL import SSL
 from shapely.geometry import shape, Point, LineString
 import six
 from six.moves import configparser
@@ -44,6 +46,20 @@ from six.moves import range
 
 from util2 import makePalRecordsConsistent, makePpaAndPalRecordsConsistent, assertContainsRequiredFields
 from reference_models.geo import utils
+
+def _decode_openssl_version(version):
+  # From https://wiki.openssl.org/index.php/Versioning: version always in the
+  # form: 'OpenSSL 1.1.1j  16 Feb 2021'
+  m = re.search(r'^OpenSSL (\d)\.(\d)\.(\d)\w .*', version)
+  if m is None: return -1
+  return int(m.group(1))*100 + int(m.group(2))*10 + int(m.group(3))
+
+def get_openssl_version():
+  """Returns the OpenSSL implementation version in an int form, like 111.
+  Returns -1 if not based on OpenSSL (like BoringSSL) or cannot be decoded.
+  """
+  return _decode_openssl_version(
+      six.ensure_str(SSL.SSLeay_version(SSL.SSLEAY_VERSION)))
 
 def json_load(fname):
   with open(fname) as fd:
