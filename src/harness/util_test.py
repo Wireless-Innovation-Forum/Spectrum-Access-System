@@ -28,6 +28,15 @@ import util
 
 class UtilTest(unittest.TestCase):
 
+  def test_decode_openssl_version(self):
+    self.assertEqual(
+        util._decode_openssl_version('OpenSSL 1.1.1j  16 Feb 2021'), 111)
+    self.assertEqual(
+        util._decode_openssl_version('OpenSSL 1.0.2t  20 Dec 2019'), 102)
+    self.assertEqual(
+        util._decode_openssl_version('OpenSSL 0.9.8f [24 Mar 2010]'), 98)
+    self.assertEqual(util._decode_openssl_version('BoringSSL'), -1)
+
   def test_getFqdnLocalhost(self):
     # Initialize the testConfig with our test data.
     util._test_config = util._GetSharedTestConfig()

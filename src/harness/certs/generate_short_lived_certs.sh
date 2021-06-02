@@ -44,7 +44,8 @@ function generate_cbsd_short_lived_certificate() {
     openssl_db cbsd_ca ca -in $1.csr -out $1.cert \
         -policy policy_anything -extensions cbsd_req_sign \
         -batch -notext -create_serial -utf8 -days 1185 -md sha384 -enddate $enddate_value
-        return 0
+    cat cbsd_ca.cert >> $1.cert
+    return 0
   fi
   echo "The intermediate CBSD CA file not found."
   return -1
@@ -70,6 +71,7 @@ function generate_dp_short_lived_certificate() {
     openssl_db proxy_ca ca -in $1.csr -out $1.cert \
         -policy policy_anything -extensions oper_req_sign \
         -batch -notext -create_serial -utf8 -days 1185 -md sha384 -enddate $enddate_value
+    cat proxy_ca.cert >> $1.cert
     return 0
   fi
   echo "The intermediate Domain Proxy CA file not found."
