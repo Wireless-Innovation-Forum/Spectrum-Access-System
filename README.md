@@ -170,22 +170,24 @@ For the reference models and various libs:
     conda install jsonschema
     conda install matplotlib
     conda install cartopy
-    pip install pygc
+    pip3 install pygc
+    pip3 install pykml
+    pip3 install xlsxwriter
 ```
 
 Additionally for the test harness:
 
 ```shell
     conda install cryptography
-    pip install jwt
-    pip install portpicker
+    pip3 install jwt
+    pip3 install portpicker
     conda install pyopenssl
     conda install pycurl
-    pip install psutil
+    pip3 install psutil
 ```
 
 Additionally for the data scripts:
 
 ```shell
-    pip install ftputil
+    pip3 install ftputil
 ```
