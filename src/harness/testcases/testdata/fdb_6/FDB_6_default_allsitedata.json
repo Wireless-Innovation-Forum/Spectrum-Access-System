@@ -14,7 +14,7 @@
       "gso_satellite_longitude_decimal": "3",
       "antenna_elevation_angle": "15",
       "sys_created_on": "2018-02-26 07:39:26",
-      "sys_updated_on": "2018-04-09 07:26:23",
+      "sys_updated_on": "2021-04-09 07:26:23",
       "earth_station_longitude_decimal": "-100.244161",
       "call_sign": "E555201",
       "call_sign_id": "135d5441db26d377d043fb0e0f9819de",
@@ -38,7 +38,7 @@
       "certifier_last_name": "Golshahi",
       "start_date_time": "2018-04-17 23:55:00",
       "related_registration": "",
-      "certification_date": "2018-04-09"
+      "certification_date": "2021-04-09"
     },
     {
       "antenna_gain": "16",
@@ -54,7 +54,7 @@
       "gso_satellite_longitude_decimal": "3",
       "antenna_elevation_angle": "15",
       "sys_created_on": "2018-02-26 07:39:26",
-      "sys_updated_on": "2018-04-09 07:26:23",
+      "sys_updated_on": "2021-04-09 07:26:23",
       "earth_station_longitude_decimal": "-100.315389",
       "call_sign": "E555202",
       "call_sign_id": "194d65421db26d988d043fb0e0f8090de",
@@ -78,7 +78,7 @@
       "certifier_last_name": "Golshahi",
       "start_date_time": "2018-04-17 23:55:00",
       "related_registration": "",
-      "certification_date": "2018-04-09"
+      "certification_date": "2021-04-09"
     }
   ]
 }
