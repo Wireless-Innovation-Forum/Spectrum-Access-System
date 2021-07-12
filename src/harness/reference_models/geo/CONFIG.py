@@ -25,7 +25,7 @@ _BASE_DATA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
                  '..', '..', '..', '..', 'data'))
 ITU_DIR = os.path.join(_BASE_DATA_DIR, 'itu')
-CENSUS_TRACTS_DIR = os.path.join(_BASE_DATA_DIR, 'census_tracts')
+COUNTY_DIR = os.path.join(_BASE_DATA_DIR, 'county')
 TERRAIN_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'ned')
 LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
 NTIA_DIR = os.path.join(_BASE_DATA_DIR, 'ntia')
@@ -36,7 +36,7 @@ FCC_DIR = os.path.join(_BASE_DATA_DIR, 'fcc')
 #ITU_DIR =
 #TERRAIN_DIR =
 #LANDCOVER_DIR =
-#CENSUS_TRACTS_DIR
+#COUNTY_DIR
 #NTIA_DIR=
 
 def GetItuDir():
@@ -48,8 +48,8 @@ def GetTerrainDir():
 def GetLandCoverDir():
   return LANDCOVER_DIR
 
-def GetCensusTractsDir():
-  return CENSUS_TRACTS_DIR
+def GetCountyDir():
+  return COUNTY_DIR
 
 def GetNtiaDir():
   return NTIA_DIR
