@@ -235,7 +235,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     Returns:
       A tuple containing PPA record which itself is a dictionary and PAL records
       list which contains individual PAL records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear(number) and
+    Note: The PAL Dictionary must contain countyYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1)

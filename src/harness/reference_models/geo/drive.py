@@ -14,7 +14,7 @@
 
 """Defines all the geo drivers singletons.
 """
-from reference_models.geo import census_tract
+from reference_models.geo import county
 from reference_models.geo import nlcd
 from reference_models.geo import refractivity
 from reference_models.geo import tropoclim
@@ -32,8 +32,8 @@ nlcd_driver = nlcd.NlcdDriver()
 climate_driver = tropoclim.ClimateIndexer()
 refract_driver = refractivity.RefractivityIndexer()
 
-# - Census data.
-census_tract_driver = census_tract.CensusTractDriver()
+# - county  data.
+county_driver = county.CountyDriver()
 
 
 
@@ -75,11 +75,11 @@ def ConfigureItuDrivers(itu_dir=None):
     refract_driver.ConfigureDataFile(itu_dir)
 
 
-def ConfigureCensusTractDriver(census_tract_dir=None):
-  """Configure the Census Tract driver.
+def ConfigureCountyDriver(county_dir=None):
+  """Configure the County driver.
 
   Inputs:
-    census_tract_dir: if specified, changes the census tract default directory.
+    county_dir: if specified, changes the county default directory.
   """
-  if census_tract_dir is not None:
-    census_tract_driver.SetCensusTractDirectory(census_tract_dir)
+  if county_dir is not None:
+    county_driver.SetCountyDirectory(county_dir)

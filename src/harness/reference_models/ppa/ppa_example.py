@@ -14,7 +14,7 @@
 """
 PPA Reference Model Sample File 
 
-Note: The Census Tract in the testdata is not the actual Census Tract, 
+Note: The county in the testdata is not the actual county, 
 it is only intended to be used for testing purpose.
 """
 import json
@@ -33,8 +33,8 @@ pal_low_frequency = 3550000000
 pal_high_frequency = 3650000000
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
-# Change the Default Census Tract Driver Directory to parent directory of test_data
-drive.ConfigureCensusTractDriver(TEST_DIR)
+# Change the Default County Driver Directory to parent directory of test_data
+drive.ConfigureCountyDriver(TEST_DIR)
 
 # Load Devices and PAL Records
 devices = [json.load(open(os.path.join(TEST_DIR, device_filename)))
