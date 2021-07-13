@@ -46,37 +46,35 @@ class WinnforumDatabaseUpdateTestcase(sas_testcase.SasTestCase):
     # Load PAL records
     pal_record_a_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_0.json')))
-    pal_record_a_1 = json.load(
-      open(os.path.join('testcases', 'testdata', 'pal_record_1.json')))
+
     pal_record_b_0 = json.load(
       open(os.path.join('testcases', 'testdata', 'pal_record_2.json')))
 
-    # FIPS codes of adjacent census tracts
-    pal_record_a_0['fipsCode'] = 20063955100
-    pal_record_a_1['fipsCode'] = 20063955200
+    # FIPS codes of adjacent county
+    pal_record_a_0['fipsCode'] = 20063
 
-    pal_record_b_0['fipsCode'] = 20195955800
+    pal_record_b_0['fipsCode'] = 20195
 
     # Set the PAL frequency.
     pal_low_frequency = 3570000000
     pal_high_frequency = 3580000000
 
     # Setting the frequency range and user ID(s) 'U' for PAL records.
-    pal_records_a = makePalRecordsConsistent([pal_record_a_0, pal_record_a_1],
+    pal_records_a = makePalRecordsConsistent([pal_record_a_0],
                                              pal_low_frequency, pal_high_frequency,
                                              device_a['userId'])
     pal_records_b = makePalRecordsConsistent([pal_record_b_0],
                                              pal_low_frequency, pal_high_frequency,
                                              device_b['userId'])
 
-    # Set the locations of devices to reside with in census tracts.
+    # Set the locations of devices to reside with in counties.
     device_a['installationParam']['latitude'], device_a['installationParam'][
         'longitude'] = 39.0373, -100.4184
     device_b['installationParam']['latitude'], device_b['installationParam'][
         'longitude'] = 38.9583, -99.9055
 
     # Getting PAL IDs from pal records
-    pal_ids_a = [pal_records_a[0]['palId'], pal_records_a[1]['palId']]
+    pal_ids_a = [pal_records_a[0]['palId']]
     pal_ids_b = [pal_records_b[0]['palId']]
 
     # Creating conditionals for Cat B devices
