@@ -3,22 +3,15 @@ not in use in SAS operation or test harness, but that are kept for historical re
 Copyright on data files is by their creators.
 
 
-* DOC-334099A1.xlsx
+* 2017_counties_2020_05_14.xlsx
 
     This is the raw spreadsheet containing the FCC-produced list of
-    rural census tracts according to the definition in Part 96.3 (Rural Area).
-    Referenced in the Public Notice DA 15-570 of June 25, 2015.
-    The public notice is available at
-    http://transition.fcc.gov/Daily_Releases/Daily_Business/2015/db0625/DA-15-750A1.pdf
-    The data file is available at
-    https://apps.fcc.gov/edocs_public/attachmatch/DOC-334099A1.xlsx
+    US counties are defined using the United States Census Bureau’s 2017 counties.
+    they are references at
+	https://www.fcc.gov/35-ghz-band-overview
+    The counties shape file is available at
+	https://fcc.maps.arcgis.com/home/item.html?id=19cd330160eb4297b58bc8dccd49a61a
 
-* 3.5GHzRuralCensusTracts.csv
-
-    This is a CSV version of the DOC-334099A1.xlsx contents. The file
-    has been exported as a comma-separated-value file with one column. The
-    column contains the FIPS census tract code of those census tracts
-    designated as rural.
 
 * grandftr.pdf
 
