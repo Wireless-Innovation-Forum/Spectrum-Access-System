@@ -515,7 +515,7 @@ class PpaProtectionTestcase(McpXprCommonTestcase):
     # One PPA in the peer SAS test harness.
     pal_record_1 = json_load(
         os.path.join('testcases', 'testdata', 'pal_record_1.json'))
-    pal_record_1['fipsCode'] = 20041084500
+    pal_record_1['fipsCode'] = 20041
     ppa_record_1 = json_load(
         os.path.join('testcases', 'testdata', 'ppa_record_1.json'))
     ppa_record_1['zone']['features'][0]['geometry']['coordinates'] = [[[
