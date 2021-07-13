@@ -9,7 +9,7 @@ models:
  - `vincenty.py`: precise methods for deriving geodesic between two points in the earth
  modeled as ellipsoid
  - `utils.py`: utility routines for computing polygon area, gridding a polygon, etc..
- - `census_tract.py`: Census tract driver to read JSON census tracts geometries.
+ - `county.py`: county driver to read JSON coutnies geometries.
  - `tiles.py`: list of all expected tiles, for proper error management of IO issues
  - `drive.py`: maintains the singleton drivers to all database
  - `zones.py`: provide access to all zone files provided in KML format.
@@ -20,7 +20,7 @@ the CONFIG.py file to point to upper level folders:
 
  - `data/geo/ned/`: USGS Terrain Elevation database (1'')
  - `data/geo/nlcd/`: National Land cover database (1'').
- - `data/census_tracts/`: All US census tracts.
+ - `data/counties/`: All US counties.
  - `data/itu/`: database of climate and refractivity. 
  - `data/ntia/`: miscellaneous zones related to incumbents protection.
  

@@ -3,9 +3,9 @@
 This folder holds all scripts used to retrieve and preprocess data used in the
 SAS reference implementation.
 
-## Geo Data for propagation models and census
+## Geo Data for propagation models and county
 
-The geo data used by propagation models (as well as the census tract data) are stored 
+The geo data used by propagation models are stored 
 in Git LFS (Large File Storage) on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/SAS-Data).
 
 ### Integration
@@ -19,7 +19,6 @@ The process to plug the data into the environment is:
    + create soft links for:
       * `data/geo/ned` -> `SAS_Data/ned`
       * `data/geo/nlcd` -> SAS_Data/nlcd`
-      * `data/census_tracts` -> SAS_Data/census
    + or modify geo pointers in file `reference_models/geo/CONFIG.py`
 
 ### Process for creating NED terrain database
@@ -62,38 +61,28 @@ build NLCD tiles only where corresponding NED tile are available.
 So this process shall be done after a snapshot of the NED terrain tile is built.
       
 
-### Process for recreating census tract GeoJSON
+### Process for recreating county GeoJSON
+we have two options to get the county data:
+	1.extracting the converted zipped files, which are in "https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/data/counties/ manually or by running:
+		`$ python extract_counties_json.py --extract`
+	2.Convert and split the raw county data file from https://github.com/Wireless-Innovation-Forum/Common-Data/tree/master/data/counties/2017_county_boundaries_raw_data.zip, this file was downloaded from the source https://fcc.maps.arcgis.com/home/item.html?id=19cd330160eb4297b58bc8dccd49a61a which is referenced on https://www.fcc.gov/35-ghz-band-overview 
+		for this option we need to convert this source file to individual geojson county files by providing the
+	 command line option --convert
+		`$ python extract_counties_json.py --convert`
+		
+the resulted json files should be placed in https://github.com/Wireless-Innovation-Forum/Spectrum-Access-System/tree/master/data/counties
 
-There are three steps to recreate the census tract GeoJSON database as follows:
 
-  1. Download all original census tract data from the USGS web site. 
-       `$ python extract_census_tracts_json.py --retrieve`
-    `Spectrum-Access-System/data/census` will be created and all original census tract 
-    shapefile will be downloaded into this directory. Note that the current GitHub 
-    repository provide that directory with the original files from 2010 Census, so this
-    step is unnecessary.
-
-  2. Convert the shape files to GeoJSON.
-       `$ python extract_census_tracts_json.py --convert`
-    The shapefile from directory `Spectrum-Access-System/data/census` will be converted
-    to GeoJSON file within the same directory.
-
-  3. Split the GeoJSON file into individual census tract files based on GEOID.
-       `$ python extract_census_tracts_json.py --split`
-    The converted census tract files will be split in individual GeoJSON tract file
-    and dumped into the `Spectrum-Access-System/data/census_tracts` directory.
-
-#### Usage and Sample Output
+### Usage and Sample Output
    <pre>
    <code>
-   <b> $ python extract_census_tracts_json.py -h </b>
-   usage: extract_census_tracts_json.py [-h] (--retrieve | --convert | --split)
+   <b> $ python extract_counties_json.py -h </b>
+   usage: extract_counties_json.py [-h] (--extract | --convertt)
 
    optional arguments:
        -h, --help  show this help message and exit
-       --retrieve  Download original census tract data from the USGS web site.
-       --convert   Convert the shape file to GeoJSON.
-       --split     Split census tract files into individual based on FISP code.
+	   --extract only extract the zipped data.
+       --convert convert and split the raw county data file to idividual json data.
    </pre>
    </code>
   
