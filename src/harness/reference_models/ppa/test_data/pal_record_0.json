@@ -1,6 +1,6 @@
 {
-  "censusYear": 2010,
-  "fipsCode": 123456789,
+  "censusYear": 2017,
+  "fipsCode": 12345,
   "licensee": "CBSD Operator No.1",
   "registrationInformation": {
     "frn": "test_fcc_frn_pal_0",

@@ -9,7 +9,7 @@ models:
  - `vincenty.py`: precise methods for deriving geodesic between two points in the earth
  modeled as ellipsoid
  - `utils.py`: utility routines for computing polygon area, gridding a polygon, etc..
- - `county.py`: county driver to read JSON coutnies geometries.
+ - `county.py`: county driver to read JSON counties geometries.
  - `tiles.py`: list of all expected tiles, for proper error management of IO issues
  - `drive.py`: maintains the singleton drivers to all database
  - `zones.py`: provide access to all zone files provided in KML format.

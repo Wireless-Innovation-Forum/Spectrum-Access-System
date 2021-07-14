@@ -6,19 +6,19 @@ SAS reference implementation.
 ## Geo Data for propagation models and county
 
 The geo data used by propagation models are stored 
-in Git LFS (Large File Storage) on the [separate SAS-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/SAS-Data).
+in Git LFS (Large File Storage) on the [separate Common-Data WinnForum repository](https://github.com/Wireless-Innovation-Forum/Common-Data).
 
 ### Integration
 
 The process to plug the data into the environment is:
 
- - Clone the [`SAS-Data`]((https://github.com/Wireless-Innovation-Forum/SAS-Data)
+ - Clone the [`SAS-Data`]((https://github.com/Wireless-Innovation-Forum/Common-Data)
  repository.
  - Unzip the files, by using the `extract_geo.py` script provided in that repository.
  - Point your reference models to that repository, by one of the following options:
    + create soft links for:
-      * `data/geo/ned` -> `SAS_Data/ned`
-      * `data/geo/nlcd` -> SAS_Data/nlcd`
+      * `data/geo/ned` -> `Common_Data/ned`
+      * `data/geo/nlcd` -> Common_Data/nlcd`
    + or modify geo pointers in file `reference_models/geo/CONFIG.py`
 
 ### Process for creating NED terrain database
@@ -40,7 +40,7 @@ Tiles are simply retrieved using the two scripts:
   - `retrieve_alaska_ned_extra.py`: complete the previous set with missing Alaska tiles
     using Alaska 2-arcsec database and a resampling to 1 arcsec. 
     Final tiles are put in a folder `data/geo/ned_out2/'
-  - add manually the data in SAS-Data repository
+  - add manually the data in Common-Data repository
   
 Please note that these 2 scripts keep track of the original downloaded data in 
 directories `data/geo/orig_ned` and `data/geo/orig_ned2`. Subsequent run of the script
