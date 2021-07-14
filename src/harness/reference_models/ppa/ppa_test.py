@@ -109,7 +109,7 @@ class TestPpa(unittest.TestCase):
     ppa_zone = json.loads(ppa_zone)
 
     county_zone = utils.ToShapely(
-        drive.county_driver.GetCounty('06027000100')
+        drive.county_driver.GetCounty('06027')
         ['features'][0]['geometry'])
     self.assertTrue(utils.ToShapely(ppa_zone).buffer(-1e-6).within(county_zone))
 
