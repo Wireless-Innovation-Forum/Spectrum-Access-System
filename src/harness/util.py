@@ -206,7 +206,7 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     # Change License Information in Pal
     pal_rec['license']['licenseAreaIdentifier'] = str(pal_fips_code)
     pal_rec['license']['licenseAreaExtent'] = \
-      'zone/census_tract/census/{}/{}'.format(pal_census_year, pal_fips_code)
+      'zone/county/census/{}/{}'.format(pal_census_year, pal_fips_code)
     pal_rec['license']['licenseDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseExpiration'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
