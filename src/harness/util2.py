@@ -26,7 +26,6 @@ import uuid
 
 import jsonschema
 
-
 def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
                              user_id, fcc_channel_id="1",
                              start_date=None, end_date=None):
@@ -71,7 +70,7 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     # Change License Information in Pal
     pal_rec['license']['licenseAreaIdentifier'] = str(pal_fips_code)
     pal_rec['license']['licenseAreaExtent'] = \
-      'zone/census_tract/census/{}/{}'.format(pal_census_year, pal_fips_code)
+      'zone/county/census/{}/{}'.format(pal_census_year, pal_fips_code)
     pal_rec['license']['licenseDate'] = start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseExpiration'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ')
     pal_rec['license']['licenseFrequencyChannelId'] = fcc_channel_id
@@ -100,7 +99,7 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     Returns:
       A tuple containing PPA record which itself is a dictionary and PAL records
       list which contains individual PAL records in the form of dictionary.
-    Note: The PAL Dictionary must contain censusYear(number) and
+    Note: The PAL Dictionary must contain countyYear(number) and
           fipsCode(number)
   """
   start_date = datetime.now().replace(year=datetime.now().year - 1)
@@ -140,7 +139,6 @@ def assertContainsRequiredFields(schema_filename, response):
   resolver = jsonschema.RefResolver(referrer=schema, base_uri=os_base_uri + schema_dir + '/')
   # Raises ValidationError when incorrect response
   jsonschema.validate(response, schema, resolver=resolver)
-
 
 def CreateConditionalsIfCatB(reg_request):
   """Separates the conditionals from the registration request, if needed."""

@@ -43,8 +43,8 @@ class TestPpa(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    # Change the Default Census Tract directory to test_data
-    drive.ConfigureCensusTractDriver(TEST_DIR)
+    # Change the Default county directory to test_data
+    drive.ConfigureCountyDriver(TEST_DIR)
     # Load the common setup to all tests
     user_id = 'pal_user_id_0'
     pal_record_filenames = ['pal_record_1.json', 'pal_record_2.json']
@@ -87,7 +87,7 @@ class TestPpa(unittest.TestCase):
     self.assertAlmostSamePolygon(
         utils.ToShapely(ppa_zone), expected_ppa, 0.001)
 
-  def test_ClippedPpaByCensus(self):
+  def test_ClippedPpaByCounty(self):
     # Configuring for -96dBm circle above 40km
     wf_hybrid.CalcHybridPropagationLoss = testutils.FakePropagationPredictor(
         dist_type='REAL', factor=1.0, offset=(96+30-0.1) - 45.0)
@@ -100,7 +100,7 @@ class TestPpa(unittest.TestCase):
     self.assertAlmostSamePolygon(
         utils.ToShapely(ppa_zone), expected_ppa, 0.001)
 
-  def test_ClippedPpaByCensusWithSmallHoles(self):
+  def test_ClippedPpaByCountyWithSmallHoles(self):
     # Configuring for -96dBm circle above 40km
     wf_hybrid.CalcHybridPropagationLoss = testutils.FakePropagationPredictor(
         dist_type='REAL', factor=1.0, offset=(96+30-0.1) - 45.0)
@@ -108,10 +108,10 @@ class TestPpa(unittest.TestCase):
     ppa_zone = ppa.PpaCreationModel(TestPpa.devices[1:], TestPpa.pal_records[1:])
     ppa_zone = json.loads(ppa_zone)
 
-    census_zone = utils.ToShapely(
-        drive.census_tract_driver.GetCensusTract('06027000100')
+    county_zone = utils.ToShapely(
+        drive.county_driver.GetCounty('06027')
         ['features'][0]['geometry'])
-    self.assertTrue(utils.ToShapely(ppa_zone).buffer(-1e-6).within(census_zone))
+    self.assertTrue(utils.ToShapely(ppa_zone).buffer(-1e-6).within(county_zone))
 
 
 if __name__ == '__main__':
