@@ -26,6 +26,8 @@ declare -ra CA_NAMES=(
   unrecognized_root_ca
 )
 
+cnf_file=/Users/nicholaspapadopoulos/workspace_cu/cu_pass/Spectrum-Access-System/cert/openssl.cnf
+
 # Create an empty index.txt database for each CA.
 rm -rf db/
 for ca in "${CA_NAMES[@]}"; do
@@ -34,13 +36,38 @@ for ca in "${CA_NAMES[@]}"; do
   echo -n "unique_subject = no" > "db/$ca/index.txt.attr"
 done
 
+function replace_openssl_cnf_ca_dir_var {
+  sed -i '' "s#OPENSSL_CNF_CA_DIR = $1#OPENSSL_CNF_CA_DIR = $2#" $cnf_file
+}
+
+function replace_openssl_cnf_crldp_var {
+  sed -i '' "s#OPENSSL_CNF_CRLDP = $1#OPENSSL_CNF_CRLDP = $2#" $cnf_file
+}
+
+function replace_with_env_vars {
+  replace_openssl_cnf_ca_dir_var _ca_dir_not_set_by_environment_ $1
+  replace_openssl_cnf_crldp_var _crldp_not_set_by_environment_ $2
+}
+
+function replace_with_env_vars_undo {
+  replace_openssl_cnf_ca_dir_var $1 _ca_dir_not_set_by_environment_
+  replace_openssl_cnf_crldp_var $2 _crldp_not_set_by_environment_
+}
+
 # Runs openssl using the database for a particular CA.
 # $1 should match an entry from the CA_NAMES array.
 function openssl_db {
-  OPENSSL_CNF_CA_DIR="db/$1" OPENSSL_CNF_CRLDP="$CRLDP_BASE$1.crl" \
-      openssl "${@:2}" \
+#  OPENSSL_CNF_CA_DIR="db/$1" OPENSSL_CNF_CRLDP="$CRLDP_BASE$1.crl" \
+#      openssl "${@:2}" \
+#      -config ../../../cert/openssl.cnf \
+#      -cert "$1.cert" -keyfile "private/$1.key"
+  openssl_cnf_ca_dir="db/$1"
+  openssl_cnf_crldp="$CRLDP_BASE$1.crl"
+  replace_with_env_vars $openssl_cnf_ca_dir $openssl_cnf_crldp
+  openssl "${@:2}" \
       -config ../../../cert/openssl.cnf \
       -cert "$1.cert" -keyfile "private/$1.key"
+  replace_with_env_vars_undo $openssl_cnf_ca_dir $openssl_cnf_crldp
 }
 
 function gen_cbsd_cert {
