@@ -354,7 +354,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_POST(self):
     """Handles POST requests."""
 
-    length = int(self.headers.getheader('content-length'))
+    length = int(self.headers.get('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
     if self.path == '/%s/registration' % self.cbsd_sas_version:
@@ -416,7 +416,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write(json.dumps(response))
+    self.wfile.write(json.dumps(response).encode())
 
   def do_GET(self):
     """Handles GET requests."""
