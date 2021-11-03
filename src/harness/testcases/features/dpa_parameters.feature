@@ -2,6 +2,7 @@ Feature: DPA Parameters
 
   Definitions
     - CBSD_A...: Citizens Broadband radio Service Device, category A
+    - CBSD_B...: Citizens Broadband radio Service Device, category B
     - EIRP.....: Effective isotropic radiated power
     - IPC......: Interference protection criteria
     - R_C_DPA_A: Radius of Co-channel frequency range Dynamic Protection Area for category A devices
@@ -16,6 +17,10 @@ Feature: DPA Parameters
     - Loss calculations based on formulas in R2-SGN-04
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
 
-  Scenario: The Category A Neighborhood is calculated
-    Given CBSD_A_1 is 81 kilometeres away from Hat Creek
-    Then R_C_DPA_A_HatCreek is 50 kilometers
+  Scenario: A CBSD_A is outside of the neighborhood
+    Given CBSD_A_1 is 150.0 kilometers away from McKinney
+    Then the propagation loss is high enough to make the interference negligible
+
+  Scenario: The Category A Neighborhood for RA facilities is calculated
+#    Given CBSD_A_1 is 81 kilometeres away from Hat Creek
+#    Then R_C_DPA_A_HatCreek is 50 kilometers
