@@ -1,0 +1,12 @@
+# PlacesAutocompleteStatus
+
+Status codes returned by service. - `OK` indicating the API request was successful. - `ZERO_RESULTS` indicating that the search was successful but returned no results. This may occur if the search was passed a bounds in a remote location. - `INVALID_REQUEST` indicating the API request was malformed, generally due to the missing `input` parameter. - `OVER_QUERY_LIMIT` indicating any of the following:   - You have exceeded the QPS limits.   - Billing has not been enabled on your account.   - The monthly $200 credit, or a self-imposed usage cap, has been exceeded.   - The provided method of payment is no longer valid (for example, a credit card has expired).   See the [Maps FAQ](https://developers.google.com/maps/faq#over-limit-key-error) for more information about how to resolve this error. - `REQUEST_DENIED` indicating that your request was denied, generally because:   - The request is missing an API key.   - The `key` parameter is invalid. - `UNKNOWN_ERROR` indicating an unknown error. 
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**value** | **str** | Status codes returned by service. - &#x60;OK&#x60; indicating the API request was successful. - &#x60;ZERO_RESULTS&#x60; indicating that the search was successful but returned no results. This may occur if the search was passed a bounds in a remote location. - &#x60;INVALID_REQUEST&#x60; indicating the API request was malformed, generally due to the missing &#x60;input&#x60; parameter. - &#x60;OVER_QUERY_LIMIT&#x60; indicating any of the following:   - You have exceeded the QPS limits.   - Billing has not been enabled on your account.   - The monthly $200 credit, or a self-imposed usage cap, has been exceeded.   - The provided method of payment is no longer valid (for example, a credit card has expired).   See the [Maps FAQ](https://developers.google.com/maps/faq#over-limit-key-error) for more information about how to resolve this error. - &#x60;REQUEST_DENIED&#x60; indicating that your request was denied, generally because:   - The request is missing an API key.   - The &#x60;key&#x60; parameter is invalid. - &#x60;UNKNOWN_ERROR&#x60; indicating an unknown error.  |  must be one of ["OK", "ZERO_RESULTS", "INVALID_REQUEST", "OVER_QUERY_LIMIT", "REQUEST_DENIED", "UNKNOWN_ERROR", ]
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

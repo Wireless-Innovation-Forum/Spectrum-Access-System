@@ -5,7 +5,9 @@ import parse
 from behave import *
 from behave import runner
 from geopy import Point
-from geopy.distance import geodesic
+
+from dpa_calculator.utils import move_distance
+from testcases.features.helpers.terrain_model.expected_terrain_model import get_expected_terrain_model
 
 use_step_matcher("parse")
 
@@ -49,7 +51,7 @@ def step_impl(context: ContextTerrainModel, kilometers: float, bearing: float):
     Args:
         context (behave.runner.Context):
     """
-    context.new_location = geodesic(kilometers=kilometers).destination(point=context.origin, bearing=bearing)
+    context.new_location = move_distance(bearing=bearing, origin=context.origin, kilometers=kilometers)
 
 
 @then("Mike is at location {coordinates:LatLng}")
@@ -58,4 +60,15 @@ def step_impl(context: ContextTerrainModel, coordinates: Point):
     Args:
         context (behave.runner.Context):
     """
-    assert context.new_location == coordinates, f'{context.new_location.format_decimal(altitude=False)} != {coordinates.format_decimal(altitude=False)}'
+    assert context.new_location == coordinates,\
+        f'{context.new_location.format_decimal(altitude=False)} != {coordinates.format_decimal(altitude=False)}'
+
+
+@given("Coordinates {point1:LatLng} and {point2:LatLng}")
+def step_impl(context):
+    """
+    Args:
+        context (behave.runner.Context):
+    """
+    expected_terrain_model = get_expected_terrain_model()
+    raise NotImplementedError(u'STEP: Given Coordinates 40.81734, -121.46933 and 40.096901173373254, -121.46933')
