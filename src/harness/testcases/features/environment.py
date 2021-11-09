@@ -1,20 +1,35 @@
-from behave import fixture, use_fixture
+import re
 
-import sas
-from sas_testcase import SasTestCase
+import parse
+from behave import *
 
+from testcases.features.steps.dpa_parameters.environment import *
+from dpa_calculator.utils import Point
 
-class SasTestCaseModified(SasTestCase):
-    def setUp(self):
-        self._sas, self._sas_admin = sas.GetTestingSas()
-
-
-@fixture
-def sas_test_case(context):
-    context.sas_test_case = SasTestCaseModified()
-    context.sas_test_case.setUp()
-    yield context.sas_test_case
+INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'
+NUMBER_REGEX = rf'{INTEGER_REGEX}(\.[0-9]+)?'
 
 
-def before_all(context):
-    use_fixture(sas_test_case, context)
+@parse.with_pattern(INTEGER_REGEX)
+def parse_integer(text: str) -> int:
+    return int(text.replace(',', ''))
+
+
+@parse.with_pattern(NUMBER_REGEX)
+def parse_number(text: str) -> float:
+    return float(text.replace(',', ''))
+
+
+@parse.with_pattern(f'{NUMBER_REGEX}, ?{NUMBER_REGEX}')
+def parse_lat_lng(text: str) -> Point:
+    coordinates = re.compile(f'{NUMBER_REGEX}').findall(text)
+    latitude, longitude = (float(coordinate) for coordinate in coordinates)
+    return Point(
+        latitude=latitude,
+        longitude=longitude
+    )
+
+
+register_type(Integer=parse_integer)
+register_type(LatLng=parse_lat_lng)
+register_type(Number=parse_number)

@@ -21,6 +21,8 @@ Feature: DPA Parameters
     Given CBSD_A_1 is 150.0 kilometers away from McKinney
     Then the propagation loss is high enough to make the interference negligible
 
-  Scenario: The Category A Neighborhood for RA facilities is calculated
-#    Given CBSD_A_1 is 81 kilometeres away from Hat Creek
-#    Then R_C_DPA_A_HatCreek is 50 kilometers
+  Scenario: The number of APs for simulation is calculated
+    Given a city population of 1,331,000
+    And the radar at McKinney
+    And simulation population area of 6,384,440
+    Then the number of APs for simulation is 25537.76

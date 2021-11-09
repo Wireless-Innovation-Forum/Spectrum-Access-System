@@ -11,9 +11,6 @@ from dpa_calculator.utils import Point, move_distance
 use_step_matcher("parse")
 
 
-NUMBER_REGEX = r'-?[0-9]+.?[0-9]*'
-
-
 @dataclass
 class ContextMoving(runner.Context):
     origin: Point
@@ -23,19 +20,6 @@ class ContextMoving(runner.Context):
 @dataclass
 class ContextProfile(runner.Context):
     terrain_model: List[float]
-
-
-@parse.with_pattern(f'{NUMBER_REGEX}, ?{NUMBER_REGEX}')
-def parse_lat_lng(text: str) -> Point:
-    coordinates = re.compile(f'{NUMBER_REGEX}').findall(text)
-    latitude, longitude = (float(coordinate) for coordinate in coordinates)
-    return Point(
-        latitude=latitude,
-        longitude=longitude
-    )
-
-
-register_type(LatLng=parse_lat_lng)
 
 
 @given("Mike starts at location {coordinates:LatLng}")
