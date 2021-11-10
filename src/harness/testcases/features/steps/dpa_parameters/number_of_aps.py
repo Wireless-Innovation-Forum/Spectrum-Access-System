@@ -5,6 +5,7 @@ from math import isclose
 
 from behave import *
 
+from dpa_calculator.dpa_calculator import NumberOfApsCalculatorGroundBased
 from reference_models.dpa.dpa_mgr import Dpa
 
 
@@ -12,7 +13,7 @@ from reference_models.dpa.dpa_mgr import Dpa
 class ContextNumberOfAps(runner.Context):
     city_population: int
     dpa: Dpa
-    simulation_population_ratio: float
+    simulation_population: int
 
 
 @given("a city population of {population:Integer}")
@@ -39,14 +40,15 @@ def step_impl(context: ContextNumberOfAps, population: int):
     Args:
         context (behave.runner.Context):
     """
-    context.simulation_population_ratio = population / context.city_population
+    context.simulation_population = population
 
 
-@then("the number of APs for simulation is {expected_number_of_aps:Number}")
+@then("the number of APs for simulation is {expected_number_of_aps:Integer}")
 def step_impl(context: ContextNumberOfAps, expected_number_of_aps: float):
     """
     Args:
         context (behave.runner.Context):
     """
-    number_of_aps = (context.city_population * 0.4 * context.simulation_population_ratio * 0.2 * 1) / 20
-    assert isclose(number_of_aps, expected_number_of_aps)
+    number_of_aps_calculator = NumberOfApsCalculatorGroundBased(city_population=context.city_population,
+                                                                simulation_population=context.simulation_population)
+    assert number_of_aps_calculator.number_of_aps == expected_number_of_aps

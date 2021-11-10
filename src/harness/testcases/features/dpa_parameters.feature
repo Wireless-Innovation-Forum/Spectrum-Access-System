@@ -25,4 +25,4 @@ Feature: DPA Parameters
     Given a city population of 1,331,000
     And the radar at McKinney
     And simulation population area of 6,384,440
-    Then the number of APs for simulation is 25537.76
+    Then the number of APs for simulation is 25538
