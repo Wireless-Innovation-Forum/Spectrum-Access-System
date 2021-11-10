@@ -11,7 +11,6 @@ from behave import runner
 
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_bearing_between_two_points, get_distance_between_two_points
-from reference_models.geo.vincenty import GeodesicPoint
 
 
 BEARING_REGEX = 'bearing'
@@ -38,21 +37,11 @@ register_type(DistanceOrBearingFunction=parse_distance_or_bearing_word)
 
 @dataclass
 class ContextRandomApPositioning(runner.Context):
-    number_of_points_to_distribute: int
     distribution_area: AreaCircle
     distributed_points: List[Point]
 
 
-@given("{number_of_aps:Integer} geographic Points")
-def step_impl(context: ContextRandomApPositioning, number_of_aps: int):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    context.number_of_points_to_distribute = number_of_aps
-
-
-@step("a seed of {seed:Integer}")
+@given("a seed of {seed:Integer}")
 def step_impl(context: ContextRandomApPositioning, seed: int):
     """
     Args:
@@ -73,13 +62,13 @@ def step_impl(context: ContextRandomApPositioning, radius_in_kilometers: int, co
     )
 
 
-@when("the points are randomly distributed")
-def step_impl(context: ContextRandomApPositioning):
+@when("{number_of_points:Integer} points are randomly generated")
+def step_impl(context: ContextRandomApPositioning, number_of_points: int):
     """
     Args:
         context (behave.runner.Context):
     """
-    context.distributed_points = PointDistributor(distribution_area=context.distribution_area).distribute_points(number_of_points=context.number_of_points_to_distribute)
+    context.distributed_points = PointDistributor(distribution_area=context.distribution_area).distribute_points(number_of_points=number_of_points)
 
 
 @then("all distributed points should be within the radius of the center point")

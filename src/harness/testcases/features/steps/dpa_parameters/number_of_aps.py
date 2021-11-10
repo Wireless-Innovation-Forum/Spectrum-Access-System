@@ -10,18 +10,8 @@ from reference_models.dpa.dpa_mgr import Dpa
 
 @dataclass
 class ContextNumberOfAps(runner.Context):
-    city_population: int
     dpa: Dpa
     simulation_population: int
-
-
-@given("a city population of {population:Integer}")
-def step_impl(context: ContextNumberOfAps, population: int):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    context.city_population = population
 
 
 @step("the radar at {dpa:Dpa}")
@@ -48,6 +38,5 @@ def step_impl(context: ContextNumberOfAps, expected_number_of_aps: float):
     Args:
         context (behave.runner.Context):
     """
-    number_of_aps_calculator = NumberOfApsCalculatorGroundBased(city_population=context.city_population,
-                                                                simulation_population=context.simulation_population)
-    assert number_of_aps_calculator.number_of_aps == expected_number_of_aps
+    number_of_aps_calculator = NumberOfApsCalculatorGroundBased(simulation_population=context.simulation_population)
+    assert number_of_aps_calculator.get_number_of_aps() == expected_number_of_aps

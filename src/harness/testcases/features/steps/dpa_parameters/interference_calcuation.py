@@ -16,6 +16,28 @@ class ContextPropagationLoss(runner.Context):
     dpa: Dpa
 
 
+class InterferenceCalculator:
+    def __init__(self, cbsd: Cbsd, dpa: Dpa):
+        self._cbsd = cbsd
+        self._dpa = dpa
+
+    def get_itm_interference(self) -> float:
+        calculated_loss = CalcItmPropagationLoss(lat_cbsd=self._cbsd_location.latitude,
+                                                 lon_cbsd=self._cbsd_location.longitude,
+                                                 height_cbsd=self._dpa.radar_height,
+                                                 lat_rx=self._dpa_location.latitude,
+                                                 lon_rx=self._dpa_location.longitude,
+                                                 height_rx=self._dpa.radar_height)
+        return calculated_loss.db_loss
+
+    @property
+    def _cbsd_location(self) -> Point:
+        return self._cbsd.location
+
+    @property
+    def _dpa_location(self) -> Point:
+        return Point.from_shapely(point_shapely=self._dpa.geometry.centroid)
+
 
 @given("{cbsd:Cbsd}_1 is {kilometers:f} kilometers away from {dpa:Dpa}")
 def step_impl(context: ContextPropagationLoss, cbsd: Cbsd, kilometers: float, dpa: Dpa):
@@ -31,14 +53,11 @@ def step_impl(context: ContextPropagationLoss, cbsd: Cbsd, kilometers: float, dp
     context.dpa = dpa
 
 
-@then("the propagation loss is high enough to make the interference negligible")
+@then("the interference at the receiver is 5")
 def step_impl(context: ContextPropagationLoss):
     """
     Args:
         context (behave.runner.Context):
     """
-    cbsd_location = context.cbsd.location
-    dpa_location = Point.from_shapely(point_shapely=context.dpa.geometry.centroid)
-    loss = CalcItmPropagationLoss(lat_cbsd=cbsd_location.latitude, lon_cbsd=cbsd_location.longitude, height_cbsd=context.dpa.radar_height,
-                                  lat_rx=dpa_location.latitude, lon_rx=dpa_location.longitude, height_rx=context.dpa.radar_height)
+    loss = InterferenceCalculator(cbsd=context.cbsd, dpa=context.dpa)
     assert loss == MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A

@@ -2,8 +2,7 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-from dpa_calculator.utils import Point
-from reference_models.geo.vincenty import GeodesicPoint
+from dpa_calculator.utils import Point, move_distance
 
 
 @dataclass
@@ -24,8 +23,7 @@ class PointDistributor:
     def _generate_point(self) -> Point:
         random_distance = random.random() * self._max_distance
         random_bearing = random.random() * self._max_bearing
-        coordinates = GeodesicPoint(lat=self._origin.latitude, lon=self._origin.longitude, dist_km=random_distance, bearing=random_bearing)
-        return Point(latitude=coordinates[0], longitude=coordinates[1])
+        return move_distance(bearing=random_bearing, kilometers=random_distance, origin=self._origin)
 
     @property
     def _max_distance(self) -> float:
