@@ -1,35 +1,29 @@
-import re
+from glob import glob
+from pathlib import Path
+from runpy import run_path
+from typing import Iterable, Union
 
-import parse
-from behave import *
-
-from testcases.features.steps.dpa_parameters.environment import *
-from dpa_calculator.utils import Point
-
-INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'
-NUMBER_REGEX = rf'{INTEGER_REGEX}(\.[0-9]+)?'
+from testcases.features import environment, steps
+from testcases.features.helpers.utils import get_script_directory
 
 
-@parse.with_pattern(INTEGER_REGEX)
-def parse_integer(text: str) -> int:
-    return int(text.replace(',', ''))
+def import_main_environment() -> None:
+    environment_main_directory = get_script_directory(file=environment.__file__)
+    environment_files = environment_main_directory.glob('[!_]*.py')
+    _import_files(filepaths=environment_files)
 
 
-@parse.with_pattern(NUMBER_REGEX)
-def parse_number(text: str) -> float:
-    return float(text.replace(',', ''))
+def import_all_environments() -> None:
+    steps_dir = get_script_directory(file=steps.__file__)
+    any_environment_path = Path(steps_dir, '**', 'environment.py')
+    all_environments = glob(str(any_environment_path))
+    _import_files(filepaths=all_environments)
 
 
-@parse.with_pattern(f'{NUMBER_REGEX}, ?{NUMBER_REGEX}')
-def parse_lat_lng(text: str) -> Point:
-    coordinates = re.compile(f'{NUMBER_REGEX}').findall(text)
-    latitude, longitude = (float(coordinate) for coordinate in coordinates)
-    return Point(
-        latitude=latitude,
-        longitude=longitude
-    )
+def _import_files(filepaths: Iterable[Union[str, Path]]) -> None:
+    for environment_filepath in filepaths:
+        run_path(str(environment_filepath))
 
 
-register_type(Integer=parse_integer)
-register_type(LatLng=parse_lat_lng)
-register_type(Number=parse_number)
+import_main_environment()
+import_all_environments()

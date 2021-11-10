@@ -16,6 +16,7 @@ Feature: DPA Parameters
     - RA facilities have an IPC of -247
     - Loss calculations based on formulas in R2-SGN-04
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
+    - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
   Scenario: A CBSD_A is outside of the neighborhood
     Given CBSD_A_1 is 150.0 kilometers away from McKinney
@@ -24,5 +25,5 @@ Feature: DPA Parameters
   Scenario: The number of APs for simulation is calculated
     Given a city population of 1,331,000
     And the radar at McKinney
-    And simulation population area of 6,384,440
+    And simulation population of 6,384,440 with a 150 km radius
     Then the number of APs for simulation is 25538

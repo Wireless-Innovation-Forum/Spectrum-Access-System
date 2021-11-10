@@ -34,7 +34,7 @@ def step_impl(context: ContextNumberOfAps, dpa: Dpa):
     context.dpa = dpa
 
 
-@step("simulation population area of {population:Integer}")
+@step("simulation population of {population:Integer} with a 150 km radius")
 def step_impl(context: ContextNumberOfAps, population: int):
     """
     Args:
