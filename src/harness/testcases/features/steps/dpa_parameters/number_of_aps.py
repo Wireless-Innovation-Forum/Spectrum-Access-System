@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 
 from behave import runner
-from math import isclose
 
 from behave import *
 
-from dpa_calculator.dpa_calculator import NumberOfApsCalculatorGroundBased
+from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from reference_models.dpa.dpa_mgr import Dpa
 
 

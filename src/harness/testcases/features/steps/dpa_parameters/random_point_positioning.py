@@ -9,8 +9,10 @@ from typing import Callable, Iterable, List
 from behave import *
 from behave import runner
 
+from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_bearing_between_two_points, get_distance_between_two_points
 from reference_models.geo.vincenty import GeodesicPoint
+
 
 BEARING_REGEX = 'bearing'
 CLOSEST_REGEX = 'closest'
@@ -32,12 +34,6 @@ def parse_distance_or_bearing_word(text: str) -> Callable[[Point, Point], float]
 
 register_type(MinMax=parse_min_max)
 register_type(DistanceOrBearingFunction=parse_distance_or_bearing_word)
-
-
-@dataclass
-class AreaCircle:
-    center_coordinates: Point
-    radius_in_kilometers: int
 
 
 @dataclass
@@ -83,16 +79,7 @@ def step_impl(context: ContextRandomApPositioning):
     Args:
         context (behave.runner.Context):
     """
-    center = context.distribution_area.center_coordinates
-
-    def generate_point(origin: Point, max_distance: int, max_bearing: int = 360):
-        random_distance = random.random() * max_distance
-        random_bearing = random.random() * max_bearing
-        coordinates = GeodesicPoint(lat=origin.latitude, lon=origin.longitude, dist_km=random_distance, bearing=random_bearing)
-        return Point(latitude=coordinates[0], longitude=coordinates[1])
-
-    context.distributed_points = [generate_point(origin=center, max_distance=context.distribution_area.radius_in_kilometers)
-                                  for i in range(context.number_of_points_to_distribute)]
+    context.distributed_points = PointDistributor(distribution_area=context.distribution_area).distribute_points(number_of_points=context.number_of_points_to_distribute)
 
 
 @then("all distributed points should be within the radius of the center point")
