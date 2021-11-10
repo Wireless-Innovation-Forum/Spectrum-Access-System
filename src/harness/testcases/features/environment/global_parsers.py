@@ -22,8 +22,8 @@ def parse_number(text: str) -> float:
 
 @parse.with_pattern(f'{NUMBER_REGEX}, ?{NUMBER_REGEX}')
 def parse_lat_lng(text: str) -> Point:
-    coordinates = re.compile(f'{NUMBER_REGEX}').findall(text)
-    latitude, longitude = (float(coordinate) for coordinate in coordinates)
+    coordinates = re.compile(f'({NUMBER_REGEX})').findall(text)
+    latitude, longitude = (float(coordinate[0]) for coordinate in coordinates)
     return Point(
         latitude=latitude,
         longitude=longitude

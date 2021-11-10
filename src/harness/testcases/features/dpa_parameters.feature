@@ -26,4 +26,16 @@ Feature: DPA Parameters
     Given a city population of 1,331,000
     And the radar at McKinney
     And simulation population of 6,384,440 with a 150 km radius
-    Then the number of APs for simulation is 25538
+    Then the number of APs for simulation is 25,538
+
+  Scenario: Geographic points are randomly positioned in a circular area
+    Given 30,000 geographic points
+    And a seed of 0
+    And a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
+    When the points are randomly distributed
+    Then all distributed points should be within the radius of the center point
+    And the furthest distance should be close to 150 km
+    And the closest distance should be close to 0 km
+    And the highest bearing should be close to 360 degrees
+    And the lowest bearing should be close to 0 degrees
+    And no points should have exactly the same latitude, longitude, or bearing
