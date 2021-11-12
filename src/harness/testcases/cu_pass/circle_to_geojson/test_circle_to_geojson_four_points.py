@@ -8,12 +8,12 @@ class TestCircleToGeoJsonFourPoints(CircleToGeoJsonTester):
 
     @property
     def _expected_coordinates(self) -> List[List[float]]:
-        start_point = [self._north_coordinate, self._area.center_coordinates.longitude]
+        start_point = [self._area.center_coordinates.longitude, self._north_coordinate]
         return [
             start_point,
-            [self._area.center_coordinates.latitude, self._east_coordinate],
-            [self._south_coordinate, self._area.center_coordinates.longitude],
-            [self._area.center_coordinates.latitude, self._west_coordiante],
+            [self._east_coordinate, self._area.center_coordinates.latitude],
+            [self._area.center_coordinates.longitude, self._south_coordinate],
+            [self._west_coordiante, self._area.center_coordinates.latitude],
             start_point
         ]
 

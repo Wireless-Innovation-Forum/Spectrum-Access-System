@@ -21,7 +21,7 @@ Feature: DPA Parameters
 
   Scenario: Population data is retrieved
     Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
-    Then the population in the area should be 6,384,440
+    Then the population in the area should be 8,968,197
 
   Scenario: The number of APs for simulation is calculated
     Given the radar at McKinney
