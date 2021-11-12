@@ -84,8 +84,8 @@ class StatsResponse(ModelNormal):
             'status': (str,),  # noqa: E501
             'status_code': (int,),  # noqa: E501
             'error': (bool,),  # noqa: E501
-            'task_id': (str,),  # noqa: E501
-            'error_message': (str,),  # noqa: E501
+            'taskid': (str,),  # noqa: E501
+            'error_message': (str, none_type,),  # noqa: E501
         }
 
     @cached_property
@@ -97,7 +97,7 @@ class StatsResponse(ModelNormal):
         'status': 'status',  # noqa: E501
         'status_code': 'status_code',  # noqa: E501
         'error': 'error',  # noqa: E501
-        'task_id': 'task_id',  # noqa: E501
+        'taskid': 'taskid',  # noqa: E501
         'error_message': 'error_message',  # noqa: E501
     }
 
@@ -108,14 +108,14 @@ class StatsResponse(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, status, status_code, error, task_id, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, status, status_code, error, taskid, *args, **kwargs):  # noqa: E501
         """StatsResponse - a model defined in OpenAPI
 
         Args:
             status (str):
             status_code (int):
             error (bool):
-            task_id (str):
+            taskid (str):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -148,7 +148,7 @@ class StatsResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            error_message (str): [optional]  # noqa: E501
+            error_message (str, none_type): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -179,7 +179,7 @@ class StatsResponse(ModelNormal):
         self.status = status
         self.status_code = status_code
         self.error = error
-        self.task_id = task_id
+        self.taskid = taskid
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -200,14 +200,14 @@ class StatsResponse(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, status, status_code, error, task_id, *args, **kwargs):  # noqa: E501
+    def __init__(self, status, status_code, error, taskid, *args, **kwargs):  # noqa: E501
         """StatsResponse - a model defined in OpenAPI
 
         Args:
             status (str):
             status_code (int):
             error (bool):
-            task_id (str):
+            taskid (str):
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -240,7 +240,7 @@ class StatsResponse(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            error_message (str): [optional]  # noqa: E501
+            error_message (str, none_type): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -269,7 +269,7 @@ class StatsResponse(ModelNormal):
         self.status = status
         self.status_code = status_code
         self.error = error
-        self.task_id = task_id
+        self.taskid = taskid
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

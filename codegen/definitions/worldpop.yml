@@ -16,7 +16,7 @@ paths:
           schema:
             type: string
             enum:
-              - wpgpop
+              - wpgppop
               - wpgpas
           required: true
         - name: year
@@ -48,7 +48,7 @@ paths:
                     status_code: 200
                     error: false
                     error_message: null
-                    task_id: 'ed53cf88-a6c4-5ad2-968c-93775c480661'
+                    taskid: 'ed53cf88-a6c4-5ad2-968c-93775c480661'
   /tasks/{taskId}:
     get:
       tags:
@@ -130,7 +130,7 @@ components:
         - status
         - status_code
         - error
-        - task_id
+        - taskid
       properties:
         status:
           type: string
@@ -140,7 +140,8 @@ components:
           type: boolean
         error_message:
           type: string
-        task_id:
+          nullable: true
+        taskid:
           type: string
     tasksResponse:
       type: object

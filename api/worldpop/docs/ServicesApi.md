@@ -33,7 +33,7 @@ configuration = worldpop_client.Configuration(
 with worldpop_client.ApiClient() as api_client:
     # Create an instance of the API class
     api_instance = services_api.ServicesApi(api_client)
-    dataset = "wpgpop" # str | 
+    dataset = "wpgppop" # str | 
     year = 2010 # int | 
     geojson = GeoJson(
         type="FeatureCollection",

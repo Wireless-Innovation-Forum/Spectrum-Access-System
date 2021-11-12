@@ -7,7 +7,7 @@ from dpa_calculator.utils import Point, move_distance
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.ppa.ppa import MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A
 from reference_models.propagation.wf_itm import CalcItmPropagationLoss
-from testcases.features.steps.dpa_parameters.environment import Cbsd
+from testcases.cu_pass.features.steps.dpa_parameters.environment.parsers import Cbsd
 
 
 @dataclass

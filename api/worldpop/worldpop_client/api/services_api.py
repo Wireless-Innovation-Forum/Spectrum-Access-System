@@ -76,7 +76,7 @@ class ServicesApi(object):
                 'allowed_values': {
                     ('dataset',): {
 
-                        "WPGPOP": "wpgpop",
+                        "WPGPPOP": "wpgppop",
                         "WPGPAS": "wpgpas"
                     },
                 },

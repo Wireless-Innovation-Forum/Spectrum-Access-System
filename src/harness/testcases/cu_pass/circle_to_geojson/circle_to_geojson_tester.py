@@ -14,8 +14,11 @@ class CircleToGeoJsonTester(ABC):
     _north_coordinate = 1.3565516705216198
     _radius_in_kilometers = 150
 
-    def test(self):
+    def test_coordinates_are_expected(self):
         assert numpy.allclose(self._coordinates, self._expected_coordinates)
+
+    def test_polygon_is_closed(self):
+        assert self._coordinates[0] == self._coordinates[-1]
 
     @property
     def _coordinates(self) -> List[List[float]]:

@@ -3,8 +3,8 @@ from pathlib import Path
 from runpy import run_path
 from typing import Iterable, Union
 
-from testcases.features import environment, steps
-from testcases.features.helpers.utils import get_script_directory
+from testcases.cu_pass.features import environment, steps
+from testcases.cu_pass.features.helpers.utils import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'

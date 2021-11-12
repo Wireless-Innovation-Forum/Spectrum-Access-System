@@ -1,4 +1,5 @@
-from typing import Iterable, List
+from math import pi
+from typing import Iterable, List, Optional
 
 from worldpop_client.model.geo_json import GeoJson
 from worldpop_client.model.geo_json_features import GeoJsonFeatures
@@ -11,7 +12,7 @@ DEGREES_IN_A_CIRCLE = 360
 
 
 class CircleToGeoJsonConverter:
-    def __init__(self, area: AreaCircle, number_of_points: int):
+    def __init__(self, area: AreaCircle, number_of_points: Optional[int] = 150):
         self._area = area
         self._number_of_points = number_of_points
 
@@ -28,7 +29,8 @@ class CircleToGeoJsonConverter:
 
     @property
     def _coordinates(self) -> List[List[float]]:
-        return [self._get_point(bearing=bearing) for bearing in self._bearings]
+        unclosed_line = [self._get_point(bearing=bearing) for bearing in self._bearings]
+        return unclosed_line + [unclosed_line[0]]
 
     def _get_point(self, bearing: float) -> List[float]:
         point = move_distance(bearing=bearing, kilometers=self._area.radius_in_kilometers, origin=self._area.center_coordinates)
