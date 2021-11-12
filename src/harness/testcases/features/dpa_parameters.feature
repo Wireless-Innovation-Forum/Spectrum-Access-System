@@ -19,6 +19,10 @@ Feature: DPA Parameters
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
     - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
+  Scenario: Population data is retrieved
+    Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
+    Then the population in the area should be 6,384,440
+
   Scenario: The number of APs for simulation is calculated
     Given the radar at McKinney
     And simulation population of 6,384,440 with a 150 km radius
