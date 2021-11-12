@@ -1,14 +1,13 @@
 from typing import Iterable, List
-from unittest import TestCase
 
-import numpy
-import pytest
 from worldpop_client.model.geo_json import GeoJson
 from worldpop_client.model.geo_json_features import GeoJsonFeatures
 from worldpop_client.model.geometry_object import GeometryObject
 
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import Point, move_distance
+from dpa_calculator.utils import move_distance
+
+DEGREES_IN_A_CIRCLE = 360
 
 
 class CircleToGeoJsonConverter:
@@ -37,37 +36,5 @@ class CircleToGeoJsonConverter:
 
     @property
     def _bearings(self) -> Iterable[float]:
-        step_size = 360 / self._number_of_points
+        step_size = DEGREES_IN_A_CIRCLE / self._number_of_points
         return (i * step_size for i in range(self._number_of_points))
-
-
-class TestCircleToGeoJson:
-    _radius_in_kilometers = 150
-    _number_of_points = 2
-    _center = Point(latitude=0, longitude=0)
-
-    def test(self):
-        assert numpy.allclose(self._coordinates, self._expected_coordinates)
-
-    @property
-    def _coordinates(self) -> List[List[float]]:
-        return self._geojson.features[0].geometry.coordinates
-
-    @property
-    def _geojson(self) -> GeoJson:
-        return self._circle_to_geojson_converter.convert()
-
-    @property
-    def _expected_coordinates(self) -> List[List[float]]:
-        return [[1.3565516705216198, 0.0], [-1.3565516705216198, 0]]
-
-    @property
-    def _circle_to_geojson_converter(self) -> CircleToGeoJsonConverter:
-        return CircleToGeoJsonConverter(area=self._area, number_of_points=self._number_of_points)
-
-    @property
-    def _area(self) -> AreaCircle:
-        return AreaCircle(
-            center_coordinates=self._center,
-            radius_in_kilometers=self._radius_in_kilometers
-        )
