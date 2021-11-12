@@ -2,17 +2,15 @@ import re
 from dataclasses import dataclass
 from typing import List
 
-import parse
 from behave import *
 from behave import runner
 
 from dpa_calculator.utils import Point, move_distance
-
-use_step_matcher("parse")
+from testcases.cu_pass.features.environment.hooks import ContextSas
 
 
 @dataclass
-class ContextMoving(runner.Context):
+class ContextMoving(ContextSas):
     origin: Point
     new_location: Point
 

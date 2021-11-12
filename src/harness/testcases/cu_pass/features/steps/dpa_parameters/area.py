@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
 from behave import *
-from behave import runner
 
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
+from testcases.cu_pass.features.environment.hooks import ContextSas
 
 
 @dataclass
-class ContextArea(runner.Context):
+class ContextArea(ContextSas):
     area: AreaCircle
 
 

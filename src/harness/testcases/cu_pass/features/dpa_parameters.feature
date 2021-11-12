@@ -19,6 +19,7 @@ Feature: DPA Parameters
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
     - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
+  @integration
   Scenario: Population data is retrieved
     Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
     Then the population in the area should be 8,968,197

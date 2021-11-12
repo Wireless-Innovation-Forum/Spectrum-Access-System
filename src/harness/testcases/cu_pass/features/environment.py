@@ -3,7 +3,9 @@ from pathlib import Path
 from runpy import run_path
 from typing import Iterable, Union
 
+
 from testcases.cu_pass.features import environment, steps
+from testcases.cu_pass.features.environment.hooks import ContextSas
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
@@ -47,3 +49,8 @@ def _import_files(filepaths: Iterable[Union[str, Path]]) -> None:
 import_main_environment()
 import_all_environments()
 import_all_step_definitions()
+
+
+def before_tag(context: ContextSas, tag: str):
+    if tag == 'integration':
+        context.with_integration = context.config.userdata.get('integration') == 'true'
