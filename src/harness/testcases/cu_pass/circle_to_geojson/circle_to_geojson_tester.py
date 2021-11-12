@@ -22,7 +22,7 @@ class CircleToGeoJsonTester(ABC):
 
     @property
     def _coordinates(self) -> List[List[float]]:
-        return self._geojson.features[0].geometry.coordinates
+        return self._geojson.features[0].geometry.coordinates[0]
 
     @property
     def _geojson(self) -> GeoJson:

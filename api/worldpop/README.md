@@ -50,7 +50,6 @@ import time
 import worldpop_client
 from pprint import pprint
 from worldpop_client.api import services_api
-from worldpop_client.model.geo_json import GeoJson
 from worldpop_client.model.stats_response import StatsResponse
 # Defining the host is optional and defaults to https://api.worldpop.org/v1
 # See configuration.py for a list of all supported configuration parameters.
@@ -66,22 +65,7 @@ with worldpop_client.ApiClient(configuration) as api_client:
     api_instance = services_api.ServicesApi(api_client)
     dataset = "wpgppop" # str | 
 year = 2010 # int | 
-geojson = GeoJson(
-        type="FeatureCollection",
-        features=[
-            GeoJsonFeatures(
-                type="Feature",
-                geometry=GeometryObject(
-                    type="Polygon",
-                    coordinates=[
-                        [
-                            3.14,
-                        ],
-                    ],
-                ),
-            ),
-        ],
-    ) # GeoJson | 
+geojson = "geojson_example" # str | 
 key = "key_example" # str |  (optional)
 
     try:

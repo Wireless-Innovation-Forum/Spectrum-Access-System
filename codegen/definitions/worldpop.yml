@@ -28,7 +28,8 @@ paths:
         - name: geojson
           in: query
           schema:
-            $ref: '#/components/schemas/geoJson'
+            description: see #/components/schemas/geoJson
+            type: string
           required: true
         - name: key
           in: query
@@ -101,11 +102,15 @@ components:
             required:
               - type
               - geometry
+              - properties
             properties:
               type:
                 type: string
                 enum:
                   - Feature
+              properties:
+                type: object
+                default: {}
               geometry:
                 $ref: '#/components/schemas/geometryObject'
     geometryObject:
@@ -123,7 +128,9 @@ components:
           items:
             type: array
             items:
-              type: number
+              type: array
+              items:
+                type: number
     statsResponse:
       type: object
       required:
@@ -154,6 +161,7 @@ components:
           type: boolean
         error_message:
           type: string
+          nullable: true
         data:
           type: object
         taskid:

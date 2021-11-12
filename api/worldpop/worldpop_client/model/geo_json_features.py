@@ -91,6 +91,7 @@ class GeoJsonFeatures(ModelNormal):
         lazy_import()
         return {
             'type': (str,),  # noqa: E501
+            'properties': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
             'geometry': (GeometryObject,),  # noqa: E501
         }
 
@@ -101,6 +102,7 @@ class GeoJsonFeatures(ModelNormal):
 
     attribute_map = {
         'type': 'type',  # noqa: E501
+        'properties': 'properties',  # noqa: E501
         'geometry': 'geometry',  # noqa: E501
     }
 
@@ -119,6 +121,7 @@ class GeoJsonFeatures(ModelNormal):
 
         Keyword Args:
             type (str): defaults to "Feature", must be one of ["Feature", ]  # noqa: E501
+            properties ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): defaults to {}  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -152,6 +155,7 @@ class GeoJsonFeatures(ModelNormal):
         """
 
         type = kwargs.get('type', "Feature")
+        properties = kwargs.get('properties', {})
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -178,6 +182,7 @@ class GeoJsonFeatures(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.type = type
+        self.properties = properties
         self.geometry = geometry
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
@@ -207,6 +212,7 @@ class GeoJsonFeatures(ModelNormal):
 
         Keyword Args:
             type (str): defaults to "Feature", must be one of ["Feature", ]  # noqa: E501
+            properties ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): defaults to {}  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -240,6 +246,7 @@ class GeoJsonFeatures(ModelNormal):
         """
 
         type = kwargs.get('type', "Feature")
+        properties = kwargs.get('properties', {})
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -264,6 +271,7 @@ class GeoJsonFeatures(ModelNormal):
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
         self.type = type
+        self.properties = properties
         self.geometry = geometry
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \

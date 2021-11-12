@@ -84,7 +84,7 @@ class TasksResponse(ModelNormal):
             'status': (str,),  # noqa: E501
             'status_code': (int,),  # noqa: E501
             'error': (bool,),  # noqa: E501
-            'error_message': (str,),  # noqa: E501
+            'error_message': (str, none_type,),  # noqa: E501
             'data': ({str: (bool, date, datetime, dict, float, int, list, str, none_type)},),  # noqa: E501
             'taskid': (str,),  # noqa: E501
             'start_time': (str,),  # noqa: E501
@@ -153,7 +153,7 @@ class TasksResponse(ModelNormal):
             status (str): [optional]  # noqa: E501
             status_code (int): [optional]  # noqa: E501
             error (bool): [optional]  # noqa: E501
-            error_message (str): [optional]  # noqa: E501
+            error_message (str, none_type): [optional]  # noqa: E501
             data ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             taskid (str): [optional]  # noqa: E501
             start_time (str): [optional]  # noqa: E501
@@ -243,7 +243,7 @@ class TasksResponse(ModelNormal):
             status (str): [optional]  # noqa: E501
             status_code (int): [optional]  # noqa: E501
             error (bool): [optional]  # noqa: E501
-            error_message (str): [optional]  # noqa: E501
+            error_message (str, none_type): [optional]  # noqa: E501
             data ({str: (bool, date, datetime, dict, float, int, list, str, none_type)}): [optional]  # noqa: E501
             taskid (str): [optional]  # noqa: E501
             start_time (str): [optional]  # noqa: E501

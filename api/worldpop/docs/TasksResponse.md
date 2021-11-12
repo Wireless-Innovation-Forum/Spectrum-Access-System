@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **status** | **str** |  | [optional] 
 **status_code** | **int** |  | [optional] 
 **error** | **bool** |  | [optional] 
-**error_message** | **str** |  | [optional] 
+**error_message** | **str, none_type** |  | [optional] 
 **data** | **{str: (bool, date, datetime, dict, float, int, list, str, none_type)}** |  | [optional] 
 **taskid** | **str** |  | [optional] 
 **start_time** | **str** |  | [optional] 

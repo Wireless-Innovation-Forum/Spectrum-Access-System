@@ -28,13 +28,13 @@ class CircleToGeoJsonConverter:
         )
 
     @property
-    def _coordinates(self) -> List[List[float]]:
+    def _coordinates(self) -> List[List[List[float]]]:
         unclosed_line = [self._get_point(bearing=bearing) for bearing in self._bearings]
-        return unclosed_line + [unclosed_line[0]]
+        return [unclosed_line + [unclosed_line[0]]]
 
     def _get_point(self, bearing: float) -> List[float]:
         point = move_distance(bearing=bearing, kilometers=self._area.radius_in_kilometers, origin=self._area.center_coordinates)
-        return [point.latitude, point.longitude]
+        return [point.longitude, point.latitude]
 
     @property
     def _bearings(self) -> Iterable[float]:

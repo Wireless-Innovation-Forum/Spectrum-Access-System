@@ -4,7 +4,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**coordinates** | **[[float]]** |  | 
+**coordinates** | **[[[float]]]** |  | 
 **type** | **str** |  | defaults to "Polygon"
 **any string name** | **bool, date, datetime, dict, float, int, list, str, none_type** | any string name can be used but the value must be the correct type | [optional]
 

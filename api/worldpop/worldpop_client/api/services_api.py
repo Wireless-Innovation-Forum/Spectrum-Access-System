@@ -21,7 +21,6 @@ from worldpop_client.model_utils import (  # noqa: F401
     none_type,
     validate_and_convert_types
 )
-from worldpop_client.model.geo_json import GeoJson
 from worldpop_client.model.stats_response import StatsResponse
 
 
@@ -86,7 +85,7 @@ class ServicesApi(object):
                     'year':
                         (int,),
                     'geojson':
-                        (GeoJson,),
+                        (str,),
                     'key':
                         (str,),
                 },
@@ -132,7 +131,7 @@ class ServicesApi(object):
         Args:
             dataset (str):
             year (int):
-            geojson (GeoJson):
+            geojson (str):
 
         Keyword Args:
             key (str): [optional]

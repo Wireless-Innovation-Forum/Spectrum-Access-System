@@ -85,7 +85,7 @@ class GeometryObject(ModelNormal):
         """
         return {
             'type': (str,),  # noqa: E501
-            'coordinates': ([[float]],),  # noqa: E501
+            'coordinates': ([[[float]]],),  # noqa: E501
         }
 
     @cached_property
@@ -109,7 +109,7 @@ class GeometryObject(ModelNormal):
         """GeometryObject - a model defined in OpenAPI
 
         Args:
-            coordinates ([[float]]):
+            coordinates ([[[float]]]):
 
         Keyword Args:
             type (str): defaults to "Polygon", must be one of ["Polygon", ]  # noqa: E501
@@ -197,7 +197,7 @@ class GeometryObject(ModelNormal):
         """GeometryObject - a model defined in OpenAPI
 
         Args:
-            coordinates ([[float]]):
+            coordinates ([[[float]]]):
 
         Keyword Args:
             type (str): defaults to "Polygon", must be one of ["Polygon", ]  # noqa: E501
