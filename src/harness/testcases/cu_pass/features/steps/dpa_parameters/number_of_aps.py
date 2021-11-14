@@ -5,22 +5,11 @@ from behave import runner
 from behave import *
 
 from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
-from reference_models.dpa.dpa_mgr import Dpa
 
 
 @dataclass
 class ContextNumberOfAps(runner.Context):
-    dpa: Dpa
     simulation_population: int
-
-
-@step("the radar at {dpa:Dpa}")
-def step_impl(context: ContextNumberOfAps, dpa: Dpa):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    context.dpa = dpa
 
 
 @step("simulation population of {population:Integer} with a 150 km radius")

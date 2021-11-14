@@ -25,8 +25,7 @@ Feature: DPA Parameters
     Then the population in the area should be 8,968,197
 
   Scenario: The number of APs for simulation is calculated
-    Given the radar at McKinney
-    And simulation population of 6,384,440 with a 150 km radius
+    Given simulation population of 6,384,440 with a 150 km radius
     Then the number of APs for simulation is 25,538
 
   Scenario: Geographic points are randomly positioned in a circular area
@@ -40,12 +39,13 @@ Feature: DPA Parameters
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
-  Scenario: A CBSD_A is outside of the neighborhood
-    Given CBSD_A_1 is 150.0 kilometers away from McKinney
-    Then the propagation loss is high enough to make the interference negligible
-
-  Scenario: A Monte Carlo simulation is run
+#  Scenario: Signal loss is calculated
+#    Given CBSD_A_1 is 80.0 kilometers away from coordinates 33.21611, -96.65666
+#    Then the loss should be 1
+#
+  Scenario: Aggregate interference is calculated
     Given an antenna at McKinney
     And an exclusion zone distance of 150 km
+    And 5,000 APs
     When a monte carlo simulation of 1,000 iterations of the aggregate interference is run
-    Then the probability of exceeding -144 INR is 95%
+    Then the max aggregate interference is -62.72253

@@ -4,7 +4,9 @@ from behave import *
 from behave import runner
 
 from dpa_calculator.utils import Point, move_distance
+from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
+from reference_models.interference.interference import computeInterferenceEsc
 from reference_models.ppa.ppa import MAX_ALLOWABLE_EIRP_PER_10_MHZ_CAT_A
 from reference_models.propagation.wf_itm import CalcItmPropagationLoss
 from testcases.cu_pass.features.steps.dpa_parameters.environment.parsers import Cbsd
@@ -22,12 +24,14 @@ class InterferenceCalculator:
         self._dpa = dpa
 
     def get_itm_interference(self) -> float:
+        return computeInterferenceEsc(cbsd_grant=self._cbsd.to_grant(),
+                                      )
         calculated_loss = CalcItmPropagationLoss(lat_cbsd=self._cbsd_location.latitude,
                                                  lon_cbsd=self._cbsd_location.longitude,
                                                  height_cbsd=self._dpa.radar_height,
                                                  lat_rx=self._dpa_location.latitude,
                                                  lon_rx=self._dpa_location.longitude,
-                                                 height_rx=self._dpa.radar_height)
+                                                 height_rx=1.5)
         return calculated_loss.db_loss
 
     @property
@@ -39,18 +43,16 @@ class InterferenceCalculator:
         return Point.from_shapely(point_shapely=self._dpa.geometry.centroid)
 
 
-@given("{cbsd:Cbsd}_1 is {kilometers:f} kilometers away from {dpa:Dpa}")
-def step_impl(context: ContextPropagationLoss, cbsd: Cbsd, kilometers: float, dpa: Dpa):
+@given("{cbsd:Cbsd}_1 is {kilometers:f} kilometers away from coordinates {coordinates:LatLng}")
+def step_impl(context: ContextPropagationLoss, cbsd: Cbsd, kilometers: float, coordinates: Point):
     """
     Args:
         context (behave.runner.Context):
     """
-    dpa_origin = Point.from_shapely(point_shapely=dpa.geometry.centroid)
-    distant_location = move_distance(bearing=0, kilometers=kilometers, origin=dpa_origin)
+    distant_location = move_distance(bearing=0, kilometers=kilometers, origin=coordinates)
     cbsd.location = distant_location
 
     context.cbsd = cbsd
-    context.dpa = dpa
 
 
 @then("the interference at the receiver is 5")
