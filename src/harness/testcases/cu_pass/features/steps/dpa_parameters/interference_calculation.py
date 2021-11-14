@@ -1,23 +1,21 @@
 import random
 from dataclasses import dataclass
 from math import isclose
-from typing import List, Set
+from typing import List
 
 from behave import *
 from behave import runner
 
-from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
-from dpa_calculator.point_distributor import AreaCircle, PointDistributor
+from dpa_calculator.grants_creator import GrantsCreator
+from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import HIGH_FREQ_COCH, LOW_FREQ_COCH
-from testcases.cu_pass.features.steps.dpa_parameters.environment.parsers import CBSD_A_INDICATOR, REGION_TYPE_RURAL, \
-    get_cbsd_ap
 
 
 @dataclass
-class ContextMonteCarlo(runner.Context):
+class ContextAggregateInterference(runner.Context):
     dpa: Dpa
     dpa_test_zone: AreaCircle
     grants: List[CbsdGrantInfo]
@@ -25,7 +23,7 @@ class ContextMonteCarlo(runner.Context):
 
 
 @given("an antenna at {dpa:Dpa}")
-def step_impl(context: ContextMonteCarlo, dpa: Dpa):
+def step_impl(context: ContextAggregateInterference, dpa: Dpa):
     """
     Args:
         context (behave.runner.Context):
@@ -34,7 +32,7 @@ def step_impl(context: ContextMonteCarlo, dpa: Dpa):
 
 
 @step("an exclusion zone distance of {distance:Integer} km")
-def step_impl(context: ContextMonteCarlo, distance: int):
+def step_impl(context: ContextAggregateInterference, distance: int):
     """
     Args:
         context (behave.runner.Context):
@@ -46,27 +44,17 @@ def step_impl(context: ContextMonteCarlo, distance: int):
 
 
 @step("{number_of_aps:Integer} APs")
-def step_impl(context: ContextMonteCarlo, number_of_aps: int):
+def step_impl(context: ContextAggregateInterference, number_of_aps: int):
     """
     Args:
         context (behave.runner.Context):
     """
     random.seed(0)
-    number_of_indoor_aps = int(number_of_aps * 0.99)
-    distributed_aps = PointDistributor(distribution_area=context.dpa_test_zone).distribute_points(number_of_points=number_of_aps)
-    indoor_aps = distributed_aps[:number_of_indoor_aps]
-    outdoor_aps = distributed_aps[number_of_indoor_aps:]
-    aps = [get_cbsd_ap(category=CBSD_A_INDICATOR, is_indoor=True, location=location) for location in indoor_aps] \
-          + [get_cbsd_ap(category=CBSD_A_INDICATOR, is_indoor=False, location=location) for location in outdoor_aps]
-    grants = [ap.to_grant() for ap in aps]
-    inband_channel = next(channel for channel in context.dpa._channels if channel[0] * 1e6 >= LOW_FREQ_COCH and channel[1] * 1e6 <= HIGH_FREQ_COCH)
-    for index, grant in enumerate(grants):
-        grants[index] = grant._replace(low_frequency=inband_channel[0] * 1e6, high_frequency=(inband_channel[0] + 10) * 1e6)
-    context.grants = grants
+    context.grants = GrantsCreator(dpa=context.dpa, dpa_zone=context.dpa_test_zone, number_of_cbsds=number_of_aps).create()
 
 
 @when("a monte carlo simulation of {number_of_iterations:Integer} iterations of the aggregate interference is run")
-def step_impl(context: ContextMonteCarlo, number_of_iterations: int):
+def step_impl(context: ContextAggregateInterference, number_of_iterations: int):
     """
     Args:
         context (behave.runner.Context):
@@ -79,7 +67,7 @@ def step_impl(context: ContextMonteCarlo, number_of_iterations: int):
 
 
 @then("the max aggregate interference is {max_interference:Number}")
-def step_impl(context: ContextMonteCarlo, max_interference: float):
+def step_impl(context: ContextAggregateInterference, max_interference: float):
     """
     Args:
         context (behave.runner.Context):

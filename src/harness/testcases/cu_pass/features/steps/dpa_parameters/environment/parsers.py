@@ -23,19 +23,19 @@ class Cbsd:
     location: Point
     transmit_power: float
 
-    def to_grant(self) -> CbsdGrantInfo:
-        return CbsdGrantInfo(latitude=self.location.latitude,
-                             longitude=self.location.longitude,
-                             height_agl=self.height,
-                             indoor_deployment=self.is_indoor,
-                             antenna_gain=6,
-                             max_eirp=self.transmit_power,
-                             cbsd_category=None,
-                             antenna_azimuth=None,
+    def to_grant(self, low_frequency: float, high_frequency: float) -> CbsdGrantInfo:
+        return CbsdGrantInfo(antenna_azimuth=None,
                              antenna_beamwidth=None,
-                             low_frequency=None,
-                             high_frequency=None,
-                             is_managed_grant=None)
+                             antenna_gain=6,
+                             cbsd_category=None,
+                             height_agl=self.height,
+                             high_frequency=high_frequency,
+                             indoor_deployment=self.is_indoor,
+                             is_managed_grant=None,
+                             latitude=self.location.latitude,
+                             longitude=self.location.longitude,
+                             low_frequency=low_frequency,
+                             max_eirp=self.transmit_power)
 
     @property
     def region_type(self) -> str:
