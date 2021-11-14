@@ -47,5 +47,5 @@ Feature: DPA Parameters
     Given an antenna at McKinney
     And an exclusion zone distance of 150 km
     And 5,000 APs
-    When a monte carlo simulation of 1,000 iterations of the aggregate interference is run
+    When a monte carlo simulation of 1,000 iterations for the aggregate interference is run
     Then the max aggregate interference is -62.72253
