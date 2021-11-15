@@ -10,10 +10,11 @@ from dpa_calculator.aggregate_interference_monte_carlo_calculator import Aggrega
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
 from reference_models.dpa.dpa_mgr import Dpa
+from testcases.cu_pass.features.steps.dpa_parameters.common_steps.result import ContextResult
 
 
 @dataclass
-class ContextAggregateInterference(InterferenceParameters):
+class ContextAggregateInterference(InterferenceParameters, ContextResult):
     pass
 
 
@@ -54,13 +55,13 @@ def step_impl(context: ContextAggregateInterference, number_of_iterations: int):
     Args:
         context (behave.runner.Context):
     """
-    context.interference = AggregateInterferenceMonteCarloCalculator(interference_parameters=context, number_of_iterations=number_of_iterations).simulate()
+    context.result = AggregateInterferenceMonteCarloCalculator(interference_parameters=context, number_of_iterations=number_of_iterations).simulate()
 
 
-@then("the max aggregate interference is {max_interference:Number}")
+@then("the result should be {max_interference:Number}")
 def step_impl(context: ContextAggregateInterference, max_interference: float):
     """
     Args:
         context (behave.runner.Context):
     """
-    assert isclose(context.interference, max_interference, abs_tol=1e-4), f'{context.interference} != {max_interference}'
+    assert isclose(context.result, max_interference, abs_tol=1e-4), f'{context.result} != {max_interference}'

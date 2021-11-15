@@ -2,13 +2,13 @@ from dataclasses import dataclass
 from typing import Callable
 
 from behave import *
-from behave import runner
 
 from dpa_calculator.utils import run_monte_carlo_simulation
+from testcases.cu_pass.features.steps.dpa_parameters.common_steps.result import ContextResult
 
 
 @dataclass
-class ContextMonteCarlo(runner.Context):
+class ContextMonteCarlo(ContextResult):
     function_to_run: Callable[[], float]
     result: float
 
@@ -32,11 +32,3 @@ def step_impl(context: ContextMonteCarlo):
     number_of_iterations = 5
     context.result = run_monte_carlo_simulation(function_to_run=context.function_to_run, number_of_iterations=number_of_iterations)
 
-
-@then("the result should be {expected_result:Number}")
-def step_impl(context: ContextMonteCarlo, expected_result: float):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    assert context.result == expected_result

@@ -49,9 +49,36 @@ Feature: DPA Parameters
     And an exclusion zone distance of 150 km
     And 5,000 APs
     When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
-    Then the max aggregate interference is <expected_results>
+    Then the result should be <expected_results>
 
     Examples:
       | number_of_iterations | expected_results |
       | 1                    | -62.72253        |
       | 2                    | -60.49853        |
+
+  Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
+    Given a function whose output is the element of array <result_array> at the given index
+    And a target of <target>
+    When the algorithm is run
+    Then the result should be <expected_result>
+
+    Examples: Finds number while expanding
+      | result_array | target | expected_result |
+      | [0]          | 0      | 0             |
+      | [1,0]        | 0      | 1             |
+
+    Examples: Finds number after expanding
+      | result_array | target | expected_result |
+      | [3,2,1,0]  | 1        | 2               |
+
+    Examples: Target does not exist
+      | result_array | target | expected_result |
+      | [3,2,2,0]    | 1      | 3               |
+
+    Examples: Target is greater than what you would get with the minimum input
+      | result_array | target | expected_result |
+      | [0]          | 1      | 0               |
+
+    Examples: Target is less than what you would get with the maximum input
+      | result_array | target | expected_result |
+      | [3,2,1,0]    | -1     | 3               |
