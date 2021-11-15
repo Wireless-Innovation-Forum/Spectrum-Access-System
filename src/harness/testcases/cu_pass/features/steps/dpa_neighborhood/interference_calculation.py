@@ -10,7 +10,7 @@ from dpa_calculator.aggregate_interference_monte_carlo_calculator import Aggrega
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
 from reference_models.dpa.dpa_mgr import Dpa
-from testcases.cu_pass.features.steps.dpa_parameters.common_steps.result import ContextResult
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 
 @dataclass

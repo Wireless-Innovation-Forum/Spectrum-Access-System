@@ -10,7 +10,7 @@ from behave import *
 
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_bearing_between_two_points, get_distance_between_two_points
-from testcases.cu_pass.features.steps.dpa_parameters.area import ContextArea
+from testcases.cu_pass.features.steps.dpa_neighborhood.area import ContextArea
 
 BEARING_REGEX = 'bearing'
 CLOSEST_REGEX = 'closest'

@@ -4,7 +4,7 @@ from typing import Callable
 from behave import *
 
 from dpa_calculator.utils import run_monte_carlo_simulation
-from testcases.cu_pass.features.steps.dpa_parameters.common_steps.result import ContextResult
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 
 @dataclass

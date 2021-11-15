@@ -4,7 +4,7 @@ from typing import Callable, List
 from behave import *
 
 from dpa_calculator.parameter_finder import ParameterFinder
-from testcases.cu_pass.features.steps.dpa_parameters.common_steps.result import ContextResult
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 
 @dataclass

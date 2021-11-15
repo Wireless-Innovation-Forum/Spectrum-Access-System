@@ -82,3 +82,8 @@ Feature: DPA Parameters
     Examples: Target is less than what you would get with the maximum input
       | result_array | target | expected_result |
       | [3,2,1,0]    | -1     | 3               |
+
+  Scenario: The DPA neighborhood is calculated for category A CBSDs
+    Given an antenna at McKinney
+    Then the neighborhood radius should be 1
+

@@ -6,7 +6,7 @@ from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
-from testcases.cu_pass.features.steps.dpa_parameters.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
 
 PERCENTAGE_OF_INDOOR_APS_RURAL = 0.99
 

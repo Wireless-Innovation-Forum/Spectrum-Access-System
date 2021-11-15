@@ -12,7 +12,7 @@ from worldpop_client.model.stats_response import StatsResponse
 from worldpop_client.model.tasks_response import TasksResponse
 
 from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
-from testcases.cu_pass.features.steps.dpa_parameters.area import ContextArea
+from testcases.cu_pass.features.steps.dpa_neighborhood.area import ContextArea
 
 ARBITRARY_TASK_ID = 'arbitrary_task_id'
 
