@@ -1,25 +1,20 @@
 import random
 from dataclasses import dataclass
+
 from math import isclose
-from typing import List
 
 from behave import *
-from behave import runner
 
-from dpa_calculator.aggregate_interference_calculator import AggregateInterferenceCalculator
-from dpa_calculator.grants_creator import GrantsCreator
+from dpa_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
+    InterferenceParameters
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
-from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
 
 
 @dataclass
-class ContextAggregateInterference(runner.Context):
-    dpa: Dpa
-    dpa_test_zone: AreaCircle
-    grants: List[CbsdGrantInfo]
-    interference: float
+class ContextAggregateInterference(InterferenceParameters):
+    pass
 
 
 @given("an antenna at {dpa:Dpa}")
@@ -50,7 +45,7 @@ def step_impl(context: ContextAggregateInterference, number_of_aps: int):
         context (behave.runner.Context):
     """
     random.seed(0)
-    context.grants = GrantsCreator(dpa=context.dpa, dpa_zone=context.dpa_test_zone, number_of_cbsds=number_of_aps).create()
+    context.number_of_aps = number_of_aps
 
 
 @when("a monte carlo simulation of {number_of_iterations:Integer} iterations for the aggregate interference is run")
@@ -59,7 +54,7 @@ def step_impl(context: ContextAggregateInterference, number_of_iterations: int):
     Args:
         context (behave.runner.Context):
     """
-    context.interference = AggregateInterferenceCalculator(dpa=context.dpa, grants=context.grants, monte_carlo_iterations=number_of_iterations).calculate()
+    context.interference = AggregateInterferenceMonteCarloCalculator(interference_parameters=context, number_of_iterations=number_of_iterations).simulate()
 
 
 @then("the max aggregate interference is {max_interference:Number}")

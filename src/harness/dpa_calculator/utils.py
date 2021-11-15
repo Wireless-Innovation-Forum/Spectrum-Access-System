@@ -1,4 +1,5 @@
-from typing import Tuple
+from statistics import mean
+from typing import Callable, Tuple
 
 from shapely import geometry
 
@@ -37,3 +38,7 @@ def get_bearing_between_two_points(point1: Point, point2: Point) -> float:
 
 def _get_geodesic_distance_bearing(point1: Point, point2: Point) -> Tuple[float, float, float]:
     return GeodesicDistanceBearing(lat1=point1.latitude, lon1=point1.longitude, lat2=point2.latitude, lon2=point2.longitude)
+
+
+def run_monte_carlo_simulation(function_to_run: Callable[[], float], number_of_iterations: int) -> float:
+    return mean(function_to_run() for _ in range(number_of_iterations))

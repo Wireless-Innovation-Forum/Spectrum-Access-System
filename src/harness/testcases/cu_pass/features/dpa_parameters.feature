@@ -39,13 +39,19 @@ Feature: DPA Parameters
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
-#  Scenario: Signal loss is calculated
-#    Given CBSD_A_1 is 80.0 kilometers away from coordinates 33.21611, -96.65666
-#    Then the loss should be 1
-#
-  Scenario: Aggregate interference is calculated
+  Scenario: A monte carlo simulation is run
+    Given a function whose results return the next element of [1,2,3,4,5] each time it runs
+    When a monte carlo simulation of the function is run
+    Then the result should be 3
+
+  Scenario Outline: Aggregate interference is calculated
     Given an antenna at McKinney
     And an exclusion zone distance of 150 km
     And 5,000 APs
-    When a monte carlo simulation of 1,000 iterations for the aggregate interference is run
-    Then the max aggregate interference is -62.72253
+    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
+    Then the max aggregate interference is <expected_results>
+
+    Examples:
+      | number_of_iterations | expected_results |
+      | 1                    | -62.72253        |
+      | 2                    | -60.49853        |

@@ -9,14 +9,13 @@ HERTZ_IN_MEGAHERTZ = 1e6
 
 
 class AggregateInterferenceCalculator:
-    def __init__(self, dpa: Dpa, grants: List[CbsdGrantInfo], monte_carlo_iterations: int):
+    def __init__(self, dpa: Dpa, grants: List[CbsdGrantInfo]):
         self._dpa = dpa
         self._grants = grants
-        self._monte_carlo_iterations = monte_carlo_iterations
 
     def calculate(self) -> float:
         self._set_dpa_neighbors()
-        return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel, num_iter=self._monte_carlo_iterations)[0]
+        return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel)[0]
 
     def _set_dpa_neighbors(self) -> None:
         self._dpa.nbor_lists = [set(self._grants_with_inband_frequences) for _ in self._dpa.nbor_lists]

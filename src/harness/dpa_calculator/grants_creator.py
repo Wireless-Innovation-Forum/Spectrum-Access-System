@@ -4,6 +4,7 @@ from cached_property import cached_property
 
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point
+from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
 from testcases.cu_pass.features.steps.dpa_parameters.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
 
@@ -16,7 +17,7 @@ class GrantsCreator:
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
 
-    def create(self):
+    def create(self) -> List[CbsdGrantInfo]:
         return [ap.to_grant() for ap in self._all_cbsds]
 
     @property
