@@ -9,22 +9,13 @@ from dpa_calculator.aggregate_interference_monte_carlo_calculator import Aggrega
     InterferenceParameters
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utils import Point
-from reference_models.dpa.dpa_mgr import Dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 
 @dataclass
-class ContextAggregateInterference(InterferenceParameters, ContextResult):
+class ContextAggregateInterference(InterferenceParameters, ContextResult, ContextDpa):
     pass
-
-
-@given("an antenna at {dpa:Dpa}")
-def step_impl(context: ContextAggregateInterference, dpa: Dpa):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    context.dpa = dpa
 
 
 @step("an exclusion zone distance of {distance:Integer} km")

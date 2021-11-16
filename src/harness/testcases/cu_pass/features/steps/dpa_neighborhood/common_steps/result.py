@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
 from behave import *
-from behave import runner
+
+from testcases.cu_pass.features.environment.hooks import ContextSas
 
 
 @dataclass
-class ContextResult(runner.Context):
+class ContextResult(ContextSas):
     result: float
 
 

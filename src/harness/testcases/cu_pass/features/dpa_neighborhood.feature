@@ -25,7 +25,7 @@ Feature: DPA Parameters
     Then the population in the area should be 8,968,197
 
   Scenario: The number of APs for simulation is calculated
-    Given simulation population of 6,384,440 with a 150 km radius
+    Given simulation population of 6,384,440
     Then the number of APs for simulation is 25,538
 
   Scenario: Geographic points are randomly positioned in a circular area
@@ -83,7 +83,9 @@ Feature: DPA Parameters
       | result_array | target | expected_result |
       | [3,2,1,0]    | -1     | 3               |
 
+  @integration
   Scenario: The DPA neighborhood is calculated for category A CBSDs
     Given an antenna at McKinney
-    Then the neighborhood radius should be 1
-
+    And an INR of -144
+    When the neighborhood radius is calculated
+    Then the result should be 1

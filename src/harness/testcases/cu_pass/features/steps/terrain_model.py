@@ -16,7 +16,7 @@ class ContextMoving(ContextSas):
 
 
 @dataclass
-class ContextProfile(runner.Context):
+class ContextProfile(ContextSas):
     terrain_model: List[float]
 
 

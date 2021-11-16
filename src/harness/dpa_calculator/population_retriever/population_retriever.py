@@ -9,7 +9,7 @@ class PopulationRetriever:
     def __init__(self, area: AreaCircle):
         self._area = area
 
-    async def retrieve(self) -> float:
+    async def retrieve(self) -> int:
         task_id = self._create_task()
         population = await self._retrieve_population(task_id=task_id)
         return round(population)

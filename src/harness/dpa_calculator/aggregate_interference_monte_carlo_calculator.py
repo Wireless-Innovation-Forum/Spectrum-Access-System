@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from behave import runner
-
 from dpa_calculator.aggregate_interference_calculator import AggregateInterferenceCalculator
 from dpa_calculator.grants_creator import GrantsCreator
 from dpa_calculator.point_distributor import AreaCircle
@@ -10,7 +8,7 @@ from reference_models.dpa.dpa_mgr import Dpa
 
 
 @dataclass
-class InterferenceParameters(runner.Context):
+class InterferenceParameters:
     dpa: Dpa
     dpa_test_zone: AreaCircle
     number_of_aps: int
