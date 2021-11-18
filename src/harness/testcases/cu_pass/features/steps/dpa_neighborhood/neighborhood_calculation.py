@@ -11,6 +11,7 @@ from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalc
 from dpa_calculator.parameter_finder import ParameterFinder
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
+from dpa_calculator.population_retriever.population_retriever_straight_file import PopulationRetrieverStraightFile
 from dpa_calculator.utils import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
@@ -63,13 +64,12 @@ async def function(neighborhood_radius: int, context: ContextNeighborhood) -> fl
         center_coordinates=Point.from_shapely(point_shapely=context.dpa.geometry.centroid),
         radius_in_kilometers=neighborhood_radius
     )
-    population = await PopulationRetriever(area=area).retrieve()
+    population = await PopulationRetrieverStraightFile(area=area).retrieve()
     number_of_aps = NumberOfApsCalculatorGroundBased(simulation_population=population).get_number_of_aps()
     parameters = InterferenceParameters(
         dpa=context.dpa,
         dpa_test_zone=area,
         number_of_aps=number_of_aps
     )
-    return -800
-    # return AggregateInterferenceMonteCarloCalculator(interference_parameters=parameters,
-    #                                                  number_of_iterations=default_iterations).simulate()
+    return AggregateInterferenceMonteCarloCalculator(interference_parameters=parameters,
+                                                     number_of_iterations=default_iterations).simulate()

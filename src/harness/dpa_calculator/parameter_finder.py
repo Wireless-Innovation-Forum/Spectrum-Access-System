@@ -3,7 +3,7 @@ from typing import Awaitable, Callable, Optional
 
 
 class ParameterFinder:
-    def __init__(self, function: Callable[[int], Awaitable[float]], target: int, max_parameter: int = 160):
+    def __init__(self, function: Callable[[int], Awaitable[float]], target: int, max_parameter: int = 20000):
         self._function = function
         self._target = target
         self._max_parameter = max_parameter
@@ -19,7 +19,8 @@ class ParameterFinder:
         return await self._perform_binary_search()
 
     async def _results_extremity(self) -> Optional[int]:
-        if self._target < await self._function(self._max_parameter):
+        min_result = await self._function(self._max_parameter)
+        if self._target < min_result:
             return self._max_parameter
         if self._target > await self._function(self._min):
             return self._min

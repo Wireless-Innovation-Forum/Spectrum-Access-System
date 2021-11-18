@@ -15,8 +15,11 @@ class Point:
         return geometry.Point(self.latitude, self.longitude) == geometry.Point(other.latitude, other.longitude)
 
     @classmethod
-    def from_shapely(cls, point_shapely: geometry.Point):
+    def from_shapely(cls, point_shapely: geometry.Point) -> 'Point':
         return cls(latitude=point_shapely.y, longitude=point_shapely.x)
+
+    def to_shapely(self) -> geometry.Point:
+        return geometry.Point(self.longitude, self.latitude)
 
 
 def get_hat_creek_radio_observatory() -> Point:

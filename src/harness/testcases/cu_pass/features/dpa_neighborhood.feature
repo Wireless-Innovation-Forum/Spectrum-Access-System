@@ -22,7 +22,8 @@ Feature: DPA Parameters
   @integration
   Scenario: Population data is retrieved
     Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
-    Then the population in the area should be 8,968,197
+    And file population data
+    Then the population in the area should be 1331000
 
   Scenario: The number of APs for simulation is calculated
     Given simulation population of 6,384,440
