@@ -3,3 +3,4 @@
 *DPA=*.csv
 
 /venv/
+/.env
