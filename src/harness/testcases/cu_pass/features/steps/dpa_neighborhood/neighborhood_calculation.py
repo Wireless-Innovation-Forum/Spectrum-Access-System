@@ -15,7 +15,6 @@ from dpa_calculator.population_retriever.population_retriever_straight_file impo
 from dpa_calculator.utils import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
-from testcases.cu_pass.features.steps.dpa_neighborhood.helpers.mock_worldpop import mock_worldpop
 
 
 @dataclass
