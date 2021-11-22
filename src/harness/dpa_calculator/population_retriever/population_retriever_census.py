@@ -34,16 +34,17 @@ class PopulationRetrieverCensus(PopulationRetriever):
     _resolution_in_arcseconds = POPULATION_RESOLUTION_IN_ARCSECONDS
 
     async def retrieve(self) -> int:
-        popper = UsgsPopDriver(pop_directory=POPULATION_DIRECTORY_CENSUS)
+        popper = UsgsPopDriver(pop_directory=POPULATION_DIRECTORY_CENSUS, lazy_load=True)
         lats, lons, _ = ComputeSensorNeighborhood(latitude=self._area.center_coordinates.latitude,
                                                   longitude=self._area.center_coordinates.longitude,
                                                   radius_km=self._area.radius_in_kilometers,
                                                   res_arcsec=self._resolution_in_arcseconds)
+
         lats, lons = numpy.array(lats), numpy.array(lons)
         idxs = numpy.arange(len(lats))
 
         # Compute the standalone population impact for that sensor.
-        return (
+        return round(
                 geo_utils.AreaPlateCarreePixel(res_arcsec=self._resolution_in_arcseconds,
                                                ref_latitude=self._area.center_coordinates.latitude) *
                 numpy.sum(popper.GetPopulationDensity(lats[idxs], lons[idxs])))

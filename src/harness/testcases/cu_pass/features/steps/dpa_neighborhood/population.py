@@ -9,7 +9,6 @@ from dpa_calculator.population_retriever.population_retriever import PopulationR
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.population_retriever.population_retriever_straight_file import PopulationRetrieverStraightFile
 from testcases.cu_pass.features.steps.dpa_neighborhood.area import ContextArea
-from testcases.cu_pass.features.steps.dpa_neighborhood.helpers.mock_worldpop import mock_worldpop
 
 
 @dataclass
@@ -17,9 +16,12 @@ class ContextPopulation(ContextArea):
     retriever: Type[PopulationRetriever]
 
 
-@given("file population data")
-def step_impl(context: ContextPopulation):
-    context.retriever = PopulationRetrieverStraightFile
+@given("{retriever_type} population data")
+def step_impl(context: ContextPopulation, retriever_type: str):
+    if retriever_type == 'file':
+        context.retriever = PopulationRetrieverStraightFile
+    elif retriever_type == 'census':
+        context.retriever = PopulationRetrieverCensus
 
 
 @then("the population in the area should be {expected_population:Integer}")
