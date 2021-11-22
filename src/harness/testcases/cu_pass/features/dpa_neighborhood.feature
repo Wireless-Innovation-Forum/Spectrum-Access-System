@@ -23,10 +23,10 @@ Feature: DPA Parameters
   Scenario: Population data is retrieved
     Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
     And census population data
-    Then the population in the area should be 7095966
+    Then the population in the area should be 7,095,966
 
   Scenario: The number of APs for simulation is calculated
-    Given simulation population of 6,384,440
+    Given simulation population of 7,095,966
     Then the number of APs for simulation is 25,538
 
   Scenario: Geographic points are randomly positioned in a circular area
@@ -48,7 +48,7 @@ Feature: DPA Parameters
   Scenario Outline: Aggregate interference is calculated
     Given an antenna at McKinney
     And an exclusion zone distance of 150 km
-    And 5,000 APs
+    And 100 APs
     When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
     Then the result should be <expected_results>
 

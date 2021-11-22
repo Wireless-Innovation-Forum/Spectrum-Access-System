@@ -7,8 +7,6 @@ from behave import *
 from dpa_calculator.utils import Point
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import BuildDpa
-from reference_models.geo.drive import nlcd_driver
-from reference_models.geo.nlcd import GetRegionType
 
 CBSD_A_INDICATOR = 'A'
 CBSD_B_INDICATOR = 'B'
@@ -36,12 +34,6 @@ class Cbsd:
                              longitude=self.location.longitude,
                              low_frequency=None,
                              max_eirp=self.transmit_power)
-
-    @property
-    def region_type(self) -> str:
-        cbsd_region_code = nlcd_driver.GetLandCoverCodes(self.location.latitude,
-                                                         self.location.longitude)
-        return GetRegionType(cbsd_region_code)
 
 
 def get_cbsd_ap(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], is_indoor: bool, location: Point) -> Cbsd:

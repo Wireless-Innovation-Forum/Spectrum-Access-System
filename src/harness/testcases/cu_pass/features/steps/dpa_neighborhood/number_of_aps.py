@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
+from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
 

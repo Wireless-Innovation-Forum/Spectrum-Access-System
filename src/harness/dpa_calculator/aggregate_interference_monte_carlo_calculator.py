@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 from dpa_calculator.aggregate_interference_calculator import AggregateInterferenceCalculator
 from dpa_calculator.grants_creator import GrantsCreator
@@ -23,7 +24,9 @@ class AggregateInterferenceMonteCarloCalculator:
         return run_monte_carlo_simulation(function_to_run=self._single_run, number_of_iterations=self._number_of_iterations)
 
     def _single_run(self) -> float:
-        grants = GrantsCreator(dpa=self._interference_parameters.dpa,
-                               dpa_zone=self._interference_parameters.dpa_test_zone,
-                               number_of_cbsds=self._interference_parameters.number_of_aps).create()
+        grants_creator = GrantsCreator(dpa=self._interference_parameters.dpa,
+                                       dpa_zone=self._interference_parameters.dpa_test_zone,
+                                       number_of_cbsds=self._interference_parameters.number_of_aps)
+        grants = grants_creator.create()
+        grants_creator.write_to_kml(Path('grants.kml'))
         return AggregateInterferenceCalculator(dpa=self._interference_parameters.dpa, grants=grants).calculate()

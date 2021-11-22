@@ -7,10 +7,9 @@ from behave.api.async_step import async_run_until_complete
 
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
     InterferenceParameters
-from dpa_calculator.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
+from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from dpa_calculator.parameter_finder import ParameterFinder
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from dpa_calculator.population_retriever.population_retriever_straight_file import PopulationRetrieverStraightFile
 from dpa_calculator.utils import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
