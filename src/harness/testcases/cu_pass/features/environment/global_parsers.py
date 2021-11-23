@@ -19,12 +19,14 @@ def parse_string(text: str) -> str:
 
 @parse.with_pattern(INTEGER_REGEX)
 def parse_integer(text: str) -> int:
-    return int(text.replace(',', ''))
+    integer_text = re.compile(INTEGER_REGEX).search(text)
+    return int(integer_text[0].replace(',', ''))
 
 
 @parse.with_pattern(NUMBER_REGEX)
 def parse_number(text: str) -> float:
-    return float(text.replace(',', ''))
+    number_text = re.compile(NUMBER_REGEX).search(text)
+    return float(number_text[0].replace(',', ''))
 
 
 @parse.with_pattern(f'\[({NUMBER_REGEX},? ?)+\]')
