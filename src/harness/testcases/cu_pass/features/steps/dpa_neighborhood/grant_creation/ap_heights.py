@@ -5,6 +5,7 @@ from typing import List
 import parse
 from behave import *
 
+from dpa_calculator.grants_creator import HeightDistribution
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
     ContextGrantCreation
@@ -15,13 +16,6 @@ PERCENTAGE_DELIMITER = ':'
 RANGE_DELIMITER = '-'
 
 HEIGHT_DISTRIBUTION_REGEX = rf'({INTEGER_REGEX}%{PERCENTAGE_DELIMITER} {INTEGER_REGEX}({RANGE_DELIMITER}{INTEGER_REGEX})?,? ?)'
-
-
-@dataclass
-class HeightDistribution:
-    maximum_height_in_meters: int
-    minimum_height_in_meters: int
-    percentage_of_cbsds: float
 
 
 @parse.with_pattern(rf'{HEIGHT_DISTRIBUTION_REGEX}+')
@@ -36,7 +30,7 @@ def parse_height_distribution(text: str) -> List[HeightDistribution]:
         height_distributions.append(HeightDistribution(
             maximum_height_in_meters=parse_integer(text=max_height_text),
             minimum_height_in_meters=parse_integer(text=min_height_text),
-            percentage_of_cbsds=parse_integer(text=percentage_text) / 100
+            fraction_of_cbsds=parse_integer(text=percentage_text) / 100
         ))
     return height_distributions
 
@@ -49,15 +43,15 @@ class ContextApHeights(ContextGrantCreation):
     pass
 
 
-@then("the antenna heights should fall in distribution {height_distribution:HeightDistribution}")
+@then("the indoor antenna heights should fall in distribution {height_distribution:HeightDistribution}")
 def step_impl(context: ContextApHeights, height_distribution: List[HeightDistribution]):
     """
     Args:
         context (behave.runner.Context):
         height_distribution (str):
     """
-    total_number_of_grants = len(context.grants)
+    indoor_grants = [grant for grant in context.grants if grant.indoor_deployment]
     for distribution in height_distribution:
-        number_in_range = sum(1 for grant in context.grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters)
-        percentage_in_range = number_in_range / total_number_of_grants
-        assert percentage_in_range == distribution.percentage_of_cbsds, f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.percentage_of_cbsds}'
+        number_in_range = sum(1 for grant in indoor_grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters)
+        percentage_in_range = number_in_range / len(indoor_grants)
+        assert percentage_in_range == distribution.fraction_of_cbsds, f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.fraction_of_cbsds}'

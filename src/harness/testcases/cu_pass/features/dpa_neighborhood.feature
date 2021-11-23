@@ -62,11 +62,11 @@ Feature: DPA Parameters
   Scenario Template: Grants are created with random AP heights
     Given a <region_type> location
     When grants for the Monte Carlo simulation are created
-    Then the antenna heights should fall in distribution <height_distribution>
+    Then the indoor antenna heights should fall in distribution <height_distribution>
 
     Examples:
       | region_type | height_distribution |
-      | rural       | 80%: 3, 20%: 6      |
+#      | rural       | 80%: 3, 20%: 6      |
       | suburban    | 70%: 3, 30%: 6-12   |
       | urban       | 50%: 3, 50%: 6-18   |
 

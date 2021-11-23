@@ -34,8 +34,8 @@ class Cbsd:
                              max_eirp=self.transmit_power)
 
 
-def get_cbsd_ap(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], is_indoor: bool, location: Point) -> Cbsd:
-    return Cbsd(height=6, is_indoor=is_indoor, transmit_power=30, location=location)
+def get_cbsd_ap(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], height: float, is_indoor: bool, location: Point) -> Cbsd:
+    return Cbsd(height=height, is_indoor=is_indoor, transmit_power=30, location=location)
 
 
 # @dataclass
