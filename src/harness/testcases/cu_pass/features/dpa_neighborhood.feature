@@ -48,6 +48,17 @@ Feature: DPA Parameters
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
+  Scenario Template: Grants are created with random AP positioning
+    Given a <region_type> location
+    When grants for the Monte Carlo simulation are created
+    Then <expected_indoor_percentage> of the grants should be indoors
+
+    Examples:
+      | region_type | expected_indoor_percentage |
+      | rural       | 0.99                       |
+      | suburban    | 0.99                       |
+      | urban       | 0.8                        |
+
   Scenario: A monte carlo simulation is run
     Given a function whose results return the next element of [1,2,3,4,5] each time it runs
     When a monte carlo simulation of the function is run

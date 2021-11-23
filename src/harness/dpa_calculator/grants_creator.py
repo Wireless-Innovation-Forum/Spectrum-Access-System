@@ -4,26 +4,22 @@ from typing import List
 
 from cached_property import cached_property
 
+from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
-from reference_models.dpa.dpa_mgr import Dpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
 
 
-@dataclass
-class PercentageOfIndoorApsByRegionType:
-    rural: float = 0.99
-    suburban: float = 0.99
-    urban: float = 0.8
-
-    def __getitem__(self, item: str) -> float:
-        return asdict(self)[item]
+PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
+    REGION_TYPE_RURAL: 0.99,
+    REGION_TYPE_SUBURBAN: 0.99,
+    REGION_TYPE_URBAN: 0.8
+}
 
 
 class GrantsCreator:
-    def __init__(self, dpa: Dpa, dpa_zone: AreaCircle, number_of_cbsds: int):
-        self._dpa = dpa
+    def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
 
@@ -84,7 +80,7 @@ class GrantsCreator:
 
     @property
     def _percentage_of_indoor_aps(self) -> float:
-        return PercentageOfIndoorApsByRegionType()[self._region_type.lower()]
+        return PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE[self._region_type]
 
     @property
     def _region_type(self) -> str:
