@@ -3,6 +3,8 @@ from typing import Callable, Tuple
 
 from shapely import geometry
 
+from reference_models.geo.drive import nlcd_driver
+from reference_models.geo.nlcd import GetRegionType
 from reference_models.geo.vincenty import GeodesicDistanceBearing, GeodesicPoint
 
 
@@ -41,6 +43,11 @@ def get_bearing_between_two_points(point1: Point, point2: Point) -> float:
 
 def _get_geodesic_distance_bearing(point1: Point, point2: Point) -> Tuple[float, float, float]:
     return GeodesicDistanceBearing(lat1=point1.latitude, lon1=point1.longitude, lat2=point2.latitude, lon2=point2.longitude)
+
+
+def get_region_type(coordinates: Point) -> str:
+    cbsd_region_code = nlcd_driver.GetLandCoverCodes(coordinates.latitude, coordinates.longitude)
+    return GetRegionType(cbsd_region_code)
 
 
 def run_monte_carlo_simulation(function_to_run: Callable[[], float], number_of_iterations: int) -> float:

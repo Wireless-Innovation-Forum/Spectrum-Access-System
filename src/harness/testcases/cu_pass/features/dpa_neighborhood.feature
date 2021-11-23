@@ -25,9 +25,17 @@ Feature: DPA Parameters
     And census population data
     Then the population in the area should be 7,095,966
 
-  Scenario: The number of APs for simulation is calculated
+  Scenario Template: The number of APs for simulation is calculated
     Given simulation population of 7,095,966
-    Then the number of APs for simulation is 25,538
+    And a <region_type> location
+    When the number of APs for simulation is calculated
+    Then the result should be <expected_result>
+
+    Examples:
+      | region_type | expected_result |
+      | rural       | 54402           |
+      | suburban    | 8160            |
+      | urban       | 3264            |
 
   Scenario: Geographic points are randomly positioned in a circular area
     Given a seed of 0

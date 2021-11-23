@@ -5,11 +5,9 @@ from typing import List
 from cached_property import cached_property
 
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
-from dpa_calculator.utils import Point
+from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
-from reference_models.geo.drive import nlcd_driver
-from reference_models.geo.nlcd import GetRegionType
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
 
 
@@ -34,21 +32,25 @@ class GrantsCreator:
 
     def write_to_kml(self, filepath: Path) -> None:
         with open(filepath, 'w') as file:
-            file.write('''<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  <Folder>
-    <name>KML Circle Generator Output</name>
-    <visibility>1</visibility>''')
+            file.write('''
+                <?xml version="1.0" encoding="UTF-8"?>
+                    <kml xmlns="http://www.opengis.net/kml/2.2">
+                        <Folder>
+                            <name>KML Circle Generator Output</name>
+                                <visibility>1</visibility>
+            ''')
             for cbsd in self._all_cbsds:
                 file.write(f'''
-                <Placemark>
-                    <Point>
-                        <coordinates>{cbsd.location.longitude},{cbsd.location.latitude}</coordinates>
-                    </Point>
-                </Placemark>
+                    <Placemark>
+                        <Point>
+                            <coordinates>{cbsd.location.longitude},{cbsd.location.latitude}</coordinates>
+                        </Point>
+                    </Placemark>
                 ''')
-            file.write('''</Folder>
-</kml>''')
+            file.write('''
+                </Folder>
+                    </kml>
+            ''')
 
     @property
     def _all_cbsds(self) -> List[Cbsd]:
@@ -86,8 +88,4 @@ class GrantsCreator:
 
     @property
     def _region_type(self) -> str:
-        cbsd_region_code = nlcd_driver.GetLandCoverCodes(
-            self._dpa_zone.center_coordinates.latitude,
-            self._dpa_zone.center_coordinates.longitude
-        )
-        return GetRegionType(cbsd_region_code)
+        return get_region_type(coordinates=self._dpa_zone.center_coordinates)

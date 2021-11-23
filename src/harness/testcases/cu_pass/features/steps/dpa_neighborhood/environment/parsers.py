@@ -11,8 +11,6 @@ from reference_models.dpa.dpa_mgr import BuildDpa
 CBSD_A_INDICATOR = 'A'
 CBSD_B_INDICATOR = 'B'
 
-REGION_TYPE_RURAL = 'RURAL'
-
 
 @dataclass
 class Cbsd:
