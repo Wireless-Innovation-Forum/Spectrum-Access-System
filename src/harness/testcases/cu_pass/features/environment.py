@@ -18,12 +18,12 @@ def steps_directory() -> Path:
 
 def all_environment_files() -> Iterable[str]:
     any_environment_path = Path(steps_directory(), '**', 'environment', EXCLUDE_MANIFEST_FILES_GLOB)
-    return glob(str(any_environment_path))
+    return glob(str(any_environment_path), recursive=True)
 
 
 def all_step_definitions() -> Iterable[str]:
     all_paths_in_steps_directory_glob = Path(steps_directory(), '**', PYTHON_FILES_GLOB)
-    all_paths_in_steps_directory = glob(str(all_paths_in_steps_directory_glob))
+    all_paths_in_steps_directory = glob(str(all_paths_in_steps_directory_glob), recursive=True)
     return set(all_paths_in_steps_directory) - set(all_environment_files())
 
 

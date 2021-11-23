@@ -4,6 +4,8 @@ from behave import *
 
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
+use_step_matcher('parse')
+
 
 @dataclass
 class ContextResult(ContextSas):

@@ -8,7 +8,9 @@ from behave.api.async_step import async_run_until_complete
 from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.population_retriever.population_retriever_straight_file import PopulationRetrieverStraightFile
-from testcases.cu_pass.features.steps.dpa_neighborhood.area import ContextArea
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
+
+use_step_matcher('parse')
 
 
 @dataclass

@@ -5,6 +5,8 @@ from behave import *
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from dpa_calculator.utils import Point
 
+use_step_matcher('parse')
+
 
 ARBITRARY_COORDINATES = {
     REGION_TYPE_RURAL: Point(latitude=37.779704, longitude=-122.417747),

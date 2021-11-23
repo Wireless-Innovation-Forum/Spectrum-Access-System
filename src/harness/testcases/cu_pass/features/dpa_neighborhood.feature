@@ -37,10 +37,10 @@ Feature: DPA Parameters
       | suburban    | 8160            |
       | urban       | 3264            |
 
-  Scenario: Geographic points are randomly positioned in a circular area
+  Scenario: Grants are created with a random distribution in a circular area
     Given a seed of 0
     And a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
-    When 30,000 points are randomly generated
+    When grants for the Monte Carlo simulation are created
     Then all distributed points should be within the radius of the center point
     And the furthest distance should be close to 150 km
     And the closest distance should be close to 0 km

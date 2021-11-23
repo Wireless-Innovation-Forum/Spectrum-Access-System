@@ -6,6 +6,8 @@ from behave import *
 from dpa_calculator.utils import run_monte_carlo_simulation
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
+use_step_matcher('parse')
+
 
 @dataclass
 class ContextMonteCarlo(ContextResult):

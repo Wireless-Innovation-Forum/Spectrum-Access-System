@@ -1,12 +1,12 @@
-import re
 from dataclasses import dataclass
 from typing import List
 
 from behave import *
-from behave import runner
 
 from dpa_calculator.utils import Point, move_distance
 from testcases.cu_pass.features.environment.hooks import ContextSas
+
+use_step_matcher('parse')
 
 
 @dataclass

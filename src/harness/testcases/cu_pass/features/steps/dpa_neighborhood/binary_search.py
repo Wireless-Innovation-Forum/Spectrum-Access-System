@@ -7,6 +7,8 @@ from behave.api.async_step import async_run_until_complete
 from dpa_calculator.parameter_finder import ParameterFinder
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
+use_step_matcher('parse')
+
 
 @dataclass
 class ContextBinarySearch(ContextResult):

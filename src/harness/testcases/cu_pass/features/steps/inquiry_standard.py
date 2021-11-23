@@ -2,7 +2,6 @@ import os
 
 from behave import *
 
-from sas_testcase import SasTestCase
 from util import getRandomLatLongInPolygon, json_load
 
 use_step_matcher("re")

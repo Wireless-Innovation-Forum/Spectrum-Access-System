@@ -6,6 +6,8 @@ from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import Numb
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
+use_step_matcher('parse')
+
 
 @dataclass
 class ContextNumberOfAps(ContextRegionType, ContextResult):
