@@ -63,10 +63,12 @@ Feature: DPA Parameters
     Given a <region_type> location
     When grants for the Monte Carlo simulation are created
     Then the indoor antenna heights should fall in distribution <height_distribution>
+    And indoor antenna heights should be in 0.5 meter increments
+    And outdoor antenna heights should be 6 meters
 
     Examples:
       | region_type | height_distribution |
-#      | rural       | 80%: 3, 20%: 6      |
+      | rural       | 80%: 3, 20%: 6      |
       | suburban    | 70%: 3, 30%: 6-12   |
       | urban       | 50%: 3, 50%: 6-18   |
 

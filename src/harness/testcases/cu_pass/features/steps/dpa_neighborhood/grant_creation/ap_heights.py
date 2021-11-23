@@ -6,6 +6,7 @@ import parse
 from behave import *
 
 from dpa_calculator.grants_creator import HeightDistribution
+from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
     ContextGrantCreation
@@ -50,8 +51,33 @@ def step_impl(context: ContextApHeights, height_distribution: List[HeightDistrib
         context (behave.runner.Context):
         height_distribution (str):
     """
-    indoor_grants = [grant for grant in context.grants if grant.indoor_deployment]
+    indoor_grants = get_indoor_grants(grants=context.grants)
     for distribution in height_distribution:
-        number_in_range = sum(1 for grant in indoor_grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters)
-        percentage_in_range = number_in_range / len(indoor_grants)
+        grants_in_range = [grant for grant in indoor_grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters]
+        number_of_grants_in_range = len(grants_in_range)
+        percentage_in_range = number_of_grants_in_range / len(indoor_grants)
         assert percentage_in_range == distribution.fraction_of_cbsds, f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.fraction_of_cbsds}'
+
+
+@step("indoor antenna heights should be in 0.5 meter increments")
+def step_impl(context: ContextApHeights):
+    """
+    Args:
+        context (behave.runner.Context):
+    """
+    indoor_grants = get_indoor_grants(grants=context.grants)
+    assert all((grant.height_agl * 2) % 1 == 0 for grant in indoor_grants)
+
+
+@step("outdoor antenna heights should be {expected_height:Integer} meters")
+def step_impl(context: ContextApHeights, expected_height: int):
+    """
+    Args:
+        context (behave.runner.Context):
+    """
+    outdoor_grants = [grant for grant in context.grants if not grant.indoor_deployment]
+    assert all(grant.height_agl == expected_height for grant in outdoor_grants)
+
+
+def get_indoor_grants(grants: List[CbsdGrantInfo]) -> List[CbsdGrantInfo]:
+    return [grant for grant in grants if grant.indoor_deployment]
