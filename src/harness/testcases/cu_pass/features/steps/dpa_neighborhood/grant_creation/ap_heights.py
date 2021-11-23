@@ -5,7 +5,7 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.grants_creator import HeightDistribution
+from dpa_calculator.grants_creator.cbsd_height_distributor import HeightDistribution
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
@@ -52,11 +52,13 @@ def step_impl(context: ContextApHeights, height_distribution: List[HeightDistrib
         height_distribution (str):
     """
     indoor_grants = get_indoor_grants(grants=context.grants)
+    number_of_indoor_grants = len(indoor_grants)
     for distribution in height_distribution:
         grants_in_range = [grant for grant in indoor_grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters]
         number_of_grants_in_range = len(grants_in_range)
-        percentage_in_range = number_of_grants_in_range / len(indoor_grants)
-        assert percentage_in_range == distribution.fraction_of_cbsds, f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.fraction_of_cbsds}'
+        percentage_in_range = number_of_grants_in_range / number_of_indoor_grants
+        assert percentage_in_range == distribution.fraction_of_cbsds, \
+            f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.fraction_of_cbsds}'
 
 
 @step("indoor antenna heights should be in 0.5 meter increments")

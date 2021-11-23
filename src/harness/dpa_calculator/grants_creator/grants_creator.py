@@ -1,11 +1,10 @@
-import random
-from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List
 
 from cached_property import cached_property
 
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
+from dpa_calculator.grants_creator.cbsd_height_distributor import CbsdHeightDistributor, OUTDOOR_AP_HEIGHT_IN_METERS
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
@@ -17,15 +16,6 @@ PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_SUBURBAN: 0.99,
     REGION_TYPE_URBAN: 0.8
 }
-
-OUTDOOR_AP_HEIGHT_IN_METERS = 6
-
-
-@dataclass
-class HeightDistribution:
-    maximum_height_in_meters: int
-    minimum_height_in_meters: int
-    fraction_of_cbsds: float
 
 
 class GrantsCreator:
@@ -64,70 +54,11 @@ class GrantsCreator:
 
     @property
     def _indoor_cbsds(self) -> List[Cbsd]:
-        @dataclass
-        class LocationWithHeight:
-            height: float
-            location: Point
-
-        cbsds_locations_grouped_by_height = []
-        for distribution in self._height_distribution:
-            next_index = sum(len(height_group) for height_group in cbsds_locations_grouped_by_height)
-            number_of_cbsds_at_this_height = round(len(self._indoor_cbsd_locations) * distribution.fraction_of_cbsds)
-            height_group_elements = [LocationWithHeight(
-                height=round((distribution.minimum_height_in_meters + random.random() * (distribution.maximum_height_in_meters - distribution.minimum_height_in_meters)) * 2) / 2,
-                location=location
-            ) for location in self._indoor_cbsd_locations[next_index:next_index + number_of_cbsds_at_this_height]]
-            cbsds_locations_grouped_by_height.append(height_group_elements)
-
-        return [get_cbsd_ap(category=CBSD_A_INDICATOR, height=location_with_height.height, is_indoor=True, location=location_with_height.location)
-                for height_group in cbsds_locations_grouped_by_height
-                for location_with_height in height_group]
+        return CbsdHeightDistributor(cbsd_locations=self._indoor_cbsd_locations, region_type=self._region_type).get()
 
     @property
     def _indoor_cbsd_locations(self) -> List[Point]:
         return self._distributed_cbsds[:self._number_of_indoor_cbsds]
-
-    @property
-    def _height_distribution(self) -> List[HeightDistribution]:
-        if self._region_type == REGION_TYPE_RURAL:
-            return [
-                HeightDistribution(
-                    maximum_height_in_meters=3,
-                    minimum_height_in_meters=3,
-                    fraction_of_cbsds=0.8
-                ),
-                HeightDistribution(
-                    maximum_height_in_meters=6,
-                    minimum_height_in_meters=6,
-                    fraction_of_cbsds=0.2
-                ),
-            ]
-        elif self._region_type == REGION_TYPE_SUBURBAN:
-            return [
-                HeightDistribution(
-                    maximum_height_in_meters=3,
-                    minimum_height_in_meters=3,
-                    fraction_of_cbsds=0.7
-                ),
-                HeightDistribution(
-                    maximum_height_in_meters=12,
-                    minimum_height_in_meters=6,
-                    fraction_of_cbsds=0.3
-                )
-            ]
-        elif self._region_type == REGION_TYPE_URBAN:
-            return [
-                HeightDistribution(
-                    maximum_height_in_meters=3,
-                    minimum_height_in_meters=3,
-                    fraction_of_cbsds=0.5
-                ),
-                HeightDistribution(
-                    maximum_height_in_meters=18,
-                    minimum_height_in_meters=6,
-                    fraction_of_cbsds=0.5
-                )
-            ]
 
     @property
     def _outdoor_cbsds(self) -> List[Cbsd]:
