@@ -14,14 +14,15 @@ class AreaCircle:
 class PointDistributor:
     _max_bearing = 360
 
-    def __init__(self, distribution_area: AreaCircle):
+    def __init__(self, distribution_area: AreaCircle, minimum_distance: int = 0):
         self._distribution_area = distribution_area
+        self._minimum_distance = minimum_distance
 
     def distribute_points(self, number_of_points: int) -> List[Point]:
         return [self._generate_point() for _ in range(number_of_points)]
 
     def _generate_point(self) -> Point:
-        random_distance = random.random() * self._max_distance
+        random_distance = self._minimum_distance + random.random() * (self._max_distance - self._minimum_distance)
         random_bearing = random.random() * self._max_bearing
         return move_distance(bearing=random_bearing, kilometers=random_distance, origin=self._origin)
 
