@@ -39,7 +39,7 @@ Feature: DPA Parameters
 
   Scenario: Grants are created with a random distribution in a circular area
     Given a seed of 0
-    And a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
+    And a circular area with a radius of 150 km
     When grants for the Monte Carlo simulation are created
     Then all distributed points should be within the radius of the center point
     And the furthest distance should be close to 150 km

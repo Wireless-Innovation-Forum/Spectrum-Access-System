@@ -27,6 +27,6 @@ def step_impl(context: ContextGrantCreation):
     Args:
         context (behave.runner.Context):
     """
-    zpa_zone = getattr(context, 'area', AreaCircle(center_coordinates=context.antenna_coordinates, radius_in_kilometers=ARBITRARY_RADIUS))
+    zpa_zone = getattr(context, 'area', None) or AreaCircle(center_coordinates=context.antenna_coordinates, radius_in_kilometers=ARBITRARY_RADIUS)
     context.grants = GrantsCreator(dpa_zone=zpa_zone,
                                    number_of_cbsds=ARBITRARY_NUMBER_OF_CBSDS).create()

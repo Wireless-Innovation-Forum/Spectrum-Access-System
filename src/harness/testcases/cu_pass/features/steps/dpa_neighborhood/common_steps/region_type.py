@@ -15,6 +15,10 @@ ARBITRARY_COORDINATES = {
 }
 
 
+def get_arbitrary_coordinates(region_type: str = REGION_TYPE_RURAL) -> Point:
+    return ARBITRARY_COORDINATES[region_type]
+
+
 @dataclass
 class ContextRegionType:
     antenna_coordinates: Point
@@ -27,4 +31,4 @@ def step_impl(context: ContextRegionType, region_type: str):
         context (behave.runner.Context):
         region_type (str):
     """
-    context.antenna_coordinates = ARBITRARY_COORDINATES[region_type.upper()]
+    context.antenna_coordinates = get_arbitrary_coordinates(region_type.upper())
