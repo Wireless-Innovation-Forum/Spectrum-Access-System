@@ -4,7 +4,8 @@ from typing import List
 from cached_property import cached_property
 
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
-from dpa_calculator.grants_creator.cbsd_height_distributor import CbsdHeightDistributor, OUTDOOR_AP_HEIGHT_IN_METERS
+from dpa_calculator.grants_creator.cbsd_height_distributor import CbsdHeightDistributor
+from dpa_calculator.grants_creator.height_distribution_definitions import OUTDOOR_AP_HEIGHT_IN_METERS
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo

@@ -12,7 +12,7 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type 
 use_step_matcher('parse')
 
 
-ARBITRARY_NUMBER_OF_CBSDS = 1000
+ARBITRARY_ODD_NUMBER_OF_CBSDS = 1001
 ARBITRARY_RADIUS = 150
 
 
@@ -29,4 +29,4 @@ def step_impl(context: ContextGrantCreation):
     """
     zpa_zone = getattr(context, 'area', None) or AreaCircle(center_coordinates=context.antenna_coordinates, radius_in_kilometers=ARBITRARY_RADIUS)
     context.grants = GrantsCreator(dpa_zone=zpa_zone,
-                                   number_of_cbsds=ARBITRARY_NUMBER_OF_CBSDS).create()
+                                   number_of_cbsds=ARBITRARY_ODD_NUMBER_OF_CBSDS).create()
