@@ -96,9 +96,13 @@ Feature: DPA Parameters
       | UE        | 0             |
 
   Scenario: AP transmission powers are set
-    When grants for the Monte Carlo simulation are created
-    Then the indoor antenna equivalent isotropically radiated power should be 26 dBm
-    Then the outdoor antenna equivalent isotropically radiated power should be 30 dBm
+    When AP grants for the Monte Carlo simulation are created
+    Then the indoor antenna EIRPs should be 26 dBm
+    Then the outdoor antenna EIRPs should be 30 dBm
+
+  Scenario: UE transmission powers are set
+    When UE grants for the Monte Carlo simulation are created
+    Then the antenna EIRPs should be 24 dBm
 
   Scenario: A monte carlo simulation is run
     Given a function whose results return the next element of [1,2,3,4,5] each time it runs

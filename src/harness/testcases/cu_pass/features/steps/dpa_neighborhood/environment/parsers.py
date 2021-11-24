@@ -1,7 +1,8 @@
 import parse
 from behave import *
 
-from dpa_calculator.cbsd import CBSD_A_INDICATOR, CBSD_B_INDICATOR, Cbsd
+from dpa_calculator.cbsd.cbsd import Cbsd
+from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CBSD_B_INDICATOR
 from reference_models.dpa.dpa_mgr import BuildDpa
 
 
