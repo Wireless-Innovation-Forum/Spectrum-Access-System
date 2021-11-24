@@ -7,7 +7,7 @@ from behave import *
 
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
 from reference_models.common.data import CbsdGrantInfo
-from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
+from testcases.cu_pass.features.environment.global_parsers import NUMBER_REGEX, parse_number
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
     ContextGrantCreation
 
@@ -16,7 +16,7 @@ use_step_matcher("parse")
 PERCENTAGE_DELIMITER = ':'
 RANGE_DELIMITER = '-'
 
-HEIGHT_DISTRIBUTION_REGEX = rf'({INTEGER_REGEX}%{PERCENTAGE_DELIMITER} {INTEGER_REGEX}({RANGE_DELIMITER}{INTEGER_REGEX})?,? ?)'
+HEIGHT_DISTRIBUTION_REGEX = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {NUMBER_REGEX}({RANGE_DELIMITER}{NUMBER_REGEX})?,? ?)'
 
 
 @parse.with_pattern(rf'{HEIGHT_DISTRIBUTION_REGEX}+')
@@ -29,9 +29,9 @@ def parse_height_distribution(text: str) -> List[HeightDistribution]:
         min_height_text = height_endpoints[0]
         max_height_text = height_endpoints[1 if len(height_endpoints) > 1 else 0]
         height_distributions.append(HeightDistribution(
-            maximum_height_in_meters=parse_integer(text=max_height_text),
-            minimum_height_in_meters=parse_integer(text=min_height_text),
-            fraction_of_cbsds=parse_integer(text=percentage_text) / 100
+            maximum_height_in_meters=parse_number(text=max_height_text),
+            minimum_height_in_meters=parse_number(text=min_height_text),
+            fraction_of_cbsds=parse_number(text=percentage_text) / 100
         ))
     return height_distributions
 
@@ -71,8 +71,8 @@ def step_impl(context: ContextApHeights):
     assert all((grant.height_agl * 2) % 1 == 0 for grant in indoor_grants)
 
 
-@step("outdoor antenna heights should be {expected_height:Integer} meters")
-def step_impl(context: ContextApHeights, expected_height: int):
+@step("outdoor antenna heights should be {expected_height:Number} meters")
+def step_impl(context: ContextApHeights, expected_height: float):
     """
     Args:
         context (behave.runner.Context):

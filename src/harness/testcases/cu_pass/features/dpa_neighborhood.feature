@@ -73,18 +73,29 @@ Feature: DPA Parameters
       | suburban    | 0.99                       |
       | urban       | 0.8                        |
 
-  Scenario Template: Grants are created with random AP heights
+  Scenario Template: Indoor grants are created with random heights
     Given a <region_type> location
-    When grants for the Monte Carlo simulation are created
+    When <cbsd_type> grants for the Monte Carlo simulation are created
     Then the indoor antenna heights should fall in distribution <height_distribution>
     And indoor antenna heights should be in 0.5 meter increments
-    And outdoor antenna heights should be 6 meters
 
     Examples:
-      | region_type | height_distribution |
-      | rural       | 80%: 3, 20%: 6      |
-      | suburban    | 70%: 3, 30%: 6-12   |
-      | urban       | 50%: 3, 50%: 6-18   |
+      | cbsd_type | region_type | height_distribution     |
+      | AP        | rural       | 80%: 3, 20%: 6          |
+      | AP        | suburban    | 70%: 3, 30%: 6-12       |
+      | AP        | urban       | 50%: 3, 50%: 6-18       |
+      | UE        | rural       | 80%: 1.5, 20%: 4.5      |
+      | UE        | suburban    | 70%: 1.5, 30%: 4.5-10.5 |
+      | UE        | urban       | 50%: 1.5, 50%: 4.5-16.5 |
+
+  Scenario Template: Outdoor grants are created with random heights
+    When <cbsd_type> grants for the Monte Carlo simulation are created
+    Then outdoor antenna heights should be <expected_height> meters
+
+    Examples:
+      | cbsd_type | expected_height |
+      | AP        | 6               |
+      | UE        | 1.5             |
 
   Scenario Outline: AP gains are set
     When <cbsd_type> grants for the Monte Carlo simulation are created

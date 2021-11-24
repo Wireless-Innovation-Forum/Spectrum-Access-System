@@ -1,16 +1,20 @@
 from dataclasses import dataclass
+from typing import List
 
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 
 
 @dataclass
 class HeightDistribution:
-    maximum_height_in_meters: int
-    minimum_height_in_meters: int
+    maximum_height_in_meters: float
+    minimum_height_in_meters: float
     fraction_of_cbsds: float
 
 
 OUTDOOR_AP_HEIGHT_IN_METERS = 6
+OUTDOOR_UE_HEIGHT_IN_METERS = 1.5
+
+INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP = 1.5
 
 
 INDOOR_AP_HEIGHT_DISTRIBUTION = {
@@ -51,3 +55,19 @@ INDOOR_AP_HEIGHT_DISTRIBUTION = {
         )
     ]
 }
+
+
+def _get_indoor_ue_height_distribution(associated_ap_distribution: HeightDistribution) -> HeightDistribution:
+    return HeightDistribution(
+        maximum_height_in_meters=associated_ap_distribution.maximum_height_in_meters - INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP,
+        minimum_height_in_meters=associated_ap_distribution.minimum_height_in_meters - INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP,
+        fraction_of_cbsds=associated_ap_distribution.fraction_of_cbsds
+    )
+
+
+def _get_indoor_ue_height_distributions(associated_ap_distributions: List[HeightDistribution]) -> List[HeightDistribution]:
+    return [_get_indoor_ue_height_distribution(associated_ap_distribution=distribution) for distribution in associated_ap_distributions]
+
+
+INDOOR_UE_HEIGHT_DISTRIBUTION = {region_type: _get_indoor_ue_height_distributions(associated_ap_distributions=distributions)
+                                 for region_type, distributions in INDOOR_AP_HEIGHT_DISTRIBUTION.items()}

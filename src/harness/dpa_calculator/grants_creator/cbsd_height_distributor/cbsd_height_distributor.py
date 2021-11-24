@@ -1,9 +1,10 @@
 import random
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import Dict, List
 
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution, \
-    INDOOR_AP_HEIGHT_DISTRIBUTION
+    INDOOR_AP_HEIGHT_DISTRIBUTION, INDOOR_UE_HEIGHT_DISTRIBUTION
 from dpa_calculator.utils import Point
 
 
@@ -13,7 +14,7 @@ class LocationWithHeight:
     location: Point
 
 
-class CbsdHeightDistributor:
+class CbsdHeightDistributor(ABC):
     def __init__(self, cbsd_locations: List[Point], region_type: str):
         self._cbsd_locations = cbsd_locations
         self._region_type = region_type
@@ -29,7 +30,12 @@ class CbsdHeightDistributor:
 
     @property
     def _height_distribution(self) -> List[HeightDistribution]:
-        return INDOOR_AP_HEIGHT_DISTRIBUTION[self._region_type]
+        return self._height_distribution_map[self._region_type]
+
+    @property
+    @abstractmethod
+    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
+        raise NotImplementedError
 
     def _generate_heights_for_distribution(self, distribution: HeightDistribution, cbsd_locations: List[Point]) -> List[LocationWithHeight]:
         number_of_cbsds_at_this_height = round(self._total_number_of_cbsd_locations * distribution.fraction_of_cbsds)
@@ -50,3 +56,15 @@ class CbsdHeightDistributor:
         random_height = distribution.minimum_height_in_meters + random.random() * height_range
         height_to_the_nearest_half_meter = round(random_height * 2) / 2
         return height_to_the_nearest_half_meter
+
+
+class CbsdHeightDistributorAp(CbsdHeightDistributor):
+    @property
+    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
+        return INDOOR_AP_HEIGHT_DISTRIBUTION
+
+
+class CbsdHeightDistributorUe(CbsdHeightDistributor):
+    @property
+    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
+        return INDOOR_UE_HEIGHT_DISTRIBUTION

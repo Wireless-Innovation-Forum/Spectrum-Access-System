@@ -7,7 +7,6 @@ from cached_property import cached_property
 from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CbsdGetter
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
 from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
-from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import OUTDOOR_AP_HEIGHT_IN_METERS
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
@@ -62,14 +61,19 @@ class GrantsCreator(ABC):
 
     @property
     def _indoor_cbsds(self) -> List[Cbsd]:
-        cbsd_locations_grouped_by_height = CbsdHeightDistributor(cbsd_locations=self._indoor_cbsd_locations,
-                                                                 region_type=self._region_type).get()
-        return [self._cbsd_getter(category=CBSD_A_INDICATOR,
-                                  height=location_with_height.height,
-                                  is_indoor=True,
-                                  location=location_with_height.location).get()
+        cbsd_locations_grouped_by_height = self._cbsd_height_distributor_class(cbsd_locations=self._indoor_cbsd_locations,
+                                                                               region_type=self._region_type).get()
+        return [self._cbsd_getter_class(category=CBSD_A_INDICATOR,
+                                        height=location_with_height.height,
+                                        is_indoor=True,
+                                        location=location_with_height.location).get()
                 for height_group in cbsd_locations_grouped_by_height
                 for location_with_height in height_group]
+
+    @property
+    @abstractmethod
+    def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributor]:
+        raise NotImplementedError
 
     @property
     def _indoor_cbsd_locations(self) -> List[Point]:
@@ -77,15 +81,20 @@ class GrantsCreator(ABC):
 
     @property
     def _outdoor_cbsds(self) -> List[Cbsd]:
-        return [self._cbsd_getter(category=CBSD_A_INDICATOR,
-                                  height=OUTDOOR_AP_HEIGHT_IN_METERS,
-                                  is_indoor=False,
-                                  location=location).get()
+        return [self._cbsd_getter_class(category=CBSD_A_INDICATOR,
+                                        height=self._outdoor_antenna_height,
+                                        is_indoor=False,
+                                        location=location).get()
                 for location in self._outdoot_cbsd_locations]
 
     @property
     @abstractmethod
-    def _cbsd_getter(self) -> Type[CbsdGetter]:
+    def _outdoor_antenna_height(self) -> float:
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def _cbsd_getter_class(self) -> Type[CbsdGetter]:
         raise NotImplementedError
 
     @property
