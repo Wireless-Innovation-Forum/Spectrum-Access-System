@@ -2,13 +2,14 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from dpa_calculator.utilities import Point
 
 use_step_matcher('parse')
 
 
 ARBITRARY_COORDINATES = {
+    REGION_TYPE_DENSE_URBAN: Point(latitude=37.751113, longitude=-122.449722),
     REGION_TYPE_RURAL: Point(latitude=37.779704, longitude=-122.417747),
     REGION_TYPE_SUBURBAN: Point(latitude=37.753571, longitude=-122.44803),
     REGION_TYPE_URBAN: Point(latitude=37.781941, longitude=-122.404195)

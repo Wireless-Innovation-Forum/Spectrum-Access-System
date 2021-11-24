@@ -3,8 +3,9 @@ from typing import Callable, Tuple
 
 from shapely import geometry
 
+from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from reference_models.geo.drive import nlcd_driver
-from reference_models.geo.nlcd import GetRegionType
+from reference_models.geo.nlcd import LandCoverCodes
 from reference_models.geo.vincenty import GeodesicDistanceBearing, GeodesicPoint
 
 
@@ -47,7 +48,15 @@ def _get_geodesic_distance_bearing(point1: Point, point2: Point) -> Tuple[float,
 
 def get_region_type(coordinates: Point) -> str:
     cbsd_region_code = nlcd_driver.GetLandCoverCodes(coordinates.latitude, coordinates.longitude)
-    return GetRegionType(cbsd_region_code)
+
+    if cbsd_region_code == LandCoverCodes.DEVELOPED_LOW:
+        return REGION_TYPE_SUBURBAN
+    elif cbsd_region_code == LandCoverCodes.DEVELOPED_MEDIUM:
+        return REGION_TYPE_URBAN
+    elif cbsd_region_code == LandCoverCodes.DEVELOPED_HIGH:
+        return REGION_TYPE_DENSE_URBAN
+
+    return REGION_TYPE_RURAL
 
 
 def run_monte_carlo_simulation(function_to_run: Callable[[], float], number_of_iterations: int) -> float:

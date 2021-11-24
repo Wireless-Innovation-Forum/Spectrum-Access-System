@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 
 
 @dataclass
@@ -18,6 +18,23 @@ INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP = 1.5
 
 
 INDOOR_AP_HEIGHT_DISTRIBUTION = {
+    REGION_TYPE_DENSE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=15,
+            minimum_height_in_meters=3,
+            fraction_of_cbsds=0.5
+        ),
+        HeightDistribution(
+            maximum_height_in_meters=30,
+            minimum_height_in_meters=18,
+            fraction_of_cbsds=0.25
+        ),
+        HeightDistribution(
+            maximum_height_in_meters=60,
+            minimum_height_in_meters=33,
+            fraction_of_cbsds=0.25
+        ),
+    ],
     REGION_TYPE_RURAL: [
         HeightDistribution(
             maximum_height_in_meters=3,

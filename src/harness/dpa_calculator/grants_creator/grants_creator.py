@@ -5,7 +5,8 @@ from typing import List, Type
 from cached_property import cached_property
 
 from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CbsdGetter
-from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
+from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_URBAN, \
+    REGION_TYPE_SUBURBAN
 from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utilities import Point, get_region_type
@@ -13,12 +14,14 @@ from reference_models.common.data import CbsdGrantInfo
 from dpa_calculator.cbsd.cbsd import Cbsd
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
+    REGION_TYPE_DENSE_URBAN: 0.8,
     REGION_TYPE_RURAL: 0.99,
     REGION_TYPE_SUBURBAN: 0.99,
     REGION_TYPE_URBAN: 0.8
 }
 
 UE_PER_AP_BY_REGION_TYPE = {
+    REGION_TYPE_DENSE_URBAN: 50,
     REGION_TYPE_RURAL: 3,
     REGION_TYPE_SUBURBAN: 20,
     REGION_TYPE_URBAN: 50
