@@ -17,6 +17,12 @@ PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_URBAN: 0.8
 }
 
+UE_PER_AP_BY_REGION_TYPE = {
+    REGION_TYPE_RURAL: 3,
+    REGION_TYPE_SUBURBAN: 20,
+    REGION_TYPE_URBAN: 50
+}
+
 
 class GrantsCreator:
     def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):
@@ -84,3 +90,10 @@ class GrantsCreator:
     @property
     def _region_type(self) -> str:
         return get_region_type(coordinates=self._dpa_zone.center_coordinates)
+
+
+def get_grants_creator(dpa_zone: AreaCircle, is_user_equipment: bool, number_of_aps: int) -> GrantsCreator:
+    region_type = get_region_type(coordinates=dpa_zone.center_coordinates)
+    ue_per_ap = UE_PER_AP_BY_REGION_TYPE[region_type]
+    number_of_cbsds = number_of_aps * ue_per_ap if is_user_equipment else number_of_aps
+    return GrantsCreator(dpa_zone=dpa_zone, number_of_cbsds=number_of_cbsds)

@@ -1,6 +1,7 @@
 Feature: DPA Parameters
 
   Definitions
+    - AP.......: Access point
     - CBSD_A...: Citizens Broadband radio Service Device, category A
     - CBSD_B...: Citizens Broadband radio Service Device, category B
     - EIRP.....: Effective isotropic radiated power
@@ -8,6 +9,7 @@ Feature: DPA Parameters
     - IPC......: Interference protection criteria
     - R_C_DPA_A: Radius of Co-channel frequency range Dynamic Protection Area for category A devices
     - RA.......: Radio astronomy
+    - UE.......: User equipment
 
   Notes
     - CBSD max power
@@ -47,6 +49,18 @@ Feature: DPA Parameters
     And the highest bearing should be close to 360 degrees
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
+
+  Scenario Template: The number of UEs is created
+    Given a <region_type> location
+    When UE grants for the Monte Carlo simulation are created
+    Then there should be <expected_ue_per_ap> times as many as if AP grants were created
+
+    Examples:
+      | region_type | expected_ue_per_ap |
+      | rural       | 3                  |
+      | suburban    | 20                 |
+      | urban       | 50                 |
+
 
   Scenario Template: Grants are created with indoor percentage based on region type
     Given a <region_type> location
