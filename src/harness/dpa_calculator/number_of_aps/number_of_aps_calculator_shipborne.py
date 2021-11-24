@@ -13,7 +13,6 @@ REGION_TYPE_TO_DENOMINATOR = {
 
 class NumberOfApsCalculatorShipborne(NumberOfApsCalculator):
     _channel_scaling_factor = 0.1
-    _daytime_commuter_factor = 1.15
     _market_penetration_factor = 0.2
 
     def __init__(self, center_coordinates: Point, simulation_population: int):
@@ -29,7 +28,7 @@ class NumberOfApsCalculatorShipborne(NumberOfApsCalculator):
 
     @property
     def _numerator(self) -> float:
-        return self._simulation_population * self._daytime_commuter_factor * self._market_penetration_factor * self._channel_scaling_factor
+        return self._simulation_population * self._market_penetration_factor * self._channel_scaling_factor
 
     @property
     def _denominator(self) -> int:

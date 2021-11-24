@@ -106,7 +106,8 @@ class GrantsCreator(ABC):
 
     @cached_property
     def _distributed_cbsds(self) -> List[Point]:
-        return PointDistributor(distribution_area=self._dpa_zone).distribute_points(number_of_points=self._number_of_cbsds)
+        return PointDistributor(distribution_area=self._dpa_zone, minimum_distance=self._dpa_zone.radius_in_kilometers)\
+            .distribute_points(number_of_points=self._number_of_cbsds)
 
     @property
     def _number_of_indoor_cbsds(self) -> int:

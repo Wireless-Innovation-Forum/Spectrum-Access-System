@@ -58,13 +58,13 @@ class CbsdHeightDistributor(ABC):
         return height_to_the_nearest_half_meter
 
 
-class CbsdHeightDistributorAp(CbsdHeightDistributor):
+class CbsdHeightDistributorAccessPoint(CbsdHeightDistributor):
     @property
     def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
         return INDOOR_AP_HEIGHT_DISTRIBUTION
 
 
-class CbsdHeightDistributorUe(CbsdHeightDistributor):
+class CbsdHeightDistributorUserEquipment(CbsdHeightDistributor):
     @property
     def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
         return INDOOR_UE_HEIGHT_DISTRIBUTION

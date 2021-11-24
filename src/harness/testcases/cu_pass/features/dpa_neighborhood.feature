@@ -35,17 +35,17 @@ Feature: DPA Parameters
 
     Examples:
       | region_type | expected_result |
-      | rural       | 54402           |
-      | suburban    | 8160            |
-      | urban       | 3264            |
+      | rural       | 47306           |
+      | suburban    | 7096            |
+      | urban       | 2838            |
 
-  Scenario: Grants are created with a random distribution in a circular area
+  Scenario: Grants are created with a random distribution on the zone circumference
     Given a seed of 0
     And a circular area with a radius of 150 km
     When grants for the Monte Carlo simulation are created
     Then all distributed points should be within the radius of the center point
     And the furthest distance should be close to 150 km
-    And the closest distance should be close to 0 km
+    And the closest distance should be close to 150 km
     And the highest bearing should be close to 360 degrees
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
@@ -122,16 +122,17 @@ Feature: DPA Parameters
     When a monte carlo simulation of the function is run
     Then the result should be 3
 
-#  Scenario Outline: Aggregate interference is calculated
-#    Given an antenna at McKinney
-#    And an exclusion zone distance of 150 km
-#    And 100 APs
-#    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
-#    Then the result should be <expected_results>
-#
-#    Examples:
-#      | number_of_iterations | expected_results |
-#      | 1                    | -62.72253        |
+  @slow
+  Scenario Outline: Aggregate interference is calculated
+    Given an antenna at McKinney
+    And an exclusion zone distance of 150 km
+    And 1000 APs
+    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
+    Then the result should be <expected_results>
+
+    Examples:
+      | number_of_iterations | expected_results |
+      | 1                    | -62.72253        |
 #      | 2                    | -60.49853        |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows

@@ -67,7 +67,8 @@ def step_impl(context: ContextRandomApPositioning):
 
 
 def _point_is_within_distance(point: Point, center_point: Point, distance: float) -> bool:
-    return get_distance_between_two_points(point1=center_point, point2=point) <= distance
+    leeway = 0.001
+    return get_distance_between_two_points(point1=center_point, point2=point) - leeway <= distance
 
 
 @step("the {aggregation_function:MinMax} {metric_function:DistanceOrBearingFunction} should be close to {reference_distance:Integer} {_units}")
