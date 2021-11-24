@@ -4,9 +4,11 @@ from typing import Union
 from dpa_calculator.utils import Point
 from reference_models.common.data import CbsdGrantInfo
 
-AP_GAIN = 6
 CBSD_A_INDICATOR = 'A'
 CBSD_B_INDICATOR = 'B'
+GAIN_AP = 6
+TRANSMIT_POWER_AP_INDOOR = 26
+TRANSMIT_POWER_AP_OUTDOOR = 30
 
 
 @dataclass
@@ -33,4 +35,5 @@ class Cbsd:
 
 
 def get_cbsd_ap(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], height: float, is_indoor: bool, location: Point) -> Cbsd:
-    return Cbsd(gain=AP_GAIN, height=height, is_indoor=is_indoor, transmit_power=30, location=location)
+    transmit_power = TRANSMIT_POWER_AP_INDOOR if is_indoor else TRANSMIT_POWER_AP_OUTDOOR
+    return Cbsd(gain=GAIN_AP, height=height, is_indoor=is_indoor, transmit_power=transmit_power, location=location)

@@ -76,6 +76,11 @@ Feature: DPA Parameters
     When grants for the Monte Carlo simulation are created
     Then the antenna gains should be 6 meters
 
+  Scenario: AP transmission powers are set
+    When grants for the Monte Carlo simulation are created
+    Then the indoor antenna equivalent isotropically radiated power should be 26 dBm
+    Then the outdoor antenna equivalent isotropically radiated power should be 30 dBm
+
   Scenario: A monte carlo simulation is run
     Given a function whose results return the next element of [1,2,3,4,5] each time it runs
     When a monte carlo simulation of the function is run
