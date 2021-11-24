@@ -5,12 +5,12 @@ from typing import List, Type
 from cached_property import cached_property
 
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
-from dpa_calculator.grants_creator.cbsd_height_distributor import CbsdHeightDistributor
-from dpa_calculator.grants_creator.height_distribution_definitions import OUTDOOR_AP_HEIGHT_IN_METERS
+from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
+from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import OUTDOOR_AP_HEIGHT_IN_METERS
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
-from dpa_calculator.cbsd import Cbsd, CbsdGetter, CbsdGetterAp, CbsdGetterUe, get_cbsd_ap, CBSD_A_INDICATOR
+from dpa_calculator.cbsd import Cbsd, CbsdGetter, CBSD_A_INDICATOR
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_RURAL: 0.99,
@@ -106,23 +106,3 @@ class GrantsCreator(ABC):
     @property
     def _region_type(self) -> str:
         return get_region_type(coordinates=self._dpa_zone.center_coordinates)
-
-
-class GrantsCreatorAp(GrantsCreator):
-    @property
-    def _cbsd_getter(self) -> Type[CbsdGetterAp]:
-        return CbsdGetterAp
-
-
-class GrantsCreatorUe(GrantsCreator):
-    @property
-    def _cbsd_getter(self) -> Type[CbsdGetterUe]:
-        return CbsdGetterUe
-
-
-def get_grants_creator(dpa_zone: AreaCircle, is_user_equipment: bool, number_of_aps: int) -> GrantsCreator:
-    region_type = get_region_type(coordinates=dpa_zone.center_coordinates)
-    ue_per_ap = UE_PER_AP_BY_REGION_TYPE[region_type]
-    number_of_cbsds = number_of_aps * ue_per_ap if is_user_equipment else number_of_aps
-    grants_creator_class = GrantsCreatorUe if is_user_equipment else GrantsCreatorAp
-    return grants_creator_class(dpa_zone=dpa_zone, number_of_cbsds=number_of_cbsds)

@@ -5,7 +5,7 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.grants_creator.height_distribution_definitions import HeightDistribution
+from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \

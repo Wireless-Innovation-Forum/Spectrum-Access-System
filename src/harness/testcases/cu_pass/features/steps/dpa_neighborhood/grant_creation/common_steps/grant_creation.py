@@ -5,7 +5,8 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.grants_creator.grants_creator import get_grants_creator, GrantsCreator
+from dpa_calculator.grants_creator.grants_creator import GrantsCreator
+from dpa_calculator.grants_creator.utilities import get_grants_creator
 from dpa_calculator.point_distributor import AreaCircle
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea

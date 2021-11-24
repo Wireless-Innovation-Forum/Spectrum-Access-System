@@ -2,10 +2,9 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-from dpa_calculator.grants_creator.height_distribution_definitions import HeightDistribution, \
+from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution, \
     INDOOR_AP_HEIGHT_DISTRIBUTION
 from dpa_calculator.utils import Point
-from dpa_calculator.cbsd import Cbsd, get_cbsd_ap, CBSD_A_INDICATOR
 
 
 @dataclass

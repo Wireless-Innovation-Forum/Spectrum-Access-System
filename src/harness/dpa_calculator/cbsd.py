@@ -70,11 +70,3 @@ class CbsdGetterUe(CbsdGetter):
     @property
     def _gain(self) -> int:
         return GAIN_UE
-
-
-def get_cbsd_ap(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], height: float, is_indoor: bool, location: Point) -> Cbsd:
-    return CbsdGetterAp(category=category, height=height, is_indoor=is_indoor, location=location).get()
-
-
-def get_cbsd_ue(category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], height: float, is_indoor: bool, location: Point) -> Cbsd:
-    return CbsdGetterUe(category=category, height=height, is_indoor=is_indoor, location=location).get()
