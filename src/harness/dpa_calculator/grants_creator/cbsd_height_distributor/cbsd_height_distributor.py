@@ -5,7 +5,7 @@ from typing import Dict, List
 
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution, \
     INDOOR_AP_HEIGHT_DISTRIBUTION, INDOOR_UE_HEIGHT_DISTRIBUTION
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 
 
 @dataclass

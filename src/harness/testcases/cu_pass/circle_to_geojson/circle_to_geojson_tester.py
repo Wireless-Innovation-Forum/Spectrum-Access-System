@@ -6,7 +6,7 @@ from worldpop_client.model.geo_json import GeoJson
 
 from dpa_calculator.circle_to_geojson_converter import CircleToGeoJsonConverter
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 
 
 class CircleToGeoJsonTester(ABC):

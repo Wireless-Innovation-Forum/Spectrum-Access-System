@@ -11,7 +11,7 @@ from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import N
 from dpa_calculator.parameter_finder import ParameterFinder
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.population_retriever.population_retriever_straight_file import PopulationRetrieverStraightFile
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 

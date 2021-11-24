@@ -8,7 +8,7 @@ from behave import *
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
     InterferenceParameters
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 from reference_models.common.data import CbsdGrantInfo
 
 

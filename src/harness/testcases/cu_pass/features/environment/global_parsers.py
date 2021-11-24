@@ -4,7 +4,7 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 
 
 INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'

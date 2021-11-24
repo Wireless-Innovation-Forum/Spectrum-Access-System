@@ -6,7 +6,7 @@ from worldpop_client.model.geo_json_features import GeoJsonFeatures
 from worldpop_client.model.geometry_object import GeometryObject
 
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import move_distance
+from dpa_calculator.utilities import move_distance
 
 DEGREES_IN_A_CIRCLE = 360
 

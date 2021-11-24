@@ -4,7 +4,7 @@ from pathlib import Path
 from dpa_calculator.aggregate_interference_calculator import AggregateInterferenceCalculator
 from dpa_calculator.grants_creator.grants_creator import GrantsCreator
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import run_monte_carlo_simulation
+from dpa_calculator.utilities import run_monte_carlo_simulation
 from reference_models.dpa.dpa_mgr import Dpa
 
 

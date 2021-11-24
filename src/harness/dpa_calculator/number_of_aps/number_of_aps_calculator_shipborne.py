@@ -1,6 +1,6 @@
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
-from dpa_calculator.utils import Point, get_region_type
+from dpa_calculator.utilities import Point, get_region_type
 
 
 REGION_TYPE_TO_DENOMINATOR = {

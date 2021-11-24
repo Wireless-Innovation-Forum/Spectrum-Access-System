@@ -2,7 +2,7 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-from dpa_calculator.utils import Point, move_distance
+from dpa_calculator.utilities import Point, move_distance
 
 
 @dataclass

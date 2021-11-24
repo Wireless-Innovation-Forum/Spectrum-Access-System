@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from behave import *
 
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 
 use_step_matcher('parse')
 

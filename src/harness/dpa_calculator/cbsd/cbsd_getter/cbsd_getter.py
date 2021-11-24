@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 
 CBSD_A_INDICATOR = 'A'
 CBSD_B_INDICATOR = 'B'

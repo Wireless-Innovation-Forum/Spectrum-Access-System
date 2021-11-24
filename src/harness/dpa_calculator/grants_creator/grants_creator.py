@@ -8,7 +8,7 @@ from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CbsdGe
 from dpa_calculator.constants import REGION_TYPE_RURAL, REGION_TYPE_URBAN, REGION_TYPE_SUBURBAN
 from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
-from dpa_calculator.utils import Point, get_region_type
+from dpa_calculator.utilities import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
 from dpa_calculator.cbsd.cbsd import Cbsd
 

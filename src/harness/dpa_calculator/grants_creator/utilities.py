@@ -2,7 +2,7 @@ from dpa_calculator.grants_creator.grants_creator import GrantsCreator, UE_PER_A
 from dpa_calculator.grants_creator.grants_creator_ap import GrantsCreatorAp
 from dpa_calculator.grants_creator.grants_creator_ue import GrantsCreatorUe
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import get_region_type
+from dpa_calculator.utilities import get_region_type
 
 
 def get_grants_creator(dpa_zone: AreaCircle, is_user_equipment: bool, number_of_aps: int) -> GrantsCreator:

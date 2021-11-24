@@ -8,7 +8,7 @@ from typing import Callable, Iterable, List
 
 from behave import *
 
-from dpa_calculator.utils import Point, get_bearing_between_two_points, get_distance_between_two_points
+from dpa_calculator.utilities import Point, get_bearing_between_two_points, get_distance_between_two_points
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \

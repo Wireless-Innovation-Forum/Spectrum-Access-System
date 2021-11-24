@@ -6,7 +6,7 @@ import parse
 from behave import *
 
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utils import Point
+from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.environment.global_parsers import parse_lat_lng, COORDINATES_REGEX
 from testcases.cu_pass.features.environment.hooks import ContextSas
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ARBITRARY_COORDINATES, \
