@@ -72,6 +72,10 @@ Feature: DPA Parameters
       | suburban    | 70%: 3, 30%: 6-12   |
       | urban       | 50%: 3, 50%: 6-18   |
 
+  Scenario: AP gains are set
+    When grants for the Monte Carlo simulation are created
+    Then the antenna gains should be 6 meters
+
   Scenario: A monte carlo simulation is run
     Given a function whose results return the next element of [1,2,3,4,5] each time it runs
     When a monte carlo simulation of the function is run

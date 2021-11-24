@@ -9,8 +9,7 @@ from dpa_calculator.grants_creator.height_distribution_definitions import OUTDOO
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import CBSD_A_INDICATOR, Cbsd, get_cbsd_ap
-
+from dpa_calculator.cbsd import Cbsd, get_cbsd_ap, CBSD_A_INDICATOR
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_RURAL: 0.99,

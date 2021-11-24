@@ -5,7 +5,7 @@ from typing import List
 from dpa_calculator.grants_creator.height_distribution_definitions import HeightDistribution, \
     INDOOR_AP_HEIGHT_DISTRIBUTION
 from dpa_calculator.utils import Point
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import Cbsd, get_cbsd_ap, CBSD_A_INDICATOR
+from dpa_calculator.cbsd import Cbsd, get_cbsd_ap, CBSD_A_INDICATOR
 
 
 @dataclass
