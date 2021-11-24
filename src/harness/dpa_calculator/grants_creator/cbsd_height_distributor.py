@@ -19,16 +19,7 @@ class CbsdHeightDistributor:
         self._cbsd_locations = cbsd_locations
         self._region_type = region_type
 
-    def get(self) -> List[Cbsd]:
-        return [get_cbsd_ap(category=CBSD_A_INDICATOR,
-                            height=location_with_height.height,
-                            is_indoor=True,
-                            location=location_with_height.location)
-                for height_group in self._cbsd_locations_grouped_by_height
-                for location_with_height in height_group]
-
-    @property
-    def _cbsd_locations_grouped_by_height(self) -> List[List[LocationWithHeight]]:
+    def get(self) -> List[List[LocationWithHeight]]:
         cbsd_locations_grouped_by_height = []
         for distribution in self._height_distribution:
             next_index = sum(len(height_group) for height_group in cbsd_locations_grouped_by_height)
@@ -43,10 +34,12 @@ class CbsdHeightDistributor:
 
     def _generate_heights_for_distribution(self, distribution: HeightDistribution, cbsd_locations: List[Point]) -> List[LocationWithHeight]:
         number_of_cbsds_at_this_height = round(self._total_number_of_cbsd_locations * distribution.fraction_of_cbsds)
+        include_leftover = number_of_cbsds_at_this_height == len(cbsd_locations) - 1
+        cbsd_locations_to_heighten = cbsd_locations if include_leftover else cbsd_locations[:number_of_cbsds_at_this_height]
         return [LocationWithHeight(
             height=self._get_random_height(distribution=distribution),
             location=location
-        ) for location in cbsd_locations[:number_of_cbsds_at_this_height]]
+        ) for location in cbsd_locations_to_heighten]
 
     @property
     def _total_number_of_cbsd_locations(self) -> int:

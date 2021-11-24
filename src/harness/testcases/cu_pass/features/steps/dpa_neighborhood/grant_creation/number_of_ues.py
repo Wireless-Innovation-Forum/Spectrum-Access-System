@@ -22,4 +22,5 @@ def step_impl(context: ContextNumberOfUes, number_of_ues_per_ap: int):
     number_of_ue_grants = len(context.grants)
     context.execute_steps(u'When AP grants for the Monte Carlo simulation are created')
     number_of_ap_grants = len(context.grants)
-    assert number_of_ue_grants == number_of_ues_per_ap * number_of_ap_grants
+    assert number_of_ue_grants == number_of_ues_per_ap * number_of_ap_grants, \
+        f'{number_of_ue_grants / number_of_ap_grants} != {number_of_ues_per_ap}'

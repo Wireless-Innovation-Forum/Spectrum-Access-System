@@ -1,5 +1,6 @@
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List
+from typing import List, Type
 
 from cached_property import cached_property
 
@@ -9,7 +10,7 @@ from dpa_calculator.grants_creator.height_distribution_definitions import OUTDOO
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utils import Point, get_region_type
 from reference_models.common.data import CbsdGrantInfo
-from dpa_calculator.cbsd import Cbsd, get_cbsd_ap, CBSD_A_INDICATOR
+from dpa_calculator.cbsd import Cbsd, CbsdGetter, CbsdGetterAp, CbsdGetterUe, get_cbsd_ap, CBSD_A_INDICATOR
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_RURAL: 0.99,
@@ -24,7 +25,7 @@ UE_PER_AP_BY_REGION_TYPE = {
 }
 
 
-class GrantsCreator:
+class GrantsCreator(ABC):
     def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
@@ -60,7 +61,14 @@ class GrantsCreator:
 
     @property
     def _indoor_cbsds(self) -> List[Cbsd]:
-        return CbsdHeightDistributor(cbsd_locations=self._indoor_cbsd_locations, region_type=self._region_type).get()
+        cbsd_locations_grouped_by_height = CbsdHeightDistributor(cbsd_locations=self._indoor_cbsd_locations,
+                                                                 region_type=self._region_type).get()
+        return [self._cbsd_getter(category=CBSD_A_INDICATOR,
+                                  height=location_with_height.height,
+                                  is_indoor=True,
+                                  location=location_with_height.location).get()
+                for height_group in cbsd_locations_grouped_by_height
+                for location_with_height in height_group]
 
     @property
     def _indoor_cbsd_locations(self) -> List[Point]:
@@ -68,8 +76,16 @@ class GrantsCreator:
 
     @property
     def _outdoor_cbsds(self) -> List[Cbsd]:
-        return [get_cbsd_ap(category=CBSD_A_INDICATOR, height=OUTDOOR_AP_HEIGHT_IN_METERS, is_indoor=False, location=location)
+        return [self._cbsd_getter(category=CBSD_A_INDICATOR,
+                                  height=OUTDOOR_AP_HEIGHT_IN_METERS,
+                                  is_indoor=False,
+                                  location=location).get()
                 for location in self._outdoot_cbsd_locations]
+
+    @property
+    @abstractmethod
+    def _cbsd_getter(self) -> Type[CbsdGetter]:
+        raise NotImplementedError
 
     @property
     def _outdoot_cbsd_locations(self) -> List[Point]:
@@ -81,7 +97,7 @@ class GrantsCreator:
 
     @property
     def _number_of_indoor_cbsds(self) -> int:
-        return int(self._number_of_cbsds * self._percentage_of_indoor_aps)
+        return round(self._number_of_cbsds * self._percentage_of_indoor_aps)
 
     @property
     def _percentage_of_indoor_aps(self) -> float:
@@ -92,8 +108,21 @@ class GrantsCreator:
         return get_region_type(coordinates=self._dpa_zone.center_coordinates)
 
 
+class GrantsCreatorAp(GrantsCreator):
+    @property
+    def _cbsd_getter(self) -> Type[CbsdGetterAp]:
+        return CbsdGetterAp
+
+
+class GrantsCreatorUe(GrantsCreator):
+    @property
+    def _cbsd_getter(self) -> Type[CbsdGetterUe]:
+        return CbsdGetterUe
+
+
 def get_grants_creator(dpa_zone: AreaCircle, is_user_equipment: bool, number_of_aps: int) -> GrantsCreator:
     region_type = get_region_type(coordinates=dpa_zone.center_coordinates)
     ue_per_ap = UE_PER_AP_BY_REGION_TYPE[region_type]
     number_of_cbsds = number_of_aps * ue_per_ap if is_user_equipment else number_of_aps
-    return GrantsCreator(dpa_zone=dpa_zone, number_of_cbsds=number_of_cbsds)
+    grants_creator_class = GrantsCreatorUe if is_user_equipment else GrantsCreatorAp
+    return grants_creator_class(dpa_zone=dpa_zone, number_of_cbsds=number_of_cbsds)

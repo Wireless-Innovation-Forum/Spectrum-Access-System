@@ -13,4 +13,4 @@ def step_impl(context: ContextGrantCreation, expected_indoor_percentage: float):
         context (behave.runner.Context):
     """
     indoor_percentage = sum(1 for grant in context.grants if grant.indoor_deployment) / len(context.grants)
-    assert indoor_percentage == expected_indoor_percentage, f'{indoor_percentage} != {expected_indoor_percentage}'
+    assert round(indoor_percentage, 2) == expected_indoor_percentage, f'{indoor_percentage} != {expected_indoor_percentage}'

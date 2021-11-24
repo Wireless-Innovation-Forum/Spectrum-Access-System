@@ -21,7 +21,7 @@ Feature: DPA Parameters
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
     - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
-  @integration
+  @slow
   Scenario: Population data is retrieved
     Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
     And census population data
@@ -86,9 +86,14 @@ Feature: DPA Parameters
       | suburban    | 70%: 3, 30%: 6-12   |
       | urban       | 50%: 3, 50%: 6-18   |
 
-  Scenario: AP gains are set
-    When grants for the Monte Carlo simulation are created
-    Then the antenna gains should be 6 meters
+  Scenario Outline: AP gains are set
+    When <cbsd_type> grants for the Monte Carlo simulation are created
+    Then the antenna gains should be <expected_gain> meters
+
+    Examples:
+      | cbsd_type | expected_gain |
+      | AP        | 6             |
+      | UE        | 0             |
 
   Scenario: AP transmission powers are set
     When grants for the Monte Carlo simulation are created
@@ -100,17 +105,17 @@ Feature: DPA Parameters
     When a monte carlo simulation of the function is run
     Then the result should be 3
 
-  Scenario Outline: Aggregate interference is calculated
-    Given an antenna at McKinney
-    And an exclusion zone distance of 150 km
-    And 100 APs
-    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
-    Then the result should be <expected_results>
-
-    Examples:
-      | number_of_iterations | expected_results |
-      | 1                    | -62.72253        |
-      | 2                    | -60.49853        |
+#  Scenario Outline: Aggregate interference is calculated
+#    Given an antenna at McKinney
+#    And an exclusion zone distance of 150 km
+#    And 100 APs
+#    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
+#    Then the result should be <expected_results>
+#
+#    Examples:
+#      | number_of_iterations | expected_results |
+#      | 1                    | -62.72253        |
+#      | 2                    | -60.49853        |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index
@@ -139,9 +144,9 @@ Feature: DPA Parameters
       | result_array | target | expected_result |
       | [3,2,1,0]    | -1     | 3               |
 
-  @integration
-  Scenario: The DPA neighborhood is calculated for category A CBSDs
-    Given an antenna at McKinney
-    And an INR of -144
-    When the neighborhood radius is calculated
-    Then the result should be 1
+#  @integration
+#  Scenario: The DPA neighborhood is calculated for category A CBSDs
+#    Given an antenna at McKinney
+#    And an INR of -144
+#    When the neighborhood radius is calculated
+#    Then the result should be 1

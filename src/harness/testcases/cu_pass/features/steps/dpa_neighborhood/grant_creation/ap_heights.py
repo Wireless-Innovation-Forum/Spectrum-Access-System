@@ -56,9 +56,9 @@ def step_impl(context: ContextApHeights, height_distribution: List[HeightDistrib
     for distribution in height_distribution:
         grants_in_range = [grant for grant in indoor_grants if distribution.minimum_height_in_meters <= grant.height_agl <= distribution.maximum_height_in_meters]
         number_of_grants_in_range = len(grants_in_range)
-        percentage_in_range = number_of_grants_in_range / number_of_indoor_grants
-        assert percentage_in_range == distribution.fraction_of_cbsds, \
-            f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {percentage_in_range} != {distribution.fraction_of_cbsds}'
+        fraction_in_range = number_of_grants_in_range / number_of_indoor_grants
+        assert round(fraction_in_range, 2) == distribution.fraction_of_cbsds, \
+            f'Range: {distribution.minimum_height_in_meters}-{distribution.maximum_height_in_meters}, Percentage: {fraction_in_range} != {distribution.fraction_of_cbsds}'
 
 
 @step("indoor antenna heights should be in 0.5 meter increments")
