@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dpa_calculator.aggregate_interference_calculator import AggregateInterferenceCalculator
-from dpa_calculator.grants_creator.grants_creator import GrantsCreator
 from dpa_calculator.grants_creator.utilities import get_grants_creator
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import run_monte_carlo_simulation
@@ -22,10 +21,9 @@ class AggregateInterferenceMonteCarloCalculator:
         self._number_of_iterations = number_of_iterations
 
     def simulate(self) -> float:
-        return run_monte_carlo_simulation(function_to_run=self._single_run, number_of_iterations=self._number_of_iterations)
-
-    def _single_run(self) -> float:
-        return max(self._single_run_access_point(), self._single_run_user_equipment())
+        interference_access_point = run_monte_carlo_simulation(function_to_run=self._single_run_access_point, number_of_iterations=self._number_of_iterations)
+        interference_user_equipment = run_monte_carlo_simulation(function_to_run=self._single_run_user_equipment, number_of_iterations=self._number_of_iterations)
+        return max(interference_access_point, interference_user_equipment)
 
     def _single_run_access_point(self) -> float:
         return self._single_run_cbsd(is_user_equipment=False)

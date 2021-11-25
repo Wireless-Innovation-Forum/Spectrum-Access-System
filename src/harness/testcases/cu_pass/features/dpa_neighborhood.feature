@@ -126,14 +126,15 @@ Feature: DPA Parameters
   Scenario Outline: Aggregate interference is calculated
     Given an antenna at McKinney
     And an exclusion zone distance of 150 km
-    And 1000 APs
+    And <number_of_aps> APs
     When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
     Then the result should be <expected_results>
 
     Examples:
-      | number_of_iterations | expected_results |
-      | 1                    | -62.72253        |
-#      | 2                    | -60.49853        |
+      | number_of_aps | number_of_iterations | expected_results    | runtime        |
+#      | 47306         | 1                    | -136.02466056949282 |
+#      | 500           | 50                    | -152.4715449381896 | 0:10:15.841380 |
+      | 500           | 500                    | -60.49853          |  |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index
