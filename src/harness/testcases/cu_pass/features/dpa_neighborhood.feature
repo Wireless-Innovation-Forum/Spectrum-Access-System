@@ -1,4 +1,4 @@
-Feature: DPA Parameters
+Feature: DPA Neighborhood
 
   Definitions
     - AP.......: Access point
@@ -130,7 +130,7 @@ Feature: DPA Parameters
     When a monte carlo simulation of the function is run
     Then the result should be 3
 
-  Scenario: Interference from each CBSD is calculated
+  Scenario: Basic interference components from each CBSD is calculated
     When interference components are calculated for each CBSD
     Then EIRPs in the interference components should match those in the cbsds
     And all receiver insertion losses should be 2 dB
