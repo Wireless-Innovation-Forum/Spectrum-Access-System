@@ -1,6 +1,6 @@
-from dpa_calculator.grants_creator.cbsds_creator import CbsdsCreator, UE_PER_AP_BY_REGION_TYPE
-from dpa_calculator.grants_creator.cbsds_creator_access_point import CbsdsCreatorAccessPoint
-from dpa_calculator.grants_creator.cbsds_creator_user_equipment import CbsdsCreatorUserEquipment
+from dpa_calculator.cbsds_creator.cbsds_creator import CbsdsCreator, UE_PER_AP_BY_REGION_TYPE
+from dpa_calculator.cbsds_creator.cbsds_creator_access_point import CbsdsCreatorAccessPoint
+from dpa_calculator.cbsds_creator.cbsds_creator_user_equipment import CbsdsCreatorUserEquipment
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import get_region_type
 

@@ -4,6 +4,8 @@ from typing import List
 import parse
 from behave import *
 
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia import \
+    AggregateInterferenceCalculatorNtia
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import InterferenceParameters
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.cbsd.cbsd_interference_calculator.cbsd_interference_calculator import CbsdInterferenceCalculator, \
@@ -15,6 +17,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_step
     ContextCbsdCreation
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa, \
     REGION_TYPE_TO_DPA_NAME_MAP
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
+    FractionalDistribution
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import NumberRange, RANGE_REGEX
 
 use_step_matcher('parse')
@@ -32,7 +36,7 @@ def step_impl(context: ContextCbsdInterference):
     if not hasattr(context, 'cbsds'):
         small_number_of_cbsds_for_speed_purposes = 5
         context.execute_steps(f'When {small_number_of_cbsds_for_speed_purposes} CBSDs for the Monte Carlo simulation are created')
-    context.interference_components = [CbsdInterferenceCalculator(cbsd=cbsd, dpa=context.dpa).calculate() for cbsd in context.cbsds]
+    context.interference_components = AggregateInterferenceCalculatorNtia(cbsds=context.cbsds, dpa=context.dpa).interference_information
 
 
 @then('EIRPs in the interference components should match those in the cbsds')
@@ -93,3 +97,16 @@ def step_impl(context: ContextCbsdInterference, expected_clutter_loss_range: Num
         assert len(unique_losses) > 1
     else:
         assert len(unique_losses) == 1
+
+
+@then("the building attenuation losses follow the distribution {distributions:FractionalDistribution}")
+def step_impl(context: ContextCbsdInterference, distributions: List[FractionalDistribution]):
+    """
+    Args:
+        context (behave.runner.Context):
+    """
+    for distribution in distributions:
+        loss_matches = [interference_component for interference_component in context.interference_components
+                        if distribution.range_minimum == interference_component.loss_building]
+        fraction_in_range = len(loss_matches) / len(context.cbsds)
+        assert fraction_in_range == distribution.fraction, f'{distribution.range_minimum} dB: {fraction_in_range} != {distribution.fraction}'

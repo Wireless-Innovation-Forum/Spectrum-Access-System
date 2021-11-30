@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 from typing import List
 
@@ -6,34 +5,23 @@ import parse
 from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
-from testcases.cu_pass.features.environment.global_parsers import NUMBER_REGEX, parse_number
+from dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \
-    RANGE_DELIMITER, \
-    RANGE_REGEX
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
+    DISTRIBUTION_REGEX, parse_fractional_distribution
 
 use_step_matcher("parse")
 
-PERCENTAGE_DELIMITER = ':'
 
-HEIGHT_DISTRIBUTION_REGEX = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {RANGE_REGEX},? ?)'
-
-
-@parse.with_pattern(rf'{HEIGHT_DISTRIBUTION_REGEX}+')
+@parse.with_pattern(rf'{DISTRIBUTION_REGEX}+')
 def parse_height_distribution(text: str) -> List[HeightDistribution]:
-    distributions = re.compile(HEIGHT_DISTRIBUTION_REGEX).findall(text)
-    height_distributions = []
-    for distribution_text in distributions:
-        percentage_text, height_range_text = distribution_text[0].split(PERCENTAGE_DELIMITER)
-        height_range = parse_number_range(text=height_range_text)
-        height_distributions.append(HeightDistribution(
-            maximum_height_in_meters=height_range.high,
-            minimum_height_in_meters=height_range.low,
-            fraction_of_cbsds=parse_number(text=percentage_text) / 100
-        ))
-    return height_distributions
+    distributions = parse_fractional_distribution(text=text)
+    return [HeightDistribution(
+        maximum_height_in_meters=distribution.range_maximum,
+        minimum_height_in_meters=distribution.range_minimum,
+        fraction_of_cbsds=distribution.fraction
+    ) for distribution in distributions]
 
 
 register_type(HeightDistribution=parse_height_distribution)

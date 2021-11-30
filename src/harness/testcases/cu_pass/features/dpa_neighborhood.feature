@@ -172,6 +172,9 @@ Feature: DPA Parameters
       | region_type | larger_loss_model | height | expected_loss      |
       | rural       | eHata             | 17     | 140.25217071792468 |
 
+  Scenario: Building attenuation loss is included in interference calculation
+    When interference components are calculated for each CBSD
+    Then the building attenuation losses follow the distribution 20%: 20, 60%: 15, 20%: 10
 
   @slow
   Scenario Outline: Aggregate interference is calculated

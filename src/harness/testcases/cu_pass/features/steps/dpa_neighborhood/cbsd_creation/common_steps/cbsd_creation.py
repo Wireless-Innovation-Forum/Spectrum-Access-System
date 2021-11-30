@@ -6,7 +6,7 @@ import parse
 from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.grants_creator.utilities import get_cbsds_creator
+from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
