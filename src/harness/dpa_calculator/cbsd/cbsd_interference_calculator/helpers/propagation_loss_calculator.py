@@ -1,5 +1,4 @@
-from dpa_calculator.constants import REGION_TYPE_RURAL
-from dpa_calculator.utilities import get_distance_between_two_points, get_region_type, Point
+from dpa_calculator.utilities import get_distance_between_two_points, Point, region_is_rural
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import FREQ_PROP_MODEL
 from reference_models.geo.drive import nlcd_driver
@@ -32,7 +31,7 @@ class PropagationLossCalculator:
 
     @property
     def _should_use_itm(self) -> bool:
-        is_rural = get_region_type(coordinates=self._dpa_center) == REGION_TYPE_RURAL
+        is_rural = region_is_rural(coordinates=self._dpa_center)
         is_tall = self._cbsd.height >= PROPAGATION_LOSS_HEIGHT_CUTOFF
         return is_tall or is_rural
 

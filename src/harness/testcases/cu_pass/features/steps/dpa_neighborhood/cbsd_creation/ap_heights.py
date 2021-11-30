@@ -7,17 +7,18 @@ from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
-from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.environment.global_parsers import NUMBER_REGEX, parse_number
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \
+    RANGE_DELIMITER, \
+    RANGE_REGEX
 
 use_step_matcher("parse")
 
 PERCENTAGE_DELIMITER = ':'
-RANGE_DELIMITER = '-'
 
-HEIGHT_DISTRIBUTION_REGEX = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {NUMBER_REGEX}({RANGE_DELIMITER}{NUMBER_REGEX})?,? ?)'
+HEIGHT_DISTRIBUTION_REGEX = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {RANGE_REGEX},? ?)'
 
 
 @parse.with_pattern(rf'{HEIGHT_DISTRIBUTION_REGEX}+')
@@ -26,12 +27,10 @@ def parse_height_distribution(text: str) -> List[HeightDistribution]:
     height_distributions = []
     for distribution_text in distributions:
         percentage_text, height_range_text = distribution_text[0].split(PERCENTAGE_DELIMITER)
-        height_endpoints = height_range_text.split(RANGE_DELIMITER)
-        min_height_text = height_endpoints[0]
-        max_height_text = height_endpoints[1 if len(height_endpoints) > 1 else 0]
+        height_range = parse_number_range(text=height_range_text)
         height_distributions.append(HeightDistribution(
-            maximum_height_in_meters=parse_number(text=max_height_text),
-            minimum_height_in_meters=parse_number(text=min_height_text),
+            maximum_height_in_meters=height_range.high,
+            minimum_height_in_meters=height_range.low,
             fraction_of_cbsds=parse_number(text=percentage_text) / 100
         ))
     return height_distributions

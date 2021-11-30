@@ -17,7 +17,7 @@ def steps_directory() -> Path:
 
 
 def all_environment_files() -> Iterable[str]:
-    any_environment_path = Path(steps_directory(), '**', 'environment', EXCLUDE_MANIFEST_FILES_GLOB)
+    any_environment_path = Path(steps_directory(), '**', 'environment', '**', PYTHON_FILES_GLOB)
     return glob(str(any_environment_path), recursive=True)
 
 

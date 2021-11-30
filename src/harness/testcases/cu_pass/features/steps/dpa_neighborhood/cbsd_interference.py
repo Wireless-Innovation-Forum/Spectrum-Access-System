@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
+import parse
 from behave import *
 
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import InterferenceParameters
@@ -12,7 +13,9 @@ from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
-from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import REGION_TYPE_TO_DPA_NAME_MAP
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa, \
+    REGION_TYPE_TO_DPA_NAME_MAP
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import NumberRange, RANGE_REGEX
 
 use_step_matcher('parse')
 
@@ -24,6 +27,11 @@ class ContextCbsdInterference(ContextCbsdCreation, InterferenceParameters, Conte
 
 @when('interference components are calculated for each CBSD')
 def step_impl(context: ContextCbsdInterference):
+    if not hasattr(context, 'dpa'):
+        assign_arbitrary_dpa(context=context)
+    if not hasattr(context, 'cbsds'):
+        small_number_of_cbsds_for_speed_purposes = 5
+        context.execute_steps(f'When {small_number_of_cbsds_for_speed_purposes} CBSDs for the Monte Carlo simulation are created')
     context.interference_components = [CbsdInterferenceCalculator(cbsd=cbsd, dpa=context.dpa).calculate() for cbsd in context.cbsds]
 
 
@@ -55,3 +63,33 @@ def step_impl(context: ContextCbsdInterference, larger_loss_model: str, height_i
 def step_impl(context: ContextCbsdInterference, expected_loss: float):
     actual_loss = context.interference_components[0].loss_propagation
     assert actual_loss == expected_loss, f'{actual_loss} != {expected_loss}'
+
+
+@then("clutter loss distribution is within {expected_clutter_loss_range:NumberRange}")
+def step_impl(context: ContextCbsdInterference, expected_clutter_loss_range: NumberRange):
+    """
+    Args:
+        context (behave.runner.Context):
+        expected_clutter_loss_range (str):
+    """
+    def is_out_of_range(loss: float) -> bool:
+        return loss < expected_clutter_loss_range.low or loss > expected_clutter_loss_range.high
+    out_of_range = [interference_components
+                    for interference_components in context.interference_components
+                    if is_out_of_range(loss=interference_components.loss_clutter)]
+    assert not out_of_range, f'Losses {out_of_range} are out of range {expected_clutter_loss_range.low}-{expected_clutter_loss_range.high}'
+
+
+@step("not all losses are equal if and only if {expected_clutter_loss_range:NumberRange} is a range")
+def step_impl(context: ContextCbsdInterference, expected_clutter_loss_range: NumberRange):
+    """
+    Args:
+        context (behave.runner.Context):
+        expected_clutter_loss_range (str):
+    """
+    is_range = expected_clutter_loss_range.low != expected_clutter_loss_range.high
+    unique_losses = set(interference_components.loss_clutter for interference_components in context.interference_components)
+    if is_range:
+        assert len(unique_losses) > 1
+    else:
+        assert len(unique_losses) == 1

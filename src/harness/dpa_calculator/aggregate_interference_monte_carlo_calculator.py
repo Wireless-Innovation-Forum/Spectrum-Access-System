@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
     AggregateInterferenceCalculatorWinnforum
-from dpa_calculator.grants_creator.utilities import get_grants_creator
+from dpa_calculator.grants_creator.utilities import get_cbsds_creator
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import run_monte_carlo_simulation
 from reference_models.dpa.dpa_mgr import Dpa
@@ -48,9 +48,9 @@ class AggregateInterferenceMonteCarloCalculator:
         return self._single_run_cbsd(is_user_equipment=True)
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> float:
-        grants_creator = get_grants_creator(dpa_zone=self._interference_parameters.dpa_test_zone,
-                                            is_user_equipment=is_user_equipment,
-                                            number_of_aps=self._interference_parameters.number_of_aps)
+        grants_creator = get_cbsds_creator(dpa_zone=self._interference_parameters.dpa_test_zone,
+                                           is_user_equipment=is_user_equipment,
+                                           number_of_aps=self._interference_parameters.number_of_aps)
         grants = grants_creator.create()
         grants_creator.write_to_kml(self._kml_output_filepath(is_user_equipment=is_user_equipment))
         return AggregateInterferenceCalculatorWinnforum(dpa=self._interference_parameters.dpa, grants=grants).calculate()

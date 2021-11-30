@@ -131,12 +131,24 @@ Feature: DPA Parameters
     Then the result should be 3
 
   Scenario: Interference from each CBSD is calculated
-    Given an antenna at McKinney
-    When CBSDs for the Monte Carlo simulation are created
-    And interference components are calculated for each CBSD
+    When interference components are calculated for each CBSD
     Then EIRPs in the interference components should match those in the cbsds
     And all receiver insertion losses should be 2 dB
     And all transmitter insertion losses should be 2 dB
+
+  Scenario Template: Clutter loss is randomly assigned to rural sources
+    Given a <region_type> location
+    When interference components are calculated for each CBSD
+    Then clutter loss distribution is within <expected_clutter_loss_range>
+    And not all losses are equal if and only if <expected_clutter_loss_range> is a range
+
+    Examples: Non-rural regions have no clutter loss
+      | region_type | expected_clutter_loss_range |
+      | urban       | 0                           |
+
+    Examples: Rural regions have random clutter loss
+      | region_type | expected_clutter_loss_range |
+      | rural       | 0-15                        |
 
   Scenario Template: Propagation loss is calculated
     Given a <region_type> location
@@ -159,6 +171,7 @@ Feature: DPA Parameters
     Examples: rural APs always use ITM
       | region_type | larger_loss_model | height | expected_loss      |
       | rural       | eHata             | 17     | 140.25217071792468 |
+
 
   @slow
   Scenario Outline: Aggregate interference is calculated

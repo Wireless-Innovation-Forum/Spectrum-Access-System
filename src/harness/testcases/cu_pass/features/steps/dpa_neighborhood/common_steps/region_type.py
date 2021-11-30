@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
 from behave import *
+from behave import runner
 
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from dpa_calculator.utilities import Point
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers import parse_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parsers import parse_dpa
 
 use_step_matcher('parse')
 
@@ -22,7 +23,7 @@ def get_arbitrary_coordinates(region_type: str = REGION_TYPE_RURAL) -> Point:
 
 
 @dataclass
-class ContextRegionType:
+class ContextRegionType(runner.Context):
     antenna_coordinates: Point
 
 
@@ -45,3 +46,8 @@ def step_impl(context: ContextRegionType, region_type: str):
     dpa = dpa_name and parse_dpa(REGION_TYPE_TO_DPA_NAME_MAP[region_type_capitalized])
     context.dpa = dpa
     context.antenna_coordinates = Point.from_shapely(point_shapely=dpa.geometry.centroid) if dpa else get_arbitrary_coordinates(region_type_capitalized)
+
+
+def assign_arbitrary_dpa(context: ContextRegionType) -> None:
+    arbitrary_region_type = REGION_TYPE_RURAL
+    context.execute_steps(f'Given a {arbitrary_region_type} location')

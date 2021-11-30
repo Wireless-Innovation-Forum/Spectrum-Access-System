@@ -1,21 +1,21 @@
 from dataclasses import dataclass
 from enum import auto, Enum
-from typing import List
+from typing import List, Optional
 
 import parse
 from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.grants_creator.utilities import get_grants_creator
+from dpa_calculator.grants_creator.utilities import get_cbsds_creator
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import Point
-from reference_models.common.data import CbsdGrantInfo
+from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType, \
     get_arbitrary_coordinates
 
-use_step_matcher('cfparse')
+use_step_matcher('re')
 
 
 ARBITRARY_ODD_NUMBER_OF_APS = 1001
@@ -27,12 +27,11 @@ class CbsdTypes(Enum):
     UE = auto()
 
 
-@parse.with_pattern(rf'({CbsdTypes.AP.name}|{CbsdTypes.UE.name}) ')
+ACCESS_POINT_OR_USER_EQUIPMENT_REGEX = rf'({CbsdTypes.AP.name}|{CbsdTypes.UE.name})'
+
+
 def parse_is_user_equipment(text: str) -> bool:
     return CbsdTypes[text] == CbsdTypes.UE
-
-
-register_type(IsUserEquipment=parse_is_user_equipment)
 
 
 @dataclass
@@ -40,15 +39,17 @@ class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
     cbsds: List[Cbsd]
 
 
-@when("{is_user_equipment:IsUserEquipment?}CBSDs for the Monte Carlo simulation are created")
-def step_impl(context: ContextCbsdCreation, is_user_equipment: bool = False):
+@when(f"(?P<number_of_aps>{INTEGER_REGEX})? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs for the Monte Carlo simulation are created")
+def step_impl(context: ContextCbsdCreation, *args, number_of_aps: Optional[str], is_user_equipment: Optional[str]):
     """
     Args:
         context (behave.runner.Context):
     """
+    number_of_aps = parse_integer(text=number_of_aps) if number_of_aps else ARBITRARY_ODD_NUMBER_OF_APS
+    is_user_equipment = is_user_equipment and parse_is_user_equipment(text=is_user_equipment)
     dpa_zone = getattr(context, 'area', _create_area(context=context))
-    grants_creator = get_grants_creator(dpa_zone=dpa_zone, is_user_equipment=is_user_equipment, number_of_aps=ARBITRARY_ODD_NUMBER_OF_APS)
-    context.cbsds = grants_creator.create()
+    cbsds_creator = get_cbsds_creator(dpa_zone=dpa_zone, is_user_equipment=is_user_equipment, number_of_aps=number_of_aps)
+    context.cbsds = cbsds_creator.create()
 
 
 def _create_area(context: ContextCbsdCreation) -> AreaCircle:
