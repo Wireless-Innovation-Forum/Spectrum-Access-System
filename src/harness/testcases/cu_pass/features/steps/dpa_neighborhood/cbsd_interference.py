@@ -42,10 +42,10 @@ def step_impl(context: ContextCbsdInterference, antenna_end: str, expected_power
 def step_impl(context: ContextCbsdInterference, larger_loss_model: str, height_in_kilometers: int):
     if context.dpa.name == REGION_TYPE_TO_DPA_NAME_MAP[REGION_TYPE_RURAL]:
         coordinates = Point(latitude=33.19313987787715, longitude=-96.36484196127637)
+    elif larger_loss_model == 'ITM':
+        coordinates = Point(latitude=40.19146905688054, longitude=-76.13331647039989)
     else:
-        coordinates = Point(latitude=40.19146905688054, longitude=-76.13331647039989)\
-            if larger_loss_model == 'ITM' \
-            else Point(latitude=39.78257723575214, longitude=-75.81383219225971)
+        coordinates = Point(latitude=39.78257723575214, longitude=-75.81383219225971)
     context.cbsds = [Cbsd(height=height_in_kilometers, location=coordinates)]
 
 
