@@ -1,8 +1,6 @@
 import random
 from dataclasses import dataclass
 
-from math import isclose
-
 from behave import *
 
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
@@ -48,13 +46,5 @@ def step_impl(context: ContextAggregateInterference, number_of_iterations: int):
     Args:
         context (behave.runner.Context):
     """
-    context.result = AggregateInterferenceMonteCarloCalculator(interference_parameters=context, number_of_iterations=number_of_iterations).simulate()
-
-
-@then("the result should be {max_interference:Number}")
-def step_impl(context: ContextAggregateInterference, max_interference: float):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    assert isclose(context.result, max_interference, abs_tol=1e-4), f'{context.result} != {max_interference}'
+    simulation_result = AggregateInterferenceMonteCarloCalculator(interference_parameters=context, number_of_iterations=number_of_iterations).simulate()
+    context.result = simulation_result.interference_max

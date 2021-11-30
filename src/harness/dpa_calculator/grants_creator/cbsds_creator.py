@@ -28,13 +28,13 @@ UE_PER_AP_BY_REGION_TYPE = {
 }
 
 
-class GrantsCreator(ABC):
+class CbsdsCreator(ABC):
     def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
 
-    def create(self) -> List[CbsdGrantInfo]:
-        return [ap.to_grant() for ap in self._all_cbsds]
+    def create(self) -> List[Cbsd]:
+        return self._all_cbsds
 
     def write_to_kml(self, filepath: Path) -> None:
         with open(filepath, 'w') as file:
@@ -106,7 +106,7 @@ class GrantsCreator(ABC):
 
     @cached_property
     def _distributed_cbsds(self) -> List[Point]:
-        return PointDistributor(distribution_area=self._dpa_zone, minimum_distance=self._dpa_zone.radius_in_kilometers)\
+        return PointDistributor(distribution_area=self._dpa_zone)\
             .distribute_points(number_of_points=self._number_of_cbsds)
 
     @property

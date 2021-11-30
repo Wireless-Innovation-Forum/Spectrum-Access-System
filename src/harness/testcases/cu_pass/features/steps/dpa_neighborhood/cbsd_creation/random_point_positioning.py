@@ -8,11 +8,12 @@ from typing import Callable, Iterable, List
 
 from behave import *
 
+from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.utilities import Point, get_bearing_between_two_points, get_distance_between_two_points
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
-from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
-    ContextGrantCreation
+from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
+    ContextCbsdCreation
 
 use_step_matcher('parse')
 
@@ -40,7 +41,7 @@ register_type(DistanceOrBearingFunction=parse_distance_or_bearing_word)
 
 
 @dataclass
-class ContextRandomApPositioning(ContextGrantCreation, ContextArea):
+class ContextRandomApPositioning(ContextCbsdCreation, ContextArea):
     pass
 
 
@@ -63,7 +64,7 @@ def step_impl(context: ContextRandomApPositioning):
     assert all(_point_is_within_distance(point=point,
                                          center_point=distribution_area.center_coordinates,
                                          distance=distribution_area.radius_in_kilometers)
-               for point in get_distributed_points(grants=context.grants))
+               for point in get_distributed_points(cbsds=context.cbsds))
 
 
 def _point_is_within_distance(point: Point, center_point: Point, distance: float) -> bool:
@@ -81,7 +82,8 @@ def step_impl(context: ContextRandomApPositioning,
     Args:
         context (behave.runner.Context):
     """
-    distance = aggregation_function(metric_function(context.area.center_coordinates, point) for point in get_distributed_points(grants=context.grants))
+    distance = aggregation_function(metric_function(context.area.center_coordinates, point) for point in get_distributed_points(
+        cbsds=context.cbsds))
     assert isclose(distance, reference_distance, abs_tol=1), f'{distance} is not close to {reference_distance}'
 
 
@@ -92,13 +94,13 @@ def step_impl(context: ContextRandomApPositioning):
         context (behave.runner.Context):
     """
     properties = defaultdict(set)
-    for point in get_distributed_points(grants=context.grants):
+    for point in get_distributed_points(cbsds=context.cbsds):
         properties['latitude'].add(point.latitude)
         properties['longitude'].add(point.longitude)
         properties['bearing'].add(get_bearing_between_two_points(point1=context.area.center_coordinates, point2=point))
 
-    assert all(len(unique_property_values) == len(get_distributed_points(grants=context.grants)) for unique_property_values in properties.values())
+    assert all(len(unique_property_values) == len(get_distributed_points(cbsds=context.cbsds)) for unique_property_values in properties.values())
 
 
-def get_distributed_points(grants: List[CbsdGrantInfo]) -> List[Point]:
-    return [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in grants]
+def get_distributed_points(cbsds: List[Cbsd]) -> List[Point]:
+    return [cbsd.location for cbsd in cbsds]

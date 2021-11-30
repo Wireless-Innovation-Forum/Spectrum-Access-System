@@ -4,10 +4,10 @@ from dpa_calculator.cbsd.cbsd_getter.cbsd_getter_ap import CbsdGetterAp
 from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributorAccessPoint
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import \
     OUTDOOR_AP_HEIGHT_IN_METERS
-from dpa_calculator.grants_creator.grants_creator import GrantsCreator
+from dpa_calculator.grants_creator.cbsds_creator import CbsdsCreator
 
 
-class GrantsCreatorAccessPoint(GrantsCreator):
+class CbsdsCreatorAccessPoint(CbsdsCreator):
     @property
     def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributorAccessPoint]:
         return CbsdHeightDistributorAccessPoint

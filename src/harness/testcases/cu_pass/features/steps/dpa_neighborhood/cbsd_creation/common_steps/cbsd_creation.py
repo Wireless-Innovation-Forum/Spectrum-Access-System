@@ -5,11 +5,13 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.grants_creator.grants_creator import GrantsCreator
+from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.grants_creator.utilities import get_grants_creator
 from dpa_calculator.point_distributor import AreaCircle
+from dpa_calculator.utilities import Point
 from reference_models.common.data import CbsdGrantInfo
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType, \
     get_arbitrary_coordinates
 
@@ -34,22 +36,25 @@ register_type(IsUserEquipment=parse_is_user_equipment)
 
 
 @dataclass
-class ContextGrantCreation(ContextArea, ContextRegionType):
-    grants: List[CbsdGrantInfo]
+class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
+    cbsds: List[Cbsd]
 
 
-@when("{is_user_equipment:IsUserEquipment?}grants for the Monte Carlo simulation are created")
-def step_impl(context: ContextGrantCreation, is_user_equipment: bool = False):
+@when("{is_user_equipment:IsUserEquipment?}CBSDs for the Monte Carlo simulation are created")
+def step_impl(context: ContextCbsdCreation, is_user_equipment: bool = False):
     """
     Args:
         context (behave.runner.Context):
     """
     dpa_zone = getattr(context, 'area', _create_area(context=context))
     grants_creator = get_grants_creator(dpa_zone=dpa_zone, is_user_equipment=is_user_equipment, number_of_aps=ARBITRARY_ODD_NUMBER_OF_APS)
-    context.grants = grants_creator.create()
+    context.cbsds = grants_creator.create()
 
 
-def _create_area(context: ContextGrantCreation) -> AreaCircle:
-    center_coordinates = getattr(context, 'antenna_coordinates', get_arbitrary_coordinates())
+def _create_area(context: ContextCbsdCreation) -> AreaCircle:
+    dpa = getattr(context, 'dpa', None)
+    center_coordinates = getattr(context, 'antenna_coordinates', None) \
+        or dpa and Point.from_shapely(point_shapely=dpa.geometry.centroid) \
+        or get_arbitrary_coordinates()
     return AreaCircle(center_coordinates=center_coordinates,
                       radius_in_kilometers=ARBITRARY_RADIUS)

@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 from reference_models.common.data import CbsdGrantInfo
@@ -8,17 +9,14 @@ COCHANNEL_BANDWIDTH = 10
 HERTZ_IN_MEGAHERTZ = 1e6
 
 
-class AggregateInterferenceCalculator:
+class AggregateInterferenceCalculator(ABC):
     def __init__(self, dpa: Dpa, grants: List[CbsdGrantInfo]):
         self._dpa = dpa
         self._grants = grants
 
+    @abstractmethod
     def calculate(self) -> float:
-        self._set_dpa_neighbors()
-        return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel)[0]
-
-    def _set_dpa_neighbors(self) -> None:
-        self._dpa.nbor_lists = [set(self._grants_with_inband_frequences) for _ in self._dpa.nbor_lists]
+        raise NotImplementedError
 
     @property
     def _grants_with_inband_frequences(self) -> List[CbsdGrantInfo]:

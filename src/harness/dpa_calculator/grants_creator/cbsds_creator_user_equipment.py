@@ -5,10 +5,10 @@ from dpa_calculator.grants_creator.cbsd_height_distributor.cbsd_height_distribut
     CbsdHeightDistributorUserEquipment
 from dpa_calculator.grants_creator.cbsd_height_distributor.height_distribution_definitions import \
     OUTDOOR_UE_HEIGHT_IN_METERS
-from dpa_calculator.grants_creator.grants_creator import GrantsCreator
+from dpa_calculator.grants_creator.cbsds_creator import CbsdsCreator
 
 
-class GrantsCreatorUserEquipment(GrantsCreator):
+class CbsdsCreatorUserEquipment(CbsdsCreator):
     @property
     def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributorUserEquipment]:
         return CbsdHeightDistributorUserEquipment

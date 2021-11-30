@@ -22,10 +22,18 @@ Feature: DPA Parameters
     - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
   @slow
-  Scenario: Population data is retrieved
-    Given a circular area with a radius of 150 km and center coordinates 33.21611, -96.65666
+  Scenario Template: Population data is retrieved
+    Given a circular area with a radius of 150 km and center coordinates <coordinates>
     And census population data
-    Then the population in the area should be 7,095,966
+    Then the population in the area should be <expected_population>
+
+    Examples: McKinney (rural)
+      | coordinates         | expected_population |
+      | 33.21611, -96.65666 | 7,095,966           |
+
+    Examples: Moorestown (urban)
+      | coordinates         | expected_population |
+      | 39.97999, -74.90138 | 21,911,912          |
 
   Scenario Template: The number of APs for simulation is calculated
     Given simulation population of 7,095,966
@@ -39,20 +47,20 @@ Feature: DPA Parameters
       | suburban    | 7096            |
       | urban       | 2838            |
 
-  Scenario: Grants are created with a random distribution on the zone circumference
+  Scenario: Cbsds are created with a random distribution on the zone circumference
     Given a seed of 0
     And a circular area with a radius of 150 km
-    When grants for the Monte Carlo simulation are created
+    When CBSDs for the Monte Carlo simulation are created
     Then all distributed points should be within the radius of the center point
     And the furthest distance should be close to 150 km
-    And the closest distance should be close to 150 km
+    And the closest distance should be close to 0 km
     And the highest bearing should be close to 360 degrees
     And the lowest bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
   Scenario Template: The number of UEs is created
     Given a <region_type> location
-    When UE grants for the Monte Carlo simulation are created
+    When UE CBSDs for the Monte Carlo simulation are created
     Then there should be <expected_ue_per_ap> times as many as if AP grants were created
 
     Examples:
@@ -64,7 +72,7 @@ Feature: DPA Parameters
 
   Scenario Template: Grants are created with indoor percentage based on region type
     Given a <region_type> location
-    When grants for the Monte Carlo simulation are created
+    When CBSDs for the Monte Carlo simulation are created
     Then <expected_indoor_percentage> of the grants should be indoors
 
     Examples:
@@ -75,7 +83,7 @@ Feature: DPA Parameters
 
   Scenario Template: Indoor grants are created with random heights
     Given a <region_type> location
-    When <cbsd_type> grants for the Monte Carlo simulation are created
+    When <cbsd_type> CBSDs for the Monte Carlo simulation are created
     Then the indoor antenna heights should fall in distribution <height_distribution>
     And indoor antenna heights should be in 0.5 meter increments
 
@@ -91,7 +99,7 @@ Feature: DPA Parameters
       | UE        | urban       | 50%: 1.5, 50%: 4.5-16.5                       |
 
   Scenario Template: Outdoor grants are created with heights
-    When <cbsd_type> grants for the Monte Carlo simulation are created
+    When <cbsd_type> CBSDs for the Monte Carlo simulation are created
     Then outdoor antenna heights should be <expected_height> meters
 
     Examples:
@@ -100,7 +108,7 @@ Feature: DPA Parameters
       | UE        | 1.5             |
 
   Scenario Outline: AP gains are set
-    When <cbsd_type> grants for the Monte Carlo simulation are created
+    When <cbsd_type> CBSDs for the Monte Carlo simulation are created
     Then the antenna gains should be <expected_gain> meters
 
     Examples:
@@ -109,12 +117,12 @@ Feature: DPA Parameters
       | UE        | 0             |
 
   Scenario: AP transmission powers are set
-    When AP grants for the Monte Carlo simulation are created
+    When AP CBSDs for the Monte Carlo simulation are created
     Then the indoor antenna EIRPs should be 26 dBm
     Then the outdoor antenna EIRPs should be 30 dBm
 
   Scenario: UE transmission powers are set
-    When UE grants for the Monte Carlo simulation are created
+    When UE CBSDs for the Monte Carlo simulation are created
     Then the antenna EIRPs should be 24 dBm
 
   Scenario: A monte carlo simulation is run
@@ -122,19 +130,53 @@ Feature: DPA Parameters
     When a monte carlo simulation of the function is run
     Then the result should be 3
 
+  Scenario: Interference from each CBSD is calculated
+    Given an antenna at McKinney
+    When CBSDs for the Monte Carlo simulation are created
+    And interference components are calculated for each CBSD
+    Then EIRPs in the interference components should match those in the cbsds
+    And all receiver insertion losses should be 2 dB
+    And all transmitter insertion losses should be 2 dB
+
+  Scenario Template: Propagation loss is calculated
+    Given a <region_type> location
+    And a CBSD at a location with larger <larger_loss_model> with height <height>
+    When interference components are calculated for each CBSD
+    Then the propagation loss should be <expected_loss>
+
+    Examples: ITM is larger
+      | region_type | larger_loss_model | height | expected_loss     |
+      | urban       | ITM               | 17     | 247.2795048399713  |
+
+    Examples: eHata is larger
+      | region_type | larger_loss_model | height | expected_loss      |
+      | urban       | eHata             | 17     | 213.960500138624   |
+
+    Examples: heights at least 18 meters always use ITM
+      | region_type | larger_loss_model | height | expected_loss      |
+      | urban       | eHata             | 18     | 193.3062149090018  |
+
+    Examples: rural APs always use ITM
+      | region_type | larger_loss_model | height | expected_loss      |
+      | rural       | eHata             | 17     | 140.25217071792468 |
+
   @slow
   Scenario Outline: Aggregate interference is calculated
-    Given an antenna at McKinney
+    Given an antenna at <dpa_name>
     And an exclusion zone distance of 150 km
     And <number_of_aps> APs
     When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
     Then the result should be <expected_results>
 
-    Examples:
-      | number_of_aps | number_of_iterations | expected_results    | runtime        |
-#      | 47306         | 1                    | -136.02466056949282  |
-#      | 500           | 50                    | -152.4715449381896  | 0:10:15.841380 |
-#      | 500           | 500                   | -151.53452322241543 | 1:41:01.078026 |
+#    Examples: McKinney
+#      | dpa_name | number_of_aps | number_of_iterations | expected_results    | runtime         |
+#      | McKinney | 47306         | 1                    | -136.02466056949282  |                |
+#      | McKinney | 500           | 50                    | -152.4715449381896  | 0:10:15.841380 |
+#      | McKinney | 500           | 500                   | -151.53452322241543 | 1:41:01.078026 |
+
+    Examples: Moorestown
+      | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
+      | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index

@@ -2,14 +2,14 @@ from dataclasses import dataclass
 
 from behave import *
 
-from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
-    ContextGrantCreation
+from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
+    ContextCbsdCreation
 
 use_step_matcher("parse")
 
 
 @dataclass
-class ContextGains(ContextGrantCreation):
+class ContextGains(ContextCbsdCreation):
     pass
 
 
@@ -19,4 +19,4 @@ def step_impl(context: ContextGains, expected_height: int):
     Args:
         context (behave.runner.Context):
     """
-    assert all(grant.antenna_gain == expected_height for grant in context.grants)
+    assert all(grant.gain == expected_height for grant in context.cbsds)

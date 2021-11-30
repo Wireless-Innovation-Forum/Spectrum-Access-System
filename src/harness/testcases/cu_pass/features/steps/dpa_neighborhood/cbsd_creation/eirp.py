@@ -4,8 +4,8 @@ from typing import Optional
 import parse
 from behave import *
 
-from testcases.cu_pass.features.steps.dpa_neighborhood.grant_creation.common_steps.grant_creation import \
-    ContextGrantCreation
+from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
+    ContextCbsdCreation
 
 use_step_matcher("cfparse")
 
@@ -22,7 +22,7 @@ register_type(IsIndoor=parse_is_indoor)
 
 
 @dataclass
-class ContextTransmissionPower(ContextGrantCreation):
+class ContextTransmissionPower(ContextCbsdCreation):
     pass
 
 
@@ -32,5 +32,5 @@ def step_impl(context: ContextTransmissionPower, is_indoor: Optional[bool], expe
     Args:
         context (behave.runner.Context):
     """
-    grants = context.grants if is_indoor is None else (grant for grant in context.grants if grant.indoor_deployment == is_indoor)
-    assert all(grant.max_eirp == expected_power for grant in grants)
+    cbsds = context.cbsds if is_indoor is None else (cbsd for cbsd in context.cbsds if cbsd.is_indoor == is_indoor)
+    assert all(cbsd.eirp == expected_power for cbsd in cbsds)
