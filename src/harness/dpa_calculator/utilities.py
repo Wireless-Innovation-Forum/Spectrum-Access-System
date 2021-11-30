@@ -47,7 +47,7 @@ def _get_geodesic_distance_bearing(point1: Point, point2: Point) -> Tuple[float,
 
 
 def get_region_type(coordinates: Point) -> str:
-    cbsd_region_code = nlcd_driver.GetLandCoverCodes(coordinates.latitude, coordinates.longitude)
+    cbsd_region_code = nlcd_driver.GetLandCoverCodes(lat=coordinates.latitude, lon=coordinates.longitude)
 
     if cbsd_region_code == LandCoverCodes.DEVELOPED_LOW:
         return REGION_TYPE_SUBURBAN
