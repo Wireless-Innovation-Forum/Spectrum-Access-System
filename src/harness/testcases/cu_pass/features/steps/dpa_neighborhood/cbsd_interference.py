@@ -4,7 +4,9 @@ from typing import List
 from behave import *
 
 from dpa_calculator.aggregate_interference_monte_carlo_calculator import InterferenceParameters
-from dpa_calculator.cbsd.cbsd import Cbsd, InterferenceComponents
+from dpa_calculator.cbsd.cbsd import Cbsd
+from dpa_calculator.cbsd.cbsd_interference_calculator.cbsd_interference_calculator import CbsdInterferenceCalculator, \
+    InterferenceComponents
 from dpa_calculator.constants import REGION_TYPE_RURAL
 from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
@@ -22,7 +24,7 @@ class ContextCbsdInterference(ContextCbsdCreation, InterferenceParameters, Conte
 
 @when('interference components are calculated for each CBSD')
 def step_impl(context: ContextCbsdInterference):
-    context.interference_components = [cbsd.calculate_interference(dpa=context.dpa) for cbsd in context.cbsds]
+    context.interference_components = [CbsdInterferenceCalculator(cbsd=cbsd, dpa=context.dpa).calculate() for cbsd in context.cbsds]
 
 
 @then('EIRPs in the interference components should match those in the cbsds')

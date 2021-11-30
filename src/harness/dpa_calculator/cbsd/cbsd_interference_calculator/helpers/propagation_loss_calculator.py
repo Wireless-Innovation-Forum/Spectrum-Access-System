@@ -6,7 +6,6 @@ from reference_models.geo.drive import nlcd_driver
 from reference_models.propagation.ehata import ehata
 from reference_models.propagation.wf_itm import CalcItmPropagationLoss
 
-INSERTION_LOSSES_IN_DB = 2
 PROPAGATION_LOSS_HEIGHT_CUTOFF = 18
 
 
