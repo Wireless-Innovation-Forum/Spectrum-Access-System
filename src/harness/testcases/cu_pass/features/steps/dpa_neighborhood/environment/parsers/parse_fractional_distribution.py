@@ -1,10 +1,10 @@
 import re
-from dataclasses import dataclass
 from typing import List
 
 import parse
 from behave import register_type
 
+from dpa_calculator.helpers.list_distributor import FractionalDistribution
 from testcases.cu_pass.features.environment.global_parsers import NUMBER_REGEX, parse_number
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \
     RANGE_REGEX
@@ -12,13 +12,6 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range
 PERCENTAGE_DELIMITER = ':'
 DISTRIBUTION_REGEX = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {RANGE_REGEX},? ?)'
 DISTRIBUTION_LIST_REGEX = rf'{DISTRIBUTION_REGEX}+'
-
-
-@dataclass
-class FractionalDistribution:
-    range_maximum: float
-    range_minimum: float
-    fraction: float
 
 
 @parse.with_pattern(DISTRIBUTION_LIST_REGEX)

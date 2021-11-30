@@ -7,10 +7,8 @@ from dpa_calculator.cbsd.cbsd_interference_calculator.helpers.propagation_loss_c
 from dpa_calculator.utilities import Point, region_is_rural
 from reference_models.dpa.dpa_mgr import Dpa
 
-CLUTTER_LOSS_MINIMUM = 0
-
 CLUTTER_LOSS_MAXIMUM = 15
-
+CLUTTER_LOSS_MINIMUM = 0
 INSERTION_LOSSES_IN_DB = 2
 
 

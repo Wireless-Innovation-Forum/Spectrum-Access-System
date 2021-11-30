@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any, List, TypeVar
 
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
-    FractionalDistribution
-
-
 RETURN_TYPE = TypeVar('RETURN_TYPE')
+
+
+@dataclass
+class FractionalDistribution:
+    range_maximum: float
+    range_minimum: float
+    fraction: float
 
 
 class ListDistributor(ABC):

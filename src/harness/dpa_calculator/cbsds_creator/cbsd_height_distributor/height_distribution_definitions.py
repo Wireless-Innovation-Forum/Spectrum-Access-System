@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from dpa_calculator.helpers.list_distributor import FractionalDistribution
 
 
 @dataclass
@@ -9,6 +10,21 @@ class HeightDistribution:
     maximum_height_in_meters: float
     minimum_height_in_meters: float
     fraction_of_cbsds: float
+
+    def to_fractional_distribution(self) -> FractionalDistribution:
+        return FractionalDistribution(
+            range_maximum=self.maximum_height_in_meters,
+            range_minimum=self.minimum_height_in_meters,
+            fraction=self.fraction_of_cbsds
+        )
+
+
+def fractional_distribution_to_height_distribution(distribution: FractionalDistribution) -> HeightDistribution:
+    return HeightDistribution(
+        maximum_height_in_meters=distribution.range_maximum,
+        minimum_height_in_meters=distribution.range_minimum,
+        fraction_of_cbsds=distribution.fraction
+    )
 
 
 OUTDOOR_AP_HEIGHT_IN_METERS = 6

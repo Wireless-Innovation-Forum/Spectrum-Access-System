@@ -5,7 +5,8 @@ import parse
 from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import HeightDistribution
+from dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
+    fractional_distribution_to_height_distribution, HeightDistribution
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
@@ -17,11 +18,7 @@ use_step_matcher("parse")
 @parse.with_pattern(rf'{DISTRIBUTION_REGEX}+')
 def parse_height_distribution(text: str) -> List[HeightDistribution]:
     distributions = parse_fractional_distribution(text=text)
-    return [HeightDistribution(
-        maximum_height_in_meters=distribution.range_maximum,
-        minimum_height_in_meters=distribution.range_minimum,
-        fraction_of_cbsds=distribution.fraction
-    ) for distribution in distributions]
+    return [fractional_distribution_to_height_distribution(distribution=distribution) for distribution in distributions]
 
 
 register_type(HeightDistribution=parse_height_distribution)
