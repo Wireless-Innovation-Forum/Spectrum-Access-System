@@ -9,14 +9,30 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     InterferenceComponents
 
 
+@dataclass
+class InterferenceWithDistance:
+    interference: float
+    distance_in_kilometers: float
+
+
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     def calculate(self) -> float:
         pass
         # sum(interference. for interference in self.interference_information)
 
     @property
-    def _interferences(self) -> List[float]:
-        return [information for information in self.interference_information]
+    def _interferences(self) -> List[InterferenceWithDistance]:
+        return [InterferenceWithDistance(
+            distance_in_kilometers=information.distance_in_kilometers,
+            interference=information.eirp
+                         + information.gain_receiver
+                         - information.loss_transmitter
+                         - information.loss_receiver
+                         - information.loss_propagation
+                         - information.loss_clutter
+                         - information.loss_building
+                         - information.frequency_dependent_rejection
+        ) for information in self.interference_information]
 
     @property
     def interference_information(self) -> List[InterferenceComponents]:

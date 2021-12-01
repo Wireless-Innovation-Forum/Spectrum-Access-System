@@ -188,6 +188,27 @@ Feature: DPA Neighborhood
     Then the receive antenna gains should be [-16.585712131717642, -5.477964417053489, -0.3702167023893314, -1.2624689877251745, -8.154721273061018]
     And the receive antenna azimuths should be [60.0, 75.0, 90.0, 105.0, 120.0]
 
+  Scenario Template: Total interference for a cbsd is calculated
+    Given an EIRP of <eirp> dB
+    And a receive antenna gain of <receive_antenna_gain> dB
+    And a transmitter insertion loss of <transmitter_loss> dB
+    And a receiver insertion loss of <receiver_loss> dB
+    And a propagation loss of <propagation_loss> dB
+    And a clutter loss of <clutter_loss> dB
+    And a building loss of <building_loss> dB
+    Then the total interference should be <expected_interference>
+
+    Examples:
+      | eirp | receive_antenna_gain | transmitter_loss | receiver_loss | propagation_loss | clutter_loss | building_loss | expected_interference |
+      | 30   | -12                  | 2                | 2             | 130              | 10           | 10            | -136                  |
+      | 31   | -12                  | 2                | 2             | 130              | 10           | 10            | -135                  |
+      | 30   | -13                  | 2                | 2             | 130              | 10           | 10            | -137                  |
+      | 30   | -12                  | 4                | 2             | 130              | 10           | 10            | -138                  |
+      | 30   | -12                  | 2                | 5             | 130              | 10           | 10            | -139                  |
+      | 30   | -12                  | 2                | 2             | 134              | 10           | 10            | -140                  |
+      | 30   | -12                  | 2                | 2             | 130              | 15           | 10            | -141                  |
+      | 30   | -12                  | 2                | 2             | 130              | 10           | 16            | -142                  |
+
   @slow
   Scenario Outline: Aggregate interference is calculated
     Given an antenna at <dpa_name>

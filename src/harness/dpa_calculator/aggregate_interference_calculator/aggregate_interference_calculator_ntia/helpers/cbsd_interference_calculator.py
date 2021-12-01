@@ -17,7 +17,7 @@ INSERTION_LOSSES_IN_DB = 2
 
 
 @dataclass
-class GainForAzimuth:
+class GainAtAzimuth:
     azimuth: float
     gain: float
 
@@ -27,12 +27,23 @@ class InterferenceComponents:
     distance_in_kilometers: float
     eirp: float
     frequency_dependent_rejection: float
-    gain_receiver: List[GainForAzimuth]
+    gain_receiver: List[GainAtAzimuth]
     loss_building: float
     loss_clutter: float
     loss_propagation: float
     loss_receiver: float
     loss_transmitter: float
+
+    def total_interference(self, azimuth: float) -> float:
+        receiver_gain = next(gain_at_azimuth.gain for gain_at_azimuth in self.gain_receiver if gain_at_azimuth.azimuth == azimuth)
+        return self.eirp \
+               + receiver_gain \
+               - self.loss_transmitter \
+               - self.loss_receiver \
+               - self.loss_propagation \
+               - self.loss_clutter \
+               - self.loss_building \
+               - self.frequency_dependent_rejection
 
 
 class CbsdInterferenceCalculator:
@@ -54,10 +65,10 @@ class CbsdInterferenceCalculator:
         )
 
     @property
-    def _gain_receiver(self) -> List[GainForAzimuth]:
+    def _gain_receiver(self) -> List[GainAtAzimuth]:
         bearing = get_bearing_between_two_points(point1=self._dpa_center, point2=self._cbsd.location)
         azimuths = findAzimuthRange(self._dpa.azimuth_range[0], self._dpa.azimuth_range[1], self._dpa.beamwidth)
-        return [GainForAzimuth(
+        return [GainAtAzimuth(
             azimuth=azimuth,
             gain=GetStandardAntennaGains(hor_dirs=bearing, ant_azimuth=azimuth, ant_beamwidth=self._dpa.beamwidth)
         ) for azimuth in azimuths]
