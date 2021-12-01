@@ -18,7 +18,7 @@ class CbsdGetter(ABC):
     def get(self) -> Cbsd:
         return Cbsd(eirp=self._eirp,
                     gain=self._gain,
-                    height=self._height,
+                    height_in_meters=self._height,
                     is_indoor=self._is_indoor,
                     location=self._location)
 

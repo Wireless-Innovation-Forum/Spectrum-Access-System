@@ -1,4 +1,4 @@
-from dpa_calculator.utilities import get_distance_between_two_points, Point, region_is_rural
+from dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point, region_is_rural
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import FREQ_PROP_MODEL
 from reference_models.geo.drive import nlcd_driver
@@ -22,7 +22,7 @@ class PropagationLossCalculator:
         return CalcItmPropagationLoss(
             lat_cbsd=self._cbsd.location.latitude,
             lon_cbsd=self._cbsd.location.longitude,
-            height_cbsd=self._cbsd.height,
+            height_cbsd=self._cbsd.height_in_meters,
             lat_rx=self._dpa_center.latitude,
             lon_rx=self._dpa_center.longitude,
             height_rx=self._dpa.radar_height,
@@ -32,14 +32,14 @@ class PropagationLossCalculator:
     @property
     def _should_use_itm(self) -> bool:
         is_rural = region_is_rural(coordinates=self._dpa_center)
-        is_tall = self._cbsd.height >= PROPAGATION_LOSS_HEIGHT_CUTOFF
+        is_tall = self._cbsd.height_in_meters >= PROPAGATION_LOSS_HEIGHT_CUTOFF
         return is_tall or is_rural
 
     @property
     def _propagation_loss_ehata(self):
         return ehata.MedianBasicPropLoss(
             freq_mhz=FREQ_PROP_MODEL,
-            height_tx=self._cbsd.height,
+            height_tx=self._cbsd.height_in_meters,
             height_rx=self._dpa.radar_height,
             dist_km=get_distance_between_two_points(point1=self._cbsd.location, point2=(self._dpa_center)),
             region_code=nlcd_driver.GetLandCoverCodes(lat=self._dpa_center.latitude, lon=self._dpa_center.longitude)
@@ -47,4 +47,4 @@ class PropagationLossCalculator:
 
     @property
     def _dpa_center(self) -> Point:
-        return Point.from_shapely(point_shapely=self._dpa.geometry.centroid)
+        return get_dpa_center(dpa=self._dpa)

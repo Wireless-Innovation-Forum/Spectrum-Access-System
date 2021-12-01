@@ -8,7 +8,7 @@ from reference_models.common.data import CbsdGrantInfo
 class Cbsd:
     eirp: float = None
     gain: int = None
-    height: float = None
+    height_in_meters: float = None
     is_indoor: bool = None
     location: Point = None
 
@@ -17,7 +17,7 @@ class Cbsd:
                              antenna_beamwidth=None,
                              antenna_gain=self.gain,
                              cbsd_category=None,
-                             height_agl=self.height,
+                             height_agl=self.height_in_meters,
                              high_frequency=None,
                              indoor_deployment=self.is_indoor,
                              is_managed_grant=None,

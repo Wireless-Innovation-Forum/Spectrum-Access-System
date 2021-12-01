@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
     InterferenceParameters
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utilities import Point
+from dpa_calculator.utilities import get_dpa_center, Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
@@ -26,7 +26,7 @@ def step_impl(context: ContextAggregateInterference, distance: int):
     """
     context.dpa_test_zone = AreaCircle(
         radius_in_kilometers=context.dpa.neighbor_distances[0],
-        center_coordinates=Point.from_shapely(point_shapely=context.dpa.geometry.centroid)
+        center_coordinates=get_dpa_center(dpa=context.dpa)
     )
 
 

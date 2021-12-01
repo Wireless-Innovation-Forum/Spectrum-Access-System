@@ -176,6 +176,13 @@ Feature: DPA Neighborhood
     When interference components are calculated for each CBSD
     Then the building attenuation losses follow the distribution 20%: 20, 60%: 15, 20%: 10
 
+  Scenario: Receive antenna gains are calculated
+    Given a dpa with azimuth range [60, 120] and beamwidth 30
+    And a CBSD at a location 33.19313987787715, -96.36484196127637
+    When interference components are calculated for each CBSD
+    Then the receive antenna gains should be [-16.585712131717642, -5.477964417053489, -0.3702167023893314, -1.2624689877251745, -8.154721273061018]
+    And the receive antenna azimuths should be [60.0, 75.0, 90.0, 105.0, 120.0]
+
   @slow
   Scenario Outline: Aggregate interference is calculated
     Given an antenna at <dpa_name>

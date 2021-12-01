@@ -4,6 +4,7 @@ from typing import Callable, Tuple
 from shapely import geometry
 
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.geo.drive import nlcd_driver
 from reference_models.geo.nlcd import LandCoverCodes
 from reference_models.geo.vincenty import GeodesicDistanceBearing, GeodesicPoint
@@ -44,6 +45,10 @@ def get_bearing_between_two_points(point1: Point, point2: Point) -> float:
 
 def _get_geodesic_distance_bearing(point1: Point, point2: Point) -> Tuple[float, float, float]:
     return GeodesicDistanceBearing(lat1=point1.latitude, lon1=point1.longitude, lat2=point2.latitude, lon2=point2.longitude)
+
+
+def get_dpa_center(dpa: Dpa) -> Point:
+    return Point.from_shapely(point_shapely=dpa.geometry.centroid)
 
 
 def get_region_type(coordinates: Point) -> str:

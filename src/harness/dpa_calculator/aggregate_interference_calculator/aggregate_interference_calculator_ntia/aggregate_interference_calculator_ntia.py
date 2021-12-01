@@ -6,12 +6,11 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     BuildingLossDistributor
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import CbsdInterferenceCalculator, \
     InterferenceComponents
-from dpa_calculator.utilities import Point
 
 
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     def calculate(self) -> float:
-        point = Point.from_shapely(point_shapely=self._dpa.geometry.centroid)
+        pass
 
     @property
     def interference_information(self) -> List[InterferenceComponents]:
