@@ -29,11 +29,11 @@ Feature: DPA Neighborhood
 
     Examples: McKinney (rural)
       | coordinates         | expected_population |
-      | 33.21611, -96.65666 | 7,095,966           |
+      | 33.21611, -96.65666 | 6,431,995           |
 
     Examples: Moorestown (urban)
       | coordinates         | expected_population |
-      | 39.97999, -74.90138 | 21,911,912          |
+      | 39.97999, -74.90138 | 21,164,114          |
 
   Scenario Template: The number of APs for simulation is calculated
     Given simulation population of 7,095,966
@@ -218,23 +218,24 @@ Feature: DPA Neighborhood
       | 0        | [0, 1]                | 0                |
       | 6        | [0]                   | 90               |
 
-  @slow
-  Scenario Outline: Aggregate interference is calculated
-    Given an antenna at <dpa_name>
-    And an exclusion zone distance of 150 km
-    And <number_of_aps> APs
-    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
-    Then the result should be <expected_results>
-
+#  @slow
+#  Scenario Outline: Aggregate interference is calculated
+#    Given an antenna at <dpa_name>
+#    And an exclusion zone distance of 150 km
+#    And <number_of_aps> APs
+#    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
+#    Then the result should be <expected_results>
+#
 #    Examples: McKinney
 #      | organization_calculation | dpa_name | number_of_aps | number_of_iterations | expected_results    | runtime        |
-#      | WinnForum                | McKinney | 47306         | 1                    | -136.02466056949282 |                |
-#      | WinnForum                | McKinney | 500           | 50                   | -152.4715449381896  | 0:10:15.841380 |
-#      | WinnForum                | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
-
-    Examples: Moorestown
-      | organization_calculation | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
-      | WinnForum                | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
+##      | WinnForum                | McKinney | 47306         | 1                    | -136.02466056949282 |                |
+##      | WinnForum                | McKinney | 500           | 50                   | -152.4715449381896  | 0:10:15.841380 |
+##      | WinnForum                | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
+#      | NTIA                     | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
+#
+##    Examples: Moorestown
+##      | organization_calculation | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
+##      | WinnForum                | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index
@@ -261,11 +262,11 @@ Feature: DPA Neighborhood
 
     Examples: Target is less than what you would get with the maximum input
       | result_array | target | expected_result |
-      | [3,2,1,0]    | -1     | 3               |
+      | [3,2,1,0]    | -1     | 4               |
 
-#  @integration
-#  Scenario: The DPA neighborhood is calculated for category A CBSDs
-#    Given an antenna at McKinney
-#    And an INR of -144
-#    When the neighborhood radius is calculated
-#    Then the result should be 1
+  @slow
+  Scenario: The DPA neighborhood is calculated for category A CBSDs
+    Given an antenna at McKinney
+    And an interference_threshold of -144
+    When the neighborhood radius is calculated
+    Then the result should be 1

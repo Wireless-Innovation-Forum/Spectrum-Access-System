@@ -4,6 +4,7 @@ from numpy import argmax
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import \
     InterferenceComponents
+from reference_models.interference.interference import dbToLinear, linearToDb
 
 
 class InterferenceAtAzimuthWithMaximumGainCalculator:
@@ -13,10 +14,10 @@ class InterferenceAtAzimuthWithMaximumGainCalculator:
 
     def calculate(self) -> float:
         total_interferences = [
-            sum(component.total_interference(azimuth=azimuth) for component in self._interference_components_in_range)
+            sum(dbToLinear(component.total_interference(azimuth=azimuth)) for component in self._interference_components_in_range)
             for azimuth in self._azimuths
         ]
-        return max(total_interferences)
+        return linearToDb(max(total_interferences))
 
     @property
     def _azimuths(self) -> Iterable[float]:

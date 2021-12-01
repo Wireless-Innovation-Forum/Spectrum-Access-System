@@ -20,56 +20,23 @@ use_step_matcher('parse')
 
 @dataclass
 class ContextNeighborhood(ContextResult, ContextDpa):
-    interference_to_noise_ratio: int
+    interference_threshold: int
 
 
-@step("an INR of {interference_to_noise_ratio:Integer}")
-def step_impl(context: ContextNeighborhood, interference_to_noise_ratio: int):
+@step("an interference_threshold of {interference_threshold:Integer}")
+def step_impl(context: ContextNeighborhood, interference_threshold: int):
     """
     Args:
         context (behave.runner.Context):
     """
-    context.interference_to_noise_ratio = interference_to_noise_ratio
+    context.interference_threshold = interference_threshold
 
 
 @when("the neighborhood radius is calculated")
-@async_run_until_complete
-async def step_impl(context: ContextNeighborhood):
+def step_impl(context: ContextNeighborhood):
     """
     Args:
         context (behave.runner.Context):
     """
-    async def perform_test():
-        await main_test(context=context)
-
-    if context.with_integration:
-        await perform_test()
-    else:
-        await perform_test()
-        # arbitrary_population = 5000
-        # with mock_worldpop(returned_population=arbitrary_population):
-        #     await perform_test()
-
-
-async def main_test(context: ContextNeighborhood):
-    random.seed(0)
-    func_part = partial(function, context=context)
-    interference_threshold = context.interference_to_noise_ratio
-    context.result = await ParameterFinder(function=func_part, target=interference_threshold).find()
-
-
-async def function(neighborhood_radius: int, context: ContextNeighborhood) -> float:
-    default_iterations = 1
-    area = AreaCircle(
-        center_coordinates=get_dpa_center(dpa=context.dpa),
-        radius_in_kilometers=neighborhood_radius
-    )
-    population = await PopulationRetrieverStraightFile(area=area).retrieve()
-    number_of_aps = NumberOfApsCalculatorGroundBased(simulation_population=population).get_number_of_aps()
-    parameters = InterferenceParameters(
-        dpa=context.dpa,
-        dpa_test_zone=area,
-        number_of_aps=number_of_aps
-    )
-    return AggregateInterferenceMonteCarloCalculator(interference_parameters=parameters,
-                                                     number_of_iterations=default_iterations).simulate()
+    context.result = AggregateInterferenceMonteCarloCalculator(dpa=context.dpa,
+                                                               target_threshold=context.interference_threshold).simulate()

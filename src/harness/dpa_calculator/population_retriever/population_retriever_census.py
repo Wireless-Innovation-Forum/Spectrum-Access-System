@@ -16,7 +16,7 @@ load_dotenv()
 POPULATION_DIRECTORY_CENSUS = getenv('POPULATION_DIRECTORY_CENSUS')
 
 
-POPULATION_RESOLUTION_IN_ARCSECONDS = 10  # from src.studies.esc_impact_pop.esc_pop_impact
+POPULATION_RESOLUTION_IN_ARCSECONDS = 100
 
 
 def ComputeSensorNeighborhood(latitude, longitude, radius_km, res_arcsec):
@@ -33,7 +33,7 @@ def ComputeSensorNeighborhood(latitude, longitude, radius_km, res_arcsec):
 class PopulationRetrieverCensus(PopulationRetriever):
     _resolution_in_arcseconds = POPULATION_RESOLUTION_IN_ARCSECONDS
 
-    async def retrieve(self) -> int:
+    def retrieve(self) -> int:
         popper = UsgsPopDriver(pop_directory=POPULATION_DIRECTORY_CENSUS, lazy_load=True)
         lats, lons, _ = ComputeSensorNeighborhood(latitude=self._area.center_coordinates.latitude,
                                                   longitude=self._area.center_coordinates.longitude,

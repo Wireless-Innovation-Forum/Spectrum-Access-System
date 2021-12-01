@@ -23,7 +23,7 @@ def step_impl(context: ContextBinarySearch, result_array: List[float]):
         context (behave.runner.Context):
     """
     context.max_input = len(result_array) - 1
-    async def function(x: int): return result_array[x]
+    def function(x: int): return result_array[x]
     context.function = function
 
 
@@ -38,10 +38,9 @@ def step_impl(context: ContextBinarySearch, target: int):
 
 
 @when("the algorithm is run")
-@async_run_until_complete
-async def step_impl(context):
+def step_impl(context):
     """
     Args:
         context (behave.runner.Context):
     """
-    context.result = await ParameterFinder(function=context.function, target=context.target, max_parameter=context.max_input).find()
+    context.result = ParameterFinder(function=context.function, target=context.target, max_parameter=context.max_input).find()

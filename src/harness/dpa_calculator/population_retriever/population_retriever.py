@@ -8,5 +8,5 @@ class PopulationRetriever(ABC):
         self._area = area
 
     @abstractmethod
-    async def retrieve(self) -> int:
+    def retrieve(self) -> int:
         raise NotImplementedError

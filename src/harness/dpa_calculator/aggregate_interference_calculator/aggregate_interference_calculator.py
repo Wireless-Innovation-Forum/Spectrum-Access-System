@@ -11,5 +11,5 @@ class AggregateInterferenceCalculator(ABC):
         self._cbsds = cbsds
 
     @abstractmethod
-    def calculate(self) -> float:
+    def calculate(self, minimum_distance: float) -> float:
         raise NotImplementedError

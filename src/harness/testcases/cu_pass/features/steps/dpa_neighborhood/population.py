@@ -33,17 +33,5 @@ async def step_impl(context: ContextPopulation, expected_population: int):
     Args:
         context (behave.runner.Context):
     """
-    async def perform_test():
-        await main_test(context=context, expected_population=expected_population)
-
-    await perform_test()
-    # if context.with_integration:
-    #     await perform_test()
-    # else:
-    #     with mock_worldpop(returned_population=expected_population):
-    #         await perform_test()
-
-
-async def main_test(context: ContextPopulation, expected_population: int):
-    population = await context.retriever(area=context.area).retrieve()
+    population = context.retriever(area=context.area).retrieve()
     assert population == expected_population, f'{population} != {expected_population}'
