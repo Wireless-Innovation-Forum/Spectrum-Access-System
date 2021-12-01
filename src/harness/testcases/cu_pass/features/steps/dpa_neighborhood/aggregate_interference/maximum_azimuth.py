@@ -4,7 +4,7 @@ from typing import List
 from behave import *
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.azimuth_with_maximum_gain_calculator import \
-    AzimuthWithMaximumGainCalculator
+    InterferenceAtAzimuthWithMaximumGainCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import \
     GainAtAzimuth, InterferenceComponents
 from testcases.cu_pass.features.environment.hooks import ContextSas
@@ -40,13 +40,15 @@ def step_impl(context: ContextAggregateInterference, distances: List[float], gai
     ]
 
 
-@then("the azimuth yielding maximum gain for CBSDs beyond {distance:Number} kilometers is {expected_azimuth:Number}")
-def step_impl(context: ContextAggregateInterference, distance: float, expected_azimuth: float):
+@then("the returned interference with minimum distance {distance:Number} should be the aggregate of interference from CBSDs {expected_cbsd_numbers:IntegerList} at azimuth {expected_azimuth:Number}")
+def step_impl(context: ContextAggregateInterference, distance: float, expected_cbsd_numbers: List[int], expected_azimuth: float):
     """
     Args:
         context (behave.runner.Context):
         distance (str):
         expected_azimuth (str):
     """
-    maximum_azimuth = AzimuthWithMaximumGainCalculator(minimum_distance=distance, interference_components=context.interference_components).calculate()
-    assert maximum_azimuth == expected_azimuth, f'{maximum_azimuth} != {expected_azimuth}'
+    components_to_include = [components for cbsd_number, components in enumerate(context.interference_components) if cbsd_number in expected_cbsd_numbers]
+    expected_interference = sum(component.total_interference(azimuth=expected_azimuth) for component in components_to_include)
+    aggregate_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=distance, interference_components=context.interference_components).calculate()
+    assert aggregate_interference == expected_interference, f'{aggregate_interference} != {expected_azimuth}'

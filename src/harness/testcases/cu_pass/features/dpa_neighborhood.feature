@@ -209,14 +209,14 @@ Feature: DPA Neighborhood
       | 30   | -12                  | 2                | 2             | 130              | 15           | 10            | -141                  |
       | 30   | -12                  | 2                | 2             | 130              | 10           | 16            | -142                  |
 
-  Scenario Template: Maximum azimuth is chosen
+  Scenario Template: Aggregate interference using the maximum azimuth is chosen
     Given CBSDs at distances [10, 5] each with gains [[1, 2], [3, 1]] at azimuths [0, 90]
-    Then the azimuth yielding maximum gain for CBSDs beyond <distance> kilometers is <expected_azimuth>
+    Then the returned interference with minimum distance <distance> should be the aggregate of interference from CBSDs <expected_cbsd_numbers> at azimuth <expected_azimuth>
 
     Examples:
-      | distance | expected_azimuth |
-      | 0        | 0                |
-      | 6        | 90               |
+      | distance | expected_cbsd_numbers | expected_azimuth |
+      | 0        | [0, 1]                | 0                |
+      | 6        | [0]                   | 90               |
 
   @slow
   Scenario Outline: Aggregate interference is calculated

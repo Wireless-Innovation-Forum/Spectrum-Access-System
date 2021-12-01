@@ -6,15 +6,17 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     InterferenceComponents
 
 
-class AzimuthWithMaximumGainCalculator:
+class InterferenceAtAzimuthWithMaximumGainCalculator:
     def __init__(self, minimum_distance: float, interference_components: List[InterferenceComponents]):
         self._minimum_distance = minimum_distance
         self._interference_components = interference_components
 
     def calculate(self) -> float:
-        total_gains = [sum(component.gain_receiver[azimuth].gain for component in self._interference_components_in_range) for azimuth in self._azimuths]
-        max_index = int(argmax(total_gains))
-        return list(self._azimuths)[max_index]
+        total_interferences = [
+            sum(component.total_interference(azimuth=azimuth) for component in self._interference_components_in_range)
+            for azimuth in self._azimuths
+        ]
+        return max(total_interferences)
 
     @property
     def _azimuths(self) -> Iterable[float]:

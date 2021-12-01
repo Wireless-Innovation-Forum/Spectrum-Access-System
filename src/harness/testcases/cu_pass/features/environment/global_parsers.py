@@ -28,6 +28,12 @@ def parse_integer(text: str) -> int:
     return int(integer_text[0].replace(',', ''))
 
 
+@parse.with_pattern(get_list_regex(item_regex=INTEGER_REGEX))
+def parse_integer_list(text: str) -> List[int]:
+    numbers = re.compile(f'({INTEGER_REGEX})').findall(text)
+    return [int(number[0]) for number in numbers]
+
+
 @parse.with_pattern(NUMBER_REGEX)
 def parse_number(text: str) -> float:
     number_text = re.compile(NUMBER_REGEX).search(text)
@@ -57,6 +63,7 @@ def parse_lat_lng(text: str) -> Point:
 
 
 register_type(Integer=parse_integer)
+register_type(IntegerList=parse_integer_list)
 register_type(LatLng=parse_lat_lng)
 register_type(Number=parse_number)
 register_type(NumberList=parse_number_list)
