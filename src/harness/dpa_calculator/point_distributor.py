@@ -22,7 +22,7 @@ class PointDistributor:
         return [self._generate_point() for _ in range(number_of_points)]
 
     def _generate_point(self) -> Point:
-        random_distance = self._minimum_distance + random.random() * (self._max_distance - self._minimum_distance)
+        random_distance = random.uniform(self._minimum_distance, self._max_distance)
         random_bearing = random.random() * self._max_bearing
         return move_distance(bearing=random_bearing, kilometers=random_distance, origin=self._origin)
 

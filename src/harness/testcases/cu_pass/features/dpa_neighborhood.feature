@@ -176,6 +176,11 @@ Feature: DPA Neighborhood
     When interference components are calculated for each CBSD
     Then the building attenuation losses follow the distribution 20%: 20, 60%: 15, 20%: 10
 
+  Scenario: CBSD distances are calculated
+    Given a CBSD 100 km away from the DPA
+    When interference components are calculated for each CBSD
+    Then the distance from the antenna should be 100
+
   Scenario: Receive antenna gains are calculated
     Given a dpa with azimuth range [60, 120] and beamwidth 30
     And a CBSD at a location 33.19313987787715, -96.36484196127637
@@ -192,14 +197,14 @@ Feature: DPA Neighborhood
     Then the result should be <expected_results>
 
 #    Examples: McKinney
-#      | dpa_name | number_of_aps | number_of_iterations | expected_results    | runtime         |
-#      | McKinney | 47306         | 1                    | -136.02466056949282  |                |
-#      | McKinney | 500           | 50                    | -152.4715449381896  | 0:10:15.841380 |
-#      | McKinney | 500           | 500                   | -151.53452322241543 | 1:41:01.078026 |
+#      | organization_calculation | dpa_name | number_of_aps | number_of_iterations | expected_results    | runtime        |
+#      | WinnForum                | McKinney | 47306         | 1                    | -136.02466056949282 |                |
+#      | WinnForum                | McKinney | 500           | 50                   | -152.4715449381896  | 0:10:15.841380 |
+#      | WinnForum                | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
 
     Examples: Moorestown
-      | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
-      | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
+      | organization_calculation | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
+      | WinnForum                | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
 
   Scenario Outline: A parameter finding algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index

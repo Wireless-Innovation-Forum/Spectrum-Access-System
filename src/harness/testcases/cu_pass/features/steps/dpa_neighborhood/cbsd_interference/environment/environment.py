@@ -8,6 +8,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_step
     ContextCbsdCreation
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 
+ARBITRARY_ANTENNA_HEIGHT_IN_METERS = 3
+
 
 @dataclass
 class ContextCbsdInterference(ContextCbsdCreation, InterferenceParameters, ContextDpa):

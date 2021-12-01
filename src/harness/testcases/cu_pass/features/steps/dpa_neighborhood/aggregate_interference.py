@@ -6,11 +6,13 @@ from behave import *
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import AggregateInterferenceMonteCarloCalculator, \
     InterferenceParameters
 from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utilities import get_dpa_center, Point
+from dpa_calculator.utilities import get_dpa_center
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 use_step_matcher('parse')
+
+DEFAULT_SIMULATION_RADIUS = 500
 
 
 @dataclass
@@ -25,7 +27,7 @@ def step_impl(context: ContextAggregateInterference, distance: int):
         context (behave.runner.Context):
     """
     context.dpa_test_zone = AreaCircle(
-        radius_in_kilometers=context.dpa.neighbor_distances[0],
+        radius_in_kilometers=DEFAULT_SIMULATION_RADIUS,
         center_coordinates=get_dpa_center(dpa=context.dpa)
     )
 

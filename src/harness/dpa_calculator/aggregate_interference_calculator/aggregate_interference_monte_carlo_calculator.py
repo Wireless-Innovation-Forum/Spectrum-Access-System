@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
-    AggregateInterferenceCalculatorWinnforum
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
+    AggregateInterferenceCalculatorNtia
 from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.utilities import run_monte_carlo_simulation
@@ -49,11 +49,11 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> float:
         cbsds_creator = get_cbsds_creator(dpa_zone=self._interference_parameters.dpa_test_zone,
-                                           is_user_equipment=is_user_equipment,
-                                           number_of_aps=self._interference_parameters.number_of_aps)
+                                          is_user_equipment=is_user_equipment,
+                                          number_of_aps=self._interference_parameters.number_of_aps)
         cbsds = cbsds_creator.create()
         cbsds_creator.write_to_kml(self._kml_output_filepath(is_user_equipment=is_user_equipment))
-        return AggregateInterferenceCalculatorWinnforum(dpa=self._interference_parameters.dpa, cbsds=cbsds).calculate()
+        return AggregateInterferenceCalculatorNtia(dpa=self._interference_parameters.dpa, cbsds=cbsds).calculate()
 
     @staticmethod
     def _kml_output_filepath(is_user_equipment: bool) -> Path:

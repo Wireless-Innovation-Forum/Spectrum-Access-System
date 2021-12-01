@@ -5,7 +5,8 @@ from typing import List
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.cbsd.cbsd_interference_calculator.helpers.propagation_loss_calculator import \
     PropagationLossCalculator
-from dpa_calculator.utilities import get_bearing_between_two_points, get_dpa_center, Point, region_is_rural
+from dpa_calculator.utilities import get_bearing_between_two_points, get_distance_between_two_points, get_dpa_center, \
+    Point, region_is_rural
 from reference_models.antenna.antenna import GetRadarNormalizedAntennaGains, GetStandardAntennaGains
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import findAzimuthRange
@@ -23,6 +24,7 @@ class GainForAzimuth:
 
 @dataclass
 class InterferenceComponents:
+    distance_in_kilometers: float
     eirp: float
     frequency_dependent_rejection: float
     gain_receiver: List[GainForAzimuth]
@@ -40,6 +42,7 @@ class CbsdInterferenceCalculator:
 
     def calculate(self) -> InterferenceComponents:
         return InterferenceComponents(
+            distance_in_kilometers=get_distance_between_two_points(point1=self._dpa_center, point2=self._cbsd.location),
             eirp=self._cbsd.eirp,
             frequency_dependent_rejection=0,
             gain_receiver=self._gain_receiver,

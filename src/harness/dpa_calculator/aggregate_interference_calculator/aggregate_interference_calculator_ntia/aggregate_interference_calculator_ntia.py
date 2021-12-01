@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
@@ -11,6 +12,11 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     def calculate(self) -> float:
         pass
+        # sum(interference. for interference in self.interference_information)
+
+    @property
+    def _interferences(self) -> List[float]:
+        return [information for information in self.interference_information]
 
     @property
     def interference_information(self) -> List[InterferenceComponents]:
