@@ -209,6 +209,15 @@ Feature: DPA Neighborhood
       | 30   | -12                  | 2                | 2             | 130              | 15           | 10            | -141                  |
       | 30   | -12                  | 2                | 2             | 130              | 10           | 16            | -142                  |
 
+  Scenario Template: Maximum azimuth is chosen
+    Given CBSDs at distances [10, 5] each with gains [[1, 2], [3, 1]] at azimuths [0, 90]
+    Then the azimuth yielding maximum gain for CBSDs beyond <distance> kilometers is <expected_azimuth>
+
+    Examples:
+      | distance | expected_azimuth |
+      | 0        | 0                |
+      | 6        | 90               |
+
   @slow
   Scenario Outline: Aggregate interference is calculated
     Given an antenna at <dpa_name>

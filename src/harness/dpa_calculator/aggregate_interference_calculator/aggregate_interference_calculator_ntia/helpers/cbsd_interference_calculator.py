@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import List
+from typing import Dict, List
 
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.cbsd.cbsd_interference_calculator.helpers.propagation_loss_calculator import \
@@ -27,7 +27,7 @@ class InterferenceComponents:
     distance_in_kilometers: float
     eirp: float
     frequency_dependent_rejection: float
-    gain_receiver: List[GainAtAzimuth]
+    gain_receiver: Dict[float, GainAtAzimuth]
     loss_building: float
     loss_clutter: float
     loss_propagation: float
@@ -35,7 +35,7 @@ class InterferenceComponents:
     loss_transmitter: float
 
     def total_interference(self, azimuth: float) -> float:
-        receiver_gain = next(gain_at_azimuth.gain for gain_at_azimuth in self.gain_receiver if gain_at_azimuth.azimuth == azimuth)
+        receiver_gain = self.gain_receiver[azimuth].gain
         return self.eirp \
                + receiver_gain \
                - self.loss_transmitter \
@@ -65,13 +65,16 @@ class CbsdInterferenceCalculator:
         )
 
     @property
-    def _gain_receiver(self) -> List[GainAtAzimuth]:
+    def _gain_receiver(self) -> Dict[float, GainAtAzimuth]:
         bearing = get_bearing_between_two_points(point1=self._dpa_center, point2=self._cbsd.location)
         azimuths = findAzimuthRange(self._dpa.azimuth_range[0], self._dpa.azimuth_range[1], self._dpa.beamwidth)
-        return [GainAtAzimuth(
-            azimuth=azimuth,
-            gain=GetStandardAntennaGains(hor_dirs=bearing, ant_azimuth=azimuth, ant_beamwidth=self._dpa.beamwidth)
-        ) for azimuth in azimuths]
+        return {
+            azimuth: GainAtAzimuth(
+                azimuth=azimuth,
+                gain=GetStandardAntennaGains(hor_dirs=bearing, ant_azimuth=azimuth, ant_beamwidth=self._dpa.beamwidth)
+            )
+            for azimuth in azimuths
+        }
 
     @property
     def _is_rural(self) -> bool:

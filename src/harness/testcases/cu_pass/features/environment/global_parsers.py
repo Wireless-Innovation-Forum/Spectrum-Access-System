@@ -7,8 +7,13 @@ from behave import *
 from dpa_calculator.utilities import Point
 
 
+def get_list_regex(item_regex: str) -> str:
+    return rf'\[({item_regex},? ?)+\]'
+
+
 INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'
 NUMBER_REGEX = rf'{INTEGER_REGEX}(\.[0-9]+)?'
+NUMBER_LIST_REGEX = get_list_regex(item_regex=NUMBER_REGEX)
 COORDINATES_REGEX = rf'{NUMBER_REGEX}, ?{NUMBER_REGEX}'
 
 
@@ -29,10 +34,16 @@ def parse_number(text: str) -> float:
     return float(number_text[0].replace(',', ''))
 
 
-@parse.with_pattern(f'\[({NUMBER_REGEX},? ?)+\]')
+@parse.with_pattern(NUMBER_LIST_REGEX)
 def parse_number_list(text: str) -> List[float]:
     numbers = re.compile(f'({NUMBER_REGEX})').findall(text)
     return [float(number[0]) for number in numbers]
+
+
+@parse.with_pattern(get_list_regex(item_regex=NUMBER_LIST_REGEX))
+def parse_number_list_list(text: str) -> List[List[float]]:
+    number_list_texts = re.compile(f'({NUMBER_LIST_REGEX})').findall(text)
+    return [parse_number_list(text=number_list_text[0]) for number_list_text in number_list_texts]
 
 
 @parse.with_pattern(COORDINATES_REGEX)
@@ -49,4 +60,5 @@ register_type(Integer=parse_integer)
 register_type(LatLng=parse_lat_lng)
 register_type(Number=parse_number)
 register_type(NumberList=parse_number_list)
+register_type(NumberListList=parse_number_list_list)
 register_type(String=parse_string)

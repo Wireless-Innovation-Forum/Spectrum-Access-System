@@ -39,7 +39,7 @@ def step_impl(context: ContextApHeights, height_distribution: List[HeightDistrib
     indoor_grants = get_indoor_grants(cbsds=context.cbsds)
     number_of_indoor_grants = len(indoor_grants)
     for distribution in height_distribution:
-        grants_in_range = [cbsd for cbsd in indoor_grants if distribution.minimum_height_in_meters <= cbsd.height <= distribution.maximum_height_in_meters]
+        grants_in_range = [cbsd for cbsd in indoor_grants if distribution.minimum_height_in_meters <= cbsd.height_in_meters <= distribution.maximum_height_in_meters]
         number_of_grants_in_range = len(grants_in_range)
         fraction_in_range = number_of_grants_in_range / number_of_indoor_grants
         assert round(fraction_in_range, 2) == distribution.fraction_of_cbsds, \
@@ -53,7 +53,7 @@ def step_impl(context: ContextApHeights):
         context (behave.runner.Context):
     """
     indoor_grants = get_indoor_grants(cbsds=context.cbsds)
-    assert all((cbsd.height * 2) % 1 == 0 for cbsd in indoor_grants)
+    assert all((cbsd.height_in_meters * 2) % 1 == 0 for cbsd in indoor_grants)
 
 
 @step("outdoor antenna heights should be {expected_height:Number} meters")
@@ -63,7 +63,7 @@ def step_impl(context: ContextApHeights, expected_height: float):
         context (behave.runner.Context):
     """
     outdoor_grants = [cbsd for cbsd in context.cbsds if not cbsd.is_indoor]
-    assert all(grant.height == expected_height for grant in outdoor_grants)
+    assert all(grant.height_in_meters == expected_height for grant in outdoor_grants)
 
 
 def get_indoor_grants(cbsds: List[Cbsd]) -> List[Cbsd]:

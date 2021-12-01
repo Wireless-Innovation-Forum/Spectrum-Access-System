@@ -33,7 +33,7 @@ def step_impl(context: ContextCbsdInterference, gain_or_azimuth: str, expected_r
     Args:
         context (behave.runner.Context):
     """
-    receiver_gains_per_azimuth = context.interference_components[0].gain_receiver
+    receiver_gains_per_azimuth = context.interference_components[0].gain_receiver.values()
     attribute_name = 'gain' if gain_or_azimuth == 'gains' else 'azimuth'
     results = [getattr(gains_on_azimuth, attribute_name) for gains_on_azimuth in receiver_gains_per_azimuth]
     assert results == expected_results, f'{results} != {expected_results}'
