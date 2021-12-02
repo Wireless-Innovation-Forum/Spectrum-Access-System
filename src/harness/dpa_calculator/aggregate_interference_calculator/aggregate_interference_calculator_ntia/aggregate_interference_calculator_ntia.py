@@ -29,6 +29,9 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
 
     @cached_property
     def interference_information(self) -> List[InterferenceComponents]:
-        interference_components = [CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa).calculate() for cbsd in self._cbsds]
+        interference_components = []
+        for index, cbsd in enumerate(self._cbsds):
+            print(f'CBSD {index + 1} / {len(self._cbsds)}')
+            interference_components.append(CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa).calculate())
         grouped_by_building_loss = BuildingLossDistributor(interference_components=interference_components).distribute()
         return [item for items in grouped_by_building_loss for item in items]

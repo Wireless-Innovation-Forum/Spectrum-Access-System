@@ -30,15 +30,16 @@ class InterferenceParameters:
 
 @dataclass
 class AggregateInterferenceMonteCarloResults:
-    interference_max: float
-    interference_access_point: float
-    interference_user_equipment: float
+    distance: float
+    distance_access_point: float
+    distance_user_equipment: float
     runtime: timedelta
 
 
 class AggregateInterferenceMonteCarloCalculator:
-    def __init__(self, dpa: Dpa, target_threshold: float, number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS):
+    def __init__(self, dpa: Dpa, target_threshold: float, number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS, number_of_aps: Optional[int] = None):
         self._dpa = dpa
+        self._number_of_aps_override = number_of_aps
         self._number_of_iterations = number_of_iterations
         self._target_threshold = target_threshold
 
@@ -47,9 +48,9 @@ class AggregateInterferenceMonteCarloCalculator:
         interference_access_point = run_monte_carlo_simulation(function_to_run=self._single_run_access_point, number_of_iterations=self._number_of_iterations)
         interference_user_equipment = run_monte_carlo_simulation(function_to_run=self._single_run_user_equipment, number_of_iterations=self._number_of_iterations)
         return AggregateInterferenceMonteCarloResults(
-            interference_max=max(interference_access_point, interference_user_equipment),
-            interference_access_point=interference_access_point,
-            interference_user_equipment=interference_user_equipment,
+            distance=max(interference_access_point, interference_user_equipment),
+            distance_access_point=interference_access_point,
+            distance_user_equipment=interference_user_equipment,
             runtime=datetime.now() - start_time
         )
 
@@ -77,7 +78,9 @@ class AggregateInterferenceMonteCarloCalculator:
 
     @cached_property
     def _number_of_aps(self) -> int:
-        population = PopulationRetrieverRegionType(area=self._dpa_test_zone).retrieve()
+        if self._number_of_aps_override:
+            return self._number_of_aps_override
+        population = PopulationRetrieverCensus(area=self._dpa_test_zone).retrieve()
         return NumberOfApsCalculatorShipborne(center_coordinates=self._dpa_test_zone.center_coordinates,
                                               simulation_population=population).get_number_of_aps()
 

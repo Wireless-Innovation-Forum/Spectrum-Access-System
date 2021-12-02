@@ -26,7 +26,7 @@ class PropagationLossCalculator:
             lat_rx=self._dpa_center.latitude,
             lon_rx=self._dpa_center.longitude,
             height_rx=self._dpa.radar_height,
-            cbsd_indoor=self._cbsd.is_indoor,
+            cbsd_indoor=False,  # setting to true will include building loss. We are implementing that separately.
             freq_mhz=FREQ_PROP_MODEL).db_loss
 
     @property

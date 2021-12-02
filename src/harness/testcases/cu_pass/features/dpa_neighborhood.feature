@@ -266,6 +266,9 @@ Feature: DPA Neighborhood
 
   @slow
   Scenario: The DPA neighborhood is calculated for category A CBSDs
+#    72 km with 1 iteration with population census data
+#    87 km with 1 iteration with population census data and no double building loss from winnforum itm
+
     Given an antenna at McKinney
     And an interference_threshold of -144
     When the neighborhood radius is calculated
