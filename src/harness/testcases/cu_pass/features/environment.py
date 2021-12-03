@@ -6,7 +6,8 @@ from typing import Iterable, Union
 from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
-from testcases.cu_pass.features.environment.hooks import ContextSas, total_interference_before_scenario
+from testcases.cu_pass.features.environment.hooks import ContextSas, neighborhood_calculation_before_scenario, \
+    total_interference_before_scenario
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
@@ -55,6 +56,8 @@ import_all_step_definitions()
 def before_scenario(context: ContextSas, scenario: Scenario):
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
+    elif 'The DPA neighborhood is calculated' in scenario.name:
+        neighborhood_calculation_before_scenario(context=context)
 
 
 def before_tag(context: ContextSas, tag: str):

@@ -265,7 +265,7 @@ Feature: DPA Neighborhood
       | [3,2,1,0]    | -1     | 4               |
 
   @slow
-  Scenario: The DPA neighborhood is calculated for category A CBSDs
+  Scenario: The DPA neighborhood is calculated
 #    Census number of APs for McKinney: 185,730
 #    Region type rural number of APs: 653,558
 #    72 km with 1 iteration with population census data
@@ -282,5 +282,8 @@ Feature: DPA Neighborhood
 
     Given an antenna at McKinney
     And an interference_threshold of -144
+    And WinnForum interference
+    And population by census radius
+    And number of APs using shipborne analysis
     When the neighborhood radius is calculated
     Then the result should be 1

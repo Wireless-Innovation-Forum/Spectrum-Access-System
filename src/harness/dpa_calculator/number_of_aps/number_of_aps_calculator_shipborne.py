@@ -15,10 +15,6 @@ class NumberOfApsCalculatorShipborne(NumberOfApsCalculator):
     _channel_scaling_factor = 0.1
     _market_penetration_factor = 0.2
 
-    def __init__(self, center_coordinates: Point, simulation_population: int):
-        super().__init__(simulation_population=simulation_population)
-        self._center_coordinates = center_coordinates
-
     def get_number_of_aps(self) -> int:
         return round(self._number_of_aps_exact)
 

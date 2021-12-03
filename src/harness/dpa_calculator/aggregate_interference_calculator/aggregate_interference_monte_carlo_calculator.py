@@ -1,19 +1,23 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import partial
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from cached_property import cached_property
 
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
+    AggregateInterferenceCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
+from dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
 from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from dpa_calculator.parameter_finder import ParameterFinder
 from dpa_calculator.point_distributor import AreaCircle
+from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
-from dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
 from dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.dpa_mgr import Dpa
 
@@ -37,11 +41,21 @@ class AggregateInterferenceMonteCarloResults:
 
 
 class AggregateInterferenceMonteCarloCalculator:
-    def __init__(self, dpa: Dpa, target_threshold: float, number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS, number_of_aps: Optional[int] = None):
+    def __init__(self,
+                 dpa: Dpa,
+                 target_threshold: float,
+                 number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
+                 number_of_aps: Optional[int] = None,
+                 aggregate_interference_calculator_class: Type[AggregateInterferenceCalculator] = AggregateInterferenceCalculatorNtia,
+                 population_retriever_class: Type[PopulationRetriever] = PopulationRetrieverCensus,
+                 number_of_aps_calculator_class: Type[NumberOfApsCalculator] = NumberOfApsCalculatorShipborne):
         self._dpa = dpa
         self._number_of_aps_override = number_of_aps
         self._number_of_iterations = number_of_iterations
         self._target_threshold = target_threshold
+        self._aggregate_interference_calculator_class = aggregate_interference_calculator_class
+        self._population_retriever_class = population_retriever_class
+        self._number_of_aps_calculator_class = number_of_aps_calculator_class
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         start_time = datetime.now()
@@ -64,9 +78,9 @@ class AggregateInterferenceMonteCarloCalculator:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
         return ParameterFinder(function=interference_calculator.calculate, target=self._target_threshold).find()
 
-    def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculatorNtia:
+    def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
         cbsds = self._random_cbsds(is_user_equipment=is_user_equipment)
-        return AggregateInterferenceCalculatorNtia(dpa=self._dpa, cbsds=cbsds)
+        return self._aggregate_interference_calculator_class(dpa=self._dpa, cbsds=cbsds)
 
     def _random_cbsds(self, is_user_equipment: bool) -> List[Cbsd]:
         cbsds_creator = get_cbsds_creator(dpa_zone=self._dpa_test_zone,
@@ -80,9 +94,9 @@ class AggregateInterferenceMonteCarloCalculator:
     def _number_of_aps(self) -> int:
         if self._number_of_aps_override:
             return self._number_of_aps_override
-        population = PopulationRetrieverCensus(area=self._dpa_test_zone).retrieve()
-        return NumberOfApsCalculatorShipborne(center_coordinates=self._dpa_test_zone.center_coordinates,
-                                              simulation_population=population).get_number_of_aps()
+        population = self._population_retriever_class(area=self._dpa_test_zone).retrieve()
+        return self._number_of_aps_calculator_class(center_coordinates=self._dpa_test_zone.center_coordinates,
+                                                    simulation_population=population).get_number_of_aps()
 
     @property
     def _dpa_test_zone(self) -> AreaCircle:
@@ -94,3 +108,13 @@ class AggregateInterferenceMonteCarloCalculator:
     @staticmethod
     def _kml_output_filepath(is_user_equipment: bool) -> Path:
         return Path(f'grants_{is_user_equipment}.kml')
+
+
+def get_aggregate_interference_monte_carlo_calculator(aggregate_interference_calculator_class: Type[AggregateInterferenceCalculator],
+                                                      population_retriever_class: Type[PopulationRetriever],
+                                                      number_of_aps_calculator_class: Type[NumberOfApsCalculator]):
+    return partial(AggregateInterferenceMonteCarloCalculator,
+                   aggregate_interference_calculator_class=aggregate_interference_calculator_class,
+                   population_retriever_class=population_retriever_class,
+                   number_of_aps_calculator_class=number_of_aps_calculator_class)
+
