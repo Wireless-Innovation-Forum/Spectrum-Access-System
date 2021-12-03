@@ -10,7 +10,7 @@ HERTZ_IN_MEGAHERTZ = 1e6
 
 
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
-    def calculate(self) -> float:
+    def calculate(self, minimum_distance: float) -> float:
         self._set_dpa_neighbors()
         return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel)[0]
 

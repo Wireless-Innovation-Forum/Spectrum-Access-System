@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
-from dpa_calculator.cbsd.cbsd import Cbsd
+from dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
 from dpa_calculator.utilities import Point
 
 CBSD_A_INDICATOR = 'A'
@@ -16,11 +16,17 @@ class CbsdGetter(ABC):
         self._location = location
 
     def get(self) -> Cbsd:
-        return Cbsd(eirp=self._eirp,
+        return Cbsd(cbsd_type=self._cbsd_type,
+                    eirp=self._eirp,
                     gain=self._gain,
                     height_in_meters=self._height,
                     is_indoor=self._is_indoor,
                     location=self._location)
+
+    @property
+    @abstractmethod
+    def _cbsd_type(self) -> CbsdTypes:
+        raise NotImplementedError
 
     @property
     @abstractmethod

@@ -1,11 +1,18 @@
 from dataclasses import dataclass
+from enum import auto, Enum
 
 from dpa_calculator.utilities import Point
 from reference_models.common.data import CbsdGrantInfo
 
 
+class CbsdTypes(Enum):
+    AP = auto()
+    UE = auto()
+
+
 @dataclass
 class Cbsd:
+    cbsd_type: CbsdTypes = None
     eirp: float = None
     gain: int = None
     height_in_meters: float = None

@@ -134,7 +134,16 @@ Feature: DPA Neighborhood
     When interference components are calculated for each CBSD
     Then EIRPs in the interference components should match those in the cbsds
     And all receiver insertion losses should be 2 dB
-    And all transmitter insertion losses should be 2 dB
+
+  Scenario: Transmitter insertion losses for APs are calculated
+    When AP CBSDs for the Monte Carlo simulation are created
+    And interference components are calculated for each CBSD
+    Then transmitter insertion losses for indoor APs should be 0 dB
+    And transmitter insertion losses for outdoor APs should be 2 dB
+
+  Scenario: Transmitter insertion losses for UEs are calculated
+    And interference components are calculated for each UE CBSD
+    And transmitter insertion losses for UEs should be 0 dB
 
   Scenario Template: Clutter loss is randomly assigned to rural sources
     Given a <region_type> location

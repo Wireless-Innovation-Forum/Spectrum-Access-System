@@ -18,6 +18,11 @@ COORDINATES_REGEX = rf'{NUMBER_REGEX}, ?{NUMBER_REGEX}'
 
 
 @parse.with_pattern('.*')
+def parse_any(text: str) -> str:
+    return text
+
+
+@parse.with_pattern('.*')
 def parse_string(text: str) -> str:
     return text
 
@@ -62,6 +67,7 @@ def parse_lat_lng(text: str) -> Point:
     )
 
 
+register_type(Any=parse_any)
 register_type(Integer=parse_integer)
 register_type(IntegerList=parse_integer_list)
 register_type(LatLng=parse_lat_lng)

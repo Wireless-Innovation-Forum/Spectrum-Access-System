@@ -1,10 +1,15 @@
+import unittest
 from glob import glob
 from pathlib import Path
 from runpy import run_path
 from typing import Iterable, Union
+from unittest import mock
 
+from behave import fixture, use_fixture
 from behave.model import Scenario
 
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers import \
+    propagation_loss_calculator
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import ContextSas, neighborhood_calculation_before_scenario, \
     total_interference_before_scenario
@@ -53,11 +58,19 @@ import_all_environments()
 import_all_step_definitions()
 
 
+@fixture()
+def mock_itm(*args):
+    with unittest.mock.patch.object(propagation_loss_calculator, 'CalcItmPropagationLoss'):
+        yield
+
+
 def before_scenario(context: ContextSas, scenario: Scenario):
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
     elif 'The DPA neighborhood is calculated' in scenario.name:
         neighborhood_calculation_before_scenario(context=context)
+    elif 'Transmitter insertion losses' in scenario.name:
+        use_fixture(mock_itm, context=context)
 
 
 def before_tag(context: ContextSas, tag: str):

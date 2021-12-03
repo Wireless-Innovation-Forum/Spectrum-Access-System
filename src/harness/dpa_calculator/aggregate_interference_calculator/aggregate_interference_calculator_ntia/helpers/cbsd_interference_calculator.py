@@ -1,13 +1,13 @@
 import random
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
 
-from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.cbsd.cbsd_interference_calculator.helpers.propagation_loss_calculator import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.propagation_loss_calculator import \
     PropagationLossCalculator
+from dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
 from dpa_calculator.utilities import get_bearing_between_two_points, get_distance_between_two_points, get_dpa_center, \
     Point, region_is_rural
-from reference_models.antenna.antenna import GetRadarNormalizedAntennaGains, GetStandardAntennaGains
+from reference_models.antenna.antenna import GetStandardAntennaGains
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import findAzimuthRange
 
@@ -61,8 +61,12 @@ class CbsdInterferenceCalculator:
             loss_clutter=random.uniform(CLUTTER_LOSS_MINIMUM, CLUTTER_LOSS_MAXIMUM) if self._is_rural else CLUTTER_LOSS_MINIMUM,
             loss_propagation=PropagationLossCalculator(cbsd=self._cbsd, dpa=self._dpa).calculate(),
             loss_receiver=INSERTION_LOSSES_IN_DB,
-            loss_transmitter=INSERTION_LOSSES_IN_DB
+            loss_transmitter=INSERTION_LOSSES_IN_DB if self._has_transmitter_losses else 0
         )
+
+    @property
+    def _has_transmitter_losses(self) -> bool:
+        return not self._cbsd.is_indoor and self._cbsd.cbsd_type == CbsdTypes.AP
 
     @property
     def _gain_receiver(self) -> Dict[float, GainAtAzimuth]:

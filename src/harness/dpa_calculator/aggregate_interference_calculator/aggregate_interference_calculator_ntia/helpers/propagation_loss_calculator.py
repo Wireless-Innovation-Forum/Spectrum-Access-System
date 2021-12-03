@@ -1,3 +1,4 @@
+from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point, region_is_rural
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import FREQ_PROP_MODEL
@@ -9,7 +10,7 @@ PROPAGATION_LOSS_HEIGHT_CUTOFF = 18
 
 
 class PropagationLossCalculator:
-    def __init__(self, cbsd: 'Cbsd', dpa: Dpa):
+    def __init__(self, cbsd: Cbsd, dpa: Dpa):
         self._cbsd = cbsd
         self._dpa = dpa
 

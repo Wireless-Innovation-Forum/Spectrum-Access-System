@@ -13,7 +13,6 @@ def step_impl(context: ContextCbsdInterference):
     assert eirps_cbsds == eirps_interference
 
 
-@then('all {antenna_end} insertion losses should be {expected_power:Integer} dB')
-def step_impl(context: ContextCbsdInterference, antenna_end: str, expected_power: int):
-    attribute_name = 'loss_transmitter' if antenna_end == 'transmitter' else 'loss_receiver'
-    assert all(getattr(components, attribute_name) == expected_power for components in context.interference_components)
+@then('all receiver insertion losses should be {expected_power:Integer} dB')
+def step_impl(context: ContextCbsdInterference, expected_power: int):
+    assert all(contributions.loss_receiver == expected_power for contributions in context.interference_components)

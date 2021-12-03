@@ -22,7 +22,7 @@ class InterferenceWithDistance:
 
 
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
-    def calculate(self, minimum_distance: float) -> float:
+    def calculate(self, minimum_distance: float = 0) -> float:
         total_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=minimum_distance,
                                                                             interference_components=self.interference_information).calculate()
         return total_interference + CORRECTION
