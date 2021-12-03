@@ -20,6 +20,7 @@ from dpa_calculator.population_retriever.population_retriever import PopulationR
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.dpa_mgr import Dpa
+from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
 
@@ -59,8 +60,12 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         start_time = datetime.now()
-        interference_access_point = run_monte_carlo_simulation(function_to_run=self._single_run_access_point, number_of_iterations=self._number_of_iterations)
-        interference_user_equipment = run_monte_carlo_simulation(function_to_run=self._single_run_user_equipment, number_of_iterations=self._number_of_iterations)
+        interference_access_point = run_monte_carlo_simulation(function_to_run=self._single_run_access_point,
+                                                               number_of_iterations=self._number_of_iterations,
+                                                               percentile=PROTECTION_PERCENTILE)
+        interference_user_equipment = run_monte_carlo_simulation(function_to_run=self._single_run_user_equipment,
+                                                                 number_of_iterations=self._number_of_iterations,
+                                                                 percentile=PROTECTION_PERCENTILE)
         return AggregateInterferenceMonteCarloResults(
             distance=max(interference_access_point, interference_user_equipment),
             distance_access_point=interference_access_point,

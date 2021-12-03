@@ -26,4 +26,3 @@ def step_impl(context: ContextCbsdInterference, expected_power: int):
         context (behave.runner.Context):
     """
     assert all(contribution.loss_transmitter == expected_power for contribution in context.interference_components)
-

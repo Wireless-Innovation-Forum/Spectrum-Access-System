@@ -25,12 +25,14 @@ def step_impl(context: ContextMonteCarlo):
     context.function_to_run = lambda: next(function_results)
 
 
-@when("a monte carlo simulation of the function is run")
-def step_impl(context: ContextMonteCarlo):
+@when("a monte carlo simulation of the function is run for the {percentile:Number} percentile")
+def step_impl(context: ContextMonteCarlo, percentile: float):
     """
     Args:
         context (behave.runner.Context):
     """
     number_of_iterations = 5
-    context.result = run_monte_carlo_simulation(function_to_run=context.function_to_run, number_of_iterations=number_of_iterations)
+    context.result = run_monte_carlo_simulation(function_to_run=context.function_to_run,
+                                                number_of_iterations=number_of_iterations,
+                                                percentile=percentile)
 

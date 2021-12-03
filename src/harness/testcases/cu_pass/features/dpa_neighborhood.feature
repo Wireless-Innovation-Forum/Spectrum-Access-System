@@ -127,8 +127,8 @@ Feature: DPA Neighborhood
 
   Scenario: A monte carlo simulation is run
     Given a function whose results return the next element of [1,2,3,4,5] each time it runs
-    When a monte carlo simulation of the function is run
-    Then the result should be 3
+    When a monte carlo simulation of the function is run for the 95 percentile
+    Then the result should be 4
 
   Scenario: Basic interference components from each CBSD is calculated
     When interference components are calculated for each CBSD
@@ -291,7 +291,7 @@ Feature: DPA Neighborhood
 
     Given an antenna at McKinney
     And an interference_threshold of -144
-    And WinnForum interference
+    And NTIA interference
     And population by census radius
     And number of APs using shipborne analysis
     When the neighborhood radius is calculated
