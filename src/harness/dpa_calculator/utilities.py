@@ -69,4 +69,8 @@ def region_is_rural(coordinates: Point) -> bool:
 
 
 def run_monte_carlo_simulation(function_to_run: Callable[[], float], number_of_iterations: int) -> float:
-    return mean(function_to_run() for _ in range(number_of_iterations))
+    results = []
+    for i in range(number_of_iterations):
+        print(f'Monte Carlo iteration {i}')
+        results.append(function_to_run())
+    return mean(results)
