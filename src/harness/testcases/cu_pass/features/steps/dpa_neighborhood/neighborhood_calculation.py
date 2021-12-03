@@ -39,6 +39,7 @@ def step_impl(context: ContextNeighborhood):
         context (behave.runner.Context):
     """
     override_number_of_aps_for_speed_purposes = 50
-    override_number_of_iterations_for_speed_purposes = 5
+    override_number_of_iterations_for_speed_purposes = 10
     context.result = AggregateInterferenceMonteCarloCalculator(dpa=context.dpa,
-                                                               target_threshold=context.interference_threshold).simulate().distance
+                                                               target_threshold=context.interference_threshold,
+                                                               number_of_iterations=override_number_of_iterations_for_speed_purposes).simulate().distance

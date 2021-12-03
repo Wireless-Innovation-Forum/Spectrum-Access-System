@@ -266,8 +266,19 @@ Feature: DPA Neighborhood
 
   @slow
   Scenario: The DPA neighborhood is calculated for category A CBSDs
+#    Census number of APs for McKinney: 185,730
+#    Region type rural number of APs: 653,558
 #    72 km with 1 iteration with population census data
 #    87 km with 1 iteration with population census data and no double building loss from winnforum itm
+#    [500 * 4] km with 4 iterations with population census data and only eirp in interference
+#    473 km with 1 iterations with population census data and only eirp and propagation loss
+#    314 km with 1 iterations with population region type data and only eirp and propagation loss
+#    167 km with 1 iterations with population region type data and only eirp and propagation loss and building loss
+#    121 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses
+#    113 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses and clutter loss
+#    284 km with 1 iterations with population census data and only eirp and propagation loss and building loss and clutter loss
+#    131 km with 10 iterations with population region type data and only eirp and propagation loss and building loss and clutter loss
+#      (2:17:17.486305)
 
     Given an antenna at McKinney
     And an interference_threshold of -144
