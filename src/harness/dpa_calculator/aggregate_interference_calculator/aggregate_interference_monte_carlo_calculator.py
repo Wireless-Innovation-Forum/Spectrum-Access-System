@@ -22,7 +22,7 @@ from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
-DEFAULT_SIMULATION_RADIUS = 300
+DEFAULT_SIMULATION_RADIUS = 200
 
 
 @dataclass
