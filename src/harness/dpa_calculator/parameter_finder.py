@@ -11,25 +11,7 @@ class ParameterFinder:
         self._max = max_parameter
 
     def find(self) -> int:
-        # results_extremity = self._results_extremity()
-        # if results_extremity is not None:
-        #     return results_extremity
-        # self._grow_max_input()
         return self._perform_binary_search()
-
-    # def _results_extremity(self) -> Optional[int]:
-    #     min_result = self._function(self._max)
-    #     if self._target < min_result:
-    #         return self._max
-    #     if self._target > self._function(self._min):
-    #         return self._min
-    #
-    # def _grow_max_input(self) -> None:
-    #     phase_one_counter = -1
-    #     while self._target < self._function_result_with_current_parameter():
-    #         phase_one_counter += 1
-    #         self._min = self._current_parameter
-    #         self._max = self._min + 2 ** phase_one_counter
 
     def _perform_binary_search(self) -> int:
         current_results = self._function_result_with_current_parameter()

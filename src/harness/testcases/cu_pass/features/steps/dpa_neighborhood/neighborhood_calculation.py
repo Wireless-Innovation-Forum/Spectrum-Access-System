@@ -9,7 +9,7 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
     AggregateInterferenceCalculatorWinnforum
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
-    AggregateInterferenceMonteCarloCalculator, get_aggregate_interference_monte_carlo_calculator
+    AggregateInterferenceMonteCarloCalculator
 from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
@@ -24,6 +24,7 @@ use_step_matcher('parse')
 class ContextNeighborhood(ContextResult, ContextDpa):
     interference_threshold: int
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
+    number_of_iterations: int
 
 
 @step("an interference_threshold of {interference_threshold:Integer}")
@@ -48,7 +49,7 @@ def step_impl(context: ContextNeighborhood, organization: str):
 @step("population by {population_type}")
 def step_impl(context: ContextNeighborhood, population_type: str):
     map = {
-        'census': PopulationRetrieverCensus,
+        'census radius': PopulationRetrieverCensus,
         'region type': PopulationRetrieverRegionType
     }
     context.monte_carlo_runner = partial(context.monte_carlo_runner,
@@ -65,14 +66,18 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
                                          number_of_aps_calculator_class=map[number_of_aps_type])
 
 
+@step("{number_of_iterations:Integer} monte carlo iterations")
+def step_impl(context: ContextNeighborhood, number_of_iterations: int):
+    context.number_of_iterations = number_of_iterations
+
+
 @when("the neighborhood radius is calculated")
 def step_impl(context: ContextNeighborhood):
     """
     Args:
         context (behave.runner.Context):
     """
-    override_number_of_aps_for_speed_purposes = 50
-    override_number_of_iterations_for_speed_purposes = 10
-    context.result = context.monte_carlo_runner(dpa=context.dpa,
-                                                target_threshold=context.interference_threshold,
-                                                number_of_iterations=override_number_of_iterations_for_speed_purposes).simulate().distance
+    simulation_results = context.monte_carlo_runner(dpa=context.dpa,
+                                                    target_threshold=context.interference_threshold,
+                                                    number_of_iterations=context.number_of_iterations).simulate()
+    context.result = simulation_results.distance

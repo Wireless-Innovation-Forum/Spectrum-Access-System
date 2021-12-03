@@ -1,6 +1,7 @@
-from typing import Callable, Tuple
+from typing import Callable, List, Tuple
 
 import numpy
+from numpy import asarray
 from shapely import geometry
 
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
@@ -68,9 +69,11 @@ def region_is_rural(coordinates: Point) -> bool:
     return get_region_type(coordinates=coordinates) == REGION_TYPE_RURAL
 
 
-def run_monte_carlo_simulation(function_to_run: Callable[[], float], number_of_iterations: int, percentile: float = 50) -> float:
+def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], number_of_iterations: int, percentile: float = 50) -> List[float]:
     results = []
     for i in range(number_of_iterations):
         print(f'Monte Carlo iteration {i}')
-        results.append(function_to_run())
-    return numpy.percentile(results, percentile, interpolation='lower')
+        iteration_results = [function_to_run() for function_to_run in functions_to_run]
+        results.append(iteration_results)
+    results_per_function = asarray(results).transpose()
+    return [numpy.percentile(iteration_results, percentile, interpolation='lower') for iteration_results in results_per_function]

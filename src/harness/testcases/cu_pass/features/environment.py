@@ -11,7 +11,8 @@ from behave.model import Scenario
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers import \
     propagation_loss_calculator
 from testcases.cu_pass.features import environment, steps
-from testcases.cu_pass.features.environment.hooks import ContextSas, neighborhood_calculation_before_scenario, \
+from testcases.cu_pass.features.environment.hooks import ContextSas, \
+    neighborhood_calculation_before_scenario, \
     total_interference_before_scenario
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 

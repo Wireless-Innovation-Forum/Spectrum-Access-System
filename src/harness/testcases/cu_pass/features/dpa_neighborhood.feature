@@ -125,11 +125,6 @@ Feature: DPA Neighborhood
     When UE CBSDs for the Monte Carlo simulation are created
     Then the antenna EIRPs should be 24 dBm
 
-  Scenario: A monte carlo simulation is run
-    Given a function whose results return the next element of [1,2,3,4,5] each time it runs
-    When a monte carlo simulation of the function is run for the 95 percentile
-    Then the result should be 4
-
   Scenario: Basic interference components from each CBSD is calculated
     When interference components are calculated for each CBSD
     Then EIRPs in the interference components should match those in the cbsds
@@ -273,26 +268,45 @@ Feature: DPA Neighborhood
       | result_array | target | expected_result |
       | [3,2,1,0]    | -1     | 4               |
 
-  @slow
-  Scenario: The DPA neighborhood is calculated
-#    Census number of APs for McKinney: 185,730
-#    Region type rural number of APs: 653,558
-#    72 km with 1 iteration with population census data
-#    87 km with 1 iteration with population census data and no double building loss from winnforum itm
-#    [500 * 4] km with 4 iterations with population census data and only eirp in interference
-#    473 km with 1 iterations with population census data and only eirp and propagation loss
-#    314 km with 1 iterations with population region type data and only eirp and propagation loss
-#    167 km with 1 iterations with population region type data and only eirp and propagation loss and building loss
-#    121 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses
-#    113 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses and clutter loss
-#    284 km with 1 iterations with population census data and only eirp and propagation loss and building loss and clutter loss
-#    131 km with 10 iterations with population region type data and only eirp and propagation loss and building loss and clutter loss
-#      (2:17:17.486305)
+  Scenario Template: A monte carlo simulation is run
+    Given functions whose results return the next element of <function_results> each time it runs
+    When a monte carlo simulation of the function is run for the 95 percentile
+    Then the simulation results should be <expected_simulation_results>
 
-    Given an antenna at McKinney
-    And an interference_threshold of -144
-    And NTIA interference
-    And population by census radius
-    And number of APs using shipborne analysis
+    Examples:
+      | function_results            | expected_simulation_results |
+      | [[1,2,3,4,5]]               | [4]                         |
+      | [[1,2,3,4,5], [10,9,8,7,6]] | [4, 9]                      |
+
+#  @slow
+#  Scenario: The DPA neighborhood is calculated with 50 percentil
+##    Census number of APs for McKinney: 185,730
+##    Region type rural number of APs: 653,558
+##    72 km with 1 iteration with population census data
+##    87 km with 1 iteration with population census data and no double building loss from winnforum itm
+##    [500 * 4] km with 4 iterations with population census data and only eirp in interference
+##    473 km with 1 iterations with population census data and only eirp and propagation loss
+##    314 km with 1 iterations with population region type data and only eirp and propagation loss
+##    167 km with 1 iterations with population region type data and only eirp and propagation loss and building loss
+##    121 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses
+##    113 km with 1 iterations with population region type data and only eirp and propagation loss and building loss and insertion losses and clutter loss
+##    284 km with 1 iterations with population census data and only eirp and propagation loss and building loss and clutter loss
+##    131 km with 10 iterations with population region type data and only eirp and propagation loss and building loss and clutter loss
+##      (2:17:17.486305)
+
+  @slow
+  Scenario Template: The DPA neighborhood is calculated
+    Given an antenna at <dpa_name>
+    And an interference_threshold of <interference_threshold>
+    And <organization_interference> interference
+    And population by <population_type>
+    And number of APs using <number_of_aps_type> analysis
+    And <number_of_iterations> monte carlo iterations
     When the neighborhood radius is calculated
-    Then the result should be 1
+    Then the result should be <expected_result>
+
+    Examples:
+      | dpa_name | interference_threshold | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance |
+#      | McKinney | -144                   | NTIA                      | region type     | shipborne          | 1                    | 75              |                 |                       |                         |
+#      | McKinney | -144                   | NTIA                      | census radius   | shipborne          | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |
+#      | McKinney | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |

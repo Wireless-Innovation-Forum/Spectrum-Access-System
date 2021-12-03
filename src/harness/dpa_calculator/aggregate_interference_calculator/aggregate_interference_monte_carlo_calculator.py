@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import partial
 from pathlib import Path
 from typing import List, Optional, Type
 
@@ -23,8 +22,7 @@ from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
-
-DEFAULT_SIMULATION_RADIUS = 500
+DEFAULT_SIMULATION_RADIUS = 300
 
 
 @dataclass
@@ -60,12 +58,10 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         start_time = datetime.now()
-        interference_access_point = run_monte_carlo_simulation(function_to_run=self._single_run_access_point,
-                                                               number_of_iterations=self._number_of_iterations,
-                                                               percentile=PROTECTION_PERCENTILE)
-        interference_user_equipment = run_monte_carlo_simulation(function_to_run=self._single_run_user_equipment,
-                                                                 number_of_iterations=self._number_of_iterations,
-                                                                 percentile=PROTECTION_PERCENTILE)
+        [interference_access_point, interference_user_equipment] = run_monte_carlo_simulation(
+            functions_to_run=[self._single_run_access_point, self._single_run_user_equipment],
+            number_of_iterations=self._number_of_iterations,
+            percentile=PROTECTION_PERCENTILE)
         return AggregateInterferenceMonteCarloResults(
             distance=max(interference_access_point, interference_user_equipment),
             distance_access_point=interference_access_point,
@@ -113,13 +109,3 @@ class AggregateInterferenceMonteCarloCalculator:
     @staticmethod
     def _kml_output_filepath(is_user_equipment: bool) -> Path:
         return Path(f'grants_{is_user_equipment}.kml')
-
-
-def get_aggregate_interference_monte_carlo_calculator(aggregate_interference_calculator_class: Type[AggregateInterferenceCalculator],
-                                                      population_retriever_class: Type[PopulationRetriever],
-                                                      number_of_aps_calculator_class: Type[NumberOfApsCalculator]):
-    return partial(AggregateInterferenceMonteCarloCalculator,
-                   aggregate_interference_calculator_class=aggregate_interference_calculator_class,
-                   population_retriever_class=population_retriever_class,
-                   number_of_aps_calculator_class=number_of_aps_calculator_class)
-
