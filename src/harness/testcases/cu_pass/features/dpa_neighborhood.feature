@@ -319,6 +319,6 @@ Feature: DPA Neighborhood
 #      | McKinney   | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
 
 #      | Moorestown | -144                   | NTIA                      | region type     | shipborne          | 3                    | 109              | 1:39:39.110491  | 62                    | 109                     | no receiver gain |
-      | Moorestown | -144                   | NTIA                      | census radius   | shipborne          | 3                    |                |                 |                       |                         | no receiver gain |
+#      | Moorestown | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 173            | 8:27:01.674526    | 93                    | 173                      | no receiver gain |
 
-      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 100                  |                |                 |                       |                         | no receiver gain |
+#      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 100                  | 139            | 5:59:26.229337    | 125                   | 139                     | no receiver gain |
