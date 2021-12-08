@@ -22,18 +22,8 @@ use_step_matcher('parse')
 
 @dataclass
 class ContextNeighborhood(ContextResult, ContextDpa):
-    interference_threshold: int
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
     number_of_iterations: int
-
-
-@step("an interference_threshold of {interference_threshold:Integer}")
-def step_impl(context: ContextNeighborhood, interference_threshold: int):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    context.interference_threshold = interference_threshold
 
 
 @step("{organization} interference")
@@ -78,6 +68,5 @@ def step_impl(context: ContextNeighborhood):
         context (behave.runner.Context):
     """
     simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                    target_threshold=context.interference_threshold,
                                                     number_of_iterations=context.number_of_iterations).simulate()
     context.result = simulation_results.distance

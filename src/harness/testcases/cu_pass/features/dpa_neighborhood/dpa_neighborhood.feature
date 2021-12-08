@@ -80,7 +80,6 @@ Feature: DPA Neighborhood
 #    Moorestown census population number of UEs is 571,850
 
     Given an antenna at <dpa_name>
-    And an interference_threshold of <interference_threshold>
     And <organization_interference> interference
     And population by <population_type>
     And number of APs using <number_of_aps_type> analysis
@@ -89,18 +88,18 @@ Feature: DPA Neighborhood
     Then the result should be <expected_result>
 
     Examples:
-      | dpa_name  | interference_threshold | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
-      | Hat Creek | -201                   | NTIA                      | census radius   | shipborne          | 3                    |               |                 |                       |                         |     |
+      | dpa_name  | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
+      | Hat Creek | NTIA                      | census radius   | shipborne          | 3                    |               |                 |                       |                         |     |
 
-#      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 1                    | 75              |                 |                       |                         |     |
+#      | McKinney   | NTIA                      | region type     | shipborne          | 1                    | 75              |                 |                       |                         |     |
 
-#      | McKinney   | -144                   | NTIA                      | census radius   | shipborne          | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |
-#      | McKinney   | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
+#      | McKinney   | NTIA                      | census radius   | shipborne          | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |
+#      | McKinney   | NTIA                      | census radius   | shipborne          | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
 
-#      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 3                    | 130              | 0:23:25.460508  | 113                   | 130                     | no receiver gain |
-#      | McKinney   | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
+#      | McKinney   | NTIA                      | region type     | shipborne          | 3                    | 130              | 0:23:25.460508  | 113                   | 130                     | no receiver gain |
+#      | McKinney   | NTIA                      | census radius   | shipborne          | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
 
-#      | Moorestown | -144                   | NTIA                      | region type     | shipborne          | 3                    | 109              | 1:39:39.110491  | 62                    | 109                     | no receiver gain |
-#      | Moorestown | -144                   | NTIA                      | census radius   | shipborne          | 3                    | 173            | 8:27:01.674526    | 93                    | 173                      | no receiver gain |
+#      | Moorestown | NTIA                      | region type     | shipborne          | 3                    | 109              | 1:39:39.110491  | 62                    | 109                     | no receiver gain |
+#      | Moorestown | NTIA                      | census radius   | shipborne          | 3                    | 173            | 8:27:01.674526    | 93                    | 173                      | no receiver gain |
 
-#      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 100                  | 139            | 5:59:26.229337    | 125                   | 139                     | no receiver gain |
+#      | McKinney   | NTIA                      | region type     | shipborne          | 100                  | 139            | 5:59:26.229337    | 125                   | 139                     | no receiver gain |

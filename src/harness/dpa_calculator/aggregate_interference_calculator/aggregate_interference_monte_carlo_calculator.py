@@ -42,7 +42,6 @@ class AggregateInterferenceMonteCarloResults:
 class AggregateInterferenceMonteCarloCalculator:
     def __init__(self,
                  dpa: Dpa,
-                 target_threshold: float,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  number_of_aps: Optional[int] = None,
                  aggregate_interference_calculator_class: Type[AggregateInterferenceCalculator] = AggregateInterferenceCalculatorNtia,
@@ -51,7 +50,6 @@ class AggregateInterferenceMonteCarloCalculator:
         self._dpa = dpa
         self._number_of_aps_override = number_of_aps
         self._number_of_iterations = number_of_iterations
-        self._target_threshold = target_threshold
         self._aggregate_interference_calculator_class = aggregate_interference_calculator_class
         self._population_retriever_class = population_retriever_class
         self._number_of_aps_calculator_class = number_of_aps_calculator_class
@@ -77,7 +75,7 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> float:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        return ParameterFinder(function=interference_calculator.calculate, target=self._target_threshold).find()
+        return ParameterFinder(function=interference_calculator.calculate, target=self._dpa.threshold).find()
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
         cbsds = self._random_cbsds(is_user_equipment=is_user_equipment)
