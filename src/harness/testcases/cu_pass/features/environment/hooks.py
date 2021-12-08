@@ -1,16 +1,30 @@
 from dataclasses import dataclass
+from unittest import mock
 
-from behave import runner
+from behave import fixture, runner, use_fixture
 
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers import \
+    propagation_loss_calculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     GainAtAzimuth, InterferenceComponents
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
 
 @dataclass
 class ContextSas(runner.Context):
     with_integration: bool
+
+
+@fixture()
+def mock_itm(*args):
+    with mock.patch.object(propagation_loss_calculator, 'CalcItmPropagationLoss'):
+        yield
+
+
+def antenna_gains_before_scenario(context: ContextSas):
+    assign_arbitrary_dpa(context=context)
 
 
 def neighborhood_calculation_before_scenario(context: ContextSas):
@@ -28,3 +42,6 @@ def total_interference_before_scenario(context: ContextSas):
                                                              loss_receiver=0,
                                                              loss_transmitter=0)
 
+
+def transmitter_insertion_losses_before_scenario(context: ContextSas):
+    use_fixture(mock_itm, context=context)

@@ -114,14 +114,18 @@ Feature: Deployment Characteristics
     When interference components are calculated for each CBSD
     Then the distance from the antenna should be 100
 
-  Scenario: Uniform receive antenna gains are calculated
-    Given a dpa with azimuth range [60, 120] and beamwidth 30
-    And random seed 5
+  Scenario: Gain pattern antenna gains are calculated
+    Given random seed 3
+    And azimuth range [60, 120]
+    And beamwidth 30
+    And a uniform gain pattern
     When interference components are calculated for each CBSD
-    Then the receive antenna gains should be [0.8766095731965083, 0.848936567834775, 3.7816585710009916, 5.625166068881945, 1.6135574527107925]
+    Then the receive antenna gains should be [1.2017051500600697, 3.05545643464191, 2.263308776654127, 2.7547588253892816, 4.2751240842257365]
+    And the receive antenna azimuths should be [60.0, 75.0, 90.0, 105.0, 120.0]
 
   Scenario: Standard receive antenna gains are calculated
-    Given a dpa with azimuth range [60, 120] and beamwidth 30
+    Given azimuth range [60, 120]
+    And beamwidth 30
     And a CBSD at a location 33.19313987787715, -96.36484196127637
     When interference components are calculated for each CBSD with standard receive antenna gain
     Then the receive antenna gains should be [-16.585712131717642, -5.477964417053489, -0.3702167023893314, -1.2624689877251745, -8.154721273061018]

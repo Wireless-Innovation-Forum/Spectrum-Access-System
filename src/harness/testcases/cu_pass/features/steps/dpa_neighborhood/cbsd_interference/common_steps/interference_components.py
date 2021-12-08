@@ -9,8 +9,8 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     AntennaGainCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_standard import \
     AntennaGainCalculatorStandard
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_uniform import \
-    AntennaGainCalculatorUniform
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
+    AntennaGainCalculatorGainPattern
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -27,7 +27,7 @@ def parse_receive_antenna_gain_calculator_type(text: str) -> Type[AntennaGainCal
     if RECEIVE_ANTENNA_GAIN_TYPE_STANDARD in text:
         return AntennaGainCalculatorStandard
     if RECEIVE_ANTENNA_GAIN_TYPE_UNIFORM in text:
-        return AntennaGainCalculatorUniform
+        return AntennaGainCalculatorGainPattern
 
 
 register_type(ReceiveAntennaGainType=parse_receive_antenna_gain_calculator_type)
@@ -39,7 +39,7 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         nonlocal receive_antenna_gain_type
         nonlocal cbsd_type
         if receive_antenna_gain_type is None:
-            receive_antenna_gain_type = AntennaGainCalculatorUniform
+            receive_antenna_gain_type = AntennaGainCalculatorGainPattern
         cbsd_type = cbsd_type or ''
 
     def set_context_defaults():

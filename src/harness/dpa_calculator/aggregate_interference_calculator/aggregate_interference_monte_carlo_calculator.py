@@ -11,6 +11,7 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     AggregateInterferenceCalculatorNtia
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
+from dpa_calculator.dpa.dpa import Dpa
 from dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
 from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from dpa_calculator.parameter_finder import ParameterFinder
@@ -18,7 +19,6 @@ from dpa_calculator.point_distributor import AreaCircle
 from dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
-from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000

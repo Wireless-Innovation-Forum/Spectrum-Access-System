@@ -21,25 +21,6 @@ Feature: DPA Neighborhood
       - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
     - Simulation population calculated from https://www.freemaptools.com/find-population.htm
 
-#  @slow
-#  Scenario Outline: Aggregate interference is calculated
-#    Given an antenna at <dpa_name>
-#    And an exclusion zone distance of 150 km
-#    And <number_of_aps> APs
-#    When a monte carlo simulation of <number_of_iterations> iterations for the aggregate interference is run
-#    Then the result should be <expected_results>
-#
-#    Examples: McKinney
-#      | organization_calculation | dpa_name | number_of_aps | number_of_iterations | expected_results    | runtime        |
-##      | WinnForum                | McKinney | 47306         | 1                    | -136.02466056949282 |                |
-##      | WinnForum                | McKinney | 500           | 50                   | -152.4715449381896  | 0:10:15.841380 |
-##      | WinnForum                | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
-#      | NTIA                     | McKinney | 500           | 500                  | -151.53452322241543 | 1:41:01.078026 |
-#
-##    Examples: Moorestown
-##      | organization_calculation | dpa_name   | number_of_aps | number_of_iterations | expected_results    | runtime        |
-##      | WinnForum                | Moorestown | 8765          | 1                    | -127.61028382322594 | 1:04:28.128740 |
-
   Scenario Outline: A binary search algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index
     And a target of <target>
@@ -108,7 +89,9 @@ Feature: DPA Neighborhood
     Then the result should be <expected_result>
 
     Examples:
-      | dpa_name | interference_threshold | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
+      | dpa_name  | interference_threshold | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
+      | Hat Creek | -201                   | NTIA                      | census radius   | shipborne          | 3                    |               |                 |                       |                         |     |
+
 #      | McKinney   | -144                   | NTIA                      | region type     | shipborne          | 1                    | 75              |                 |                       |                         |     |
 
 #      | McKinney   | -144                   | NTIA                      | census radius   | shipborne          | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |

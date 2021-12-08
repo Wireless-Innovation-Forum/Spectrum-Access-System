@@ -1,5 +1,5 @@
 import random
-from typing import Dict
+from typing import Dict, Type
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator import \
     AntennaGainCalculator
@@ -17,10 +17,10 @@ class CbsdInterferenceCalculator:
     def __init__(self,
                  cbsd: Cbsd,
                  dpa: Dpa,
-                 receive_antenna_gain_calculator: AntennaGainCalculator):
+                 receive_antenna_gain_calculator_class: Type[AntennaGainCalculator]):
         self._cbsd = cbsd
         self._dpa = dpa
-        self._receive_antenna_gain_calculator = receive_antenna_gain_calculator
+        self._receive_antenna_gain_calculator_class = receive_antenna_gain_calculator_class
 
     def calculate(self) -> InterferenceComponents:
         return InterferenceComponents(
@@ -42,7 +42,7 @@ class CbsdInterferenceCalculator:
 
     @property
     def _gain_receiver(self) -> Dict[float, GainAtAzimuth]:
-        return self._receive_antenna_gain_calculator.calculate(cbsd=self._cbsd)
+        return self._receive_antenna_gain_calculator_class(cbsd=self._cbsd, dpa=self._dpa).calculate()
 
     @property
     def _is_rural(self) -> bool:

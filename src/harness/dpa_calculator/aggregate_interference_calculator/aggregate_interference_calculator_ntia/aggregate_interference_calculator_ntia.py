@@ -9,8 +9,8 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     BuildingLossDistributor
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator import \
     AntennaGainCalculator
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_uniform import \
-    AntennaGainCalculatorUniform
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
+    AntennaGainCalculatorGainPattern
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.cbsd_interference_calculator import CbsdInterferenceCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     InterferenceComponents
@@ -46,8 +46,4 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
         return cbsd_interference_calculator.calculate()
 
     def _get_cbsd_interference_calculator(self, cbsd: Cbsd) -> CbsdInterferenceCalculator:
-        return CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa, receive_antenna_gain_calculator=self._receive_antenna_gain_calculator)
-
-    @property
-    def _receive_antenna_gain_calculator(self) -> AntennaGainCalculator:
-        return self._receive_antenna_gain_calculator_class(dpa=self._dpa)
+        return CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa, receive_antenna_gain_calculator_class=self._receive_antenna_gain_calculator_class)

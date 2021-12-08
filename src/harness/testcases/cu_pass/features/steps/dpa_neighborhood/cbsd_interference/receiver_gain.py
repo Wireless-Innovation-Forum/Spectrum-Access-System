@@ -4,20 +4,29 @@ from typing import List
 from behave import *
 
 from dpa_calculator.cbsd.cbsd import Cbsd
+from dpa_calculator.dpa.utilities import get_uniform_gain_pattern
 from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import NumberRange
 
 use_step_matcher("parse")
 
 
-@given("a dpa with azimuth range {azimuth_range:NumberList} and beamwidth {beamwidth:Integer}")
-def step_impl(context: ContextCbsdInterference, azimuth_range: List[float], beamwidth: int):
+@given("azimuth range {azimuth_range:NumberList}")
+def step_impl(context: ContextCbsdInterference, azimuth_range: List[float]):
     assign_arbitrary_dpa(context=context)
     context.dpa.azimuth_range = tuple(azimuth_range)
+
+
+@step("beamwidth {beamwidth:Integer}")
+def step_impl(context: ContextCbsdInterference, beamwidth: int):
     context.dpa.beamwidth = beamwidth
+
+
+@step("a uniform gain pattern")
+def step_impl(context: ContextCbsdInterference):
+    context.dpa.gain_pattern = get_uniform_gain_pattern()
 
 
 @step("a CBSD at a location {coordinates:LatLng}")
