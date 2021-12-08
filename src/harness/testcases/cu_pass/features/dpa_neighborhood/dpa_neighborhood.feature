@@ -76,6 +76,7 @@ Feature: DPA Neighborhood
 
   @slow
   Scenario Template: The DPA neighborhood is calculated
+#    Hat Creek census population number of APs is 102,267
 #    McKinney census population number of UEs is 223,182
 #    Moorestown census population number of UEs is 571,850
 

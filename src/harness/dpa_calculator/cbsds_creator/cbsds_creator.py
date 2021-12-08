@@ -20,13 +20,6 @@ PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_URBAN: 0.8
 }
 
-UE_PER_AP_BY_REGION_TYPE = {
-    REGION_TYPE_DENSE_URBAN: 50,
-    REGION_TYPE_RURAL: 3,
-    REGION_TYPE_SUBURBAN: 20,
-    REGION_TYPE_URBAN: 50
-}
-
 
 class CbsdsCreator(ABC):
     def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):

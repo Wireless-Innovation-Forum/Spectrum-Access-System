@@ -1,9 +1,9 @@
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
-from dpa_calculator.utilities import Point, get_region_type
+from dpa_calculator.utilities import get_region_type
 
 
-REGION_TYPE_TO_DENOMINATOR = {
+NUMBER_OF_UES_PER_AP_BY_REGION_TYPE = {
     REGION_TYPE_DENSE_URBAN: 50,
     REGION_TYPE_RURAL: 3,
     REGION_TYPE_SUBURBAN: 20,
@@ -28,7 +28,7 @@ class NumberOfApsCalculatorShipborne(NumberOfApsCalculator):
 
     @property
     def _denominator(self) -> int:
-        return REGION_TYPE_TO_DENOMINATOR[self._region_type]
+        return NUMBER_OF_UES_PER_AP_BY_REGION_TYPE[self._region_type]
 
     @property
     def _region_type(self) -> str:
