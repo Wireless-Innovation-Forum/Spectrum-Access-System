@@ -1,3 +1,4 @@
+from math import isclose
 from typing import List
 
 from behave import *
@@ -7,6 +8,7 @@ from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import NumberRange
 
 use_step_matcher("parse")
 

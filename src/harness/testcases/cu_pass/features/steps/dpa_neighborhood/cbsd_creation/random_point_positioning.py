@@ -1,4 +1,3 @@
-import random
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -42,15 +41,6 @@ register_type(DistanceOrBearingFunction=parse_distance_or_bearing_word)
 @dataclass
 class ContextRandomApPositioning(ContextCbsdCreation, ContextArea):
     pass
-
-
-@given("a seed of {seed:Integer}")
-def step_impl(context: ContextRandomApPositioning, seed: int):
-    """
-    Args:
-        context (behave.runner.Context):
-    """
-    random.seed(seed)
 
 
 @then("all distributed points should be within the radius of the center point")

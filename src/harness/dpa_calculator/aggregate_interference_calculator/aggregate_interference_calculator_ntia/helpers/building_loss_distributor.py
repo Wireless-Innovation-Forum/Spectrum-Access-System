@@ -1,7 +1,8 @@
 from dataclasses import dataclass, replace
 from typing import List
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import InterferenceComponents
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
+    InterferenceComponents
 from dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
 
 

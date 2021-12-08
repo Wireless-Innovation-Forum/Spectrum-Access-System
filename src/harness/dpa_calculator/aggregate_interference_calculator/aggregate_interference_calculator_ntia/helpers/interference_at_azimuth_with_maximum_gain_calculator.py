@@ -1,8 +1,6 @@
 from typing import Iterable, List
 
-from numpy import argmax
-
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     InterferenceComponents
 from reference_models.interference.interference import dbToLinear, linearToDb
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import runner
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     GainAtAzimuth, InterferenceComponents
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator
