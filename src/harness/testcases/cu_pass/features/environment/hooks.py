@@ -19,12 +19,18 @@ class ContextSas(runner.Context):
 
 @fixture()
 def mock_itm(*args):
-    with mock.patch.object(propagation_loss_calculator, 'CalcItmPropagationLoss'):
+    with mock.patch.object(propagation_loss_calculator, 'CalcItmPropagationLoss') as itm_loss:
+        arbitrary_loss = 0
+        itm_loss.return_value.db_loss = arbitrary_loss
         yield
 
 
 def antenna_gains_before_scenario(context: ContextSas):
     assign_arbitrary_dpa(context=context)
+
+
+def interference_contribution_eirps_before_scenario(context: ContextSas):
+    use_fixture(mock_itm, context=context)
 
 
 def neighborhood_calculation_before_scenario(context: ContextSas):

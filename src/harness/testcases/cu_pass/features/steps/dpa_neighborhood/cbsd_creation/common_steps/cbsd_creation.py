@@ -31,7 +31,7 @@ class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
     cbsds: List[Cbsd]
 
 
-@when(f"(?P<number_of_aps>{INTEGER_REGEX})? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs for the Monte Carlo simulation are created")
+@when(f"(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs (for (?P<number_of_aps>{INTEGER_REGEX}) APs)? ?for the Monte Carlo simulation are created")
 def step_impl(context: ContextCbsdCreation, *args, number_of_aps: Optional[str], is_user_equipment: Optional[str]):
     """
     Args:

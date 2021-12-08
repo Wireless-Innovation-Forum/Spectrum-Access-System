@@ -11,6 +11,7 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     AntennaGainCalculatorStandard
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
     AntennaGainCalculatorGainPattern
+from dpa_calculator.cbsd.cbsd import CbsdTypes
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -46,8 +47,8 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         if not hasattr(context, 'dpa'):
             assign_arbitrary_dpa(context=context)
         if not hasattr(context, 'cbsds'):
-            small_number_of_cbsds_for_speed_purposes = 5
-            context.execute_steps(f'When {small_number_of_cbsds_for_speed_purposes} {cbsd_type.strip()} CBSDs for the Monte Carlo simulation are created')
+            small_number_of_cbsds_for_speed_purposes = 1 if cbsd_type == CbsdTypes.UE.value else 5
+            context.execute_steps(f'When {cbsd_type.strip()} CBSDs for {small_number_of_cbsds_for_speed_purposes} APs for the Monte Carlo simulation are created')
 
     def perform_interference():
         context.interference_components = AggregateInterferenceCalculatorNtia(

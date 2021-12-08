@@ -6,8 +6,8 @@ from reference_models.common.data import CbsdGrantInfo
 
 
 class CbsdTypes(Enum):
-    AP = auto()
-    UE = auto()
+    AP = 'AP'
+    UE = 'UE'
 
 
 @dataclass

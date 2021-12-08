@@ -8,21 +8,25 @@ Feature: Interference contributions
     When UE CBSDs for the Monte Carlo simulation are created
     Then the antenna maximum EIRPs should be 24 dBm
 
-  Scenario Template: AP interference contribution EIRPs
+  Scenario Template: Interference contribution EIRPs are calculated
     Given a <region_type> location
-    When interference components are calculated for each AP CBSD
+    When interference components are calculated for each <cbsd_type> CBSD
     Then the <indoor_outdoor> antenna EIRPs should be <expected_power> dBm
 
     Examples:
-      | region_type | indoor_outdoor | expected_power |
-      | dense urban | outdoor        | 27.8           |
-      | rural       | outdoor        | 23             |
-      | suburban    | outdoor        | 26             |
-      | urban       | outdoor        | 27.8           |
-      | dense urban | indoor         | 23.8           |
-      | rural       | indoor         | 19             |
-      | suburban    | indoor         | 22             |
-      | urban       | indoor         | 23.8           |
+      | cbsd_type| indoor_outdoor | region_type | expected_power |
+      | AP       | outdoor        | dense urban | 27.8           |
+      | AP       | outdoor        | rural       | 23             |
+      | AP       | outdoor        | suburban    | 26             |
+      | AP       | outdoor        | urban       | 27.8           |
+      | AP       | indoor         | dense urban | 23.8           |
+      | AP       | indoor         | rural       | 19             |
+      | AP       | indoor         | suburban    | 22             |
+      | AP       | indoor         | urban       | 23.8           |
+      | UE       |                | dense urban | 21.8           |
+      | UE       |                | rural       | 17             |
+      | UE       |                | suburban    | 20             |
+      | UE       |                | urban       | 21.8           |
 
 
   Scenario: Receiver insertion losses
@@ -43,7 +47,7 @@ Feature: Interference contributions
     Given a <region_type> location
     When interference components are calculated for each CBSD
     Then clutter loss distribution is within <expected_clutter_loss_range>
-    And not all losses are equal if and only if <expected_clutter_loss_range> is a range
+    And all losses are equal if and only if <expected_clutter_loss_range> is not a range
 
     Examples: Non-rural regions have no clutter loss
       | region_type | expected_clutter_loss_range |

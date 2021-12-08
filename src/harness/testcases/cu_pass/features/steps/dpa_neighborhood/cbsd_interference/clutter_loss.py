@@ -22,7 +22,7 @@ def step_impl(context: ContextCbsdInterference, expected_clutter_loss_range: Num
     assert not out_of_range, f'Losses {out_of_range} are out of range {expected_clutter_loss_range.low}-{expected_clutter_loss_range.high}'
 
 
-@step("not all losses are equal if and only if {expected_clutter_loss_range:NumberRange} is a range")
+@step("all losses are equal if and only if {expected_clutter_loss_range:NumberRange} is not a range")
 def step_impl(context: ContextCbsdInterference, expected_clutter_loss_range: NumberRange):
     """
     Args:

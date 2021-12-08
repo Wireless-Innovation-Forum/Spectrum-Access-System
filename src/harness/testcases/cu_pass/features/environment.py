@@ -7,7 +7,7 @@ from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
-    neighborhood_calculation_before_scenario, \
+    interference_contribution_eirps_before_scenario, neighborhood_calculation_before_scenario, \
     total_interference_before_scenario, transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
@@ -63,6 +63,8 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         transmitter_insertion_losses_before_scenario(context=context)
     elif 'antenna gains are calculated' in scenario.name:
         antenna_gains_before_scenario(context=context)
+    elif 'Interference contribution EIRPs' in scenario.name:
+        interference_contribution_eirps_before_scenario(context=context)
 
 
 def before_tag(context: ContextSas, tag: str):

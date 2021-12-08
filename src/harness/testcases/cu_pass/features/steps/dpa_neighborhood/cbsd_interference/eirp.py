@@ -8,7 +8,7 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environ
 use_step_matcher("cfparse")
 
 
-@then("the {is_indoor:IsIndoor?}antenna EIRPs should be {expected_power:Number} dBm")
+@then("the {is_indoor:IsIndoor?} antenna EIRPs should be {expected_power:Number} dBm")
 def step_impl(context: ContextCbsdInterference, is_indoor: Optional[bool], expected_power: int):
     """
     Args:
