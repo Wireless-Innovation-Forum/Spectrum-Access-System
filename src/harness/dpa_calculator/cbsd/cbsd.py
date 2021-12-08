@@ -13,7 +13,7 @@ class CbsdTypes(Enum):
 @dataclass
 class Cbsd:
     cbsd_type: CbsdTypes = None
-    eirp: float = None
+    eirp_maximum: float = None
     gain: int = None
     height_in_meters: float = None
     is_indoor: bool = None
@@ -31,4 +31,4 @@ class Cbsd:
                              latitude=self.location.latitude,
                              longitude=self.location.longitude,
                              low_frequency=None,
-                             max_eirp=self.eirp)
+                             max_eirp=self.eirp_maximum)

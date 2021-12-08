@@ -4,7 +4,7 @@ from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.constants import REGION_TYPE_RURAL
 from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
-    ContextCbsdInterference
+    ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import REGION_TYPE_TO_DPA_NAME_MAP
 
 use_step_matcher('parse')
@@ -18,7 +18,7 @@ def step_impl(context: ContextCbsdInterference, larger_loss_model: str, height_i
         coordinates = Point(latitude=40.19146905688054, longitude=-76.13331647039989)
     else:
         coordinates = Point(latitude=39.78257723575214, longitude=-75.81383219225971)
-    context.cbsds = [Cbsd(height_in_meters=height_in_meters, location=coordinates)]
+    context.cbsds = [Cbsd(eirp_maximum=ARBITRARY_EIRP_MAXIMUM, height_in_meters=height_in_meters, location=coordinates)]
 
 
 @then('the propagation loss should be {expected_loss:Number}')

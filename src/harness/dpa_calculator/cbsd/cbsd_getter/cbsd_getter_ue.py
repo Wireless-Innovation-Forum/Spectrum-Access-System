@@ -15,5 +15,5 @@ class CbsdGetterUe(CbsdGetter):
         return GAIN_UE
 
     @property
-    def _eirp(self) -> int:
+    def _eirp_maximum(self) -> int:
         return EIRP_UE

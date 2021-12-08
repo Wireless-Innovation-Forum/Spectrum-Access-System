@@ -8,7 +8,7 @@ use_step_matcher('parse')
 
 @then('EIRPs in the interference components should match those in the cbsds')
 def step_impl(context: ContextCbsdInterference):
-    eirps_cbsds = [cbsd.eirp for cbsd in context.cbsds]
+    eirps_cbsds = [cbsd.eirp_maximum for cbsd in context.cbsds]
     eirps_interference = [components.eirp for components in context.interference_components]
     assert eirps_cbsds == eirps_interference
 

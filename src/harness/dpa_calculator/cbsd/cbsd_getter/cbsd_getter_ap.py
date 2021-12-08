@@ -16,5 +16,5 @@ class CbsdGetterAp(CbsdGetter):
         return GAIN_AP
 
     @property
-    def _eirp(self) -> int:
+    def _eirp_maximum(self) -> int:
         return EIRP_AP_INDOOR if self._is_indoor else EIRP_AP_OUTDOOR

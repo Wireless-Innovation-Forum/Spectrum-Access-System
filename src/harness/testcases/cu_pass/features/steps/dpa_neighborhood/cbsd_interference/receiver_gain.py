@@ -7,7 +7,7 @@ from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.dpa.utilities import get_uniform_gain_pattern
 from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
-    ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ContextCbsdInterference
+    ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
 use_step_matcher("parse")
@@ -35,7 +35,7 @@ def step_impl(context: ContextCbsdInterference, coordinates: Point):
     Args:
         context (behave.runner.Context):
     """
-    context.cbsds = [Cbsd(height_in_meters=ARBITRARY_ANTENNA_HEIGHT_IN_METERS, location=coordinates)]
+    context.cbsds = [Cbsd(eirp_maximum=ARBITRARY_EIRP_MAXIMUM, height_in_meters=ARBITRARY_ANTENNA_HEIGHT_IN_METERS, location=coordinates)]
 
 
 @then("the receive antenna {gain_or_azimuth} should be {expected_results:NumberList}")

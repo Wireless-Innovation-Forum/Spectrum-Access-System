@@ -17,7 +17,7 @@ class CbsdGetter(ABC):
 
     def get(self) -> Cbsd:
         return Cbsd(cbsd_type=self._cbsd_type,
-                    eirp=self._eirp,
+                    eirp_maximum=self._eirp_maximum,
                     gain=self._gain,
                     height_in_meters=self._height,
                     is_indoor=self._is_indoor,
@@ -35,5 +35,5 @@ class CbsdGetter(ABC):
 
     @property
     @abstractmethod
-    def _eirp(self) -> int:
+    def _eirp_maximum(self) -> int:
         raise NotImplementedError

@@ -4,13 +4,15 @@ from typing import Dict, Type
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator import \
     AntennaGainCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
-    CLUTTER_LOSS_MAXIMUM, CLUTTER_LOSS_MINIMUM, GainAtAzimuth, INSERTION_LOSSES_IN_DB, InterferenceComponents
+    CLUTTER_LOSS_MAXIMUM, CLUTTER_LOSS_MINIMUM, GainAtAzimuth, INSERTION_LOSSES_IN_DB, InterferenceComponents, \
+    LOADING_FRACTIONS
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.propagation_loss_calculator import \
     PropagationLossCalculator
 from dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
 from dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, \
-    Point, region_is_rural
+    get_region_type, Point, region_is_rural
 from reference_models.dpa.dpa_mgr import Dpa
+from reference_models.interference.interference import dbToLinear, linearToDb
 
 
 class CbsdInterferenceCalculator:
@@ -25,7 +27,7 @@ class CbsdInterferenceCalculator:
     def calculate(self) -> InterferenceComponents:
         return InterferenceComponents(
             distance_in_kilometers=get_distance_between_two_points(point1=self._dpa_center, point2=self._cbsd.location),
-            eirp=self._cbsd.eirp,
+            eirp=self._eirp,
             frequency_dependent_rejection=0,
             gain_receiver=self._gain_receiver,
             loss_building=0,
@@ -35,6 +37,18 @@ class CbsdInterferenceCalculator:
             loss_receiver=INSERTION_LOSSES_IN_DB,
             loss_transmitter=INSERTION_LOSSES_IN_DB if self._has_transmitter_losses else 0
         )
+
+    @property
+    def _eirp(self) -> float:
+        loading_fraction = LOADING_FRACTIONS[self._region_type]
+        power_in_milliwatts = dbToLinear(self._cbsd.eirp_maximum)
+        fractional_power = power_in_milliwatts * loading_fraction
+        power_in_dbm = linearToDb(fractional_power)
+        return round(power_in_dbm, 1)
+
+    @property
+    def _region_type(self) -> str:
+        return get_region_type(coordinates=self._dpa_center)
 
     @property
     def _has_transmitter_losses(self) -> bool:

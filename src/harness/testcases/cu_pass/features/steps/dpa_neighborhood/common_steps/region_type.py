@@ -4,6 +4,7 @@ from behave import *
 from behave import runner
 
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from dpa_calculator.dpa.dpa import Dpa
 from dpa_calculator.utilities import get_dpa_center, Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_dpa import parse_dpa
 
@@ -34,6 +35,11 @@ REGION_TYPE_TO_DPA_NAME_MAP = {
 }
 
 
+def _get_fake_dpa(region_type: str) -> Dpa:
+    center = get_arbitrary_coordinates(region_type=region_type.upper())
+    return Dpa(protected_points=None, geometry=center.to_shapely())
+
+
 @step("a {region_type} location")
 def step_impl(context: ContextRegionType, region_type: str):
     """
@@ -43,9 +49,8 @@ def step_impl(context: ContextRegionType, region_type: str):
     """
     region_type_capitalized = region_type.upper()
     dpa_name = REGION_TYPE_TO_DPA_NAME_MAP.get(region_type_capitalized)
-    dpa = dpa_name and parse_dpa(REGION_TYPE_TO_DPA_NAME_MAP[region_type_capitalized])
-    context.dpa = dpa
-    context.antenna_coordinates = get_dpa_center(dpa=dpa) if dpa else get_arbitrary_coordinates(region_type_capitalized)
+    context.dpa = parse_dpa(dpa_name) if dpa_name else _get_fake_dpa(region_type=region_type_capitalized)
+    context.antenna_coordinates = get_dpa_center(dpa=context.dpa)
 
 
 def assign_arbitrary_dpa(context: ContextRegionType) -> None:

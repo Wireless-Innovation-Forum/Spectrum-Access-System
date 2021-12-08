@@ -1,9 +1,19 @@
 from dataclasses import dataclass
 from typing import Dict
 
+from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+
 CLUTTER_LOSS_MAXIMUM = 15
 CLUTTER_LOSS_MINIMUM = 0
 INSERTION_LOSSES_IN_DB = 2
+
+
+LOADING_FRACTIONS = {
+    REGION_TYPE_DENSE_URBAN: 0.6,
+    REGION_TYPE_RURAL: 0.2,
+    REGION_TYPE_SUBURBAN: 0.4,
+    REGION_TYPE_URBAN: 0.6
+}
 
 
 @dataclass
