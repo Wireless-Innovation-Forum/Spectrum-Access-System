@@ -24,6 +24,7 @@ use_step_matcher('parse')
 class ContextNeighborhood(ContextResult, ContextDpa):
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
     number_of_iterations: int
+    simulation_area_radius: float
 
 
 @step("{organization} interference")
@@ -56,6 +57,11 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
                                          number_of_aps_calculator_class=map[number_of_aps_type])
 
 
+@step("a simulation area radius of {simulation_area_radius:Number}")
+def step_impl(context: ContextNeighborhood, simulation_area_radius: float):
+    context.simulation_area_radius = simulation_area_radius
+
+
 @step("{number_of_iterations:Integer} monte carlo iterations")
 def step_impl(context: ContextNeighborhood, number_of_iterations: int):
     context.number_of_iterations = number_of_iterations
@@ -68,5 +74,6 @@ def step_impl(context: ContextNeighborhood):
         context (behave.runner.Context):
     """
     simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                    number_of_iterations=context.number_of_iterations).simulate()
+                                                    number_of_iterations=context.number_of_iterations,
+                                                    simulation_area_radius_in_kilometers=context.simulation_area_radius).simulate()
     context.result = simulation_results.distance

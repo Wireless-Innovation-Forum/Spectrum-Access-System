@@ -22,7 +22,7 @@ from dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
-DEFAULT_SIMULATION_RADIUS = 200
+DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS = 500
 
 
 @dataclass
@@ -44,12 +44,14 @@ class AggregateInterferenceMonteCarloCalculator:
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  number_of_aps: Optional[int] = None,
+                 simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS,
                  aggregate_interference_calculator_class: Type[AggregateInterferenceCalculator] = AggregateInterferenceCalculatorNtia,
                  population_retriever_class: Type[PopulationRetriever] = PopulationRetrieverCensus,
                  number_of_aps_calculator_class: Type[NumberOfApsCalculator] = NumberOfApsCalculatorShipborne):
         self._dpa = dpa
         self._number_of_aps_override = number_of_aps
         self._number_of_iterations = number_of_iterations
+        self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
         self._aggregate_interference_calculator_class = aggregate_interference_calculator_class
         self._population_retriever_class = population_retriever_class
         self._number_of_aps_calculator_class = number_of_aps_calculator_class
@@ -75,7 +77,10 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> float:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        return ParameterFinder(function=interference_calculator.calculate, target=self._dpa.threshold).find()
+        result = ParameterFinder(function=interference_calculator.calculate,
+                                 target=self._dpa.threshold,
+                                 max_parameter=self._simulation_area_radius_in_kilometers).find()
+        return result.input
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
         cbsds = self._random_cbsds(is_user_equipment=is_user_equipment)
@@ -101,7 +106,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def _dpa_test_zone(self) -> AreaCircle:
         return AreaCircle(
             center_coordinates=get_dpa_center(dpa=self._dpa),
-            radius_in_kilometers=DEFAULT_SIMULATION_RADIUS
+            radius_in_kilometers=self._simulation_area_radius_in_kilometers
         )
 
     @staticmethod

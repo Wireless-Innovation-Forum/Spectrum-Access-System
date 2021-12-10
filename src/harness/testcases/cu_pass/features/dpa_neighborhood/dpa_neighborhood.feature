@@ -25,28 +25,29 @@ Feature: DPA Neighborhood
     Given a function whose output is the element of array <result_array> at the given index
     And a target of <target>
     When the algorithm is run
-    Then the result should be <expected_result>
+    Then the resulting input should be <expected_input>
+    And the resulting return value should be <expected_value>
 
-    Examples: Finds number while expanding
-      | result_array | target | expected_result |
-      | [0]          | 0      | 0             |
-      | [1,0]        | 0      | 1             |
-
-    Examples: Finds number after expanding
-      | result_array | target | expected_result |
-      | [3,2,1,0]  | 1        | 2               |
-
-    Examples: Target does not exist
-      | result_array | target | expected_result |
-      | [3,2,2,0]    | 1      | 3               |
-
-    Examples: Target is greater than what you would get with the minimum input
-      | result_array | target | expected_result |
-      | [0]          | 1      | 0               |
+#    Examples: Finds number while expanding
+#      | result_array | target | expected_input | expected_value |
+#      | [0]          | 0      | 0              | 0              |
+#      | [1,0]        | 0      | 1              | 0              |
+#
+#    Examples: Finds number after expanding
+#      | result_array | target | expected_input | expected_value |
+#      | [3,2,1,0]    | 1      | 2              | 1              |
+#
+#    Examples: Target does not exist but is in range
+#      | result_array | target | expected_input | expected_value |
+#      | [3,2,2,0]    | 1      | 3              | 0              |
+#
+#    Examples: Target is greater than what you would get with the minimum input
+#      | result_array | target | expected_input | expected_value |
+#      | [0]          | 1      | 0              | 0              |
 
     Examples: Target is less than what you would get with the maximum input
-      | result_array | target | expected_result |
-      | [3,2,1,0]    | -1     | 4               |
+      | result_array | target | expected_input | expected_value |
+      | [3,2,1,0]    | -1     | 3              | 0              |
 
   Scenario Template: A monte carlo simulation is run
     Given functions whose results return the next element of <function_results> each time it runs
@@ -81,26 +82,26 @@ Feature: DPA Neighborhood
 #    Moorestown census population number of UEs is 571,850
 
     Given an antenna at <dpa_name>
-    And <organization_interference> interference
     And population by <population_type>
-    And number of APs using <number_of_aps_type> analysis
+    And a simulation area radius of <simulation_area_radius>
     And <number_of_iterations> monte carlo iterations
     When the neighborhood radius is calculated
     Then the result should be <expected_result>
 
     Examples:
-      | dpa_name  | organization_interference | population_type | number_of_aps_type | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
-      | Hat Creek | NTIA                      | census radius   | shipborne          | 3                    |               |                 |                       |                         |     |
+      | dpa_name  | population_type | simulation_area_radius | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
+      | Hat Creek | census radius   | 200                   | 3                    |               |                 |                       |                         |     |
+      | Hat Creek | census radius   | 500                   | 3                    |               |                 |                       |                         |     |
 
-#      | McKinney   | NTIA                      | region type     | shipborne          | 1                    | 75              |                 |                       |                         |     |
+#      | McKinney   | region type    | 1                    | 75              |                 |                       |                         |     |
 
-#      | McKinney   | NTIA                      | census radius   | shipborne          | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |
-#      | McKinney   | NTIA                      | census radius   | shipborne          | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
+#      | McKinney   | census radius  | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |
+      | McKinney   | census radius  | 200                    | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
 
-#      | McKinney   | NTIA                      | region type     | shipborne          | 3                    | 130              | 0:23:25.460508  | 113                   | 130                     | no receiver gain |
-#      | McKinney   | NTIA                      | census radius   | shipborne          | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
+#      | McKinney   | region type    | 3                    | 130              | 0:23:25.460508  | 113                   | 130                     | no receiver gain |
+#      | McKinney   | census radius  | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
 
-#      | Moorestown | NTIA                      | region type     | shipborne          | 3                    | 109              | 1:39:39.110491  | 62                    | 109                     | no receiver gain |
-#      | Moorestown | NTIA                      | census radius   | shipborne          | 3                    | 173            | 8:27:01.674526    | 93                    | 173                      | no receiver gain |
+#      | Moorestown | region type    | 3                    | 109              | 1:39:39.110491  | 62                    | 109                     | no receiver gain |
+#      | Moorestown | census radius  | 3                    | 173            | 8:27:01.674526    | 93                    | 173                      | no receiver gain |
 
-#      | McKinney   | NTIA                      | region type     | shipborne          | 100                  | 139            | 5:59:26.229337    | 125                   | 139                     | no receiver gain |
+#      | McKinney   | region type    | 100                  | 139            | 5:59:26.229337    | 125                   | 139                     | no receiver gain |

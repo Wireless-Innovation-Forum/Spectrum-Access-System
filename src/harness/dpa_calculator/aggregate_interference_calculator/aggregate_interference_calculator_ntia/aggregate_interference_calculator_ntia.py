@@ -14,8 +14,6 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     InterferenceAtAzimuthWithMaximumGainCalculator
 from dpa_calculator.cbsd.cbsd import Cbsd
 
-MILLIWATTS_PER_WATT_DB = 30
-
 
 @dataclass
 class InterferenceWithDistance:
@@ -27,7 +25,7 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     def calculate(self, minimum_distance: float = 0) -> float:
         total_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=minimum_distance,
                                                                             interference_components=self.interference_information).calculate()
-        return total_interference + MILLIWATTS_PER_WATT_DB
+        return total_interference
 
     @cached_property
     def interference_information(self) -> List[InterferenceComponents]:

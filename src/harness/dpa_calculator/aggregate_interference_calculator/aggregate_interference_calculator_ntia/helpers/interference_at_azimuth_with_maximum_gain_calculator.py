@@ -7,17 +7,26 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
 from reference_models.interference.interference import dbToLinear, linearToDb
 
 
+MILLIWATTS_PER_WATT_IN_DB = 30
+
+
 class InterferenceAtAzimuthWithMaximumGainCalculator:
     def __init__(self, minimum_distance: float, interference_components: List[InterferenceComponents]):
         self._minimum_distance = minimum_distance
         self._interference_components = interference_components
 
     def calculate(self) -> float:
-        total_interferences = [
-            sum(dbToLinear(component.total_interference(azimuth=azimuth)) for component in self._interference_components_in_range)
-            for azimuth in self._azimuths
-        ]
-        return linearToDb(max(total_interferences))
+        total_interferences = [self._sum_individual_interferences(azimuth=azimuth) for azimuth in self._azimuths]
+        return max(total_interferences)
+
+    def _sum_individual_interferences(self, azimuth: float) -> int:
+        sum_in_watts = sum(self._convert_dbm_to_watts(dbm=component.total_interference(azimuth=azimuth))
+                           for component in self._interference_components_in_range)
+        return linearToDb(sum_in_watts)
+
+    @staticmethod
+    def _convert_dbm_to_watts(dbm: float) -> float:
+        return dbToLinear(dbm - MILLIWATTS_PER_WATT_IN_DB)
 
     @property
     def _azimuths(self) -> Iterable[float]:

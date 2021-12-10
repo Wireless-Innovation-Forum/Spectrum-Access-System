@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import isclose
 from typing import List
 
 from behave import *
@@ -9,6 +10,9 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     GainAtAzimuth, InterferenceComponents
 from reference_models.interference.interference import dbToLinear, linearToDb
 from testcases.cu_pass.features.environment.hooks import ContextSas
+
+MILLIWATTS_PER_WATT_DB = 30
+
 
 use_step_matcher("parse")
 
@@ -50,6 +54,6 @@ def step_impl(context: ContextAggregateInterference, distance: float, expected_c
         expected_azimuth (str):
     """
     components_to_include = [components for cbsd_number, components in enumerate(context.interference_components) if cbsd_number in expected_cbsd_numbers]
-    expected_interference = linearToDb(sum(dbToLinear(component.total_interference(azimuth=expected_azimuth)) for component in components_to_include))
+    expected_interference = linearToDb(sum(dbToLinear(component.total_interference(azimuth=expected_azimuth)) for component in components_to_include)) - MILLIWATTS_PER_WATT_DB
     aggregate_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=distance, interference_components=context.interference_components).calculate()
-    assert aggregate_interference == expected_interference, f'{aggregate_interference} != {expected_azimuth}'
+    assert isclose(aggregate_interference, expected_interference), f'{aggregate_interference} != {expected_azimuth}'

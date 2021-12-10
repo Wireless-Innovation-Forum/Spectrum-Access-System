@@ -2,17 +2,17 @@ from dataclasses import dataclass
 from typing import Callable, List
 
 from behave import *
-from behave.api.async_step import async_run_until_complete
 
-from dpa_calculator.parameter_finder import ParameterFinder
-from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
+from dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
+from testcases.cu_pass.features.environment.hooks import ContextSas
 
 use_step_matcher('parse')
 
 
 @dataclass
-class ContextBinarySearch(ContextResult):
+class ContextBinarySearch(ContextSas):
     function: Callable[[int], float]
+    result: InputWithReturnedValue
     target: int
 
 
@@ -38,9 +38,19 @@ def step_impl(context: ContextBinarySearch, target: int):
 
 
 @when("the algorithm is run")
-def step_impl(context):
+def step_impl(context: ContextBinarySearch):
     """
     Args:
         context (behave.runner.Context):
     """
     context.result = ParameterFinder(function=context.function, target=context.target, max_parameter=context.max_input).find()
+
+
+@then("the resulting input should be {expected_input:Integer}")
+def step_impl(context: ContextBinarySearch, expected_input: int):
+    assert context.result.input == expected_input, f'{context.result.input} != {expected_input}'
+
+
+@step("the resulting return value should be {expected_value:Number}")
+def step_impl(context: ContextBinarySearch, expected_value: float):
+    assert context.result.returned_value == expected_value, f'{context.result.returned_value} != {expected_value}'
