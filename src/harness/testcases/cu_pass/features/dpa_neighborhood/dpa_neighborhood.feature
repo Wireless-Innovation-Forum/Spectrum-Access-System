@@ -28,22 +28,22 @@ Feature: DPA Neighborhood
     Then the resulting input should be <expected_input>
     And the resulting return value should be <expected_value>
 
-#    Examples: Finds number while expanding
-#      | result_array | target | expected_input | expected_value |
-#      | [0]          | 0      | 0              | 0              |
-#      | [1,0]        | 0      | 1              | 0              |
-#
-#    Examples: Finds number after expanding
-#      | result_array | target | expected_input | expected_value |
-#      | [3,2,1,0]    | 1      | 2              | 1              |
-#
-#    Examples: Target does not exist but is in range
-#      | result_array | target | expected_input | expected_value |
-#      | [3,2,2,0]    | 1      | 3              | 0              |
-#
-#    Examples: Target is greater than what you would get with the minimum input
-#      | result_array | target | expected_input | expected_value |
-#      | [0]          | 1      | 0              | 0              |
+    Examples: Finds number while expanding
+      | result_array | target | expected_input | expected_value |
+      | [0]          | 0      | 0              | 0              |
+      | [1,0]        | 0      | 1              | 0              |
+
+    Examples: Finds number after expanding
+      | result_array | target | expected_input | expected_value |
+      | [3,2,1,0]    | 1      | 2              | 1              |
+
+    Examples: Target does not exist but is in range
+      | result_array | target | expected_input | expected_value |
+      | [3,2,2,0]    | 1      | 3              | 0              |
+
+    Examples: Target is greater than what you would get with the minimum input
+      | result_array | target | expected_input | expected_value |
+      | [0]          | 1      | 0              | 0              |
 
     Examples: Target is less than what you would get with the maximum input
       | result_array | target | expected_input | expected_value |
