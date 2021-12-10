@@ -51,12 +51,12 @@ class CbsdInterferenceCalculator:
         return get_region_type(coordinates=self._dpa_center)
 
     @property
-    def _has_transmitter_losses(self) -> bool:
-        return not self._cbsd.is_indoor and self._cbsd.cbsd_type == CbsdTypes.AP
-
-    @property
     def _gain_receiver(self) -> Dict[float, GainAtAzimuth]:
         return self._receive_antenna_gain_calculator_class(cbsd=self._cbsd, dpa=self._dpa).calculate()
+
+    @property
+    def _has_transmitter_losses(self) -> bool:
+        return not self._cbsd.is_indoor and self._cbsd.cbsd_type == CbsdTypes.AP
 
     @property
     def _is_rural(self) -> bool:

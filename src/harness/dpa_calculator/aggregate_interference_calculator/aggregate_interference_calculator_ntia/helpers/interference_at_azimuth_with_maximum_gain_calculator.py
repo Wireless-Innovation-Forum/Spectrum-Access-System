@@ -1,5 +1,7 @@
 from typing import Iterable, List
 
+from cached_property import cached_property
+
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     InterferenceComponents
 from reference_models.interference.interference import dbToLinear, linearToDb
@@ -21,7 +23,7 @@ class InterferenceAtAzimuthWithMaximumGainCalculator:
     def _azimuths(self) -> Iterable[float]:
         return self._interference_components[0].gain_receiver.keys()
 
-    @property
+    @cached_property
     def _interference_components_in_range(self) -> List[InterferenceComponents]:
         return [components for components in self._interference_components
                 if components.distance_in_kilometers >= self._minimum_distance]

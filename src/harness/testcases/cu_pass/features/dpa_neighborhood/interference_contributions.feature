@@ -1,13 +1,4 @@
 Feature: Interference contributions
-  Scenario: AP transmission powers are set
-    When AP CBSDs for the Monte Carlo simulation are created
-    Then the indoor antenna maximum EIRPs should be 26 dBm
-    And the outdoor antenna maximum EIRPs should be 30 dBm
-
-  Scenario: UE transmission powers are set
-    When UE CBSDs for the Monte Carlo simulation are created
-    Then the antenna maximum EIRPs should be 24 dBm
-
   Scenario Template: Interference contribution EIRPs are calculated
     Given a <region_type> location
     When interference components are calculated for each <cbsd_type> CBSD
