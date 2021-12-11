@@ -92,6 +92,7 @@ def step_impl(context: ContextNeighborhood):
 
 @then("the output log should be")
 def step_impl(context: ContextNeighborhood):
+    expected_content = context.text.replace('    ', '\t').replace('\r', '')
     output_log_filepath = get_logging_file_handler().baseFilename
     output_content: str
     with open(output_log_filepath) as f:
@@ -101,4 +102,4 @@ def step_impl(context: ContextNeighborhood):
                            and 'Loaded refractivity data' not in line
                            and 'Runtime' not in line]
         output_content = ''.join(sanitized_lines)
-    assert output_content == context.text.replace('    ', '\t').replace('\r', '')
+    assert output_content == expected_content

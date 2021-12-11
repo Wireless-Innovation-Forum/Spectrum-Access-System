@@ -66,40 +66,58 @@ Feature: DPA Neighborhood
     When the neighborhood radius is calculated
     Then the output log should be
       """
-
       Monte Carlo iteration 1
           CBSD 1 / 2
           CBSD 2 / 2
+
+          Found parameter
+              Input: 4
+              Value: -195.99056997789654
+
           CBSD 1 / 6
           CBSD 2 / 6
           CBSD 3 / 6
           CBSD 4 / 6
           CBSD 5 / 6
           CBSD 6 / 6
+
+          Found parameter
+              Input: 0
+              Value: -152.82204399324985
 
       Monte Carlo iteration 2
           CBSD 1 / 2
           CBSD 2 / 2
+
+          Found parameter
+              Input: 1
+              Value: -256.2022715421642
+
           CBSD 1 / 6
           CBSD 2 / 6
           CBSD 3 / 6
           CBSD 4 / 6
           CBSD 5 / 6
           CBSD 6 / 6
+
+          Found parameter
+              Input: 0
+              Value: -147.84572943335849
+
 
       Results for APs:
           50th percentile: 1
           95th percentile: 1
           Standard Deviation: 2.1213203435596424
-           Minimum: 1
-           Maximum: 4
+          Minimum: 1
+          Maximum: 4
 
       Results for UEs:
           50th percentile: 0
           95th percentile: 0
           Standard Deviation: 0.0
-           Minimum: 0
-           Maximum: 0
+          Minimum: 0
+          Maximum: 0
 
       Final results:
           Distance: 1

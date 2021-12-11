@@ -86,6 +86,7 @@ class AggregateInterferenceMonteCarloCalculator:
         result = ParameterFinder(function=interference_calculator.calculate,
                                  target=self._dpa.threshold,
                                  max_parameter=self._simulation_area_radius_in_kilometers).find()
+        result.log()
         return result.input
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:

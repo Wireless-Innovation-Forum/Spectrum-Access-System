@@ -86,14 +86,14 @@ class SimulationStatistics:
         logging.info(f'\t50th percentile: {self.percentile_50}')
         logging.info(f'\t95th percentile: {self.percentile_95}')
         logging.info(f'\tStandard Deviation: {self.standard_deviation}')
-        logging.info(f'\t Minimum: {self.minimum}')
-        logging.info(f'\t Maximum: {self.maximum}')
+        logging.info(f'\tMinimum: {self.minimum}')
+        logging.info(f'\tMaximum: {self.maximum}')
 
 
 def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], number_of_iterations: int, percentile: int = 50) -> List[float]:
     results = []
     for i in range(number_of_iterations):
-        logging.info(f'\nMonte Carlo iteration {i + 1}')
+        logging.info(f'Monte Carlo iteration {i + 1}')
         iteration_results = [function_to_run() for function_to_run in functions_to_run]
         results.append(iteration_results)
     results_per_function = asarray(results).transpose()
