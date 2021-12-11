@@ -1,3 +1,5 @@
+import logging
+from datetime import datetime
 from glob import glob
 from pathlib import Path
 from runpy import run_path
@@ -7,7 +9,8 @@ from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
-    interference_contribution_eirps_before_scenario, neighborhood_calculation_before_scenario, \
+    interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
+    neighborhood_calculation_before_scenario, \
     total_interference_before_scenario, transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
@@ -65,6 +68,16 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
+    elif 'Logging is captured' in scenario.name:
+        logging_is_captured_before_scenario(context=context)
+
+    _setup_logging(scenario=scenario)
+
+
+def _setup_logging(scenario: Scenario) -> None:
+    logging_path = Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_")}_{datetime.now().isoformat().replace(":", "-")}.log')
+    logging_handler = logging.FileHandler(str(logging_path), 'w')
+    logging.root.addHandler(logging_handler)
 
 
 def before_tag(context: ContextSas, tag: str):

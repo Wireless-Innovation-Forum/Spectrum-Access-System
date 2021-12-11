@@ -2,7 +2,8 @@ Feature: CBSD positioning
 
   @slow
   Scenario Template: Population data is retrieved
-    Given a circular area with a radius of 150 km and center coordinates <coordinates>
+    Given a circular area with a radius of 150 km
+    And center coordinates <coordinates>
     And census population data
     Then the population in the area should be <expected_population>
 

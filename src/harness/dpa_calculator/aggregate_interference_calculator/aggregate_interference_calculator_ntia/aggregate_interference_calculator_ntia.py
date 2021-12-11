@@ -1,5 +1,6 @@
+import logging
 from dataclasses import dataclass
-from typing import List, Type
+from typing import List
 
 from cached_property import cached_property
 
@@ -34,7 +35,7 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
         return [item for items in grouped_by_building_loss for item in items]
 
     def _get_interference_contribution(self, cbsd: Cbsd, index: int) -> InterferenceComponents:
-        print(f'CBSD {index + 1} / {len(self._cbsds)}')
+        logging.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
         cbsd_interference_calculator = self._get_cbsd_interference_calculator(cbsd=cbsd)
         return cbsd_interference_calculator.calculate()
 

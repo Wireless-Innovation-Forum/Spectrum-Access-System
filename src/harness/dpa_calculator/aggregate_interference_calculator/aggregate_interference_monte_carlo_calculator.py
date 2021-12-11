@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -37,6 +38,11 @@ class AggregateInterferenceMonteCarloResults:
     distance_access_point: float
     distance_user_equipment: float
     runtime: timedelta
+
+    def log(self) -> None:
+        logging.info(f'\nFinal results:')
+        logging.info(f'\tDistance: {self.distance}')
+        logging.info(f'\tRuntime: {self.runtime}')
 
 
 class AggregateInterferenceMonteCarloCalculator:

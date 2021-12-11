@@ -59,6 +59,54 @@ Feature: DPA Neighborhood
       | [[1,2,3,4,5]]               | [4]                         |
       | [[1,2,3,4,5], [10,9,8,7,6]] | [4, 9]                      |
 
+  Scenario: Logging is captured
+    Given random seed 0
+    And 2 APs
+    And 2 monte carlo iterations
+    When the neighborhood radius is calculated
+    Then the output log should be
+      """
+
+      Monte Carlo iteration 1
+          CBSD 1 / 2
+          CBSD 2 / 2
+          CBSD 1 / 6
+          CBSD 2 / 6
+          CBSD 3 / 6
+          CBSD 4 / 6
+          CBSD 5 / 6
+          CBSD 6 / 6
+
+      Monte Carlo iteration 2
+          CBSD 1 / 2
+          CBSD 2 / 2
+          CBSD 1 / 6
+          CBSD 2 / 6
+          CBSD 3 / 6
+          CBSD 4 / 6
+          CBSD 5 / 6
+          CBSD 6 / 6
+
+      Results for APs:
+          50th percentile: 1
+          95th percentile: 1
+          Standard Deviation: 2.1213203435596424
+           Minimum: 1
+           Maximum: 4
+
+      Results for UEs:
+          50th percentile: 0
+          95th percentile: 0
+          Standard Deviation: 0.0
+           Minimum: 0
+           Maximum: 0
+
+      Final results:
+          Distance: 1
+
+      """
+
+
 #  @slow
 #  Scenario: The DPA neighborhood is calculated with 50 percentil
 ##    Census number of APs for McKinney: 185,730
@@ -90,13 +138,16 @@ Feature: DPA Neighborhood
 
     Examples:
       | dpa_name  | population_type | simulation_area_radius | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
-      | Hat Creek | census radius   | 200                   | 3                    |               |                 |                       |                         |     |
-      | Hat Creek | census radius   | 500                   | 3                    |               |                 |                       |                         |     |
+#      | Hat Creek | census radius   | 200                   | 3                     | 90              | 13:16:51.491462 | 88                    | 90                      | dBW   |
+#      | McKinney   | census radius  | 200                   | 3                     | 26              | 6:14:50.559416  | 21                    | 26                      | dBW   |
+      | McKinney | census radius   | 500                   | 3                     |               | |                     |                       | dBm   |
+#      | Hat Creek | census radius   | 500                   | 3                     | 598           |  |                     |                       | dBm   |
+      | Hat Creek | census radius   | 500                   | 3                     |                 |                 |                       |                         | dBW     |
 
 #      | McKinney   | region type    | 1                    | 75              |                 |                       |                         |     |
 
 #      | McKinney   | census radius  | 1                    | 101              | 2:17:52.193526 | 90                     | 101                    |     |
-      | McKinney   | census radius  | 200                    | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
+#      | McKinney   | census radius  | 200                    | 3                    | 102              | 5:40:21.731362 | 87                     | 102                     |    |
 
 #      | McKinney   | region type    | 3                    | 130              | 0:23:25.460508  | 113                   | 130                     | no receiver gain |
 #      | McKinney   | census radius  | 3                    | 247              | 6:43:18.520841  | 230                   | 247                     | no receiver gain |
