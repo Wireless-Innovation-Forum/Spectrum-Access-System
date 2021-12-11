@@ -1,4 +1,3 @@
-import logging
 from dataclasses import dataclass
 from functools import partial
 from typing import Type
@@ -15,6 +14,7 @@ from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import N
 from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
+from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
@@ -92,7 +92,7 @@ def step_impl(context: ContextNeighborhood):
 
 @then("the output log should be")
 def step_impl(context: ContextNeighborhood):
-    output_log_filepath = logging.root.handlers[0].baseFilename
+    output_log_filepath = get_logging_file_handler().baseFilename
     output_content: str
     with open(output_log_filepath) as f:
         lines = f.readlines()

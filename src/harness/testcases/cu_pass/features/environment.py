@@ -12,10 +12,12 @@ from testcases.cu_pass.features.environment.hooks import antenna_gains_before_sc
     interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
     neighborhood_calculation_before_scenario, \
     total_interference_before_scenario, transmitter_insertion_losses_before_scenario
+from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'
+SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION = 'The DPA neighborhood is calculated'
 
 
 def steps_directory() -> Path:
@@ -60,7 +62,7 @@ import_all_step_definitions()
 def before_scenario(context: ContextSas, scenario: Scenario):
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
-    elif 'The DPA neighborhood is calculated' in scenario.name:
+    elif SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
         neighborhood_calculation_before_scenario(context=context)
     elif 'Transmitter insertion losses' in scenario.name:
         transmitter_insertion_losses_before_scenario(context=context)
@@ -74,10 +76,28 @@ def before_scenario(context: ContextSas, scenario: Scenario):
     _setup_logging(scenario=scenario)
 
 
+def after_scenario(context: ContextSas, scenario: Scenario):
+    if SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION not in scenario.name:
+        _cleanup_logging(scenario=scenario)
+
+
 def _setup_logging(scenario: Scenario) -> None:
-    logging_path = Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_")}_{datetime.now().isoformat().replace(":", "-")}.log')
+    logging_path = _get_scenario_logging_path(scenario=scenario)
     logging_handler = logging.FileHandler(str(logging_path), 'w')
     logging.root.addHandler(logging_handler)
+
+
+def _get_scenario_logging_path(scenario: Scenario) -> Path:
+    logging_directory = Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_")}')
+    logging_directory.mkdir(parents=True, exist_ok=True)
+    return Path(logging_directory, f'{datetime.now().isoformat().replace(":", "-")}.log')
+
+
+def _cleanup_logging(scenario: Scenario) -> None:
+    file_handler = get_logging_file_handler()
+    logging_path = Path(file_handler.baseFilename)
+    file_handler.close()
+    logging_path.unlink()
 
 
 def before_tag(context: ContextSas, tag: str):
