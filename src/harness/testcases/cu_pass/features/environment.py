@@ -3,6 +3,7 @@ from datetime import datetime
 from glob import glob
 from pathlib import Path
 from runpy import run_path
+from shutil import rmtree
 from typing import Iterable, Union
 
 from behave.model import Scenario
@@ -88,16 +89,21 @@ def _setup_logging(scenario: Scenario) -> None:
 
 
 def _get_scenario_logging_path(scenario: Scenario) -> Path:
-    logging_directory = Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_")}')
+    logging_directory = _get_scenario_logging_directory(scenario=scenario)
     logging_directory.mkdir(parents=True, exist_ok=True)
     return Path(logging_directory, f'{datetime.now().isoformat().replace(":", "-")}.log')
 
 
 def _cleanup_logging(scenario: Scenario) -> None:
     file_handler = get_logging_file_handler()
-    logging_path = Path(file_handler.baseFilename)
+    logging_directory = _get_scenario_logging_directory(scenario=scenario)
     file_handler.close()
-    logging_path.unlink()
+    logging.root.removeHandler(file_handler)
+    rmtree(logging_directory, ignore_errors=True)
+
+
+def _get_scenario_logging_directory(scenario: Scenario) -> Path:
+    return Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_").replace("@", "")}')
 
 
 def before_tag(context: ContextSas, tag: str):
