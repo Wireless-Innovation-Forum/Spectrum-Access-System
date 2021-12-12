@@ -5,12 +5,12 @@ from typing import List, Type
 from cached_property import cached_property
 
 from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CbsdGetter
+from dpa_calculator.cbsds_creator.kml_writer import KmlWriter
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_URBAN, \
     REGION_TYPE_SUBURBAN
 from dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
 from dpa_calculator.point_distributor import AreaCircle, PointDistributor
 from dpa_calculator.utilities import Point, get_region_type
-from reference_models.common.data import CbsdGrantInfo
 from dpa_calculator.cbsd.cbsd import Cbsd
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
@@ -29,27 +29,11 @@ class CbsdsCreator(ABC):
     def create(self) -> List[Cbsd]:
         return self._all_cbsds
 
-    def write_to_kml(self, filepath: Path) -> None:
-        with open(filepath, 'w') as file:
-            file.write('''
-                <?xml version="1.0" encoding="UTF-8"?>
-                    <kml xmlns="http://www.opengis.net/kml/2.2">
-                        <Folder>
-                            <name>KML Circle Generator Output</name>
-                                <visibility>1</visibility>
-            ''')
-            for cbsd in self._all_cbsds:
-                file.write(f'''
-                    <Placemark>
-                        <Point>
-                            <coordinates>{cbsd.location.longitude},{cbsd.location.latitude}</coordinates>
-                        </Point>
-                    </Placemark>
-                ''')
-            file.write('''
-                </Folder>
-                    </kml>
-            ''')
+    def write_to_kml(self, filepath: Path, distance_to_exclude: int = 0) -> None:
+        KmlWriter(cbsds=self._all_cbsds,
+                  output_filepath=filepath,
+                  distance_to_exclude=distance_to_exclude,
+                  dpa_center=self._dpa_zone.center_coordinates).write()
 
     @property
     def _all_cbsds(self) -> List[Cbsd]:
