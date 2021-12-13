@@ -5,7 +5,7 @@ from dpa_calculator.dpa.utilities import get_uniform_gain_pattern
 from dpa_calculator.utilities import Point
 from reference_models.dpa.dpa_mgr import BuildDpa
 
-INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBW = -201
+INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBW = -207
 
 
 class RadioAstronomyFacilityNames(Enum):
