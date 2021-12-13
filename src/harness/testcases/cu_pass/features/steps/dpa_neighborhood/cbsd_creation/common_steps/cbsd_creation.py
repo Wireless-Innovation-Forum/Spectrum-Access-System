@@ -28,6 +28,7 @@ def parse_is_user_equipment(text: str) -> bool:
 
 @dataclass
 class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
+    bearings: List[float]
     cbsds: List[Cbsd]
 
 
@@ -41,7 +42,9 @@ def step_impl(context: ContextCbsdCreation, *args, number_of_aps: Optional[str],
     is_user_equipment = is_user_equipment and parse_is_user_equipment(text=is_user_equipment)
     dpa_zone = getattr(context, 'area', _create_area(context=context))
     cbsds_creator = get_cbsds_creator(dpa_zone=dpa_zone, is_user_equipment=is_user_equipment, number_of_aps=number_of_aps)
-    context.cbsds = cbsds_creator.create()
+    cbsds_with_bearings = cbsds_creator.create()
+    context.bearings = cbsds_with_bearings.bearings
+    context.cbsds = cbsds_with_bearings.cbsds
 
 
 def _create_area(context: ContextCbsdCreation) -> AreaCircle:

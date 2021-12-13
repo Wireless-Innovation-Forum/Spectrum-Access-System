@@ -85,7 +85,7 @@ Feature: Interference contributions
     And beamwidth 30
     And a uniform gain pattern
     When interference components are calculated for each CBSD
-    Then the receive antenna gains should be [1.2017051500600697, 3.05545643464191, 2.263308776654127, 2.7547588253892816, 4.2751240842257365]
+    Then the receive antenna gains should be [1.2017051500608984, 3.055456434642929, 2.263308776656403, 2.754758825387543, 4.275124084226826]
     And the receive antenna azimuths should be [60.0, 75.0, 90.0, 105.0, 120.0]
 
   Scenario: Standard receive antenna gains are calculated
