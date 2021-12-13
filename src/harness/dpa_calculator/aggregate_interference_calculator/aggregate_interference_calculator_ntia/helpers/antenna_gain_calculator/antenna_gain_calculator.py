@@ -7,12 +7,13 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     GainAtAzimuth
 from dpa_calculator.cbsd.cbsd import Cbsd
 from dpa_calculator.dpa.dpa import Dpa
-from dpa_calculator.utilities import get_bearing_between_two_points, get_dpa_center, Point
+from dpa_calculator.utilities import get_dpa_center, Point
 from reference_models.dpa.move_list import findAzimuthRange
 
 
 class AntennaGainCalculator(ABC):
-    def __init__(self, cbsds: List[Cbsd], dpa: Dpa):
+    def __init__(self, bearings: List[float], cbsds: List[Cbsd], dpa: Dpa):
+        self._bearings = numpy.asarray(bearings)
         self._cbsds = cbsds
         self._dpa = dpa
 
@@ -37,11 +38,6 @@ class AntennaGainCalculator(ABC):
     @property
     def _azimuths(self) -> List[float]:
         return findAzimuthRange(self._dpa.azimuth_range[0], self._dpa.azimuth_range[1], self._dpa.beamwidth)
-
-    @property
-    def _bearings(self) -> numpy.ndarray:
-        return numpy.asarray([get_bearing_between_two_points(point1=self._dpa_center, point2=cbsd.location)
-                              for cbsd in self._cbsds])
 
     @property
     def _dpa_center(self) -> Point:

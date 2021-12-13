@@ -10,7 +10,7 @@ from dpa_calculator.aggregate_interference_calculator.aggregate_interference_cal
     AggregateInterferenceCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
-from dpa_calculator.cbsd.cbsd import Cbsd
+from dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from dpa_calculator.dpa.dpa import Dpa
 from dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
@@ -90,15 +90,14 @@ class AggregateInterferenceMonteCarloCalculator:
         return result.input
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
-        cbsds = self._random_cbsds(is_user_equipment=is_user_equipment)
-        return self._aggregate_interference_calculator_class(dpa=self._dpa, cbsds=cbsds)
+        cbsds_with_bearings = self._random_cbsds_with_bearings(is_user_equipment=is_user_equipment)
+        return self._aggregate_interference_calculator_class(dpa=self._dpa, cbsds_with_bearings=cbsds_with_bearings)
 
-    def _random_cbsds(self, is_user_equipment: bool) -> List[Cbsd]:
+    def _random_cbsds_with_bearings(self, is_user_equipment: bool) -> CbsdsWithBearings:
         cbsds_creator = get_cbsds_creator(dpa_zone=self._dpa_test_zone,
                                           is_user_equipment=is_user_equipment,
                                           number_of_aps=self._number_of_aps)
         cbsds = cbsds_creator.create()
-        cbsds_creator.write_to_kml(self._kml_output_filepath(is_user_equipment=is_user_equipment))
         return cbsds
 
     @cached_property

@@ -41,7 +41,7 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
         return cbsd_interference_calculator.calculate()
 
     def _add_receiver_gains(self, interference_components: List[InterferenceComponents]) -> List[InterferenceComponents]:
-        cbsd_gains = self._receive_antenna_gain_calculator_class(cbsds=self._cbsds, dpa=self._dpa).calculate()
+        cbsd_gains = self._receive_antenna_gain_calculator_class(bearings=self._bearings, cbsds=self._cbsds, dpa=self._dpa).calculate()
         return [replace(interference_components[cbsd_number], gain_receiver=gain_receiver)
                 for cbsd_number, gain_receiver in enumerate(cbsd_gains)]
 
