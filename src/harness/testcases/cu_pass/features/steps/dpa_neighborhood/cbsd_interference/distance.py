@@ -20,8 +20,9 @@ def step_impl(context: ContextCbsdInterference, distance: float):
     """
     assign_arbitrary_dpa(context=context)
     point_distributor = PointDistributor(distribution_area=AreaCircle(center_coordinates=get_dpa_center(dpa=context.dpa), radius_in_kilometers=distance), minimum_distance=distance)
-    cbsd_location = point_distributor.distribute_points(number_of_points=1)[0]
-    context.cbsds = [Cbsd(eirp_maximum=ARBITRARY_EIRP_MAXIMUM, height_in_meters=ARBITRARY_ANTENNA_HEIGHT_IN_METERS, location=cbsd_location)]
+    cbsd_location_with_bearing = point_distributor.distribute_points(number_of_points=1)[0]
+    context.cbsds = [Cbsd(eirp_maximum=ARBITRARY_EIRP_MAXIMUM, height_in_meters=ARBITRARY_ANTENNA_HEIGHT_IN_METERS, location=cbsd_location_with_bearing.coordinates)]
+    context.bearings = [cbsd_location_with_bearing.bearing]
 
 
 @then("the distance from the antenna should be {expected_distance:Number}")
