@@ -1,5 +1,5 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import List
 
 from cached_property import cached_property
@@ -31,13 +31,20 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     @cached_property
     def interference_information(self) -> List[InterferenceComponents]:
         interference_components = [self._get_interference_contribution(cbsd=cbsd, index=index) for index, cbsd in enumerate(self._cbsds)]
-        grouped_by_building_loss = BuildingLossDistributor(interference_components=interference_components).distribute()
-        return [item for items in grouped_by_building_loss for item in items]
+        interference_components = self._add_receiver_gains(interference_components=interference_components)
+        interference_components = self._add_building_loss(interference_components=interference_components)
+        return interference_components
 
     def _get_interference_contribution(self, cbsd: Cbsd, index: int) -> InterferenceComponents:
         logging.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
-        cbsd_interference_calculator = self._get_cbsd_interference_calculator(cbsd=cbsd)
+        cbsd_interference_calculator = CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa)
         return cbsd_interference_calculator.calculate()
 
-    def _get_cbsd_interference_calculator(self, cbsd: Cbsd) -> CbsdInterferenceCalculator:
-        return CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa, receive_antenna_gain_calculator_class=self._receive_antenna_gain_calculator_class)
+    def _add_receiver_gains(self, interference_components: List[InterferenceComponents]) -> List[InterferenceComponents]:
+        cbsd_gains = self._receive_antenna_gain_calculator_class(cbsds=self._cbsds, dpa=self._dpa).calculate()
+        return [replace(interference_components[cbsd_number], gain_receiver=gain_receiver)
+                for cbsd_number, gain_receiver in enumerate(cbsd_gains)]
+
+    def _add_building_loss(self, interference_components: List[InterferenceComponents]) -> List[InterferenceComponents]:
+        grouped_by_building_loss = BuildingLossDistributor(interference_components=interference_components).distribute()
+        return [item for items in grouped_by_building_loss for item in items]
