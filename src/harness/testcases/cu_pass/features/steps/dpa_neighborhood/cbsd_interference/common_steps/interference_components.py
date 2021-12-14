@@ -5,13 +5,14 @@ from behave import *
 
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator import \
     AntennaGainCalculator
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_standard import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_standard import \
     AntennaGainCalculatorStandard
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
+from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
     AntennaGainCalculatorGainPattern
 from dpa_calculator.cbsd.cbsd import CbsdTypes
+from dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -52,7 +53,7 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
 
     def perform_interference():
         context.interference_components = AggregateInterferenceCalculatorNtia(
-            cbsds=context.cbsds,
+            cbsds_with_bearings=CbsdsWithBearings(cbsds=context.cbsds, bearings=context.bearings),
             dpa=context.dpa,
             receive_antenna_gain_calculator_class=receive_antenna_gain_type).interference_information
 

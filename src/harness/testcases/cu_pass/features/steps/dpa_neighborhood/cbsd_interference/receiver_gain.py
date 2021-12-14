@@ -9,6 +9,7 @@ from dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.utilities import add_bearings_to_context
 
 use_step_matcher("parse")
 
@@ -36,6 +37,7 @@ def step_impl(context: ContextCbsdInterference, coordinates: Point):
         context (behave.runner.Context):
     """
     context.cbsds = [Cbsd(eirp_maximum=ARBITRARY_EIRP_MAXIMUM, height_in_meters=ARBITRARY_ANTENNA_HEIGHT_IN_METERS, location=coordinates)]
+    add_bearings_to_context(context=context)
 
 
 @then("the receive antenna {gain_or_azimuth} should be {expected_results:NumberList}")

@@ -1,18 +1,24 @@
+import logging
+from datetime import datetime
 from glob import glob
 from pathlib import Path
 from runpy import run_path
+from shutil import rmtree
 from typing import Iterable, Union
 
 from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
-    interference_contribution_eirps_before_scenario, neighborhood_calculation_before_scenario, \
+    interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
+    neighborhood_calculation_before_scenario, \
     total_interference_before_scenario, transmitter_insertion_losses_before_scenario
+from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'
+SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION = 'The DPA neighborhood is calculated'
 
 
 def steps_directory() -> Path:
@@ -57,7 +63,7 @@ import_all_step_definitions()
 def before_scenario(context: ContextSas, scenario: Scenario):
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
-    elif 'The DPA neighborhood is calculated' in scenario.name:
+    elif SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
         neighborhood_calculation_before_scenario(context=context)
     elif 'Transmitter insertion losses' in scenario.name:
         transmitter_insertion_losses_before_scenario(context=context)
@@ -65,6 +71,39 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
+    elif 'Logging is captured' in scenario.name:
+        logging_is_captured_before_scenario(context=context)
+
+    _setup_logging(scenario=scenario)
+
+
+def after_scenario(context: ContextSas, scenario: Scenario):
+    if SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION not in scenario.name:
+        _cleanup_logging(scenario=scenario)
+
+
+def _setup_logging(scenario: Scenario) -> None:
+    logging_path = _get_scenario_logging_path(scenario=scenario)
+    logging_handler = logging.FileHandler(str(logging_path), 'w')
+    logging.root.addHandler(logging_handler)
+
+
+def _get_scenario_logging_path(scenario: Scenario) -> Path:
+    logging_directory = _get_scenario_logging_directory(scenario=scenario)
+    logging_directory.mkdir(parents=True, exist_ok=True)
+    return Path(logging_directory, f'{datetime.now().isoformat().replace(":", "-")}.log')
+
+
+def _cleanup_logging(scenario: Scenario) -> None:
+    file_handler = get_logging_file_handler()
+    logging_directory = _get_scenario_logging_directory(scenario=scenario)
+    file_handler.close()
+    logging.root.removeHandler(file_handler)
+    rmtree(logging_directory, ignore_errors=True)
+
+
+def _get_scenario_logging_directory(scenario: Scenario) -> Path:
+    return Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_").replace("@", "")}')
 
 
 def before_tag(context: ContextSas, tag: str):

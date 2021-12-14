@@ -27,12 +27,13 @@ class InterferenceComponents:
     distance_in_kilometers: float
     eirp: float
     frequency_dependent_rejection: float
-    gain_receiver: Dict[float, GainAtAzimuth]
-    loss_building: float
     loss_clutter: float
     loss_propagation: float
     loss_receiver: float
     loss_transmitter: float
+
+    gain_receiver: Dict[float, GainAtAzimuth] = None
+    loss_building: float = None
 
     def total_interference(self, azimuth: float) -> float:
         receiver_gain = self.gain_receiver[azimuth].gain

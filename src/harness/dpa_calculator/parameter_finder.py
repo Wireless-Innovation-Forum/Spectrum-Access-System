@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from statistics import mean
 from typing import Callable
@@ -7,6 +8,11 @@ from typing import Callable
 class InputWithReturnedValue:
     input: int
     returned_value: float
+
+    def log(self) -> None:
+        logging.info('\n\tFound parameter')
+        logging.info(f'\t\tInput: {self.input}')
+        logging.info(f'\t\tValue: {self.returned_value}\n')
 
 
 class ParameterFinder:

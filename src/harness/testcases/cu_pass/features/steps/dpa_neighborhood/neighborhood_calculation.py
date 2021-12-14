@@ -14,7 +14,9 @@ from dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import N
 from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
+from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 use_step_matcher('parse')
@@ -57,6 +59,12 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
                                          number_of_aps_calculator_class=map[number_of_aps_type])
 
 
+@step("{number_of_aps:Integer} APs")
+def step_impl(context: ContextNeighborhood, number_of_aps: int):
+    context.monte_carlo_runner = partial(context.monte_carlo_runner,
+                                         number_of_aps=number_of_aps)
+
+
 @step("a simulation area radius of {simulation_area_radius:Integer}")
 def step_impl(context: ContextNeighborhood, simulation_area_radius: int):
     context.simulation_area_radius = simulation_area_radius
@@ -73,7 +81,25 @@ def step_impl(context: ContextNeighborhood):
     Args:
         context (behave.runner.Context):
     """
+    if not hasattr(context, 'dpa'):
+        assign_arbitrary_dpa(context=context)
     simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                    number_of_iterations=context.number_of_iterations,
-                                                    simulation_area_radius_in_kilometers=context.simulation_area_radius).simulate()
+                                                    number_of_iterations=getattr(context, 'number_of_iterations', 1),
+                                                    simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
+    simulation_results.log()
     context.result = simulation_results.distance
+
+
+@then("the output log should be")
+def step_impl(context: ContextNeighborhood):
+    expected_content = context.text.replace('    ', '\t').replace('\r', '')
+    output_log_filepath = get_logging_file_handler().baseFilename
+    output_content: str
+    with open(output_log_filepath) as f:
+        lines = f.readlines()
+        sanitized_lines = [line for line in lines
+                           if 'Loaded climate data' not in line
+                           and 'Loaded refractivity data' not in line
+                           and 'Runtime' not in line]
+        output_content = ''.join(sanitized_lines)
+    assert output_content == expected_content

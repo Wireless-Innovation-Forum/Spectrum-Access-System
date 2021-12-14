@@ -1,16 +1,17 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Type
 
 from cached_property import cached_property
 
 from dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CBSD_A_INDICATOR, CbsdGetter
+from dpa_calculator.cbsds_creator.kml_writer import KmlWriter
 from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_URBAN, \
     REGION_TYPE_SUBURBAN
 from dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
-from dpa_calculator.point_distributor import AreaCircle, PointDistributor
+from dpa_calculator.point_distributor import AreaCircle, CoordinatesWithBearing, PointDistributor
 from dpa_calculator.utilities import Point, get_region_type
-from reference_models.common.data import CbsdGrantInfo
 from dpa_calculator.cbsd.cbsd import Cbsd
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
@@ -21,35 +22,28 @@ PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
 }
 
 
+@dataclass
+class CbsdsWithBearings:
+    bearings: List[float]
+    cbsds: List[Cbsd]
+
+
 class CbsdsCreator(ABC):
     def __init__(self, dpa_zone: AreaCircle, number_of_cbsds: int):
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
 
-    def create(self) -> List[Cbsd]:
-        return self._all_cbsds
+    def create(self) -> CbsdsWithBearings:
+        return CbsdsWithBearings(
+            bearings=self._bearings,
+            cbsds=self._all_cbsds
+        )
 
-    def write_to_kml(self, filepath: Path) -> None:
-        with open(filepath, 'w') as file:
-            file.write('''
-                <?xml version="1.0" encoding="UTF-8"?>
-                    <kml xmlns="http://www.opengis.net/kml/2.2">
-                        <Folder>
-                            <name>KML Circle Generator Output</name>
-                                <visibility>1</visibility>
-            ''')
-            for cbsd in self._all_cbsds:
-                file.write(f'''
-                    <Placemark>
-                        <Point>
-                            <coordinates>{cbsd.location.longitude},{cbsd.location.latitude}</coordinates>
-                        </Point>
-                    </Placemark>
-                ''')
-            file.write('''
-                </Folder>
-                    </kml>
-            ''')
+    def write_to_kml(self, filepath: Path, distance_to_exclude: int = 0) -> None:
+        KmlWriter(cbsds=self._all_cbsds,
+                  output_filepath=filepath,
+                  distance_to_exclude=distance_to_exclude,
+                  dpa_center=self._dpa_zone.center_coordinates).write()
 
     @property
     def _all_cbsds(self) -> List[Cbsd]:
@@ -73,7 +67,7 @@ class CbsdsCreator(ABC):
 
     @property
     def _indoor_cbsd_locations(self) -> List[Point]:
-        return self._distributed_cbsds[:self._number_of_indoor_cbsds]
+        return self._all_cbsd_locations[:self._number_of_indoor_cbsds]
 
     @property
     def _outdoor_cbsds(self) -> List[Cbsd]:
@@ -81,12 +75,7 @@ class CbsdsCreator(ABC):
                                         height=self._outdoor_antenna_height,
                                         is_indoor=False,
                                         location=location).get()
-                for location in self._outdoot_cbsd_locations]
-
-    @property
-    @abstractmethod
-    def _outdoor_antenna_height(self) -> float:
-        raise NotImplementedError
+                for location in self._outdoor_cbsd_locations]
 
     @property
     @abstractmethod
@@ -94,13 +83,17 @@ class CbsdsCreator(ABC):
         raise NotImplementedError
 
     @property
-    def _outdoot_cbsd_locations(self) -> List[Point]:
-        return self._distributed_cbsds[self._number_of_indoor_cbsds:]
+    @abstractmethod
+    def _outdoor_antenna_height(self) -> float:
+        raise NotImplementedError
 
-    @cached_property
-    def _distributed_cbsds(self) -> List[Point]:
-        return PointDistributor(distribution_area=self._dpa_zone)\
-            .distribute_points(number_of_points=self._number_of_cbsds)
+    @property
+    def _outdoor_cbsd_locations(self) -> List[Point]:
+        return self._all_cbsd_locations[self._number_of_indoor_cbsds:]
+
+    @property
+    def _all_cbsd_locations(self) -> List[Point]:
+        return [location_with_bearing.coordinates for location_with_bearing in self._distributed_cbsd_locations_with_bearings]
 
     @property
     def _number_of_indoor_cbsds(self) -> int:
@@ -113,3 +106,12 @@ class CbsdsCreator(ABC):
     @property
     def _region_type(self) -> str:
         return get_region_type(coordinates=self._dpa_zone.center_coordinates)
+
+    @property
+    def _bearings(self) -> List[float]:
+        return [location_with_bearing.bearing for location_with_bearing in self._distributed_cbsd_locations_with_bearings]
+
+    @cached_property
+    def _distributed_cbsd_locations_with_bearings(self) -> List[CoordinatesWithBearing]:
+        return PointDistributor(distribution_area=self._dpa_zone)\
+            .distribute_points(number_of_points=self._number_of_cbsds)

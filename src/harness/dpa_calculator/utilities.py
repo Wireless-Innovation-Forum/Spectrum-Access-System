@@ -1,3 +1,6 @@
+import logging
+from dataclasses import dataclass
+from statistics import stdev
 from typing import Callable, List, Tuple
 
 import numpy
@@ -69,11 +72,49 @@ def region_is_rural(coordinates: Point) -> bool:
     return get_region_type(coordinates=coordinates) == REGION_TYPE_RURAL
 
 
-def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], number_of_iterations: int, percentile: float = 50) -> List[float]:
+@dataclass
+class SimulationStatistics:
+    percentile_50: float
+    percentile_95: float
+    maximum: float
+    minimum: float
+    standard_deviation: float
+    title: str
+
+    def log(self) -> None:
+        logging.info(f'\nResults for {self.title}:')
+        logging.info(f'\t50th percentile: {self.percentile_50}')
+        logging.info(f'\t95th percentile: {self.percentile_95}')
+        logging.info(f'\tStandard Deviation: {self.standard_deviation}')
+        logging.info(f'\tMinimum: {self.minimum}')
+        logging.info(f'\tMaximum: {self.maximum}')
+
+
+def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], number_of_iterations: int, percentile: int = 50) -> List[float]:
     results = []
     for i in range(number_of_iterations):
-        print(f'Monte Carlo iteration {i}')
+        logging.info(f'Monte Carlo iteration {i + 1}')
         iteration_results = [function_to_run() for function_to_run in functions_to_run]
         results.append(iteration_results)
     results_per_function = asarray(results).transpose()
-    return [numpy.percentile(iteration_results, percentile, interpolation='lower') for iteration_results in results_per_function]
+    _log_results(results=results_per_function)
+    return [_get_percentile(results=iteration_results, percentile=percentile) for iteration_results in results_per_function]
+
+
+def _log_results(results: numpy.ndarray) -> None:
+    simulation_statistics = [SimulationStatistics(
+        percentile_50=_get_percentile(results=iteration_results, percentile=50),
+        percentile_95=_get_percentile(results=iteration_results, percentile=95),
+        maximum=max(iteration_results),
+        minimum=min(iteration_results),
+        standard_deviation=stdev(iteration_results),
+        title='UEs' if index else 'APs'
+    )
+        for index, iteration_results in enumerate(results.tolist())]
+    for statistics in simulation_statistics:
+        statistics.log()
+
+
+def _get_percentile(results: List[float], percentile: int) -> float:
+    return numpy.percentile(results, percentile, interpolation='lower')
+

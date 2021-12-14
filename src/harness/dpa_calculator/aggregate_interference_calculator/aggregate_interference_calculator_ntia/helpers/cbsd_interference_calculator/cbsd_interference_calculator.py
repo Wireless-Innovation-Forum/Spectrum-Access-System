@@ -1,10 +1,7 @@
 import random
-from typing import Dict, Type
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.antenna_gain_calculator.antenna_gain_calculator import \
-    AntennaGainCalculator
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
-    CLUTTER_LOSS_MAXIMUM, CLUTTER_LOSS_MINIMUM, GainAtAzimuth, INSERTION_LOSSES_IN_DB, InterferenceComponents, \
+    CLUTTER_LOSS_MAXIMUM, CLUTTER_LOSS_MINIMUM, INSERTION_LOSSES_IN_DB, InterferenceComponents, \
     LOADING_FRACTIONS
 from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.propagation_loss_calculator import \
     PropagationLossCalculator
@@ -16,21 +13,15 @@ from reference_models.interference.interference import dbToLinear, linearToDb
 
 
 class CbsdInterferenceCalculator:
-    def __init__(self,
-                 cbsd: Cbsd,
-                 dpa: Dpa,
-                 receive_antenna_gain_calculator_class: Type[AntennaGainCalculator]):
+    def __init__(self, cbsd: Cbsd, dpa: Dpa):
         self._cbsd = cbsd
         self._dpa = dpa
-        self._receive_antenna_gain_calculator_class = receive_antenna_gain_calculator_class
 
     def calculate(self) -> InterferenceComponents:
         return InterferenceComponents(
             distance_in_kilometers=get_distance_between_two_points(point1=self._dpa_center, point2=self._cbsd.location),
             eirp=self._eirp,
             frequency_dependent_rejection=0,
-            gain_receiver=self._gain_receiver,
-            loss_building=0,
             loss_clutter=random.uniform(CLUTTER_LOSS_MINIMUM,
                                         CLUTTER_LOSS_MAXIMUM) if self._is_rural else CLUTTER_LOSS_MINIMUM,
             loss_propagation=PropagationLossCalculator(cbsd=self._cbsd, dpa=self._dpa).calculate(),
@@ -49,10 +40,6 @@ class CbsdInterferenceCalculator:
     @property
     def _region_type(self) -> str:
         return get_region_type(coordinates=self._dpa_center)
-
-    @property
-    def _gain_receiver(self) -> Dict[float, GainAtAzimuth]:
-        return self._receive_antenna_gain_calculator_class(cbsd=self._cbsd, dpa=self._dpa).calculate()
 
     @property
     def _has_transmitter_losses(self) -> bool:
