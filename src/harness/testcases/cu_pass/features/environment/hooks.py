@@ -41,6 +41,10 @@ def logging_is_captured_before_scenario(context: ContextSas):
     neighborhood_calculation_before_scenario(context=context)
 
 
+def quick_run_before_scenario(context: ContextSas):
+    neighborhood_calculation_before_scenario(context=context)
+
+
 def total_interference_before_scenario(context: ContextSas):
     context.interference_components = InterferenceComponents(distance_in_kilometers=0,
                                                              eirp=0,

@@ -12,7 +12,7 @@ from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
     interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
     neighborhood_calculation_before_scenario, \
-    total_interference_before_scenario, transmitter_insertion_losses_before_scenario
+    quick_run_before_scenario, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.helpers.utils import get_script_directory
 
@@ -73,6 +73,8 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         interference_contribution_eirps_before_scenario(context=context)
     elif 'Logging is captured' in scenario.name:
         logging_is_captured_before_scenario(context=context)
+    elif 'A quick run is performed' in scenario.name:
+        quick_run_before_scenario(context=context)
 
     _setup_logging(scenario=scenario)
 

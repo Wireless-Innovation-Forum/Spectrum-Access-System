@@ -16,10 +16,16 @@ Feature: DPA Neighborhood
       - CBSD_As have a max EIRP 30 dBm/10 MHz
       - CBSD_Bs have a max EIRP 47 dBm/10 MHz
         - https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=930112
-    - RA facilities have an IPC of -247
-    - Loss calculations based on formulas in R2-SGN-04
-      - https://winnf.memberclicks.net/assets/CBRS/WINNF-TS-0112.pdf
-    - Simulation population calculated from https://www.freemaptools.com/find-population.htm
+    - Simulation population confirmed using https://www.freemaptools.com/find-population.htm
+
+
+  Scenario: A quick run is performed
+    Given random seed 0
+    And 2 APs
+    And 2 monte carlo iterations
+    When the neighborhood radius is calculated
+    Then the resulting distance should be 0
+    And the resulting interference should be -151.99414909249862
 
 
   @slow
@@ -29,7 +35,7 @@ Feature: DPA Neighborhood
     And a simulation area radius of <simulation_area_radius>
     And <number_of_iterations> monte carlo iterations
     When the neighborhood radius is calculated
-    Then the result should be <expected_result>
+    Then the resulting distance should be <expected_result>
 
     Examples:
       | dpa_name  | population_type | simulation_area_radius | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
