@@ -3,7 +3,7 @@ from typing import Callable, Iterator, List
 
 from behave import *
 
-from dpa_calculator.utilities import run_monte_carlo_simulation
+from cu_pass.dpa_calculator.utilities import run_monte_carlo_simulation
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 
 use_step_matcher('parse')

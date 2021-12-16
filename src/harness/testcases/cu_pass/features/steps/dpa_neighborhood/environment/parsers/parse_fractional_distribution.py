@@ -4,7 +4,7 @@ from typing import List
 import parse
 from behave import register_type
 
-from dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
 from testcases.cu_pass.features.environment.global_parsers import NUMBER_REGEX, parse_number
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \
     RANGE_REGEX

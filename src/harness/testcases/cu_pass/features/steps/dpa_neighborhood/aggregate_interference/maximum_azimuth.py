@@ -4,9 +4,9 @@ from typing import List
 
 from behave import *
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.interference_at_azimuth_with_maximum_gain_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.interference_at_azimuth_with_maximum_gain_calculator import \
     InterferenceAtAzimuthWithMaximumGainCalculator
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     GainAtAzimuth, InterferenceComponents
 from reference_models.interference.interference import dbToLinear, linearToDb
 from testcases.cu_pass.features.environment.hooks import ContextSas

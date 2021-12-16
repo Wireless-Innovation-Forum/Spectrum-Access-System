@@ -3,10 +3,10 @@ from typing import List, Optional
 
 from behave import *
 
-from dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
-from dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
-from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utilities import get_dpa_center
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
+from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
+from cu_pass.dpa_calculator.point_distributor import AreaCircle
+from cu_pass.dpa_calculator.utilities import get_dpa_center
 from testcases.cu_pass.features.environment.global_parsers import INTEGER_REGEX, parse_integer
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa

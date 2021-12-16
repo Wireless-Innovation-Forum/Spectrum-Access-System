@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.point_distributor import AreaCircle
+from cu_pass.dpa_calculator.utilities import Point
 from testcases.cu_pass.features.environment.hooks import ContextSas
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import get_arbitrary_coordinates
 

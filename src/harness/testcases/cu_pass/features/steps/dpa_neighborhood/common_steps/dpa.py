@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.dpa.dpa import Dpa
+from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
 use_step_matcher('parse')

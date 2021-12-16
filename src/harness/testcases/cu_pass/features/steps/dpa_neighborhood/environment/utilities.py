@@ -1,4 +1,4 @@
-from dpa_calculator.utilities import get_bearing_between_two_points, get_dpa_center
+from cu_pass.dpa_calculator.utilities import get_bearing_between_two_points, get_dpa_center
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
 

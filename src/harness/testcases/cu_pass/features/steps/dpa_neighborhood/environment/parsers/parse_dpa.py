@@ -1,8 +1,8 @@
 import parse
 from behave import *
 
-from dpa_calculator.dpa.dpa import Dpa
-from dpa_calculator.dpa.builder import get_dpa
+from cu_pass.dpa_calculator.dpa.builder import get_dpa
+from cu_pass.dpa_calculator.dpa.dpa import Dpa
 
 
 @parse.with_pattern('.*')

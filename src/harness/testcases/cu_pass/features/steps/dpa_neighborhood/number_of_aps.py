@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import *
 
-from dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.result import ContextResult
 

@@ -1,8 +1,8 @@
 from behave import *
 
-from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.constants import REGION_TYPE_RURAL
-from dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.constants import REGION_TYPE_RURAL
+from cu_pass.dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import REGION_TYPE_TO_DPA_NAME_MAP

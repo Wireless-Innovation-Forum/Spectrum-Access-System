@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from behave import *
 from behave import runner
 
-from dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
-from dpa_calculator.dpa.dpa import Dpa
-from dpa_calculator.utilities import get_dpa_center, Point
+from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from cu_pass.dpa_calculator.dpa.dpa import Dpa
+from cu_pass.dpa_calculator.utilities import get_dpa_center, Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_dpa import parse_dpa
 
 use_step_matcher('parse')

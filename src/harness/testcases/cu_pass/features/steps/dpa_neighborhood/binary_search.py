@@ -3,7 +3,7 @@ from typing import Callable, List
 
 from behave import *
 
-from dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
+from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
 use_step_matcher('parse')

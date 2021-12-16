@@ -3,11 +3,11 @@ from unittest import mock
 
 from behave import fixture, runner, use_fixture
 
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers import \
     propagation_loss_calculator
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     GainAtAzimuth, InterferenceComponents
-from dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 

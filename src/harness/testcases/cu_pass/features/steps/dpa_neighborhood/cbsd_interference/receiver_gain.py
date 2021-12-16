@@ -1,11 +1,10 @@
-from math import isclose
 from typing import List
 
 from behave import *
 
-from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.dpa.utilities import get_uniform_gain_pattern
-from dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.dpa.utilities import get_uniform_gain_pattern
+from cu_pass.dpa_calculator.utilities import Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa

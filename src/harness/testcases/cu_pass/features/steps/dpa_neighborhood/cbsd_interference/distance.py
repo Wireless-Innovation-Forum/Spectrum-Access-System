@@ -2,9 +2,9 @@ from math import isclose
 
 from behave import *
 
-from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.point_distributor import AreaCircle, PointDistributor
-from dpa_calculator.utilities import get_dpa_center
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.point_distributor import AreaCircle, PointDistributor
+from cu_pass.dpa_calculator.utilities import get_dpa_center
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ARBITRARY_ANTENNA_HEIGHT_IN_METERS, ARBITRARY_EIRP_MAXIMUM, ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -12,8 +12,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type 
 use_step_matcher("parse")
 
 
-@given("a CBSD {distance:Number} km away from the DPA")
-def step_impl(context: ContextCbsdInterference, distance: float):
+@given("a CBSD {distance:Integer} km away from the DPA")
+def step_impl(context: ContextCbsdInterference, distance: int):
     """
     Args:
         context (behave.runner.Context):

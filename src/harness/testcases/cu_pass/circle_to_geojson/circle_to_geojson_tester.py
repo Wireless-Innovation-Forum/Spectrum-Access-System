@@ -4,9 +4,9 @@ from typing import List
 import numpy
 from worldpop_client.model.geo_json import GeoJson
 
-from dpa_calculator.circle_to_geojson_converter import CircleToGeoJsonConverter
-from dpa_calculator.point_distributor import AreaCircle
-from dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator import CircleToGeoJsonConverter
+from cu_pass.dpa_calculator import AreaCircle
+from cu_pass.dpa_calculator.utilities import Point
 
 
 class CircleToGeoJsonTester(ABC):

@@ -4,7 +4,7 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.utilities import Point
 
 
 def get_list_regex(item_regex: str) -> str:

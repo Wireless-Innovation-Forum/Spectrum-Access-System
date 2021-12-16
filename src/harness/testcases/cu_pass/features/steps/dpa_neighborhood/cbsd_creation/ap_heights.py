@@ -4,8 +4,8 @@ from typing import List
 import parse
 from behave import *
 
-from dpa_calculator.cbsd.cbsd import Cbsd
-from dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
     fractional_distribution_to_height_distribution, HeightDistribution
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
