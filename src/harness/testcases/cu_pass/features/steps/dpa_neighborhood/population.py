@@ -7,8 +7,6 @@ from behave.api.async_step import async_run_until_complete
 
 from cu_pass.dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
-from cu_pass.dpa_calculator.population_retriever.population_retriever_straight_file import \
-    PopulationRetrieverStraightFile
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 
 use_step_matcher('parse')
@@ -21,9 +19,7 @@ class ContextPopulation(ContextArea):
 
 @given("{retriever_type} population data")
 def step_impl(context: ContextPopulation, retriever_type: str):
-    if retriever_type == 'file':
-        context.retriever = PopulationRetrieverStraightFile
-    elif retriever_type == 'census':
+    if retriever_type == 'census':
         context.retriever = PopulationRetrieverCensus
 
 
