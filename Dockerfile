@@ -20,11 +20,14 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /cu_pass/dpa
 
-COPY . .
+COPY requirements.txt .
+COPY requirements-sas.txt .
 
 RUN apt-get install -y libcurl4-openssl-dev libssl-dev libgeos++-dev libproj-dev
 
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-sas.txt
+
+COPY . .
 
 ENTRYPOINT bash
