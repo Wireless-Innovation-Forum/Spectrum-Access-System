@@ -55,6 +55,12 @@ class AggregateInterferenceMonteCarloResults:
     def log(self) -> None:
         logging.info(f'\nFinal results:')
         logging.info(f'\tDistance: {self.distance}')
+        logging.info(f'\tInterference: {self.interference}')
+        logging.info(f'\tRuntime: {self.runtime}')
+        logging.info(f'\tAP Distance: {self.distance_access_point}')
+        logging.info(f'\tUE Distance: {self.distance_user_equipment}')
+        logging.info(f'\tAP Interference: {self.interference_access_point}')
+        logging.info(f'\tUE Interference: {self.interference_user_equipment}')
         logging.info(f'\tRuntime: {self.runtime}')
 
 

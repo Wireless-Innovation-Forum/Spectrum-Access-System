@@ -84,20 +84,25 @@ Feature: DPA Neighborhood helpers
 
 
       Results for APs:
-          50th percentile: 1
-          95th percentile: 1
-          Standard Deviation: 2.1213203435596424
-          Minimum: 1
-          Maximum: 4
-
-      Results for UEs:
           50th percentile: 0
           95th percentile: 0
           Standard Deviation: 0.0
           Minimum: 0
           Maximum: 0
 
+      Results for UEs:
+          50th percentile: 0
+          95th percentile: 0
+          Standard Deviation: 0.7071067811865476
+          Minimum: 0
+          Maximum: 1
+
       Final results:
-          Distance: 1
+          Distance: 0
+          Interference: -151.99414909249862
+          AP Distance: 0
+          UE Distance: 0
+          AP Interference: -151.27297906968795
+          UE Interference: -151.99414909249862
 
       """
