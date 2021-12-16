@@ -19,11 +19,13 @@ from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
 from cu_pass.dpa_calculator.point_distributor import AreaCircle
 from cu_pass.dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
+from cu_pass.dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
 from cu_pass.dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
@@ -34,6 +36,16 @@ DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS = 500
 class AggregateInterferenceTypes(Enum):
     NTIA = auto()
     WinnForum = auto()
+
+
+class NumberOfApsTypes(Enum):
+    ground_based = auto()
+    shipborne = auto()
+
+
+class PopulationRetrieverTypes(Enum):
+    census = auto()
+    region_type = auto()
 
 
 @dataclass
@@ -71,15 +83,15 @@ class AggregateInterferenceMonteCarloCalculator:
                  number_of_aps: Optional[int] = None,
                  simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS,
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = AggregateInterferenceTypes.NTIA,
-                 population_retriever_class: Type[PopulationRetriever] = PopulationRetrieverCensus,
-                 number_of_aps_calculator_class: Type[NumberOfApsCalculator] = NumberOfApsCalculatorShipborne):
+                 population_retriever_type: PopulationRetrieverTypes = PopulationRetrieverTypes.census,
+                 number_of_aps_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne):
         self._dpa = dpa
         self._number_of_aps_override = number_of_aps
         self._number_of_iterations = number_of_iterations
         self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
-        self._population_retriever_class = population_retriever_class
-        self._number_of_aps_calculator_class = number_of_aps_calculator_class
+        self._population_retriever_type = population_retriever_type
+        self._number_of_aps_calculator_type = number_of_aps_calculator_type
 
         self._found_interferences = {
             CbsdTypes.AP: defaultdict(list),
@@ -152,11 +164,27 @@ class AggregateInterferenceMonteCarloCalculator:
                                                     simulation_population=population).get_number_of_aps()
 
     @property
+    def _population_retriever_class(self) -> Type[PopulationRetriever]:
+        map = {
+            PopulationRetrieverTypes.census: PopulationRetrieverCensus,
+            PopulationRetrieverTypes.region_type: PopulationRetrieverRegionType
+        }
+        return map[self._population_retriever_type]
+
+    @property
     def _dpa_test_zone(self) -> AreaCircle:
         return AreaCircle(
             center_coordinates=get_dpa_center(dpa=self._dpa),
             radius_in_kilometers=self._simulation_area_radius_in_kilometers
         )
+
+    @property
+    def _number_of_aps_calculator_class(self) -> Type[NumberOfApsCalculator]:
+        map = {
+            NumberOfApsTypes.ground_based: NumberOfApsCalculatorGroundBased,
+            NumberOfApsTypes.shipborne: NumberOfApsCalculatorShipborne
+        }
+        return map[self._number_of_aps_calculator_type]
 
     def _track_interference_from_distance(self, cbsd_type: CbsdTypes, found_result: InputWithReturnedValue) -> None:
         self._found_interferences[cbsd_type][found_result.input].append(found_result.returned_value)

@@ -5,11 +5,8 @@ from typing import Type
 from behave import *
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
-    AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
-from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
-from cu_pass.dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
+    AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
+    NumberOfApsTypes, PopulationRetrieverTypes
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -38,8 +35,8 @@ def step_impl(context: ContextNeighborhood, organization: str):
 @step("population by {population_type}")
 def step_impl(context: ContextNeighborhood, population_type: str):
     map = {
-        'census radius': PopulationRetrieverCensus,
-        'region type': PopulationRetrieverRegionType
+        'census radius': PopulationRetrieverTypes.census,
+        'region type': PopulationRetrieverTypes.region_type
     }
     context.monte_carlo_runner = partial(context.monte_carlo_runner,
                                          population_retriever_class=map[population_type])
@@ -48,8 +45,8 @@ def step_impl(context: ContextNeighborhood, population_type: str):
 @step("number of APs using {number_of_aps_type} analysis")
 def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
     map = {
-        'ground based': NumberOfApsCalculatorGroundBased,
-        'shipborne': NumberOfApsCalculatorShipborne
+        'ground based': NumberOfApsTypes.ground_based,
+        'shipborne': NumberOfApsTypes.shipborne
     }
     context.monte_carlo_runner = partial(context.monte_carlo_runner,
                                          number_of_aps_calculator_class=map[number_of_aps_type])

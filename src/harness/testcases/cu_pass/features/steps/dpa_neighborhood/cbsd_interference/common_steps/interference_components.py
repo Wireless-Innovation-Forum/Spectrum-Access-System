@@ -1,16 +1,12 @@
-from typing import Optional, Type
+from typing import Optional
 
 import parse
 from behave import *
 
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
+    ReceiveAntennaGainTypes
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator import \
-    AntennaGainCalculator
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_standard import \
-    AntennaGainCalculatorStandard
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_gain_pattern import \
-    AntennaGainCalculatorGainPattern
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
@@ -25,23 +21,23 @@ RECEIVE_ANTENNA_GAIN_TYPE_STANDARD = 'standard'
 
 
 @parse.with_pattern(f' with ({RECEIVE_ANTENNA_GAIN_TYPE_UNIFORM}|{RECEIVE_ANTENNA_GAIN_TYPE_STANDARD}) receive antenna gain')
-def parse_receive_antenna_gain_calculator_type(text: str) -> Type[AntennaGainCalculator]:
+def parse_receive_antenna_gain_calculator_type(text: str) -> ReceiveAntennaGainTypes:
     if RECEIVE_ANTENNA_GAIN_TYPE_STANDARD in text:
-        return AntennaGainCalculatorStandard
+        return ReceiveAntennaGainTypes.standard
     if RECEIVE_ANTENNA_GAIN_TYPE_UNIFORM in text:
-        return AntennaGainCalculatorGainPattern
+        return ReceiveAntennaGainTypes.pattern
 
 
 register_type(ReceiveAntennaGainType=parse_receive_antenna_gain_calculator_type)
 
 
 @step('interference components are calculated for each {cbsd_type:Any?}CBSD{receive_antenna_gain_type:ReceiveAntennaGainType?}')
-def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receive_antenna_gain_type: Type[AntennaGainCalculator]):
+def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receive_antenna_gain_type: ReceiveAntennaGainTypes):
     def set_argument_defaults():
         nonlocal receive_antenna_gain_type
         nonlocal cbsd_type
         if receive_antenna_gain_type is None:
-            receive_antenna_gain_type = AntennaGainCalculatorGainPattern
+            receive_antenna_gain_type = ReceiveAntennaGainTypes.pattern
         cbsd_type = cbsd_type or ''
 
     def set_context_defaults():
@@ -55,7 +51,7 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         context.interference_components = AggregateInterferenceCalculatorNtia(
             cbsds_with_bearings=CbsdsWithBearings(cbsds=context.cbsds, bearings=context.bearings),
             dpa=context.dpa,
-            receive_antenna_gain_calculator_class=receive_antenna_gain_type).interference_information
+            receive_antenna_gain_calculator_type=receive_antenna_gain_type).interference_information
 
     set_argument_defaults()
     set_context_defaults()
