@@ -3,7 +3,6 @@ Feature: CBSD positioning
   Scenario Template: Population data is retrieved
     Given a circular area with a radius of 150 km
     And center coordinates <coordinates>
-    And census population data
     Then the population in the area should be <expected_population>
 
     Examples: McKinney (rural)

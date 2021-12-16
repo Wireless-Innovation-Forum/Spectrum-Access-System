@@ -31,18 +31,18 @@ Feature: DPA Neighborhood
   @slow
   Scenario Template: The DPA neighborhood is calculated; Hat Creek 100km 1000 iterations
     Given an antenna at <dpa_name>
-    And population by <population_type>
     And a simulation area radius of <simulation_area_radius>
     And <number_of_iterations> monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be <expected_result>
+    Then the resulting distance should be <expected_distance>
+    Then the resulting interference should be <expected_interference>
 
     Examples:
-      | dpa_name  | population_type | simulation_area_radius | number_of_iterations | expected_result | runtime         | access_point_distance | user_equipment_distance | notes |
-#      | Hat Creek | census radius   | 200                   | 1000                  |               |  |                     |                       |  |
-#      | Hat Creek | census radius   | 200                   | 100                   |               |  |                     |                       |  |
-      | Hat Creek | census radius   | 100                   | 1000                  | -1               |  |                     |                       |  |
-#      | Hat Creek | census radius   | 100                   | 100                   | 90              | 1:02:07.166180 | 90                    | 90                      |  |
-#      | Hat Creek | census radius   | 200                   | 3                     | 89              |  |                     |                       |  |
-#      | Hat Creek | census radius   | 150                   | 3                     | 88              | 0:09:06.980410  | 48                    | 88                      |  |
-#      | McKinney   | census radius  | 200                   | 3                     | 25              | 1:51:58.489413  | 21                    | 25                      |    |
+      | dpa_name  | simulation_area_radius | number_of_iterations | expected_distance | expected_interference | runtime         | access_point_distance | user_equipment_distance | notes |
+#      | Hat Creek | 200                    | 1000                 | -1                | -1                    |  |                     |                       |  |
+#      | Hat Creek | 200                    | 100                  | 91                | -1                    | 15:27:29.710758 | 90                    | 91                      |  |
+#      | Hat Creek | 100                    | 1000                 | 90                | -1                    | 10:15:09.057322 | 90                    | 90                      |  |
+#      | Hat Creek | 100                    | 100                  | 90                | -1                    | 1:02:07.166180  | 90                    | 90                      |  |
+#      | Hat Creek | 200                    | 3                    | 89                | -1                    | 1:06:35.718954  | 89                    | 88                      |  |
+#      | Hat Creek | 150                    | 3                    | 88                | -1                    | 0:09:06.980410  | 48                    | 88                      |  |
+#      | McKinney  | 200                    | 3                    | 25                | -1                    | 1:51:58.489413  | 21                    | 25                      |    |
