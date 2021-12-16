@@ -14,7 +14,7 @@ from testcases.cu_pass.features.environment.hooks import antenna_gains_before_sc
     neighborhood_calculation_before_scenario, \
     quick_run_before_scenario, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
-from testcases.cu_pass.features.helpers.utils import get_script_directory
+from testcases.cu_pass.features.helpers.utilities import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'
