@@ -30,10 +30,6 @@ class Point:
         return geometry.Point(self.longitude, self.latitude)
 
 
-def get_hat_creek_radio_observatory() -> Point:
-    return Point(latitude=40.81734, longitude=-121.46933)
-
-
 def move_distance(bearing: float, kilometers: float, origin: Point) -> Point:
     latitude, longitude, _ = GeodesicPoint(lat=origin.latitude, lon=origin.longitude, dist_km=kilometers, bearing=bearing)
     return Point(latitude=latitude, longitude=longitude)
