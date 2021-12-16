@@ -1,3 +1,0 @@
-[submodule "codegen/definitions/google"]
-	path = codegen/definitions/google
-	url = https://github.com/googlemaps/openapi-specification.git
