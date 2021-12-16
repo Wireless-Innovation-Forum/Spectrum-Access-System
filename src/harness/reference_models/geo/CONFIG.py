@@ -20,6 +20,13 @@ specify your local directories.
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TERRAIN_DIR_ENV = os.getenv('TERRAIN_DIR')
+LANDCOVER_DIR_ENV = os.getenv('LANDCOVER_DIR')
+
 # Base data directory
 _BASE_DATA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -34,8 +41,8 @@ FCC_DIR = os.path.join(_BASE_DATA_DIR, 'fcc')
 # If not using the standard location for the data files,
 # define the absolute path of your data directories
 #ITU_DIR =
-#TERRAIN_DIR =
-#LANDCOVER_DIR =
+TERRAIN_DIR = TERRAIN_DIR_ENV or TERRAIN_DIR
+LANDCOVER_DIR = LANDCOVER_DIR_ENV or LANDCOVER_DIR
 #COUNTY_DIR
 #NTIA_DIR=
 

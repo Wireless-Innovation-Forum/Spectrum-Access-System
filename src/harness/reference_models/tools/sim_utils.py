@@ -108,7 +108,7 @@ def CreateCbrsPlot(grants, dpa=None, tag='', color='g',
   PlotGrants(ax, grants, color=color)
   if dpa is not None:
     PlotDpa(ax, dpa, color='m')
-  ax.set_title('%sDPA: %s' % (tag, dpa.name))
+    ax.set_title('%sDPA: %s' % (tag, dpa.name))
   return ax, fig
 
 #----------------------------------------------
