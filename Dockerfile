@@ -30,4 +30,6 @@ RUN pip install -r requirements-sas.txt
 
 COPY . .
 
-ENTRYPOINT bash
+RUN pip install .
+
+ENTRYPOINT python3 -m cu_pass.dpa_calculator.main
