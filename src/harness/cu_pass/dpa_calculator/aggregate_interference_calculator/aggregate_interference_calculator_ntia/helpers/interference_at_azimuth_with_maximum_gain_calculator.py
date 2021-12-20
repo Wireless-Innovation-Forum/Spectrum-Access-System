@@ -1,3 +1,4 @@
+from math import inf
 from typing import Iterable, List
 
 from cached_property import cached_property
@@ -16,6 +17,8 @@ class InterferenceAtAzimuthWithMaximumGainCalculator:
         self._interference_components = interference_components
 
     def calculate(self) -> float:
+        if not self._interference_components:
+            return -inf
         total_interferences = [self._sum_individual_interferences(azimuth=azimuth) for azimuth in self._azimuths]
         return max(total_interferences)
 
