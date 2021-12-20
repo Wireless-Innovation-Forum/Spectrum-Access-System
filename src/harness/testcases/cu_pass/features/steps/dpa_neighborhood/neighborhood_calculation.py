@@ -6,7 +6,6 @@ from behave import *
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     NumberOfApsTypes, PopulationRetrieverTypes
-from testcases.cu_pass.features.environment.hooks import record_exception
 from testcases.cu_pass.features.environment.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
@@ -74,14 +73,13 @@ def step_impl(context: ContextNeighborhood):
     Args:
         context (behave.runner.Context):
     """
-    with record_exception(context=context):
-        if not hasattr(context, 'dpa'):
-            assign_arbitrary_dpa(context=context)
-        simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                        number_of_iterations=getattr(context, 'number_of_iterations', 1),
-                                                        simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
-        simulation_results.log()
-        context.result = simulation_results
+    if not hasattr(context, 'dpa'):
+        assign_arbitrary_dpa(context=context)
+    simulation_results = context.monte_carlo_runner(dpa=context.dpa,
+                                                    number_of_iterations=getattr(context, 'number_of_iterations', 1),
+                                                    simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
+    simulation_results.log()
+    context.result = simulation_results
 
 
 @then("the resulting distance should be {expected_distance:Number}")
@@ -96,8 +94,7 @@ def step_impl(context: ContextNeighborhood, expected_interference: float):
 
 @then("it should run without error")
 def step_impl(context: ContextNeighborhood):
-    exception_encountered = getattr(context, 'exception', None)
-    assert not exception_encountered, f'Encountered exception {exception_encountered.__class__.__name__}: {exception_encountered}'
+    pass
 
 
 @then("the output log should be")

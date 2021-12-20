@@ -35,3 +35,10 @@ Feature: Docker run
           Maximum: 1
 
       """
+
+  Scenario: Logs are still written if exception is encountered
+    Given an exception will be encountered during calculation
+    When the main docker command is run
+    Then the file uploaded to S3 should be
+    """
+    """
