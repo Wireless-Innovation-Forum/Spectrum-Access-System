@@ -1,8 +1,15 @@
+import os
+import subprocess
+import sys
 from pathlib import Path
+from unittest import mock
 
 import boto3
 from behave import *
 from moto import mock_s3
+
+from cu_pass.dpa_calculator import main as dpa_calculator_main
+from testcases.cu_pass.features.helpers.utilities import get_script_directory
 
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
@@ -22,15 +29,9 @@ def _mock_s3(context: ContextSas) -> None:
 @when("the main docker command is run")
 def step_impl(context: ContextSas):
     use_fixture(_mock_s3, context=context)
-    output_log_filename = 'output_log_filename'
-    # mock.patch.dict(os.environ, AWS_ACCESS_KEY_ID='AWS_ACCESS_KEY_ID', AWS_SECRET_ACCESS_KEY='AWS_SECRET_ACCESS_KEY')
-    with open(output_log_filename, 'w') as f:
-        f.write('content')
-    s3_client = boto3.client('s3')
-    s3_client.create_bucket(Bucket=ARBITRARY_BUCKET_NAME)
-    response = s3_client.upload_file(output_log_filename, ARBITRARY_BUCKET_NAME, ARBITRARY_OBJECT_NAME)
-    Path(output_log_filename).unlink()
-    # subprocess.run('python3 src/harness/cu_pass/dpa_calculator/main')
+    with mock.patch.object(dpa_calculator_main, "__name__", "__main__"):
+        with mock.patch.object(sys, 'argv', sys.argv + ['--s3-bucket', ARBITRARY_BUCKET_NAME, '--s3-object', ARBITRARY_OBJECT_NAME]):
+            dpa_calculator_main.init()
 
 
 @then("the file uploaded to S3 should be")
