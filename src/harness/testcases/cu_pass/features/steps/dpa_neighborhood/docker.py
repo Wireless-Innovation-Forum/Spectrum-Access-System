@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import List
 from unittest import mock
 
 import boto3
@@ -18,12 +19,14 @@ use_step_matcher("parse")
 
 ARBITRARY_BUCKET_NAME = 'arbitrary_bucket_name'
 ARBITRARY_DPA_NAME = RadioAstronomyFacilityNames.HatCreek.value
+ARBITRARY_NUMBER_OF_ITERATIONS = 1
 ARBITRARY_OBJECT_NAME_LOG = 'arbitrary_object_name_log'
 ARBITRARY_OBJECT_NAME_RESULT = 'arbitrary_object_name_result'
 
 
 class ContextDocker(ContextSas):
     dpa_name: str
+    iterations: int
 
 
 class ExceptionTest(Exception):
@@ -47,6 +50,11 @@ def step_impl(context: ContextDocker, dpa_name: str):
     context.dpa_name = dpa_name
 
 
+@given("{number_of_iterations:Integer} iterations")
+def step_impl(context: ContextDocker, number_of_iterations: int):
+    context.iterations = number_of_iterations
+
+
 @given("an exception will be encountered during calculation")
 def step_impl(context: ContextDocker):
     use_fixture(_exception_during_calculation, context=context)
@@ -56,14 +64,23 @@ def step_impl(context: ContextDocker):
 def step_impl(context: ContextDocker):
     with record_exception(context=context):
         use_fixture(_mock_s3, context=context)
-        dpa_name_args = ['--dpa-name', getattr(context, 'dpa_name', ARBITRARY_DPA_NAME)]
-        s3_bucket_args = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
-        s3_object_log_args = ['--s3-object-log', ARBITRARY_OBJECT_NAME_LOG]
-        s3_object_result_args = ['--s3-object-result', ARBITRARY_OBJECT_NAME_RESULT]
-        all_args = dpa_name_args + s3_bucket_args + s3_object_log_args + s3_object_result_args
+        all_args = _get_args(context=context)
         with mock.patch.object(dpa_calculator_main, "__name__", "__main__"):
             with mock.patch.object(sys, 'argv', sys.argv + all_args):
                 dpa_calculator_main.init()
+
+
+def _get_args(context: ContextDocker) -> List[str]:
+    dpa_name_arg = ['--dpa-name', getattr(context, 'dpa_name', ARBITRARY_DPA_NAME)]
+    number_of_iterations_arg = ['--iterations', str(getattr(context, 'iterations', ARBITRARY_NUMBER_OF_ITERATIONS))]
+    s3_bucket_arg = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
+    s3_object_log_arg = ['--s3-object-log', ARBITRARY_OBJECT_NAME_LOG]
+    s3_object_result_arg = ['--s3-object-result', ARBITRARY_OBJECT_NAME_RESULT]
+    return dpa_name_arg \
+           + number_of_iterations_arg \
+           + s3_bucket_arg \
+           + s3_object_log_arg \
+           + s3_object_result_arg
 
 
 @then("{expected_log_portion} should be in the output log")

@@ -67,6 +67,16 @@ Feature: Docker run
       | Hat Creek | DPA Name: HATCREEK   |
       | McKinney | DPA Name: MCKINNEY   |
 
+  Scenario Template: The number of iterations is configurable by the command line
+    Given <number_of_iterations> iterations
+    When the main docker command is run
+    Then <expected_log_portion> should be in the output log
+
+    Examples:
+      | number_of_iterations  | expected_log_portion    |
+      | 1                     | Number of iterations: 1 |
+      | 2                     | Number of iterations: 2 |
+
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
     When the main docker command is run
