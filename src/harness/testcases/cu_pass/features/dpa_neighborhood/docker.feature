@@ -57,6 +57,16 @@ Feature: Docker run
       {"distance": 1, "distance_access_point": 1, "distance_user_equipment": 1, "interference": -228.21931595139122, "interference_access_point": -Infinity, "interference_user_equipment": -228.21931595139122, "runtime": null}
       """
 
+  Scenario Template: DPA name is configurable by the command line
+    Given DPA name <dpa_name>
+    When the main docker command is run
+    Then <expected_log_portion> should be in the output log
+
+    Examples:
+      | dpa_name  | expected_log_portion |
+      | Hat Creek | DPA Name: HATCREEK   |
+      | McKinney | DPA Name: MCKINNEY   |
+
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
     When the main docker command is run

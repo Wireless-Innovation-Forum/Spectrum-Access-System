@@ -22,6 +22,10 @@ ARBITRARY_OBJECT_NAME_LOG = 'arbitrary_object_name_log'
 ARBITRARY_OBJECT_NAME_RESULT = 'arbitrary_object_name_result'
 
 
+class ContextDocker(ContextSas):
+    dpa_name: str
+
+
 class ExceptionTest(Exception):
     pass
 
@@ -38,16 +42,21 @@ def _exception_during_calculation(context: ContextSas) -> None:
         yield
 
 
+@given("DPA name {dpa_name}")
+def step_impl(context: ContextDocker, dpa_name: str):
+    context.dpa_name = dpa_name
+
+
 @given("an exception will be encountered during calculation")
-def step_impl(context: ContextSas):
+def step_impl(context: ContextDocker):
     use_fixture(_exception_during_calculation, context=context)
 
 
 @when("the main docker command is run")
-def step_impl(context: ContextSas):
+def step_impl(context: ContextDocker):
     with record_exception(context=context):
         use_fixture(_mock_s3, context=context)
-        dpa_name_args = ['--dpa-name', ARBITRARY_DPA_NAME]
+        dpa_name_args = ['--dpa-name', getattr(context, 'dpa_name', ARBITRARY_DPA_NAME)]
         s3_bucket_args = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
         s3_object_log_args = ['--s3-object-log', ARBITRARY_OBJECT_NAME_LOG]
         s3_object_result_args = ['--s3-object-result', ARBITRARY_OBJECT_NAME_RESULT]
@@ -57,8 +66,14 @@ def step_impl(context: ContextSas):
                 dpa_calculator_main.init()
 
 
+@then("{expected_log_portion} should be in the output log")
+def step_impl(context: ContextDocker, expected_log_portion: str):
+    output_content = _get_uploaded_log_content()
+    assert expected_log_portion in output_content
+
+
 @then("the log file uploaded to S3 should be")
-def step_impl(context: ContextSas):
+def step_impl(context: ContextDocker):
     expected_content = get_expected_output_content(context=context)
     output_content = _get_uploaded_log_content()
     assert output_content == expected_content
@@ -69,7 +84,7 @@ def _get_uploaded_log_content() -> str:
 
 
 @then("the results file uploaded to S3 should be")
-def step_impl(context: ContextSas):
+def step_impl(context: ContextDocker):
     expected_content = get_expected_output_content(context=context)
     output_content = _get_uploaded_result_content()
     assert output_content == expected_content, f'{output_content} != {expected_content}'
