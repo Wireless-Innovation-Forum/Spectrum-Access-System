@@ -61,7 +61,7 @@ def step_impl(context: ContextSas):
 def step_impl(context: ContextSas):
     expected_content = get_expected_output_content(context=context)
     output_content = _get_uploaded_log_content()
-    assert output_content == expected_content, f'{output_content} != {expected_content}'
+    assert output_content == expected_content
 
 
 def _get_uploaded_log_content() -> str:

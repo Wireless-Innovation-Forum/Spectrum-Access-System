@@ -1,9 +1,18 @@
 Feature: Docker run
-  Scenario: Logs are written to s3
+  Scenario: Output is written to s3
     Given random seed 0
     When the main docker command is run
     Then the log file uploaded to S3 should be
       """
+      Inputs:
+          DPA Name: HATCREEK
+          Number of APs: 1
+          Number of iterations: 1
+          Simulation area radius: 10 kilometers
+          Aggregate interference calculator: AggregateInterferenceCalculatorNtia
+          Population retriever: PopulationRetrieverCensus
+          Number of APs calculator: NumberOfApsCalculatorShipborne
+
       Monte Carlo iteration 1
           CBSD 1 / 1
 

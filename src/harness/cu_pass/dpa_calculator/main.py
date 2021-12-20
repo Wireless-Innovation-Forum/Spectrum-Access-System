@@ -49,7 +49,10 @@ class Main:
 
     def _calculate(self) -> None:
         dpa = get_dpa(dpa_name=self._dpa_name)
-        results = AggregateInterferenceMonteCarloCalculator(dpa=dpa, number_of_iterations=1, simulation_area_radius_in_kilometers=10).simulate()
+        results = AggregateInterferenceMonteCarloCalculator(
+            dpa=dpa,
+            number_of_iterations=1,
+            simulation_area_radius_in_kilometers=10).simulate()
         results.log()
         self._upload_output_results_to_s3(results=results)
 

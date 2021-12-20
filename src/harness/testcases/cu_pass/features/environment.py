@@ -17,7 +17,6 @@ from testcases.cu_pass.features.helpers.utilities import get_script_directory
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'
-SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION = 'The DPA neighborhood is calculated'
 
 
 def steps_directory() -> Path:
@@ -68,14 +67,14 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
-    elif scenario.feature.name == 'DPA Neighborhood' or SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
+    elif scenario.feature.name == 'DPA Neighborhood' or 'Logging is captured' in scenario.name:
         setup_monte_carlo_runner(context=context)
 
     _setup_logging(scenario=scenario)
 
 
 def after_scenario(context: ContextSas, scenario: Scenario):
-    if SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION not in scenario.name:
+    if 'The DPA neighborhood is calculated' not in scenario.name:
         _cleanup_logging(scenario=scenario)
 
 

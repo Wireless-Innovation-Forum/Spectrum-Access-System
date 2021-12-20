@@ -115,6 +115,7 @@ class AggregateInterferenceMonteCarloCalculator:
         }
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
+        self._log_inputs()
         start_time = datetime.now()
         distances = run_monte_carlo_simulation(
             functions_to_run=[self._single_run_access_point, self._single_run_user_equipment],
@@ -134,6 +135,17 @@ class AggregateInterferenceMonteCarloCalculator:
             interference_user_equipment=float(expected_interference_user_equipment),
             runtime=datetime.now() - start_time
         )
+
+    def _log_inputs(self) -> None:
+        logging.info('Inputs:')
+        logging.info(f'\tDPA Name: {self._dpa.name}')
+        logging.info(f'\tNumber of APs: {self._number_of_aps}')
+        logging.info(f'\tNumber of iterations: {self._number_of_iterations}')
+        logging.info(f'\tSimulation area radius: {self._simulation_area_radius_in_kilometers} kilometers')
+        logging.info(f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
+        logging.info(f'\tPopulation retriever: {self._population_retriever_class.__name__}')
+        logging.info(f'\tNumber of APs calculator: {self._number_of_aps_calculator_class.__name__}')
+        logging.info('')
 
     def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
         percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
