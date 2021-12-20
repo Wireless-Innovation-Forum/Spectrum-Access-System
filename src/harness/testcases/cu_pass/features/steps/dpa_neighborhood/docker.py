@@ -1,5 +1,3 @@
-import os
-import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
@@ -12,6 +10,7 @@ from cu_pass.dpa_calculator import main as dpa_calculator_main
 from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 
 from testcases.cu_pass.features.environment.hooks import ContextSas
+from testcases.cu_pass.features.environment.utilities import get_expected_output_content, sanitize_output_log
 
 use_step_matcher("parse")
 
@@ -44,9 +43,7 @@ def step_impl(context: ContextSas):
     s3 = boto3.client('s3')
     uploaded_file_local_filepath = 'tmp'
     s3.download_file(ARBITRARY_BUCKET_NAME, ARBITRARY_OBJECT_NAME, uploaded_file_local_filepath)
-    output_content: str
-    with open(uploaded_file_local_filepath, 'r') as f:
-        output_content = f.read()
+    output_content = sanitize_output_log(log_filepath=uploaded_file_local_filepath)
     Path(uploaded_file_local_filepath).unlink()
-    expected_content = context.text.strip()
+    expected_content = get_expected_output_content(context=context)
     assert output_content == expected_content, f'{output_content} != {expected_content}'

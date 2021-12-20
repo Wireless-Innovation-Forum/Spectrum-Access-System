@@ -7,7 +7,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     NumberOfApsTypes, PopulationRetrieverTypes
 from testcases.cu_pass.features.environment.hooks import record_exception
-from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
+from testcases.cu_pass.features.environment.utilities import get_expected_output_content, get_logging_file_handler, \
+    sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
@@ -101,14 +102,7 @@ def step_impl(context: ContextNeighborhood):
 
 @then("the output log should be")
 def step_impl(context: ContextNeighborhood):
-    expected_content = context.text.replace('    ', '\t').replace('\r', '')
+    expected_content = get_expected_output_content(context=context)
     output_log_filepath = get_logging_file_handler().baseFilename
-    output_content: str
-    with open(output_log_filepath) as f:
-        lines = f.readlines()
-        sanitized_lines = [line for line in lines
-                           if 'Loaded climate data' not in line
-                           and 'Loaded refractivity data' not in line
-                           and 'Runtime' not in line]
-        output_content = ''.join(sanitized_lines)
+    output_content = sanitize_output_log(log_filepath=output_log_filepath)
     assert output_content == expected_content
