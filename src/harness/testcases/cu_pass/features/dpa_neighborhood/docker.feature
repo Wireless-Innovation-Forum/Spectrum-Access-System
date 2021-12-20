@@ -68,7 +68,7 @@ Feature: Docker run
       | McKinney | DPA Name: MCKINNEY   |
 
   Scenario Template: The number of iterations is configurable by the command line
-    Given <number_of_iterations> iterations
+    Given <number_of_iterations> monte carlo iterations
     When the main docker command is run
     Then <expected_log_portion> should be in the output log
 
@@ -76,6 +76,16 @@ Feature: Docker run
       | number_of_iterations  | expected_log_portion    |
       | 1                     | Number of iterations: 1 |
       | 2                     | Number of iterations: 2 |
+
+  Scenario Template: The simulation area is configurable by the command line
+    Given a simulation area radius of <simulation_area_radius>
+    When the main docker command is run
+    Then <expected_log_portion> should be in the output log
+
+    Examples:
+      | simulation_area_radius | expected_log_portion                |
+      | 2                      | Simulation area radius: 2 kilometers |
+      | 3                      | Simulation area radius: 3 kilometers |
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation

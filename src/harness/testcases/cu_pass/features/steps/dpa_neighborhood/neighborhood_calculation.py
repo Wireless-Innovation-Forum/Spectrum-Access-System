@@ -9,16 +9,18 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from testcases.cu_pass.features.environment.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_iterations import \
+    ContextMonteCarloIterations
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.simulation_area import ContextSimulationArea
 
 use_step_matcher('parse')
 
 
-class ContextNeighborhood(ContextDpa):
+class ContextNeighborhood(ContextDpa, ContextSimulationArea, ContextMonteCarloIterations):
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
-    simulation_area_radius: int
 
 
 @step("{organization} interference")
@@ -55,16 +57,6 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
 def step_impl(context: ContextNeighborhood, number_of_aps: int):
     context.monte_carlo_runner = partial(context.monte_carlo_runner,
                                          number_of_aps=number_of_aps)
-
-
-@step("a simulation area radius of {simulation_area_radius:Integer}")
-def step_impl(context: ContextNeighborhood, simulation_area_radius: int):
-    context.simulation_area_radius = simulation_area_radius
-
-
-@step("{number_of_iterations:Integer} monte carlo iterations")
-def step_impl(context: ContextNeighborhood, number_of_iterations: int):
-    context.number_of_iterations = number_of_iterations
 
 
 @when("the neighborhood radius is calculated")

@@ -17,11 +17,13 @@ class Main:
     def __init__(self,
                  dpa_name: str,
                  number_of_iterations: int,
+                 simulation_area_radius_in_kilometers: int,
                  s3_bucket: str,
                  s3_object_log: str,
                  s3_object_result: str):
         self._dpa_name = dpa_name
         self._number_of_iterations = number_of_iterations
+        self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
         self._s3_bucket = s3_bucket
         self._s3_object_log = s3_object_log
         self._s3_object_result = s3_object_result
@@ -58,7 +60,7 @@ class Main:
         results = AggregateInterferenceMonteCarloCalculator(
             dpa=dpa,
             number_of_iterations=self._number_of_iterations,
-            simulation_area_radius_in_kilometers=2).simulate()
+            simulation_area_radius_in_kilometers=self._simulation_area_radius_in_kilometers).simulate()
         results.log()
         self._upload_output_results_to_s3(results=results)
 
@@ -89,6 +91,7 @@ def init():
         parser = argparse.ArgumentParser()
         parser.add_argument('--dpa-name', dest='dpa_name', type=str, help='DPA name for which to find neighborhood distance')
         parser.add_argument('--iterations', dest='number_of_iterations', type=int, help='The number of Monte Carlo iterations to perform')
+        parser.add_argument('--radius', dest='simulation_area_radius_in_kilometers', type=int, help='The radius of the simulation area')
         parser.add_argument('--s3-bucket', dest='s3_bucket', type=str, help='S3 Bucket in which to upload output logs')
         parser.add_argument('--s3-object-log', dest='s3_object_log', type=str, help='S3 Object in which to upload output logs')
         parser.add_argument('--s3-object-result', dest='s3_object_result', type=str, help='S3 Object in which to upload output results')

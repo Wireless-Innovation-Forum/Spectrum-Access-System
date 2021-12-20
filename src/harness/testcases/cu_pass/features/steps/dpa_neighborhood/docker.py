@@ -13,6 +13,9 @@ from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 
 from testcases.cu_pass.features.environment.hooks import ContextSas, record_exception
 from testcases.cu_pass.features.environment.utilities import get_expected_output_content, sanitize_output_log
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_iterations import \
+    ContextMonteCarloIterations
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.simulation_area import ContextSimulationArea
 
 use_step_matcher("parse")
 
@@ -20,13 +23,13 @@ use_step_matcher("parse")
 ARBITRARY_BUCKET_NAME = 'arbitrary_bucket_name'
 ARBITRARY_DPA_NAME = RadioAstronomyFacilityNames.HatCreek.value
 ARBITRARY_NUMBER_OF_ITERATIONS = 1
+ARBITRARY_RADIUS_IN_KILOMETERS = 2
 ARBITRARY_OBJECT_NAME_LOG = 'arbitrary_object_name_log'
 ARBITRARY_OBJECT_NAME_RESULT = 'arbitrary_object_name_result'
 
 
-class ContextDocker(ContextSas):
+class ContextDocker(ContextSimulationArea, ContextMonteCarloIterations, ContextSas):
     dpa_name: str
-    iterations: int
 
 
 class ExceptionTest(Exception):
@@ -50,11 +53,6 @@ def step_impl(context: ContextDocker, dpa_name: str):
     context.dpa_name = dpa_name
 
 
-@given("{number_of_iterations:Integer} iterations")
-def step_impl(context: ContextDocker, number_of_iterations: int):
-    context.iterations = number_of_iterations
-
-
 @given("an exception will be encountered during calculation")
 def step_impl(context: ContextDocker):
     use_fixture(_exception_during_calculation, context=context)
@@ -72,15 +70,17 @@ def step_impl(context: ContextDocker):
 
 def _get_args(context: ContextDocker) -> List[str]:
     dpa_name_arg = ['--dpa-name', getattr(context, 'dpa_name', ARBITRARY_DPA_NAME)]
-    number_of_iterations_arg = ['--iterations', str(getattr(context, 'iterations', ARBITRARY_NUMBER_OF_ITERATIONS))]
+    number_of_iterations_arg = ['--iterations', str(getattr(context, 'number_of_iterations', ARBITRARY_NUMBER_OF_ITERATIONS))]
+    radius_arg = ['--radius', str(getattr(context, 'simulation_area_radius', ARBITRARY_RADIUS_IN_KILOMETERS))]
     s3_bucket_arg = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
     s3_object_log_arg = ['--s3-object-log', ARBITRARY_OBJECT_NAME_LOG]
     s3_object_result_arg = ['--s3-object-result', ARBITRARY_OBJECT_NAME_RESULT]
     return dpa_name_arg \
-           + number_of_iterations_arg \
-           + s3_bucket_arg \
-           + s3_object_log_arg \
-           + s3_object_result_arg
+            + number_of_iterations_arg \
+            + radius_arg \
+            + s3_bucket_arg \
+            + s3_object_log_arg \
+            + s3_object_result_arg
 
 
 @then("{expected_log_portion} should be in the output log")
