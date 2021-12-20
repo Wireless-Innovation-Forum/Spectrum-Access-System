@@ -36,13 +36,22 @@ Feature: DPA Neighborhood
     Then it should run without error
 
 
-  Scenario: No interference is detected
+  Scenario: Zero APs are simulated
     Given random seed 0
     And 0 APs
     And 1 monte carlo iterations
     When the neighborhood radius is calculated
+    Then the resulting distance should be -infinity
     Then the resulting interference should be -infinity
 
+
+  Scenario: No interference outside of exclusion zone
+    Given random seed 0
+    And 1 APs
+    And 1 monte carlo iterations
+    And a simulation area radius of 1
+    When the neighborhood radius is calculated
+    Then the resulting interference should be -infinity
 
   @slow
   Scenario Template: The DPA neighborhood is calculated; Hat Creek 100km 1000 iterations

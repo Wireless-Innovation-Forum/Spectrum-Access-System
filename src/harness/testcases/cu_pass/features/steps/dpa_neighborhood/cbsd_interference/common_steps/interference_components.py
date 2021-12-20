@@ -51,7 +51,7 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         context.interference_components = AggregateInterferenceCalculatorNtia(
             cbsds_with_bearings=CbsdsWithBearings(cbsds=context.cbsds, bearings=context.bearings),
             dpa=context.dpa,
-            receive_antenna_gain_calculator_type=receive_antenna_gain_type).interference_information
+            receive_antenna_gain_calculator_type=receive_antenna_gain_type).interference_components
 
     set_argument_defaults()
     set_context_defaults()

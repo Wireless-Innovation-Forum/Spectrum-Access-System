@@ -83,8 +83,8 @@ def step_impl(context: ContextNeighborhood):
         context.result = simulation_results
 
 
-@then("the resulting distance should be {expected_distance:Integer}")
-def step_impl(context: ContextNeighborhood, expected_distance: int):
+@then("the resulting distance should be {expected_distance:Number}")
+def step_impl(context: ContextNeighborhood, expected_distance: float):
     assert context.result.distance == expected_distance, f'{context.result.distance} != {expected_distance}'
 
 
