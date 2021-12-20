@@ -44,4 +44,4 @@ RUN cd $UNINSTALLED_EHATA_DIRECTORY \
 
 ENV PYTHONPATH "${PYTHONPATH}:$CONTENT_ROOT"
 
-ENTRYPOINT python3 -m cu_pass.dpa_calculator.main
+ENTRYPOINT python3 src/harness/cu_pass/dpa_calculator/main
