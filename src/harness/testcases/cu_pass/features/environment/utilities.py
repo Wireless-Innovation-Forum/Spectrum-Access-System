@@ -17,5 +17,6 @@ def sanitize_output_log(log_filepath: str) -> str:
         sanitized_lines = [line for line in lines
                            if 'Loaded climate data' not in line
                            and 'Loaded refractivity data' not in line
-                           and 'Runtime' not in line]
+                           and 'Runtime' not in line
+                           and 'Found credentials in environment variables.' not in line]
         return ''.join(sanitized_lines)

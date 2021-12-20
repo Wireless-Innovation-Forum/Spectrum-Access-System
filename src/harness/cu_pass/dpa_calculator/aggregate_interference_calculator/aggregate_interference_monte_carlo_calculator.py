@@ -1,10 +1,12 @@
+import json
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import auto, Enum
+from json import JSONEncoder
 from math import inf
-from typing import Optional, Type
+from typing import Any, Optional, Type
 
 import numpy
 import numpy as np
@@ -56,6 +58,14 @@ class InterferenceParameters:
     number_of_aps: int
 
 
+class RuntimeEncoder(JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, timedelta):
+            return str(o)
+        else:
+            super().default(o=o)
+
+
 @dataclass
 class AggregateInterferenceMonteCarloResults:
     distance: int
@@ -76,6 +86,10 @@ class AggregateInterferenceMonteCarloResults:
         logging.info(f'\tAP Interference: {self.interference_access_point}')
         logging.info(f'\tUE Interference: {self.interference_user_equipment}')
         logging.info(f'\tRuntime: {self.runtime}')
+
+    def to_json(self) -> str:
+        dictionary = asdict(self)
+        return json.dumps(dictionary, cls=RuntimeEncoder)
 
 
 class AggregateInterferenceMonteCarloCalculator:
@@ -112,12 +126,12 @@ class AggregateInterferenceMonteCarloCalculator:
         distance = max(distances)
         expected_interference = expected_interference_user_equipment if distance == distance_user_equipment else expected_interference_access_point
         return AggregateInterferenceMonteCarloResults(
-            distance=distance,
-            distance_access_point=distance_access_point,
-            distance_user_equipment=distance_user_equipment,
-            interference=expected_interference,
-            interference_access_point=expected_interference_access_point,
-            interference_user_equipment=expected_interference_user_equipment,
+            distance=int(distance),
+            distance_access_point=int(distance_access_point),
+            distance_user_equipment=int(distance_user_equipment),
+            interference=float(expected_interference),
+            interference_access_point=float(expected_interference_access_point),
+            interference_user_equipment=float(expected_interference_user_equipment),
             runtime=datetime.now() - start_time
         )
 
