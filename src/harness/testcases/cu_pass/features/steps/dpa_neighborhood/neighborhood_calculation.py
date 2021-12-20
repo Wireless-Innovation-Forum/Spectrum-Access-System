@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from functools import partial
 from typing import Type
 
@@ -7,6 +6,7 @@ from behave import *
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     NumberOfApsTypes, PopulationRetrieverTypes
+from testcases.cu_pass.features.environment.hooks import record_exception
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -14,7 +14,6 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type 
 use_step_matcher('parse')
 
 
-@dataclass
 class ContextNeighborhood(ContextDpa):
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
     number_of_iterations: int
@@ -74,13 +73,14 @@ def step_impl(context: ContextNeighborhood):
     Args:
         context (behave.runner.Context):
     """
-    if not hasattr(context, 'dpa'):
-        assign_arbitrary_dpa(context=context)
-    simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                    number_of_iterations=getattr(context, 'number_of_iterations', 1),
-                                                    simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
-    simulation_results.log()
-    context.result = simulation_results
+    with record_exception(context=context):
+        if not hasattr(context, 'dpa'):
+            assign_arbitrary_dpa(context=context)
+        simulation_results = context.monte_carlo_runner(dpa=context.dpa,
+                                                        number_of_iterations=getattr(context, 'number_of_iterations', 1),
+                                                        simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
+        simulation_results.log()
+        context.result = simulation_results
 
 
 @then("the resulting distance should be {expected_distance:Integer}")
@@ -91,6 +91,12 @@ def step_impl(context: ContextNeighborhood, expected_distance: int):
 @then("the resulting interference should be {expected_interference:Number}")
 def step_impl(context: ContextNeighborhood, expected_interference: float):
     assert context.result.interference == expected_interference, f'{context.result.interference} != {expected_interference}'
+
+
+@then("it should run without error")
+def step_impl(context: ContextNeighborhood):
+    exception_encountered = getattr(context, 'exception', None)
+    assert not exception_encountered, f'Encountered exception {exception_encountered.__class__.__name__}: {exception_encountered}'
 
 
 @then("the output log should be")

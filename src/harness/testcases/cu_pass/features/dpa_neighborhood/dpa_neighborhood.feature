@@ -28,6 +28,22 @@ Feature: DPA Neighborhood
     And the resulting interference should be -151.99414909249862
 
 
+  Scenario: Only one iteration is performed, so standard deviation cannot be calculated
+    Given random seed 0
+    And 2 APs
+    And 1 monte carlo iterations
+    When the neighborhood radius is calculated
+    Then it should run without error
+
+
+  Scenario: No interference is detected
+    Given random seed 0
+    And 0 APs
+    And 1 monte carlo iterations
+    When the neighborhood radius is calculated
+    Then the resulting interference should be -infinity
+
+
   @slow
   Scenario Template: The DPA neighborhood is calculated; Hat Creek 100km 1000 iterations
     Given an antenna at <dpa_name>

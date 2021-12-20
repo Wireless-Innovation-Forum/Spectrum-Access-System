@@ -10,9 +10,8 @@ from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
-    interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
-    neighborhood_calculation_before_scenario, \
-    quick_run_before_scenario, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
+    interference_contribution_eirps_before_scenario, \
+    setup_monte_carlo_runner, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.helpers.utilities import get_script_directory
 
@@ -63,18 +62,14 @@ import_all_step_definitions()
 def before_scenario(context: ContextSas, scenario: Scenario):
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
-    elif SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
-        neighborhood_calculation_before_scenario(context=context)
     elif 'Transmitter insertion losses' in scenario.name:
         transmitter_insertion_losses_before_scenario(context=context)
     elif 'antenna gains are calculated' in scenario.name:
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
-    elif 'Logging is captured' in scenario.name:
-        logging_is_captured_before_scenario(context=context)
-    elif 'A quick run is performed' in scenario.name:
-        quick_run_before_scenario(context=context)
+    elif scenario.feature.name == 'DPA Neighborhood' or SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
+        setup_monte_carlo_runner(context=context)
 
     _setup_logging(scenario=scenario)
 

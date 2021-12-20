@@ -3,9 +3,11 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import auto, Enum
+from math import inf
 from typing import Optional, Type
 
 import numpy
+import numpy as np
 from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
@@ -100,13 +102,14 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         start_time = datetime.now()
-        [distance_access_point, distance_user_equipment] = run_monte_carlo_simulation(
+        distances = run_monte_carlo_simulation(
             functions_to_run=[self._single_run_access_point, self._single_run_user_equipment],
             number_of_iterations=self._number_of_iterations,
             percentile=PROTECTION_PERCENTILE)
-        distance = max(distance_access_point, distance_user_equipment)
-        expected_interference_access_point, expected_interference_user_equipment = (numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
-                                                                                    for cbsd_type in CbsdTypes)
+        [distance_access_point, distance_user_equipment] = distances
+        expected_interference_access_point, expected_interference_user_equipment = (self._get_interference_at_distance(distance=cbsd_type_distance, cbsd_type=cbsd_type)
+                                                                                    for cbsd_type_distance, cbsd_type in zip(distances, CbsdTypes))
+        distance = max(distances)
         expected_interference = expected_interference_user_equipment if distance == distance_user_equipment else expected_interference_access_point
         return AggregateInterferenceMonteCarloResults(
             distance=distance,
@@ -117,6 +120,10 @@ class AggregateInterferenceMonteCarloCalculator:
             interference_user_equipment=expected_interference_user_equipment,
             runtime=datetime.now() - start_time
         )
+
+    def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
+        percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
+        return -inf if np.isnan(percentile) else percentile
 
     def _single_run_access_point(self) -> float:
         result = self._single_run_cbsd(is_user_equipment=False)
@@ -157,7 +164,7 @@ class AggregateInterferenceMonteCarloCalculator:
 
     @cached_property
     def _number_of_aps(self) -> int:
-        if self._number_of_aps_override:
+        if self._number_of_aps_override is not None:
             return self._number_of_aps_override
         population = self._population_retriever_class(area=self._dpa_test_zone).retrieve()
         return self._number_of_aps_calculator_class(center_coordinates=self._dpa_test_zone.center_coordinates,
