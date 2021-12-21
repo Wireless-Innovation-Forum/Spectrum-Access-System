@@ -3,25 +3,22 @@ Feature: Docker run
     Given random seed 0
     And <s3_log_name> as an s3 object name for the s3 log file
     And <s3_results_name> as an s3 object name for the s3 results file
-    And <local_filepath> as a local filepath for the local log file
+    And <local_log_filepath> as a local filepath for the local log file
+    And <local_results_filepath> as a local filepath for the local results file
     When the main docker command is run
     Then the log file uploaded to S3 <s3_log_exists> exist
     Then the results file uploaded to S3 <s3_results_exist> exist
-    And the local log file <local_exists> exist
+    And the local log file <local_log_exists> exist
+    And the local results file <local_results_exist> exist
 
     Examples:
-      | s3_log_name | s3_results_name | local_filepath       | s3_log_exists | s3_results_exist | local_exists |
-      | out_s3.log  | results_s3.json | output/out_local.log | should        | should           | should       |
-      | None        | results_s3.json | output/out_local.log | should not    | should           | should       |
-      | out_s3.log  | None            | output/out_local.log | should        | should not       | should       |
-      | out_s3.log  | results_s3.json | None                 | should        | should           | should not   |
+      | s3_log_name | s3_results_name | local_log_filepath   | local_results_filepath    | s3_log_exists | s3_results_exist | local_log_exists | local_results_exist |
+      | out_s3.log  | results_s3.json | output/out_local.log | output/results_local.json | should        | should           | should           | should              |
+      | None        | results_s3.json | output/out_local.log | output/results_local.json | should not    | should           | should           | should              |
+      | out_s3.log  | None            | output/out_local.log | output/results_local.json | should        | should not       | should           | should              |
+      | out_s3.log  | results_s3.json | None                 | output/results_local.json | should        | should           | should not       | should              |
+      | out_s3.log  | results_s3.json | output/out_local.log | None                      | should        | should           | should           | should not          |
 
-  Scenario: Output results are written
-    Given random seed 0
-    And results_s3.json as an s3 object name for the s3 results file
-    And output/results_local.json as a local filepath for the local results file
-    When the main docker command is run
-    Then the results file uploaded to s3 should be
 
   Scenario Template: DPA name is configurable by the command line
     Given DPA name <dpa_name>
@@ -52,11 +49,6 @@ Feature: Docker run
       | simulation_area_radius | expected_log_portion                 |
       | 2                      | Simulation area radius: 2 kilometers |
       | 3                      | Simulation area radius: 3 kilometers |
-
-  Scenario: The local output log is configurable by the command line
-    Given an output log filepath of out.log
-    When the main docker command is run
-    Then the file out.log should be
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
