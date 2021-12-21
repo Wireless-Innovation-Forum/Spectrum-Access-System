@@ -17,6 +17,8 @@ DEFAULT_NUMBER_OF_ITERATIONS = 100
 DEFAULT_SIMULATION_AREA_IN_KILOMETERS = 100
 LOG_EXTENSION = '.log'
 LOG_PREFIX = 'log_tmp'
+RESULTS_EXTENSION = '.json'
+RESULTS_PREFIX = 'results_tmp'
 
 
 class Main:
@@ -64,7 +66,8 @@ class Main:
     def _record_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         try:
             self._write_local_results(results=results)
-            self._upload_file_to_s3(filepath=self._results_filepath, s3_object_name=self._s3_object_result)
+            if self._s3_object_result:
+                self._upload_file_to_s3(filepath=self._results_filepath, s3_object_name=self._s3_object_result)
         finally:
             self._clean_local_results()
 
@@ -79,7 +82,7 @@ class Main:
 
     @cached_property
     def _results_filepath(self) -> Path:
-        return self._get_filepath(self._local_result_filepath or f'results_tmp_{uuid4().hex}.json')
+        return self._get_filepath(self._local_result_filepath or f'{RESULTS_PREFIX}_{uuid4().hex}{RESULTS_EXTENSION}')
 
     def _cleanup_file_handler(self) -> None:
         self._file_handler.close()

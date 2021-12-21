@@ -1,17 +1,20 @@
 Feature: Docker run
-  Scenario Template: Output logs are written
+  Scenario Template: Output files are individually optional
     Given random seed 0
-    And <s3_object_name> as an s3 object name for the s3 log file
+    And <s3_log_name> as an s3 object name for the s3 log file
+    And <s3_results_name> as an s3 object name for the s3 results file
     And <local_filepath> as a local filepath for the local log file
     When the main docker command is run
-    Then the log file uploaded to S3 <s3_exists> exist
+    Then the log file uploaded to S3 <s3_log_exists> exist
+    Then the results file uploaded to S3 <s3_results_exist> exist
     And the local log file <local_exists> exist
 
     Examples:
-      | s3_object_name | local_filepath       | s3_exists  | local_exists |
-      | out_s3.log     | output/out_local.log | should     | should       |
-      | None           | output/out_local.log | should not | should       |
-      | out_s3.log     | None                 | should     | should not   |
+      | s3_log_name | s3_results_name | local_filepath       | s3_log_exists | s3_results_exist | local_exists |
+      | out_s3.log  | results_s3.json | output/out_local.log | should        | should           | should       |
+      | None        | results_s3.json | output/out_local.log | should not    | should           | should       |
+      | out_s3.log  | None            | output/out_local.log | should        | should not       | should       |
+      | out_s3.log  | results_s3.json | None                 | should        | should           | should not   |
 
   Scenario: Output results are written
     Given random seed 0
@@ -19,18 +22,6 @@ Feature: Docker run
     And output/results_local.json as a local filepath for the local results file
     When the main docker command is run
     Then the results file uploaded to s3 should be
-      """
-      {"distance": 0, "distance_access_point": 0, "distance_user_equipment": 0, "interference": -Infinity, "interference_access_point": -Infinity, "interference_user_equipment": -Infinity, "runtime": null}
-      """
-    And the local results file should match the s3 results file
-
-  Scenario: The s3 log file is not given
-
-  Scenario: The s3 results file is not given
-
-  Scenario: The local log file is not given
-
-  Scenario: The local results file is not given
 
   Scenario Template: DPA name is configurable by the command line
     Given DPA name <dpa_name>

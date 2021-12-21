@@ -11,12 +11,13 @@ from behave import *
 from moto import mock_s3
 
 from cu_pass.dpa_calculator import main as dpa_calculator_main
-from cu_pass.dpa_calculator.main import LOG_EXTENSION, LOG_PREFIX
+from cu_pass.dpa_calculator.main import LOG_EXTENSION, LOG_PREFIX, RESULTS_EXTENSION
 
 from testcases.cu_pass.features.environment.hooks import ContextSas, record_exception
 from testcases.cu_pass.features.environment.utilities import get_expected_output_content, sanitize_output_log
 from testcases.cu_pass.features.helpers.utilities import read_file
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_log_output import EXPECTED_LOG_OUTPUT
+from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_results_output import EXPECTED_RESULTS_OUTPUT
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -82,7 +83,7 @@ def step_impl(context: ContextDocker, local_filepath: str):
 
 @given("{s3_object_name} as an s3 object name for the s3 results file")
 def step_impl(context: ContextDocker, s3_object_name: str):
-    context.s3_object_name_result = s3_object_name
+    context.s3_object_name_result = None if s3_object_name == NONE_STR else s3_object_name
 
 
 @given("{local_filepath} as a local filepath for the local results file")
@@ -141,11 +142,7 @@ def step_impl(context: ContextDocker, should_exist_str: str):
         output_content = _get_uploaded_log_content(context=context)
         assert output_content == expected_content
     else:
-        s3 = boto3.client('s3')
-        uploaded_contents = s3.list_objects(Bucket=ARBITRARY_BUCKET_NAME)['Contents']
-        uploaded_filenames = [key['Key'] for key in uploaded_contents]
-        log_file_has_been_uploaded = any(LOG_EXTENSION in filename for filename in uploaded_filenames)
-        assert not log_file_has_been_uploaded, 'The log should not have been uploaded to s3'
+        assert not _s3_file_exists(partial_filename=LOG_EXTENSION), 'The log should not have been uploaded to s3'
 
 
 @then("the local log file {should_exist_str} exist")
@@ -170,11 +167,22 @@ def _get_local_log_content(context: ContextDocker) -> str:
     return sanitize_output_log(log_filepath=filepath)
 
 
-@then("the results file uploaded to S3 should be")
-def step_impl(context: ContextDocker):
-    expected_content = get_expected_output_content(context=context)
-    output_content = _get_uploaded_result_content(context=context)
-    assert output_content == expected_content, f'{output_content} != {expected_content}'
+@then("the results file uploaded to S3 {should_exist_str} exist")
+def step_impl(context: ContextDocker, should_exist_str: str):
+    should_exist = should_exist_str == SHOULD_STR
+    if should_exist:
+        expected_content = EXPECTED_RESULTS_OUTPUT
+        output_content = _get_uploaded_result_content(context=context)
+        assert output_content == expected_content, f'{output_content} != {expected_content}'
+    else:
+        assert not _s3_file_exists(partial_filename=RESULTS_EXTENSION), 'The results should not have been uploaded to s3'
+
+
+def _s3_file_exists(partial_filename: str) -> bool:
+    s3 = boto3.client('s3')
+    uploaded_contents = s3.list_objects(Bucket=ARBITRARY_BUCKET_NAME)['Contents']
+    uploaded_filenames = [key['Key'] for key in uploaded_contents]
+    return any(partial_filename in filename for filename in uploaded_filenames)
 
 
 @then("the local results file should match the s3 results file")
