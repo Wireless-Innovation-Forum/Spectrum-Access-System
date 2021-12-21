@@ -15,6 +15,7 @@ ARBITRARY_OBJECT_NAME_RESULT = 'arbitrary_object_name_result.json'
 class ContextDocker(ContextSimulationArea, ContextMonteCarloIterations, ContextSas):
     dpa_name: str
     local_filepath_log: str
+    local_filepath_result: str
     s3_object_name_log: str
     s3_object_name_result: str
 
@@ -22,6 +23,7 @@ class ContextDocker(ContextSimulationArea, ContextMonteCarloIterations, ContextS
 def set_docker_context_defaults(context: ContextDocker) -> None:
     context.dpa_name = ARBITRARY_DPA_NAME
     context.local_filepath_log = ARBITRARY_OBJECT_NAME_LOG
+    context.local_filepath_result = ARBITRARY_OBJECT_NAME_RESULT
     context.number_of_iterations = ARBITRARY_NUMBER_OF_ITERATIONS
     context.simulation_area_radius = ARBITRARY_RADIUS_IN_KILOMETERS
     context.s3_object_name_log = ARBITRARY_OBJECT_NAME_LOG

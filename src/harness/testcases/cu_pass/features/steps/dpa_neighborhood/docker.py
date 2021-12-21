@@ -28,6 +28,7 @@ class ExceptionTest(Exception):
 def _clean_local_output_files(context: ContextDocker) -> None:
     yield
     Path(context.local_filepath_log).unlink(missing_ok=True)
+    Path(context.local_filepath_result).unlink(missing_ok=True)
 
 
 @fixture
@@ -70,6 +71,11 @@ def step_impl(context: ContextDocker, s3_object_name: str):
     context.s3_object_name_result = s3_object_name
 
 
+@given("{local_filepath} as a local filepath for the local results file")
+def step_impl(context: ContextDocker, local_filepath: str):
+    context.local_filepath_result = local_filepath
+
+
 @when("the main docker command is run")
 def step_impl(context: ContextDocker):
     with record_exception(context=context):
@@ -84,14 +90,16 @@ def step_impl(context: ContextDocker):
 def _get_args(context: ContextDocker) -> List[str]:
     dpa_name_arg = ['--dpa-name', context.dpa_name]
     local_filepath_log_arg = ['--local-log', context.local_filepath_log] if context.local_filepath_log else []
+    local_filepath_result_arg = ['--local-result', context.local_filepath_result] if context.local_filepath_result else []
     number_of_iterations_arg = ['--iterations', str(context.number_of_iterations)]
     radius_arg = ['--radius', str(context.simulation_area_radius)]
     s3_bucket_arg = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
     s3_object_log_arg = ['--s3-object-log', context.s3_object_name_log] if context.s3_object_name_log else []
-    s3_object_result_arg = ['--s3-object-result', context.s3_object_name_result]
+    s3_object_result_arg = ['--s3-object-result', context.s3_object_name_result] if context.s3_object_name_result else []
 
     return dpa_name_arg \
         + local_filepath_log_arg \
+        + local_filepath_result_arg \
         + number_of_iterations_arg \
         + radius_arg \
         + s3_bucket_arg \
@@ -135,11 +143,16 @@ def step_impl(context: ContextDocker):
     assert output_content == expected_content, f'{output_content} != {expected_content}'
 
 
+@then("the local results file should match the s3 results file")
+def step_impl(context: ContextDocker):
+    s3_content = _get_uploaded_result_content(context=context)
+    local_content = _get_local_result_content(context=context)
+    assert local_content == s3_content, f'{local_content} != {s3_content}'
+
+
 def _get_uploaded_result_content(context: ContextDocker) -> str:
     content = _get_uploaded_file_content(object_name=context.s3_object_name_result)
-    dictionary = json.loads(content)
-    dictionary['runtime'] = None
-    return json.dumps(dictionary)
+    return _remove_runtime_from_results_content(content=content)
 
 
 def _get_uploaded_file_content(object_name: str) -> str:
@@ -151,3 +164,15 @@ def _get_uploaded_file_content(object_name: str) -> str:
     finally:
         Path(uploaded_file_local_filepath).unlink()
     return output_content
+
+
+def _get_local_result_content(context: ContextDocker) -> str:
+    with open(context.local_filepath_result) as f:
+        content = f.read()
+        return _remove_runtime_from_results_content(content=content)
+
+
+def _remove_runtime_from_results_content(content: str) -> str:
+    dictionary = json.loads(content)
+    dictionary['runtime'] = None
+    return json.dumps(dictionary)

@@ -23,11 +23,13 @@ class Main:
                  number_of_iterations: int = DEFAULT_NUMBER_OF_ITERATIONS,
                  simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_AREA_IN_KILOMETERS,
                  local_log_filepath: Optional[str] = None,
+                 local_result_filepath: Optional[str] = None,
                  s3_bucket: Optional[str] = None,
                  s3_object_log: Optional[str] = None,
                  s3_object_result: Optional[str] = None):
         self._dpa_name = dpa_name
         self._local_log_filepath = local_log_filepath
+        self._local_result_filepath = local_result_filepath
         self._number_of_iterations = number_of_iterations
         self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
         self._s3_bucket = s3_bucket
@@ -55,16 +57,27 @@ class Main:
             number_of_iterations=self._number_of_iterations,
             simulation_area_radius_in_kilometers=self._simulation_area_radius_in_kilometers).simulate()
         results.log()
-        self._upload_output_results_to_s3(results=results)
+        self._record_results(results=results)
 
-    def _upload_output_results_to_s3(self, results: AggregateInterferenceMonteCarloResults) -> None:
-        results_filepath = Path('results_tmp.json')
+    def _record_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         try:
-            with open(results_filepath, 'w') as f:
-                f.write(results.to_json())
-            self._upload_file_to_s3(filepath=results_filepath, s3_object_name=self._s3_object_result)
+            self._write_local_results(results=results)
+            self._upload_file_to_s3(filepath=self._results_filepath, s3_object_name=self._s3_object_result)
         finally:
-            results_filepath.unlink()
+            self._clean_local_results()
+
+    def _write_local_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
+        with open(self._results_filepath, 'w') as f:
+            f.write(results.to_json())
+
+    def _clean_local_results(self) -> None:
+        output_should_persist_locally = self._local_result_filepath
+        if not output_should_persist_locally:
+            self._results_filepath.unlink()
+
+    @cached_property
+    def _results_filepath(self) -> Path:
+        return self._get_filepath(self._local_result_filepath or f'results_tmp_{uuid4().hex}.json')
 
     def _cleanup_file_handler(self) -> None:
         self._file_handler.close()
@@ -77,7 +90,8 @@ class Main:
         return file_handler
 
     def _clean_local_logs(self) -> None:
-        if not self._local_log_filepath:
+        output_should_persist_locally = self._local_log_filepath
+        if not output_should_persist_locally:
             self._output_log_filepath.unlink()
 
     def _upload_output_log_to_s3(self) -> None:
@@ -90,7 +104,11 @@ class Main:
 
     @cached_property
     def _output_log_filepath(self) -> Path:
-        filepath = Path(self._local_log_filepath) or Path(f'output_log_filename_{uuid4().hex}.log')
+        return self._get_filepath(self._local_log_filepath or f'log_tmp_{uuid4().hex}.log')
+
+    @staticmethod
+    def _get_filepath(filepath_str: str) -> Path:
+        filepath = Path(filepath_str)
         filepath.parent.mkdir(parents=True, exist_ok=True)
         return filepath
 
@@ -112,6 +130,10 @@ def init():
                             dest='local_log_filepath',
                             type=str,
                             help='The filepath in which a local copy of the logs will be written')
+        parser.add_argument('--local-result',
+                            dest='local_result_filepath',
+                            type=str,
+                            help='The filepath in which a local copy of the results will be written')
         parser.add_argument('--radius',
                             dest='simulation_area_radius_in_kilometers',
                             type=int,

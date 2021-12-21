@@ -59,7 +59,7 @@ Feature: Docker run
     When the main docker command is run
     Then the results file uploaded to s3 should be
       """
-      {"distance": 1, "distance_access_point": 1, "distance_user_equipment": 1, "interference": -228.21931595139122, "interference_access_point": -Infinity, "interference_user_equipment": -228.21931595139122, "runtime": null}
+      {"distance": 0, "distance_access_point": 0, "distance_user_equipment": 0, "interference": -Infinity, "interference_access_point": -Infinity, "interference_user_equipment": -Infinity, "runtime": null}
       """
     And the local results file should match the s3 results file
 
