@@ -16,6 +16,7 @@ from cu_pass.dpa_calculator.dpa.builder import get_dpa
 DEFAULT_NUMBER_OF_ITERATIONS = 100
 DEFAULT_SIMULATION_AREA_IN_KILOMETERS = 100
 LOG_EXTENSION = '.log'
+LOG_PREFIX = 'log_tmp'
 
 
 class Main:
@@ -106,7 +107,7 @@ class Main:
 
     @cached_property
     def _output_log_filepath(self) -> Path:
-        return self._get_filepath(self._local_log_filepath or f'log_tmp_{uuid4().hex}{LOG_EXTENSION}')
+        return self._get_filepath(self._local_log_filepath or f'{LOG_PREFIX}_{uuid4().hex}{LOG_EXTENSION}')
 
     @staticmethod
     def _get_filepath(filepath_str: str) -> Path:

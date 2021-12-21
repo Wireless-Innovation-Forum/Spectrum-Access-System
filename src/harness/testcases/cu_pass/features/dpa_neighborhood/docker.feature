@@ -11,6 +11,7 @@ Feature: Docker run
       | s3_object_name | local_filepath       | s3_exists  | local_exists |
       | out_s3.log     | output/out_local.log | should     | should       |
       | None           | output/out_local.log | should not | should       |
+      | out_s3.log     | None                 | should     | should not   |
 
   Scenario: Output results are written
     Given random seed 0
