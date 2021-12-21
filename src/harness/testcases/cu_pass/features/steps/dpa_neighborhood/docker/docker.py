@@ -10,9 +10,12 @@ from behave import *
 from moto import mock_s3
 
 from cu_pass.dpa_calculator import main as dpa_calculator_main
+from cu_pass.dpa_calculator.main import LOG_EXTENSION
 
 from testcases.cu_pass.features.environment.hooks import ContextSas, record_exception
 from testcases.cu_pass.features.environment.utilities import get_expected_output_content, sanitize_output_log
+from testcases.cu_pass.features.helpers.utilities import read_file
+from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_log_output import EXPECTED_LOG_OUTPUT
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -27,8 +30,15 @@ class ExceptionTest(Exception):
 @fixture
 def _clean_local_output_files(context: ContextDocker) -> None:
     yield
-    Path(context.local_filepath_log).unlink(missing_ok=True)
-    Path(context.local_filepath_result).unlink(missing_ok=True)
+    _delete_file(filepath=context.local_filepath_log)
+    _delete_file(filepath=context.local_filepath_result)
+
+
+def _delete_file(filepath: str) -> None:
+    try:
+        Path(filepath).unlink()
+    except FileNotFoundError:
+        pass
 
 
 @fixture
@@ -53,12 +63,13 @@ def step_impl(context: ContextDocker, dpa_name: str):
 
 @given("an exception will be encountered during calculation")
 def step_impl(context: ContextDocker):
+    context.exception_expected = True
     use_fixture(_exception_during_calculation, context=context)
 
 
 @given("{s3_object_name} as an s3 object name for the s3 log file")
 def step_impl(context: ContextDocker, s3_object_name: str):
-    context.s3_object_name_log = s3_object_name
+    context.s3_object_name_log = None if s3_object_name == 'None' else s3_object_name
 
 
 @given("{local_filepath} as a local filepath for the local log file")
@@ -78,13 +89,19 @@ def step_impl(context: ContextDocker, local_filepath: str):
 
 @when("the main docker command is run")
 def step_impl(context: ContextDocker):
-    with record_exception(context=context):
+    def main():
         use_fixture(_clean_local_output_files, context=context)
         use_fixture(_mock_s3, context=context)
         all_args = _get_args(context=context)
         with mock.patch.object(dpa_calculator_main, "__name__", "__main__"):
             with mock.patch.object(sys, 'argv', sys.argv + all_args):
                 dpa_calculator_main.init()
+
+    if context.exception_expected:
+        with record_exception(context=context):
+            main()
+    else:
+        main()
 
 
 def _get_args(context: ContextDocker) -> List[str]:
@@ -113,18 +130,26 @@ def step_impl(context: ContextDocker, expected_log_portion: str):
     assert expected_log_portion in output_content
 
 
-@then("the log file uploaded to S3 should be")
-def step_impl(context: ContextDocker):
-    expected_content = get_expected_output_content(context=context)
-    output_content = _get_uploaded_log_content(context=context)
-    assert output_content == expected_content
+@then("the log file uploaded to S3 {should_exist_str} exist")
+def step_impl(context: ContextDocker, should_exist_str: str):
+    should_exist = should_exist_str == 'should'
+    if should_exist:
+        expected_content = EXPECTED_LOG_OUTPUT
+        output_content = _get_uploaded_log_content(context=context)
+        assert output_content == expected_content
+    else:
+        s3 = boto3.client('s3')
+        uploaded_contents = s3.list_objects(Bucket=ARBITRARY_BUCKET_NAME)['Contents']
+        uploaded_filenames = [key['Key'] for key in uploaded_contents]
+        log_file_has_been_uploaded = any(LOG_EXTENSION in filename for filename in uploaded_filenames)
+        assert not log_file_has_been_uploaded, 'The log should not have been uploaded to s3'
 
 
-@then("the local log file should match the s3 log file")
+@then("the local log file should exist")
 def step_impl(context: ContextDocker):
-    s3_content = _get_uploaded_log_content(context=context)
+    expected_content = EXPECTED_LOG_OUTPUT
     local_content = _get_local_log_content(context=context)
-    assert local_content == s3_content
+    assert local_content == expected_content
 
 
 def _get_uploaded_log_content(context: ContextDocker) -> str:
@@ -162,14 +187,13 @@ def _get_uploaded_file_content(object_name: str) -> str:
         s3.download_file(ARBITRARY_BUCKET_NAME, object_name, uploaded_file_local_filepath)
         output_content = sanitize_output_log(log_filepath=uploaded_file_local_filepath)
     finally:
-        Path(uploaded_file_local_filepath).unlink()
+        _delete_file(filepath=uploaded_file_local_filepath)
     return output_content
 
 
 def _get_local_result_content(context: ContextDocker) -> str:
-    with open(context.local_filepath_result) as f:
-        content = f.read()
-        return _remove_runtime_from_results_content(content=content)
+    content = read_file(filepath=context.local_filepath_result)
+    return _remove_runtime_from_results_content(content=content)
 
 
 def _remove_runtime_from_results_content(content: str) -> str:

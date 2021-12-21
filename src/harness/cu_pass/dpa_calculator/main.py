@@ -15,6 +15,7 @@ from cu_pass.dpa_calculator.dpa.builder import get_dpa
 
 DEFAULT_NUMBER_OF_ITERATIONS = 100
 DEFAULT_SIMULATION_AREA_IN_KILOMETERS = 100
+LOG_EXTENSION = '.log'
 
 
 class Main:
@@ -95,7 +96,8 @@ class Main:
             self._output_log_filepath.unlink()
 
     def _upload_output_log_to_s3(self) -> None:
-        self._upload_file_to_s3(filepath=self._output_log_filepath, s3_object_name=self._s3_object_log)
+        if self._s3_object_log:
+            self._upload_file_to_s3(filepath=self._output_log_filepath, s3_object_name=self._s3_object_log)
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
         s3_client = boto3.client('s3')
@@ -104,7 +106,7 @@ class Main:
 
     @cached_property
     def _output_log_filepath(self) -> Path:
-        return self._get_filepath(self._local_log_filepath or f'log_tmp_{uuid4().hex}.log')
+        return self._get_filepath(self._local_log_filepath or f'log_tmp_{uuid4().hex}{LOG_EXTENSION}')
 
     @staticmethod
     def _get_filepath(filepath_str: str) -> Path:

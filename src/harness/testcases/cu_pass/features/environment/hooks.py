@@ -15,7 +15,12 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type 
 
 class ContextSas(runner.Context):
     exception: Exception
-    with_integration: bool
+    exception_expected: bool
+
+
+def set_context_sas_defaults(context: ContextSas) -> None:
+    context.exception = None
+    context.exception_expected = False
 
 
 @contextmanager

@@ -11,7 +11,8 @@ from behave.model import Scenario
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
     interference_contribution_eirps_before_scenario, \
-    setup_monte_carlo_runner, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
+    set_context_sas_defaults, setup_monte_carlo_runner, total_interference_before_scenario, \
+    transmitter_insertion_losses_before_scenario
 from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
 from testcases.cu_pass.features.helpers.utilities import get_script_directory
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import set_docker_context_defaults
@@ -60,6 +61,8 @@ import_all_step_definitions()
 
 
 def before_scenario(context: ContextSas, scenario: Scenario):
+    set_context_sas_defaults(context=context)
+
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
     elif 'Transmitter insertion losses' in scenario.name:
@@ -103,8 +106,3 @@ def _cleanup_logging(scenario: Scenario) -> None:
 
 def _get_scenario_logging_directory(scenario: Scenario) -> Path:
     return Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_").replace("@", "")}')
-
-
-def before_tag(context: ContextSas, tag: str):
-    if tag == 'integration':
-        context.with_integration = context.config.userdata.get('integration') == 'true'

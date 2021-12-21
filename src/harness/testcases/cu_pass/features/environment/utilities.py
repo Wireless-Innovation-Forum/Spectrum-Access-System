@@ -8,7 +8,11 @@ def get_logging_file_handler() -> logging.FileHandler:
 
 
 def get_expected_output_content(context: ContextSas) -> str:
-    return context.text.replace('    ', '\t').replace('\r', '')
+    return sanitize_multiline_expected_string(content=context.text)
+
+
+def sanitize_multiline_expected_string(content: str) -> str:
+    return content.replace('    ', '\t').replace('\r', '')
 
 
 def sanitize_output_log(log_filepath: str) -> str:
