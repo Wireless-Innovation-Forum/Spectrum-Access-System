@@ -122,8 +122,10 @@ class AggregateInterferenceMonteCarloCalculator:
             number_of_iterations=self._number_of_iterations,
             percentile=PROTECTION_PERCENTILE)
         [distance_access_point, distance_user_equipment] = distances
-        expected_interference_access_point, expected_interference_user_equipment = (self._get_interference_at_distance(distance=cbsd_type_distance, cbsd_type=cbsd_type)
-                                                                                    for cbsd_type_distance, cbsd_type in zip(distances, CbsdTypes))
+        expected_interference_access_point,\
+            expected_interference_user_equipment = (self._get_interference_at_distance(distance=cbsd_type_distance,
+                                                                                       cbsd_type=cbsd_type)
+                                                    for cbsd_type_distance, cbsd_type in zip(distances, CbsdTypes))
         distance = max(distances)
         expected_interference = expected_interference_user_equipment if distance == distance_user_equipment else expected_interference_access_point
         return AggregateInterferenceMonteCarloResults(

@@ -41,7 +41,7 @@ Feature: DPA Neighborhood
     And 0 APs
     And 1 monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be -infinity
+    Then the resulting distance should be 0
     Then the resulting interference should be -infinity
 
 
