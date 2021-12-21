@@ -6,7 +6,7 @@ from behave import *
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     NumberOfApsTypes, PopulationRetrieverTypes
-from testcases.cu_pass.features.environment.utilities import get_expected_output_content, get_logging_file_handler, \
+from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_iterations import \

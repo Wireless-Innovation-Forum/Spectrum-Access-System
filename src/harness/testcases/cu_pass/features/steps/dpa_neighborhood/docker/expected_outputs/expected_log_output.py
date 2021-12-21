@@ -1,4 +1,4 @@
-from testcases.cu_pass.features.environment.utilities import sanitize_multiline_expected_string
+from testcases.cu_pass.features.helpers.utilities import sanitize_multiline_expected_string
 
 EXPECTED_LOG_OUTPUT = sanitize_multiline_expected_string("""Inputs:
     DPA Name: HATCREEK
