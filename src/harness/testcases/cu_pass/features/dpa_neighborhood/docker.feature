@@ -92,4 +92,6 @@ Feature: Docker run
     When the main docker command is run
     Then the log file uploaded to S3 should be
       """
+      Test logs
+
       """

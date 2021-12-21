@@ -1,4 +1,5 @@
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import List
@@ -44,7 +45,10 @@ def _mock_s3(context: ContextSas) -> None:
 
 @fixture
 def _exception_during_calculation(context: ContextSas) -> None:
-    with mock.patch.object(dpa_calculator_main.AggregateInterferenceMonteCarloCalculator, 'simulate', side_effect=ExceptionTest):
+    def _exception_after_logs_are_written():
+        logging.info('Test logs')
+        raise ExceptionTest
+    with mock.patch.object(dpa_calculator_main.AggregateInterferenceMonteCarloCalculator, 'simulate', side_effect=_exception_after_logs_are_written):
         yield
 
 
