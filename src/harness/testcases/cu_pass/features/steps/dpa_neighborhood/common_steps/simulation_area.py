@@ -1,10 +1,7 @@
 from behave import *
 
-from testcases.cu_pass.features.environment.hooks import ContextSas
-
-
-class ContextSimulationArea(ContextSas):
-    simulation_area_radius: int
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_simulation_area import \
+    ContextSimulationArea
 
 
 @given("a simulation area radius of {simulation_area_radius:Integer}")

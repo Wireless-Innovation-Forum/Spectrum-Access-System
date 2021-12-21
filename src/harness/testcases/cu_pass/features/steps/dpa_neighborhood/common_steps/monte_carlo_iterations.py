@@ -1,10 +1,7 @@
 from behave import *
 
-from testcases.cu_pass.features.environment.hooks import ContextSas
-
-
-class ContextMonteCarloIterations(ContextSas):
-    number_of_iterations: int
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_monte_carlo_iterations import \
+    ContextMonteCarloIterations
 
 
 @given("{number_of_iterations:Integer} monte carlo iterations")
