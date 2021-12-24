@@ -4,7 +4,8 @@ from pathlib import Path
 
 from behave import *
 
-from cu_pass.dpa_calculator.main import LOG_EXTENSION, LOG_PREFIX, RESULTS_EXTENSION, RESULTS_PREFIX
+from cu_pass.dpa_calculator.main_runner.results_recorder import LOG_EXTENSION, LOG_PREFIX, RESULTS_EXTENSION, \
+    RESULTS_PREFIX
 from testcases.cu_pass.features.helpers.utilities import read_file, sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_outputs.expected_log_output import \
     EXPECTED_LOG_OUTPUT

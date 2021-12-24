@@ -1,6 +1,6 @@
 from behave import *
 
-from cu_pass.dpa_calculator.main import LOG_EXTENSION
+from cu_pass.dpa_calculator.main_runner.results_recorder import LOG_EXTENSION
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_s3_uploaded_filenames, \
     get_uploaded_log_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker

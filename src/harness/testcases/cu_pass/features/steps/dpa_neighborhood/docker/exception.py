@@ -3,7 +3,7 @@ from unittest import mock
 
 from behave import *
 
-from cu_pass.dpa_calculator import main as dpa_calculator_main
+from cu_pass.dpa_calculator.main_runner import main_runner
 from testcases.cu_pass.features.helpers.utilities import get_expected_output_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_uploaded_log_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
@@ -20,7 +20,7 @@ def _exception_during_calculation(context: ContextDocker) -> None:
     def _exception_after_logs_are_written():
         logging.info('Test logs')
         raise ExceptionTest
-    with mock.patch.object(dpa_calculator_main.AggregateInterferenceMonteCarloCalculator, 'simulate', side_effect=_exception_after_logs_are_written):
+    with mock.patch.object(main_runner.AggregateInterferenceMonteCarloCalculator, 'simulate', side_effect=_exception_after_logs_are_written):
         yield
 
 

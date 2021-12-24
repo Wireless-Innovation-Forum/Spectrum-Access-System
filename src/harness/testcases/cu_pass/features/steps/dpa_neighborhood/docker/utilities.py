@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 
 import boto3
 
-from cu_pass.dpa_calculator.main import LOG_EXTENSION
+from cu_pass.dpa_calculator.main_runner.results_recorder import LOG_EXTENSION
 from testcases.cu_pass.features.helpers.utilities import delete_file, sanitize_output_log
 
 
