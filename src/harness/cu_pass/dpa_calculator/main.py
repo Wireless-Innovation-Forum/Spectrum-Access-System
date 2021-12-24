@@ -41,18 +41,32 @@ class Main:
         self._s3_object_result = s3_object_result
 
     def run(self) -> None:
-        with self._setup_output_logging():
+        self._setup_logging_handler()
+        self._validate_args()
+        with self._setup_output_recording():
             self._calculate()
 
-    @contextmanager
-    def _setup_output_logging(self) -> ContextManager[None]:
+    def _setup_logging_handler(self) -> None:
         logging.root.addHandler(self._file_handler)
+
+    @contextmanager
+    def _setup_output_recording(self) -> ContextManager[None]:
         try:
             yield
         finally:
             self._cleanup_file_handler()
             self._upload_output_log_to_s3()
             self._clean_local_logs()
+
+    def _validate_args(self) -> None:
+        self._validate_s3_bucket()
+
+    def _validate_s3_bucket(self) -> None:
+        if self._s3_bucket:
+            buckets = self._s3_client.list_buckets()['Buckets']
+            bucket_names = (bucket['Name'] for bucket in buckets)
+            if self._s3_bucket not in bucket_names:
+                raise LookupError(f'"{self._s3_bucket}" does not exist.')
 
     def _calculate(self) -> None:
         dpa = get_dpa(dpa_name=self._dpa_name)
@@ -104,9 +118,11 @@ class Main:
             self._upload_file_to_s3(filepath=self._output_log_filepath, s3_object_name=self._s3_object_log)
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
-        s3_client = boto3.client('s3')
-        s3_client.create_bucket(Bucket=self._s3_bucket)
-        s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)
+        self._s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)
+
+    @property
+    def _s3_client(self):
+        return boto3.client('s3')
 
     @cached_property
     def _output_log_filepath(self) -> Path:

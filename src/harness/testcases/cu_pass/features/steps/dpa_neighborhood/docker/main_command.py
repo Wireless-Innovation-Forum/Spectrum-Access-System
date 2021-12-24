@@ -1,17 +1,15 @@
-import logging
 import sys
-from pathlib import Path
 from typing import List
 from unittest import mock
 
+import boto3
 from behave import *
 from moto import mock_s3
 
 from cu_pass.dpa_calculator import main as dpa_calculator_main
 
-from testcases.cu_pass.features.environment.hooks import record_exception
+from testcases.cu_pass.features.environment.hooks import record_exception_if_expected
 from testcases.cu_pass.features.helpers.utilities import delete_file
-from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import ARBITRARY_BUCKET_NAME
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -32,19 +30,29 @@ def _mock_s3(context: ContextDocker) -> None:
 
 @when("the main docker command is run")
 def step_impl(context: ContextDocker):
-    def main():
-        use_fixture(_clean_local_output_files, context=context)
-        use_fixture(_mock_s3, context=context)
-        all_args = _get_args(context=context)
-        with mock.patch.object(dpa_calculator_main, "__name__", "__main__"):
-            with mock.patch.object(sys, 'argv', sys.argv + all_args):
-                dpa_calculator_main.init()
+    with record_exception_if_expected(context=context):
+        _setup_fixtures(context=context)
+        if context.precreate_bucket:
+            _create_bucket(context=context)
+        _run_docker_command(context=context)
 
-    if context.exception_expected:
-        with record_exception(context=context):
-            main()
-    else:
-        main()
+
+def _create_bucket(context: ContextDocker) -> None:
+    s3_client = boto3.client('s3')
+    s3_client.create_bucket(Bucket=context.s3_bucket,
+                            CreateBucketConfiguration={'LocationConstraint': s3_client.meta.region_name})
+
+
+def _setup_fixtures(context: ContextDocker) -> None:
+    use_fixture(_clean_local_output_files, context=context)
+    use_fixture(_mock_s3, context=context)
+
+
+def _run_docker_command(context: ContextDocker) -> None:
+    all_args = _get_args(context=context)
+    with mock.patch.object(dpa_calculator_main, "__name__", "__main__"):
+        with mock.patch.object(sys, 'argv', sys.argv + all_args):
+            dpa_calculator_main.init()
 
 
 def _get_args(context: ContextDocker) -> List[str]:
@@ -53,7 +61,7 @@ def _get_args(context: ContextDocker) -> List[str]:
     local_filepath_result_arg = ['--local-result', context.local_filepath_result] if context.local_filepath_result else []
     number_of_iterations_arg = ['--iterations', str(context.number_of_iterations)]
     radius_arg = ['--radius', str(context.simulation_area_radius)]
-    s3_bucket_arg = ['--s3-bucket', ARBITRARY_BUCKET_NAME]
+    s3_bucket_arg = ['--s3-bucket', context.s3_bucket]
     s3_object_log_arg = ['--s3-object-log', context.s3_object_name_log] if context.s3_object_name_log else []
     s3_object_result_arg = ['--s3-object-result', context.s3_object_name_result] if context.s3_object_name_result else []
 

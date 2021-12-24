@@ -11,8 +11,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_outputs.e
     EXPECTED_LOG_OUTPUT
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_outputs.expected_results_output import \
     EXPECTED_RESULTS_OUTPUT
-from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import ARBITRARY_BUCKET_NAME, \
-    get_uploaded_file_content, get_uploaded_log_content
+from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_uploaded_file_content, \
+    get_uploaded_log_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -50,7 +50,7 @@ def step_impl(context: ContextDocker, should_exist_str: str):
         output_content = get_uploaded_log_content(context=context)
         assert output_content == expected_content
     else:
-        assert not _s3_file_exists(partial_filename=LOG_EXTENSION), 'The log should not have been uploaded to s3'
+        assert not _s3_file_exists(bucket_name=context.s3_bucket, partial_filename=LOG_EXTENSION), 'The log should not have been uploaded to s3'
 
 
 @then("the local log file {should_exist_str} exist")
@@ -77,17 +77,17 @@ def step_impl(context: ContextDocker, should_exist_str: str):
         output_content = _get_uploaded_result_content(context=context)
         assert output_content == expected_content, f'{output_content} != {expected_content}'
     else:
-        assert not _s3_file_exists(partial_filename=RESULTS_EXTENSION), 'The results should not have been uploaded to s3'
+        assert not _s3_file_exists(bucket_name=context.s3_bucket, partial_filename=RESULTS_EXTENSION), 'The results should not have been uploaded to s3'
 
 
 def _get_uploaded_result_content(context: ContextDocker) -> str:
-    content = get_uploaded_file_content(object_name=context.s3_object_name_result)
+    content = get_uploaded_file_content(bucket_name=context.s3_bucket, object_name=context.s3_object_name_result)
     return _remove_runtime_from_results_content(content=content)
 
 
-def _s3_file_exists(partial_filename: str) -> bool:
+def _s3_file_exists(bucket_name: str, partial_filename: str) -> bool:
     s3 = boto3.client('s3')
-    uploaded_contents = s3.list_objects(Bucket=ARBITRARY_BUCKET_NAME)['Contents']
+    uploaded_contents = s3.list_objects(Bucket=bucket_name)['Contents']
     uploaded_filenames = [key['Key'] for key in uploaded_contents]
     return any(partial_filename in filename for filename in uploaded_filenames)
 

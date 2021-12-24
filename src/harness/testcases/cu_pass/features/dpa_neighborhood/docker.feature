@@ -58,3 +58,9 @@ Feature: Docker run
       Test logs
 
       """
+
+  Scenario: S3 bucket does not exist
+    Given "s3_bucket" as an s3 bucket name
+    And the bucket does not already exist
+    When the main docker command is run
+    Then an error message should say ""s3_bucket" does not exist."

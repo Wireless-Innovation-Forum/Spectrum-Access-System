@@ -24,7 +24,16 @@ def set_context_sas_defaults(context: ContextSas) -> None:
 
 
 @contextmanager
-def record_exception(context: ContextSas) -> ContextManager[None]:
+def record_exception_if_expected(context: ContextSas) -> ContextManager[None]:
+    if context.exception_expected:
+        with _record_exception(context=context):
+            yield
+    else:
+        yield
+
+
+@contextmanager
+def _record_exception(context: ContextSas) -> ContextManager[None]:
     try:
         yield
     except Exception as e:
