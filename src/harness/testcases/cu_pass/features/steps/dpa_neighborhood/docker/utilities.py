@@ -4,11 +4,14 @@ from typing import List, Optional, Tuple
 
 import boto3
 
+from cu_pass.dpa_calculator.main import LOG_EXTENSION
 from testcases.cu_pass.features.helpers.utilities import delete_file, sanitize_output_log
 
 
-def get_uploaded_log_content(bucket_name: str, object_name: str) -> str:
-    return get_uploaded_file_content(bucket_name=bucket_name, object_name=object_name)
+def get_uploaded_log_content(bucket_name: str) -> str:
+    uploaded_filepaths = get_s3_uploaded_filenames(bucket_name=bucket_name)
+    uploaded_log_filepath = next(filepath for filepath in uploaded_filepaths if LOG_EXTENSION in filepath)
+    return get_uploaded_file_content(bucket_name=bucket_name, object_name=uploaded_log_filepath)
 
 
 def get_uploaded_file_content(bucket_name: str, object_name: str) -> str:

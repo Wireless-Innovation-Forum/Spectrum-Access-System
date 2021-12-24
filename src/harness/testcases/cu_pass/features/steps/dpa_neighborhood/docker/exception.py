@@ -33,5 +33,5 @@ def step_impl(context: ContextDocker):
 @then("the log file uploaded to S3 should be")
 def step_impl(context: ContextDocker):
     expected_content = get_expected_output_content(context=context)
-    output_content = get_uploaded_log_content(context=context)
+    output_content = get_uploaded_log_content(bucket_name=context.s3_bucket)
     assert output_content == expected_content
