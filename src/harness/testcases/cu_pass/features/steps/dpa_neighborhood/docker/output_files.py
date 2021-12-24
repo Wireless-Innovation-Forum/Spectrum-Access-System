@@ -2,7 +2,6 @@ import glob
 import json
 from pathlib import Path
 
-import boto3
 from behave import *
 
 from cu_pass.dpa_calculator.main import LOG_EXTENSION, LOG_PREFIX, RESULTS_EXTENSION, RESULTS_PREFIX
@@ -11,8 +10,9 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_outputs.e
     EXPECTED_LOG_OUTPUT
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.expected_outputs.expected_results_output import \
     EXPECTED_RESULTS_OUTPUT
-from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_uploaded_file_content, \
-    get_uploaded_log_content
+from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_filepath_with_any_runtime, \
+    get_s3_uploaded_filenames, \
+    get_uploaded_file_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -22,89 +22,78 @@ NONE_STR = 'None'
 SHOULD_STR = 'should'
 
 
-@given("{s3_object_name} as an s3 object name for the s3 log file")
-def step_impl(context: ContextDocker, s3_object_name: str):
-    context.s3_object_name_log = None if s3_object_name == NONE_STR else s3_object_name
+@given("{s3_object_directory} as an s3 object directory name for s3 output")
+def step_impl(context: ContextDocker, s3_object_directory: str):
+    context.s3_output_directory = None if s3_object_directory == NONE_STR else s3_object_directory
 
 
-@given("{local_filepath} as a local filepath for the local log file")
+@given("{local_filepath} as a local directory for local output")
 def step_impl(context: ContextDocker, local_filepath: str):
-    context.local_filepath_log = None if local_filepath == NONE_STR else local_filepath
+    context.local_output_directory = None if local_filepath == NONE_STR else local_filepath
 
 
-@given("{s3_object_name} as an s3 object name for the s3 results file")
-def step_impl(context: ContextDocker, s3_object_name: str):
-    context.s3_object_name_result = None if s3_object_name == NONE_STR else s3_object_name
-
-
-@given("{local_filepath} as a local filepath for the local results file")
-def step_impl(context: ContextDocker, local_filepath: str):
-    context.local_filepath_result = None if local_filepath == NONE_STR else local_filepath
-
-
-@then("the log file uploaded to S3 {should_exist_str} exist")
-def step_impl(context: ContextDocker, should_exist_str: str):
+@then("the log file uploaded to S3 {should_exist_str} exist at {expected_s3_object_name}")
+def step_impl(context: ContextDocker, should_exist_str: str, expected_s3_object_name: str):
     should_exist = should_exist_str == SHOULD_STR
     if should_exist:
         expected_content = EXPECTED_LOG_OUTPUT
-        output_content = get_uploaded_log_content(context=context)
+        output_content = get_uploaded_file_content(bucket_name=context.s3_bucket, object_name=expected_s3_object_name)
         assert output_content == expected_content
     else:
         assert not _s3_file_exists(bucket_name=context.s3_bucket, partial_filename=LOG_EXTENSION), 'The log should not have been uploaded to s3'
 
 
-@then("the local log file {should_exist_str} exist")
-def step_impl(context: ContextDocker, should_exist_str: bool):
+@then("the local log file {should_exist_str} exist at {expected_filepath}")
+def step_impl(context: ContextDocker, should_exist_str: bool, expected_filepath: str):
     should_exist = should_exist_str == SHOULD_STR
     if should_exist:
         expected_content = EXPECTED_LOG_OUTPUT
-        local_content = _get_local_log_content(context=context)
+        local_content = _get_local_log_content(filepath=expected_filepath)
         assert local_content == expected_content
     else:
         assert not _local_file_exists(prefix=LOG_PREFIX, extension=LOG_EXTENSION)
 
 
-def _get_local_log_content(context: ContextDocker) -> str:
-    filepath = context.local_filepath_log
-    return sanitize_output_log(log_filepath=filepath)
+def _get_local_log_content(filepath: str) -> str:
+    found_filepath = get_filepath_with_any_runtime(filepath=filepath)
+    return sanitize_output_log(log_filepath=found_filepath)
 
 
-@then("the results file uploaded to S3 {should_exist_str} exist")
-def step_impl(context: ContextDocker, should_exist_str: str):
+@then("the results file uploaded to S3 {should_exist_str} exist at {expected_s3_object_name}")
+def step_impl(context: ContextDocker, should_exist_str: str, expected_s3_object_name: str):
     should_exist = should_exist_str == SHOULD_STR
     if should_exist:
         expected_content = EXPECTED_RESULTS_OUTPUT
-        output_content = _get_uploaded_result_content(context=context)
+        output_content = _get_uploaded_result_content(bucket_name=context.s3_bucket, object_name=expected_s3_object_name)
         assert output_content == expected_content, f'{output_content} != {expected_content}'
     else:
         assert not _s3_file_exists(bucket_name=context.s3_bucket, partial_filename=RESULTS_EXTENSION), 'The results should not have been uploaded to s3'
 
 
-def _get_uploaded_result_content(context: ContextDocker) -> str:
-    content = get_uploaded_file_content(bucket_name=context.s3_bucket, object_name=context.s3_object_name_result)
+def _get_uploaded_result_content(bucket_name: str, object_name: str) -> str:
+    content = get_uploaded_file_content(bucket_name=bucket_name, object_name=object_name)
     return _remove_runtime_from_results_content(content=content)
 
 
 def _s3_file_exists(bucket_name: str, partial_filename: str) -> bool:
-    s3 = boto3.client('s3')
-    uploaded_contents = s3.list_objects(Bucket=bucket_name)['Contents']
-    uploaded_filenames = [key['Key'] for key in uploaded_contents]
+    uploaded_filenames = get_s3_uploaded_filenames(bucket_name=bucket_name)
     return any(partial_filename in filename for filename in uploaded_filenames)
 
 
-@then("the local results file {should_exist_str} exist")
-def step_impl(context: ContextDocker, should_exist_str: str):
+@then("the local results file {should_exist_str} exist at {expected_filepath}")
+def step_impl(context: ContextDocker, should_exist_str: str, expected_filepath: str):
     should_exist = should_exist_str == SHOULD_STR
     if should_exist:
         expected_content = EXPECTED_RESULTS_OUTPUT
-        local_content = _get_local_result_content(context=context)
+        local_content = _get_local_result_content(filepath=expected_filepath)
         assert local_content == expected_content, f'{local_content} != {expected_content}'
     else:
         assert not _local_file_exists(prefix=RESULTS_PREFIX, extension=RESULTS_EXTENSION)
 
 
-def _get_local_result_content(context: ContextDocker) -> str:
-    content = read_file(filepath=context.local_filepath_result)
+def _get_local_result_content(filepath: str) -> str:
+    found_filepath = get_filepath_with_any_runtime(filepath=filepath)
+    content = read_file(filepath=found_filepath)
     return _remove_runtime_from_results_content(content=content)
 
 

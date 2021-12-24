@@ -1,6 +1,7 @@
 import argparse
 import logging
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import ContextManager, Optional
 from uuid import uuid4
@@ -26,19 +27,18 @@ class Main:
                  dpa_name: str,
                  number_of_iterations: int = DEFAULT_NUMBER_OF_ITERATIONS,
                  simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_AREA_IN_KILOMETERS,
-                 local_log_filepath: Optional[str] = None,
-                 local_result_filepath: Optional[str] = None,
+                 local_output_directory: Optional[str] = None,
                  s3_bucket: Optional[str] = None,
-                 s3_object_log: Optional[str] = None,
-                 s3_object_result: Optional[str] = None):
+                 s3_output_directory: Optional[str] = None):
         self._dpa_name = dpa_name
-        self._local_log_filepath = local_log_filepath
-        self._local_result_filepath = local_result_filepath
+        self._local_output_directory = local_output_directory
         self._number_of_iterations = number_of_iterations
         self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
         self._s3_bucket = s3_bucket
-        self._s3_object_log = s3_object_log
-        self._s3_object_result = s3_object_result
+        self._s3_output_directory = s3_output_directory
+
+        self._log_filename = 'log.log'
+        self._result_filename = 'result.json'
 
     def run(self) -> None:
         self._setup_logging_handler()
@@ -85,6 +85,15 @@ class Main:
         finally:
             self._clean_local_results()
 
+    @property
+    def _s3_object_result(self) -> Optional[str]:
+        if self._s3_output_directory_with_runtime:
+            return self._append_part_to_filepath(self._s3_output_directory_with_runtime, self._result_filename)
+
+    @property
+    def _s3_output_directory_with_runtime(self) -> Optional[str]:
+        return self._s3_output_directory and self._append_runtime_to_directory(directory=self._s3_output_directory)
+
     def _write_local_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         with open(self._results_filepath, 'w') as f:
             f.write(results.to_json())
@@ -98,6 +107,27 @@ class Main:
     def _results_filepath(self) -> Path:
         return self._get_filepath(self._local_result_filepath or f'{RESULTS_PREFIX}_{uuid4().hex}{RESULTS_EXTENSION}')
 
+    @property
+    def _local_result_filepath(self) -> Optional[str]:
+        if self._local_output_directory:
+            return self._append_part_to_filepath(self._local_output_directory_with_runtime, self._result_filename)
+
+    @property
+    def _local_output_directory_with_runtime(self) -> Optional[str]:
+        return self._local_output_directory and self._append_runtime_to_directory(directory=self._local_output_directory)
+
+    def _append_runtime_to_directory(self, directory: str) -> str:
+        datetime_string = self._runtime.strftime('%Y_%m_%d-%H_%M_%S')
+        return self._append_part_to_filepath(directory, datetime_string)
+
+    @cached_property
+    def _runtime(self) -> datetime:
+        return datetime.now()
+
+    @staticmethod
+    def _append_part_to_filepath(filepath: str, new_part: str) -> str:
+        return str(Path(filepath, new_part))
+
     def _cleanup_file_handler(self) -> None:
         self._file_handler.close()
         logging.root.removeHandler(self._file_handler)
@@ -109,13 +139,18 @@ class Main:
         return file_handler
 
     def _clean_local_logs(self) -> None:
-        output_should_persist_locally = self._local_log_filepath
+        output_should_persist_locally = self._local_output_directory
         if not output_should_persist_locally:
             self._output_log_filepath.unlink()
 
     def _upload_output_log_to_s3(self) -> None:
         if self._s3_object_log:
             self._upload_file_to_s3(filepath=self._output_log_filepath, s3_object_name=self._s3_object_log)
+
+    @property
+    def _s3_object_log(self) -> Optional[str]:
+        if self._s3_output_directory:
+            return self._append_part_to_filepath(filepath=self._s3_output_directory_with_runtime, new_part=self._log_filename)
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
         self._s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)
@@ -127,6 +162,11 @@ class Main:
     @cached_property
     def _output_log_filepath(self) -> Path:
         return self._get_filepath(self._local_log_filepath or f'{LOG_PREFIX}_{uuid4().hex}{LOG_EXTENSION}')
+
+    @property
+    def _local_log_filepath(self) -> Optional[str]:
+        if self._local_output_directory:
+            return self._append_part_to_filepath(self._local_output_directory_with_runtime, self._log_filename)
 
     @staticmethod
     def _get_filepath(filepath_str: str) -> Path:
@@ -148,14 +188,10 @@ def init():
                             type=int,
                             default=DEFAULT_NUMBER_OF_ITERATIONS,
                             help='The number of Monte Carlo iterations to perform')
-        parser.add_argument('--local-log',
-                            dest='local_log_filepath',
+        parser.add_argument('--local-output-directory',
+                            dest='local_output_directory',
                             type=str,
                             help='The filepath in which a local copy of the logs will be written')
-        parser.add_argument('--local-result',
-                            dest='local_result_filepath',
-                            type=str,
-                            help='The filepath in which a local copy of the results will be written')
         parser.add_argument('--radius',
                             dest='simulation_area_radius_in_kilometers',
                             type=int,
@@ -165,14 +201,10 @@ def init():
                             dest='s3_bucket',
                             type=str,
                             help='S3 Bucket in which to upload output logs')
-        parser.add_argument('--s3-object-log',
-                            dest='s3_object_log',
+        parser.add_argument('--s3-output-directory',
+                            dest='s3_output_directory',
                             type=str,
                             help='S3 Object in which to upload output logs')
-        parser.add_argument('--s3-object-result',
-                            dest='s3_object_result',
-                            type=str,
-                            help='S3 Object in which to upload output results')
         args = parser.parse_args()
 
         Main(**args.__dict__).run()

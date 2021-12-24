@@ -1,23 +1,19 @@
 Feature: Docker run
   Scenario Template: Output files are individually optional
     Given random seed 0
-    And <s3_log_name> as an s3 object name for the s3 log file
-    And <s3_results_name> as an s3 object name for the s3 results file
-    And <local_log_filepath> as a local filepath for the local log file
-    And <local_results_filepath> as a local filepath for the local results file
+    And <s3_object_directory> as an s3 object directory name for s3 output
+    And <local_log_directory> as a local directory for local output
     When the main docker command is run
-    Then the log file uploaded to S3 <s3_log_exists> exist
-    Then the results file uploaded to S3 <s3_results_exist> exist
-    And the local log file <local_log_exists> exist
-    And the local results file <local_results_exist> exist
+    Then the log file uploaded to S3 <s3_log_exists> exist at <s3_object_directory>/__RUNTIME__/log.log
+    Then the results file uploaded to S3 <s3_results_exist> exist at <s3_object_directory>/__RUNTIME__/result.json
+    And the local log file <local_log_exists> exist at <local_log_directory>/__RUNTIME__/log.log
+    And the local results file <local_results_exist> exist at <local_log_directory>/__RUNTIME__/result.json
 
     Examples:
-      | s3_log_name | s3_results_name | local_log_filepath   | local_results_filepath    | s3_log_exists | s3_results_exist | local_log_exists | local_results_exist |
-      | out_s3.log  | results_s3.json | output/out_local.log | output/results_local.json | should        | should           | should           | should              |
-      | None        | results_s3.json | output/out_local.log | output/results_local.json | should not    | should           | should           | should              |
-      | out_s3.log  | None            | output/out_local.log | output/results_local.json | should        | should not       | should           | should              |
-      | out_s3.log  | results_s3.json | None                 | output/results_local.json | should        | should           | should not       | should              |
-      | out_s3.log  | results_s3.json | output/out_local.log | None                      | should        | should           | should           | should not          |
+      | s3_object_directory | local_log_directory   | s3_log_exists | s3_results_exist | local_log_exists | local_results_exist |
+      | output_s3           | output_local          | should        | should           | should           | should              |
+      | None                | output_local          | should not    | should not       | should           | should              |
+      | output_s3           | None                  | should        | should           | should not       | should not          |
 
 
   Scenario Template: DPA name is configurable by the command line
