@@ -22,9 +22,9 @@ class ResultsRecorder:
                  local_output_directory: str,
                  s3_bucket: str,
                  s3_output_directory: str):
-        self._local_output_directory = local_output_directory
+        self._local_output_directory = local_output_directory and Path(local_output_directory)
         self._s3_bucket = s3_bucket
-        self._s3_output_directory = s3_output_directory
+        self._s3_output_directory = s3_output_directory and Path(s3_output_directory)
 
         self._log_filename = 'log.log'
         self._result_filename = 'result.json'
@@ -58,7 +58,9 @@ class ResultsRecorder:
     @property
     def _s3_object_log(self) -> Optional[str]:
         if self._s3_output_directory:
-            return self._append_part_to_filepath(filepath=self._s3_output_directory_with_runtime, new_part=self._log_filename)
+            filepath = self._append_part_to_filepath(filepath=self._s3_output_directory_with_runtime,
+                                                     new_part=self._log_filename)
+            return filepath.as_posix()
 
     @cached_property
     def _output_log_filepath(self) -> Path:
@@ -67,7 +69,8 @@ class ResultsRecorder:
     @property
     def _local_log_filepath(self) -> Optional[str]:
         if self._local_output_directory:
-            return self._append_part_to_filepath(self._local_output_directory_with_runtime, self._log_filename)
+            filepath = self._append_part_to_filepath(self._local_output_directory_with_runtime, self._log_filename)
+            return str(filepath.absolute())
 
     def _clean_local_logs(self) -> None:
         output_should_persist_locally = self._local_output_directory
@@ -100,23 +103,16 @@ class ResultsRecorder:
     @property
     def _s3_object_result(self) -> Optional[str]:
         if self._s3_output_directory_with_runtime:
-            return self._append_part_to_filepath(self._s3_output_directory_with_runtime, self._result_filename)
+            filepath = self._append_part_to_filepath(self._s3_output_directory_with_runtime, self._result_filename)
+            return filepath.as_posix()
 
     @property
-    def _s3_output_directory_with_runtime(self) -> Optional[str]:
+    def _s3_output_directory_with_runtime(self) -> Optional[Path]:
         return self._s3_output_directory and self._append_runtime_to_directory(directory=self._s3_output_directory)
-
-    def _append_runtime_to_directory(self, directory: str) -> str:
-        datetime_string = self._runtime.strftime('%Y_%m_%d-%H_%M_%S')
-        return self._append_part_to_filepath(directory, datetime_string)
 
     @cached_property
     def _runtime(self) -> datetime:
         return datetime.now()
-
-    @staticmethod
-    def _append_part_to_filepath(filepath: str, new_part: str) -> str:
-        return str(Path(filepath, new_part))
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
         self._s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)
@@ -133,8 +129,17 @@ class ResultsRecorder:
     @property
     def _local_result_filepath(self) -> Optional[str]:
         if self._local_output_directory:
-            return self._append_part_to_filepath(self._local_output_directory_with_runtime, self._result_filename)
+            filepath = self._append_part_to_filepath(self._local_output_directory_with_runtime, self._result_filename)
+            return str(filepath.absolute())
 
     @property
-    def _local_output_directory_with_runtime(self) -> Optional[str]:
+    def _local_output_directory_with_runtime(self) -> Optional[Path]:
         return self._local_output_directory and self._append_runtime_to_directory(directory=self._local_output_directory)
+
+    def _append_runtime_to_directory(self, directory: Path) -> Path:
+        datetime_string = self._runtime.strftime('%Y_%m_%d-%H_%M_%S')
+        return self._append_part_to_filepath(directory, datetime_string)
+
+    @staticmethod
+    def _append_part_to_filepath(filepath: Path, new_part: str) -> Path:
+        return Path(filepath, new_part)

@@ -1,5 +1,6 @@
 import glob
-from pathlib import Path
+from dataclasses import dataclass
+from pathlib import Path, PosixPath, WindowsPath
 from typing import List, Optional, Tuple
 
 import boto3
@@ -28,29 +29,40 @@ def get_uploaded_file_content(bucket_name: str, object_name: str) -> str:
 
 
 def _get_object_name_ignoring_runtime(bucket_name: str, object_name: str) -> Optional[str]:
-    object_name_without_runtime = get_filepath_without_runtime(filepath=object_name)
+    object_name_without_runtime = _get_filepath_without_runtime(filepath=object_name)
     uploaded_names = get_s3_uploaded_filenames(bucket_name=bucket_name)
     for uploaded_name in uploaded_names:
-        uploaded_name_without_runtime = get_filepath_without_runtime(filepath=uploaded_name)
+        uploaded_name_without_runtime = _get_filepath_without_runtime(filepath=uploaded_name)
         if object_name_without_runtime == uploaded_name_without_runtime:
             return uploaded_name
 
 
+def _get_filepath_without_runtime(filepath: str) -> str:
+    parts = _get_parts_without_runtime(filepath=filepath)
+    parts_without_runtime = list(parts.parts_before_runtime) + [parts.part_after_runtime]
+    return parts.separator.join(parts_without_runtime)
+
+
 def get_filepath_with_any_runtime(filepath: str) -> str:
     parts = _get_parts_without_runtime(filepath=filepath)
-    parts_without_runtime = Path(*parts[0], '*', parts[1])
+    parts_without_runtime = Path(*parts.parts_before_runtime, '*', parts.part_after_runtime)
     return glob.glob(str(parts_without_runtime))[0]
 
 
-def get_filepath_without_runtime(filepath: str) -> str:
-    parts = _get_parts_without_runtime(filepath=filepath)
-    parts_without_runtime = Path(*parts[0], parts[1])
-    return str(parts_without_runtime)
+@dataclass
+class PartsWithoutRuntime:
+    parts_before_runtime: Tuple[str, ...]
+    part_after_runtime: str
+    separator: str
 
 
-def _get_parts_without_runtime(filepath: str) -> Tuple[Tuple[str, ...], str]:
+def _get_parts_without_runtime(filepath: str) -> PartsWithoutRuntime:
     parts = Path(filepath).parts
-    return parts[:-2], parts[-1]
+    return PartsWithoutRuntime(
+        parts_before_runtime=parts[:-2],
+        part_after_runtime=parts[-1],
+        separator=WindowsPath._flavour.sep if WindowsPath._flavour.sep in filepath else PosixPath._flavour.sep
+    )
 
 
 def get_s3_uploaded_filenames(bucket_name: str) -> List[str]:
