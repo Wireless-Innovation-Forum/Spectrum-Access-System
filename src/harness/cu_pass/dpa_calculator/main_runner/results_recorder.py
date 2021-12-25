@@ -49,6 +49,7 @@ class ResultsRecorder:
     def _file_handler(self) -> logging.FileHandler:
         file_handler = logging.FileHandler(filename=str(self._output_log_filepath))
         file_handler.setLevel(logging.INFO)
+        logging.root.setLevel(logging.INFO)
         return file_handler
 
     def _upload_output_log_to_s3(self) -> None:
