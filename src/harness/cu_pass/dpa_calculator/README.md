@@ -72,8 +72,16 @@ docker run \
    ```shell
     aws config
     ```
-7. Log in using the ECR login command above
-8. Run the docker image with the command above and the image in the ECR repo
+7. Set overcommit mode
+   1.  Command
+       ```shell
+       echo 1 | sudo tee /proc/sys/vm/overcommit_memory
+       ```
+   2. Resources
+      1. https://stackoverflow.com/a/57511555/3869199
+      2. https://forums.aws.amazon.com/message.jspa?messageID=950215
+8. Log in using the ECR login command above
+9. Run the docker image with the command above and the image in the ECR repo
     ```shell
     docker run -it \
       --env AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id) \
