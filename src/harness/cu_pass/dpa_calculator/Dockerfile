@@ -46,4 +46,4 @@ VOLUME ["$COMMON_DATA_DIR"]
 
 WORKDIR $CONTENT_ROOT
 
-ENTRYPOINT python3 cu_pass/dpa_calculator/main.py
+ENTRYPOINT ["python3", "cu_pass/dpa_calculator/main.py"]

@@ -51,9 +51,10 @@ docker run \
 ### EC2 Instance
 1. Launch EC2 instance with 20 GB of memory
 2. Attach Common-Data volume to instance
-   1. [Format](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html) the volume
+   1. [Format](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html) and mount the volume
        - Example
          ```shell
+         lsblk
          sudo mkdir /Common-Data
          sudo mount /dev/xvdf /Common-Data
          ```
