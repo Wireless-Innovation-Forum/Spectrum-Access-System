@@ -10,15 +10,14 @@ from behave.model import Scenario
 
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
-    interference_contribution_eirps_before_scenario, logging_is_captured_before_scenario, \
-    neighborhood_calculation_before_scenario, \
-    quick_run_before_scenario, total_interference_before_scenario, transmitter_insertion_losses_before_scenario
-from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
-from testcases.cu_pass.features.helpers.utilities import get_script_directory
+    interference_contribution_eirps_before_scenario, \
+    set_context_sas_defaults, setup_monte_carlo_runner, total_interference_before_scenario, \
+    transmitter_insertion_losses_before_scenario
+from testcases.cu_pass.features.helpers.utilities import get_logging_file_handler, get_script_directory
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import set_docker_context_defaults
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
 PYTHON_FILES_GLOB = f'{EXCLUDE_MANIFEST_FILES_GLOB}.py'
-SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION = 'The DPA neighborhood is calculated'
 
 
 def steps_directory() -> Path:
@@ -61,26 +60,26 @@ import_all_step_definitions()
 
 
 def before_scenario(context: ContextSas, scenario: Scenario):
+    set_context_sas_defaults(context=context)
+
     if 'Total interference for a cbsd is calculated' in scenario.name:
         total_interference_before_scenario(context=context)
-    elif SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION in scenario.name:
-        neighborhood_calculation_before_scenario(context=context)
     elif 'Transmitter insertion losses' in scenario.name:
         transmitter_insertion_losses_before_scenario(context=context)
     elif 'antenna gains are calculated' in scenario.name:
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
-    elif 'Logging is captured' in scenario.name:
-        logging_is_captured_before_scenario(context=context)
-    elif 'A quick run is performed' in scenario.name:
-        quick_run_before_scenario(context=context)
+    elif scenario.feature.name == 'DPA Neighborhood' or 'Logging is captured' in scenario.name:
+        setup_monte_carlo_runner(context=context)
+    elif scenario.feature.name == 'Docker run':
+        set_docker_context_defaults(context=context)
 
     _setup_logging(scenario=scenario)
 
 
 def after_scenario(context: ContextSas, scenario: Scenario):
-    if SCENARIO_NAME_DPA_NEIGHBORHOOD_CALCULATION not in scenario.name:
+    if 'The DPA neighborhood is calculated' not in scenario.name:
         _cleanup_logging(scenario=scenario)
 
 
@@ -106,8 +105,3 @@ def _cleanup_logging(scenario: Scenario) -> None:
 
 def _get_scenario_logging_directory(scenario: Scenario) -> Path:
     return Path(get_script_directory(__file__), 'logging', f'{scenario.name.replace(" ", "_").replace("@", "")}')
-
-
-def before_tag(context: ContextSas, tag: str):
-    if tag == 'integration':
-        context.with_integration = context.config.userdata.get('integration') == 'true'

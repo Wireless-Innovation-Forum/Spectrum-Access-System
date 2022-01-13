@@ -3,7 +3,6 @@ from typing import List, Optional, Tuple
 import shapely.geometry
 from numpy import ndarray
 
-from cu_pass.dpa_calculator.dpa.utilities import get_uniform_gain_pattern
 from reference_models.dpa import dpa_mgr
 from reference_models.dpa.dpa_mgr import DPA_DEFAULT_BEAMWIDTH, DPA_DEFAULT_DISTANCES, DPA_DEFAULT_FREQ_RANGE, \
     DPA_DEFAULT_RADAR_HEIGHT, \
@@ -35,10 +34,10 @@ class Dpa(dpa_mgr.Dpa):
                          freq_ranges_mhz=freq_ranges_mhz or [DPA_DEFAULT_FREQ_RANGE],
                          neighbor_distances=neighbor_distances,
                          monitor_type=monitor_type)
-        self.gain_pattern = get_uniform_gain_pattern() if gain_pattern is None else gain_pattern
+        self.gain_pattern = gain_pattern
 
     @classmethod
     def from_winnforum_dpa(cls, dpa: dpa_mgr.Dpa) -> 'Dpa':
         dpa.__class__ = cls
-        dpa.gain_pattern = get_uniform_gain_pattern()
+        dpa.gain_pattern = None
         return dpa

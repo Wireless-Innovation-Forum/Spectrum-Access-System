@@ -1,11 +1,15 @@
+import json
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import auto, Enum
-from typing import Optional, Type
+from json import JSONEncoder
+from math import inf
+from typing import Any, Optional, Type
 
 import numpy
+import numpy as np
 from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
@@ -54,6 +58,14 @@ class InterferenceParameters:
     number_of_aps: int
 
 
+class RuntimeEncoder(JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, timedelta):
+            return str(o)
+        else:
+            super().default(o=o)
+
+
 @dataclass
 class AggregateInterferenceMonteCarloResults:
     distance: int
@@ -74,6 +86,10 @@ class AggregateInterferenceMonteCarloResults:
         logging.info(f'\tAP Interference: {self.interference_access_point}')
         logging.info(f'\tUE Interference: {self.interference_user_equipment}')
         logging.info(f'\tRuntime: {self.runtime}')
+
+    def to_json(self) -> str:
+        dictionary = asdict(self)
+        return json.dumps(dictionary, cls=RuntimeEncoder)
 
 
 class AggregateInterferenceMonteCarloCalculator:
@@ -99,24 +115,43 @@ class AggregateInterferenceMonteCarloCalculator:
         }
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
+        self._log_inputs()
         start_time = datetime.now()
-        [distance_access_point, distance_user_equipment] = run_monte_carlo_simulation(
+        distances = run_monte_carlo_simulation(
             functions_to_run=[self._single_run_access_point, self._single_run_user_equipment],
             number_of_iterations=self._number_of_iterations,
             percentile=PROTECTION_PERCENTILE)
-        distance = max(distance_access_point, distance_user_equipment)
-        expected_interference_access_point, expected_interference_user_equipment = (numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
-                                                                                    for cbsd_type in CbsdTypes)
+        [distance_access_point, distance_user_equipment] = distances
+        expected_interference_access_point,\
+            expected_interference_user_equipment = (self._get_interference_at_distance(distance=cbsd_type_distance,
+                                                                                       cbsd_type=cbsd_type)
+                                                    for cbsd_type_distance, cbsd_type in zip(distances, CbsdTypes))
+        distance = max(distances)
         expected_interference = expected_interference_user_equipment if distance == distance_user_equipment else expected_interference_access_point
         return AggregateInterferenceMonteCarloResults(
-            distance=distance,
-            distance_access_point=distance_access_point,
-            distance_user_equipment=distance_user_equipment,
-            interference=expected_interference,
-            interference_access_point=expected_interference_access_point,
-            interference_user_equipment=expected_interference_user_equipment,
+            distance=int(distance),
+            distance_access_point=int(distance_access_point),
+            distance_user_equipment=int(distance_user_equipment),
+            interference=float(expected_interference),
+            interference_access_point=float(expected_interference_access_point),
+            interference_user_equipment=float(expected_interference_user_equipment),
             runtime=datetime.now() - start_time
         )
+
+    def _log_inputs(self) -> None:
+        logging.info('Inputs:')
+        logging.info(f'\tDPA Name: {self._dpa.name}')
+        logging.info(f'\tNumber of APs: {self._number_of_aps}')
+        logging.info(f'\tNumber of iterations: {self._number_of_iterations}')
+        logging.info(f'\tSimulation area radius: {self._simulation_area_radius_in_kilometers} kilometers')
+        logging.info(f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
+        logging.info(f'\tPopulation retriever: {self._population_retriever_class.__name__}')
+        logging.info(f'\tNumber of APs calculator: {self._number_of_aps_calculator_class.__name__}')
+        logging.info('')
+
+    def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
+        percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
+        return -inf if np.isnan(percentile) else percentile
 
     def _single_run_access_point(self) -> float:
         result = self._single_run_cbsd(is_user_equipment=False)
@@ -157,7 +192,7 @@ class AggregateInterferenceMonteCarloCalculator:
 
     @cached_property
     def _number_of_aps(self) -> int:
-        if self._number_of_aps_override:
+        if self._number_of_aps_override is not None:
             return self._number_of_aps_override
         population = self._population_retriever_class(area=self._dpa_test_zone).retrieve()
         return self._number_of_aps_calculator_class(center_coordinates=self._dpa_test_zone.center_coordinates,

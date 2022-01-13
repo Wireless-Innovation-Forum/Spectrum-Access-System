@@ -1,3 +1,4 @@
+shapely==1.7.1
 cartopy==0.20.1
 gdal==3.3.3
 ftputil==5.0.1
@@ -8,5 +9,4 @@ numpy==1.21.3
 pycurl==7.43.0.5
 pygc==1.1.0
 pykml==0.2.0
-shapely==1.7.1
 xlsxwriter==3.0.1

@@ -2,6 +2,7 @@ behave==1.2.6
 coverage==6.1.2
 cryptography==35.0.0
 jwt==1.3.1
+moto==2.2.19
 portpicker==1.4.0
 psutil==5.8.0
 pycurl==7.43.0.5

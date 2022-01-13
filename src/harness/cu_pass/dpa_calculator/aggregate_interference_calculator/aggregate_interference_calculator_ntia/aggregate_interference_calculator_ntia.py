@@ -25,11 +25,11 @@ class InterferenceWithDistance:
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
     def calculate(self, minimum_distance: float = 0) -> float:
         total_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=minimum_distance,
-                                                                            interference_components=self.interference_information).calculate()
+                                                                            interference_components=self.interference_components).calculate()
         return total_interference
 
     @cached_property
-    def interference_information(self) -> List[InterferenceComponents]:
+    def interference_components(self) -> List[InterferenceComponents]:
         interference_components = [self._get_interference_contribution(cbsd=cbsd, index=index) for index, cbsd in enumerate(self._cbsds)]
         interference_components = self._add_receiver_gains(interference_components=interference_components)
         interference_components = self._add_building_loss(interference_components=interference_components)

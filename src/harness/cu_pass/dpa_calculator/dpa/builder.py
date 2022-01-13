@@ -20,13 +20,15 @@ CUSTOM_DPA_MAP = {
                                                     radar_height=6.1,
                                                     beamwidth=3.5,
                                                     azimuth_range=(0, 360),
-                                                    gain_pattern=get_uniform_gain_pattern())
+                                                    gain_pattern=None)
 }
 
 
 def get_dpa(dpa_name: str) -> Dpa:
     dpa_name_sanitized = dpa_name.upper().replace(' ', '')
     dpa = CUSTOM_DPA_MAP.get(dpa_name_sanitized, None) or _get_existing_dpa(dpa_name=dpa_name_sanitized)
+    if dpa.gain_pattern is None:
+        dpa.gain_pattern = get_uniform_gain_pattern()
     return dpa
 
 

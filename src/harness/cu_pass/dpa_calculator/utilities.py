@@ -103,7 +103,7 @@ def _log_results(results: numpy.ndarray) -> None:
         percentile_95=_get_percentile(results=iteration_results, percentile=95),
         maximum=max(iteration_results),
         minimum=min(iteration_results),
-        standard_deviation=stdev(iteration_results),
+        standard_deviation=stdev(iteration_results) if len(iteration_results) > 1 else 0,
         title='UEs' if index else 'APs'
     )
         for index, iteration_results in enumerate(results.tolist())]
@@ -113,4 +113,3 @@ def _log_results(results: numpy.ndarray) -> None:
 
 def _get_percentile(results: List[float], percentile: int) -> float:
     return numpy.percentile(results, percentile, interpolation='lower')
-

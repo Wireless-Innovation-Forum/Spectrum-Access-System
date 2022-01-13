@@ -1,0 +1,1 @@
+EXPECTED_RESULTS_OUTPUT = '{"distance": 0, "distance_access_point": 0, "distance_user_equipment": 0, "interference": -Infinity, "interference_access_point": -Infinity, "interference_user_equipment": -Infinity, "runtime": null}'

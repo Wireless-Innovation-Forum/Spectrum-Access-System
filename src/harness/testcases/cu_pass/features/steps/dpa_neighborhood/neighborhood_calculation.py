@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from functools import partial
 from typing import Type
 
@@ -7,19 +6,21 @@ from behave import *
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     NumberOfApsTypes, PopulationRetrieverTypes
-from testcases.cu_pass.features.environment.utilities import get_logging_file_handler
+from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
+    sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_iterations import \
+    ContextMonteCarloIterations
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.simulation_area import ContextSimulationArea
 
 use_step_matcher('parse')
 
 
-@dataclass
-class ContextNeighborhood(ContextDpa):
+class ContextNeighborhood(ContextDpa, ContextSimulationArea, ContextMonteCarloIterations):
     monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
-    simulation_area_radius: int
 
 
 @step("{organization} interference")
@@ -58,16 +59,6 @@ def step_impl(context: ContextNeighborhood, number_of_aps: int):
                                          number_of_aps=number_of_aps)
 
 
-@step("a simulation area radius of {simulation_area_radius:Integer}")
-def step_impl(context: ContextNeighborhood, simulation_area_radius: int):
-    context.simulation_area_radius = simulation_area_radius
-
-
-@step("{number_of_iterations:Integer} monte carlo iterations")
-def step_impl(context: ContextNeighborhood, number_of_iterations: int):
-    context.number_of_iterations = number_of_iterations
-
-
 @when("the neighborhood radius is calculated")
 def step_impl(context: ContextNeighborhood):
     """
@@ -93,16 +84,14 @@ def step_impl(context: ContextNeighborhood, expected_interference: float):
     assert context.result.interference == expected_interference, f'{context.result.interference} != {expected_interference}'
 
 
+@then("it should run without error")
+def step_impl(context: ContextNeighborhood):
+    pass
+
+
 @then("the output log should be")
 def step_impl(context: ContextNeighborhood):
-    expected_content = context.text.replace('    ', '\t').replace('\r', '')
+    expected_content = get_expected_output_content(context=context)
     output_log_filepath = get_logging_file_handler().baseFilename
-    output_content: str
-    with open(output_log_filepath) as f:
-        lines = f.readlines()
-        sanitized_lines = [line for line in lines
-                           if 'Loaded climate data' not in line
-                           and 'Loaded refractivity data' not in line
-                           and 'Runtime' not in line]
-        output_content = ''.join(sanitized_lines)
+    output_content = sanitize_output_log(log_filepath=output_log_filepath)
     assert output_content == expected_content

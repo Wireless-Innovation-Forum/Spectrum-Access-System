@@ -5,6 +5,7 @@ from behave import runner
 
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
+from cu_pass.dpa_calculator.dpa.utilities import get_uniform_gain_pattern
 from cu_pass.dpa_calculator.utilities import get_dpa_center, Point
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_dpa import parse_dpa
 
@@ -37,7 +38,7 @@ REGION_TYPE_TO_DPA_NAME_MAP = {
 
 def _get_fake_dpa(region_type: str) -> Dpa:
     center = get_arbitrary_coordinates(region_type=region_type.upper())
-    return Dpa(protected_points=None, geometry=center.to_shapely())
+    return Dpa(protected_points=None, geometry=center.to_shapely(), gain_pattern=get_uniform_gain_pattern())
 
 
 @step("a {region_type} location")

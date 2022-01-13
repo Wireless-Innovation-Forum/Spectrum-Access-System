@@ -44,6 +44,15 @@ Feature: DPA Neighborhood helpers
     When the neighborhood radius is calculated
     Then the output log should be
       """
+      Inputs:
+          DPA Name: MCKINNEY
+          Number of APs: 2
+          Number of iterations: 2
+          Simulation area radius: 100 kilometers
+          Aggregate interference calculator: AggregateInterferenceCalculatorNtia
+          Population retriever: PopulationRetrieverCensus
+          Number of APs calculator: NumberOfApsCalculatorShipborne
+
       Monte Carlo iteration 1
           CBSD 1 / 2
           CBSD 2 / 2

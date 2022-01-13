@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from contextlib import contextmanager
+from typing import ContextManager
 from unittest import mock
 
 from behave import fixture, runner, use_fixture
@@ -12,9 +13,31 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
 
-@dataclass
 class ContextSas(runner.Context):
-    with_integration: bool
+    exception: Exception
+    exception_expected: bool
+
+
+def set_context_sas_defaults(context: ContextSas) -> None:
+    context.exception = None
+    context.exception_expected = False
+
+
+@contextmanager
+def record_exception_if_expected(context: ContextSas) -> ContextManager[None]:
+    if context.exception_expected:
+        with _record_exception(context=context):
+            yield
+    else:
+        yield
+
+
+@contextmanager
+def _record_exception(context: ContextSas) -> ContextManager[None]:
+    try:
+        yield
+    except Exception as e:
+        context.exception = e
 
 
 @fixture()
@@ -33,16 +56,8 @@ def interference_contribution_eirps_before_scenario(context: ContextSas):
     use_fixture(mock_itm, context=context)
 
 
-def neighborhood_calculation_before_scenario(context: ContextSas):
+def setup_monte_carlo_runner(context: ContextSas):
     context.monte_carlo_runner = AggregateInterferenceMonteCarloCalculator
-
-
-def logging_is_captured_before_scenario(context: ContextSas):
-    neighborhood_calculation_before_scenario(context=context)
-
-
-def quick_run_before_scenario(context: ContextSas):
-    neighborhood_calculation_before_scenario(context=context)
 
 
 def total_interference_before_scenario(context: ContextSas):

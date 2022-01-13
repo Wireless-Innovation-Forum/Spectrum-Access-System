@@ -12,7 +12,7 @@ def get_list_regex(item_regex: str) -> str:
 
 
 INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'
-NUMBER_REGEX = rf'{INTEGER_REGEX}(\.[0-9]+)?'
+NUMBER_REGEX = rf'({INTEGER_REGEX}(\.[0-9]+)?|infinity|-infinity)'
 NUMBER_LIST_REGEX = get_list_regex(item_regex=NUMBER_REGEX)
 COORDINATES_REGEX = rf'{NUMBER_REGEX}, ?{NUMBER_REGEX}'
 
