@@ -1,4 +1,4 @@
-Feature: CBSD properties
+Feature: CBSD properties, Category A
   Scenario: AP transmission powers are set
     When AP CBSDs for the Monte Carlo simulation are created
     Then the indoor antenna maximum EIRPs should be 26 dBm
@@ -8,16 +8,21 @@ Feature: CBSD properties
     When UE CBSDs for the Monte Carlo simulation are created
     Then the antenna maximum EIRPs should be 24 dBm
 
-  Scenario Template: Grants are created with indoor percentage based on region type
+  Scenario Template: CBSDs are created with indoor percentage based on region type
     Given a <region_type> location
-    When CBSDs for the Monte Carlo simulation are created
+    When Category <cbsd_category> CBSDs for the Monte Carlo simulation are created
     Then <expected_indoor_percentage> of the grants should be indoors
 
     Examples:
-      | region_type | expected_indoor_percentage |
-      | rural       | 0.99                       |
-      | suburban    | 0.99                       |
-      | urban       | 0.8                        |
+      | cbsd_category | region_type | expected_indoor_percentage |
+      | A             | rural       | 0.99                       |
+      | A             | suburban    | 0.99                       |
+      | A             | urban       | 0.8                        |
+      | A             | dense urban | 0.8                        |
+      | B             | rural       | 0                          |
+      | B             | suburban    | 0                          |
+      | B             | urban       | 0                          |
+      | B             | dense urban | 0                          |
 
   Scenario Template: Indoor CBSDs are created with random heights
     Given a <region_type> location

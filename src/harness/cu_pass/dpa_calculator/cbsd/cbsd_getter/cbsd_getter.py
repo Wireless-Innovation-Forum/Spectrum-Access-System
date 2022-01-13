@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from enum import Enum
 
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
 from cu_pass.dpa_calculator.utilities import Point
 
-CBSD_A_INDICATOR = 'A'
-CBSD_B_INDICATOR = 'B'
+
+class CbsdCategories(Enum):
+    A = 'A'
+    B = 'B'
 
 
 class CbsdGetter(ABC):
-    def __init__(self, category: Union[CBSD_A_INDICATOR, CBSD_B_INDICATOR], height: float, is_indoor: bool, location: Point):
+    def __init__(self, category: CbsdCategories, height: float, is_indoor: bool, location: Point):
         self._category = category
         self._height = height
         self._is_indoor = is_indoor

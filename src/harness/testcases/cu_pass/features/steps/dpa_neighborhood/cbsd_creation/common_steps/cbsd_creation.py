@@ -4,6 +4,7 @@ from typing import List, Optional
 from behave import *
 
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
+from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
 from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from cu_pass.dpa_calculator.point_distributor import AreaCircle
 from cu_pass.dpa_calculator.utilities import get_dpa_center
@@ -32,16 +33,20 @@ class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
     cbsds: List[Cbsd]
 
 
-@when(f"(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs (for (?P<number_of_aps>{INTEGER_REGEX}) APs)? ?for the Monte Carlo simulation are created")
-def step_impl(context: ContextCbsdCreation, *args, number_of_aps: Optional[str], is_user_equipment: Optional[str]):
+@when(f"(Category (?P<cbsd_category>[AB]))? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs (for (?P<number_of_aps>{INTEGER_REGEX}) APs)? ?for the Monte Carlo simulation are created")
+def step_impl(context: ContextCbsdCreation, *args, cbsd_category: str, number_of_aps: Optional[str], is_user_equipment: Optional[str]):
     """
     Args:
         context (behave.runner.Context):
     """
+    cbsd_category = CbsdCategories.B if cbsd_category == CbsdCategories.B.name else CbsdCategories.A
     number_of_aps = parse_integer(text=number_of_aps) if number_of_aps else ARBITRARY_ODD_NUMBER_OF_APS
     is_user_equipment = is_user_equipment and parse_is_user_equipment(text=is_user_equipment)
     dpa_zone = getattr(context, 'area', _create_area(context=context))
-    cbsds_creator = get_cbsds_creator(dpa_zone=dpa_zone, is_user_equipment=is_user_equipment, number_of_aps=number_of_aps)
+    cbsds_creator = get_cbsds_creator(cbsd_category=cbsd_category,
+                                      dpa_zone=dpa_zone,
+                                      is_user_equipment=is_user_equipment,
+                                      number_of_aps=number_of_aps)
     cbsds_with_bearings = cbsds_creator.create()
     context.bearings = cbsds_with_bearings.bearings
     context.cbsds = cbsds_with_bearings.cbsds
