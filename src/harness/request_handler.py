@@ -143,10 +143,10 @@ def _Request(url, request, config, is_post_method):
   else:
     logging.debug('GET Request to URL %s', url)
 
-  error = None
   for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
     try:
       conn.perform()
+      error = None
       break
     except pycurl.error as e:
       # e contains a tuple (libcurl_error_code, string_description).
