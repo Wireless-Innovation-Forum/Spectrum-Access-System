@@ -11,8 +11,9 @@ class CbsdCategories(Enum):
 
 
 class CbsdGetter(ABC):
-    def __init__(self, category: CbsdCategories, height: float, is_indoor: bool, location: Point):
+    def __init__(self, category: CbsdCategories, dpa_region_type: str, height: float, is_indoor: bool, location: Point):
         self._category = category
+        self._dpa_region_type = dpa_region_type
         self._height = height
         self._is_indoor = is_indoor
         self._location = location

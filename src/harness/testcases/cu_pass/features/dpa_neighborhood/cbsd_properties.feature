@@ -1,12 +1,24 @@
 Feature: CBSD properties, Category A
-  Scenario: AP transmission powers are set
-    When AP CBSDs for the Monte Carlo simulation are created
-    Then the indoor antenna maximum EIRPs should be 26 dBm
-    And the outdoor antenna maximum EIRPs should be 30 dBm
+  Scenario: Category A AP transmission powers are set
+    When Category A AP CBSDs for the Monte Carlo simulation are created
+    Then the indoor antenna maximum EIRPs should be 100%: 26 dBm
+    And the outdoor antenna maximum EIRPs should be 100%: 30 dBm
 
   Scenario: UE transmission powers are set
     When UE CBSDs for the Monte Carlo simulation are created
-    Then the antenna maximum EIRPs should be 24 dBm
+    Then the antenna maximum EIRPs should be 100%: 24 dBm
+
+  Scenario Template: Category B AP transmission powers are set
+    Given a <region_type> location
+    When Category B AP CBSDs for the Monte Carlo simulation are created
+    Then the outdoor antenna maximum EIRPs should be <expected_power> dBm
+
+    Examples:
+      | region_type | expected_power |
+      | dense urban | 100%: 40-47    |
+      | rural       | 100%: 47       |
+      | suburban    | 100%: 47       |
+      | urban       | 100%: 40-47    |
 
   Scenario Template: CBSDs are created with indoor percentage based on region type
     Given a <region_type> location
@@ -15,14 +27,14 @@ Feature: CBSD properties, Category A
 
     Examples:
       | cbsd_category | region_type | expected_indoor_percentage |
+      | A             | dense urban | 0.8                        |
       | A             | rural       | 0.99                       |
       | A             | suburban    | 0.99                       |
       | A             | urban       | 0.8                        |
-      | A             | dense urban | 0.8                        |
+      | B             | dense urban | 0                          |
       | B             | rural       | 0                          |
       | B             | suburban    | 0                          |
       | B             | urban       | 0                          |
-      | B             | dense urban | 0                          |
 
   Scenario Template: Indoor CBSDs are created with random heights
     Given a <region_type> location

@@ -55,6 +55,7 @@ class CbsdsCreator(ABC):
         cbsd_locations_grouped_by_height = self._cbsd_height_distributor_class(cbsd_locations=self._indoor_cbsd_locations,
                                                                                region_type=self._region_type).distribute()
         return [self._cbsd_getter_class(category=self._cbsd_category,
+                                        dpa_region_type=self._region_type,
                                         height=location_with_height.height,
                                         is_indoor=True,
                                         location=location_with_height.location).get()
@@ -73,6 +74,7 @@ class CbsdsCreator(ABC):
     @property
     def _outdoor_cbsds(self) -> List[Cbsd]:
         return [self._cbsd_getter_class(category=self._cbsd_category,
+                                        dpa_region_type=self._region_type,
                                         height=self._outdoor_antenna_height,
                                         is_indoor=False,
                                         location=location).get()
