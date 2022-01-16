@@ -6,13 +6,12 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environ
 use_step_matcher("parse")
 
 
-@then("transmitter insertion losses for {indoor_outdoor} APs should be {expected_power:Integer} dB")
-def step_impl(context: ContextCbsdInterference, indoor_outdoor: str, expected_power: int, **kwargs):
+@then("transmitter insertion losses for {is_indoor:IsIndoor} APs should be {expected_power:Integer} dB")
+def step_impl(context: ContextCbsdInterference, is_indoor: str, expected_power: int, **kwargs):
     """
     Args:
         context (behave.runner.Context):
     """
-    is_indoor = indoor_outdoor == 'indoor'
     interference_contributions = [context.interference_components[cbsd_number]
                                   for cbsd_number, cbsd in enumerate(context.cbsds)
                                   if cbsd.is_indoor == is_indoor]

@@ -48,17 +48,17 @@ def step_impl(context: ContextCbsdCreation, *args, cbsd_category: str, number_of
     Args:
         context (behave.runner.Context):
     """
+    cbsd_category = CbsdCategories.B if cbsd_category == CbsdCategories.B.name else CbsdCategories.A
     number_of_aps = parse_integer(text=number_of_aps) if number_of_aps else ARBITRARY_ODD_NUMBER_OF_APS
     is_user_equipment = is_user_equipment and parse_is_user_equipment(text=is_user_equipment)
     dpa_zone = getattr(context, 'area', _create_area(context=context))
-    for cbsd_category in _parse_cbsd_category(cbsd_category_input=cbsd_category):
-        cbsds_creator = get_cbsds_creator(cbsd_category=cbsd_category,
-                                          dpa_zone=dpa_zone,
-                                          is_user_equipment=is_user_equipment,
-                                          number_of_aps=number_of_aps)
-        cbsds_with_bearings = cbsds_creator.create()
-        context.bearings = cbsds_with_bearings.bearings
-        context.cbsds = cbsds_with_bearings.cbsds
+    cbsds_creator = get_cbsds_creator(cbsd_category=cbsd_category,
+                                      dpa_zone=dpa_zone,
+                                      is_user_equipment=is_user_equipment,
+                                      number_of_aps=number_of_aps)
+    cbsds_with_bearings = cbsds_creator.create()
+    context.bearings = cbsds_with_bearings.bearings
+    context.cbsds = cbsds_with_bearings.cbsds
 
 
 def _create_area(context: ContextCbsdCreation) -> AreaCircle:

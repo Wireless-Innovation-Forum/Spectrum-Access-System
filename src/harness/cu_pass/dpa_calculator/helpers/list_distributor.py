@@ -12,14 +12,15 @@ class FractionalDistribution:
     range_maximum: float
     range_minimum: float
 
-    def assert_data_matches_distribution(self, data: List[float], endpoint_leeway: float = 0.05) -> None:
+    def assert_data_matches_distribution(self, data: List[float], leeway_endpoint: float = 0.05, leeway_fraction: float = 0.001) -> None:
         data_within_range = [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
         fraction_within_range = len(data_within_range) / len(data)
-        lowest = min(data)
-        highest = max(data)
-        assert isclose(lowest, self.range_minimum, abs_tol=endpoint_leeway), f'{lowest} != {self.range_minimum}'
-        assert isclose(highest, self.range_maximum, abs_tol=endpoint_leeway), f'{highest} != {self.range_maximum}'
-        assert isclose(fraction_within_range, self.fraction), f'{fraction_within_range} != {self.fraction}'
+        lowest = min(data_within_range)
+        highest = max(data_within_range)
+        assert isclose(lowest, self.range_minimum, abs_tol=leeway_endpoint), f'{lowest} != {self.range_minimum}'
+        assert isclose(highest, self.range_maximum, abs_tol=leeway_endpoint), f'{highest} != {self.range_maximum}'
+        assert isclose(fraction_within_range, self.fraction, abs_tol=leeway_fraction), \
+            f'Range: {self.range_minimum}-{self.range_maximum}, Percentage: {fraction_within_range} != {self.fraction}'
 
 
 class ListDistributor(ABC):

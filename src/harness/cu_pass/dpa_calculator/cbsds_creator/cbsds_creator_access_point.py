@@ -3,20 +3,17 @@ from typing import Type
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter_ap import CbsdGetterAp
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter_ap_category_a import CbsdGetterApCategoryA
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter_ap_category_b import CbsdGetterApCategoryB
-from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributorAccessPoint
-from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
-    OUTDOOR_AP_HEIGHT_IN_METERS
+from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import \
+    CbsdHeightDistributorAccessPointCategoryA, CbsdHeightDistributorAccessPointCategoryB
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsCreator
 
 
 class CbsdsCreatorAccessPoint(CbsdsCreator):
     @property
-    def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributorAccessPoint]:
-        return CbsdHeightDistributorAccessPoint
-
-    @property
-    def _outdoor_antenna_height(self) -> float:
-        return OUTDOOR_AP_HEIGHT_IN_METERS
+    def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributorAccessPointCategoryA]:
+        return CbsdHeightDistributorAccessPointCategoryA \
+            if self._is_category_a \
+            else CbsdHeightDistributorAccessPointCategoryB
 
     @property
     def _cbsd_getter_class(self) -> Type[CbsdGetterAp]:

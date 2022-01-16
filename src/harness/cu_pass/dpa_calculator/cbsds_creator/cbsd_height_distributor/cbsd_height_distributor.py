@@ -5,7 +5,8 @@ from typing import Dict, List
 
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
     fractional_distribution_to_height_distribution, HeightDistribution, \
-    INDOOR_AP_HEIGHT_DISTRIBUTION, INDOOR_UE_HEIGHT_DISTRIBUTION
+    INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, INDOOR_UE_HEIGHT_DISTRIBUTION, OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, \
+    OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B, OUTDOOR_UE_HEIGHT_DISTRIBUTION
 from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
 from cu_pass.dpa_calculator.utilities import Point
 
@@ -17,8 +18,9 @@ class LocationWithHeight:
 
 
 class CbsdHeightDistributor(ListDistributor):
-    def __init__(self, cbsd_locations: List[Point], region_type: str):
+    def __init__(self, cbsd_locations: List[Point], is_indoor: bool, region_type: str):
         super().__init__(items_to_distribute=cbsd_locations)
+        self._is_indoor = is_indoor
         self._region_type = region_type
 
     def _modify_group(self, distribution: FractionalDistribution, group: List[Point]) -> List[LocationWithHeight]:
@@ -45,13 +47,19 @@ class CbsdHeightDistributor(ListDistributor):
         raise NotImplementedError
 
 
-class CbsdHeightDistributorAccessPoint(CbsdHeightDistributor):
+class CbsdHeightDistributorAccessPointCategoryA(CbsdHeightDistributor):
     @property
     def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return INDOOR_AP_HEIGHT_DISTRIBUTION
+        return INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A if self._is_indoor else OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A
+
+
+class CbsdHeightDistributorAccessPointCategoryB(CbsdHeightDistributor):
+    @property
+    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
+        return OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B
 
 
 class CbsdHeightDistributorUserEquipment(CbsdHeightDistributor):
     @property
     def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return INDOOR_UE_HEIGHT_DISTRIBUTION
+        return INDOOR_UE_HEIGHT_DISTRIBUTION if self._is_indoor else OUTDOOR_UE_HEIGHT_DISTRIBUTION

@@ -52,15 +52,29 @@ class CbsdsCreator(ABC):
 
     @property
     def _indoor_cbsds(self) -> List[Cbsd]:
-        cbsd_locations_grouped_by_height = self._cbsd_height_distributor_class(cbsd_locations=self._indoor_cbsd_locations,
-                                                                               region_type=self._region_type).distribute()
+        return self._generate_cbsds(is_indoor=True)
+
+    @property
+    def _outdoor_cbsds(self) -> List[Cbsd]:
+        return self._generate_cbsds(is_indoor=False)
+
+    def _generate_cbsds(self, is_indoor: bool) -> List[Cbsd]:
+        locations = self._indoor_cbsd_locations if is_indoor else self._outdoor_cbsd_locations
+        cbsd_locations_grouped_by_height = self._cbsd_height_distributor_class(
+            cbsd_locations=locations,
+            is_indoor=is_indoor,
+            region_type=self._region_type).distribute()
         return [self._cbsd_getter_class(category=self._cbsd_category,
                                         dpa_region_type=self._region_type,
                                         height=location_with_height.height,
-                                        is_indoor=True,
+                                        is_indoor=is_indoor,
                                         location=location_with_height.location).get()
                 for height_group in cbsd_locations_grouped_by_height
                 for location_with_height in height_group]
+
+    @property
+    def _indoor_cbsd_locations(self) -> List[Point]:
+        return self._all_cbsd_locations[:self._number_of_indoor_cbsds]
 
     @property
     @abstractmethod
@@ -68,26 +82,8 @@ class CbsdsCreator(ABC):
         raise NotImplementedError
 
     @property
-    def _indoor_cbsd_locations(self) -> List[Point]:
-        return self._all_cbsd_locations[:self._number_of_indoor_cbsds]
-
-    @property
-    def _outdoor_cbsds(self) -> List[Cbsd]:
-        return [self._cbsd_getter_class(category=self._cbsd_category,
-                                        dpa_region_type=self._region_type,
-                                        height=self._outdoor_antenna_height,
-                                        is_indoor=False,
-                                        location=location).get()
-                for location in self._outdoor_cbsd_locations]
-
-    @property
     @abstractmethod
     def _cbsd_getter_class(self) -> Type[CbsdGetter]:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def _outdoor_antenna_height(self) -> float:
         raise NotImplementedError
 
     @property

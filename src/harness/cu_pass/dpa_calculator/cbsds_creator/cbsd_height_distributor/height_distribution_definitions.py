@@ -33,7 +33,7 @@ OUTDOOR_UE_HEIGHT_IN_METERS = 1.5
 INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP = 1.5
 
 
-INDOOR_AP_HEIGHT_DISTRIBUTION = {
+INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A = {
     REGION_TYPE_DENSE_URBAN: [
         HeightDistribution(
             maximum_height_in_meters=15,
@@ -90,6 +90,102 @@ INDOOR_AP_HEIGHT_DISTRIBUTION = {
 }
 
 
+OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A = {
+    REGION_TYPE_DENSE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_RURAL: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_SUBURBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=6,
+            minimum_height_in_meters=6,
+            fraction_of_cbsds=1
+        ),
+    ]
+}
+
+
+OUTDOOR_UE_HEIGHT_DISTRIBUTION = {
+    REGION_TYPE_DENSE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_RURAL: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_SUBURBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            minimum_height_in_meters=OUTDOOR_UE_HEIGHT_IN_METERS,
+            fraction_of_cbsds=1
+        ),
+    ]
+}
+
+
+OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B = {
+    REGION_TYPE_DENSE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=30,
+            minimum_height_in_meters=6,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_RURAL: [
+        HeightDistribution(
+            maximum_height_in_meters=100,
+            minimum_height_in_meters=6,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_SUBURBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=100,
+            minimum_height_in_meters=6,
+            fraction_of_cbsds=1
+        ),
+    ],
+    REGION_TYPE_URBAN: [
+        HeightDistribution(
+            maximum_height_in_meters=30,
+            minimum_height_in_meters=6,
+            fraction_of_cbsds=1
+        ),
+    ]
+}
+
+
 def _get_indoor_ue_height_distribution(associated_ap_distribution: HeightDistribution) -> HeightDistribution:
     return HeightDistribution(
         maximum_height_in_meters=associated_ap_distribution.maximum_height_in_meters - INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP,
@@ -103,4 +199,4 @@ def _get_indoor_ue_height_distributions(associated_ap_distributions: List[Height
 
 
 INDOOR_UE_HEIGHT_DISTRIBUTION = {region_type: _get_indoor_ue_height_distributions(associated_ap_distributions=distributions)
-                                 for region_type, distributions in INDOOR_AP_HEIGHT_DISTRIBUTION.items()}
+                                 for region_type, distributions in INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A.items()}
