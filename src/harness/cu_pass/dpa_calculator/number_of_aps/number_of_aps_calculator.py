@@ -1,13 +1,11 @@
 from abc import abstractmethod
-from dataclasses import dataclass
+from typing import Dict
 
+from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
 from cu_pass.dpa_calculator.utilities import Point
 
 
-@dataclass
-class NumberOfApsForPopulation:
-    category_a: int
-    category_b: int
+NUMBER_OF_APS_FOR_POPULATION_TYPE = Dict[CbsdCategories, int]
 
 
 class NumberOfApsCalculator:
@@ -16,5 +14,5 @@ class NumberOfApsCalculator:
         self._simulation_population = simulation_population
 
     @abstractmethod
-    def get_number_of_aps(self) -> NumberOfApsForPopulation:
+    def get_number_of_aps(self) -> NUMBER_OF_APS_FOR_POPULATION_TYPE:
         raise NotImplementedError

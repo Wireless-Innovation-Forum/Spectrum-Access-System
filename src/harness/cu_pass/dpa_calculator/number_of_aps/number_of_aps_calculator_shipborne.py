@@ -1,7 +1,7 @@
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator, \
-    NumberOfApsForPopulation
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE, \
+    NumberOfApsCalculator
 from cu_pass.dpa_calculator.utilities import get_region_type
 
 
@@ -41,10 +41,13 @@ class NumberOfApsCalculatorShipborne(NumberOfApsCalculator):
     _channel_scaling_factor = 0.1
     _market_penetration_factor = 0.2
 
-    def get_number_of_aps(self) -> NumberOfApsForPopulation:
+    def get_number_of_aps(self) -> NUMBER_OF_APS_FOR_POPULATION_TYPE:
         number_cat_a = self._number_of_aps_exact(category=CbsdCategories.A)
         number_cat_b = self._number_of_aps_exact(category=CbsdCategories.B)
-        return NumberOfApsForPopulation(category_a=round(number_cat_a), category_b=round(number_cat_b))
+        return {
+            CbsdCategories.A: round(number_cat_a),
+            CbsdCategories.B: round(number_cat_b)
+        }
 
     def _number_of_aps_exact(self, category: CbsdCategories) -> float:
         return self._population_to_serve \
