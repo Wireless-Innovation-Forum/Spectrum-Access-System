@@ -133,7 +133,7 @@ class AggregateInterferenceMonteCarloCalculator:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
         result = ParameterFinder(function=interference_calculator.calculate,
                                  target=self._dpa.threshold,
-                                 max_parameter=self._cbsd_deployment_options.simulation_area_radius_in_kilometers).find()
+                                 max_parameter=self._cbsd_deployment_options.deployment_area_radius_in_kilometers).find()
         result.log()
         return result
 

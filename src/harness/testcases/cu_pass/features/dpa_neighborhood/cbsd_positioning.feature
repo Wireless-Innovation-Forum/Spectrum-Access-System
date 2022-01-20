@@ -17,15 +17,17 @@ Feature: CBSD positioning
     Given simulation population of 7,095,966
     And a <region_type> location
     When the number of APs for simulation is calculated
-    Then the result should be <expected_result>
+    Then the number of category A APs should be <expected_category_a_number>
+    Then the number of category B APs should be <expected_category_b_number>
 
     Examples:
-      | region_type | expected_result |
-      | rural       | 47306           |
-      | suburban    | 7096            |
-      | urban       | 2838            |
+      | region_type | expected_category_a_number | expected_category_b_number |
+      | dense urban | 2271                       | 142                        |
+      | rural       | 18923                      | 170                        |
+      | suburban    | 4258                       | 284                        |
+      | urban       | 2271                       | 142                        |
 
-  Scenario: Cbsds are created with a random distribution on the zone circumference
+  Scenario: Cbsds are created with a random distribution in the zone
     Given a circular area with a radius of 150 km
     And random seed 5
     When CBSDs for the Monte Carlo simulation are created

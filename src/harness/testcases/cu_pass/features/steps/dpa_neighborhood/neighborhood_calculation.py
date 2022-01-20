@@ -64,7 +64,7 @@ def step_impl(context: ContextNeighborhood):
     """
     if not hasattr(context, 'dpa'):
         assign_arbitrary_dpa(context=context)
-    context.cbsd_deployment_options.simulation_area_radius_in_kilometers = getattr(context, 'simulation_area_radius', 100)
+    context.cbsd_deployment_options.deployment_area_radius_in_kilometers = getattr(context, 'simulation_area_radius', 100)
     simulation_results = context.monte_carlo_runner(dpa=context.dpa,
                                                     number_of_iterations=getattr(context, 'number_of_iterations', 1),
                                                     cbsd_deployment_options=context.cbsd_deployment_options).simulate()

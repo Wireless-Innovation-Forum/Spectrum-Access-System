@@ -1,6 +1,13 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 
 from cu_pass.dpa_calculator.utilities import Point
+
+
+@dataclass
+class NumberOfApsForPopulation:
+    category_a: int
+    category_b: int
 
 
 class NumberOfApsCalculator:
@@ -9,5 +16,5 @@ class NumberOfApsCalculator:
         self._simulation_population = simulation_population
 
     @abstractmethod
-    def get_number_of_aps(self) -> int:
+    def get_number_of_aps(self) -> NumberOfApsForPopulation:
         raise NotImplementedError

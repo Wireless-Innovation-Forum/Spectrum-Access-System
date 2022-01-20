@@ -13,6 +13,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import 
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType, \
     get_arbitrary_coordinates
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_cbsd_category import \
+    parse_cbsd_category
 
 use_step_matcher('re')
 
@@ -34,12 +36,7 @@ class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
 
 
 def _parse_cbsd_category(cbsd_category_input: str) -> Iterable[CbsdCategories]:
-    if cbsd_category_input == CbsdCategories.A:
-        return [CbsdCategories.A]
-    elif cbsd_category_input == CbsdCategories.B:
-        return [CbsdCategories.B]
-    else:
-        return CbsdCategories
+    return [parse_cbsd_category(cbsd_category_input=cbsd_category_input)] if cbsd_category_input else CbsdCategories
 
 
 @when(f"(Category (?P<cbsd_category>[AB]))? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs (for (?P<number_of_aps>{INTEGER_REGEX}) APs)? ?for the Monte Carlo simulation are created")

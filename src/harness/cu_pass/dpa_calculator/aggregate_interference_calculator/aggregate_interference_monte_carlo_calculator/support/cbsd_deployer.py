@@ -10,15 +10,12 @@ from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsCalculator
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_ground_based import NumberOfApsCalculatorGroundBased
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from cu_pass.dpa_calculator.point_distributor import AreaCircle
 from cu_pass.dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from cu_pass.dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
 from cu_pass.dpa_calculator.utilities import get_dpa_center
-
-DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS = 500
 
 
 class NumberOfApsTypes(Enum):
@@ -34,7 +31,8 @@ class PopulationRetrieverTypes(Enum):
 @dataclass
 class CbsdDeploymentOptions:
     number_of_aps: Optional[int] = None
-    simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_RADIUS_IN_KILOMETERS
+    deployment_area_radius_in_kilometers_category_a: int = 250
+    deployment_area_radius_in_kilometers_category_b: int = 500
     population_retriever_type: PopulationRetrieverTypes = PopulationRetrieverTypes.census
     number_of_aps_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne
 
@@ -48,7 +46,10 @@ class CbsdDeployer:
     def log(self) -> None:
         logging.info('CBSD Deployment:')
         logging.info(f'\tNumber of APs: {self._number_of_aps}')
-        logging.info(f'\tSimulation area radius: {self._cbsd_deployment_options.simulation_area_radius_in_kilometers} kilometers')
+        logging.info(f'\tSimulation area radius, category A:'
+                     f' {self._cbsd_deployment_options.deployment_area_radius_in_kilometers_category_a} kilometers')
+        logging.info(f'\tSimulation area radius, category B: '
+                     f'{self._cbsd_deployment_options.deployment_area_radius_in_kilometers_category_b} kilometers')
         logging.info(f'\tPopulation retriever: {self._population_retriever_class.__name__}')
         logging.info(f'\tNumber of APs calculator: {self._number_of_aps_calculator_class.__name__}')
         logging.info('')
@@ -81,13 +82,12 @@ class CbsdDeployer:
     def _dpa_test_zone(self) -> AreaCircle:
         return AreaCircle(
             center_coordinates=get_dpa_center(dpa=self._dpa),
-            radius_in_kilometers=self._cbsd_deployment_options.simulation_area_radius_in_kilometers
+            radius_in_kilometers=self._cbsd_deployment_options.deployment_area_radius_in_kilometers
         )
 
     @property
     def _number_of_aps_calculator_class(self) -> Type[NumberOfApsCalculator]:
         map = {
-            NumberOfApsTypes.ground_based: NumberOfApsCalculatorGroundBased,
             NumberOfApsTypes.shipborne: NumberOfApsCalculatorShipborne
         }
         return map[self._cbsd_deployment_options.number_of_aps_calculator_type]
