@@ -8,7 +8,7 @@ from uuid import uuid4
 import boto3
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloResults
 
 LOG_EXTENSION = '.log'

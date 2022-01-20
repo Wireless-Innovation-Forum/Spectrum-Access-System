@@ -8,8 +8,10 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     propagation_loss_calculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     GainAtAzimuth, InterferenceComponents
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
+    CbsdDeploymentOptions
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
 
@@ -57,6 +59,7 @@ def interference_contribution_eirps_before_scenario(context: ContextSas):
 
 
 def setup_monte_carlo_runner(context: ContextSas):
+    context.cbsd_deployment_options = CbsdDeploymentOptions()
     context.monte_carlo_runner = AggregateInterferenceMonteCarloCalculator
 
 

@@ -4,7 +4,7 @@ from typing import ContextManager, Optional
 import boto3
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults
 from cu_pass.dpa_calculator.dpa.builder import get_dpa
 from cu_pass.dpa_calculator.main_runner.results_recorder import ResultsRecorder

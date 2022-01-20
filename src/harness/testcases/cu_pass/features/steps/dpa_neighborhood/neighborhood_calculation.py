@@ -1,11 +1,11 @@
 from functools import partial
-from typing import Type
 
 from behave import *
 
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
-    AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
-    NumberOfApsTypes, PopulationRetrieverTypes
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
+    AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
+    CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
 from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
@@ -18,7 +18,7 @@ use_step_matcher('parse')
 
 
 class ContextNeighborhood(ContextDpa, ContextSimulationArea, ContextMonteCarloIterations):
-    monte_carlo_runner: Type[AggregateInterferenceMonteCarloCalculator]
+    cbsd_deployment_options: CbsdDeploymentOptions
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
 
@@ -39,8 +39,7 @@ def step_impl(context: ContextNeighborhood, population_type: str):
         'census radius': PopulationRetrieverTypes.census,
         'region type': PopulationRetrieverTypes.region_type
     }
-    context.monte_carlo_runner = partial(context.monte_carlo_runner,
-                                         population_retriever_class=map[population_type])
+    context.cbsd_deployment_options.population_retriever_type = map[population_type]
 
 
 @step("number of APs using {number_of_aps_type} analysis")
@@ -49,14 +48,12 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
         'ground based': NumberOfApsTypes.ground_based,
         'shipborne': NumberOfApsTypes.shipborne
     }
-    context.monte_carlo_runner = partial(context.monte_carlo_runner,
-                                         number_of_aps_calculator_class=map[number_of_aps_type])
+    context.cbsd_deployment_options.number_of_aps_calculator_class = map[number_of_aps_type]
 
 
 @step("{number_of_aps:Integer} APs")
 def step_impl(context: ContextNeighborhood, number_of_aps: int):
-    context.monte_carlo_runner = partial(context.monte_carlo_runner,
-                                         number_of_aps=number_of_aps)
+    context.cbsd_deployment_options.number_of_aps = number_of_aps
 
 
 @when("the neighborhood radius is calculated")
@@ -67,9 +64,10 @@ def step_impl(context: ContextNeighborhood):
     """
     if not hasattr(context, 'dpa'):
         assign_arbitrary_dpa(context=context)
+    context.cbsd_deployment_options.simulation_area_radius_in_kilometers = getattr(context, 'simulation_area_radius', 100)
     simulation_results = context.monte_carlo_runner(dpa=context.dpa,
                                                     number_of_iterations=getattr(context, 'number_of_iterations', 1),
-                                                    simulation_area_radius_in_kilometers=getattr(context, 'simulation_area_radius', 100)).simulate()
+                                                    cbsd_deployment_options=context.cbsd_deployment_options).simulate()
     simulation_results.log()
     context.result = simulation_results
 
