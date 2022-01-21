@@ -44,13 +44,19 @@ Feature: CBSD positioning
     And the lowest category B bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
+  @slow
   Scenario Template: The number of UEs is created
     Given a <region_type> location
-    When UE CBSDs for the Monte Carlo simulation are created
-    Then there should be <expected_ue_per_ap> times as many as if AP grants were created
+    When category <cbsd_category> UE CBSDs for the Monte Carlo simulation are created
+    Then there should be <expected_ue_per_ap> times as many CBSDs as if category <cbsd_category> AP CBSDs were created
 
     Examples:
-      | region_type | expected_ue_per_ap |
-      | rural       | 3                  |
-      | suburban    | 20                 |
-      | urban       | 50                 |
+      | region_type | cbsd_category | expected_ue_per_ap |
+      | dense urban | A             | 50                 |
+      | rural       | A             | 3                  |
+      | suburban    | A             | 20                 |
+      | urban       | A             | 50                 |
+      | dense urban | B             | 200                |
+      | rural       | B             | 500                |
+      | suburban    | B             | 200                |
+      | urban       | B             | 200                |

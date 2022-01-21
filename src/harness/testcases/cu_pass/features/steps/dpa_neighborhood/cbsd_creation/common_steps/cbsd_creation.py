@@ -38,7 +38,7 @@ def _parse_cbsd_category(cbsd_category_input: str) -> Iterable[CbsdCategories]:
     return [parse_cbsd_category(cbsd_category_input=cbsd_category_input)] if cbsd_category_input else CbsdCategories
 
 
-@when(f"(Category (?P<cbsd_category>[AB]))? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs for the Monte Carlo simulation are created")
+@when(f"(category (?P<cbsd_category>[AB]))? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs for the Monte Carlo simulation are created")
 def cbsd_creation_step(context: ContextCbsdCreation, *args,
                        cbsd_category: Optional[str] = None,
                        is_user_equipment: Optional[str] = None,

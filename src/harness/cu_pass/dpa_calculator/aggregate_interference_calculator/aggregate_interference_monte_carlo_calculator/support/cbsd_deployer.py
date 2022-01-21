@@ -74,7 +74,7 @@ class CbsdDeployer:
         cbsds_creator = get_cbsds_creator(cbsd_category=category,
                                           dpa_zone=self._dpa_test_zone[category],
                                           is_user_equipment=self._is_user_equipment,
-                                          number_of_aps=self._number_of_aps[category])
+                                          number_of_aps=self._number_of_aps.get(category, 0))
         cbsds = cbsds_creator.create()
         return cbsds
 
