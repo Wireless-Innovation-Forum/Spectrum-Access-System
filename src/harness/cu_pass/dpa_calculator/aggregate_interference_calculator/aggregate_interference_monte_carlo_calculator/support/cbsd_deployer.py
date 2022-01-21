@@ -1,13 +1,12 @@
 import logging
-from dataclasses import dataclass, field
-from enum import auto, Enum
-from typing import Dict, Optional, Type
+from typing import Dict, Type
 
 from cached_property import cached_property
 
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 
-NEIGHBORHOOD_DISTANCES_TYPE = Dict[CbsdCategories, int]
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE, \
@@ -20,28 +19,6 @@ from cu_pass.dpa_calculator.population_retriever.population_retriever_region_typ
 from cu_pass.dpa_calculator.utilities import Point
 
 
-NEIGHBORHOOD_DISTANCES_DEFAULT = {CbsdCategories.A: 250, CbsdCategories.B: 500}
-
-
-class NumberOfApsTypes(Enum):
-    ground_based = auto()
-    shipborne = auto()
-
-
-class PopulationRetrieverTypes(Enum):
-    census = auto()
-    region_type = auto()
-
-
-@dataclass
-class CbsdDeploymentOptions:
-    number_of_aps: Optional[NUMBER_OF_APS_FOR_POPULATION_TYPE] = None
-    neighborhood_distances_in_kilometers: NEIGHBORHOOD_DISTANCES_TYPE = field(
-        default_factory=lambda: NEIGHBORHOOD_DISTANCES_DEFAULT)
-    population_retriever_type: PopulationRetrieverTypes = PopulationRetrieverTypes.census
-    number_of_aps_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne
-
-
 class CbsdDeployer:
     def __init__(self, center: Point, is_user_equipment: bool, cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
         self._cbsd_deployment_options = cbsd_deployment_options
@@ -52,9 +29,9 @@ class CbsdDeployer:
         logging.info('CBSD Deployment:')
         logging.info(f'\tNumber of APs: {self._number_of_aps}')
         logging.info(f'\tSimulation area radius, category A:'
-                     f' {self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.A]} kilometers')
+                     f' {self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.A]} kilometers')
         logging.info(f'\tSimulation area radius, category B: '
-                     f'{self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.B]} kilometers')
+                     f'{self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B]} kilometers')
         logging.info(f'\tPopulation retriever: {self._population_retriever_class.__name__}')
         logging.info(f'\tNumber of APs calculator: {self._number_of_aps_calculator_class.__name__}')
         logging.info('')
@@ -98,7 +75,7 @@ class CbsdDeployer:
     def _dpa_test_zone(self) -> Dict[CbsdCategories, AreaCircle]:
         return {cbsd_category: AreaCircle(
             center_coordinates=self._center,
-            radius_in_kilometers=self._cbsd_deployment_options.neighborhood_distances_in_kilometers[cbsd_category]
+            radius_in_kilometers=self._cbsd_deployment_options.simulation_distances_in_kilometers[cbsd_category]
         ) for cbsd_category in CbsdCategories}
 
     @property

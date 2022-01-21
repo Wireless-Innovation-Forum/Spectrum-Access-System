@@ -6,25 +6,31 @@ from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    CbsdDeploymentOptions, SIMULATION_DISTANCES_DEFAULT
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.dpa.builder import get_dpa
 from cu_pass.dpa_calculator.main_runner.results_recorder import ResultsRecorder
 
 DEFAULT_NUMBER_OF_ITERATIONS = 100
-DEFAULT_SIMULATION_AREA_IN_KILOMETERS = 100
 
 
 class MainRunner:
     def __init__(self,
                  dpa_name: str,
                  number_of_iterations: int = DEFAULT_NUMBER_OF_ITERATIONS,
-                 simulation_area_radius_in_kilometers: int = DEFAULT_SIMULATION_AREA_IN_KILOMETERS,
+                 simulation_distance_category_a: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.A],
+                 simulation_distance_category_b: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.B],
                  local_output_directory: Optional[str] = None,
                  s3_bucket: Optional[str] = None,
                  s3_output_directory: Optional[str] = None):
         self._dpa_name = dpa_name
         self._local_output_directory = local_output_directory
         self._number_of_iterations = number_of_iterations
-        self._simulation_area_radius_in_kilometers = simulation_area_radius_in_kilometers
+        self._simulation_distances_in_kilometers = {
+            CbsdCategories.A: simulation_distance_category_a,
+            CbsdCategories.B: simulation_distance_category_b
+        }
         self._s3_bucket = s3_bucket
         self._s3_output_directory = s3_output_directory
 
@@ -56,10 +62,13 @@ class MainRunner:
 
     def _calculate(self) -> AggregateInterferenceMonteCarloResults:
         dpa = get_dpa(dpa_name=self._dpa_name)
+        cbsd_deployment_options = CbsdDeploymentOptions(
+            simulation_distances_in_kilometers=self._simulation_distances_in_kilometers
+        )
         return AggregateInterferenceMonteCarloCalculator(
             dpa=dpa,
-            number_of_iterations=self._number_of_iterations,
-            simulation_area_radius_in_kilometers=self._simulation_area_radius_in_kilometers).simulate()
+            cbsd_deployment_options=cbsd_deployment_options,
+            number_of_iterations=self._number_of_iterations).simulate()
 
     def _record_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         self._results_recorder.record(results=results)

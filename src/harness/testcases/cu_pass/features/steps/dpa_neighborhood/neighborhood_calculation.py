@@ -3,7 +3,7 @@ from behave import *
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     DEFAULT_AGGREGATE_INTERFERENCE_TYPE
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \

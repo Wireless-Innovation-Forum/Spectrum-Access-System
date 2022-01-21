@@ -18,7 +18,9 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
     AggregateInterferenceCalculatorWinnforum
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
-    CbsdDeployer, CbsdDeploymentOptions
+    CbsdDeployer
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    CbsdDeploymentOptions
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
@@ -135,7 +137,7 @@ class AggregateInterferenceMonteCarloCalculator:
         result = ParameterFinder(
             function=interference_calculator.calculate,
             target=self._dpa.threshold,
-            max_parameter=self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.B])\
+            max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B])\
             .find()
         result.log()
         self._track_interference_from_distance(cbsd_type=CbsdTypes.UE if is_user_equipment else CbsdTypes.AP,

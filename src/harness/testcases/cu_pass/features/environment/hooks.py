@@ -10,7 +10,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     GainAtAzimuth, InterferenceComponents
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 

@@ -4,7 +4,9 @@ from typing import Iterable, List, Optional
 from behave import *
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
-    CbsdDeployer, CbsdDeploymentOptions
+    CbsdDeployer
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    CbsdDeploymentOptions
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE
 from cu_pass.dpa_calculator.point_distributor import AreaCircle

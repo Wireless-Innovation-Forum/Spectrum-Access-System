@@ -8,6 +8,7 @@ from behave import *
 from moto import mock_s3
 
 from cu_pass.dpa_calculator import main as dpa_calculator_main
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 
 from testcases.cu_pass.features.environment.hooks import record_exception_if_expected
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
@@ -58,13 +59,15 @@ def _get_args(context: ContextDocker) -> List[str]:
     dpa_name_arg = ['--dpa-name', context.dpa_name]
     local_output_arg = ['--local-output-directory', context.local_output_directory] if context.local_output_directory else []
     number_of_iterations_arg = ['--iterations', str(context.number_of_iterations)]
-    radius_arg = ['--radius', str(context.simulation_area_radius)]
+    distance_category_a_arg = ['--category-a-radius', str(context.simulation_distances[CbsdCategories.A])]
+    distance_category_b_arg = ['--category-b-radius', str(context.simulation_distances[CbsdCategories.B])]
     s3_bucket_arg = ['--s3-bucket', context.s3_bucket]
     s3_output_arg = ['--s3-output-directory', context.s3_output_directory] if context.s3_output_directory else []
 
     return dpa_name_arg \
         + local_output_arg \
         + number_of_iterations_arg \
-        + radius_arg \
+        + distance_category_a_arg \
+        + distance_category_b_arg \
         + s3_bucket_arg \
         + s3_output_arg

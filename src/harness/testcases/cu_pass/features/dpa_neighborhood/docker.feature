@@ -37,14 +37,16 @@ Feature: Docker run
       | 2                     | Number of iterations: 2 |
 
   Scenario Template: The simulation area is configurable by the command line
-    Given a simulation area radius of <simulation_area_radius>
+    Given a category <cbsd_category> simulation distance of <category_a_radius> km
     When the main docker command is run
     Then <expected_log_portion> should be in the output log
 
     Examples:
-      | simulation_area_radius | expected_log_portion                 |
-      | 2                      | Simulation area radius: 2 kilometers |
-      | 3                      | Simulation area radius: 3 kilometers |
+      | cbsd_category | category_a_radius | expected_log_portion                 |
+      | A             | 2                 | Simulation area radius, category A: 2 kilometers |
+#      | A             | 3                 | Simulation area radius, category A: 3 kilometers |
+#      | B             | 2                 | Simulation area radius, category B: 2 kilometers |
+#      | B             | 3                 | Simulation area radius, category B: 3 kilometers |
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
