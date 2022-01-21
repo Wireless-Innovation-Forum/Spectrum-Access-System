@@ -7,7 +7,7 @@ from typing import Callable, Iterable, List
 
 from behave import *
 
-from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories
 from cu_pass.dpa_calculator.utilities import Point, get_bearing_between_two_points, get_distance_between_two_points
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
@@ -43,36 +43,32 @@ class ContextRandomApPositioning(ContextCbsdCreation, ContextArea):
     pass
 
 
-@then("all distributed points should be within the radius of the center point")
-def step_impl(context: ContextRandomApPositioning):
+@then("all category {cbsd_category:CbsdCategory} points should be within {max_distance:Integer} km of the center point")
+def step_impl(context: ContextRandomApPositioning, cbsd_category: CbsdCategories, max_distance: int):
     """
     Args:
         context (behave.runner.Context):
     """
-    distribution_area = context.area
-    assert all(_point_is_within_distance(point=point,
-                                         center_point=distribution_area.center_coordinates,
-                                         distance=distribution_area.radius_in_kilometers)
-               for point in get_distributed_points(cbsds=context.cbsds))
-
-
-def _point_is_within_distance(point: Point, center_point: Point, distance: float) -> bool:
     leeway = 0.001
-    return get_distance_between_two_points(point1=center_point, point2=point) - leeway <= distance
+    cbsd_distances = [get_distance_between_two_points(point1=context.center_coordinates, point2=point)
+                      for point in get_distributed_points(cbsds=context.cbsds, cbsd_categories=[cbsd_category])]
+    max_distance_found = max(cbsd_distances)
+    assert max_distance_found - leeway <= max_distance, f'{max_distance_found} > {max_distance}'
 
 
-@step("the {aggregation_function:MinMax} {metric_function:DistanceOrBearingFunction} should be close to {reference_distance:Integer} {_units}")
+@step("the {aggregation_function:MinMax} category {cbsd_category:CbsdCategory} {metric_function:DistanceOrBearingFunction} should be close to {reference_distance:Integer} {_units}")
 def step_impl(context: ContextRandomApPositioning,
               *args,
               metric_function: Callable[[Point, Point], float],
+              cbsd_category: CbsdCategories,
               aggregation_function:Callable[[Iterable[float]], float],
               reference_distance: int):
     """
     Args:
         context (behave.runner.Context):
     """
-    distance = aggregation_function(metric_function(context.area.center_coordinates, point) for point in get_distributed_points(
-        cbsds=context.cbsds))
+    distance = aggregation_function(metric_function(context.center_coordinates, point)
+                                    for point in get_distributed_points(cbsds=context.cbsds, cbsd_categories=[cbsd_category]))
     assert isclose(distance, reference_distance, abs_tol=1), f'{distance} is not close to {reference_distance}'
 
 
@@ -86,10 +82,10 @@ def step_impl(context: ContextRandomApPositioning):
     for point in get_distributed_points(cbsds=context.cbsds):
         properties['latitude'].add(point.latitude)
         properties['longitude'].add(point.longitude)
-        properties['bearing'].add(get_bearing_between_two_points(point1=context.area.center_coordinates, point2=point))
+        properties['bearing'].add(get_bearing_between_two_points(point1=context.center_coordinates, point2=point))
 
     assert all(len(unique_property_values) == len(get_distributed_points(cbsds=context.cbsds)) for unique_property_values in properties.values())
 
 
-def get_distributed_points(cbsds: List[Cbsd]) -> List[Point]:
-    return [cbsd.location for cbsd in cbsds]
+def get_distributed_points(cbsds: List[Cbsd], cbsd_categories: Iterable[CbsdCategories] = CbsdCategories) -> List[Point]:
+    return [cbsd.location for cbsd in cbsds if cbsd.cbsd_category in cbsd_categories]

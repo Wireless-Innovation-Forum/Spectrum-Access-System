@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Dict
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.utilities import Point
 
 

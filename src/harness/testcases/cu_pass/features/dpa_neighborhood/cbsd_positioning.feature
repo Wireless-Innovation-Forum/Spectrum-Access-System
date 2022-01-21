@@ -28,14 +28,20 @@ Feature: CBSD positioning
       | urban       | 2271                       | 142                        |
 
   Scenario: Cbsds are created with a random distribution in the zone
-    Given a circular area with a radius of 150 km
+    Given a category A neighborhood distance of 150 km
+    And a category B neighborhood distance of 300 km
     And random seed 5
     When CBSDs for the Monte Carlo simulation are created
-    Then all distributed points should be within the radius of the center point
-    And the furthest distance should be close to 150 km
-    And the closest distance should be close to 0 km
-    And the highest bearing should be close to 360 degrees
-    And the lowest bearing should be close to 0 degrees
+    Then all category A points should be within 150 km of the center point
+    Then all category B points should be within 300 km of the center point
+    And the furthest category A distance should be close to 150 km
+    And the furthest category B distance should be close to 300 km
+    And the closest category A distance should be close to 0 km
+    And the closest category B distance should be close to 0 km
+    And the highest category A bearing should be close to 360 degrees
+    And the highest category B bearing should be close to 360 degrees
+    And the lowest category A bearing should be close to 0 degrees
+    And the lowest category B bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
   Scenario Template: The number of UEs is created

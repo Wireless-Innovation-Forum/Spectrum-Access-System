@@ -9,6 +9,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AggregateInterferenceCalculatorNtia
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
+from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
+    cbsd_creation_step
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
@@ -44,8 +46,11 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         if not hasattr(context, 'dpa'):
             assign_arbitrary_dpa(context=context)
         if not hasattr(context, 'cbsds'):
-            small_number_of_cbsds_for_speed_purposes = 1 if cbsd_type == CbsdTypes.UE.value else 5
-            context.execute_steps(f'When {cbsd_type.strip()} CBSDs for {small_number_of_cbsds_for_speed_purposes} APs for the Monte Carlo simulation are created')
+            is_user_equipment = cbsd_type == CbsdTypes.UE.value
+            small_number_of_cbsds_for_speed_purposes = 1 if is_user_equipment else 5
+            cbsd_creation_step(context=context,
+                               number_of_aps=small_number_of_cbsds_for_speed_purposes,
+                               is_user_equipment=is_user_equipment)
 
     def perform_interference():
         context.interference_components = AggregateInterferenceCalculatorNtia(

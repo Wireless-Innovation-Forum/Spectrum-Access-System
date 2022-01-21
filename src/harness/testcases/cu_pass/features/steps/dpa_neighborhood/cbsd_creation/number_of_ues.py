@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from behave import *
 
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
-    ContextCbsdCreation
+    cbsd_creation_step, ContextCbsdCreation
 
 use_step_matcher("parse")
 
@@ -20,7 +20,7 @@ def step_impl(context: ContextNumberOfUes, number_of_ues_per_ap: int):
         context (behave.runner.Context):
     """
     number_of_ue_grants = len(context.cbsds)
-    context.execute_steps(u'When AP CBSDs for the Monte Carlo simulation are created')
+    cbsd_creation_step(context=context, is_user_equipment='AP')
     number_of_ap_grants = len(context.cbsds)
     assert number_of_ue_grants == number_of_ues_per_ap * number_of_ap_grants, \
         f'{number_of_ue_grants / number_of_ap_grants} != {number_of_ues_per_ap}'

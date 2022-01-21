@@ -5,10 +5,11 @@ from typing import Dict, Optional, Type
 
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+
+NEIGHBORHOOD_DISTANCES_TYPE = Dict[CbsdCategories, int]
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.cbsds_creator.utilities import get_cbsds_creator
-from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE, \
     NumberOfApsCalculator
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
@@ -16,7 +17,10 @@ from cu_pass.dpa_calculator.point_distributor import AreaCircle
 from cu_pass.dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from cu_pass.dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
-from cu_pass.dpa_calculator.utilities import get_dpa_center, Point
+from cu_pass.dpa_calculator.utilities import Point
+
+
+NEIGHBORHOOD_DISTANCES_DEFAULT = {CbsdCategories.A: 250, CbsdCategories.B: 500}
 
 
 class NumberOfApsTypes(Enum):
@@ -32,16 +36,16 @@ class PopulationRetrieverTypes(Enum):
 @dataclass
 class CbsdDeploymentOptions:
     number_of_aps: Optional[NUMBER_OF_APS_FOR_POPULATION_TYPE] = None
-    deployment_area_radius_in_kilometers: Dict[CbsdCategories, int] = field(
-        default_factory=lambda: {CbsdCategories.A: 250, CbsdCategories.B: 500})
+    deployment_area_radius_in_kilometers: NEIGHBORHOOD_DISTANCES_TYPE = field(
+        default_factory=lambda: NEIGHBORHOOD_DISTANCES_DEFAULT)
     population_retriever_type: PopulationRetrieverTypes = PopulationRetrieverTypes.census
     number_of_aps_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne
 
 
 class CbsdDeployer:
-    def __init__(self, dpa: Dpa, is_user_equipment: bool, cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
+    def __init__(self, center: Point, is_user_equipment: bool, cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
         self._cbsd_deployment_options = cbsd_deployment_options
-        self._dpa = dpa
+        self._center = center
         self._is_user_equipment = is_user_equipment
 
     def log(self) -> None:
@@ -79,7 +83,7 @@ class CbsdDeployer:
         if self._cbsd_deployment_options.number_of_aps is not None:
             return self._cbsd_deployment_options.number_of_aps
         population = self._population_retriever_class(area=self._dpa_test_zone[CbsdCategories.B]).retrieve()
-        return self._number_of_aps_calculator_class(center_coordinates=self._dpa_center,
+        return self._number_of_aps_calculator_class(center_coordinates=self._center,
                                                     simulation_population=population).get_number_of_aps()
 
     @property
@@ -93,13 +97,9 @@ class CbsdDeployer:
     @property
     def _dpa_test_zone(self) -> Dict[CbsdCategories, AreaCircle]:
         return {cbsd_category: AreaCircle(
-            center_coordinates=self._dpa_center,
+            center_coordinates=self._center,
             radius_in_kilometers=self._cbsd_deployment_options.deployment_area_radius_in_kilometers[cbsd_category]
         ) for cbsd_category in CbsdCategories}
-
-    @property
-    def _dpa_center(self) -> Point:
-        return get_dpa_center(dpa=self._dpa)
 
     @property
     def _number_of_aps_calculator_class(self) -> Type[NumberOfApsCalculator]:

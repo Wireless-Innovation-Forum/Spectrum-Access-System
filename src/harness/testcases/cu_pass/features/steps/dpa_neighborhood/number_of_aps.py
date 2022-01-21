@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import *
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType

@@ -1,13 +1,7 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 
-from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdTypes
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.utilities import Point
-
-
-class CbsdCategories(Enum):
-    A = 'A'
-    B = 'B'
 
 
 class CbsdGetter(ABC):
@@ -19,7 +13,8 @@ class CbsdGetter(ABC):
         self._location = location
 
     def get(self) -> Cbsd:
-        return Cbsd(cbsd_type=self._cbsd_type,
+        return Cbsd(cbsd_category=self._category,
+                    cbsd_type=self._cbsd_type,
                     eirp_maximum=self._eirp_maximum,
                     gain=self._gain,
                     height_in_meters=self._height,

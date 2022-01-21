@@ -1,7 +1,7 @@
 import parse
 from behave import register_type
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 
 
 @parse.with_pattern("[AB]")

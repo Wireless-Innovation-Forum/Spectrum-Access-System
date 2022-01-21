@@ -5,6 +5,11 @@ from cu_pass.dpa_calculator.utilities import Point
 from reference_models.common.data import CbsdGrantInfo
 
 
+class CbsdCategories(Enum):
+    A = 'A'
+    B = 'B'
+
+
 class CbsdTypes(Enum):
     AP = 'AP'
     UE = 'UE'
@@ -18,12 +23,13 @@ class Cbsd:
     height_in_meters: float = None
     is_indoor: bool = None
     location: Point = None
+    cbsd_category: CbsdCategories = None
 
     def to_grant(self) -> CbsdGrantInfo:
         return CbsdGrantInfo(antenna_azimuth=None,
                              antenna_beamwidth=None,
                              antenna_gain=self.gain,
-                             cbsd_category=None,
+                             cbsd_category=self.cbsd_category,
                              height_agl=self.height_in_meters,
                              high_frequency=None,
                              indoor_deployment=self.is_indoor,

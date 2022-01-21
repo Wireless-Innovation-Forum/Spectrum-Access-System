@@ -5,14 +5,14 @@ from typing import List, Type
 
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdCategories, CbsdGetter
+from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdGetter
 from cu_pass.dpa_calculator.cbsds_creator.kml_writer import KmlWriter
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_URBAN, \
     REGION_TYPE_SUBURBAN
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
 from cu_pass.dpa_calculator.point_distributor import AreaCircle, CoordinatesWithBearing, PointDistributor
 from cu_pass.dpa_calculator.utilities import Point, get_region_type
-from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories
 
 PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
     REGION_TYPE_DENSE_URBAN: 0.8,
