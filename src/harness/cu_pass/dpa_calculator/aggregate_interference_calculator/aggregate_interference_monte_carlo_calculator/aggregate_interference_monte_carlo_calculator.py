@@ -34,6 +34,9 @@ class AggregateInterferenceTypes(Enum):
     WinnForum = auto()
 
 
+DEFAULT_AGGREGATE_INTERFERENCE_TYPE = AggregateInterferenceTypes.WinnForum
+
+
 class RuntimeEncoder(JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, timedelta):
@@ -72,7 +75,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def __init__(self,
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
-                 aggregate_interference_calculator_type: AggregateInterferenceTypes = AggregateInterferenceTypes.WinnForum,
+                 aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
                  cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options

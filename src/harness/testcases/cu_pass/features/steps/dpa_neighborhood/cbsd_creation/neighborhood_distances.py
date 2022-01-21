@@ -6,12 +6,12 @@ from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
 
-class ContextNeighborhoodDistances(ContextSas):
-    neighborhood_distances: NEIGHBORHOOD_DISTANCES_TYPE
+class ContextSimulationDistances(ContextSas):
+    simulation_distances: NEIGHBORHOOD_DISTANCES_TYPE
 
 
-@given("a category {cbsd_category:CbsdCategory} neighborhood distance of {distance:Integer} km")
-def step_impl(context: ContextNeighborhoodDistances, cbsd_category: CbsdCategories, distance: int):
+@given("a category {cbsd_category:CbsdCategory} simulation distance of {distance:Integer} km")
+def step_impl(context: ContextSimulationDistances, cbsd_category: CbsdCategories, distance: int):
     if not hasattr(context, 'neighborhood_distances'):
-        context.neighborhood_distances = NEIGHBORHOOD_DISTANCES_DEFAULT
-    context.neighborhood_distances[cbsd_category] = distance
+        context.simulation_distances = NEIGHBORHOOD_DISTANCES_DEFAULT
+    context.simulation_distances[cbsd_category] = distance

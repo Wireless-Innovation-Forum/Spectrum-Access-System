@@ -1,9 +1,8 @@
-from functools import partial
-
 from behave import *
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
-    AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes
+    AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
+    DEFAULT_AGGREGATE_INTERFERENCE_TYPE
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
     CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
@@ -14,6 +13,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_
     ContextMonteCarloIterations
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
+WINNFORUM_MINIMUM_INTERFERENCE = -1000
+
 use_step_matcher('parse')
 
 
@@ -21,6 +22,7 @@ class ContextNeighborhood(ContextDpa, ContextMonteCarloIterations):
     cbsd_deployment_options: CbsdDeploymentOptions
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
+    aggregate_interference_calculator_type: AggregateInterferenceTypes
 
 
 @step("{organization} interference")
@@ -29,8 +31,7 @@ def step_impl(context: ContextNeighborhood, organization: str):
         'NTIA_2015': AggregateInterferenceTypes.NTIA,
         'WinnForum': AggregateInterferenceTypes.WinnForum
     }
-    context.monte_carlo_runner = partial(context.monte_carlo_runner,
-                                         aggregate_interference_calculator_type=map[organization])
+    context.aggregate_interference_calculator_type = map[organization]
 
 
 @step("population by {population_type}")
@@ -65,9 +66,14 @@ def step_impl(context: ContextNeighborhood):
     """
     if not hasattr(context, 'dpa'):
         assign_arbitrary_dpa(context=context)
-    simulation_results = context.monte_carlo_runner(dpa=context.dpa,
-                                                    number_of_iterations=getattr(context, 'number_of_iterations', 1),
-                                                    cbsd_deployment_options=context.cbsd_deployment_options).simulate()
+    if not hasattr(context, 'aggregate_interference_calculator_type'):
+        context.aggregate_interference_calculator_type = DEFAULT_AGGREGATE_INTERFERENCE_TYPE
+    simulation_results = AggregateInterferenceMonteCarloCalculator(
+        dpa=context.dpa,
+        aggregate_interference_calculator_type=context.aggregate_interference_calculator_type,
+        number_of_iterations=getattr(context, 'number_of_iterations', 1),
+        cbsd_deployment_options=context.cbsd_deployment_options
+    ).simulate()
     simulation_results.log()
     context.result = simulation_results
 
@@ -79,6 +85,8 @@ def step_impl(context: ContextNeighborhood, expected_distance: int):
 
 @then("the resulting interference should be {expected_interference:Number}")
 def step_impl(context: ContextNeighborhood, expected_interference: float):
+    if context.aggregate_interference_calculator_type == AggregateInterferenceTypes.WinnForum:
+        expected_interference = WINNFORUM_MINIMUM_INTERFERENCE
     assert context.result.interference == expected_interference, f'{context.result.interference} != {expected_interference}'
 
 

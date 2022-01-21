@@ -28,8 +28,8 @@ Feature: CBSD positioning
       | urban       | 2271                       | 142                        |
 
   Scenario: Cbsds are created with a random distribution in the zone
-    Given a category A neighborhood distance of 150 km
-    And a category B neighborhood distance of 300 km
+    Given a category A simulation distance of 150 km
+    And a category B simulation distance of 300 km
     And random seed 5
     When CBSDs for the Monte Carlo simulation are created
     Then all category A points should be within 150 km of the center point
