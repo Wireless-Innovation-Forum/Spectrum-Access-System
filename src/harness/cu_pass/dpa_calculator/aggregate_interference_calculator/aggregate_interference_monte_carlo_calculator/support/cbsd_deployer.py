@@ -36,7 +36,7 @@ class PopulationRetrieverTypes(Enum):
 @dataclass
 class CbsdDeploymentOptions:
     number_of_aps: Optional[NUMBER_OF_APS_FOR_POPULATION_TYPE] = None
-    deployment_area_radius_in_kilometers: NEIGHBORHOOD_DISTANCES_TYPE = field(
+    neighborhood_distances_in_kilometers: NEIGHBORHOOD_DISTANCES_TYPE = field(
         default_factory=lambda: NEIGHBORHOOD_DISTANCES_DEFAULT)
     population_retriever_type: PopulationRetrieverTypes = PopulationRetrieverTypes.census
     number_of_aps_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne
@@ -52,9 +52,9 @@ class CbsdDeployer:
         logging.info('CBSD Deployment:')
         logging.info(f'\tNumber of APs: {self._number_of_aps}')
         logging.info(f'\tSimulation area radius, category A:'
-                     f' {self._cbsd_deployment_options.deployment_area_radius_in_kilometers[CbsdCategories.A]} kilometers')
+                     f' {self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.A]} kilometers')
         logging.info(f'\tSimulation area radius, category B: '
-                     f'{self._cbsd_deployment_options.deployment_area_radius_in_kilometers[CbsdCategories.B]} kilometers')
+                     f'{self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.B]} kilometers')
         logging.info(f'\tPopulation retriever: {self._population_retriever_class.__name__}')
         logging.info(f'\tNumber of APs calculator: {self._number_of_aps_calculator_class.__name__}')
         logging.info('')
@@ -98,7 +98,7 @@ class CbsdDeployer:
     def _dpa_test_zone(self) -> Dict[CbsdCategories, AreaCircle]:
         return {cbsd_category: AreaCircle(
             center_coordinates=self._center,
-            radius_in_kilometers=self._cbsd_deployment_options.deployment_area_radius_in_kilometers[cbsd_category]
+            radius_in_kilometers=self._cbsd_deployment_options.neighborhood_distances_in_kilometers[cbsd_category]
         ) for cbsd_category in CbsdCategories}
 
     @property

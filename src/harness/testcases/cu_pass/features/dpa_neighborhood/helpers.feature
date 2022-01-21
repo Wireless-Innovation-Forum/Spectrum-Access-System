@@ -39,7 +39,8 @@ Feature: DPA Neighborhood helpers
 
   Scenario: Logging is captured
     Given random seed 0
-    And 2 APs
+    And 2 category A APs
+    And 2 category B APs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
     Then the output log should be

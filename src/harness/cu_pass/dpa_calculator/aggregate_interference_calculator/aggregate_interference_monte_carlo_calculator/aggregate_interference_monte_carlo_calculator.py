@@ -19,11 +19,11 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AggregateInterferenceCalculatorWinnforum
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
     CbsdDeployer, CbsdDeploymentOptions
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdTypes
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
-from cu_pass.dpa_calculator.utilities import run_monte_carlo_simulation
+from cu_pass.dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
@@ -72,7 +72,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def __init__(self,
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
-                 aggregate_interference_calculator_type: AggregateInterferenceTypes = AggregateInterferenceTypes.NTIA,
+                 aggregate_interference_calculator_type: AggregateInterferenceTypes = AggregateInterferenceTypes.WinnForum,
                  cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
@@ -121,20 +121,22 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _single_run_access_point(self) -> float:
         result = self._single_run_cbsd(is_user_equipment=False)
-        self._track_interference_from_distance(cbsd_type=CbsdTypes.AP, found_result=result)
         return result.input
 
     def _single_run_user_equipment(self) -> float:
         result = self._single_run_cbsd(is_user_equipment=True)
-        self._track_interference_from_distance(cbsd_type=CbsdTypes.UE, found_result=result)
         return result.input
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> InputWithReturnedValue:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        result = ParameterFinder(function=interference_calculator.calculate,
-                                 target=self._dpa.threshold,
-                                 max_parameter=self._cbsd_deployment_options.deployment_area_radius_in_kilometers).find()
+        result = ParameterFinder(
+            function=interference_calculator.calculate,
+            target=self._dpa.threshold,
+            max_parameter=self._cbsd_deployment_options.neighborhood_distances_in_kilometers[CbsdCategories.B])\
+            .find()
         result.log()
+        self._track_interference_from_distance(cbsd_type=CbsdTypes.UE if is_user_equipment else CbsdTypes.AP,
+                                               found_result=result)
         return result
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
@@ -142,12 +144,12 @@ class AggregateInterferenceMonteCarloCalculator:
         return self._aggregate_interference_calculator_class(dpa=self._dpa, cbsds_with_bearings=cbsds_with_bearings)
 
     def _random_cbsds_with_bearings(self, is_user_equipment: bool) -> CbsdsWithBearings:
-        cbsd_deployer = self._cbsd_deployer_category_a(is_user_equipment)
+        cbsd_deployer = self._cbsd_deployer_category(is_user_equipment=is_user_equipment)
         cbsd_deployer.log()
         return cbsd_deployer.deploy()
 
-    def _cbsd_deployer_category_a(self, is_user_equipment) -> CbsdDeployer:
-        return CbsdDeployer(dpa=self._dpa,
+    def _cbsd_deployer_category(self, is_user_equipment) -> CbsdDeployer:
+        return CbsdDeployer(center=get_dpa_center(dpa=self._dpa),
                             is_user_equipment=is_user_equipment,
                             cbsd_deployment_options=self._cbsd_deployment_options)
 

@@ -2,8 +2,6 @@ from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 from testcases.cu_pass.features.environment.hooks import ContextSas
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_monte_carlo_iterations import \
     ContextMonteCarloIterations
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_simulation_area import \
-    ContextSimulationArea
 
 ARBITRARY_BUCKET_NAME = 'arbitrary_bucket_name'
 ARBITRARY_DPA_NAME = RadioAstronomyFacilityNames.HatCreek.value
@@ -12,7 +10,7 @@ ARBITRARY_RADIUS_IN_KILOMETERS = 2
 ARBITRARY_OUTPUT_DIRECTORY = 'arbitrary_output_directory'
 
 
-class ContextDocker(ContextSimulationArea, ContextMonteCarloIterations, ContextSas):
+class ContextDocker(ContextMonteCarloIterations, ContextSas):
     dpa_name: str
     local_output_directory: str
     precreate_bucket: bool
