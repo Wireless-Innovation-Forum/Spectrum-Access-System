@@ -5,7 +5,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     DEFAULT_AGGREGATE_INTERFERENCE_TYPE
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
@@ -52,10 +52,11 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
     context.cbsd_deployment_options.number_of_aps_calculator_class = map[number_of_aps_type]
 
 
-@step("{number_of_aps:Integer} category {cbsd_category:CbsdCategory} APs")
-def step_impl(context: ContextNeighborhood, number_of_aps: int, cbsd_category: CbsdCategories):
-    context.cbsd_deployment_options.number_of_aps = context.cbsd_deployment_options.number_of_aps or {}
-    context.cbsd_deployment_options.number_of_aps[cbsd_category] = number_of_aps
+@step("{number_of_aps:Integer} category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType}")
+def step_impl(context: ContextNeighborhood, number_of_aps: int, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes):
+    context.cbsd_deployment_options.number_of_cbsds_override = context.cbsd_deployment_options.number_of_cbsds_override or {}
+    context.cbsd_deployment_options.number_of_cbsds_override[cbsd_category] = context.cbsd_deployment_options.number_of_cbsds_override[cbsd_category] or {}
+    context.cbsd_deployment_options.number_of_cbsds_override[cbsd_category][cbsd_type] = number_of_aps
 
 
 @when("the neighborhood radius is calculated")

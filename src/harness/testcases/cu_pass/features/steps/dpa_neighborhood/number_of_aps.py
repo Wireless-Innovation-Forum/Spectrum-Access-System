@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from behave import *
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_APS_FOR_POPULATION_TYPE
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfApsCalculatorShipborne
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_CBSDS_FOR_POPULATION_TYPE
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType
 
 use_step_matcher('parse')
@@ -12,7 +12,7 @@ use_step_matcher('parse')
 
 @dataclass
 class ContextNumberOfAps(ContextRegionType):
-    number_of_aps = NUMBER_OF_APS_FOR_POPULATION_TYPE
+    number_of_aps = NUMBER_OF_CBSDS_FOR_POPULATION_TYPE
     simulation_population: int
 
 
@@ -31,11 +31,11 @@ def step_impl(context: ContextNumberOfAps):
     Args:
         context (behave.runner.Context):
     """
-    number_of_aps_calculator = NumberOfApsCalculatorShipborne(
+    number_of_aps_calculator = NumberOfCbsdsCalculatorShipborne(
         center_coordinates=context.antenna_coordinates,
         simulation_population=context.simulation_population
     )
-    context.number_of_aps = number_of_aps_calculator.get_number_of_aps()
+    context.number_of_aps = number_of_aps_calculator.get_number_of_cbsds()
 
 
 @then("the number of category {cbsd_category:CbsdCategory} APs should be {expected_number:Integer}")

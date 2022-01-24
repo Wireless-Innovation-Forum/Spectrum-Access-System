@@ -48,6 +48,15 @@ Feature: Docker run
 #      | B             | 2                 | Simulation area radius, category B: 2 kilometers |
 #      | B             | 3                 | Simulation area radius, category B: 3 kilometers |
 
+  Scenario Template: The number of category B UEs per AP is configurable by the command line
+    Given <number_of_ues_per_ap> UEs per category <cbsd_category> AP
+    When the main docker command is run
+    Then <expected_log_portion> should be in the output log
+
+    Examples:
+      | number_of_ues_per_ap | cbsd_category | expected_log_portion                 |
+      | 2                    | B             | fdsfd |
+
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
     When the main docker command is run

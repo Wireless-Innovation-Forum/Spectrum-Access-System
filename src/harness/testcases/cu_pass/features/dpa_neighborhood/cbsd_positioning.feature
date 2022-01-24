@@ -44,19 +44,31 @@ Feature: CBSD positioning
     And the lowest category B bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
-  @slow
   Scenario Template: The number of UEs is created
     Given a <region_type> location
+    And <number_of_ues_per_ap> UEs per category <cbsd_category> AP
     When category <cbsd_category> UE CBSDs for the Monte Carlo simulation are created
     Then there should be <expected_ue_per_ap> times as many CBSDs as if category <cbsd_category> AP CBSDs were created
 
-    Examples:
-      | region_type | cbsd_category | expected_ue_per_ap |
-      | dense urban | A             | 50                 |
-      | rural       | A             | 3                  |
-      | suburban    | A             | 20                 |
-      | urban       | A             | 50                 |
-      | dense urban | B             | 200                |
-      | rural       | B             | 500                |
-      | suburban    | B             | 200                |
-      | urban       | B             | 200                |
+    @slow
+    Examples: Default
+      | region_type | number_of_ues_per_ap | cbsd_category | expected_ue_per_ap |
+      | dense urban | default              | A             | 50                 |
+      | rural       | default              | A             | 3                  |
+      | suburban    | default              | A             | 20                 |
+      | urban       | default              | A             | 50                 |
+      | dense urban | default              | B             | 200                |
+      | rural       | default              | B             | 500                |
+      | suburban    | default              | B             | 200                |
+      | urban       | default              | B             | 200                |
+
+    Examples: Configurable
+      | region_type | number_of_ues_per_ap | cbsd_category | expected_ue_per_ap |
+      | dense urban | 2                    | A             | 2                  |
+      | rural       | 2                    | A             | 2                  |
+      | suburban    | 2                    | A             | 2                  |
+      | urban       | 2                    | A             | 2                  |
+      | dense urban | 2                    | B             | 2                  |
+      | rural       | 2                    | B             | 2                  |
+      | suburban    | 2                    | B             | 2                  |
+      | urban       | 2                    | B             | 2                  |

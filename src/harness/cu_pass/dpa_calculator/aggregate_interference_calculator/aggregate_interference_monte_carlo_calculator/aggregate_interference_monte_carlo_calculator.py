@@ -24,6 +24,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfCbsdsCalculatorOptions
 from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
 from cu_pass.dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
@@ -78,11 +79,13 @@ class AggregateInterferenceMonteCarloCalculator:
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
-                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions):
+                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions(),
+                 number_of_cbsds_calculator_options: NumberOfCbsdsCalculatorOptions = NumberOfCbsdsCalculatorOptions()):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
         self._number_of_iterations = number_of_iterations
+        self._number_of_cbsds_calculator_options = number_of_cbsds_calculator_options
 
         self._found_interferences = {
             CbsdTypes.AP: defaultdict(list),
@@ -156,7 +159,8 @@ class AggregateInterferenceMonteCarloCalculator:
     def _cbsd_deployer_category(self, is_user_equipment) -> CbsdDeployer:
         return CbsdDeployer(center=get_dpa_center(dpa=self._dpa),
                             is_user_equipment=is_user_equipment,
-                            cbsd_deployment_options=self._cbsd_deployment_options)
+                            cbsd_deployment_options=self._cbsd_deployment_options,
+                            number_of_cbsds_calculator_options=self._number_of_cbsds_calculator_options)
 
     @property
     def _aggregate_interference_calculator_class(self) -> Type[AggregateInterferenceCalculator]:
