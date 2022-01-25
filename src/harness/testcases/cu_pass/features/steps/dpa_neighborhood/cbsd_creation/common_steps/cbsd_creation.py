@@ -45,8 +45,7 @@ def _parse_cbsd_category(cbsd_category_input: str) -> Iterable[CbsdCategories]:
 @when(f"(category (?P<cbsd_category>[AB]))? ?(?P<is_user_equipment>{ACCESS_POINT_OR_USER_EQUIPMENT_REGEX})? ?CBSDs for the Monte Carlo simulation are created")
 def cbsd_creation_step(context: ContextCbsdCreation, *args,
                        cbsd_category: Optional[str] = None,
-                       is_user_equipment: Optional[str] = None,
-                       population_override: Optional[int] = None):
+                       is_user_equipment: Optional[str] = None):
     """
     Args:
         context (behave.runner.Context):
@@ -56,15 +55,15 @@ def cbsd_creation_step(context: ContextCbsdCreation, *args,
     context.center_coordinates = _get_center_coordinates(context=context)
 
     cbsd_deployment_options = getattr(context, 'cbsd_deployment_options', CbsdDeploymentOptions(
-        population_override=population_override or ARBITRARY_POPULATION
+        population_override=ARBITRARY_POPULATION
     ))
-    number_of_cbsds_calculator_options = getattr(context, 'number_of_cbsds_calculator_options', NumberOfCbsdsCalculatorOptions())
+    number_of_cbsds_calculator_options = getattr(cbsd_deployment_options, 'number_of_cbsds_calculator_options', NumberOfCbsdsCalculatorOptions())
     number_of_cbsds_calculator_options.fraction_of_users_served_by_aps = {category: FRACTION_OF_USERS_SERVED_BY_APS_DEFAULT[category]
                                                                           for category in cbsd_categories}
+    cbsd_deployment_options.number_of_cbsds_calculator_options = number_of_cbsds_calculator_options
     cbsds_with_bearings = CbsdDeployer(center=context.center_coordinates,
                                        is_user_equipment=is_user_equipment,
-                                       cbsd_deployment_options=cbsd_deployment_options,
-                                       number_of_cbsds_calculator_options=number_of_cbsds_calculator_options)\
+                                       cbsd_deployment_options=cbsd_deployment_options)\
         .deploy()
 
     context.bearings = cbsds_with_bearings.bearings

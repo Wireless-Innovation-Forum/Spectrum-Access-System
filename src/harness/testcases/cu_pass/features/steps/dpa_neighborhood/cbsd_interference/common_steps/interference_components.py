@@ -7,13 +7,16 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     ReceiveAntennaGainTypes
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdTypes
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    CbsdDeploymentOptions
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     cbsd_creation_step
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
+from testcases.cu_pass.features.steps.dpa_neighborhood.neighborhood_calculation import set_number_of_ues
 
 use_step_matcher('cfparse')
 
@@ -48,9 +51,11 @@ def step_impl(context: ContextCbsdInterference, cbsd_type: Optional[str], receiv
         if not hasattr(context, 'cbsds'):
             is_user_equipment = cbsd_type == CbsdTypes.UE.value
             small_number_of_cbsds_for_speed_purposes = 1 if is_user_equipment else 5
-            cbsd_creation_step(context=context,
-                               number_of_aps=small_number_of_cbsds_for_speed_purposes,
-                               is_user_equipment=is_user_equipment)
+            context.cbsd_deployment_options = CbsdDeploymentOptions()
+            for cbsd_category in CbsdCategories:
+                set_number_of_ues(context=context, number_of_ues=small_number_of_cbsds_for_speed_purposes, cbsd_category=cbsd_category)
+            context.cbsd_deployment_options.population_override = 10000
+            cbsd_creation_step(context=context, is_user_equipment=cbsd_type)
 
     def perform_interference():
         context.interference_components = AggregateInterferenceCalculatorNtia(

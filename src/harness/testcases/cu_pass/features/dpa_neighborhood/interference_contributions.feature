@@ -2,22 +2,22 @@ Feature: Interference contributions
   Scenario Template: Interference contribution EIRPs are calculated
     Given a <region_type> location
     When interference components are calculated for each <cbsd_type> CBSD
-    Then the <indoor_outdoor> antenna EIRPs should be <expected_power> dBm
+    Then the category <cbsd_category> <indoor_outdoor> antenna EIRPs should be <expected_power> dBm
 
     Examples:
-      | cbsd_type| indoor_outdoor | region_type | expected_power |
-      | AP       | outdoor        | dense urban | 27.8           |
-      | AP       | outdoor        | rural       | 23             |
-      | AP       | outdoor        | suburban    | 26             |
-      | AP       | outdoor        | urban       | 27.8           |
-      | AP       | indoor         | dense urban | 23.8           |
-      | AP       | indoor         | rural       | 19             |
-      | AP       | indoor         | suburban    | 22             |
-      | AP       | indoor         | urban       | 23.8           |
-      | UE       |                | dense urban | 21.8           |
-      | UE       |                | rural       | 17             |
-      | UE       |                | suburban    | 20             |
-      | UE       |                | urban       | 21.8           |
+      | cbsd_type | cbsd_category | indoor_outdoor | region_type | expected_power |
+      | AP        | A             | outdoor        | dense urban | 27.8           |
+      | AP        | A             | outdoor        | rural       | 23             |
+      | AP        | A             | outdoor        | suburban    | 26             |
+      | AP        | A             | outdoor        | urban       | 27.8           |
+      | AP        | A             | indoor         | dense urban | 23.8           |
+      | AP        | A             | indoor         | rural       | 19             |
+      | AP        | A             | indoor         | suburban    | 22             |
+      | AP        | A             | indoor         | urban       | 23.8           |
+      | UE        | A             |                | dense urban | 21.8           |
+      | UE        | A             |                | rural       | 17             |
+      | UE        | A             |                | suburban    | 20             |
+      | UE        | A             |                | urban       | 21.8           |
 
 
   Scenario: Receiver insertion losses

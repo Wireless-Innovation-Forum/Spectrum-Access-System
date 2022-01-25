@@ -66,7 +66,7 @@ Feature: DPA Neighborhood helpers
 
           Found parameter
               Input: 0
-              Value: -147.66319185550446
+              Value: -147.68087540754377
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -83,7 +83,7 @@ Feature: DPA Neighborhood helpers
 
           Found parameter
               Input: 0
-              Value: -158.75466457665087
+              Value: -158.67245565182782
 
       Monte Carlo iteration 2
           CBSD Deployment:
@@ -101,7 +101,7 @@ Feature: DPA Neighborhood helpers
 
           Found parameter
               Input: 0
-              Value: -179.56581681181046
+              Value: -179.47552937987035
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -118,7 +118,7 @@ Feature: DPA Neighborhood helpers
 
           Found parameter
               Input: 0
-              Value: -210.7549835239375
+              Value: -210.43917429526815
 
 
       Results for APs:
@@ -137,10 +137,10 @@ Feature: DPA Neighborhood helpers
 
       Final results:
           Distance: 0
-          Interference: -161.3546805240152
+          Interference: -161.26079158399983
           AP Distance: 0
           UE Distance: 0
-          AP Interference: -149.25832310331975
-          UE Interference: -161.3546805240152
+          AP Interference: -149.2706081061601
+          UE Interference: -161.26079158399983
 
       """

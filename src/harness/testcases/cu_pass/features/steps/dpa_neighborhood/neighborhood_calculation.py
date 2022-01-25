@@ -56,7 +56,7 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
 
 
 @step("{number_of_ues:Integer} category {cbsd_category:CbsdCategory} UEs")
-def step_impl(context: ContextNeighborhood, number_of_ues: int, cbsd_category: CbsdCategories):
+def set_number_of_ues(context: ContextNeighborhood, number_of_ues: int, cbsd_category: CbsdCategories):
     number_of_ues_to_simulate_one_ap = number_of_ues
     population = 1 / NumberOfCbsdsCalculatorShipborne._channel_scaling_factor / NumberOfCbsdsCalculatorShipborne._market_penetration_factor
     context.cbsd_deployment_options.population_override = population
