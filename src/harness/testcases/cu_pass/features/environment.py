@@ -5,15 +5,18 @@ from pathlib import Path
 from runpy import run_path
 from shutil import rmtree
 from typing import Iterable, Union
+from uuid import uuid4
 
 from behave.model import Scenario
 
+from cu_pass.dpa_calculator.constants import DPA_CALCULATOR_LOGGER_NAME
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
     interference_contribution_eirps_before_scenario, \
     set_context_sas_defaults, setup_monte_carlo_runner, total_interference_before_scenario, \
     transmitter_insertion_losses_before_scenario
-from testcases.cu_pass.features.helpers.utilities import get_logging_file_handler, get_script_directory
+from testcases.cu_pass.features.helpers.utilities import get_logging_file_handler, get_script_directory, \
+    get_testing_logger, TESTING_LOGGER_FILE_HANDLER_NAME
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import set_docker_context_defaults
 
 EXCLUDE_MANIFEST_FILES_GLOB = '[!_]*'
@@ -84,9 +87,11 @@ def after_scenario(context: ContextSas, scenario: Scenario):
 
 
 def _setup_logging(scenario: Scenario) -> None:
+    logger = get_testing_logger()
     logging_path = _get_scenario_logging_path(scenario=scenario)
     logging_handler = logging.FileHandler(str(logging_path), 'w')
-    logging.root.addHandler(logging_handler)
+    logging_handler.set_name(TESTING_LOGGER_FILE_HANDLER_NAME)
+    logger.addHandler(logging_handler)
 
 
 def _get_scenario_logging_path(scenario: Scenario) -> Path:
@@ -96,10 +101,11 @@ def _get_scenario_logging_path(scenario: Scenario) -> Path:
 
 
 def _cleanup_logging(scenario: Scenario) -> None:
+    logger = get_testing_logger()
     file_handler = get_logging_file_handler()
     logging_directory = _get_scenario_logging_directory(scenario=scenario)
     file_handler.close()
-    logging.root.removeHandler(file_handler)
+    logger.removeHandler(file_handler)
     rmtree(logging_directory, ignore_errors=True)
 
 

@@ -10,6 +10,7 @@ from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloResults
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 
 LOG_EXTENSION = '.log'
 LOG_PREFIX = 'log_tmp'
@@ -30,7 +31,7 @@ class ResultsRecorder:
         self._result_filename = 'result.json'
 
     def setup_logging_handler(self) -> None:
-        logging.root.addHandler(self._file_handler)
+        self._logger.addHandler(self._file_handler)
 
     @contextmanager
     def prepare_for_recording(self) -> None:
@@ -43,14 +44,18 @@ class ResultsRecorder:
 
     def _cleanup_file_handler(self) -> None:
         self._file_handler.close()
-        logging.root.removeHandler(self._file_handler)
+        self._logger.removeHandler(self._file_handler)
 
     @cached_property
     def _file_handler(self) -> logging.FileHandler:
         file_handler = logging.FileHandler(filename=str(self._output_log_filepath))
         file_handler.setLevel(logging.INFO)
-        logging.root.setLevel(logging.INFO)
+        self._logger.setLevel(logging.INFO)
         return file_handler
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return get_dpa_calculator_logger()
 
     def _upload_output_log_to_s3(self) -> None:
         if self._s3_object_log:

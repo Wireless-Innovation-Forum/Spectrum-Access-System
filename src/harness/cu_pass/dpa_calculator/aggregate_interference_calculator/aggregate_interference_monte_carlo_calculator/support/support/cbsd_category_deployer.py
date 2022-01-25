@@ -4,19 +4,19 @@ from typing import Dict, Type
 from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
-    CbsdDeploymentOptions, NumberOfApsTypes, PopulationRetrieverTypes
+    CbsdDeploymentOptions, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsCreator, CbsdsWithBearings
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator_access_point import CbsdsCreatorAccessPoint
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator_user_equipment import CbsdsCreatorUserEquipment
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_CBSDS_PER_CATEGORY_TYPE, \
-    NumberOfCbsdsCalculator, NumberOfCbsdsCalculatorOptions
+    NumberOfApsTypes, NumberOfCbsdsCalculator
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
 from cu_pass.dpa_calculator.point_distributor import AreaCircle
 from cu_pass.dpa_calculator.population_retriever.population_retriever import PopulationRetriever
 from cu_pass.dpa_calculator.population_retriever.population_retriever_census import PopulationRetrieverCensus
 from cu_pass.dpa_calculator.population_retriever.population_retriever_region_type import PopulationRetrieverRegionType
-from cu_pass.dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, Point
 
 
 class CbsdCategoryDeployer:
@@ -24,19 +24,19 @@ class CbsdCategoryDeployer:
                  center: Point,
                  cbsd_category: CbsdCategories,
                  cbsd_deployment_options: CbsdDeploymentOptions,
-                 number_of_cbsds_calculator_options: NumberOfCbsdsCalculatorOptions,
                  is_user_equipment: bool):
         self._center = center
         self._cbsd_category = cbsd_category
         self._cbsd_deployment_options = cbsd_deployment_options
         self._is_user_equipment = is_user_equipment
-        self._number_of_cbsds_calculator_options = number_of_cbsds_calculator_options
+        self._number_of_cbsds_calculator_options = self._cbsd_deployment_options.number_of_cbsds_calculator_options
 
     def log(self) -> None:
-        logging.info(f'\tCBSD Category: {self._cbsd_category}')
-        logging.info(f'\t\tNumber of APs: {self._number_of_cbsds_all}')
-        logging.info(f'\t\tPopulation retriever: {self._population_retriever_class.__name__}')
-        logging.info(f'\t\tNumber of APs calculator: {self._number_of_cbsds_calculator_class.__name__}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\t\tCBSD Category: {self._cbsd_category}')
+        logger.info(f'\t\t\tNumber of APs: {self._number_of_cbsds}')
+        logger.info(f'\t\t\tPopulation retriever: {self._population_retriever_class.__name__}')
+        logger.info(f'\t\t\tNumber of APs calculator: {self._number_of_cbsds_calculator_class.__name__}')
 
     def deploy(self) -> CbsdsWithBearings:
         cbsds_creator = self._cbsd_creator_class(cbsd_category=self._cbsd_category,
@@ -47,8 +47,11 @@ class CbsdCategoryDeployer:
     @property
     def _number_of_cbsds(self) -> int:
         number_of_cbsds_for_category = self._number_of_cbsds_all.get(self._cbsd_category, {})
-        cbds_type = CbsdTypes.UE if self._is_user_equipment else CbsdTypes.AP
-        return number_of_cbsds_for_category.get(cbds_type, 0)
+        return number_of_cbsds_for_category.get(self._cbsd_type, 0)
+
+    @property
+    def _cbsd_type(self) -> CbsdTypes:
+        return CbsdTypes.UE if self._is_user_equipment else CbsdTypes.AP
 
     @property
     def _cbsd_creator_class(self) -> Type[CbsdsCreator]:
@@ -83,4 +86,4 @@ class CbsdCategoryDeployer:
         map = {
             NumberOfApsTypes.shipborne: NumberOfCbsdsCalculatorShipborne
         }
-        return map[self._cbsd_deployment_options.number_of_aps_calculator_type]
+        return map[self._number_of_cbsds_calculator_options.number_of_cbsds_calculator_type]

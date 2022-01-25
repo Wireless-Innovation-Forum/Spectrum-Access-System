@@ -39,58 +39,86 @@ Feature: DPA Neighborhood helpers
 
   Scenario: Logging is captured
     Given random seed 0
-    And 2 category A APs
-    And 2 category B APs
+    And 2 category A UEs
+    And 2 category B UEs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
     Then the output log should be
       """
       Inputs:
           DPA Name: MCKINNEY
-          Number of APs: 2
           Number of iterations: 2
-          Simulation area radius: 100 kilometers
-          Aggregate interference calculator: AggregateInterferenceCalculatorNtia
-          Population retriever: PopulationRetrieverCensus
-          Number of APs calculator: NumberOfApsCalculatorShipborne
+          Aggregate interference calculator: AggregateInterferenceCalculatorWinnforum
 
       Monte Carlo iteration 1
-          CBSD 1 / 2
-          CBSD 2 / 2
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.AP
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Number of APs: 1
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Number of APs: 1
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
               Input: 0
-              Value: -147.7689308696676
+              Value: -147.66319185550446
 
-          CBSD 1 / 6
-          CBSD 2 / 6
-          CBSD 3 / 6
-          CBSD 4 / 6
-          CBSD 5 / 6
-          CBSD 6 / 6
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.UE
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Number of APs: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Number of APs: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
               Input: 0
-              Value: -151.99414909249862
+              Value: -158.75466457665087
 
       Monte Carlo iteration 2
-          CBSD 1 / 2
-          CBSD 2 / 2
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.AP
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Number of APs: 1
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Number of APs: 1
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
               Input: 0
-              Value: -217.84989487007476
+              Value: -179.56581681181046
 
-          CBSD 1 / 6
-          CBSD 2 / 6
-          CBSD 3 / 6
-          CBSD 4 / 6
-          CBSD 5 / 6
-          CBSD 6 / 6
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.UE
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Number of APs: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Number of APs: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
-              Input: 1
-              Value: -185.58218492985793
+              Input: 0
+              Value: -210.7549835239375
 
 
       Results for APs:
@@ -103,16 +131,16 @@ Feature: DPA Neighborhood helpers
       Results for UEs:
           50th percentile: 0
           95th percentile: 0
-          Standard Deviation: 0.7071067811865476
+          Standard Deviation: 0.0
           Minimum: 0
-          Maximum: 1
+          Maximum: 0
 
       Final results:
           Distance: 0
-          Interference: -151.99414909249862
+          Interference: -161.3546805240152
           AP Distance: 0
           UE Distance: 0
-          AP Interference: -151.27297906968795
-          UE Interference: -151.99414909249862
+          AP Interference: -149.25832310331975
+          UE Interference: -161.3546805240152
 
       """

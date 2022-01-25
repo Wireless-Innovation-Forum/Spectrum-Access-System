@@ -2,7 +2,12 @@ import logging
 import os
 from pathlib import Path
 
+from cu_pass.dpa_calculator.constants import DPA_CALCULATOR_LOGGER_NAME
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 from testcases.cu_pass.features.environment.hooks import ContextSas
+
+
+TESTING_LOGGER_FILE_HANDLER_NAME = 'testing_file_handler'
 
 
 def delete_file(filepath: str) -> None:
@@ -12,8 +17,15 @@ def delete_file(filepath: str) -> None:
         pass
 
 
+def get_testing_logger() -> logging.Logger:
+    return get_dpa_calculator_logger()
+
+
 def get_logging_file_handler() -> logging.FileHandler:
-    return logging.root.handlers[0]
+    logger = get_testing_logger()
+    file_handler_logger = next(handler for handler in logger.handlers
+                               if handler.get_name() == TESTING_LOGGER_FILE_HANDLER_NAME)
+    return file_handler_logger
 
 
 def get_expected_output_content(context: ContextSas) -> str:

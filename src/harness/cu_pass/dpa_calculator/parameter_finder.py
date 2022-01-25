@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from statistics import mean
 from typing import Callable
 
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
+
 
 @dataclass
 class InputWithReturnedValue:
@@ -10,9 +12,10 @@ class InputWithReturnedValue:
     returned_value: float
 
     def log(self) -> None:
-        logging.info('\n\tFound parameter')
-        logging.info(f'\t\tInput: {self.input}')
-        logging.info(f'\t\tValue: {self.returned_value}\n')
+        logger = get_dpa_calculator_logger()
+        logger.info('\tFound parameter')
+        logger.info(f'\t\tInput: {self.input}')
+        logger.info(f'\t\tValue: {self.returned_value}\n')
 
 
 class ParameterFinder:

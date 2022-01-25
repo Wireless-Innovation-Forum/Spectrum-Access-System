@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
+from enum import auto, Enum
 from typing import Dict, Optional
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
@@ -46,10 +47,16 @@ NUMBER_OF_UES_PER_AP_BY_REGION_TYPE_DEFAULT: NUMBER_OF_CBSDS_REGION_TYPE_DICT = 
 }
 
 
+class NumberOfApsTypes(Enum):
+    ground_based = auto()
+    shipborne = auto()
+
+
 @dataclass
 class NumberOfCbsdsCalculatorOptions:
     fraction_of_users_served_by_aps: FRACTION_OF_USERS_REGION_TYPE_DICT = field(default_factory=lambda: FRACTION_OF_USERS_SERVED_BY_APS_DEFAULT)
     number_of_ues_per_ap_by_region_type: NUMBER_OF_CBSDS_REGION_TYPE_DICT = field(default_factory=lambda: NUMBER_OF_UES_PER_AP_BY_REGION_TYPE_DEFAULT)
+    number_of_cbsds_calculator_type: NumberOfApsTypes = NumberOfApsTypes.shipborne
 
 
 class NumberOfCbsdsCalculator:

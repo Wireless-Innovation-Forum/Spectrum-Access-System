@@ -24,9 +24,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfCbsdsCalculatorOptions
 from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
-from cu_pass.dpa_calculator.utilities import get_dpa_center, run_monte_carlo_simulation
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
@@ -59,15 +58,16 @@ class AggregateInterferenceMonteCarloResults:
     runtime: timedelta
 
     def log(self) -> None:
-        logging.info(f'\nFinal results:')
-        logging.info(f'\tDistance: {self.distance}')
-        logging.info(f'\tInterference: {self.interference}')
-        logging.info(f'\tRuntime: {self.runtime}')
-        logging.info(f'\tAP Distance: {self.distance_access_point}')
-        logging.info(f'\tUE Distance: {self.distance_user_equipment}')
-        logging.info(f'\tAP Interference: {self.interference_access_point}')
-        logging.info(f'\tUE Interference: {self.interference_user_equipment}')
-        logging.info(f'\tRuntime: {self.runtime}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\nFinal results:')
+        logger.info(f'\tDistance: {self.distance}')
+        logger.info(f'\tInterference: {self.interference}')
+        logger.info(f'\tRuntime: {self.runtime}')
+        logger.info(f'\tAP Distance: {self.distance_access_point}')
+        logger.info(f'\tUE Distance: {self.distance_user_equipment}')
+        logger.info(f'\tAP Interference: {self.interference_access_point}')
+        logger.info(f'\tUE Interference: {self.interference_user_equipment}')
+        logger.info(f'\tRuntime: {self.runtime}')
 
     def to_json(self) -> str:
         dictionary = asdict(self)
@@ -79,13 +79,11 @@ class AggregateInterferenceMonteCarloCalculator:
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
-                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions(),
-                 number_of_cbsds_calculator_options: NumberOfCbsdsCalculatorOptions = NumberOfCbsdsCalculatorOptions()):
+                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions()):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
         self._number_of_iterations = number_of_iterations
-        self._number_of_cbsds_calculator_options = number_of_cbsds_calculator_options
 
         self._found_interferences = {
             CbsdTypes.AP: defaultdict(list),
@@ -117,11 +115,12 @@ class AggregateInterferenceMonteCarloCalculator:
         )
 
     def _log_inputs(self) -> None:
-        logging.info('Inputs:')
-        logging.info(f'\tDPA Name: {self._dpa.name}')
-        logging.info(f'\tNumber of iterations: {self._number_of_iterations}')
-        logging.info(f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
-        logging.info('')
+        logger = get_dpa_calculator_logger()
+        logger.info('Inputs:')
+        logger.info(f'\tDPA Name: {self._dpa.name}')
+        logger.info(f'\tNumber of iterations: {self._number_of_iterations}')
+        logger.info(f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
+        logger.info('')
 
     def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
         percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
@@ -159,8 +158,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def _cbsd_deployer_category(self, is_user_equipment) -> CbsdDeployer:
         return CbsdDeployer(center=get_dpa_center(dpa=self._dpa),
                             is_user_equipment=is_user_equipment,
-                            cbsd_deployment_options=self._cbsd_deployment_options,
-                            number_of_cbsds_calculator_options=self._number_of_cbsds_calculator_options)
+                            cbsd_deployment_options=self._cbsd_deployment_options)
 
     @property
     def _aggregate_interference_calculator_class(self) -> Type[AggregateInterferenceCalculator]:
@@ -172,4 +170,3 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _track_interference_from_distance(self, cbsd_type: CbsdTypes, found_result: InputWithReturnedValue) -> None:
         self._found_interferences[cbsd_type][found_result.input].append(found_result.returned_value)
-

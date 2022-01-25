@@ -14,6 +14,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.interference_at_azimuth_with_maximum_gain_calculator import \
     InterferenceAtAzimuthWithMaximumGainCalculator
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 
 
 @dataclass
@@ -36,7 +37,8 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
         return interference_components
 
     def _get_interference_contribution(self, cbsd: Cbsd, index: int) -> InterferenceComponents:
-        logging.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
         cbsd_interference_calculator = CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa)
         return cbsd_interference_calculator.calculate()
 
