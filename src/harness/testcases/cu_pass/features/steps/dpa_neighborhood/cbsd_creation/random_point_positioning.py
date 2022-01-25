@@ -8,7 +8,10 @@ from typing import Callable, Iterable, List
 from behave import *
 
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories
+from cu_pass.dpa_calculator.constants import ALL_REGION_TYPES
+from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfCbsdsCalculatorOptions
 from cu_pass.dpa_calculator.utilities import Point, get_bearing_between_two_points, get_distance_between_two_points
+from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.utilities import set_large_simulation_population
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import ContextArea
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
@@ -41,6 +44,15 @@ register_type(DistanceOrBearingFunction=parse_distance_or_bearing_word)
 @dataclass
 class ContextRandomApPositioning(ContextCbsdCreation, ContextArea):
     pass
+
+
+@given("a lot of CBSDs")
+def step_impl(context: ContextRandomApPositioning):
+    set_large_simulation_population(context=context)
+    context.number_of_cbsds_calculator_options = NumberOfCbsdsCalculatorOptions()
+    arbitrary_number_of_category_b_ues_per_ap_to_create_a_large_amount = 15
+    for region_type in ALL_REGION_TYPES:
+        context.number_of_cbsds_calculator_options.number_of_ues_per_ap_by_region_type[CbsdCategories.B][region_type] = arbitrary_number_of_category_b_ues_per_ap_to_create_a_large_amount
 
 
 @then("all category {cbsd_category:CbsdCategory} points should be within {max_distance:Integer} km of the center point")

@@ -23,7 +23,7 @@ Feature: CBSD positioning
     Examples:
       | region_type | expected_category_a_number | expected_category_b_number |
       | dense urban | 2271                       | 142                        |
-      | rural       | 18923                      | 170                        |
+      | rural       | 18923                      | 171                        |
       | suburban    | 4258                       | 284                        |
       | urban       | 2271                       | 142                        |
 
@@ -31,6 +31,7 @@ Feature: CBSD positioning
     Given a category A simulation distance of 150 km
     And a category B simulation distance of 300 km
     And random seed 5
+    And a lot of CBSDs
     When CBSDs for the Monte Carlo simulation are created
     Then all category A points should be within 150 km of the center point
     Then all category B points should be within 300 km of the center point

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from behave import *
 
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_CBSDS_FOR_POPULATION_TYPE
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType
@@ -38,7 +38,7 @@ def step_impl(context: ContextNumberOfAps):
     context.number_of_aps = number_of_aps_calculator.get_number_of_cbsds()
 
 
-@then("the number of category {cbsd_category:CbsdCategory} APs should be {expected_number:Integer}")
-def step_impl(context: ContextNumberOfAps, cbsd_category: CbsdCategories, expected_number: int):
-    number_of_aps = context.number_of_aps[cbsd_category]
+@then("the number of category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType} should be {expected_number:Integer}")
+def step_impl(context: ContextNumberOfAps, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes, expected_number: int):
+    number_of_aps = context.number_of_aps[cbsd_category][cbsd_type]
     assert number_of_aps == expected_number, f'{number_of_aps} != {expected_number}'

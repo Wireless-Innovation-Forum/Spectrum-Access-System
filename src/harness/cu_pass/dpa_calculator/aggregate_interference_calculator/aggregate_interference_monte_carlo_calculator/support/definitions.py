@@ -3,7 +3,6 @@ from enum import auto, Enum
 from typing import Dict, Optional
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
-from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_CBSDS_PER_CATEGORY_TYPE
 
 NEIGHBORHOOD_DISTANCES_TYPE = Dict[CbsdCategories, int]
 SIMULATION_DISTANCES_DEFAULT: NEIGHBORHOOD_DISTANCES_TYPE = {CbsdCategories.A: 250, CbsdCategories.B: 500}
