@@ -12,8 +12,6 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_step
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
     DISTRIBUTION_REGEX, parse_fractional_distribution
 
-HALF_A_METER = 0.5
-
 use_step_matcher("parse")
 
 
@@ -42,7 +40,7 @@ def step_impl(context: ContextApHeights, is_indoor: bool, height_distribution: L
     cbsds_on_correct_side = [cbsd for cbsd in context.cbsds if cbsd.is_indoor == is_indoor]
     for distribution in height_distribution:
         cbsd_heights = [cbsd.height_in_meters for cbsd in cbsds_on_correct_side]
-        distribution.to_fractional_distribution().assert_data_matches_distribution(data=cbsd_heights, leeway_endpoint=HALF_A_METER)
+        distribution.to_fractional_distribution().assert_data_matches_distribution(data=cbsd_heights, leeway_fraction=0.01)
 
 
 @step("antenna heights should be in 0.5 meter increments")

@@ -1,3 +1,5 @@
+from math import isclose
+
 from behave import *
 
 from testcases.cu_pass.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
@@ -13,4 +15,4 @@ def step_impl(context: ContextCbsdCreation, expected_indoor_percentage: float):
         context (behave.runner.Context):
     """
     indoor_percentage = sum(1 for cbsd in context.cbsds if cbsd.is_indoor) / len(context.cbsds)
-    assert round(indoor_percentage, 2) == expected_indoor_percentage, f'{indoor_percentage} != {expected_indoor_percentage}'
+    assert isclose(indoor_percentage, expected_indoor_percentage, abs_tol=.01), f'{indoor_percentage} != {expected_indoor_percentage}'

@@ -21,7 +21,7 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse
 use_step_matcher('re')
 
 
-ARBITRARY_POPULATION = 1000
+ARBITRARY_POPULATION = 300000
 
 ACCESS_POINT_OR_USER_EQUIPMENT_REGEX = rf'({CbsdTypes.AP.name}|{CbsdTypes.UE.name})'
 
