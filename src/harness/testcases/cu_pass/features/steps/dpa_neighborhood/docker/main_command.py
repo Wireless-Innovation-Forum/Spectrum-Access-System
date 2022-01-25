@@ -59,8 +59,8 @@ def _get_args(context: ContextDocker) -> List[str]:
     dpa_name_arg = ['--dpa-name', context.dpa_name]
     local_output_arg = ['--local-output-directory', context.local_output_directory] if context.local_output_directory else []
     number_of_iterations_arg = ['--iterations', str(context.number_of_iterations)]
-    distance_category_a_arg = ['--category-a-radius', str(context.simulation_distances[CbsdCategories.A])]
-    distance_category_b_arg = ['--category-b-radius', str(context.simulation_distances[CbsdCategories.B])]
+    distance_category_a_arg = ['--category-a-radius', str(context.simulation_distances.get(CbsdCategories.A, 0))]
+    distance_category_b_arg = ['--category-b-radius', str(context.simulation_distances.get(CbsdCategories.B, 0))]
     s3_bucket_arg = ['--s3-bucket', context.s3_bucket]
     s3_output_arg = ['--s3-output-directory', context.s3_output_directory] if context.s3_output_directory else []
 

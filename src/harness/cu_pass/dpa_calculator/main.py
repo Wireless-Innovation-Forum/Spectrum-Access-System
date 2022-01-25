@@ -1,7 +1,7 @@
 import argparse
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
-    CbsdDeploymentOptions, SIMULATION_DISTANCES_DEFAULT
+    SIMULATION_DISTANCES_DEFAULT
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.main_runner.main_runner import DEFAULT_NUMBER_OF_ITERATIONS, MainRunner
 

@@ -39,10 +39,17 @@ class CbsdCategoryDeployer:
         logger.info(f'\t\t\tNumber of APs calculator: {self._number_of_cbsds_calculator_class.__name__}')
 
     def deploy(self) -> CbsdsWithBearings:
-        cbsds_creator = self._cbsd_creator_class(cbsd_category=self._cbsd_category,
-                                                 dpa_zone=self._dpa_test_zone[self._cbsd_category],
-                                                 number_of_cbsds=self._number_of_cbsds)
-        return cbsds_creator.create()
+        category_simulation_zone = self._dpa_test_zone[self._cbsd_category]
+        if category_simulation_zone.radius_in_kilometers:
+            cbsds_creator = self._cbsd_creator_class(cbsd_category=self._cbsd_category,
+                                                     dpa_zone=category_simulation_zone,
+                                                     number_of_cbsds=self._number_of_cbsds)
+            return cbsds_creator.create()
+        else:
+            return CbsdsWithBearings(
+                bearings=[],
+                cbsds=[]
+            )
 
     @property
     def _number_of_cbsds(self) -> int:
@@ -59,12 +66,27 @@ class CbsdCategoryDeployer:
 
     @cached_property
     def _number_of_cbsds_all(self) -> NUMBER_OF_CBSDS_PER_CATEGORY_TYPE:
-        population = self._cbsd_deployment_options.population_override or self._population_retriever_class(area=self._dpa_test_zone[CbsdCategories.B]).retrieve()
         number_of_cbsds_calculator = self._number_of_cbsds_calculator_class(
             center_coordinates=self._center,
-            simulation_population=population,
+            simulation_population=self._population,
             number_of_cbsds_calculator_options=self._number_of_cbsds_calculator_options)
         return number_of_cbsds_calculator.get_number_of_cbsds()
+
+    @property
+    def _number_of_cbsds_calculator_class(self) -> Type[NumberOfCbsdsCalculator]:
+        map = {
+            NumberOfApsTypes.shipborne: NumberOfCbsdsCalculatorShipborne
+        }
+        return map[self._number_of_cbsds_calculator_options.number_of_cbsds_calculator_type]
+
+    @property
+    def _population(self) -> int:
+        area_category_b = self._dpa_test_zone[CbsdCategories.B]
+        area_category_a = self._dpa_test_zone[CbsdCategories.A]
+        max_area = area_category_b if area_category_b.radius_in_kilometers >= area_category_a.radius_in_kilometers else area_category_a
+        population = self._cbsd_deployment_options.population_override or self._population_retriever_class(
+            area=max_area).retrieve()
+        return population
 
     @property
     def _dpa_test_zone(self) -> Dict[CbsdCategories, AreaCircle]:
@@ -80,10 +102,3 @@ class CbsdCategoryDeployer:
             PopulationRetrieverTypes.region_type: PopulationRetrieverRegionType
         }
         return map[self._cbsd_deployment_options.population_retriever_type]
-
-    @property
-    def _number_of_cbsds_calculator_class(self) -> Type[NumberOfCbsdsCalculator]:
-        map = {
-            NumberOfApsTypes.shipborne: NumberOfCbsdsCalculatorShipborne
-        }
-        return map[self._number_of_cbsds_calculator_options.number_of_cbsds_calculator_type]

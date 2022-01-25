@@ -44,9 +44,9 @@ Feature: Docker run
     Examples:
       | cbsd_category | category_a_radius | expected_log_portion                 |
       | A             | 2                 | Simulation area radius, category A: 2 kilometers |
-#      | A             | 3                 | Simulation area radius, category A: 3 kilometers |
-#      | B             | 2                 | Simulation area radius, category B: 2 kilometers |
-#      | B             | 3                 | Simulation area radius, category B: 3 kilometers |
+      | A             | 3                 | Simulation area radius, category A: 3 kilometers |
+      | B             | 2                 | Simulation area radius, category B: 2 kilometers |
+      | B             | 3                 | Simulation area radius, category B: 3 kilometers |
 
   Scenario Template: The number of category B UEs per AP is configurable by the command line
     Given <number_of_ues_per_ap> UEs per category <cbsd_category> AP
