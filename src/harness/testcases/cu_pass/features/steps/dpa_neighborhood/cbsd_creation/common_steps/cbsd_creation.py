@@ -54,7 +54,7 @@ def cbsd_creation_step(context: ContextCbsdCreation, *args,
     is_user_equipment = is_user_equipment and parse_is_user_equipment(text=is_user_equipment)
     context.center_coordinates = _get_center_coordinates(context=context)
 
-    cbsd_deployment_options = getattr(context, 'cbsd_deployment_options', CbsdDeploymentOptions(
+    cbsd_deployment_options = get_current_cbsd_deployment_options(context=context, default=CbsdDeploymentOptions(
         population_override=ARBITRARY_POPULATION
     ))
     number_of_cbsds_calculator_options = getattr(cbsd_deployment_options, 'number_of_cbsds_calculator_options', NumberOfCbsdsCalculatorOptions())
@@ -76,3 +76,8 @@ def _get_center_coordinates(context: ContextCbsdCreation) -> Point:
         or getattr(context, 'antenna_coordinates', None) \
         or dpa and get_dpa_center(dpa=dpa) \
         or get_arbitrary_coordinates()
+
+
+def get_current_cbsd_deployment_options(context: ContextCbsdCreation, default: CbsdDeploymentOptions = CbsdDeploymentOptions()) -> CbsdDeploymentOptions:
+    context.cbsd_deployment_options = getattr(context, 'cbsd_deployment_options', default)
+    return context.cbsd_deployment_options

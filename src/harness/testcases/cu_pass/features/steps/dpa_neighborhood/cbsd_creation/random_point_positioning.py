@@ -62,8 +62,9 @@ def step_impl(context: ContextRandomApPositioning, cbsd_category: CbsdCategories
         context (behave.runner.Context):
     """
     leeway = 0.001
+    distributed_points = get_distributed_points(cbsds=context.cbsds, cbsd_categories=[cbsd_category])
     cbsd_distances = [get_distance_between_two_points(point1=context.center_coordinates, point2=point)
-                      for point in get_distributed_points(cbsds=context.cbsds, cbsd_categories=[cbsd_category])]
+                      for point in distributed_points]
     max_distance_found = max(cbsd_distances)
     assert max_distance_found - leeway <= max_distance, f'{max_distance_found} > {max_distance}'
 
