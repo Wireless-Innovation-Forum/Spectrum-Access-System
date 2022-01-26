@@ -1,3 +1,5 @@
+from math import inf
+
 from behave import *
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
@@ -95,7 +97,7 @@ def step_impl(context: ContextNeighborhood, expected_distance: int):
 
 @then("the resulting interference should be {expected_interference:Number}")
 def step_impl(context: ContextNeighborhood, expected_interference: float):
-    if context.aggregate_interference_calculator_type == AggregateInterferenceTypes.WinnForum:
+    if expected_interference == -inf and context.aggregate_interference_calculator_type == AggregateInterferenceTypes.WinnForum:
         expected_interference = WINNFORUM_MINIMUM_INTERFERENCE
     assert context.result.interference == expected_interference, f'{context.result.interference} != {expected_interference}'
 

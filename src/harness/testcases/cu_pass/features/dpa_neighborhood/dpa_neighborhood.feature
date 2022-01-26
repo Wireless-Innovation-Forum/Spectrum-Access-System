@@ -21,17 +21,17 @@ Feature: DPA Neighborhood
 
   Scenario: A quick run is performed
     Given random seed 0
-    And 2 category A APs
-    And 1 category B APs
+    And 2 category A UEs
+    And 1 category B UEs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
     Then the resulting distance should be 0
-    And the resulting interference should be -145.36719842659318
+    And the resulting interference should be -159.60616073654418
 
 
   Scenario: Only one iteration is performed, so standard deviation cannot be calculated
     Given random seed 0
-    And 2 category A APs
+    And 2 category A UEs
     And 1 monte carlo iterations
     When the neighborhood radius is calculated
     Then it should run without error
@@ -39,7 +39,8 @@ Feature: DPA Neighborhood
 
   Scenario: Zero APs are simulated
     Given random seed 0
-    And 0 category A APs
+    And 0 category A UEs
+    And 0 category B UEs
     And 1 monte carlo iterations
     When the neighborhood radius is calculated
     Then the resulting distance should be 0
@@ -48,9 +49,11 @@ Feature: DPA Neighborhood
 
   Scenario: No interference outside of exclusion zone
     Given random seed 0
-    And 1 category A APs
+    And 1 category A UEs
+    And 1 category B UEs
     And 1 monte carlo iterations
     And a category A simulation distance of 1 km
+    And a category B simulation distance of 1 km
     When the neighborhood radius is calculated
     Then the resulting interference should be -infinity
 

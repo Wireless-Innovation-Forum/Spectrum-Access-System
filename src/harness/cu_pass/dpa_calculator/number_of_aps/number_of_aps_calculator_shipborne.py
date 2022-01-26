@@ -18,9 +18,12 @@ class NumberOfCbsdsCalculatorShipborne(NumberOfCbsdsCalculator):
         }
 
     def _get_number_of_cbsds(self, category: CbsdCategories) -> NUMBER_OF_CBSDS_TYPE:
+        number_of_users_served_per_ap = self.get_number_of_users_served_per_ap(category=category)
+        if not number_of_users_served_per_ap:
+            return {cbsd_type: 0 for cbsd_type in CbsdTypes}
         number_of_ues_exact = self._get_number_of_ues_exact(category=category)
         return {
-            CbsdTypes.AP: ceil(number_of_ues_exact / self.get_number_of_users_served_per_ap(category=category)),
+            CbsdTypes.AP: ceil(number_of_ues_exact / number_of_users_served_per_ap),
             CbsdTypes.UE: round(number_of_ues_exact),
         }
 
