@@ -54,17 +54,16 @@ Feature: Docker run
     Then <expected_log_portion> should be in the output log
 
     Examples:
-      | number_of_ues_per_ap | cbsd_category | expected_log_portion                 |
-      | 2                    | B             | fdsfd |
+      | number_of_ues_per_ap | cbsd_category | expected_log_portion                                            |
+      | 2                    | A             | CBSD Category: CbsdCategories.A\n.*\n\s+Number of UEs per AP: 2 |
+      | 3                    | A             | CBSD Category: CbsdCategories.A\n.*\n\s+Number of UEs per AP: 3 |
+      | 2                    | B             | CBSD Category: CbsdCategories.B\n.*\n\s+Number of UEs per AP: 2 |
+      | 3                    | B             | CBSD Category: CbsdCategories.B\n.*\n\s+Number of UEs per AP: 3 |
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
     When the main docker command is run
-    Then the log file uploaded to S3 should be
-      """
-      Test logs
-
-      """
+    Then the log file uploaded to S3 should be uploaded
 
   Scenario: S3 bucket does not exist
     Given "s3_bucket" as an s3 bucket name

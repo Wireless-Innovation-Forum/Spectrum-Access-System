@@ -35,6 +35,8 @@ class CbsdCategoryDeployer:
         logger = get_dpa_calculator_logger()
         logger.info(f'\t\tCBSD Category: {self._cbsd_category}')
         logger.info(f'\t\t\tNumber of APs: {self._number_of_cbsds}')
+        logger.info(f'\t\t\tNumber of UEs per AP: '
+                    f'{self._number_of_cbsds_calculator.get_number_of_users_served_per_ap(category=self._cbsd_category)}')
         logger.info(f'\t\t\tPopulation retriever: {self._population_retriever_class.__name__}')
         logger.info(f'\t\t\tNumber of APs calculator: {self._number_of_cbsds_calculator_class.__name__}')
 
@@ -66,11 +68,14 @@ class CbsdCategoryDeployer:
 
     @cached_property
     def _number_of_cbsds_all(self) -> NUMBER_OF_CBSDS_PER_CATEGORY_TYPE:
-        number_of_cbsds_calculator = self._number_of_cbsds_calculator_class(
+        return self._number_of_cbsds_calculator.get_number_of_cbsds()
+
+    @property
+    def _number_of_cbsds_calculator(self) -> NumberOfCbsdsCalculator:
+        return self._number_of_cbsds_calculator_class(
             center_coordinates=self._center,
             simulation_population=self._population,
             number_of_cbsds_calculator_options=self._number_of_cbsds_calculator_options)
-        return number_of_cbsds_calculator.get_number_of_cbsds()
 
     @property
     def _number_of_cbsds_calculator_class(self) -> Type[NumberOfCbsdsCalculator]:

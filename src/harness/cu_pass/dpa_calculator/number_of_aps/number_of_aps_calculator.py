@@ -7,7 +7,7 @@ from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, \
     REGION_TYPE_URBAN
-from cu_pass.dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.utilities import get_region_type, Point
 
 
 FRACTION_OF_USERS_REGION_TYPE_DICT = Dict[CbsdCategories, Dict[str, float]]
@@ -70,3 +70,13 @@ class NumberOfCbsdsCalculator:
     @abstractmethod
     def get_number_of_cbsds(self) -> NUMBER_OF_CBSDS_PER_CATEGORY_TYPE:
         raise NotImplementedError
+
+    def get_fraction_of_population_served_by_ap(self, category: CbsdCategories) -> float:
+        return self._fraction_of_users_served_by_aps.get(category, {}).get(self._region_type, 0)
+
+    def get_number_of_users_served_per_ap(self, category: CbsdCategories) -> int:
+        return self._number_of_ues_per_ap_by_region_type[category][self._region_type]
+
+    @property
+    def _region_type(self) -> str:
+        return get_region_type(coordinates=self._center_coordinates)
