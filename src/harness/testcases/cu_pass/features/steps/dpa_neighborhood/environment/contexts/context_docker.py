@@ -1,8 +1,8 @@
 from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from testcases.cu_pass.features.environment.hooks import ContextSas
-from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_simulation_distances import \
-    ContextSimulationDistances
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_cbsd_deployment_options import \
+    ContextCbsdDeploymentOptions
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_monte_carlo_iterations import \
     ContextMonteCarloIterations
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_dpa import parse_dpa
@@ -14,7 +14,7 @@ ARBITRARY_RADIUS_IN_KILOMETERS = 2
 ARBITRARY_OUTPUT_DIRECTORY = 'arbitrary_output_directory'
 
 
-class ContextDocker(ContextSimulationDistances, ContextMonteCarloIterations, ContextSas):
+class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, ContextSas):
     dpa: Dpa
     local_output_directory: str
     precreate_bucket: bool

@@ -15,6 +15,8 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.area import 
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import ContextDpa
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import ContextRegionType, \
     get_arbitrary_coordinates
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_cbsd_deployment_options import \
+    ContextCbsdDeploymentOptions, get_current_cbsd_deployment_options
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_cbsd_category import \
     parse_cbsd_category
 
@@ -31,10 +33,9 @@ def parse_is_user_equipment(text: str) -> bool:
 
 
 @dataclass
-class ContextCbsdCreation(ContextArea, ContextDpa, ContextRegionType):
+class ContextCbsdCreation(ContextCbsdDeploymentOptions, ContextArea, ContextDpa, ContextRegionType):
     bearings: List[float]
     cbsds: List[Cbsd]
-    cbsd_deployment_options: CbsdDeploymentOptions
     number_of_cbsds_calculator_options: NumberOfCbsdsCalculatorOptions
 
 
@@ -76,8 +77,3 @@ def _get_center_coordinates(context: ContextCbsdCreation) -> Point:
         or getattr(context, 'antenna_coordinates', None) \
         or dpa and get_dpa_center(dpa=dpa) \
         or get_arbitrary_coordinates()
-
-
-def get_current_cbsd_deployment_options(context: ContextCbsdCreation, default: CbsdDeploymentOptions = CbsdDeploymentOptions()) -> CbsdDeploymentOptions:
-    context.cbsd_deployment_options = getattr(context, 'cbsd_deployment_options', default)
-    return context.cbsd_deployment_options

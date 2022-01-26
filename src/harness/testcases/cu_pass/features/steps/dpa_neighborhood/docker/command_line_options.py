@@ -4,13 +4,14 @@ from behave import *
 
 from testcases.cu_pass.features.steps.dpa_neighborhood.docker.utilities import get_uploaded_log_content
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.parsers.parse_dpa import parse_dpa
 
 use_step_matcher("parse")
 
 
-@given("DPA name {dpa_name:Dpa}")
-def step_impl(context: ContextDocker, dpa_name: str):
-    context.dpa_name = dpa_name
+@given("DPA name {dpa:Dpa}")
+def step_impl(context: ContextDocker, dpa: str):
+    context.dpa = dpa
 
 
 @then("{expected_log_portion} should be in the output log")

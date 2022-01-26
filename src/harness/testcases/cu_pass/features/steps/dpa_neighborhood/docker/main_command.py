@@ -11,6 +11,8 @@ from cu_pass.dpa_calculator import main as dpa_calculator_main
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 
 from testcases.cu_pass.features.environment.hooks import record_exception_if_expected
+from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_cbsd_deployment_options import \
+    get_current_cbsd_deployment_options, get_current_simulation_distances
 from testcases.cu_pass.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
 
 use_step_matcher("parse")
@@ -56,7 +58,7 @@ def _run_docker_command(context: ContextDocker) -> None:
 
 
 def _get_args(context: ContextDocker) -> List[str]:
-    simulation_distances = getattr(context, 'simulation_distances', {})
+    simulation_distances = get_current_simulation_distances(context=context, default={})
 
     dpa_name_arg = ['--dpa-name', context.dpa.name]
     local_output_arg = ['--local-output-directory', context.local_output_directory] if context.local_output_directory else []

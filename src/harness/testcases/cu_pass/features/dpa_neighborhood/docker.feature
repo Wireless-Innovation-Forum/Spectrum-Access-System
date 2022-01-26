@@ -24,7 +24,7 @@ Feature: Docker run
     Examples:
       | dpa_name  | expected_log_portion |
       | Hat Creek | DPA Name: HATCREEK   |
-      | McKinney | DPA Name: MCKINNEY   |
+      | McKinney  | DPA Name: MCKINNEY   |
 
   Scenario Template: The number of iterations is configurable by the command line
     Given <number_of_iterations> monte carlo iterations
