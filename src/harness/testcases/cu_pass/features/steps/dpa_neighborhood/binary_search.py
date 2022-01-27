@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import inf
 from typing import Callable, List
 
 from behave import *
@@ -23,7 +24,11 @@ def step_impl(context: ContextBinarySearch, result_array: List[float]):
         context (behave.runner.Context):
     """
     context.max_input = len(result_array) - 1
-    def function(x: int): return result_array[x]
+    def function(x: int):
+        if x < len(result_array):
+            return result_array[x]
+        else:
+            return -inf
     context.function = function
 
 
@@ -37,13 +42,16 @@ def step_impl(context: ContextBinarySearch, target: int):
     context.target = target
 
 
-@when("the algorithm is run")
-def step_impl(context: ContextBinarySearch):
+@when("the algorithm is run with step size {step_size:d}")
+def step_impl(context: ContextBinarySearch, step_size: int):
     """
     Args:
         context (behave.runner.Context):
     """
-    context.result = ParameterFinder(function=context.function, target=context.target, max_parameter=context.max_input).find()
+    context.result = ParameterFinder(function=context.function,
+                                     target=context.target,
+                                     max_parameter=context.max_input,
+                                     step_size=step_size).find()
 
 
 @then("the resulting input should be {expected_input:Integer}")

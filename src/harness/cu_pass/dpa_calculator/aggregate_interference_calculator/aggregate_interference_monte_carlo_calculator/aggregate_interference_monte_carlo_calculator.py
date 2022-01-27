@@ -29,6 +29,8 @@ from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
+NEIGHBORHOOD_STEP_SIZE_DEFAULT = 16
+THRESHOLD_MARGIN = 1
 
 
 class AggregateInterferenceTypes(Enum):
@@ -138,9 +140,10 @@ class AggregateInterferenceMonteCarloCalculator:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
         result = ParameterFinder(
             function=interference_calculator.calculate,
-            target=self._dpa.threshold,
-            max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B])\
-            .find()
+            target=self._dpa.threshold - THRESHOLD_MARGIN,
+            max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
+            step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
+        ).find()
         result.log()
         self._track_interference_from_distance(cbsd_type=CbsdTypes.UE if is_user_equipment else CbsdTypes.AP,
                                                found_result=result)

@@ -19,12 +19,18 @@ class InputWithReturnedValue:
 
 
 class ParameterFinder:
-    def __init__(self, function: Callable[[int], float], target: float, max_parameter: int = 500):
+    def __init__(self, function: Callable[[int], float], target: float, max_parameter: int = 500, step_size: int = 1):
         self._function = function
+        self._step_size = step_size
         self._target = target
 
         self._min = 0
-        self._max = self._initial_max = max_parameter
+        self._max = self._initial_max = self._get_initial_max(max_parameter=max_parameter)
+
+    def _get_initial_max(self, max_parameter: int) -> int:
+        is_partial_step = bool(max_parameter % self._step_size)
+        additional_step_if_necessary = self._step_size * is_partial_step
+        return self._get_nearest_step_below(exact_input=max_parameter) + (additional_step_if_necessary)
 
     def find(self) -> InputWithReturnedValue:
         return self._perform_binary_search()
@@ -33,9 +39,9 @@ class ParameterFinder:
         current_results = self._function_result_with_current_parameter()
         while self._input_found(current_results=current_results) is None:
             if self._target < current_results:
-                self._min = self._current_parameter + 1
+                self._min = self._current_parameter + self._step_size
             elif self._target > current_results:
-                self._max = self._current_parameter - 1
+                self._max = self._current_parameter - self._step_size
             current_results = self._function_result_with_current_parameter()
         input_found = self._input_found(current_results=current_results)
         return InputWithReturnedValue(
@@ -54,4 +60,8 @@ class ParameterFinder:
 
     @property
     def _current_parameter(self) -> int:
-        return int(mean([self._min, self._max]))
+        exact_parameter = int(mean([self._min, self._max]))
+        return self._get_nearest_step_below(exact_parameter)
+
+    def _get_nearest_step_below(self, exact_input: int) -> int:
+        return (exact_input // self._step_size) * self._step_size

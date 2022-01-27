@@ -33,7 +33,8 @@ class CbsdCategoryDeployer:
     def log(self) -> None:
         logger = get_dpa_calculator_logger()
         logger.info(f'\t\tCBSD Category: {self._cbsd_category}')
-        logger.info(f'\t\t\tNumber of APs: {self._number_of_cbsds}')
+        logger.info(f'\t\t\tPopulation: {self._population}')
+        logger.info(f'\t\t\tNumber of {self._cbsd_type.name}s: {self._number_of_cbsds}')
         logger.info(f'\t\t\tNumber of UEs per AP: '
                     f'{self._number_of_cbsds_calculator.get_number_of_users_served_per_ap(category=self._cbsd_category)}')
         logger.info(f'\t\t\tPopulation retriever: {self._population_retriever_class.__name__}')
