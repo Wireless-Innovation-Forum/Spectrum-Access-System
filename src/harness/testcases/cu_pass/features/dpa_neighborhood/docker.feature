@@ -15,7 +15,6 @@ Feature: Docker run
       | None                | output_local          | should not    | should not       | should           | should              |
       | output_s3           | None                  | should        | should           | should not       | should not          |
 
-
   Scenario Template: DPA name is configurable by the command line
     Given DPA name <dpa_name>
     When the main docker command is run

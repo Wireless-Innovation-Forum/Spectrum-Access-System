@@ -27,10 +27,10 @@ Feature: CBSD properties
 
     Examples:
       | cbsd_category | region_type | expected_indoor_percentage |
-      | A             | dense urban | 0.8                        |
-      | A             | rural       | 0.99                       |
-      | A             | suburban    | 0.99                       |
-      | A             | urban       | 0.8                        |
+      | A             | dense urban | 1                          |
+      | A             | rural       | 1                          |
+      | A             | suburban    | 1                          |
+      | A             | urban       | 1                          |
       | B             | dense urban | 0                          |
       | B             | rural       | 0                          |
       | B             | suburban    | 0                          |
@@ -44,14 +44,6 @@ Feature: CBSD properties
 
     Examples:
       | cbsd_category | indoor_outdoor | cbsd_type | region_type | height_distribution                           |
-      | A             | outdoor        | AP        | dense urban | 100%: 6                                       |
-      | A             | outdoor        | AP        | rural       | 100%: 6                                       |
-      | A             | outdoor        | AP        | suburban    | 100%: 6                                       |
-      | A             | outdoor        | AP        | urban       | 100%: 6                                       |
-      | A             | outdoor        | UE        | dense urban | 100%: 1.5                                     |
-      | A             | outdoor        | UE        | rural       | 100%: 1.5                                     |
-      | A             | outdoor        | UE        | suburban    | 100%: 1.5                                     |
-      | A             | outdoor        | UE        | urban       | 100%: 1.5                                     |
       | A             | indoor         | AP        | dense urban | 50%: 3-15, 25%: 18-30, 25%: 33-60             |
       | A             | indoor         | AP        | rural       | 80%: 3, 20%: 6                                |
       | A             | indoor         | AP        | suburban    | 70%: 3, 30%: 6-12                             |
@@ -64,6 +56,10 @@ Feature: CBSD properties
       | B             | outdoor        | AP        | rural       | 100%: 6-100                                   |
       | B             | outdoor        | AP        | suburban    | 100%: 6-100                                   |
       | B             | outdoor        | AP        | urban       | 100%: 6-30                                    |
+      | B             | outdoor        | UE        | dense urban | 100%: 1.5                                     |
+      | B             | outdoor        | UE        | rural       | 100%: 1.5                                     |
+      | B             | outdoor        | UE        | suburban    | 100%: 1.5                                     |
+      | B             | outdoor        | UE        | urban       | 100%: 1.5                                     |
 
   Scenario Outline: AP gains are set
     When <cbsd_type> CBSDs for the Monte Carlo simulation are created

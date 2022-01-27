@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Type
 
 from cached_property import cached_property

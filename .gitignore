@@ -4,3 +4,4 @@
 
 /venv/
 /.env
+/src/harness/cu_pass/dpa_calculator/aws_push.sh

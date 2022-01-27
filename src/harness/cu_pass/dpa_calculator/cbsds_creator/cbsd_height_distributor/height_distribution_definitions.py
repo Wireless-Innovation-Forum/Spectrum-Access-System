@@ -27,7 +27,6 @@ def fractional_distribution_to_height_distribution(distribution: FractionalDistr
     )
 
 
-OUTDOOR_AP_HEIGHT_IN_METERS = 6
 OUTDOOR_UE_HEIGHT_IN_METERS = 1.5
 
 INDOOR_UE_HEIGHT_DIFFERENCE_FROM_AP = 1.5
@@ -86,38 +85,6 @@ INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A = {
             minimum_height_in_meters=6,
             fraction_of_cbsds=0.5
         )
-    ]
-}
-
-
-OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A = {
-    REGION_TYPE_DENSE_URBAN: [
-        HeightDistribution(
-            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            fraction_of_cbsds=1
-        ),
-    ],
-    REGION_TYPE_RURAL: [
-        HeightDistribution(
-            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            fraction_of_cbsds=1
-        ),
-    ],
-    REGION_TYPE_SUBURBAN: [
-        HeightDistribution(
-            maximum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            minimum_height_in_meters=OUTDOOR_AP_HEIGHT_IN_METERS,
-            fraction_of_cbsds=1
-        ),
-    ],
-    REGION_TYPE_URBAN: [
-        HeightDistribution(
-            maximum_height_in_meters=6,
-            minimum_height_in_meters=6,
-            fraction_of_cbsds=1
-        ),
     ]
 }
 

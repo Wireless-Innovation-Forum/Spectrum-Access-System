@@ -5,7 +5,7 @@ from typing import Dict, List
 
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
     fractional_distribution_to_height_distribution, HeightDistribution, \
-    INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, INDOOR_UE_HEIGHT_DISTRIBUTION, OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, \
+    INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, INDOOR_UE_HEIGHT_DISTRIBUTION, \
     OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B, OUTDOOR_UE_HEIGHT_DISTRIBUTION
 from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
 from cu_pass.dpa_calculator.utilities import Point
@@ -50,7 +50,7 @@ class CbsdHeightDistributor(ListDistributor):
 class CbsdHeightDistributorAccessPointCategoryA(CbsdHeightDistributor):
     @property
     def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A if self._is_indoor else OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A
+        return INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A
 
 
 class CbsdHeightDistributorAccessPointCategoryB(CbsdHeightDistributor):

@@ -14,11 +14,18 @@ from cu_pass.dpa_calculator.point_distributor import AreaCircle, CoordinatesWith
 from cu_pass.dpa_calculator.utilities import Point, get_region_type
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories
 
-PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE = {
-    REGION_TYPE_DENSE_URBAN: 0.8,
-    REGION_TYPE_RURAL: 0.99,
-    REGION_TYPE_SUBURBAN: 0.99,
-    REGION_TYPE_URBAN: 0.8
+PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A = {
+    REGION_TYPE_DENSE_URBAN: 1,
+    REGION_TYPE_RURAL: 1,
+    REGION_TYPE_SUBURBAN: 1,
+    REGION_TYPE_URBAN: 1
+}
+
+PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B = {
+    REGION_TYPE_DENSE_URBAN: 0,
+    REGION_TYPE_RURAL: 0,
+    REGION_TYPE_SUBURBAN: 0,
+    REGION_TYPE_URBAN: 0
 }
 
 
@@ -100,7 +107,10 @@ class CbsdsCreator(ABC):
 
     @property
     def _percentage_of_indoor_aps(self) -> float:
-        return PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE[self._region_type] if self._is_category_a else 0
+        percentage_map = PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A \
+            if self._is_category_a else\
+            PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B
+        return percentage_map[self._region_type]
 
     @property
     def _is_category_a(self) -> bool:
