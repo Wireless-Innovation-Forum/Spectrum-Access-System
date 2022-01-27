@@ -72,7 +72,7 @@ Feature: Interference contributions
 
   Scenario: Building attenuation loss is included in interference calculation
     When interference components are calculated for each CBSD
-    Then the building attenuation losses follow the distribution 20%: 20, 60%: 15, 20%: 10
+    Then the building attenuation losses follow the distribution 100%: 15
 
   Scenario: CBSD distances are calculated
     Given a CBSD 100 km away from the DPA

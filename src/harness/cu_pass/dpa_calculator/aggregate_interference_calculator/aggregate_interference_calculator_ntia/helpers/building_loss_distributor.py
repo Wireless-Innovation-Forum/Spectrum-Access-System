@@ -21,17 +21,9 @@ class BuildingLossDistribution:
 
 BUILDING_LOSS_DISTRIBUTIONS = [
     BuildingLossDistribution(
-        loss_in_db=20,
-        fraction=0.2
-    ),
-    BuildingLossDistribution(
         loss_in_db=15,
-        fraction=0.6
+        fraction=1
     ),
-    BuildingLossDistribution(
-        loss_in_db=10,
-        fraction=0.2
-    )
 ]
 
 
