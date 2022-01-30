@@ -24,8 +24,6 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
         # self._dpa.ComputeMoveLists()
         # return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel)[0]
 
-    def
-
     def _max_move_list_distance(self) -> float:
         interference_matrix_by_grant = self._interference_matrix.transpose()
         neighborhood_grants = [interference_matrix_by_grant[index] for index in self._neighborhood_grant_indexes_sorted_by_interference]

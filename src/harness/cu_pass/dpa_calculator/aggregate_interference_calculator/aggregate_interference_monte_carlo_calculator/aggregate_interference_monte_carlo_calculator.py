@@ -1,5 +1,4 @@
 import json
-import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -24,7 +23,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
-from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
+from cu_pass.dpa_calculator.binary_search.parameter_finder import ParameterFinder
+from cu_pass.dpa_calculator.binary_search.binary_search import InputWithReturnedValue
 from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 

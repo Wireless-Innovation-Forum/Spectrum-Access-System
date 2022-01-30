@@ -4,7 +4,9 @@ from typing import Callable, List
 
 from behave import *
 
-from cu_pass.dpa_calculator.parameter_finder import InputWithReturnedValue, ParameterFinder
+from cu_pass.dpa_calculator.binary_search.parameter_finder import ParameterFinder
+from cu_pass.dpa_calculator.binary_search.binary_search import InputWithReturnedValue
+from cu_pass.dpa_calculator.binary_search.shortest_unchanging import ShortestUnchangingInputFinder
 from testcases.cu_pass.features.environment.hooks import ContextSas
 
 use_step_matcher('parse')
@@ -25,10 +27,10 @@ def step_impl(context: ContextBinarySearch, result_array: List[float]):
     """
     context.max_input = len(result_array) - 1
     def function(x: int):
-        if x < len(result_array):
-            return result_array[x]
-        else:
+        if x < 0 or x >= len(result_array):
             return -inf
+        else:
+            return result_array[x]
     context.function = function
 
 
@@ -42,7 +44,18 @@ def step_impl(context: ContextBinarySearch, target: int):
     context.target = target
 
 
-@when("the algorithm is run with step size {step_size:d}")
+@when("the shortest unchanging algorithm is run with step size {step_size:d}")
+def step_impl(context: ContextBinarySearch, step_size: int):
+    """
+    Args:
+        context (behave.runner.Context):
+    """
+    context.result = ShortestUnchangingInputFinder(function=context.function,
+                                                   max_parameter=context.max_input,
+                                                   step_size=step_size).find()
+
+
+@when("the descending binary search algorithm is run with step size {step_size:d}")
 def step_impl(context: ContextBinarySearch, step_size: int):
     """
     Args:

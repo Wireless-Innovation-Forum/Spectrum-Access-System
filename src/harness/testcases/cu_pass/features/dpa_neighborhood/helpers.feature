@@ -1,8 +1,29 @@
 Feature: DPA Neighborhood helpers
-  Scenario Outline: A binary search algorithm correctly finds inputs, assuming the function results lessen as the input grows
+  Scenario Template: A binary search finds the shortest unchanging distance
+    Given a function whose output is the element of array <result_array> at the given index
+    When the shortest unchanging algorithm is run with step size <step_size>
+    Then the resulting input should be <expected_input>
+    And the resulting return value should be <expected_value>
+
+    Examples: Finds number while expanding
+      | result_array | expected_input | expected_value | step_size |
+      | [0,0]        | 0              | 0              | 1         |
+      | [1,2,2,2]    | 1              | 2              | 1         |
+      | [0,2,3,3,4]  | 2              | 3              | 1         |
+
+    Examples: Not found
+      | result_array | expected_input | expected_value | step_size |
+      | [0,1]        | 1              | 1              | 1         |
+
+    Examples: Max is the next step size if max is not a multiple of the step size
+      | result_array | expected_input | expected_value | step_size |
+      | [1,2,2]      | 2              | 2              | 2         |
+      | [0,1,2,3]    | 4              | -infinity      | 2         |
+
+  Scenario Template: A binary search algorithm correctly finds inputs, assuming the function results lessen as the input grows
     Given a function whose output is the element of array <result_array> at the given index
     And a target of <target>
-    When the algorithm is run with step size <step_size>
+    When the descending binary search algorithm is run with step size <step_size>
     Then the resulting input should be <expected_input>
     And the resulting return value should be <expected_value>
 
