@@ -9,7 +9,10 @@ Feature: DPA Neighborhood helpers
       | result_array | expected_input | expected_value | step_size |
       | [0,0]        | 0              | 0              | 1         |
       | [1,2,2,2]    | 1              | 2              | 1         |
-      | [0,2,3,3,4]  | 2              | 3              | 1         |
+
+    Examples: Found minimum must have value equal to max
+      | result_array | expected_input | expected_value | step_size |
+      | [0,2,3,3,4]  | 4              | 4              | 1         |
 
     Examples: Not found
       | result_array | expected_input | expected_value | step_size |

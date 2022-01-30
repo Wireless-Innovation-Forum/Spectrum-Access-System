@@ -20,17 +20,16 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdDeployer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions
+from cu_pass.dpa_calculator.binary_search.shortest_unchanging import ShortestUnchangingInputFinder
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
-from cu_pass.dpa_calculator.binary_search.parameter_finder import ParameterFinder
 from cu_pass.dpa_calculator.binary_search.binary_search import InputWithReturnedValue
 from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_center, run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
 NEIGHBORHOOD_STEP_SIZE_DEFAULT = 16
-THRESHOLD_MARGIN = 1
 
 
 class AggregateInterferenceTypes(Enum):
@@ -138,9 +137,8 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _single_run_cbsd(self, is_user_equipment: bool) -> InputWithReturnedValue:
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        result = ParameterFinder(
+        result = ShortestUnchangingInputFinder(
             function=interference_calculator.calculate,
-            target=self._dpa.threshold - THRESHOLD_MARGIN,
             max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
             step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
         ).find()

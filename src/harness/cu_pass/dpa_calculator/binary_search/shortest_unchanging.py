@@ -9,7 +9,7 @@ class ShortestUnchangingInputFinder(BinarySearch):
         current_results = self._function_result_with_current_parameter()
         if self._min > self._max:
             return min(self._min, self._initial_max)
-        elif self._one_input_lower_result() != current_results and self._one_input_higher_result() == current_results:
+        elif self._one_input_lower_result() != current_results and self._max_input_result() == current_results:
             return self._current_parameter
 
     @property
@@ -17,10 +17,10 @@ class ShortestUnchangingInputFinder(BinarySearch):
         new_boundaries = BinarySearchBoundaries(maximum=self._max, minimum=self._min)
         current_results = self._function_result_with_current_parameter()
 
-        if self._one_input_lower_result() == current_results:
-            new_boundaries.maximum = self._current_parameter - self._step_size
-        elif self._one_input_higher_result() != current_results:
+        if self._max_input_result() != current_results:
             new_boundaries.minimum = self._current_parameter + self._step_size
+        elif self._one_input_lower_result() == current_results:
+            new_boundaries.maximum = self._current_parameter - self._step_size
 
         return new_boundaries
 
@@ -28,6 +28,5 @@ class ShortestUnchangingInputFinder(BinarySearch):
         lower_input = self._current_parameter - self._step_size
         return self._run_function(input=lower_input)
 
-    def _one_input_higher_result(self) -> float:
-        higher_input = self._current_parameter + self._step_size
-        return self._run_function(input=higher_input)
+    def _max_input_result(self) -> float:
+        return self._run_function(input=self._initial_max)

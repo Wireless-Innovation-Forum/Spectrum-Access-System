@@ -6,6 +6,7 @@ from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
     AggregateInterferenceCalculator
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point
 from reference_models.common import mpool
 from reference_models.common.data import CbsdGrantInfo, ProtectedEntityType, ProtectionConstraint
@@ -15,47 +16,50 @@ from reference_models.dpa.move_list import DpaType, find_nc, findGrantsInsideNei
 
 COCHANNEL_BANDWIDTH = 10
 HERTZ_IN_MEGAHERTZ = 1e6
+THRESHOLD_MARGIN = 1
 
 
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
     def calculate(self, minimum_distance: float) -> float:
         self._dpa.neighbor_distances = (150, minimum_distance, 0, 0)
-        # self._dpa.SetGrantsFromList(grants=self._grants_with_inband_frequences)
-        # self._dpa.ComputeMoveLists()
-        # return self._dpa.CalcKeepListInterference(channel=self._first_inband_channel)[0]
+        return self._max_move_list_distance()
 
     def _max_move_list_distance(self) -> float:
         interference_matrix_by_grant = self._interference_matrix.transpose()
-        neighborhood_grants = [interference_matrix_by_grant[index] for index in self._neighborhood_grant_indexes_sorted_by_interference]
-        neighborhood_interference_matrix = numpy.asarray(neighborhood_grants).transpose()
+        neighborhood_grant_interferences = [interference_matrix_by_grant[index]
+                                            for index in self._neighborhood_grant_indexes_sorted_by_interference]
+        neighborhood_bearings = [self._interference_bearings[index] for index in self._neighborhood_grant_indexes_sorted_by_interference]
+        neighborhood_interference_matrix = numpy.asarray(neighborhood_grant_interferences).transpose()
         cutoff_index = find_nc(
             I=neighborhood_interference_matrix,
-            bearings=self._bearings,
-            t=self._dpa.threshold,
+            bearings=neighborhood_bearings,
+            t=self._dpa.threshold - THRESHOLD_MARGIN,
             beamwidth=self._dpa.beamwidth,
             min_azimuth=self._dpa.azimuth_range[0],
-            max_azimuth=self._dpa.azimuth_range[1])
+            max_azimuth=self._dpa.azimuth_range[1]) if len(neighborhood_interference_matrix) else len(self._neighborhood_grant_indexes_sorted_by_interference)
         move_list_indexes = self._neighborhood_grant_indexes_sorted_by_interference[cutoff_index:]
-        return max(self._grant_distances[index] for index in move_list_indexes)
+        move_grants = [self._grants_with_inband_frequences[index] for index in move_list_indexes]
+        move_grants_indexes_category_b = [move_list_indexes[index] for index, grant in enumerate(move_grants) if grant.cbsd_category == CbsdCategories.B.name]
+        return max(self._grant_distances[index] for index in move_grants_indexes_category_b) if move_grants_indexes_category_b else 0
 
     @property
-    def _bearings(self) -> List[int]:
+    def _interference_bearings(self) -> numpy.ndarray:
         return self._interference_matrix_info[2]
 
     @property
     def _neighborhood_grant_indexes_sorted_by_interference(self) -> List[int]:
-        return self._grant_index_sorted_by_interference[self._grant_index_sorted_by_interference in self._neighbor_grant_indexes]
+        return [grant_index for grant_index in self._grant_index_sorted_by_interference if grant_index in self._neighbor_grant_indexes]
 
     @property
-    def _grant_index_sorted_by_interference(self) -> numpy.ndarray:
-        return self._interference_matrix[1]
+    def _grant_index_sorted_by_interference(self) -> List[int]:
+        return self._interference_matrix_info[1]
 
     @property
     def _interference_matrix(self) -> numpy.ndarray:
         return self._interference_matrix_info[0]
 
     @cached_property
-    def _interference_matrix_info(self) -> Tuple[numpy.ndarray, List[int], List[int]]:
+    def _interference_matrix_info(self) -> Tuple[numpy.ndarray, List[int], numpy.ndarray]:
         grant_indexes = list(range(len(self._grants_with_inband_frequences)))
         return formInterferenceMatrix(
             grants=self._grants_with_inband_frequences,
@@ -70,7 +74,7 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
         pool = mpool.Pool()
         moveListConstraint = partial(
             get_distance_between_two_points,
-            point1=self._dpa_center)
+            point2=self._dpa_center)
 
         return pool.map(moveListConstraint, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequences])
 

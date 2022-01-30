@@ -25,7 +25,7 @@ Feature: DPA Neighborhood
     And 1 category B UEs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be 0
+    Then the resulting distance should be 128
     And the resulting interference should be -159.60616073654418
 
 

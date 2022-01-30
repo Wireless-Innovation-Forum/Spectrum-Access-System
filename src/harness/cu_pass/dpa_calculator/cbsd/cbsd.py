@@ -29,7 +29,7 @@ class Cbsd:
         return CbsdGrantInfo(antenna_azimuth=None,
                              antenna_beamwidth=None,
                              antenna_gain=self.gain,
-                             cbsd_category=self.cbsd_category,
+                             cbsd_category=self.cbsd_category.name,
                              height_agl=self.height_in_meters,
                              high_frequency=None,
                              indoor_deployment=self.is_indoor,
