@@ -2,7 +2,6 @@ Feature: CBSD properties
   Scenario: Category A AP transmission powers are set
     When category A AP CBSDs for the Monte Carlo simulation are created
     Then the indoor antenna maximum EIRPs should be 100%: 26 dBm
-    And the outdoor antenna maximum EIRPs should be 100%: 30 dBm
 
   Scenario Template: Category B AP transmission powers are set
     Given a <region_type> location

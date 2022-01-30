@@ -1,8 +1,10 @@
 import random
 from dataclasses import dataclass
+from functools import partial
 from typing import List
 
 from cu_pass.dpa_calculator.utilities import Point, move_distance
+from reference_models.common import mpool
 
 
 @dataclass
@@ -25,7 +27,9 @@ class PointDistributor:
         self._minimum_distance = minimum_distance
 
     def distribute_points(self, number_of_points: int) -> List[CoordinatesWithBearing]:
-        return [self._generate_point() for _ in range(number_of_points)]
+        pool = mpool.Pool()
+        generate_point_function = partial(PointDistributor._generate_point)
+        return pool.map(generate_point_function, [self for _ in range(number_of_points)])
 
     def _generate_point(self) -> CoordinatesWithBearing:
         random_distance = random.uniform(self._minimum_distance, self._max_distance)
