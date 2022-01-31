@@ -1,0 +1,105 @@
+from functools import partial
+from typing import List, Tuple
+
+import numpy
+from cached_property import cached_property
+
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
+    AggregateInterferenceCalculator
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.maximum_move_list_distance_calculator import \
+    MaximumMoveListDistanceCalculator
+from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point
+from reference_models.common import mpool
+from reference_models.common.data import CbsdGrantInfo, ProtectedEntityType, ProtectionConstraint
+from reference_models.dpa.dpa_mgr import Dpa
+from reference_models.dpa.move_list import DpaType, findGrantsInsideNeighborhood, formInterferenceMatrix, \
+    HIGH_FREQ_COCH, \
+    LOW_FREQ_COCH
+
+COCHANNEL_BANDWIDTH = 10
+HERTZ_IN_MEGAHERTZ = 1e6
+
+
+class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
+    def calculate(self, minimum_distance: float) -> float:
+        neighbor_grants_info = self.get_neighbor_grants_info(neighborhood_distance=minimum_distance)
+        maximum_move_distance_calculator = MaximumMoveListDistanceCalculator(
+            dpa=self._dpa,
+            grant_distances=self._grant_distances,
+            grants_with_inband_frequencies=self._grants_with_inband_frequencies,
+            interference_matrix_info=self._interference_matrix_info,
+            neighbor_grants_info=neighbor_grants_info)
+        return maximum_move_distance_calculator.calculate()
+
+    def get_neighbor_grants_info(self, neighborhood_distance: float) -> Tuple[List[CbsdGrantInfo], List[int]]:
+        neighbor_distances = (150, neighborhood_distance, 0, 0)
+        return findGrantsInsideNeighborhood(
+            grants=self._grants_with_inband_frequencies,
+            constraint=self._protection_constraint,
+            dpa_type=self._dpa_type,
+            neighbor_distances=neighbor_distances)
+
+    @cached_property
+    def _interference_matrix_info(self) -> Tuple[numpy.ndarray, List[int], numpy.ndarray]:
+        grant_indexes = list(range(len(self._grants_with_inband_frequencies)))
+        return formInterferenceMatrix(
+            grants=self._grants_with_inband_frequencies,
+            grants_ids=grant_indexes,
+            constraint=self._protection_constraint,
+            inc_ant_height=self._dpa.radar_height,
+            num_iter=Dpa.num_iteration,
+            dpa_type=self._dpa_type)
+
+    @cached_property
+    def _grants_with_inband_frequencies(self) -> List[CbsdGrantInfo]:
+        return [grant._replace(low_frequency=self._low_inband_frequency,
+                               high_frequency=self._high_inband_frequency)
+                for index, grant in enumerate(self._grants)]
+
+    @property
+    def _high_inband_frequency(self) -> float:
+        return self._frequency_in_hertz(self._low_inband_frequency + COCHANNEL_BANDWIDTH)
+
+    @property
+    def _low_inband_frequency(self) -> float:
+        return self._frequency_in_hertz(self._first_inband_channel[0])
+
+    @property
+    def _first_inband_channel(self) -> Tuple[float, float]:
+        return next(channel for channel in self._dpa._channels if self._channel_is_cochannel(channel))
+
+    def _channel_is_cochannel(self, channel: Tuple[float, float]) -> bool:
+        return self._frequency_in_hertz(channel[0]) >= LOW_FREQ_COCH and self._frequency_in_hertz(channel[1]) <= HIGH_FREQ_COCH
+
+    @staticmethod
+    def _frequency_in_hertz(frequency_in_megahertz: float) -> float:
+        return frequency_in_megahertz * HERTZ_IN_MEGAHERTZ
+
+    @property
+    def _grants(self) -> List[CbsdGrantInfo]:
+        return [cbsd.to_grant() for cbsd in self._cbsds]
+
+    @property
+    def _protection_constraint(self) -> ProtectionConstraint:
+        return ProtectionConstraint(latitude=self._dpa_center.latitude,
+                                    longitude=self._dpa_center.longitude,
+                                    low_frequency=self._low_inband_frequency,
+                                    high_frequency=self._high_inband_frequency,
+                                    entity_type=ProtectedEntityType.DPA)
+
+    @property
+    def _dpa_type(self) -> DpaType:
+        return DpaType.CO_CHANNEL
+
+    @cached_property
+    def _grant_distances(self) -> List[float]:
+        pool = mpool.Pool()
+        moveListConstraint = partial(
+            get_distance_between_two_points,
+            point2=self._dpa_center)
+
+        return pool.map(moveListConstraint, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequencies])
+
+    @property
+    def _dpa_center(self) -> Point:
+        return get_dpa_center(dpa=self._dpa)

@@ -14,7 +14,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AggregateInterferenceCalculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.aggregate_interference_calculator_ntia import \
     AggregateInterferenceCalculatorNtia
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.aggregate_interference_calculator_winnforum import \
     AggregateInterferenceCalculatorWinnforum
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.cbsd_deployer import \
     CbsdDeployer
