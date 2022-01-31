@@ -11,11 +11,13 @@ Monte Carlo iteration 1
 		Simulation area radius, category A: 0 kilometers
 		Simulation area radius, category B: 0 kilometers
 		CBSD Category: CbsdCategories.A
+			Population: 0
 			Number of APs: 0
 			Number of UEs per AP: 3
 			Population retriever: PopulationRetrieverCensus
 			Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 		CBSD Category: CbsdCategories.B
+			Population: 0
 			Number of APs: 0
 			Number of UEs per AP: 500
 			Population retriever: PopulationRetrieverCensus
@@ -30,12 +32,14 @@ Monte Carlo iteration 1
 		Simulation area radius, category A: 0 kilometers
 		Simulation area radius, category B: 0 kilometers
 		CBSD Category: CbsdCategories.A
-			Number of APs: 0
+			Population: 0
+			Number of UEs: 0
 			Number of UEs per AP: 3
 			Population retriever: PopulationRetrieverCensus
 			Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 		CBSD Category: CbsdCategories.B
-			Number of APs: 0
+			Population: 0
+			Number of UEs: 0
 			Number of UEs per AP: 500
 			Population retriever: PopulationRetrieverCensus
 			Number of APs calculator: NumberOfCbsdsCalculatorShipborne

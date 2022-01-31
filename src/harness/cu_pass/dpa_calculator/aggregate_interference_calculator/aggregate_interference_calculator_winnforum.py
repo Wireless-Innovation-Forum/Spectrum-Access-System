@@ -17,6 +17,7 @@ from reference_models.dpa.move_list import DpaType, find_nc, findGrantsInsideNei
 COCHANNEL_BANDWIDTH = 10
 HERTZ_IN_MEGAHERTZ = 1e6
 THRESHOLD_MARGIN = 1
+WINNFORUM_MINIMUM_INTERFERENCE = -1000
 
 
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
@@ -40,7 +41,7 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
         move_list_indexes = self._neighborhood_grant_indexes_sorted_by_interference[cutoff_index:]
         move_grants = [self._grants_with_inband_frequences[index] for index in move_list_indexes]
         move_grants_indexes_category_b = [move_list_indexes[index] for index, grant in enumerate(move_grants) if grant.cbsd_category == CbsdCategories.B.name]
-        return max(self._grant_distances[index] for index in move_grants_indexes_category_b) if move_grants_indexes_category_b else 0
+        return max(self._grant_distances[index] for index in move_grants_indexes_category_b) if move_grants_indexes_category_b else WINNFORUM_MINIMUM_INTERFERENCE
 
     @property
     def _interference_bearings(self) -> numpy.ndarray:

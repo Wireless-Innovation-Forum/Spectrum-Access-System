@@ -53,11 +53,11 @@ Feature: Docker run
     Then <expected_log_portion> should be in the output log
 
     Examples:
-      | number_of_ues_per_ap | cbsd_category | expected_log_portion                                            |
-      | 2                    | A             | CBSD Category: CbsdCategories.A\n.*\n\s+Number of UEs per AP: 2 |
-      | 3                    | A             | CBSD Category: CbsdCategories.A\n.*\n\s+Number of UEs per AP: 3 |
-      | 2                    | B             | CBSD Category: CbsdCategories.B\n.*\n\s+Number of UEs per AP: 2 |
-      | 3                    | B             | CBSD Category: CbsdCategories.B\n.*\n\s+Number of UEs per AP: 3 |
+      | number_of_ues_per_ap | cbsd_category | expected_log_portion                                                |
+      | 2                    | A             | CBSD Category: CbsdCategories.A\n.*\n.*\n\s+Number of UEs per AP: 2 |
+      | 3                    | A             | CBSD Category: CbsdCategories.A\n.*\n.*\n\s+Number of UEs per AP: 3 |
+      | 2                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 2 |
+      | 3                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 3 |
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation

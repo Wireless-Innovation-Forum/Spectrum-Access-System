@@ -2,6 +2,8 @@ from math import inf
 
 from behave import *
 
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum import \
+    WINNFORUM_MINIMUM_INTERFERENCE
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloCalculator, AggregateInterferenceMonteCarloResults, AggregateInterferenceTypes, \
     DEFAULT_AGGREGATE_INTERFERENCE_TYPE
@@ -9,7 +11,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdDeploymentOptions, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.constants import ALL_REGION_TYPES
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsTypes
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
 from testcases.cu_pass.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
     sanitize_output_log
@@ -17,8 +19,6 @@ from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.dpa import C
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.monte_carlo_iterations import \
     ContextMonteCarloIterations
 from testcases.cu_pass.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
-
-WINNFORUM_MINIMUM_INTERFERENCE = -1000
 
 use_step_matcher('parse')
 
