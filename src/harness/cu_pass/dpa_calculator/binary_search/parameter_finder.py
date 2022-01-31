@@ -15,6 +15,7 @@ class ParameterFinder(BinarySearch):
         if self._function_result_with_current_parameter() == self._target:
             return self._current_parameter
 
+    @property
     def _updated_boundaries(self) -> BinarySearchBoundaries:
         new_boundaries = BinarySearchBoundaries(maximum=self._max, minimum=self._min)
         current_results = self._function_result_with_current_parameter()

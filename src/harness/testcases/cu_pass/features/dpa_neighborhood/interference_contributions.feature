@@ -5,19 +5,19 @@ Feature: Interference contributions
     Then the category <cbsd_category> <indoor_outdoor> antenna EIRPs should be <expected_power> dBm
 
     Examples:
-      | cbsd_type | cbsd_category | indoor_outdoor | region_type | expected_power |
-      | AP        | A             | outdoor        | dense urban | 27.8           |
-      | AP        | A             | outdoor        | rural       | 23             |
-      | AP        | A             | outdoor        | suburban    | 26             |
-      | AP        | A             | outdoor        | urban       | 27.8           |
-      | AP        | A             | indoor         | dense urban | 23.8           |
-      | AP        | A             | indoor         | rural       | 19             |
-      | AP        | A             | indoor         | suburban    | 22             |
-      | AP        | A             | indoor         | urban       | 23.8           |
-      | UE        | A             |                | dense urban | 21.8           |
-      | UE        | A             |                | rural       | 17             |
-      | UE        | A             |                | suburban    | 20             |
-      | UE        | A             |                | urban       | 21.8           |
+      | cbsd_type | cbsd_category | indoor_outdoor | region_type | expected_power  |
+      | AP        | A             | indoor         | dense urban | 100%: 23.8      |
+      | AP        | A             | indoor         | rural       | 100%: 19        |
+      | AP        | A             | indoor         | suburban    | 100%: 22        |
+      | AP        | A             | indoor         | urban       | 100%: 23.8      |
+      | AP        | B             | outdoor        | dense urban | 100%: 37.8-44.8 |
+      | AP        | B             | outdoor        | rural       | 100%: 40        |
+      | AP        | B             | outdoor        | suburban    | 100%: 43        |
+      | AP        | B             | outdoor        | urban       | 100%: 37.8-44.8 |
+      | UE        |               |                | dense urban | 100%: 21.8      |
+      | UE        |               |                | rural       | 100%: 17        |
+      | UE        |               |                | suburban    | 100%: 20        |
+      | UE        |               |                | urban       | 100%: 21.8      |
 
 
   Scenario: Receiver insertion losses

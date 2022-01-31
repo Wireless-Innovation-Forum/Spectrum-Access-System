@@ -51,7 +51,6 @@ Feature: CBSD positioning
     When category <cbsd_category> UE CBSDs for the Monte Carlo simulation are created
     Then there should be <expected_ue_per_ap> times as many CBSDs as if category <cbsd_category> AP CBSDs were created
 
-    @slow
     Examples: Default
       | region_type | number_of_ues_per_ap | cbsd_category | expected_ue_per_ap |
       | dense urban | default              | A             | 50                 |
