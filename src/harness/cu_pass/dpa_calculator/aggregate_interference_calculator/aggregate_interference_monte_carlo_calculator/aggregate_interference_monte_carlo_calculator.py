@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -116,12 +117,12 @@ class AggregateInterferenceMonteCarloCalculator:
         )
 
     def _log_inputs(self) -> None:
-        logger = get_dpa_calculator_logger()
-        logger.info('Inputs:')
-        logger.info(f'\tDPA Name: {self._dpa.name}')
-        logger.info(f'\tNumber of iterations: {self._number_of_iterations}')
-        logger.info(f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
-        logger.info('')
+        self._logger.info('Inputs:')
+        self._logger.info(f'\tDPA Name: {self._dpa.name}')
+        self._logger.info(f'\tNumber of iterations: {self._number_of_iterations}')
+        self._logger.info(
+            f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
+        self._logger.info('')
 
     def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
         percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
@@ -144,7 +145,8 @@ class AggregateInterferenceMonteCarloCalculator:
         ).find()
         result.log()
         self._track_interference_from_distance(cbsd_type=CbsdTypes.UE if is_user_equipment else CbsdTypes.AP,
-                                               found_result=result)
+                                               found_result=result,
+                                               interference_calculator=interference_calculator)
         return result
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
@@ -169,5 +171,20 @@ class AggregateInterferenceMonteCarloCalculator:
         }
         return map[self._aggregate_interference_calculator_type]
 
-    def _track_interference_from_distance(self, cbsd_type: CbsdTypes, found_result: InputWithReturnedValue) -> None:
-        self._found_interferences[cbsd_type][found_result.input].append(found_result.returned_value)
+    def _track_interference_from_distance(self,
+                                          cbsd_type: CbsdTypes,
+                                          found_result: InputWithReturnedValue,
+                                          interference_calculator: AggregateInterferenceCalculator) -> None:
+        found_distance = found_result.input
+        expected_interference = interference_calculator.get_expected_interference(distance=found_distance)
+        self._found_interferences[cbsd_type][found_distance].append(expected_interference)
+
+        self._log_expected_interference(expected_interference=expected_interference)
+
+    def _log_expected_interference(self, expected_interference: float):
+        self._logger.info(f'\t\tExpected Interference: {expected_interference}')
+        self._logger.info('')
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return get_dpa_calculator_logger()

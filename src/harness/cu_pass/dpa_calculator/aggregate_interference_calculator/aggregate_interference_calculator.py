@@ -28,8 +28,12 @@ class AggregateInterferenceCalculator(ABC):
         self._receive_antenna_gain_calculator_type = receive_antenna_gain_calculator_type
 
     @abstractmethod
-    def calculate(self, minimum_distance: float) -> float:
-        raise NotImplementedError
+    def calculate(self, distance: float) -> float:
+        pass
+
+    @abstractmethod
+    def get_expected_interference(self, distance: float) -> float:
+        pass
 
     @property
     def _receive_antenna_gain_calculator_class(self) -> Type[AntennaGainCalculator]:

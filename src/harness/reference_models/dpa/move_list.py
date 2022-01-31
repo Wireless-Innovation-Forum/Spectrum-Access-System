@@ -43,6 +43,7 @@ from enum import Enum
 import functools
 from functools import partial
 import logging
+from typing import Tuple
 
 import numpy as np
 import shapely.geometry as sgeo
@@ -60,12 +61,14 @@ from reference_models.common import data
 from reference_models.common import mpool
 from reference_models.geo import drive
 from reference_models.geo import vincenty
+from reference_models.interference.interference import dbToLinear, linearToDb
 from reference_models.propagation import wf_itm
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
 
 # Constant parameters based on requirements in the WINNF-TS-0112 [R2-SGN-24]
 # Monte Carlo percentile for protection
+MINIMUM_INTERFERENCE_WINNFORUM = -1000
 PROTECTION_PERCENTILE = 95
 
 # Frequency used in propagation model (in MHz) [R2-SGN-04]
@@ -341,7 +344,7 @@ def findAzimuthRange(min_azimuth, max_azimuth, beamwidth):
   return azimuths
 
 
-def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
+def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth) -> Tuple[int, float]:
   """Returns the index (nc) of the grant in the ordered list of grants such that
   the protection percentile of the interference from the first nc grants is below the
   threshold for all azimuths of the receiver antenna.
@@ -364,6 +367,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
   # Initialize nc to Nc.
   Nc = I.shape[1]
   nc = Nc
+  agg_interf = dbToLinear(MINIMUM_INTERFERENCE_WINNFORUM)
 
   # Convert protection threshold and interference matrix to linear units.
   t_mW = np.power(10.0, t/10.0)
@@ -397,9 +401,9 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
 
     nc = lo
     if nc == 0:
-      return 0
+      return nc, linearToDb(agg_interf)
 
-  return nc
+  return nc, linearToDb(agg_interf)
 
 
 def _addMinFreqGrantToFront(l, grant):
@@ -477,7 +481,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     # Find the index (nc) of the grant in the ordered list of grants such that
     # the protection percentile of the interference from the first nc grants is below
     # the threshold for all azimuths of the receiver antenna.
-    nc = find_nc(I, bearings, threshold, beamwidth, min_azimuth, max_azimuth)
+    nc = find_nc(I, bearings, threshold, beamwidth, min_azimuth, max_azimuth)[0]
 
     # Determine the associated move list (Mc)
     movelist_grants = [grants[k] for k in sorted_neighbor_idxs[nc:]]
@@ -611,7 +615,7 @@ def calcAggregatedInterference(protection_point,
                                                     dpa_type,
                                                     neighbor_distances)
   if not neighbor_grants:
-    return np.asarray(-1000)
+    return np.asarray(MINIMUM_INTERFERENCE_WINNFORUM)
   interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
   bearings = np.zeros(len(neighbor_grants))
   for k, grant in enumerate(neighbor_grants):

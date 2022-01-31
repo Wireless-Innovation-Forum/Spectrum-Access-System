@@ -1,14 +1,22 @@
+from dataclasses import dataclass
 from typing import List, Tuple
 
 import numpy
+from cached_property import cached_property
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.dpa_mgr import Dpa
-from reference_models.dpa.move_list import find_nc
+from reference_models.dpa.move_list import find_nc, MINIMUM_INTERFERENCE_WINNFORUM
 
 THRESHOLD_MARGIN = 1
-WINNFORUM_MINIMUM_INTERFERENCE = -1000
+MINIMUM_DISTANCE = 0
+
+
+@dataclass
+class CutoffIndexWithInterference:
+    cutoff_index: int
+    interference: float
 
 
 class MaximumMoveListDistanceCalculator:
@@ -24,11 +32,11 @@ class MaximumMoveListDistanceCalculator:
         self._interference_matrix_info = interference_matrix_info
         self._neighbor_grants_info = neighbor_grants_info
 
-    def calculate(self) -> float:
+    def max_distance(self) -> float:
         cbsd_category_move_grant_indexes = self._get_cbsd_category_move_grant_indexes(cbsd_category=CbsdCategories.B)
         return max(self._grant_distances[index] for index in cbsd_category_move_grant_indexes) \
             if cbsd_category_move_grant_indexes \
-            else WINNFORUM_MINIMUM_INTERFERENCE
+            else MINIMUM_DISTANCE
 
     def _get_cbsd_category_move_grant_indexes(self, cbsd_category: CbsdCategories) -> List[int]:
         return [self._move_list_indexes[index]
@@ -45,14 +53,26 @@ class MaximumMoveListDistanceCalculator:
 
     @property
     def _cutoff_index(self) -> int:
-        return find_nc(
+        return self._cutoff_index_with_interference.cutoff_index
+
+    def expected_interference(self) -> float:
+        return self._cutoff_index_with_interference.interference
+
+    @cached_property
+    def _cutoff_index_with_interference(self) -> CutoffIndexWithInterference:
+        cutoff_index, interference = find_nc(
             I=self._neighborhood_interference_matrix,
             bearings=self._neighborhood_bearings,
             t=self._dpa.threshold - THRESHOLD_MARGIN,
             beamwidth=self._dpa.beamwidth,
             min_azimuth=self._dpa.azimuth_range[0],
-            max_azimuth=self._dpa.azimuth_range[1]) if len(self._neighborhood_interference_matrix) else len(
-            self._neighborhood_grant_indexes_sorted_by_interference)
+            max_azimuth=self._dpa.azimuth_range[1]
+        ) if len(self._neighborhood_interference_matrix) \
+            else self._default_cutoff_with_interference
+        return CutoffIndexWithInterference(
+            cutoff_index=cutoff_index,
+            interference=interference
+        )
 
     @property
     def _neighborhood_interference_matrix(self) -> numpy.ndarray:
@@ -75,6 +95,10 @@ class MaximumMoveListDistanceCalculator:
     @property
     def _interference_matrix(self) -> numpy.ndarray:
         return self._interference_matrix_info[0]
+
+    @property
+    def _default_cutoff_with_interference(self) -> Tuple[int, float]:
+        return len(self._neighborhood_grant_indexes_sorted_by_interference), MINIMUM_INTERFERENCE_WINNFORUM
 
     @property
     def _neighborhood_grant_indexes_sorted_by_interference(self) -> List[int]:

@@ -1,5 +1,5 @@
 from functools import partial
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy
 from cached_property import cached_property
@@ -21,17 +21,24 @@ HERTZ_IN_MEGAHERTZ = 1e6
 
 
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
-    def calculate(self, minimum_distance: float) -> float:
-        neighbor_grants_info = self.get_neighbor_grants_info(neighborhood_distance=minimum_distance)
-        maximum_move_distance_calculator = MaximumMoveListDistanceCalculator(
+    def calculate(self, distance: float) -> float:
+        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(distance)
+        return maximum_move_distance_calculator.max_distance()
+
+    def get_expected_interference(self, distance: float):
+        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance)
+        return maximum_move_distance_calculator.expected_interference()
+
+    def _get_maximum_move_distance_calculator(self, neighborhood_distance: float) -> MaximumMoveListDistanceCalculator:
+        neighbor_grants_info = self._get_neighbor_grants_info(neighborhood_distance=neighborhood_distance)
+        return MaximumMoveListDistanceCalculator(
             dpa=self._dpa,
             grant_distances=self._grant_distances,
             grants_with_inband_frequencies=self._grants_with_inband_frequencies,
             interference_matrix_info=self._interference_matrix_info,
             neighbor_grants_info=neighbor_grants_info)
-        return maximum_move_distance_calculator.calculate()
 
-    def get_neighbor_grants_info(self, neighborhood_distance: float) -> Tuple[List[CbsdGrantInfo], List[int]]:
+    def _get_neighbor_grants_info(self, neighborhood_distance: float) -> Tuple[List[CbsdGrantInfo], List[int]]:
         neighbor_distances = (150, neighborhood_distance, 0, 0)
         return findGrantsInsideNeighborhood(
             grants=self._grants_with_inband_frequencies,

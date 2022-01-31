@@ -16,7 +16,7 @@ class InputWithReturnedValue:
         logger = get_dpa_calculator_logger()
         logger.info('\tFound parameter')
         logger.info(f'\t\tInput: {self.input}')
-        logger.info(f'\t\tValue: {self.returned_value}\n')
+        logger.info(f'\t\tValue: {self.returned_value}')
 
 
 @dataclass
