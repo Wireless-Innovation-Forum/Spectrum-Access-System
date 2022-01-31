@@ -25,26 +25,52 @@ class MaximumMoveListDistanceCalculator:
         self._neighbor_grants_info = neighbor_grants_info
 
     def calculate(self) -> float:
-        interference_matrix_by_grant = self._interference_matrix.transpose()
-        neighborhood_grant_interferences = [interference_matrix_by_grant[index]
-                                            for index in self._neighborhood_grant_indexes_sorted_by_interference]
-        neighborhood_bearings = [self._interference_bearings[index] for index in
-                                 self._neighborhood_grant_indexes_sorted_by_interference]
-        neighborhood_interference_matrix = numpy.asarray(neighborhood_grant_interferences).transpose()
-        cutoff_index = find_nc(
-            I=neighborhood_interference_matrix,
-            bearings=neighborhood_bearings,
+        cbsd_category_move_grant_indexes = self._get_cbsd_category_move_grant_indexes(cbsd_category=CbsdCategories.B)
+        return max(self._grant_distances[index] for index in cbsd_category_move_grant_indexes) \
+            if cbsd_category_move_grant_indexes \
+            else WINNFORUM_MINIMUM_INTERFERENCE
+
+    def _get_cbsd_category_move_grant_indexes(self, cbsd_category: CbsdCategories) -> List[int]:
+        return [self._move_list_indexes[index]
+                for index, grant in enumerate(self._move_grants)
+                if grant.cbsd_category == cbsd_category.name]
+
+    @property
+    def _move_grants(self) -> List[CbsdGrantInfo]:
+        return [self._grants_with_inband_frequencies[index] for index in self._move_list_indexes]
+
+    @property
+    def _move_list_indexes(self) -> List[int]:
+        return self._neighborhood_grant_indexes_sorted_by_interference[self._cutoff_index:]
+
+    @property
+    def _cutoff_index(self) -> int:
+        return find_nc(
+            I=self._neighborhood_interference_matrix,
+            bearings=self._neighborhood_bearings,
             t=self._dpa.threshold - THRESHOLD_MARGIN,
             beamwidth=self._dpa.beamwidth,
             min_azimuth=self._dpa.azimuth_range[0],
-            max_azimuth=self._dpa.azimuth_range[1]) if len(neighborhood_interference_matrix) else len(
+            max_azimuth=self._dpa.azimuth_range[1]) if len(self._neighborhood_interference_matrix) else len(
             self._neighborhood_grant_indexes_sorted_by_interference)
-        move_list_indexes = self._neighborhood_grant_indexes_sorted_by_interference[cutoff_index:]
-        move_grants = [self._grants_with_inband_frequencies[index] for index in move_list_indexes]
-        move_grants_indexes_category_b = [move_list_indexes[index] for index, grant in enumerate(move_grants) if
-                                          grant.cbsd_category == CbsdCategories.B.name]
-        return max(self._grant_distances[index] for index in
-                   move_grants_indexes_category_b) if move_grants_indexes_category_b else WINNFORUM_MINIMUM_INTERFERENCE
+
+    @property
+    def _neighborhood_interference_matrix(self) -> numpy.ndarray:
+        return numpy.asarray(self._neighborhood_grant_interferences).transpose()
+
+    @property
+    def _neighborhood_bearings(self) -> List[float]:
+        return [self._interference_bearings[index] for index in
+                self._neighborhood_grant_indexes_sorted_by_interference]
+
+    @property
+    def _neighborhood_grant_interferences(self) -> List[numpy.ndarray]:
+        return [self._interference_matrix_by_grant[index]
+                for index in self._neighborhood_grant_indexes_sorted_by_interference]
+
+    @property
+    def _interference_matrix_by_grant(self) -> numpy.ndarray:
+        return self._interference_matrix.transpose()
 
     @property
     def _interference_matrix(self) -> numpy.ndarray:
