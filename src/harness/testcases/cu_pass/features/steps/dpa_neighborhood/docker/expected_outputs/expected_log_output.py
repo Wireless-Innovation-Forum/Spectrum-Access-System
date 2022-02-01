@@ -25,7 +25,8 @@ Monte Carlo iteration 1
 
 	Found parameter
 		Input: 0
-		Value: -1000
+		Value: 0
+		Expected Interference: -1000
 
 	CBSD Deployment:
 		CBSD Type: CbsdTypes.UE
@@ -46,7 +47,8 @@ Monte Carlo iteration 1
 
 	Found parameter
 		Input: 0
-		Value: -1000
+		Value: 0
+		Expected Interference: -1000
 
 
 Results for APs:

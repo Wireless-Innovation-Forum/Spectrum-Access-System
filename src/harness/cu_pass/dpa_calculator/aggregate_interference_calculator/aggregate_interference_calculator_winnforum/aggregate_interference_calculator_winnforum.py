@@ -17,7 +17,7 @@ from reference_models.dpa.move_list import DpaType, findGrantsInsideNeighborhood
     HIGH_FREQ_COCH, \
     LOW_FREQ_COCH
 
-COCHANNEL_BANDWIDTH_IN_MEGAHERTZ = 10
+COCHANNEL_BANDWIDTH_IN_MEGAHERTZ = 1
 HERTZ_IN_MEGAHERTZ = 1e6
 
 
@@ -60,6 +60,9 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
 
     @cached_property
     def _grants_with_inband_frequencies(self) -> List[CbsdGrantInfo]:
+        """
+        Set inband frequency to 1 MHz to avoid scaling, since EIRPs are already given per 10 MHz
+        """
         return [grant._replace(low_frequency=self._low_inband_frequency,
                                high_frequency=self._high_inband_frequency)
                 for index, grant in enumerate(self._grants)]

@@ -103,8 +103,9 @@ Feature: DPA Neighborhood helpers
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
-              Input: 400
-              Value: 392.08328409455834
+              Input: 0
+              Value: 0
+              Expected Interference: -192.5981322803591
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -124,8 +125,9 @@ Feature: DPA Neighborhood helpers
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
-              Input: 128
-              Value: 112.54532683803596
+              Input: 16
+              Value: 7.642569984702351
+              Expected Interference: -193.49651033289445
 
       Monte Carlo iteration 2
           CBSD Deployment:
@@ -146,8 +148,9 @@ Feature: DPA Neighborhood helpers
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
-              Input: 256
-              Value: 252.49984630039128
+              Input: 0
+              Value: 0
+              Expected Interference: -181.9663902447217
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -167,30 +170,31 @@ Feature: DPA Neighborhood helpers
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
           Found parameter
-              Input: 464
-              Value: 452.89036167640506
+              Input: 0
+              Value: 0
+              Expected Interference: -216.37566340708094
 
 
       Results for APs:
-          50th percentile: 256
-          95th percentile: 256
-          Standard Deviation: 101.82337649086284
-          Minimum: 256
-          Maximum: 400
+          50th percentile: 0
+          95th percentile: 0
+          Standard Deviation: 0.0
+          Minimum: 0
+          Maximum: 0
 
       Results for UEs:
-          50th percentile: 128
-          95th percentile: 128
-          Standard Deviation: 237.58787847867995
-          Minimum: 128
-          Maximum: 464
+          50th percentile: 0
+          95th percentile: 0
+          Standard Deviation: 11.313708498984761
+          Minimum: 0
+          Maximum: 16
 
       Final results:
-          Distance: 256
-          Interference: 252.49984630039128
-          AP Distance: 256
-          UE Distance: 128
-          AP Interference: 252.49984630039128
-          UE Interference: 112.54532683803596
+          Distance: 0
+          Interference: -216.37566340708094
+          AP Distance: 0
+          UE Distance: 0
+          AP Interference: -182.49797734650357
+          UE Interference: -216.37566340708094
 
       """

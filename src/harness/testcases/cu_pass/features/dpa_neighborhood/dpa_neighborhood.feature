@@ -26,7 +26,7 @@ Feature: DPA Neighborhood
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
     Then the resulting distance should be 0
-    And the resulting interference should be -184.19748991291993
+    And the resulting interference should be -194.19748991291993
 
 
   Scenario: Only one iteration is performed, so standard deviation cannot be calculated

@@ -29,6 +29,9 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
                                                                             interference_components=self.interference_components).calculate()
         return total_interference
 
+    def get_expected_interference(self, distance: float) -> float:
+        return self.calculate(distance=distance)
+
     @cached_property
     def interference_components(self) -> List[InterferenceComponents]:
         interference_components = [self._get_interference_contribution(cbsd=cbsd, index=index) for index, cbsd in enumerate(self._cbsds)]
