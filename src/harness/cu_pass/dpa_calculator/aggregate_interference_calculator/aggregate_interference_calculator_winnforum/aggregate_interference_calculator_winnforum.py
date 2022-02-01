@@ -1,5 +1,6 @@
 from functools import partial
-from typing import Dict, List, Tuple
+from math import inf
+from typing import List, Tuple
 
 import numpy
 from cached_property import cached_property
@@ -16,7 +17,7 @@ from reference_models.dpa.move_list import DpaType, findGrantsInsideNeighborhood
     HIGH_FREQ_COCH, \
     LOW_FREQ_COCH
 
-COCHANNEL_BANDWIDTH = 10
+COCHANNEL_BANDWIDTH_IN_MEGAHERTZ = 10
 HERTZ_IN_MEGAHERTZ = 1e6
 
 
@@ -39,7 +40,7 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
             neighbor_grants_info=neighbor_grants_info)
 
     def _get_neighbor_grants_info(self, neighborhood_distance: float) -> Tuple[List[CbsdGrantInfo], List[int]]:
-        neighbor_distances = (150, neighborhood_distance, 0, 0)
+        neighbor_distances = (inf, neighborhood_distance, 0, 0)
         return findGrantsInsideNeighborhood(
             grants=self._grants_with_inband_frequencies,
             constraint=self._protection_constraint,
@@ -65,7 +66,7 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
 
     @property
     def _high_inband_frequency(self) -> float:
-        return self._frequency_in_hertz(self._low_inband_frequency + COCHANNEL_BANDWIDTH)
+        return self._low_inband_frequency + self._frequency_in_hertz(COCHANNEL_BANDWIDTH_IN_MEGAHERTZ)
 
     @property
     def _low_inband_frequency(self) -> float:

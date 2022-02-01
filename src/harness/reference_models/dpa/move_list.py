@@ -400,8 +400,10 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth) -> Tuple[int, f
         lo = mid
 
     nc = lo
+    agg_interf = np.percentile(np.sum(IG[:, 0:nc], axis=1),
+                               PROTECTION_PERCENTILE, interpolation='lower')
     if nc == 0:
-      return nc, linearToDb(agg_interf)
+      return nc, MINIMUM_INTERFERENCE_WINNFORUM
 
   return nc, linearToDb(agg_interf)
 
