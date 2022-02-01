@@ -30,6 +30,8 @@ class ResultsRecorder:
         self._log_filename = 'log.log'
         self._result_filename = 'result.json'
 
+        self._runtime = datetime.now()
+
     def setup_logging_handler(self) -> None:
         self._logger.addHandler(self._file_handler)
 
@@ -115,10 +117,6 @@ class ResultsRecorder:
     @property
     def _s3_output_directory_with_runtime(self) -> Optional[Path]:
         return self._s3_output_directory and self._append_runtime_to_directory(directory=self._s3_output_directory)
-
-    @cached_property
-    def _runtime(self) -> datetime:
-        return datetime.now()
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
         self._s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)
