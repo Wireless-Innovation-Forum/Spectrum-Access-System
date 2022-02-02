@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from enum import auto, Enum
 from json import JSONEncoder
 from math import inf
-from typing import Any, Type
+from typing import Any, Callable, List, Type
 
 import numpy
 import numpy as np
@@ -53,22 +53,26 @@ class RuntimeEncoder(JSONEncoder):
 class AggregateInterferenceMonteCarloResults:
     distance: int
     distance_access_point: float
-    distance_user_equipment: float
     interference: float
     interference_access_point: float
-    interference_user_equipment: float
     runtime: timedelta
+    distance_user_equipment: float = None
+    interference_user_equipment: float = None
 
     def log(self) -> None:
+        include_ue_logs = self.distance_user_equipment is not None
         logger = get_dpa_calculator_logger()
+
         logger.info(f'\nFinal results:')
         logger.info(f'\tDistance: {self.distance}')
         logger.info(f'\tInterference: {self.interference}')
         logger.info(f'\tRuntime: {self.runtime}')
         logger.info(f'\tAP Distance: {self.distance_access_point}')
-        logger.info(f'\tUE Distance: {self.distance_user_equipment}')
+        if include_ue_logs:
+            logger.info(f'\tUE Distance: {self.distance_user_equipment}')
         logger.info(f'\tAP Interference: {self.interference_access_point}')
-        logger.info(f'\tUE Interference: {self.interference_user_equipment}')
+        if include_ue_logs:
+            logger.info(f'\tUE Interference: {self.interference_user_equipment}')
         logger.info(f'\tRuntime: {self.runtime}')
 
     def to_json(self) -> str:
@@ -81,10 +85,12 @@ class AggregateInterferenceMonteCarloCalculator:
                  dpa: Dpa,
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
-                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions()):
+                 cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions(),
+                 include_ue_runs: bool = False):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
+        self._include_ue_runs = include_ue_runs
         self._number_of_iterations = number_of_iterations
 
         self._found_interferences = {
@@ -96,23 +102,31 @@ class AggregateInterferenceMonteCarloCalculator:
         self._log_inputs()
         start_time = datetime.now()
         distances = run_monte_carlo_simulation(
-            functions_to_run=[self._single_run_access_point, self._single_run_user_equipment],
+            functions_to_run=self._functions_to_run,
             number_of_iterations=self._number_of_iterations,
             percentile=PROTECTION_PERCENTILE)
-        [distance_access_point, distance_user_equipment] = distances
-        expected_interference_access_point,\
-            expected_interference_user_equipment = (self._get_interference_at_distance(distance=cbsd_type_distance,
-                                                                                       cbsd_type=cbsd_type)
-                                                    for cbsd_type_distance, cbsd_type in zip(distances, CbsdTypes))
+        distance_access_point = distances[0]
+        expected_interference_access_point = self._get_interference_at_distance(distance=distance_access_point,
+                                                                                cbsd_type=CbsdTypes.AP)
+        expected_interferences = [expected_interference_access_point]
+        if self._include_ue_runs:
+            distance_user_equipment = distances[1]
+            expected_interference_user_equipment = self._get_interference_at_distance(distance=distance_user_equipment,
+                                                                                      cbsd_type=CbsdTypes.UE)
+            expected_interferences.append(expected_interference_user_equipment)
         distance = max(distances)
-        expected_interference = expected_interference_user_equipment if distance == distance_user_equipment else expected_interference_access_point
+        expected_interference = max(expected_interferences) \
+            if len(set(distances)) == 1 \
+            else (expected_interference_access_point
+                  if distance == distance_access_point
+                  else expected_interference_user_equipment)
         return AggregateInterferenceMonteCarloResults(
             distance=int(distance),
             distance_access_point=int(distance_access_point),
-            distance_user_equipment=int(distance_user_equipment),
+            distance_user_equipment=int(distance_user_equipment) if self._include_ue_runs else None,
             interference=float(expected_interference),
             interference_access_point=float(expected_interference_access_point),
-            interference_user_equipment=float(expected_interference_user_equipment),
+            interference_user_equipment=float(expected_interference_user_equipment) if self._include_ue_runs else None,
             runtime=datetime.now() - start_time
         )
 
@@ -127,6 +141,13 @@ class AggregateInterferenceMonteCarloCalculator:
     def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
         percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
         return -inf if np.isnan(percentile) else percentile
+
+    @property
+    def _functions_to_run(self) -> List[Callable[[], float]]:
+        functions = [self._single_run_access_point]
+        if self._include_ue_runs:
+            functions.append(self._single_run_user_equipment)
+        return functions
 
     def _single_run_access_point(self) -> float:
         result = self._single_run_cbsd(is_user_equipment=False)

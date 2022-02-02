@@ -22,10 +22,12 @@ class MainRunner:
                  simulation_distance_category_a: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.A],
                  simulation_distance_category_b: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.B],
                  local_output_directory: Optional[str] = None,
+                 include_ue_runs: bool = False,
                  s3_bucket: Optional[str] = None,
                  s3_output_directory: Optional[str] = None):
         self._dpa_name = dpa_name
         self._local_output_directory = local_output_directory
+        self._include_ue_runs = include_ue_runs
         self._number_of_iterations = number_of_iterations
         self._simulation_distances_in_kilometers = {
             CbsdCategories.A: simulation_distance_category_a,
@@ -68,6 +70,7 @@ class MainRunner:
         return AggregateInterferenceMonteCarloCalculator(
             dpa=dpa,
             cbsd_deployment_options=cbsd_deployment_options,
+            include_ue_runs=self._include_ue_runs,
             number_of_iterations=self._number_of_iterations).simulate()
 
     def _record_results(self, results: AggregateInterferenceMonteCarloResults) -> None:

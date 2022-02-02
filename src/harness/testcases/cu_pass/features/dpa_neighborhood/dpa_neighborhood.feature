@@ -19,14 +19,25 @@ Feature: DPA Neighborhood
     - Simulation population confirmed using https://www.freemaptools.com/find-population.htm
 
 
-  Scenario: A quick run is performed
+  Scenario: A quick run is performed with UEs
+    Given random seed 0
+    And 2 category A UEs
+    And 1 category B UEs
+    And 2 monte carlo iterations
+    And UE runs are included
+    When the neighborhood radius is calculated
+    Then the resulting distance should be 0
+    And the resulting interference should be -193.367256996375
+
+
+  Scenario: A quick run is performed without UEs
     Given random seed 0
     And 2 category A UEs
     And 1 category B UEs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
     Then the resulting distance should be 0
-    And the resulting interference should be -194.19748991291993
+    And the resulting interference should be -193.36538064234728
 
 
   Scenario: Only one iteration is performed, so standard deviation cannot be calculated

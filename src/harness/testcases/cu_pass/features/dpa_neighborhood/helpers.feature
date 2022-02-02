@@ -71,11 +71,12 @@ Feature: DPA Neighborhood helpers
       | [[1,2,3,4,5]]               | [4]                         |
       | [[1,2,3,4,5], [10,9,8,7,6]] | [4, 9]                      |
 
-  Scenario: Logging is captured
+  Scenario: Logging is captured with a UE run
     Given random seed 0
     And 2 category A UEs
     And 2 category B UEs
     And 2 monte carlo iterations
+    And UE runs are included
     When the neighborhood radius is calculated
     Then the output log should be
       """
@@ -191,7 +192,7 @@ Feature: DPA Neighborhood helpers
 
       Final results:
           Distance: 0
-          Interference: -216.37566340708094
+          Interference: -182.49797734650357
           AP Distance: 0
           UE Distance: 0
           AP Interference: -182.49797734650357

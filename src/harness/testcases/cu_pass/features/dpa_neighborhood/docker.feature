@@ -59,6 +59,15 @@ Feature: Docker run
       | 2                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 2 |
       | 3                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 3 |
 
+  Scenario: Running UEs can be enabled by the command line
+    Given UE runs are included
+    When the main docker command is run
+    Then the results include UE results
+
+  Scenario: Running UEs is disabled by default when run by the command line
+    When the main docker command is run
+    Then the results do not include UE results
+
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation
     When the main docker command is run

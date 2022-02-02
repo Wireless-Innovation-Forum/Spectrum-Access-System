@@ -60,6 +60,7 @@ def interference_contribution_eirps_before_scenario(context: ContextSas):
 
 def setup_monte_carlo_runner(context: ContextSas):
     context.cbsd_deployment_options = CbsdDeploymentOptions()
+    context.include_ue_runs = False
 
 
 def total_interference_before_scenario(context: ContextSas):

@@ -1,1 +1,1 @@
-EXPECTED_RESULTS_OUTPUT = '{"distance": 0, "distance_access_point": 0, "distance_user_equipment": 0, "interference": -1000.0, "interference_access_point": -1000.0, "interference_user_equipment": -1000.0, "runtime": null}'
+EXPECTED_RESULTS_OUTPUT = '{"distance": 0, "distance_access_point": 0, "interference": -1000.0, "interference_access_point": -1000.0, "runtime": null, "distance_user_equipment": null, "interference_user_equipment": null}'

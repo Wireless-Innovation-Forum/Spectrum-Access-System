@@ -17,6 +17,7 @@ ARBITRARY_OUTPUT_DIRECTORY = 'arbitrary_output_directory'
 class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, ContextSas):
     dpa: Dpa
     local_output_directory: str
+    include_ue_runs: bool
     precreate_bucket: bool
     s3_bucket: str
     s3_output_directory: str
@@ -25,6 +26,7 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
 def set_docker_context_defaults(context: ContextDocker) -> None:
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
     context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
+    context.include_ue_runs = False
     context.precreate_bucket = True
     context.number_of_iterations = ARBITRARY_NUMBER_OF_ITERATIONS
     context.simulation_area_radius = ARBITRARY_RADIUS_IN_KILOMETERS

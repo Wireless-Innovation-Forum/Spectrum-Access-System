@@ -5,11 +5,9 @@ from pathlib import Path
 from runpy import run_path
 from shutil import rmtree
 from typing import Iterable, Union
-from uuid import uuid4
 
 from behave.model import Scenario
 
-from cu_pass.dpa_calculator.constants import DPA_CALCULATOR_LOGGER_NAME
 from testcases.cu_pass.features import environment, steps
 from testcases.cu_pass.features.environment.hooks import antenna_gains_before_scenario, ContextSas, \
     interference_contribution_eirps_before_scenario, \

@@ -23,10 +23,11 @@ use_step_matcher('parse')
 
 
 class ContextNeighborhood(ContextDpa, ContextMonteCarloIterations):
+    aggregate_interference_calculator_type: AggregateInterferenceTypes
     cbsd_deployment_options: CbsdDeploymentOptions
+    include_ue_runs: bool
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
-    aggregate_interference_calculator_type: AggregateInterferenceTypes
 
 
 @step("{organization} interference")
@@ -69,6 +70,11 @@ def set_number_of_ues(context: ContextNeighborhood, number_of_ues: int, cbsd_cat
     }
 
 
+@step("UE runs are included")
+def step_impl(context: ContextNeighborhood):
+    context.include_ue_runs = True
+
+
 @when("the neighborhood radius is calculated")
 def step_impl(context: ContextNeighborhood):
     """
@@ -83,7 +89,8 @@ def step_impl(context: ContextNeighborhood):
         dpa=context.dpa,
         aggregate_interference_calculator_type=context.aggregate_interference_calculator_type,
         number_of_iterations=getattr(context, 'number_of_iterations', 1),
-        cbsd_deployment_options=context.cbsd_deployment_options
+        cbsd_deployment_options=context.cbsd_deployment_options,
+        include_ue_runs=context.include_ue_runs
     ).simulate()
     simulation_results.log()
     context.result = simulation_results

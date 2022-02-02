@@ -65,13 +65,13 @@ def step_impl(context: ContextDocker, should_exist_str: str, expected_s3_object_
     should_exist = should_exist_str == SHOULD_STR
     if should_exist:
         expected_content = EXPECTED_RESULTS_OUTPUT
-        output_content = _get_uploaded_result_content(bucket_name=context.s3_bucket, object_name=expected_s3_object_name)
+        output_content = get_uploaded_result_content(bucket_name=context.s3_bucket, object_name=expected_s3_object_name)
         assert output_content == expected_content, f'{output_content} != {expected_content}'
     else:
         assert not _s3_file_exists(bucket_name=context.s3_bucket, partial_filename=RESULTS_EXTENSION), 'The results should not have been uploaded to s3'
 
 
-def _get_uploaded_result_content(bucket_name: str, object_name: str) -> str:
+def get_uploaded_result_content(bucket_name: str, object_name: str) -> str:
     content = get_uploaded_file_content(bucket_name=bucket_name, object_name=object_name)
     return _remove_runtime_from_results_content(content=content)
 
