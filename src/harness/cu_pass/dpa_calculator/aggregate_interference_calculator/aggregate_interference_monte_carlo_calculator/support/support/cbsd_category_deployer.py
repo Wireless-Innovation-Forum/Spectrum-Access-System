@@ -86,11 +86,9 @@ class CbsdCategoryDeployer:
 
     @property
     def _population(self) -> int:
-        area_category_b = self._dpa_test_zone[CbsdCategories.B]
-        area_category_a = self._dpa_test_zone[CbsdCategories.A]
-        max_area = area_category_b if area_category_b.radius_in_kilometers >= area_category_a.radius_in_kilometers else area_category_a
-        population = self._cbsd_deployment_options.population_override or self._population_retriever_class(
-            area=max_area).retrieve()
+        max_area = self._dpa_test_zone[self._cbsd_category]
+        population = self._cbsd_deployment_options.population_override \
+                     or self._population_retriever_class(area=max_area).retrieve()
         return population
 
     @property
