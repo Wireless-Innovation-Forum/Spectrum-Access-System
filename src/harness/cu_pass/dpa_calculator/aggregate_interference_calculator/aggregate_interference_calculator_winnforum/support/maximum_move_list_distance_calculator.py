@@ -32,7 +32,7 @@ class MaximumMoveListDistanceCalculator:
         self._interference_matrix_info = interference_matrix_info
         self._neighbor_grants_info = neighbor_grants_info
 
-    def max_distance(self) -> float:
+    def get_max_distance(self) -> float:
         cbsd_category_move_grant_indexes = self._get_cbsd_category_move_grant_indexes(cbsd_category=CbsdCategories.B)
         return max(self._grant_distances[index] for index in cbsd_category_move_grant_indexes) \
             if cbsd_category_move_grant_indexes \
@@ -43,19 +43,19 @@ class MaximumMoveListDistanceCalculator:
                 for index, grant in enumerate(self._move_grants)
                 if grant.cbsd_category == cbsd_category.name]
 
-    @property
+    @cached_property
     def _move_grants(self) -> List[CbsdGrantInfo]:
         return [self._grants_with_inband_frequencies[index] for index in self._move_list_indexes]
 
-    @property
+    @cached_property
     def _move_list_indexes(self) -> List[int]:
         return self._neighborhood_grant_indexes_sorted_by_interference[self._cutoff_index:]
 
-    @property
+    @cached_property
     def _cutoff_index(self) -> int:
         return self._cutoff_index_with_interference.cutoff_index
 
-    def expected_interference(self) -> float:
+    def get_expected_interference(self) -> float:
         return self._cutoff_index_with_interference.interference
 
     @cached_property
@@ -74,56 +74,56 @@ class MaximumMoveListDistanceCalculator:
             interference=interference
         )
 
-    @property
+    @cached_property
     def _neighborhood_interference_matrix(self) -> numpy.ndarray:
         return numpy.asarray(self._neighborhood_grant_interferences).transpose()
 
-    @property
+    @cached_property
     def _neighborhood_bearings(self) -> List[float]:
         return [self._interference_bearings[index] for index in
                 self._neighborhood_grant_indexes_sorted_by_interference]
 
-    @property
+    @cached_property
     def _neighborhood_grant_interferences(self) -> List[numpy.ndarray]:
         return [self._interference_matrix_by_grant[index]
                 for index in self._neighborhood_grant_indexes_sorted_by_interference]
 
-    @property
+    @cached_property
     def _interference_matrix_by_grant(self) -> numpy.ndarray:
         return self._interference_matrix.transpose()
 
-    @property
+    @cached_property
     def _interference_matrix(self) -> numpy.ndarray:
         return self._interference_matrix_info[0]
 
-    @property
+    @cached_property
     def _default_cutoff_with_interference(self) -> Tuple[int, float]:
         return len(self._neighborhood_grant_indexes_sorted_by_interference), MINIMUM_INTERFERENCE_WINNFORUM
 
-    @property
+    @cached_property
     def _neighborhood_grant_indexes_sorted_by_interference(self) -> List[int]:
         return [grant_index for grant_index in self._grant_index_sorted_by_interference if grant_index in self._neighbor_grant_indexes]
 
-    @property
+    @cached_property
     def _grant_index_sorted_by_interference(self) -> List[int]:
         return self._interference_matrix_info[1]
 
-    @property
+    @cached_property
     def _neighbor_grant_indexes(self) -> List[int]:
         return self._neighbor_grants_info[1]
 
-    @property
+    @cached_property
     def _neighbor_grants(self) -> List[CbsdGrantInfo]:
         return self._neighbor_grants_info[0]
 
-    @property
+    @cached_property
     def _low_inband_frequency(self) -> float:
         return self._grants_with_inband_frequencies[0].low_frequency
 
-    @property
+    @cached_property
     def _high_inband_frequency(self) -> float:
         return self._grants_with_inband_frequencies[0].high_frequency
 
-    @property
+    @cached_property
     def _interference_bearings(self) -> numpy.ndarray:
         return self._interference_matrix_info[2]

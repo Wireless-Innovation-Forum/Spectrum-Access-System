@@ -60,7 +60,9 @@ class NumberOfCbsdsCalculatorOptions:
 
 
 class NumberOfCbsdsCalculator:
-    def __init__(self, center_coordinates: Point, simulation_population: int,
+    def __init__(self,
+                 center_coordinates: Point,
+                 simulation_population: int,
                  number_of_cbsds_calculator_options: Optional[NumberOfCbsdsCalculatorOptions] = NumberOfCbsdsCalculatorOptions()):
         self._fraction_of_users_served_by_aps = number_of_cbsds_calculator_options.fraction_of_users_served_by_aps
         self._number_of_ues_per_ap_by_region_type = number_of_cbsds_calculator_options.number_of_ues_per_ap_by_region_type

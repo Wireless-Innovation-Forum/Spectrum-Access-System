@@ -24,11 +24,11 @@ HERTZ_IN_MEGAHERTZ = 1e6
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
     def calculate(self, distance: float) -> float:
         maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(distance)
-        return maximum_move_distance_calculator.max_distance()
+        return maximum_move_distance_calculator.get_max_distance()
 
     def get_expected_interference(self, distance: float):
         maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance)
-        return maximum_move_distance_calculator.expected_interference()
+        return maximum_move_distance_calculator.get_expected_interference()
 
     def _get_maximum_move_distance_calculator(self, neighborhood_distance: float) -> MaximumMoveListDistanceCalculator:
         neighbor_grants_info = self._get_neighbor_grants_info(neighborhood_distance=neighborhood_distance)
