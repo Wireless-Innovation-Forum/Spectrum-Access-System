@@ -87,11 +87,11 @@ class MainRunner:
         return boto3.client('s3')
 
 
-if __name__ == '__main__':
-    MainRunner(dpa_name='MOORESTOWN',
-               number_of_iterations=1,
-               simulation_distance_category_a=160,
-               simulation_distance_category_b=400,
-               local_output_directory='test_output/moorestown/160_a/400_b/1_iter',
-               s3_bucket='dpa-calculator',
-               s3_output_directory='moorestown/160_a/400_b/1_iter').run()
+# if __name__ == '__main__':
+#     MainRunner(dpa_name='MOORESTOWN',
+#                number_of_iterations=1,
+#                simulation_distance_category_a=160,
+#                simulation_distance_category_b=400,
+#                local_output_directory='test_output/moorestown/160_a/400_b/1_iter',
+#                s3_bucket='dpa-calculator',
+#                s3_output_directory='moorestown/160_a/400_b/1_iter').run()
