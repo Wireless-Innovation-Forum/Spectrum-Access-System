@@ -81,12 +81,12 @@ class MaximumMoveListDistanceCalculator:
     @cached_property
     def _neighborhood_bearings(self) -> List[float]:
         return [self._interference_bearings[index] for index in
-                self._neighborhood_grant_indexes_sorted_by_interference]
+                self._interference_matrix_indexes_inside_neighborhood]
 
     @cached_property
     def _neighborhood_grant_interferences(self) -> List[numpy.ndarray]:
         return [self._interference_matrix_by_grant[index]
-                for index in self._neighborhood_grant_indexes_sorted_by_interference]
+                for index in self._interference_matrix_indexes_inside_neighborhood]
 
     @cached_property
     def _interference_matrix_by_grant(self) -> numpy.ndarray:
@@ -98,11 +98,18 @@ class MaximumMoveListDistanceCalculator:
 
     @cached_property
     def _default_cutoff_with_interference(self) -> Tuple[int, float]:
-        return len(self._neighborhood_grant_indexes_sorted_by_interference), MINIMUM_INTERFERENCE_WINNFORUM
+        return len(self._interference_matrix_indexes_inside_neighborhood), MINIMUM_INTERFERENCE_WINNFORUM
 
     @cached_property
     def _neighborhood_grant_indexes_sorted_by_interference(self) -> List[int]:
-        return [grant_index for grant_index in self._grant_index_sorted_by_interference if grant_index in self._neighbor_grant_indexes]
+        return [self._grant_index_sorted_by_interference[grant_index]
+                for grant_index in self._interference_matrix_indexes_inside_neighborhood]
+
+    @cached_property
+    def _interference_matrix_indexes_inside_neighborhood(self) -> List[int]:
+        return [interference_matrix_index
+                for interference_matrix_index, grant_index in enumerate(self._grant_index_sorted_by_interference)
+                if grant_index in self._neighbor_grant_indexes]
 
     @cached_property
     def _grant_index_sorted_by_interference(self) -> List[int]:
