@@ -4,6 +4,8 @@ from typing import List, Tuple
 import numpy
 from cached_property import cached_property
 
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.move_list_distance_calculator import \
+    MoveListDistanceCalculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.neighborhood_interference_matrix_calculator import \
     INTERFERENCE_MATRIX_INFO_TYPE, NeighborhoodInterferenceMatrixCalculator
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
@@ -12,7 +14,6 @@ from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import find_nc, MINIMUM_INTERFERENCE_WINNFORUM
 
 THRESHOLD_MARGIN = 1
-MINIMUM_DISTANCE = 0
 
 NEIGHBOR_GRANTS_INFO_TYPE = Tuple[List[CbsdGrantInfo], List[int]]
 
@@ -37,19 +38,11 @@ class MaximumMoveListDistanceCalculator:
         self._neighbor_grants_info = neighbor_grants_info
 
     def get_max_distance(self) -> float:
-        cbsd_category_move_grant_indexes = self._get_cbsd_category_move_grant_indexes(cbsd_category=CbsdCategories.B)
-        return max(self._grant_distances[index] for index in cbsd_category_move_grant_indexes) \
-            if cbsd_category_move_grant_indexes \
-            else MINIMUM_DISTANCE
-
-    def _get_cbsd_category_move_grant_indexes(self, cbsd_category: CbsdCategories) -> List[int]:
-        return [self._move_list_indexes[index]
-                for index, grant in enumerate(self._move_grants)
-                if grant.cbsd_category == cbsd_category.name]
-
-    @cached_property
-    def _move_grants(self) -> List[CbsdGrantInfo]:
-        return [self._grants_with_inband_frequencies[index] for index in self._move_list_indexes]
+        move_list_distance_calculator = MoveListDistanceCalculator(all_grants=self._grants_with_inband_frequencies,
+                                                                   grant_distances=self._grant_distances,
+                                                                   move_list_indexes=self._move_list_indexes)
+        distances = move_list_distance_calculator.calculate()
+        return distances[CbsdCategories.B]
 
     @cached_property
     def _move_list_indexes(self) -> List[int]:
@@ -77,14 +70,6 @@ class MaximumMoveListDistanceCalculator:
             cutoff_index=cutoff_index,
             interference=interference
         )
-
-    @cached_property
-    def _low_inband_frequency(self) -> float:
-        return self._grants_with_inband_frequencies[0].low_frequency
-
-    @cached_property
-    def _high_inband_frequency(self) -> float:
-        return self._grants_with_inband_frequencies[0].high_frequency
 
     @cached_property
     def _default_cutoff_with_interference(self) -> Tuple[int, float]:
