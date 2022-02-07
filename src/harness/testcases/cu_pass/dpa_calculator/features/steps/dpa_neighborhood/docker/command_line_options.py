@@ -21,13 +21,13 @@ def step_impl(context: ContextDocker, expected_log_portion: str):
     assert re.search(expected_log_portion, output_content)
 
 
-@then("the results {not_included} include UE results")
-def step_impl(context: ContextDocker, not_included: bool):
+@then("the results{not_included}include UE results")
+def step_impl(context: ContextDocker, not_included: str):
     object_name = f'{context.s3_output_directory}/__RUNTIME__/result.json'
     output_content = get_uploaded_result_content(bucket_name=context.s3_bucket, object_name=object_name)
     results = json.loads(output_content)
-    ue_distance = results['distance_user_equipment']
-    if not_included:
-        assert ue_distance is None
+    ue_distance_exists = 'CbsdTypes.UE' in results['distance']
+    if not_included.strip():
+        assert not ue_distance_exists
     else:
-        assert ue_distance is not None
+        assert ue_distance_exists
