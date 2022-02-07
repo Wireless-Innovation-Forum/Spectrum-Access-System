@@ -1,1 +1,1 @@
-EXPECTED_RESULTS_OUTPUT = '{"distance": 0, "distance_access_point": 0, "interference": -1000.0, "interference_access_point": -1000.0, "runtime": null, "distance_user_equipment": null, "interference_user_equipment": null}'
+EXPECTED_RESULTS_OUTPUT = '{"distance": {"CbsdTypes.AP": {"CbsdCategories.A": 0, "CbsdCategories.B": 0}}, "interference": {"CbsdTypes.AP": {"CbsdCategories.A": -1000.0, "CbsdCategories.B": -1000.0}}, "runtime": null}'

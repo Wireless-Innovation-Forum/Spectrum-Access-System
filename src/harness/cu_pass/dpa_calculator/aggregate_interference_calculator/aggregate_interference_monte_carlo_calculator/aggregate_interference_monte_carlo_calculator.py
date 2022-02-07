@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Type
 
 import numpy
 import numpy as np
+from numpy import int32
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
     AggregateInterferenceCalculator
@@ -46,10 +47,12 @@ SINGLE_RUN_TYPE = Dict[CbsdCategories, List[InputWithReturnedValue]]
 RESULTS_CACHE = Dict[CbsdTypes, SINGLE_RUN_TYPE]
 
 
-class RuntimeEncoder(JSONEncoder):
+class ResultsEncoder(JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, timedelta):
             return str(o)
+        elif isinstance(o, int32):
+            return int(o)
         else:
             super().default(o=o)
 
@@ -69,8 +72,13 @@ class AggregateInterferenceMonteCarloResults:
         logger.info(f'\tRuntime: {self.runtime}')
 
     def to_json(self) -> str:
-        dictionary = asdict(self)
-        return json.dumps(dictionary, cls=RuntimeEncoder)
+        dictionary = self._convert_keys_to_string(asdict(self))
+        return json.dumps(dictionary, cls=ResultsEncoder)
+
+    def _convert_keys_to_string(self, dictionary: dict):
+        if not isinstance(dictionary, dict):
+            return dictionary
+        return {str(key): self._convert_keys_to_string(value) for key, value in dictionary.items()}
 
 
 class AggregateInterferenceMonteCarloCalculator:

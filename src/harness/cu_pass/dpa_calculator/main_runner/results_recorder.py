@@ -85,7 +85,7 @@ class ResultsRecorder:
         if not output_should_persist_locally:
             self._output_log_filepath.unlink()
 
-    def record(self, results: AggregateInterferenceMonteCarloResults,) -> None:
+    def record(self, results: AggregateInterferenceMonteCarloResults) -> None:
         try:
             self._write_local_results(results=results)
             if self._s3_object_result:
@@ -93,7 +93,7 @@ class ResultsRecorder:
         finally:
             self._clean_local_results()
 
-    def _write_local_results(self, results: AggregateInterferenceMonteCarloResults,) -> None:
+    def _write_local_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         with open(self._results_filepath, 'w') as f:
             f.write(results.to_json())
 

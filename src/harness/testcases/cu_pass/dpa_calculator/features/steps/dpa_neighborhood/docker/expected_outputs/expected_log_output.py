@@ -5,7 +5,7 @@ EXPECTED_LOG_OUTPUT = sanitize_multiline_expected_string("""Inputs:
 	Number of iterations: 1
 	Aggregate interference calculator: AggregateInterferenceCalculatorWinnforum
 
-Monte Carlo iteration 1
+CbsdTypes.AP iteration 1
 	CBSD Deployment:
 		CBSD Type: CbsdTypes.AP
 		Simulation area radius, category A: 0 kilometers
@@ -23,22 +23,18 @@ Monte Carlo iteration 1
 			Population retriever: PopulationRetrieverCensus
 			Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
-	Found parameter
+	CbsdCategories.A NEIGHBORHOOD RESULTS:
+		Input: 0
+		Value: 0
+		Expected Interference: -1000
+
+	CbsdCategories.B NEIGHBORHOOD RESULTS:
 		Input: 0
 		Value: 0
 		Expected Interference: -1000
 
 
-Results for APs:
-	50th percentile: 0
-	95th percentile: 0
-	Standard Deviation: 0
-	Minimum: 0
-	Maximum: 0
-
 Final results:
-	Distance: 0
-	Interference: -1000.0
-	AP Distance: 0
-	AP Interference: -1000.0
+	Distance: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: 0, <CbsdCategories.B: 'B'>: 0}}
+	Interference: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: -1000.0, <CbsdCategories.B: 'B'>: -1000.0}}
 """)
