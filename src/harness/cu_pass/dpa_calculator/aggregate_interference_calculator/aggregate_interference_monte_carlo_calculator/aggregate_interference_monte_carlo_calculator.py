@@ -1,12 +1,13 @@
 import json
 import logging
 from collections import defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timedelta
 from enum import auto, Enum
+from functools import partial
 from json import JSONEncoder
 from math import inf
-from typing import Any, Callable, List, Type
+from typing import Any, Callable, Dict, List, Type
 
 import numpy
 import numpy as np
@@ -26,7 +27,9 @@ from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.binary_search.binary_search import InputWithReturnedValue
-from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_center, run_monte_carlo_simulation
+
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, get_dpa_center, get_percentile, \
+    run_monte_carlo_simulation
 from reference_models.dpa.move_list import PROTECTION_PERCENTILE
 
 DEFAULT_MONTE_CARLO_ITERATIONS = 1000
@@ -39,6 +42,8 @@ class AggregateInterferenceTypes(Enum):
 
 
 DEFAULT_AGGREGATE_INTERFERENCE_TYPE = AggregateInterferenceTypes.WinnForum
+SINGLE_RUN_TYPE = Dict[CbsdCategories, List[InputWithReturnedValue]]
+RESULTS_CACHE = Dict[CbsdTypes, SINGLE_RUN_TYPE]
 
 
 class RuntimeEncoder(JSONEncoder):
@@ -51,28 +56,16 @@ class RuntimeEncoder(JSONEncoder):
 
 @dataclass
 class AggregateInterferenceMonteCarloResults:
-    distance: int
-    distance_access_point: float
-    interference: float
-    interference_access_point: float
-    runtime: timedelta
-    distance_user_equipment: float = None
-    interference_user_equipment: float = None
+    distance: Dict[CbsdTypes, Dict[CbsdCategories, int]] = field(default_factory=dict)
+    interference: Dict[CbsdTypes, Dict[CbsdCategories, float]] = field(default_factory=dict)
+    runtime: timedelta = None
 
     def log(self) -> None:
-        include_ue_logs = self.distance_user_equipment is not None
         logger = get_dpa_calculator_logger()
-
         logger.info(f'\nFinal results:')
+        logger.info(f'\tRuntime: {self.runtime}')
         logger.info(f'\tDistance: {self.distance}')
         logger.info(f'\tInterference: {self.interference}')
-        logger.info(f'\tRuntime: {self.runtime}')
-        logger.info(f'\tAP Distance: {self.distance_access_point}')
-        if include_ue_logs:
-            logger.info(f'\tUE Distance: {self.distance_user_equipment}')
-        logger.info(f'\tAP Interference: {self.interference_access_point}')
-        if include_ue_logs:
-            logger.info(f'\tUE Interference: {self.interference_user_equipment}')
         logger.info(f'\tRuntime: {self.runtime}')
 
     def to_json(self) -> str:
@@ -94,41 +87,41 @@ class AggregateInterferenceMonteCarloCalculator:
         self._number_of_iterations = number_of_iterations
 
         self._found_interferences = {
-            CbsdTypes.AP: defaultdict(list),
-            CbsdTypes.UE: defaultdict(list)
+            CbsdTypes.AP: {
+                CbsdCategories.A: defaultdict(list),
+                CbsdCategories.B: defaultdict(list)
+            },
+            CbsdTypes.UE: {
+                CbsdCategories.A: defaultdict(list),
+                CbsdCategories.B: defaultdict(list)
+            }
         }
+
+        self._cached_results: RESULTS_CACHE = defaultdict(lambda: defaultdict(list))
+
+        self._final_result = AggregateInterferenceMonteCarloResults()
 
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         self._log_inputs()
         start_time = datetime.now()
-        distances = run_monte_carlo_simulation(
-            functions_to_run=self._functions_to_run,
-            number_of_iterations=self._number_of_iterations,
-            percentile=PROTECTION_PERCENTILE)
-        distance_access_point = distances[0]
-        expected_interference_access_point = self._get_interference_at_distance(distance=distance_access_point,
-                                                                                cbsd_type=CbsdTypes.AP)
-        expected_interferences = [expected_interference_access_point]
+        self._run_cbsd_category(CbsdTypes.AP)
         if self._include_ue_runs:
-            distance_user_equipment = distances[1]
-            expected_interference_user_equipment = self._get_interference_at_distance(distance=distance_user_equipment,
-                                                                                      cbsd_type=CbsdTypes.UE)
-            expected_interferences.append(expected_interference_user_equipment)
-        distance = max(distances)
-        expected_interference = max(expected_interferences) \
-            if len(set(distances)) == 1 \
-            else (expected_interference_access_point
-                  if distance == distance_access_point
-                  else expected_interference_user_equipment)
-        return AggregateInterferenceMonteCarloResults(
-            distance=int(distance),
-            distance_access_point=int(distance_access_point),
-            distance_user_equipment=int(distance_user_equipment) if self._include_ue_runs else None,
-            interference=float(expected_interference),
-            interference_access_point=float(expected_interference_access_point),
-            interference_user_equipment=float(expected_interference_user_equipment) if self._include_ue_runs else None,
-            runtime=datetime.now() - start_time
-        )
+            self._run_cbsd_category(CbsdTypes.UE)
+        self._final_result = replace(self._final_result, runtime=datetime.now() - start_time)
+        return self._final_result
+
+    def _run_cbsd_category(self, cbsd_type: CbsdTypes) -> None:
+        for _ in range(self._number_of_iterations):
+            self._single_run_cbsd(cbsd_type=cbsd_type)
+        results_both_categories = {cbsd_category: self._cached_results[cbsd_type][cbsd_category]
+                                   for cbsd_category in CbsdCategories}
+        distances = {cbsd_category: get_percentile(results=[result.input for result in results],
+                                                   percentile=PROTECTION_PERCENTILE)
+                     for cbsd_category, results in results_both_categories.items()}
+        interferences = {cbsd_category: self._get_interference_at_distance(distance=distance, cbsd_category=cbsd_category, cbsd_type=cbsd_type)
+                         for cbsd_category, distance in distances.items()}
+        self._final_result.distance[cbsd_type] = distances
+        self._final_result.interference[cbsd_type] = interferences
 
     def _log_inputs(self) -> None:
         self._logger.info('Inputs:')
@@ -138,37 +131,38 @@ class AggregateInterferenceMonteCarloCalculator:
             f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
         self._logger.info('')
 
-    def _get_interference_at_distance(self, distance: int, cbsd_type: CbsdTypes) -> float:
-        percentile = numpy.percentile(self._found_interferences[cbsd_type][distance], PROTECTION_PERCENTILE)
+    def _get_interference_at_distance(self, distance: int, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes) -> float:
+        percentile = numpy.percentile(self._found_interferences[cbsd_type][cbsd_category][distance], PROTECTION_PERCENTILE)
         return -inf if np.isnan(percentile) else percentile
 
     @property
     def _functions_to_run(self) -> List[Callable[[], float]]:
-        functions = [self._single_run_access_point]
+        def _read_cached_results(cbsd_category: CbsdCategories, cbsd_type: CbsdTypes):
+            return self._cached_results[cbsd_type][cbsd_category][-1].input
+        functions = [partial(self._single_run_cbsd, cbsd_category=CbsdCategories.A, cbsd_type=CbsdTypes.AP),
+                     partial(_read_cached_results, cbsd_category=CbsdCategories.B, cbsd_type=CbsdTypes.AP)]
         if self._include_ue_runs:
-            functions.append(self._single_run_user_equipment)
+            functions += [partial(self._single_run_cbsd, cbsd_category=CbsdCategories.A, cbsd_type=CbsdTypes.UE),
+                          partial(_read_cached_results, cbsd_category=CbsdCategories.B, cbsd_type=CbsdTypes.UE)]
         return functions
 
-    def _single_run_access_point(self) -> float:
-        result = self._single_run_cbsd(is_user_equipment=False)
-        return result.input
-
-    def _single_run_user_equipment(self) -> float:
-        result = self._single_run_cbsd(is_user_equipment=True)
-        return result.input
-
-    def _single_run_cbsd(self, is_user_equipment: bool) -> InputWithReturnedValue:
+    def _single_run_cbsd(self, cbsd_type: CbsdTypes) -> None:
+        is_user_equipment = cbsd_type == CbsdTypes.UE
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        result = ShortestUnchangingInputFinder(
-            function=interference_calculator.calculate,
-            max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
-            step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
-        ).find()
-        result.log()
-        self._track_interference_from_distance(cbsd_type=CbsdTypes.UE if is_user_equipment else CbsdTypes.AP,
-                                               found_result=result,
-                                               interference_calculator=interference_calculator)
-        return result
+        for cbsd_category_for_cache in CbsdCategories:
+            calculate_function = partial(interference_calculator.calculate, cbsd_category=cbsd_category_for_cache)
+            result = ShortestUnchangingInputFinder(
+                function=calculate_function,
+                max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
+                step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
+            ).find()
+            self._logger.info(f'{cbsd_category_for_cache} NEIGHBORHOOD RESULTS:')
+            result.log()
+            self._cached_results[cbsd_type][cbsd_category_for_cache].append(result)
+            self._track_interference_from_distance(cbsd_category=cbsd_category_for_cache,
+                                                   cbsd_type=cbsd_type,
+                                                   found_result=result,
+                                                   interference_calculator=interference_calculator)
 
     def _aggregate_interference_calculator(self, is_user_equipment: bool) -> AggregateInterferenceCalculator:
         cbsds_with_bearings = self._random_cbsds_with_bearings(is_user_equipment=is_user_equipment)
@@ -193,12 +187,14 @@ class AggregateInterferenceMonteCarloCalculator:
         return map[self._aggregate_interference_calculator_type]
 
     def _track_interference_from_distance(self,
+                                          cbsd_category: CbsdCategories,
                                           cbsd_type: CbsdTypes,
                                           found_result: InputWithReturnedValue,
                                           interference_calculator: AggregateInterferenceCalculator) -> None:
         found_distance = found_result.input
-        expected_interference = interference_calculator.get_expected_interference(distance=found_distance)
-        self._found_interferences[cbsd_type][found_distance].append(expected_interference)
+        expected_interference = interference_calculator.get_expected_interference(cbsd_category=cbsd_category,
+                                                                                  distance=found_distance)
+        self._found_interferences[cbsd_type][cbsd_category][found_distance].append(expected_interference)
 
         self._log_expected_interference(expected_interference=expected_interference)
 

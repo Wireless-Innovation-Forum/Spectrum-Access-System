@@ -19,25 +19,37 @@ Feature: DPA Neighborhood
     - Simulation population confirmed using https://www.freemaptools.com/find-population.htm
 
 
-  Scenario: A quick run is performed with UEs
+  Scenario Template: A quick run is performed with UEs
     Given random seed 0
     And 2 category A UEs
     And 1 category B UEs
     And 2 monte carlo iterations
     And UE runs are included
     When the neighborhood radius is calculated
-    Then the resulting distance should be 0
-    And the resulting interference should be -193.367256996375
+    Then the resulting category <cbsd_category> <cbsd_type> distance should be <expected_distance>
+    And the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+
+    Examples:
+      | cbsd_type | cbsd_category | expected_distance | expected_interference |
+      | AP        | A             | 0                 | -151.48616716614754   |
+      | AP        | B             | 0                 | -160.19041297883996   |
+      | UE        | A             | 0                 | -215.82320664154682   |
+      | UE        | B             | 0                 | -200.2170839780984    |
 
 
-  Scenario: A quick run is performed without UEs
+  Scenario Template: A quick run is performed without UEs
     Given random seed 0
     And 2 category A UEs
     And 1 category B UEs
     And 2 monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be 0
-    And the resulting interference should be -193.36538064234728
+    Then the resulting category <cbsd_category> <cbsd_type> distance should be <expected_distance>
+    And the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+
+    Examples:
+      | cbsd_type | cbsd_category | expected_distance | expected_interference |
+      | AP        | A             | 0                 | -151.48616716614754   |
+      | AP        | B             | 0                 | -160.19041297883996   |
 
 
   Scenario: Only one iteration is performed, so standard deviation cannot be calculated

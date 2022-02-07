@@ -8,6 +8,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AntennaGainCalculatorGainPattern
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_standard import \
     AntennaGainCalculatorStandard
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 
@@ -28,11 +29,11 @@ class AggregateInterferenceCalculator(ABC):
         self._receive_antenna_gain_calculator_type = receive_antenna_gain_calculator_type
 
     @abstractmethod
-    def calculate(self, distance: float) -> float:
+    def calculate(self, distance: float, cbsd_category: CbsdCategories) -> float:
         pass
 
     @abstractmethod
-    def get_expected_interference(self, distance: float) -> float:
+    def get_expected_interference(self, distance: float, cbsd_category: CbsdCategories) -> float:
         pass
 
     @property

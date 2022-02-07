@@ -5,7 +5,7 @@ import numpy
 from cached_property import cached_property
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.move_list_distance_calculator import \
-    MoveListDistanceCalculator
+    MOVE_LIST_DISTANCES_TYPE, MoveListDistanceCalculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.neighborhood_interference_matrix_calculator import \
     INTERFERENCE_MATRIX_INFO_TYPE, NeighborhoodInterferenceMatrixCalculator
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
@@ -37,12 +37,14 @@ class MaximumMoveListDistanceCalculator:
         self._interference_matrix_info = interference_matrix_info
         self._neighbor_grants_info = neighbor_grants_info
 
-    def get_max_distance(self) -> float:
-        move_list_distance_calculator = MoveListDistanceCalculator(all_grants=self._grants_with_inband_frequencies,
-                                                                   grant_distances=self._grant_distances,
-                                                                   move_list_indexes=self._move_list_indexes)
-        distances = move_list_distance_calculator.calculate()
-        return distances[CbsdCategories.B]
+    def get_max_distance(self) -> MOVE_LIST_DISTANCES_TYPE:
+        return self._move_list_distance_calculator.calculate()
+
+    @cached_property
+    def _move_list_distance_calculator(self) -> MoveListDistanceCalculator:
+        return MoveListDistanceCalculator(all_grants=self._grants_with_inband_frequencies,
+                                          grant_distances=self._grant_distances,
+                                          move_list_indexes=self._move_list_indexes)
 
     @cached_property
     def _move_list_indexes(self) -> List[int]:

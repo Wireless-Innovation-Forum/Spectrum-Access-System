@@ -97,13 +97,13 @@ def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], numb
         results.append(iteration_results)
     results_per_function = asarray(results).transpose()
     _log_results(results=results_per_function)
-    return [_get_percentile(results=iteration_results, percentile=percentile) for iteration_results in results_per_function]
+    return [get_percentile(results=iteration_results, percentile=percentile) for iteration_results in results_per_function]
 
 
 def _log_results(results: numpy.ndarray) -> None:
     simulation_statistics = [SimulationStatistics(
-        percentile_50=_get_percentile(results=iteration_results, percentile=50),
-        percentile_95=_get_percentile(results=iteration_results, percentile=95),
+        percentile_50=get_percentile(results=iteration_results, percentile=50),
+        percentile_95=get_percentile(results=iteration_results, percentile=95),
         maximum=max(iteration_results),
         minimum=min(iteration_results),
         standard_deviation=stdev(iteration_results) if len(iteration_results) > 1 else 0,
@@ -114,7 +114,7 @@ def _log_results(results: numpy.ndarray) -> None:
         statistics.log()
 
 
-def _get_percentile(results: List[float], percentile: int) -> float:
+def get_percentile(results: List[float], percentile: int) -> float:
     return numpy.percentile(results, percentile, interpolation='lower')
 
 

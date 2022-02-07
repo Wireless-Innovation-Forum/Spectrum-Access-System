@@ -9,6 +9,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     AggregateInterferenceCalculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.maximum_move_list_distance_calculator import \
     MaximumMoveListDistanceCalculator
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point
 from reference_models.common import mpool
 from reference_models.common.data import CbsdGrantInfo, ProtectedEntityType, ProtectionConstraint
@@ -22,16 +23,20 @@ HERTZ_IN_MEGAHERTZ = 1e6
 
 
 class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
-    def calculate(self, distance: float) -> float:
-        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(distance)
-        return maximum_move_distance_calculator.get_max_distance()
+    def calculate(self, distance: float, cbsd_category: CbsdCategories) -> float:
+        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(distance, cbsd_category)
+        return maximum_move_distance_calculator.get_max_distance()[cbsd_category]
 
-    def get_expected_interference(self, distance: float):
-        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance)
+    def get_expected_interference(self, distance: float, cbsd_category: CbsdCategories) -> float:
+        maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance,
+                                                                                      cbsd_category=cbsd_category)
         return maximum_move_distance_calculator.get_expected_interference()
 
-    def _get_maximum_move_distance_calculator(self, neighborhood_distance: float) -> MaximumMoveListDistanceCalculator:
-        neighbor_grants_info = self._get_neighbor_grants_info(neighborhood_distance=neighborhood_distance)
+    def _get_maximum_move_distance_calculator(self,
+                                              neighborhood_distance: float,
+                                              cbsd_category: CbsdCategories) -> MaximumMoveListDistanceCalculator:
+        neighbor_grants_info = self._get_neighbor_grants_info(neighborhood_distance=neighborhood_distance,
+                                                              cbsd_category=cbsd_category)
         return MaximumMoveListDistanceCalculator(
             dpa=self._dpa,
             grant_distances=self._grant_distances,
@@ -39,8 +44,10 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
             interference_matrix_info=self._interference_matrix_info,
             neighbor_grants_info=neighbor_grants_info)
 
-    def _get_neighbor_grants_info(self, neighborhood_distance: float) -> Tuple[List[CbsdGrantInfo], List[int]]:
-        neighbor_distances = (inf, neighborhood_distance, 0, 0)
+    def _get_neighbor_grants_info(self, neighborhood_distance: float, cbsd_category: CbsdCategories) -> Tuple[List[CbsdGrantInfo], List[int]]:
+        neighbor_distances = (inf, neighborhood_distance, 0, 0) \
+            if cbsd_category == CbsdCategories.B \
+            else (neighborhood_distance, inf, 0, 0)
         return findGrantsInsideNeighborhood(
             grants=self._grants_with_inband_frequencies,
             constraint=self._protection_constraint,

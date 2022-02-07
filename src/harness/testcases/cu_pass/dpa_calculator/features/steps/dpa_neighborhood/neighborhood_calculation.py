@@ -9,7 +9,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdDeploymentOptions, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.constants import ALL_REGION_TYPES
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NumberOfApsTypes
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
 from reference_models.dpa.move_list import MINIMUM_INTERFERENCE_WINNFORUM
 from testcases.cu_pass.dpa_calculator.features.helpers.utilities import get_expected_output_content, get_logging_file_handler, \
@@ -96,16 +96,18 @@ def step_impl(context: ContextNeighborhood):
     context.result = simulation_results
 
 
-@then("the resulting distance should be {expected_distance:Integer}")
-def step_impl(context: ContextNeighborhood, expected_distance: int):
-    assert context.result.distance == expected_distance, f'{context.result.distance} != {expected_distance}'
+@then("the resulting category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType} distance should be {expected_distance:Integer}")
+def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes, expected_distance: int):
+    distance = context.result.distance[cbsd_type][cbsd_category]
+    assert distance == expected_distance, f'{distance} != {expected_distance}'
 
 
-@then("the resulting interference should be {expected_interference:Number}")
-def step_impl(context: ContextNeighborhood, expected_interference: float):
+@then("the resulting category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType} interference should be {expected_interference:Number}")
+def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes, expected_interference: float):
     if expected_interference == -inf and context.aggregate_interference_calculator_type == AggregateInterferenceTypes.WinnForum:
         expected_interference = MINIMUM_INTERFERENCE_WINNFORUM
-    assert context.result.interference == expected_interference, f'{context.result.interference} != {expected_interference}'
+    interference = context.result.interference[cbsd_type][cbsd_category]
+    assert interference == expected_interference, f'{interference} != {expected_interference}'
 
 
 @then("it should run without error")
