@@ -62,17 +62,22 @@ Feature: DPA Neighborhood
     Then it should run without error
 
 
-  Scenario: Zero APs are simulated
+  Scenario Template: Zero APs are simulated
     Given random seed 0
     And 0 category A UEs
     And 0 category B UEs
     And 1 monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be 0
-    Then the resulting interference should be -infinity
+    Then the resulting category <cbsd_category> <cbsd_type> distance should be <expected_distance>
+    And the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+
+    Examples:
+      | cbsd_type | cbsd_category | expected_distance | expected_interference |
+      | AP        | A             | 0                 | -infinity             |
+      | AP        | B             | 0                 | -infinity             |
 
 
-  Scenario: No interference outside of exclusion zone
+  Scenario Template: No interference outside of exclusion zone
     Given random seed 0
     And 1 category A UEs
     And 1 category B UEs
@@ -80,7 +85,12 @@ Feature: DPA Neighborhood
     And a category A simulation distance of 1 km
     And a category B simulation distance of 1 km
     When the neighborhood radius is calculated
-    Then the resulting interference should be -infinity
+    Then the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+
+    Examples:
+      | cbsd_type | cbsd_category | expected_interference |
+      | AP        | A             | -infinity             |
+      | AP        | B             | -infinity             |
 
 
   @slow
@@ -91,9 +101,11 @@ Feature: DPA Neighborhood
     And a category B simulation distance of <category_b_radius> km
     And <number_of_iterations> monte carlo iterations
     When the neighborhood radius is calculated
-    Then the resulting distance should be <expected_distance>
-    Then the resulting interference should be <expected_interference>
+    Then the resulting category A AP distance should be <expected_distance_category_a>
+    And the resulting category B AP distance should be <expected_distance_category_b>
+    And the resulting category A AP interference should be <expected_interference_category_a>
+    And the resulting category B AP interference should be <expected_interference_category_b>
 
     Examples:
-      | dpa_name   | category_a_radius | category_b_radius | number_of_iterations | expected_distance | expected_interference |
-      | Moorestown | 160               | 400               | 1                    | 304               | -157.77927922588643   |
+      | dpa_name   | category_a_radius | category_b_radius | number_of_iterations | expected_distance_category_a | expected_distance_category_b | expected_interference_category_a | expected_interference_category_b |
+      | Moorestown | 160               | 400               | 1                    | 112                          | 304                          | -157.71421804594996              | -157.77927922588643              |
