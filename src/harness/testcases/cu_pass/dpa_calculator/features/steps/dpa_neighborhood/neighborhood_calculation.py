@@ -110,6 +110,16 @@ def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_
     assert interference == expected_interference, f'{interference} != {expected_interference}'
 
 
+@then("the resulting {cbsd_type:CbsdType} distance should not exist")
+def step_impl(context: ContextNeighborhood, cbsd_type: CbsdTypes):
+    assert cbsd_type not in context.result.distance, f'{cbsd_type} found in results.'
+
+
+@then("the resulting {cbsd_type:CbsdType} interference should not exist")
+def step_impl(context: ContextNeighborhood, cbsd_type: CbsdTypes):
+    assert cbsd_type not in context.result.interference, f'{cbsd_type} found in results.'
+
+
 @then("it should run without error")
 def step_impl(context: ContextNeighborhood):
     pass

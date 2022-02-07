@@ -45,6 +45,8 @@ Feature: DPA Neighborhood
     When the neighborhood radius is calculated
     Then the resulting category <cbsd_category> <cbsd_type> distance should be <expected_distance>
     And the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+    And the resulting UE distance should not exist
+    And the resulting UE interference should not exist
 
     Examples:
       | cbsd_type | cbsd_category | expected_distance | expected_interference |
