@@ -85,7 +85,7 @@ Feature: DPA Neighborhood helpers
           Number of iterations: 2
           Aggregate interference calculator: AggregateInterferenceCalculatorWinnforum
 
-      Monte Carlo iteration 1
+      CbsdTypes.AP iteration 1
           CBSD Deployment:
               CBSD Type: CbsdTypes.AP
               Simulation area radius, category A: 250 kilometers
@@ -103,34 +103,17 @@ Feature: DPA Neighborhood helpers
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
-          Found parameter
+          CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
               Expected Interference: -192.5981322803591
 
-          CBSD Deployment:
-              CBSD Type: CbsdTypes.UE
-              Simulation area radius, category A: 250 kilometers
-              Simulation area radius, category B: 500 kilometers
-              CBSD Category: CbsdCategories.A
-                  Population: 50.0
-                  Number of UEs: 2
-                  Number of UEs per AP: 2
-                  Population retriever: PopulationRetrieverCensus
-                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-              CBSD Category: CbsdCategories.B
-                  Population: 50.0
-                  Number of UEs: 2
-                  Number of UEs per AP: 2
-                  Population retriever: PopulationRetrieverCensus
-                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+          CbsdCategories.B NEIGHBORHOOD RESULTS:
+              Input: 0
+              Value: 0
+              Expected Interference: -157.6771136871935
 
-          Found parameter
-              Input: 16
-              Value: 7.642569984702351
-              Expected Interference: -193.49651033289445
-
-      Monte Carlo iteration 2
+      CbsdTypes.AP iteration 2
           CBSD Deployment:
               CBSD Type: CbsdTypes.AP
               Simulation area radius, category A: 250 kilometers
@@ -148,11 +131,17 @@ Feature: DPA Neighborhood helpers
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
-          Found parameter
+          CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -181.9663902447217
+              Expected Interference: -149.32237952855746
 
+          CbsdCategories.B NEIGHBORHOOD RESULTS:
+              Input: 0
+              Value: 0
+              Expected Interference: -207.94309952012264
+
+      CbsdTypes.UE iteration 1
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
               Simulation area radius, category A: 250 kilometers
@@ -170,32 +159,47 @@ Feature: DPA Neighborhood helpers
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
-          Found parameter
+          CbsdCategories.A NEIGHBORHOOD RESULTS:
+              Input: 16
+              Value: 3.821284992351136
+              Expected Interference: -185.59859294578257
+
+          CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -216.37566340708094
+              Expected Interference: -200.02114026253597
 
+      CbsdTypes.UE iteration 2
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.UE
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Population: 50.0
+                  Number of UEs: 2
+                  Number of UEs per AP: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Population: 50.0
+                  Number of UEs: 2
+                  Number of UEs per AP: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
 
-      Results for APs:
-          50th percentile: 0
-          95th percentile: 0
-          Standard Deviation: 0.0
-          Minimum: 0
-          Maximum: 0
+          CbsdCategories.A NEIGHBORHOOD RESULTS:
+              Input: 0
+              Value: 0
+              Expected Interference: -207.59467015610002
 
-      Results for UEs:
-          50th percentile: 0
-          95th percentile: 0
-          Standard Deviation: 11.313708498984761
-          Minimum: 0
-          Maximum: 16
+          CbsdCategories.B NEIGHBORHOOD RESULTS:
+              Input: 0
+              Value: 0
+              Expected Interference: -212.76920822158186
+
 
       Final results:
-          Distance: 0
-          Interference: -182.49797734650357
-          AP Distance: 0
-          UE Distance: 0
-          AP Interference: -182.49797734650357
-          UE Interference: -216.37566340708094
+          Distance: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: 0, <CbsdCategories.B: 'B'>: 0}, <CbsdTypes.UE: 'UE'>: {<CbsdCategories.A: 'A'>: 0, <CbsdCategories.B: 'B'>: 0}}
+          Interference: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: -151.48616716614754, <CbsdCategories.B: 'B'>: -160.19041297883996}, <CbsdTypes.UE: 'UE'>: {<CbsdCategories.A: 'A'>: -207.59467015610002, <CbsdCategories.B: 'B'>: -200.65854366048825}}
 
       """

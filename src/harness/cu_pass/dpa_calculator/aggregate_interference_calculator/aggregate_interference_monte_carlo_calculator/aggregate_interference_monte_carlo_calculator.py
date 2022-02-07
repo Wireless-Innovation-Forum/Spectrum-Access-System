@@ -111,7 +111,9 @@ class AggregateInterferenceMonteCarloCalculator:
         return self._final_result
 
     def _run_cbsd_category(self, cbsd_type: CbsdTypes) -> None:
-        for _ in range(self._number_of_iterations):
+        for iteration_number in range(self._number_of_iterations):
+            logger = get_dpa_calculator_logger()
+            logger.info(f'{cbsd_type} iteration {iteration_number + 1}')
             self._single_run_cbsd(cbsd_type=cbsd_type)
         results_both_categories = {cbsd_category: self._cached_results[cbsd_type][cbsd_category]
                                    for cbsd_category in CbsdCategories}
@@ -156,7 +158,7 @@ class AggregateInterferenceMonteCarloCalculator:
                 max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
                 step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
             ).find()
-            self._logger.info(f'{cbsd_category_for_cache} NEIGHBORHOOD RESULTS:')
+            self._logger.info(f'\t{cbsd_category_for_cache} NEIGHBORHOOD RESULTS:')
             result.log()
             self._cached_results[cbsd_type][cbsd_category_for_cache].append(result)
             self._track_interference_from_distance(cbsd_category=cbsd_category_for_cache,
