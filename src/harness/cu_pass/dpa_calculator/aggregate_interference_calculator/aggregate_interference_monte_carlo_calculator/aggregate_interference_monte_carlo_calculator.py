@@ -199,7 +199,8 @@ class AggregateInterferenceMonteCarloCalculator:
                                        for cbsd_category in CbsdCategories}
             distances = {cbsd_category: get_percentile(results=[result.input for result in results],
                                                        percentile=PROTECTION_PERCENTILE)
-                         for cbsd_category, results in results_both_categories.items()}
+                         for cbsd_category, results in results_both_categories.items()
+                         if results}
             interferences = {cbsd_category: self._get_interference_at_distance(distance=distance, cbsd_category=cbsd_category, cbsd_type=cbsd_type)
                              for cbsd_category, distance in distances.items()}
             self._final_result.distance[cbsd_type] = distances
