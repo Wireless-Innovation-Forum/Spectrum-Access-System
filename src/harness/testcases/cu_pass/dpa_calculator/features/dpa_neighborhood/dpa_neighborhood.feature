@@ -31,10 +31,10 @@ Feature: DPA Neighborhood
 
     Examples:
       | cbsd_type | cbsd_category | expected_distance | expected_interference |
-      | AP        | A             | 0                 | -151.48616716614754   |
-      | AP        | B             | 0                 | -160.19041297883996   |
-      | UE        | A             | 0                 | -215.82320664154682   |
-      | UE        | B             | 0                 | -200.2170839780984    |
+      | AP        | A             | 0                 | -157.09596620840563   |
+      | AP        | B             | 0                 | -160.1922893328677   |
+      | UE        | A             | 0                 | -195.09115850222102   |
+      | UE        | B             | 0                 | -170.44050654358452    |
 
 
   Scenario Template: A quick run is performed without UEs
@@ -108,4 +108,4 @@ Feature: DPA Neighborhood
 
     Examples:
       | dpa_name   | category_a_radius | category_b_radius | number_of_iterations | expected_distance_category_a | expected_distance_category_b | expected_interference_category_a | expected_interference_category_b |
-      | Moorestown | 160               | 400               | 1                    | 112                          | 304                          | -157.71421804594996              | -157.77927922588643              |
+      | Moorestown | 160               | 400               | 1                    | 96                           | 240                          | -155.1856804388858               | -155.44184010283712              |
