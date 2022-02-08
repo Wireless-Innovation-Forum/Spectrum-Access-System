@@ -84,7 +84,7 @@ class CbsdCategoryDeployer:
         }
         return map[self._number_of_cbsds_calculator_options.number_of_cbsds_calculator_type]
 
-    @property
+    @cached_property
     def _population(self) -> int:
         max_area = self._dpa_test_zone[self._cbsd_category]
         population = self._cbsd_deployment_options.population_override \

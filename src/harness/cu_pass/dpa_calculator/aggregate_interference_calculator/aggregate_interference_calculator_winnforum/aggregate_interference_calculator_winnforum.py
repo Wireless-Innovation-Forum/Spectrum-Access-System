@@ -66,6 +66,15 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
             dpa_type=self._dpa_type)
 
     @cached_property
+    def _grant_distances(self) -> List[float]:
+        pool = mpool.Pool()
+        moveListConstraint = partial(
+            get_distance_between_two_points,
+            point2=self._dpa_center)
+
+        return pool.map(moveListConstraint, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequencies])
+
+    @cached_property
     def _grants_with_inband_frequencies(self) -> List[CbsdGrantInfo]:
         """
         Set inband frequency to 1 MHz to avoid scaling, since EIRPs are already given per 10 MHz
@@ -106,18 +115,9 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
                                     entity_type=ProtectedEntityType.DPA)
 
     @property
-    def _dpa_type(self) -> DpaType:
-        return DpaType.CO_CHANNEL
-
-    @cached_property
-    def _grant_distances(self) -> List[float]:
-        pool = mpool.Pool()
-        moveListConstraint = partial(
-            get_distance_between_two_points,
-            point2=self._dpa_center)
-
-        return pool.map(moveListConstraint, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequencies])
-
-    @property
     def _dpa_center(self) -> Point:
         return get_dpa_center(dpa=self._dpa)
+
+    @property
+    def _dpa_type(self) -> DpaType:
+        return DpaType.CO_CHANNEL

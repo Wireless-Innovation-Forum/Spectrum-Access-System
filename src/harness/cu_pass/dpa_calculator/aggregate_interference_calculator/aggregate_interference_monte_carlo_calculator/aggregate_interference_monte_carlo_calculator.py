@@ -112,26 +112,10 @@ class AggregateInterferenceMonteCarloCalculator:
     def simulate(self) -> AggregateInterferenceMonteCarloResults:
         self._log_inputs()
         start_time = datetime.now()
-        self._run_cbsd_category(CbsdTypes.AP)
-        if self._include_ue_runs:
-            self._run_cbsd_category(CbsdTypes.UE)
+        self._run_iterations()
+        self._gather_results()
         self._final_result = replace(self._final_result, runtime=datetime.now() - start_time)
         return self._final_result
-
-    def _run_cbsd_category(self, cbsd_type: CbsdTypes) -> None:
-        for iteration_number in range(self._number_of_iterations):
-            logger = get_dpa_calculator_logger()
-            logger.info(f'{cbsd_type} iteration {iteration_number + 1}')
-            self._single_run_cbsd(cbsd_type=cbsd_type)
-        results_both_categories = {cbsd_category: self._cached_results[cbsd_type][cbsd_category]
-                                   for cbsd_category in CbsdCategories}
-        distances = {cbsd_category: get_percentile(results=[result.input for result in results],
-                                                   percentile=PROTECTION_PERCENTILE)
-                     for cbsd_category, results in results_both_categories.items()}
-        interferences = {cbsd_category: self._get_interference_at_distance(distance=distance, cbsd_category=cbsd_category, cbsd_type=cbsd_type)
-                         for cbsd_category, distance in distances.items()}
-        self._final_result.distance[cbsd_type] = distances
-        self._final_result.interference[cbsd_type] = interferences
 
     def _log_inputs(self) -> None:
         self._logger.info('Inputs:')
@@ -141,35 +125,28 @@ class AggregateInterferenceMonteCarloCalculator:
             f'\tAggregate interference calculator: {self._aggregate_interference_calculator_class.__name__}')
         self._logger.info('')
 
-    def _get_interference_at_distance(self, distance: int, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes) -> float:
-        percentile = numpy.percentile(self._found_interferences[cbsd_type][cbsd_category][distance], PROTECTION_PERCENTILE)
-        return -inf if np.isnan(percentile) else percentile
-
-    @property
-    def _functions_to_run(self) -> List[Callable[[], float]]:
-        def _read_cached_results(cbsd_category: CbsdCategories, cbsd_type: CbsdTypes):
-            return self._cached_results[cbsd_type][cbsd_category][-1].input
-        functions = [partial(self._single_run_cbsd, cbsd_category=CbsdCategories.A, cbsd_type=CbsdTypes.AP),
-                     partial(_read_cached_results, cbsd_category=CbsdCategories.B, cbsd_type=CbsdTypes.AP)]
-        if self._include_ue_runs:
-            functions += [partial(self._single_run_cbsd, cbsd_category=CbsdCategories.A, cbsd_type=CbsdTypes.UE),
-                          partial(_read_cached_results, cbsd_category=CbsdCategories.B, cbsd_type=CbsdTypes.UE)]
-        return functions
+    def _run_iterations(self) -> None:
+        for iteration_number in range(self._number_of_iterations):
+            logger = get_dpa_calculator_logger()
+            logger.info(f'{CbsdTypes.AP} iteration {iteration_number + 1}')
+            self._single_run_cbsd(cbsd_type=CbsdTypes.AP)
+            if self._include_ue_runs:
+                self._single_run_cbsd(cbsd_type=CbsdTypes.UE)
 
     def _single_run_cbsd(self, cbsd_type: CbsdTypes) -> None:
         is_user_equipment = cbsd_type == CbsdTypes.UE
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        for cbsd_category_for_cache in CbsdCategories:
-            calculate_function = partial(interference_calculator.calculate, cbsd_category=cbsd_category_for_cache)
+        for cbsd_category in CbsdCategories:
+            calculate_function = partial(interference_calculator.calculate, cbsd_category=cbsd_category)
             result = ShortestUnchangingInputFinder(
                 function=calculate_function,
                 max_parameter=self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B],
                 step_size=NEIGHBORHOOD_STEP_SIZE_DEFAULT,
             ).find()
-            self._logger.info(f'\t{cbsd_category_for_cache} NEIGHBORHOOD RESULTS:')
+            self._logger.info(f'\t{cbsd_category} NEIGHBORHOOD RESULTS:')
             result.log()
-            self._cached_results[cbsd_type][cbsd_category_for_cache].append(result)
-            self._track_interference_from_distance(cbsd_category=cbsd_category_for_cache,
+            self._cached_results[cbsd_type][cbsd_category].append(result)
+            self._track_interference_from_distance(cbsd_category=cbsd_category,
                                                    cbsd_type=cbsd_type,
                                                    found_result=result,
                                                    interference_calculator=interference_calculator)
@@ -215,3 +192,19 @@ class AggregateInterferenceMonteCarloCalculator:
     @property
     def _logger(self) -> logging.Logger:
         return get_dpa_calculator_logger()
+
+    def _gather_results(self) -> None:
+        for cbsd_type in CbsdTypes:
+            results_both_categories = {cbsd_category: self._cached_results[cbsd_type][cbsd_category]
+                                       for cbsd_category in CbsdCategories}
+            distances = {cbsd_category: get_percentile(results=[result.input for result in results],
+                                                       percentile=PROTECTION_PERCENTILE)
+                         for cbsd_category, results in results_both_categories.items()}
+            interferences = {cbsd_category: self._get_interference_at_distance(distance=distance, cbsd_category=cbsd_category, cbsd_type=cbsd_type)
+                             for cbsd_category, distance in distances.items()}
+            self._final_result.distance[cbsd_type] = distances
+            self._final_result.interference[cbsd_type] = interferences
+
+    def _get_interference_at_distance(self, distance: int, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes) -> float:
+        percentile = numpy.percentile(self._found_interferences[cbsd_type][cbsd_category][distance], PROTECTION_PERCENTILE)
+        return -inf if np.isnan(percentile) else percentile
