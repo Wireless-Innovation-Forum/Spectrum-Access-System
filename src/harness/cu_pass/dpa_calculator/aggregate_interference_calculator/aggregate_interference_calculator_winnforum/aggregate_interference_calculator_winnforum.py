@@ -68,11 +68,11 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
     @cached_property
     def _grant_distances(self) -> List[float]:
         pool = mpool.Pool()
-        moveListConstraint = partial(
+        distanceFunction = partial(
             get_distance_between_two_points,
             point2=self._dpa_center)
 
-        return pool.map(moveListConstraint, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequencies])
+        return pool.map(distanceFunction, [Point(latitude=grant.latitude, longitude=grant.longitude) for grant in self._grants_with_inband_frequencies])
 
     @cached_property
     def _grants_with_inband_frequencies(self) -> List[CbsdGrantInfo]:

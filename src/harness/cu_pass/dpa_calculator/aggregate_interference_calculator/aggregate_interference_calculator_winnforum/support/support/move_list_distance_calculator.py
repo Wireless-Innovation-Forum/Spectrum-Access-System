@@ -27,11 +27,11 @@ class MoveListDistanceCalculator:
 
     @cached_property
     def _cbsd_category_move_grant_indexes(self) -> Dict[CbsdCategories, List[int]]:
-        grants = defaultdict(list)
+        move_grant_indexes = defaultdict(list)
         for index, grant in enumerate(self._move_grants):
             cbsd_category = CbsdCategories[grant.cbsd_category]
-            grants[cbsd_category].append(self._move_list_indexes[index])
-        return grants
+            move_grant_indexes[cbsd_category].append(self._move_list_indexes[index])
+        return move_grant_indexes
 
     @cached_property
     def _move_grants(self) -> List[CbsdGrantInfo]:
