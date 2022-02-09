@@ -18,7 +18,7 @@ from reference_models.dpa.move_list import DpaType, findGrantsInsideNeighborhood
     HIGH_FREQ_COCH, \
     LOW_FREQ_COCH
 
-COCHANNEL_BANDWIDTH_IN_MEGAHERTZ = 1
+COCHANNEL_BANDWIDTH_IN_MEGAHERTZ = 10
 HERTZ_IN_MEGAHERTZ = 1e6
 
 
