@@ -71,7 +71,7 @@ def before_scenario(context: ContextSas, scenario: Scenario):
         antenna_gains_before_scenario(context=context)
     elif 'Interference contribution EIRPs' in scenario.name:
         interference_contribution_eirps_before_scenario(context=context)
-    elif scenario.feature.name == 'DPA Neighborhood' or 'Logging is captured' in scenario.name:
+    elif scenario.feature.name in ['DPA Neighborhood', 'Quick Run'] or 'Logging is captured' in scenario.name:
         setup_monte_carlo_runner(context=context)
     elif scenario.feature.name == 'Docker run':
         set_docker_context_defaults(context=context)

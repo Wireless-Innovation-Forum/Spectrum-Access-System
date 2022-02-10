@@ -86,19 +86,21 @@ class AggregateInterferenceMonteCarloCalculator:
                  number_of_iterations: int = DEFAULT_MONTE_CARLO_ITERATIONS,
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
                  cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions(),
-                 include_ue_runs: bool = False):
+                 include_ue_runs: bool = False,
+                 neighborhood_categories: List[CbsdCategories] = None):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
         self._include_ue_runs = include_ue_runs
+        self._neighborhood_categories = neighborhood_categories
         self._number_of_iterations = number_of_iterations
 
         self._found_interferences = {cbsd_type: {cbsd_category: defaultdict(list)
-                                                 for cbsd_category in self._cbsd_categories_to_simulate}
+                                                 for cbsd_category in self._neighborhood_categories_to_compute}
                                      for cbsd_type in self._cbsd_types_to_simulate}
 
         self._cached_results: RESULTS_CACHE = {cbsd_type: {cbsd_category: []
-                                                           for cbsd_category in self._cbsd_categories_to_simulate}
+                                                           for cbsd_category in self._neighborhood_categories_to_compute}
                                                for cbsd_type in self._cbsd_types_to_simulate}
 
         self._final_result = AggregateInterferenceMonteCarloResults()
@@ -129,7 +131,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def _single_run_cbsd(self, cbsd_type: CbsdTypes) -> None:
         is_user_equipment = cbsd_type == CbsdTypes.UE
         interference_calculator = self._aggregate_interference_calculator(is_user_equipment=is_user_equipment)
-        for cbsd_category in self._cbsd_categories_to_simulate:
+        for cbsd_category in self._neighborhood_categories_to_compute:
             calculate_function = partial(interference_calculator.calculate, cbsd_category=cbsd_category)
             result = ShortestUnchangingInputFinder(
                 function=calculate_function,
@@ -189,7 +191,7 @@ class AggregateInterferenceMonteCarloCalculator:
     def _gather_results(self) -> None:
         for cbsd_type in self._cbsd_types_to_simulate:
             results_both_categories = {cbsd_category: self._cached_results[cbsd_type][cbsd_category]
-                                       for cbsd_category in self._cbsd_categories_to_simulate}
+                                       for cbsd_category in self._neighborhood_categories_to_compute}
             distances = {cbsd_category: get_percentile(results=[result.input for result in results],
                                                        percentile=PROTECTION_PERCENTILE)
                          for cbsd_category, results in results_both_categories.items()
@@ -207,8 +209,8 @@ class AggregateInterferenceMonteCarloCalculator:
         return cbsd_types
 
     @property
-    def _cbsd_categories_to_simulate(self) -> List[CbsdCategories]:
-        return list(CbsdCategories)
+    def _neighborhood_categories_to_compute(self) -> List[CbsdCategories]:
+        return self._neighborhood_categories or list(CbsdCategories)
 
     def _get_interference_at_distance(self, distance: int, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes) -> float:
         percentile = numpy.percentile(self._found_interferences[cbsd_type][cbsd_category][distance], PROTECTION_PERCENTILE)

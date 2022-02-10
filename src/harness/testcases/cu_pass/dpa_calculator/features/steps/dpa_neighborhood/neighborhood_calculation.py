@@ -1,4 +1,5 @@
 from math import inf
+from typing import List
 
 from behave import *
 
@@ -26,11 +27,12 @@ class ContextNeighborhood(ContextDpa, ContextMonteCarloIterations):
     aggregate_interference_calculator_type: AggregateInterferenceTypes
     cbsd_deployment_options: CbsdDeploymentOptions
     include_ue_runs: bool
+    neighborhood_categories: List[CbsdCategories]
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
 
 
-@step("{organization} interference")
+@given("{organization} interference")
 def step_impl(context: ContextNeighborhood, organization: str):
     map = {
         'NTIA_2015': AggregateInterferenceTypes.NTIA,
@@ -39,7 +41,7 @@ def step_impl(context: ContextNeighborhood, organization: str):
     context.aggregate_interference_calculator_type = map[organization]
 
 
-@step("population by {population_type}")
+@given("population by {population_type}")
 def step_impl(context: ContextNeighborhood, population_type: str):
     map = {
         'census radius': PopulationRetrieverTypes.census,
@@ -48,7 +50,7 @@ def step_impl(context: ContextNeighborhood, population_type: str):
     context.cbsd_deployment_options.population_retriever_type = map[population_type]
 
 
-@step("number of APs using {number_of_aps_type} analysis")
+@given("number of APs using {number_of_aps_type} analysis")
 def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
     map = {
         'ground based': NumberOfApsTypes.ground_based,
@@ -57,7 +59,7 @@ def step_impl(context: ContextNeighborhood, number_of_aps_type: str):
     context.cbsd_deployment_options.number_of_aps_calculator_class = map[number_of_aps_type]
 
 
-@step("{number_of_ues:Integer} category {cbsd_category:CbsdCategory} UEs")
+@given("{number_of_ues:Integer} category {cbsd_category:CbsdCategory} UEs")
 def set_number_of_ues(context: ContextNeighborhood, number_of_ues: int, cbsd_category: CbsdCategories):
     number_of_ues_to_simulate_one_ap = number_of_ues
     population = 1 / NumberOfCbsdsCalculatorShipborne._channel_scaling_factor / NumberOfCbsdsCalculatorShipborne._market_penetration_factor
@@ -70,9 +72,14 @@ def set_number_of_ues(context: ContextNeighborhood, number_of_ues: int, cbsd_cat
     }
 
 
-@step("UE runs are included")
+@given("UE runs are included")
 def step_impl(context: ContextNeighborhood):
     context.include_ue_runs = True
+
+
+@given("neighborhood categories categories {neighborhood_categories:CbsdCategoryList}")
+def step_impl(context: ContextNeighborhood, neighborhood_categories: List[CbsdCategories]):
+    context.neighborhood_categories = neighborhood_categories
 
 
 @when("the neighborhood radius is calculated")
@@ -90,7 +97,8 @@ def step_impl(context: ContextNeighborhood):
         aggregate_interference_calculator_type=context.aggregate_interference_calculator_type,
         number_of_iterations=getattr(context, 'number_of_iterations', 1),
         cbsd_deployment_options=context.cbsd_deployment_options,
-        include_ue_runs=context.include_ue_runs
+        include_ue_runs=context.include_ue_runs,
+        neighborhood_categories=context.neighborhood_categories
     ).simulate()
     simulation_results.log()
     context.result = simulation_results
@@ -108,6 +116,16 @@ def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_
         expected_interference = MINIMUM_INTERFERENCE_WINNFORUM
     interference = context.result.interference[cbsd_type][cbsd_category]
     assert interference == expected_interference, f'{interference} != {expected_interference}'
+
+
+@then("the resulting category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType} distance should not exist")
+def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes):
+    assert cbsd_category not in context.result.distance[cbsd_type], f'{cbsd_type} found in results.'
+
+
+@then("the resulting category {cbsd_category:CbsdCategory} {cbsd_type:CbsdType} interference should not exist")
+def step_impl(context: ContextNeighborhood, cbsd_category: CbsdCategories, cbsd_type: CbsdTypes):
+    assert cbsd_category not in context.result.interference[cbsd_type], f'{cbsd_type} found in results.'
 
 
 @then("the resulting {cbsd_type:CbsdType} distance should not exist")

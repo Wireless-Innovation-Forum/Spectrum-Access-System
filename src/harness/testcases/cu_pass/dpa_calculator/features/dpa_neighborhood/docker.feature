@@ -35,6 +35,19 @@ Feature: Docker run
       | 1                     | Number of iterations: 1 |
       | 2                     | Number of iterations: 2 |
 
+  Scenario Template: The neighborhood category is configurable by the command line
+    Given neighborhood categories categories <neighborhood_categories>
+    When the neighborhood radius is calculated
+    Then <expected_log_portion> should be in the output log
+    Then <unexpected_log_portion> should not be in the output log
+
+    Examples:
+      | <neighborhood_categories> | expected_log_portion     | unexpected_log_portion   |
+      | [A]                       | CbsdCategories.A RESULTS | CbsdCategories.B RESULTS |
+      | [B]                       | CbsdCategories.B RESULTS | CbsdCategories.A RESULTS |
+      | [A,B]                     | CbsdCategories.B RESULTS |                          |
+      | []                        | CbsdCategories.B RESULTS |                          |
+
   Scenario Template: The simulation area is configurable by the command line
     Given a category <cbsd_category> simulation distance of <category_a_radius> km
     When the main docker command is run

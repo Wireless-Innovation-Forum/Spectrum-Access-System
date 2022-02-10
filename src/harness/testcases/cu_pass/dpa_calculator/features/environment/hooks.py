@@ -10,6 +10,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     GainAtAzimuth, InterferenceComponents
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.common_steps.region_type import assign_arbitrary_dpa
 
 
@@ -59,6 +60,7 @@ def interference_contribution_eirps_before_scenario(context: ContextSas):
 def setup_monte_carlo_runner(context: ContextSas):
     context.cbsd_deployment_options = CbsdDeploymentOptions()
     context.include_ue_runs = False
+    context.neighborhood_categories = list(CbsdCategories)
 
 
 def total_interference_before_scenario(context: ContextSas):
