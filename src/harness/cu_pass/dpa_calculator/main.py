@@ -41,9 +41,13 @@ def init():
                             dest='s3_output_directory',
                             type=str,
                             help='S3 Object in which to upload output logs')
-        parser.add_argument('--include_ue_runs',
+        parser.add_argument('--include-ue-runs',
                             dest='include_ue_runs',
                             action='store_true',
+                            help='Run UE simulations in addition to AP simulations')
+        parser.add_argument('--neighborhood-category',
+                            dest='neighborhood_category',
+                            type=str,
                             help='Run UE simulations in addition to AP simulations')
         args = parser.parse_args()
 

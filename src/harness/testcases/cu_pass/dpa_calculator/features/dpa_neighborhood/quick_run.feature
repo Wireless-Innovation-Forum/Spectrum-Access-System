@@ -34,7 +34,7 @@ Feature: Quick Run
       | AP        | B             | 0                 | -160.19041297883996   |
 
   Scenario Template: The neighbohood category is configurable
-    Given neighborhood categories categories <neighborhood_categories>
+    Given neighborhood categories <neighborhood_categories>
     When the neighborhood radius is calculated
     Then the resulting category <cbsd_category> <cbsd_type> distance <expected_distance>
     And the resulting category <cbsd_category> <cbsd_type> interference <expected_interference>

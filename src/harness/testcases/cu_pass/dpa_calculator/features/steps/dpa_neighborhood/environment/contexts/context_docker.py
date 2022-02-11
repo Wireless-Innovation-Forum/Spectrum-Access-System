@@ -1,3 +1,6 @@
+from typing import List
+
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from testcases.cu_pass.dpa_calculator.features.environment.hooks import ContextSas
@@ -18,6 +21,7 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
     dpa: Dpa
     local_output_directory: str
     include_ue_runs: bool
+    neighborhood_categories: List[CbsdCategories]
     precreate_bucket: bool
     s3_bucket: str
     s3_output_directory: str
@@ -25,8 +29,9 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
 
 def set_docker_context_defaults(context: ContextDocker) -> None:
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
-    context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
     context.include_ue_runs = False
+    context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
+    context.neighborhood_categories = list(CbsdCategories)
     context.precreate_bucket = True
     context.number_of_iterations = ARBITRARY_NUMBER_OF_ITERATIONS
     context.simulation_area_radius = ARBITRARY_RADIUS_IN_KILOMETERS

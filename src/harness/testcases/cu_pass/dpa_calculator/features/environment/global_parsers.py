@@ -8,7 +8,7 @@ from cu_pass.dpa_calculator.utilities import Point
 
 
 def get_list_regex(item_regex: str) -> str:
-    return rf'\[({item_regex},? ?)+\]'
+    return rf'\[({item_regex},? ?)*\]'
 
 
 INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'

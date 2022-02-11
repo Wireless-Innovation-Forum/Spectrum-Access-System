@@ -36,17 +36,16 @@ Feature: Docker run
       | 2                     | Number of iterations: 2 |
 
   Scenario Template: The neighborhood category is configurable by the command line
-    Given neighborhood categories categories <neighborhood_categories>
-    When the neighborhood radius is calculated
-    Then <expected_log_portion> should be in the output log
-    Then <unexpected_log_portion> should not be in the output log
+    Given neighborhood categories <neighborhood_categories>
+    When the main docker command is run
+    Then the results <category_a_should> include category A results
+    And the results <category_b_should> include category B results
 
     Examples:
-      | <neighborhood_categories> | expected_log_portion     | unexpected_log_portion   |
-      | [A]                       | CbsdCategories.A RESULTS | CbsdCategories.B RESULTS |
-      | [B]                       | CbsdCategories.B RESULTS | CbsdCategories.A RESULTS |
-      | [A,B]                     | CbsdCategories.B RESULTS |                          |
-      | []                        | CbsdCategories.B RESULTS |                          |
+      | neighborhood_categories | category_a_should     | category_b_should   |
+      | [A]                     | should                | should not          |
+      | [B]                     | should not            | should              |
+      | []                      | should                | should              |
 
   Scenario Template: The simulation area is configurable by the command line
     Given a category <cbsd_category> simulation distance of <category_a_radius> km
@@ -75,11 +74,11 @@ Feature: Docker run
   Scenario: Running UEs can be enabled by the command line
     Given UE runs are included
     When the main docker command is run
-    Then the results include UE results
+    Then the results should include UE results
 
   Scenario: Running UEs is disabled by default when run by the command line
     When the main docker command is run
-    Then the results do not include UE results
+    Then the results should not include UE results
 
   Scenario: Logs are still written if exception is encountered
     Given an exception will be encountered during calculation

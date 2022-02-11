@@ -67,7 +67,8 @@ def _get_args(context: ContextDocker) -> List[str]:
     distance_category_b_arg = ['--category-b-radius', str(simulation_distances.get(CbsdCategories.B, 0))]
     s3_bucket_arg = ['--s3-bucket', context.s3_bucket]
     s3_output_arg = ['--s3-output-directory', context.s3_output_directory] if context.s3_output_directory else []
-    ue_runs_arg = ['--include_ue_runs'] if context.include_ue_runs else []
+    ue_runs_arg = ['--include-ue-runs'] if context.include_ue_runs else []
+    neighborhood_categories_arg = context.neighborhood_categories and ['--neighborhood-category', context.neighborhood_categories[0].value]
 
     return dpa_name_arg \
         + local_output_arg \
@@ -76,4 +77,5 @@ def _get_args(context: ContextDocker) -> List[str]:
         + distance_category_b_arg \
         + s3_bucket_arg \
         + s3_output_arg \
-        + ue_runs_arg
+        + ue_runs_arg \
+        + neighborhood_categories_arg

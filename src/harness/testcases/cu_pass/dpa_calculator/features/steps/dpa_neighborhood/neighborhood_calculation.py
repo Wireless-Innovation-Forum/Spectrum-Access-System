@@ -77,7 +77,7 @@ def step_impl(context: ContextNeighborhood):
     context.include_ue_runs = True
 
 
-@given("neighborhood categories categories {neighborhood_categories:CbsdCategoryList}")
+@given("neighborhood categories {neighborhood_categories:CbsdCategoryList}")
 def step_impl(context: ContextNeighborhood, neighborhood_categories: List[CbsdCategories]):
     context.neighborhood_categories = neighborhood_categories
 

@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import ContextManager, Optional
+from typing import ContextManager, List, Optional
 
 import boto3
 from cached_property import cached_property
@@ -23,11 +23,13 @@ class MainRunner:
                  simulation_distance_category_b: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.B],
                  local_output_directory: Optional[str] = None,
                  include_ue_runs: bool = False,
+                 neighborhood_category: Optional[str] = None,
                  s3_bucket: Optional[str] = None,
                  s3_output_directory: Optional[str] = None):
         self._dpa_name = dpa_name
         self._local_output_directory = local_output_directory
         self._include_ue_runs = include_ue_runs
+        self._neighborhood_category = neighborhood_category
         self._number_of_iterations = number_of_iterations
         self._simulation_distances_in_kilometers = {
             CbsdCategories.A: simulation_distance_category_a,
@@ -71,7 +73,14 @@ class MainRunner:
             dpa=dpa,
             cbsd_deployment_options=cbsd_deployment_options,
             include_ue_runs=self._include_ue_runs,
-            number_of_iterations=self._number_of_iterations).simulate()
+            number_of_iterations=self._number_of_iterations,
+            neighborhood_categories=self._neighborhood_categories).simulate()
+
+    @property
+    def _neighborhood_categories(self) -> List[CbsdCategories]:
+        if self._neighborhood_category:
+            return [CbsdCategories[self._neighborhood_category]]
+        return list(CbsdCategories)
 
     def _record_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         self._results_recorder.record(results=results)
