@@ -26,12 +26,14 @@ CbsdTypes.AP iteration 1
 	CbsdCategories.A NEIGHBORHOOD RESULTS:
 		Input: 0
 		Value: 0
-		Expected Interference: -1000
+		Threshold used: -176 dBm
+		Expected interference: -1000 dBm
 
 	CbsdCategories.B NEIGHBORHOOD RESULTS:
 		Input: 0
 		Value: 0
-		Expected Interference: -1000
+		Threshold used: -176 dBm
+		Expected interference: -1000 dBm
 
 
 Final results:
