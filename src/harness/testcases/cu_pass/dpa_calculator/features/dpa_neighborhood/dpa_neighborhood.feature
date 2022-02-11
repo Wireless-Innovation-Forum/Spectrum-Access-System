@@ -73,5 +73,5 @@ Feature: DPA Neighborhood
 
     Examples:
       | dpa_name   | category_a_radius | category_b_radius | number_of_iterations | expected_distance_category_a | expected_distance_category_b | expected_interference_category_a | expected_interference_category_b |
-      | McKinney   | 160               | 400               | 1                    | 96                           | 240                          | -155.1856804388858               | -155.44184010283712              |
+      | McKinney   | 160               | 400               | 1                    | 96                           | 368                          | -148.48543969282468               | -146.95724607225708              |
 #      | Moorestown | 160               | 400               | 1                    | 96                           | 240                          | -155.1856804388858               | -155.44184010283712              |

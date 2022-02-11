@@ -18,7 +18,7 @@ class NeighborhoodInterferenceMatrixCalculator:
                self._neighborhood_grant_indexes_sorted_by_interference, \
                self._neighborhood_bearings
 
-    @property
+    @cached_property
     def _neighborhood_interference_matrix(self) -> numpy.ndarray:
         return numpy.asarray(self._neighborhood_grant_interferences).transpose()
 
