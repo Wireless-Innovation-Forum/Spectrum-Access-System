@@ -27,6 +27,7 @@ class ContextNeighborhood(ContextDpa, ContextMonteCarloIterations):
     aggregate_interference_calculator_type: AggregateInterferenceTypes
     cbsd_deployment_options: CbsdDeploymentOptions
     include_ue_runs: bool
+    interference_threshold: int
     neighborhood_categories: List[CbsdCategories]
     number_of_iterations: int
     result: AggregateInterferenceMonteCarloResults
@@ -82,6 +83,11 @@ def step_impl(context: ContextNeighborhood, neighborhood_categories: List[CbsdCa
     context.neighborhood_categories = neighborhood_categories
 
 
+@given("interference threshold {interference_threshold:Integer} dBm")
+def step_impl(context: ContextNeighborhood, interference_threshold: int):
+    context.interference_threshold = interference_threshold
+
+
 @when("the neighborhood radius is calculated")
 def step_impl(context: ContextNeighborhood):
     """
@@ -98,7 +104,8 @@ def step_impl(context: ContextNeighborhood):
         number_of_iterations=getattr(context, 'number_of_iterations', 1),
         cbsd_deployment_options=context.cbsd_deployment_options,
         include_ue_runs=context.include_ue_runs,
-        neighborhood_categories=context.neighborhood_categories
+        neighborhood_categories=context.neighborhood_categories,
+        interference_threshold=context.interference_threshold,
     ).simulate()
     simulation_results.log()
     context.result = simulation_results
@@ -146,6 +153,17 @@ def step_impl(context: ContextNeighborhood):
 @then("the output log should be")
 def step_impl(context: ContextNeighborhood):
     expected_content = get_expected_output_content(context=context)
+    output_content = _get_local_log_content()
+    assert output_content == expected_content
+
+
+@then("the local output log should contain \"{expected_log_portion}\"")
+def step_impl(context: ContextNeighborhood, expected_log_portion: str):
+    output_content = _get_local_log_content()
+    assert expected_log_portion in output_content
+
+
+def _get_local_log_content() -> str:
     output_log_filepath = get_logging_file_handler().baseFilename
     output_content = sanitize_output_log(log_filepath=output_log_filepath)
-    assert output_content == expected_content
+    return output_content

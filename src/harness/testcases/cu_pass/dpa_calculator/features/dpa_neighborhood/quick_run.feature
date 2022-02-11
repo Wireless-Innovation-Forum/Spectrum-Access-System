@@ -31,7 +31,7 @@ Feature: Quick Run
       | AP        | A             | 0                 | -223.46822566634117   |
       | AP        | B             | 0                 | -147.6771136871935   |
 
-  Scenario Template: The neighbohood category is configurable
+  Scenario Template: The neighborhood category is configurable
     Given neighborhood categories <neighborhood_categories>
     When the neighborhood radius is calculated
     Then the resulting category <cbsd_category> <cbsd_type> distance <expected_distance>
@@ -45,3 +45,13 @@ Feature: Quick Run
       | [B]                     | AP        | B             | should be 0       | should be -147.6771136871935  |
       | [A,B]                   | AP        | A             | should be 0       | should be -223.46822566634117 |
       | [A,B]                   | AP        | B             | should be 0       | should be -147.6771136871935  |
+
+  Scenario Template: The interference threshold is configurable
+    Given interference threshold <interference_threshold> dBm
+    When the neighborhood radius is calculated
+    Then the local output log should contain "<expected_log_portion>"
+    And the resulting category <cbsd_category> <cbsd_type> interference should be <expected_interference>
+
+    Examples:
+      | interference_threshold | expected_log_portion     | cbsd_category | cbsd_type | expected_interference |
+      | -130                   | Threshold used: -129 dBm | A             | AP        | -141.48616716614754   |

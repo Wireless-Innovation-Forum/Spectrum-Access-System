@@ -87,10 +87,12 @@ class AggregateInterferenceMonteCarloCalculator:
                  aggregate_interference_calculator_type: AggregateInterferenceTypes = DEFAULT_AGGREGATE_INTERFERENCE_TYPE,
                  cbsd_deployment_options: CbsdDeploymentOptions = CbsdDeploymentOptions(),
                  include_ue_runs: bool = False,
-                 neighborhood_categories: List[CbsdCategories] = None):
+                 neighborhood_categories: List[CbsdCategories] = None,
+                 interference_threshold: int = None):
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
+        self._dpa.threshold = interference_threshold or self._dpa.threshold
         self._include_ue_runs = include_ue_runs
         self._neighborhood_categories = neighborhood_categories
         self._number_of_iterations = number_of_iterations
