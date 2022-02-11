@@ -14,6 +14,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.interference_at_azimuth_with_maximum_gain_calculator import \
     InterferenceAtAzimuthWithMaximumGainCalculator
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 
 
 @dataclass
@@ -23,10 +24,13 @@ class InterferenceWithDistance:
 
 
 class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
-    def calculate(self, minimum_distance: float = 0) -> float:
-        total_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=minimum_distance,
+    def calculate(self, distance: float = 0) -> float:
+        total_interference = InterferenceAtAzimuthWithMaximumGainCalculator(minimum_distance=distance,
                                                                             interference_components=self.interference_components).calculate()
         return total_interference
+
+    def get_expected_interference(self, distance: float) -> float:
+        return self.calculate(distance=distance)
 
     @cached_property
     def interference_components(self) -> List[InterferenceComponents]:
@@ -36,7 +40,8 @@ class AggregateInterferenceCalculatorNtia(AggregateInterferenceCalculator):
         return interference_components
 
     def _get_interference_contribution(self, cbsd: Cbsd, index: int) -> InterferenceComponents:
-        logging.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\tCBSD {index + 1} / {len(self._cbsds)}')
         cbsd_interference_calculator = CbsdInterferenceCalculator(cbsd=cbsd, dpa=self._dpa)
         return cbsd_interference_calculator.calculate()
 

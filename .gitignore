@@ -4,3 +4,9 @@
 
 /venv/
 /.env
+/src/harness/cu_pass/dpa_calculator/aws_push.sh
+.pytest_cache/
+
+/src/harness/cu_pass/dpa_calculator/scripts/
+/src/harness/reference_models/propagation/ehata/build/
+/src/harness/reference_models/propagation/itm/build/

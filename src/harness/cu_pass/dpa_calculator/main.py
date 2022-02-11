@@ -1,7 +1,9 @@
 import argparse
 
-from cu_pass.dpa_calculator.main_runner.main_runner import DEFAULT_NUMBER_OF_ITERATIONS, \
-    DEFAULT_SIMULATION_AREA_IN_KILOMETERS, MainRunner
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
+    SIMULATION_DISTANCES_DEFAULT
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.main_runner.main_runner import DEFAULT_NUMBER_OF_ITERATIONS, MainRunner
 
 
 def init():
@@ -21,10 +23,15 @@ def init():
                             dest='local_output_directory',
                             type=str,
                             help='The filepath in which a local copy of the logs will be written')
-        parser.add_argument('--radius',
-                            dest='simulation_area_radius_in_kilometers',
+        parser.add_argument('--category-a-radius',
+                            dest='simulation_distance_category_a',
                             type=int,
-                            default=DEFAULT_SIMULATION_AREA_IN_KILOMETERS,
+                            default=SIMULATION_DISTANCES_DEFAULT[CbsdCategories.A],
+                            help='The radius of the simulation area')
+        parser.add_argument('--category-b-radius',
+                            dest='simulation_distance_category_b',
+                            type=int,
+                            default=SIMULATION_DISTANCES_DEFAULT[CbsdCategories.B],
                             help='The radius of the simulation area')
         parser.add_argument('--s3-bucket',
                             dest='s3_bucket',
@@ -34,6 +41,20 @@ def init():
                             dest='s3_output_directory',
                             type=str,
                             help='S3 Object in which to upload output logs')
+        parser.add_argument('--include-ue-runs',
+                            dest='include_ue_runs',
+                            action='store_true',
+                            help='Run UE simulations in addition to AP simulations')
+        parser.add_argument('--neighborhood-category',
+                            dest='neighborhood_category',
+                            type=str,
+                            help='Set a specific neighborhood distance to calculate. Options include "A" or "B". '
+                                 'If not specified, both will be calculated.')
+        parser.add_argument('--interference-threshold',
+                            dest='interference_threshold',
+                            type=int,
+                            help='Set the interference threshold for the DPA. '
+                                 'If unspecified, current definitions for the DPA will be used.')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()

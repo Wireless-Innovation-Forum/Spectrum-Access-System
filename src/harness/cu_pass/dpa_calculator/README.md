@@ -60,6 +60,9 @@ docker run \
          ```
       
 3. SSH into the instance
+   ```shell
+   ssh -i <ssh_key_path> ec2-user@<instance_ip_address>
+   ```
 4. [Install](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html) Docker
    ```shell
    sudo yum update -y
@@ -71,7 +74,7 @@ docker run \
 5. Disconnect and SSH back into the instance
 6. Setup AWS config
    ```shell
-    aws config
+    aws configure
     ```
 7. Set overcommit mode
    1.  Command

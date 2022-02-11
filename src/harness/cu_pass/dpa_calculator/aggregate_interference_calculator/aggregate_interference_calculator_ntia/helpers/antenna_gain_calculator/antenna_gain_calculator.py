@@ -38,7 +38,3 @@ class AntennaGainCalculator(ABC):
     @property
     def _azimuths(self) -> List[float]:
         return findAzimuthRange(self._dpa.azimuth_range[0], self._dpa.azimuth_range[1], self._dpa.beamwidth)
-
-    @property
-    def _dpa_center(self) -> Point:
-        return get_dpa_center(dpa=self._dpa)

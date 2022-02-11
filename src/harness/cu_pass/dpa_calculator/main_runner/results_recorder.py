@@ -8,8 +8,9 @@ from uuid import uuid4
 import boto3
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator import \
+from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.aggregate_interference_monte_carlo_calculator import \
     AggregateInterferenceMonteCarloResults
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 
 LOG_EXTENSION = '.log'
 LOG_PREFIX = 'log_tmp'
@@ -29,8 +30,10 @@ class ResultsRecorder:
         self._log_filename = 'log.log'
         self._result_filename = 'result.json'
 
+        self._runtime = datetime.now()
+
     def setup_logging_handler(self) -> None:
-        logging.root.addHandler(self._file_handler)
+        self._logger.addHandler(self._file_handler)
 
     @contextmanager
     def prepare_for_recording(self) -> None:
@@ -43,14 +46,18 @@ class ResultsRecorder:
 
     def _cleanup_file_handler(self) -> None:
         self._file_handler.close()
-        logging.root.removeHandler(self._file_handler)
+        self._logger.removeHandler(self._file_handler)
 
     @cached_property
     def _file_handler(self) -> logging.FileHandler:
         file_handler = logging.FileHandler(filename=str(self._output_log_filepath))
         file_handler.setLevel(logging.INFO)
-        logging.root.setLevel(logging.INFO)
+        self._logger.setLevel(logging.INFO)
         return file_handler
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return get_dpa_calculator_logger()
 
     def _upload_output_log_to_s3(self) -> None:
         if self._s3_object_log:
@@ -78,7 +85,7 @@ class ResultsRecorder:
         if not output_should_persist_locally:
             self._output_log_filepath.unlink()
 
-    def record(self, results: AggregateInterferenceMonteCarloResults,) -> None:
+    def record(self, results: AggregateInterferenceMonteCarloResults) -> None:
         try:
             self._write_local_results(results=results)
             if self._s3_object_result:
@@ -86,7 +93,7 @@ class ResultsRecorder:
         finally:
             self._clean_local_results()
 
-    def _write_local_results(self, results: AggregateInterferenceMonteCarloResults,) -> None:
+    def _write_local_results(self, results: AggregateInterferenceMonteCarloResults) -> None:
         with open(self._results_filepath, 'w') as f:
             f.write(results.to_json())
 
@@ -110,10 +117,6 @@ class ResultsRecorder:
     @property
     def _s3_output_directory_with_runtime(self) -> Optional[Path]:
         return self._s3_output_directory and self._append_runtime_to_directory(directory=self._s3_output_directory)
-
-    @cached_property
-    def _runtime(self) -> datetime:
-        return datetime.now()
 
     def _upload_file_to_s3(self, filepath: Path, s3_object_name: str) -> None:
         self._s3_client.upload_file(str(filepath), self._s3_bucket, s3_object_name)

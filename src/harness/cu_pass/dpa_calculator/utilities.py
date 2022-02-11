@@ -7,7 +7,8 @@ import numpy
 from numpy import asarray
 from shapely import geometry
 
-from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
+from cu_pass.dpa_calculator.constants import DPA_CALCULATOR_LOGGER_NAME, REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, \
+    REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
 from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.geo.drive import nlcd_driver
 from reference_models.geo.nlcd import LandCoverCodes
@@ -78,29 +79,31 @@ class SimulationStatistics:
     title: str
 
     def log(self) -> None:
-        logging.info(f'\nResults for {self.title}:')
-        logging.info(f'\t50th percentile: {self.percentile_50}')
-        logging.info(f'\t95th percentile: {self.percentile_95}')
-        logging.info(f'\tStandard Deviation: {self.standard_deviation}')
-        logging.info(f'\tMinimum: {self.minimum}')
-        logging.info(f'\tMaximum: {self.maximum}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\nResults for {self.title}:')
+        logger.info(f'\t50th percentile: {self.percentile_50}')
+        logger.info(f'\t95th percentile: {self.percentile_95}')
+        logger.info(f'\tStandard Deviation: {self.standard_deviation}')
+        logger.info(f'\tMinimum: {self.minimum}')
+        logger.info(f'\tMaximum: {self.maximum}')
 
 
 def run_monte_carlo_simulation(functions_to_run: List[Callable[[], float]], number_of_iterations: int, percentile: int = 50) -> List[float]:
     results = []
     for i in range(number_of_iterations):
-        logging.info(f'Monte Carlo iteration {i + 1}')
+        logger = get_dpa_calculator_logger()
+        logger.info(f'Monte Carlo iteration {i + 1}')
         iteration_results = [function_to_run() for function_to_run in functions_to_run]
         results.append(iteration_results)
     results_per_function = asarray(results).transpose()
     _log_results(results=results_per_function)
-    return [_get_percentile(results=iteration_results, percentile=percentile) for iteration_results in results_per_function]
+    return [get_percentile(results=iteration_results, percentile=percentile) for iteration_results in results_per_function]
 
 
 def _log_results(results: numpy.ndarray) -> None:
     simulation_statistics = [SimulationStatistics(
-        percentile_50=_get_percentile(results=iteration_results, percentile=50),
-        percentile_95=_get_percentile(results=iteration_results, percentile=95),
+        percentile_50=get_percentile(results=iteration_results, percentile=50),
+        percentile_95=get_percentile(results=iteration_results, percentile=95),
         maximum=max(iteration_results),
         minimum=min(iteration_results),
         standard_deviation=stdev(iteration_results) if len(iteration_results) > 1 else 0,
@@ -111,5 +114,9 @@ def _log_results(results: numpy.ndarray) -> None:
         statistics.log()
 
 
-def _get_percentile(results: List[float], percentile: int) -> float:
+def get_percentile(results: List[float], percentile: int) -> float:
     return numpy.percentile(results, percentile, interpolation='lower')
+
+
+def get_dpa_calculator_logger() -> logging.Logger:
+    return logging.getLogger(DPA_CALCULATOR_LOGGER_NAME)

@@ -1,15 +1,23 @@
+from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd
-from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, Point
+
+
+class KmlColor(Enum):
+    RED = 'http://www.google.com/intl/en_us/mapfiles/ms/icons/red-dot.png'
+    BLUE = 'http://www.google.com/intl/en_us/mapfiles/ms/icons/blue-dot.png'
+    WHITE = 'http://maps.google.com/mapfiles/kml/paddle/wht-blank.png'
 
 
 class KmlWriter:
-    def __init__(self, cbsds: List[Cbsd], output_filepath: Path, distance_to_exclude: int = 0, dpa_center: Optional[Point] = None):
+    def __init__(self,
+                 cbsds: List[Cbsd],
+                 output_filepath: Path,
+                 color: KmlColor = KmlColor.BLUE):
         self._cbsds = cbsds
-        self._distance_to_exclude = distance_to_exclude
-        self._dpa_center = dpa_center
+        self._color = color
         self._output_filepath = output_filepath
 
     def write(self) -> None:
@@ -20,19 +28,33 @@ class KmlWriter:
 
     @property
     def _header(self) -> str:
-        return '''
+        return f'''
             <?xml version="1.0" encoding="UTF-8"?>
                 <kml xmlns="http://www.opengis.net/kml/2.2">
-                    <Folder>
+                    <Document>
                         <name>KML Output</name>
-                            <visibility>1</visibility>
+                        {self._color_list}
         '''
+
+    @property
+    def _color_list(self) -> str:
+        return '\n'.join([self._placemark_color(color=color) for color in KmlColor])
+
+    def _placemark_color(self, color: KmlColor) -> str:
+        return f'''
+        <Style id="{color.name}">
+            <IconStyle>
+                <Icon>
+                    <href>{color.value}</href>
+                </Icon>
+            </IconStyle>
+        </Style>'''
 
     @property
     def _placemarks(self) -> str:
         coordinates = (f'''
             <Placemark>
-                {self._placemark_color(cbsd=cbsd)}
+                <styleUrl>#{self._color.name}</styleUrl>
                 <Point>
                     <coordinates>{cbsd.location.longitude},{cbsd.location.latitude}</coordinates>
                 </Point>
@@ -40,22 +62,9 @@ class KmlWriter:
         ''' for cbsd in self._cbsds)
         return ''.join(coordinates)
 
-    def _placemark_color(self, cbsd: Cbsd) -> str:
-        distance = get_distance_between_two_points(point1=self._dpa_center, point2=cbsd.location)
-        return '''
-        <Style>
-            <IconStyle>
-                <scale>1</scale>
-                <color>ff0000ff</color>
-                <Icon>
-                    <href>http://maps.google.com/mapfiles/kml/paddle/wht-blank.png</href>
-                </Icon>
-            </IconStyle>
-        </Style>''' if distance <= self._distance_to_exclude else ''
-
     @property
     def _footer(self) -> str:
         return '''
-            </Folder>
+            </Document>
                 </kml>
         '''

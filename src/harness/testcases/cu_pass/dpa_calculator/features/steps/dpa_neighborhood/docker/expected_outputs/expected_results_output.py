@@ -1,0 +1,1 @@
+EXPECTED_RESULTS_OUTPUT = '{"distance": {"CbsdTypes.AP": {"CbsdCategories.A": 0, "CbsdCategories.B": 0}}, "interference": {"CbsdTypes.AP": {"CbsdCategories.A": -1000.0, "CbsdCategories.B": -1000.0}}, "runtime": null}'

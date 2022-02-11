@@ -34,6 +34,9 @@ class PopulationRetrieverCensus(PopulationRetriever):
     _resolution_in_arcseconds = POPULATION_RESOLUTION_IN_ARCSECONDS
 
     def retrieve(self) -> int:
+        if not self._area.radius_in_kilometers:
+            return 0
+
         popper = UsgsPopDriver(pop_directory=POPULATION_DIRECTORY_CENSUS, lazy_load=True)
         lats, lons, _ = ComputeSensorNeighborhood(latitude=self._area.center_coordinates.latitude,
                                                   longitude=self._area.center_coordinates.longitude,

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from math import isclose
 from typing import Any, List, TypeVar
 
 RETURN_TYPE = TypeVar('RETURN_TYPE')
@@ -7,9 +8,21 @@ RETURN_TYPE = TypeVar('RETURN_TYPE')
 
 @dataclass
 class FractionalDistribution:
+    fraction: float
     range_maximum: float
     range_minimum: float
-    fraction: float
+
+    def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+        data_within_range = [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
+        fraction_within_range = len(data_within_range) / len(data)
+        lowest = min(data_within_range)
+        highest = max(data_within_range)
+        if self.range_minimum != self.range_maximum:
+            assert len(set(data_within_range)) != 1, 'Data is not dispersed within range'
+        assert lowest >= self.range_minimum, f'{lowest} < {self.range_minimum}'
+        assert highest <= self.range_maximum, f'{highest} > {self.range_maximum}'
+        assert isclose(fraction_within_range, self.fraction, abs_tol=leeway_fraction), \
+            f'Range: {self.range_minimum}-{self.range_maximum}, Percentage: {fraction_within_range} != {self.fraction}'
 
 
 class ListDistributor(ABC):
