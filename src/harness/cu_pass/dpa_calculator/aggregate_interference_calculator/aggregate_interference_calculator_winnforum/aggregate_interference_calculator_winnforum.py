@@ -10,7 +10,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.maximum_move_list_distance_calculator import \
     MaximumMoveListDistanceCalculator
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
-from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, get_dpa_center, Point
+from cu_pass.dpa_calculator.utilities import get_distance_between_two_points, get_dpa_calculator_logger, get_dpa_center, \
+    Point
 from reference_models.common import mpool
 from reference_models.common.data import CbsdGrantInfo, ProtectedEntityType, ProtectionConstraint
 from reference_models.dpa.dpa_mgr import Dpa
@@ -30,6 +31,8 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
     def get_expected_interference(self, distance: float, cbsd_category: CbsdCategories) -> float:
         maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance,
                                                                                       cbsd_category=cbsd_category)
+        logger = get_dpa_calculator_logger()
+        logger.info(f'\t\tThreshold used: {maximum_move_distance_calculator.interference_threshold} dBm')
         return maximum_move_distance_calculator.get_expected_interference()
 
     def _get_maximum_move_distance_calculator(self,

@@ -8,8 +8,8 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     MOVE_LIST_DISTANCES_TYPE, MoveListDistanceCalculator
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.neighborhood_interference_matrix_calculator import \
     INTERFERENCE_MATRIX_INFO_TYPE, NeighborhoodInterferenceMatrixCalculator
+from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from reference_models.common.data import CbsdGrantInfo
-from reference_models.dpa.dpa_mgr import Dpa
 from reference_models.dpa.move_list import find_nc, MINIMUM_INTERFERENCE_WINNFORUM
 
 THRESHOLD_MARGIN = 1
@@ -61,7 +61,7 @@ class MaximumMoveListDistanceCalculator:
         cutoff_index, interference = find_nc(
             I=self._neighborhood_interference_matrix,
             bearings=self._neighborhood_grant_bearings,
-            t=self._dpa.threshold + THRESHOLD_MARGIN,
+            t=self.interference_threshold,
             beamwidth=self._dpa.beamwidth,
             min_azimuth=self._dpa.azimuth_range[0],
             max_azimuth=self._dpa.azimuth_range[1]
@@ -96,3 +96,7 @@ class MaximumMoveListDistanceCalculator:
     @cached_property
     def _neighbor_grant_indexes(self) -> List[int]:
         return self._neighbor_grants_info[1]
+
+    @property
+    def interference_threshold(self) -> int:
+        return self._dpa.threshold + THRESHOLD_MARGIN

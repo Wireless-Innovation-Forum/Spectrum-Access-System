@@ -7,7 +7,7 @@ from enum import auto, Enum
 from functools import partial
 from json import JSONEncoder
 from math import inf
-from typing import Any, Callable, Dict, List, Type
+from typing import Any, Dict, List, Type
 
 import numpy
 import numpy as np
@@ -181,7 +181,7 @@ class AggregateInterferenceMonteCarloCalculator:
         self._log_expected_interference(expected_interference=expected_interference)
 
     def _log_expected_interference(self, expected_interference: float):
-        self._logger.info(f'\t\tExpected Interference: {expected_interference}')
+        self._logger.info(f'\t\tExpected interference: {expected_interference} dBm')
         self._logger.info('')
 
     @property

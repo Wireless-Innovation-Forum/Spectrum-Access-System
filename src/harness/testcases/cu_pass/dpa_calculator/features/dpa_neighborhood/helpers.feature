@@ -106,12 +106,14 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -182.5981322803591
+              Threshold used: -143.0 dBm
+              Expected interference: -182.5981322803591 dBm
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -147.6771136871935
+              Threshold used: -143.0 dBm
+              Expected interference: -147.6771136871935 dBm
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -133,12 +135,14 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -183.9999980738354
+              Threshold used: -143.0 dBm
+              Expected interference: -183.9999980738354 dBm
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 16
               Value: 7.642569984702351
-              Expected Interference: -158.67737454199508
+              Threshold used: -143.0 dBm
+              Expected interference: -158.67737454199508 dBm
 
       CbsdTypes.AP iteration 2
           CBSD Deployment:
@@ -161,12 +165,14 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -171.9663902447217
+              Threshold used: -143.0 dBm
+              Expected interference: -171.9663902447217 dBm
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -179.54210835113147
+              Threshold used: -143.0 dBm
+              Expected interference: -179.54210835113147 dBm
 
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
@@ -188,12 +194,14 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -197.59467015610002
+              Threshold used: -143.0 dBm
+              Expected interference: -197.59467015610002 dBm
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -202.76920822158186
+              Threshold used: -143.0 dBm
+              Expected interference: -202.76920822158186 dBm
 
 
       Final results:
