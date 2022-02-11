@@ -5,8 +5,6 @@ Feature: Quick Run
     And 1 category B UEs
     And 2 monte carlo iterations
 
-
-
   Scenario Template: A quick run is performed with UEs
     Given UE runs are included
     When the neighborhood radius is calculated
@@ -15,10 +13,10 @@ Feature: Quick Run
 
     Examples:
       | cbsd_type | cbsd_category | expected_distance | expected_interference |
-      | AP        | A             | 0                 | -157.09596620840563   |
-      | AP        | B             | 0                 | -160.1922893328677   |
-      | UE        | A             | 0                 | -195.09115850222102   |
-      | UE        | B             | 0                 | -170.44050654358452    |
+      | AP        | A             | 0                 | -147.09596620840563   |
+      | AP        | B             | 0                 | -150.1922893328677    |
+      | UE        | A             | 0                 | -185.09115850222096   |
+      | UE        | B             | 0                 | -160.44050654358455   |
 
 
   Scenario Template: A quick run is performed without UEs
@@ -30,8 +28,8 @@ Feature: Quick Run
 
     Examples:
       | cbsd_type | cbsd_category | expected_distance | expected_interference |
-      | AP        | A             | 0                 | -151.48616716614754   |
-      | AP        | B             | 0                 | -160.19041297883996   |
+      | AP        | A             | 0                 | -223.46822566634117   |
+      | AP        | B             | 0                 | -147.6771136871935   |
 
   Scenario Template: The neighbohood category is configurable
     Given neighborhood categories <neighborhood_categories>

@@ -106,12 +106,39 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -192.5981322803591
+              Expected Interference: -182.5981322803591
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -157.6771136871935
+              Expected Interference: -147.6771136871935
+
+          CBSD Deployment:
+              CBSD Type: CbsdTypes.UE
+              Simulation area radius, category A: 250 kilometers
+              Simulation area radius, category B: 500 kilometers
+              CBSD Category: CbsdCategories.A
+                  Population: 50.0
+                  Number of UEs: 2
+                  Number of UEs per AP: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+              CBSD Category: CbsdCategories.B
+                  Population: 50.0
+                  Number of UEs: 2
+                  Number of UEs per AP: 2
+                  Population retriever: PopulationRetrieverCensus
+                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+
+          CbsdCategories.A NEIGHBORHOOD RESULTS:
+              Input: 0
+              Value: 0
+              Expected Interference: -183.9999980738354
+
+          CbsdCategories.B NEIGHBORHOOD RESULTS:
+              Input: 16
+              Value: 7.642569984702351
+              Expected Interference: -158.67737454199508
 
       CbsdTypes.AP iteration 2
           CBSD Deployment:
@@ -134,42 +161,13 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -149.32237952855746
+              Expected Interference: -171.9663902447217
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -207.94309952012264
+              Expected Interference: -179.54210835113147
 
-      CbsdTypes.UE iteration 1
-          CBSD Deployment:
-              CBSD Type: CbsdTypes.UE
-              Simulation area radius, category A: 250 kilometers
-              Simulation area radius, category B: 500 kilometers
-              CBSD Category: CbsdCategories.A
-                  Population: 50.0
-                  Number of UEs: 2
-                  Number of UEs per AP: 2
-                  Population retriever: PopulationRetrieverCensus
-                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-              CBSD Category: CbsdCategories.B
-                  Population: 50.0
-                  Number of UEs: 2
-                  Number of UEs per AP: 2
-                  Population retriever: PopulationRetrieverCensus
-                  Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
-          CbsdCategories.A NEIGHBORHOOD RESULTS:
-              Input: 16
-              Value: 3.821284992351136
-              Expected Interference: -185.59859294578257
-
-          CbsdCategories.B NEIGHBORHOOD RESULTS:
-              Input: 0
-              Value: 0
-              Expected Interference: -200.02114026253597
-
-      CbsdTypes.UE iteration 2
           CBSD Deployment:
               CBSD Type: CbsdTypes.UE
               Simulation area radius, category A: 250 kilometers
@@ -190,16 +188,16 @@ Feature: DPA Neighborhood helpers
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -207.59467015610002
+              Expected Interference: -197.59467015610002
 
           CbsdCategories.B NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
-              Expected Interference: -212.76920822158186
+              Expected Interference: -202.76920822158186
 
 
       Final results:
           Distance: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: 0, <CbsdCategories.B: 'B'>: 0}, <CbsdTypes.UE: 'UE'>: {<CbsdCategories.A: 'A'>: 0, <CbsdCategories.B: 'B'>: 0}}
-          Interference: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: -151.48616716614754, <CbsdCategories.B: 'B'>: -160.19041297883996}, <CbsdTypes.UE: 'UE'>: {<CbsdCategories.A: 'A'>: -207.59467015610002, <CbsdCategories.B: 'B'>: -200.65854366048825}}
+          Interference: {<CbsdTypes.AP: 'AP'>: {<CbsdCategories.A: 'A'>: -172.49797734650357, <CbsdCategories.B: 'B'>: -149.2703634203904}, <CbsdTypes.UE: 'UE'>: {<CbsdCategories.A: 'A'>: -184.67973167794864, <CbsdCategories.B: 'B'>: -202.76920822158186}}
 
       """

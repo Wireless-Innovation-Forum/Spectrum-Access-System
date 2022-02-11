@@ -31,7 +31,7 @@ def set_docker_context_defaults(context: ContextDocker) -> None:
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
     context.include_ue_runs = False
     context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
-    context.neighborhood_categories = list(CbsdCategories)
+    context.neighborhood_categories = []
     context.precreate_bucket = True
     context.number_of_iterations = ARBITRARY_NUMBER_OF_ITERATIONS
     context.simulation_area_radius = ARBITRARY_RADIUS_IN_KILOMETERS
