@@ -21,6 +21,7 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
     dpa: Dpa
     local_output_directory: str
     include_ue_runs: bool
+    interference_threshold: int
     neighborhood_categories: List[CbsdCategories]
     precreate_bucket: bool
     s3_bucket: str
@@ -31,6 +32,7 @@ def set_docker_context_defaults(context: ContextDocker) -> None:
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
     context.include_ue_runs = False
     context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
+    context.interference_threshold = None
     context.neighborhood_categories = []
     context.precreate_bucket = True
     context.number_of_iterations = ARBITRARY_NUMBER_OF_ITERATIONS

@@ -55,3 +55,4 @@ Feature: Quick Run
     Examples:
       | interference_threshold | expected_log_portion     | cbsd_category | cbsd_type | expected_interference |
       | -130                   | Threshold used: -129 dBm | A             | AP        | -141.48616716614754   |
+      | 0                      | Threshold used: 1 dBm    | A             | AP        | -141.48616716614754   |

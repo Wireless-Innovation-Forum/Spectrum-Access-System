@@ -48,7 +48,13 @@ def init():
         parser.add_argument('--neighborhood-category',
                             dest='neighborhood_category',
                             type=str,
-                            help='Run UE simulations in addition to AP simulations')
+                            help='Set a specific neighborhood distance to calculate. Options include "A" or "B". '
+                                 'If not specified, both will be calculated.')
+        parser.add_argument('--interference-threshold',
+                            dest='interference_threshold',
+                            type=int,
+                            help='Set the interference threshold for the DPA. '
+                                 'If unspecified, current definitions for the DPA will be used.')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()

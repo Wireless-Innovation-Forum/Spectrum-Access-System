@@ -18,7 +18,7 @@ Feature: Docker run
   Scenario Template: DPA name is configurable by the command line
     Given DPA name <dpa_name>
     When the main docker command is run
-    Then <expected_log_portion> should be in the output log
+    Then "<expected_log_portion>" should be in the output log
 
     Examples:
       | dpa_name  | expected_log_portion |
@@ -28,7 +28,7 @@ Feature: Docker run
   Scenario Template: The number of iterations is configurable by the command line
     Given <number_of_iterations> monte carlo iterations
     When the main docker command is run
-    Then <expected_log_portion> should be in the output log
+    Then "<expected_log_portion>" should be in the output log
 
     Examples:
       | number_of_iterations  | expected_log_portion    |
@@ -50,7 +50,7 @@ Feature: Docker run
   Scenario Template: The simulation area is configurable by the command line
     Given a category <cbsd_category> simulation distance of <category_a_radius> km
     When the main docker command is run
-    Then <expected_log_portion> should be in the output log
+    Then "<expected_log_portion>" should be in the output log
 
     Examples:
       | cbsd_category | category_a_radius | expected_log_portion                 |
@@ -62,7 +62,7 @@ Feature: Docker run
   Scenario Template: The number of category B UEs per AP is configurable by the command line
     Given <number_of_ues_per_ap> UEs per category <cbsd_category> AP
     When the main docker command is run
-    Then <expected_log_portion> should be in the output log
+    Then "<expected_log_portion>" should be in the output log
 
     Examples:
       | number_of_ues_per_ap | cbsd_category | expected_log_portion                                                |
@@ -70,6 +70,15 @@ Feature: Docker run
       | 3                    | A             | CBSD Category: CbsdCategories.A\n.*\n.*\n\s+Number of UEs per AP: 3 |
       | 2                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 2 |
       | 3                    | B             | CBSD Category: CbsdCategories.B\n.*\n.*\n\s+Number of UEs per AP: 3 |
+
+  Scenario: The interference threshold is configurable by the command line
+    Given interference threshold -131 dBm
+    When the main docker command is run
+    Then "Threshold used: -130 dBm" should be in the output log
+
+  Scenario: The DPA defined interference threshold is used as a default
+    When the main docker command is run
+    Then "Threshold used: -176 dBm" should be in the output log
 
   Scenario: Running UEs can be enabled by the command line
     Given UE runs are included

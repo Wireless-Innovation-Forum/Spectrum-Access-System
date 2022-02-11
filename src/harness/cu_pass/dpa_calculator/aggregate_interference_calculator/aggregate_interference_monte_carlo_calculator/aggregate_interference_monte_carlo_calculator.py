@@ -92,7 +92,7 @@ class AggregateInterferenceMonteCarloCalculator:
         self._aggregate_interference_calculator_type = aggregate_interference_calculator_type
         self._cbsd_deployment_options = cbsd_deployment_options
         self._dpa = dpa
-        self._dpa.threshold = interference_threshold or self._dpa.threshold
+        self._dpa.threshold = self._dpa.threshold if interference_threshold is None else interference_threshold
         self._include_ue_runs = include_ue_runs
         self._neighborhood_categories = neighborhood_categories
         self._number_of_iterations = number_of_iterations
