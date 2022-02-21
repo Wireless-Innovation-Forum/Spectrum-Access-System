@@ -6,7 +6,7 @@ from cu_pass.dpa_calculator.utilities import Point
 from reference_models.dpa.dpa_builder import ProtectionPoint
 from reference_models.dpa.dpa_mgr import BuildDpa
 
-INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBM = -177
+INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBM = -166
 
 
 class RadioAstronomyFacilityNames(Enum):
@@ -22,7 +22,7 @@ CUSTOM_DPA_MAP = {
                                                     name=RadioAstronomyFacilityNames.HatCreek.value,
                                                     threshold=INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBM,
                                                     radar_height=6.1,
-                                                    beamwidth=3.5,
+                                                    beamwidth=0.97,
                                                     azimuth_range=(0, 360),
                                                     gain_pattern=None)
 }
