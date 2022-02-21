@@ -105,3 +105,8 @@ class MainRunner:
 #                simulation_distance_category_a=160,
 #                simulation_distance_category_b=400,
 #                local_output_directory='test_output/moorestown/160_a/400_b/1_iter').run()
+#                simulation_distance_category_b=2,
+#                local_output_directory='test_output/moorestown/2_b/1_iter',
+#                s3_bucket='dpa-calculator',
+#                s3_output_directory='test',
+#                neighborhood_category='B').run()

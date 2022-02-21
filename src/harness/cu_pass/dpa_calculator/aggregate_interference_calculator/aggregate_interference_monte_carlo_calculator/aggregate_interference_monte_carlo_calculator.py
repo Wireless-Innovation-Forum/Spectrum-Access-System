@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Type
 
 import numpy
 import numpy as np
-from numpy import int32
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator import \
     AggregateInterferenceCalculator
@@ -50,7 +49,7 @@ class ResultsEncoder(JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, timedelta):
             return str(o)
-        elif isinstance(o, int32):
+        elif isinstance(o, numpy.integer):
             return int(o)
         else:
             super().default(o=o)
