@@ -22,7 +22,7 @@ CUSTOM_DPA_MAP = {
                                                     name=RadioAstronomyFacilityNames.HatCreek.value,
                                                     threshold=INTERFERENCE_THRESHOLD_PER_10_MHZ_RADIO_ASTRONOMY_IN_DBM,
                                                     radar_height=6.1,
-                                                    beamwidth=0.97,
+                                                    beamwidth=0.98,
                                                     azimuth_range=(0, 360),
                                                     gain_pattern=None)
 }
