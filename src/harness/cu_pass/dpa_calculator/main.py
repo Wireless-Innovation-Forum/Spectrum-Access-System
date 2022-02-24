@@ -53,8 +53,12 @@ def init():
         parser.add_argument('--interference-threshold',
                             dest='interference_threshold',
                             type=int,
-                            help='Set the interference threshold for the DPA. '
+                            help='Sets the interference threshold for the DPA. '
                                  'If unspecified, current definitions for the DPA will be used.')
+        parser.add_argument('--beamwidth',
+                            dest='beamwidth',
+                            type=float,
+                            help='Sets the beamwidth of the DPA antenna.')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()

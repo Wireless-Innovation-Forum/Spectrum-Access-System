@@ -18,6 +18,7 @@ ARBITRARY_OUTPUT_DIRECTORY = 'arbitrary_output_directory'
 
 
 class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, ContextSas):
+    beamwidth: float
     dpa: Dpa
     local_output_directory: str
     include_ue_runs: bool
@@ -29,6 +30,7 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
 
 
 def set_docker_context_defaults(context: ContextDocker) -> None:
+    context.beamwidth = None
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
     context.include_ue_runs = False
     context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY

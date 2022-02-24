@@ -70,6 +70,7 @@ def _get_args(context: ContextDocker) -> List[str]:
     ue_runs_arg = ['--include-ue-runs'] if context.include_ue_runs else []
     neighborhood_categories_arg = context.neighborhood_categories and ['--neighborhood-category', context.neighborhood_categories[0].value]
     interference_threshold_arg = ['--interference-threshold', str(context.interference_threshold)] if context.interference_threshold is not None else []
+    beamwidth_arg = ['--beamwidth', str(context.beamwidth)] if context.beamwidth is not None else []
 
     return dpa_name_arg \
         + local_output_arg \
@@ -80,4 +81,5 @@ def _get_args(context: ContextDocker) -> List[str]:
         + s3_output_arg \
         + ue_runs_arg \
         + neighborhood_categories_arg \
-        + interference_threshold_arg
+        + interference_threshold_arg \
+        + beamwidth_arg

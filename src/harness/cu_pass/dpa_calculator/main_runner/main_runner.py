@@ -10,6 +10,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdDeploymentOptions, SIMULATION_DISTANCES_DEFAULT
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.dpa.builder import get_dpa
+from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.main_runner.results_recorder import ResultsRecorder
 
 DEFAULT_NUMBER_OF_ITERATIONS = 100
@@ -18,6 +19,7 @@ DEFAULT_NUMBER_OF_ITERATIONS = 100
 class MainRunner:
     def __init__(self,
                  dpa_name: str,
+                 beamwidth: float = None,
                  number_of_iterations: int = DEFAULT_NUMBER_OF_ITERATIONS,
                  simulation_distance_category_a: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.A],
                  simulation_distance_category_b: int = SIMULATION_DISTANCES_DEFAULT[CbsdCategories.B],
@@ -27,6 +29,7 @@ class MainRunner:
                  neighborhood_category: Optional[str] = None,
                  s3_bucket: Optional[str] = None,
                  s3_output_directory: Optional[str] = None):
+        self._beamwidth = beamwidth
         self._dpa_name = dpa_name
         self._local_output_directory = local_output_directory
         self._include_ue_runs = include_ue_runs
@@ -67,17 +70,23 @@ class MainRunner:
             yield
 
     def _calculate(self) -> AggregateInterferenceMonteCarloResults:
-        dpa = get_dpa(dpa_name=self._dpa_name)
         cbsd_deployment_options = CbsdDeploymentOptions(
             simulation_distances_in_kilometers=self._simulation_distances_in_kilometers
         )
         return AggregateInterferenceMonteCarloCalculator(
-            dpa=dpa,
+            dpa=self._dpa,
             cbsd_deployment_options=cbsd_deployment_options,
             include_ue_runs=self._include_ue_runs,
             interference_threshold=self._interference_threshold,
             number_of_iterations=self._number_of_iterations,
             neighborhood_categories=self._neighborhood_categories).simulate()
+
+    @property
+    def _dpa(self) -> Dpa:
+        dpa = get_dpa(dpa_name=self._dpa_name)
+        if self._beamwidth:
+            dpa.beamwidth = self._beamwidth
+        return dpa
 
     @property
     def _neighborhood_categories(self) -> List[CbsdCategories]:

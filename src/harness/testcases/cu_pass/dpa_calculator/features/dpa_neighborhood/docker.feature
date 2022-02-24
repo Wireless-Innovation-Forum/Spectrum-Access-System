@@ -85,6 +85,15 @@ Feature: Docker run
     When the main docker command is run
     Then the results should include UE results
 
+  Scenario Template: The beamwidth is configurable by the command line
+    Given a beamwidth of <beamwidth>
+    When the main docker command is run
+    Then "<expected_log_portion>" should be in the output log
+
+    Examples:
+      | beamwidth | expected_log_portion   |
+      | 1         | Beamwidth: 1.0 degrees |
+
   Scenario: Running UEs is disabled by default when run by the command line
     When the main docker command is run
     Then the results should not include UE results

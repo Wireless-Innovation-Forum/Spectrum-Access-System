@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 from math import inf
 from typing import List, Tuple
@@ -31,9 +32,16 @@ class AggregateInterferenceCalculatorWinnforum(AggregateInterferenceCalculator):
     def get_expected_interference(self, distance: float, cbsd_category: CbsdCategories) -> float:
         maximum_move_distance_calculator = self._get_maximum_move_distance_calculator(neighborhood_distance=distance,
                                                                                       cbsd_category=cbsd_category)
-        logger = get_dpa_calculator_logger()
-        logger.info(f'\t\tThreshold used: {maximum_move_distance_calculator.interference_threshold} dBm')
+        self._logger.info(f'\t\tThreshold used: {maximum_move_distance_calculator.interference_threshold} dBm')
+        self._log_beamwidth()
         return maximum_move_distance_calculator.get_expected_interference()
+
+    def _log_beamwidth(self) -> None:
+        self._logger.info(f'\t\tBeamwidth: {self._dpa.beamwidth} degrees')
+
+    @property
+    def _logger(self) -> logging.Logger:
+        return get_dpa_calculator_logger()
 
     def _get_maximum_move_distance_calculator(self,
                                               neighborhood_distance: float,

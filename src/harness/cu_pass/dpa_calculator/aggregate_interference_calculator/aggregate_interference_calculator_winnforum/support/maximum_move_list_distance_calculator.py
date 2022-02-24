@@ -9,6 +9,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_winnforum.support.support.neighborhood_interference_matrix_calculator import \
     INTERFERENCE_MATRIX_INFO_TYPE, NeighborhoodInterferenceMatrixCalculator
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger
 from reference_models.common.data import CbsdGrantInfo
 from reference_models.dpa.move_list import find_nc, MINIMUM_INTERFERENCE_WINNFORUM
 
