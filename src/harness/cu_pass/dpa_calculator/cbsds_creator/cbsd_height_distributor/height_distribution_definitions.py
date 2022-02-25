@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, FractionalDistributionUniform
 
 
 @dataclass
@@ -12,7 +12,7 @@ class HeightDistribution:
     fraction_of_cbsds: float
 
     def to_fractional_distribution(self) -> FractionalDistribution:
-        return FractionalDistribution(
+        return FractionalDistributionUniform(
             range_maximum=self.maximum_height_in_meters,
             range_minimum=self.minimum_height_in_meters,
             fraction=self.fraction_of_cbsds

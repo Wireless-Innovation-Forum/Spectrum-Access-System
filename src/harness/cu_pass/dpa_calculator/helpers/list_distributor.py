@@ -1,28 +1,98 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import isclose
+from statistics import mean, stdev
 from typing import Any, List, TypeVar
+
+from scipy.stats import normaltest
 
 RETURN_TYPE = TypeVar('RETURN_TYPE')
 
 
 @dataclass
-class FractionalDistribution:
+class DistributionChecker(ABC):
+    def __init__(self, data: List[float], leeway_fraction: float = 0.001):
+        self._data = data
+        self._leeway_fraction = leeway_fraction
+
+    @abstractmethod
+    def check(self) -> None:
+        pass
+
+    @property
+    def _fraction_within_range(self) -> float:
+        return len(data_within_range) / len(data)
+
+    @property
+    def _data_within_range(self) -> List[float]:
+        return [datum for datum in self._data if self.range_minimum <= datum <= self.range_maximum]
+
+
+@dataclass
+class DistributionCheckerUniform(ABC):
+    @abstractmethod
+    def check(self) -> None:
+        pass
+
+
+@dataclass
+class FractionalDistribution(ABC):
     fraction: float
     range_maximum: float
     range_minimum: float
 
+    @abstractmethod
     def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
-        data_within_range = [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
-        fraction_within_range = len(data_within_range) / len(data)
-        lowest = min(data_within_range)
-        highest = max(data_within_range)
+        pass
+
+    def _assert_data_range(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+        data_within_range = self.get_data_within_range(data=data)
+        lowest = self.get_lowest(data=data)
+        highest = self.get_highest(data=data)
+        fraction_within_range = self.get_fraction_within_range(data=data)
         if self.range_minimum != self.range_maximum:
             assert len(set(data_within_range)) != 1, 'Data is not dispersed within range'
         assert lowest >= self.range_minimum, f'{lowest} < {self.range_minimum}'
         assert highest <= self.range_maximum, f'{highest} > {self.range_maximum}'
         assert isclose(fraction_within_range, self.fraction, abs_tol=leeway_fraction), \
             f'Range: {self.range_minimum}-{self.range_maximum}, Percentage: {fraction_within_range} != {self.fraction}'
+
+    def get_lowest(self, data: List[float]) -> float:
+        data_within_range = self.get_data_within_range(data=data)
+        return min(data_within_range)
+
+    def get_highest(self, data: List[float]) -> float:
+        data_within_range = self.get_data_within_range(data=data)
+        return max(data_within_range)
+
+    def get_fraction_within_range(self, data: List[float]) -> float:
+        data_within_range = self.get_data_within_range(data=data)
+        return len(data_within_range) / len(data)
+
+    def get_data_within_range(self, data: List[float]) -> List[float]:
+        return [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
+
+
+@dataclass
+class FractionalDistributionUniform(FractionalDistribution):
+    def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+        self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
+
+
+@dataclass
+class FractionalDistributionNormal(FractionalDistribution):
+    mean: float
+    standard_deviation: float
+
+    def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+        self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
+        self._assert_normal_distribution(data=data, leeway_fraction=leeway_fraction)
+
+    def _assert_normal_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+        data_within_range = self.get_data_within_range(data=data)
+        assert isclose(mean(data_within_range), self.mean, abs_tol=leeway_fraction), 'Mean does not match.'
+        assert isclose(stdev(data_within_range), self.standard_deviation, abs_tol=leeway_fraction), 'Standard deviation does not match.'
+        assert normaltest(data_within_range), 'Data is not normally distributed.'
 
 
 class ListDistributor(ABC):

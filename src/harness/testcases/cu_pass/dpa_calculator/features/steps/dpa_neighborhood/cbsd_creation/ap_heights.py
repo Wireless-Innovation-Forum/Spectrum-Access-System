@@ -10,12 +10,12 @@ from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distrib
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
-    DISTRIBUTION_REGEX, parse_fractional_distribution
+    DISTRIBUTION_REGEX_UNIFORM, parse_fractional_distribution
 
 use_step_matcher("parse")
 
 
-@parse.with_pattern(rf'{DISTRIBUTION_REGEX}+')
+@parse.with_pattern(rf'{DISTRIBUTION_REGEX_UNIFORM}+')
 def parse_height_distribution(text: str) -> List[HeightDistribution]:
     distributions = parse_fractional_distribution(text=text)
     return [fractional_distribution_to_height_distribution(distribution=distribution) for distribution in distributions]
