@@ -1,65 +1,84 @@
-import random
-from abc import abstractmethod
-from dataclasses import dataclass
-from typing import Dict, List
+from typing import List
 
-from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
-    fractional_distribution_to_height_distribution, HeightDistribution, \
-    INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, INDOOR_UE_HEIGHT_DISTRIBUTION, \
-    OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B, OUTDOOR_UE_HEIGHT_DISTRIBUTION
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
+from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributions_factory import \
+    CbsdHeightDistributionsFactory
+from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_generator import CbsdHeightGenerator, \
+    LocationWithHeight
+from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, \
+    REGION_TYPE_URBAN
+from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.point_distributor import CoordinatesWithBearing
 from cu_pass.dpa_calculator.utilities import Point
 
+PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A = {
+    REGION_TYPE_DENSE_URBAN: 1,
+    REGION_TYPE_RURAL: 1,
+    REGION_TYPE_SUBURBAN: 1,
+    REGION_TYPE_URBAN: 1
+}
+PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B = {
+    REGION_TYPE_DENSE_URBAN: 0,
+    REGION_TYPE_RURAL: 0,
+    REGION_TYPE_SUBURBAN: 0,
+    REGION_TYPE_URBAN: 0
+}
 
-@dataclass
-class LocationWithHeight:
-    height: float
-    location: Point
 
-
-class CbsdHeightDistributor(ListDistributor):
-    def __init__(self, cbsd_locations: List[Point], is_indoor: bool, region_type: str):
-        super().__init__(items_to_distribute=cbsd_locations)
+class CbsdHeightDistributor:
+    def __init__(self,
+                 cbsd_category: CbsdCategories,
+                 cbsd_locations_and_bearings: List[CoordinatesWithBearing],
+                 cbsd_type: CbsdTypes,
+                 is_indoor: bool,
+                 region_type: str):
+        self._cbsd_category = cbsd_category
+        self._cbsd_locations_and_bearings = cbsd_locations_and_bearings
+        self._cbsd_type = cbsd_type
         self._is_indoor = is_indoor
         self._region_type = region_type
 
-    def _modify_group(self, distribution: FractionalDistribution, group: List[Point]) -> List[LocationWithHeight]:
-        height_distribution = fractional_distribution_to_height_distribution(distribution=distribution)
-        return [LocationWithHeight(
-            height=self._get_random_height(distribution=height_distribution),
-            location=location
-        ) for location in group]
+    def distribute(self) -> List[List[LocationWithHeight]]:
+        locations = self._indoor_cbsd_locations if self._is_indoor else self._outdoor_cbsd_locations
+        return CbsdHeightGenerator(
+            cbsd_locations=locations,
+            region_type=self._region_type,
+            distributions=self._distributions).distribute()
 
-    @staticmethod
-    def _get_random_height(distribution: HeightDistribution) -> float:
-        random_height = random.uniform(distribution.minimum_height_in_meters, distribution.maximum_height_in_meters)
-        height_to_the_nearest_half_meter = round(random_height * 2) / 2
-        return height_to_the_nearest_half_meter
+    @property
+    def _indoor_cbsd_locations(self) -> List[Point]:
+        return self._all_cbsd_locations[:self._number_of_indoor_cbsds]
+
+    @property
+    def _outdoor_cbsd_locations(self) -> List[Point]:
+        return self._all_cbsd_locations[self._number_of_indoor_cbsds:]
+
+    @property
+    def _all_cbsd_locations(self) -> List[Point]:
+        return [location_with_bearing.coordinates for location_with_bearing in self._cbsd_locations_and_bearings]
+
+    @property
+    def _number_of_indoor_cbsds(self) -> int:
+        return round(self._number_of_cbsds * self._percentage_of_indoor_aps)
+
+    @property
+    def _number_of_cbsds(self) -> int:
+        return len(self._cbsd_locations_and_bearings)
+
+    @property
+    def _percentage_of_indoor_aps(self) -> float:
+        percentage_map = PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A \
+            if self._is_category_a else\
+            PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B
+        return percentage_map[self._region_type]
+
+    @property
+    def _is_category_a(self) -> bool:
+        return self._cbsd_category == CbsdCategories.A
 
     @property
     def _distributions(self) -> List[FractionalDistribution]:
-        height_distributions = self._height_distribution_map[self._region_type]
-        return [distribution.to_fractional_distribution() for distribution in height_distributions]
-
-    @property
-    @abstractmethod
-    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        raise NotImplementedError
-
-
-class CbsdHeightDistributorAccessPointCategoryA(CbsdHeightDistributor):
-    @property
-    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A
-
-
-class CbsdHeightDistributorAccessPointCategoryB(CbsdHeightDistributor):
-    @property
-    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B
-
-
-class CbsdHeightDistributorUserEquipment(CbsdHeightDistributor):
-    @property
-    def _height_distribution_map(self) -> Dict[str, List[HeightDistribution]]:
-        return INDOOR_UE_HEIGHT_DISTRIBUTION if self._is_indoor else OUTDOOR_UE_HEIGHT_DISTRIBUTION
+        return CbsdHeightDistributionsFactory(cbsd_category=self._cbsd_category,
+                                              cbsd_type=self._cbsd_type,
+                                              is_indoor=self._is_indoor,
+                                              region_type=self._region_type).get()

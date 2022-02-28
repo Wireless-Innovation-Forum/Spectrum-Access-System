@@ -6,8 +6,6 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdDeploymentOptions, PopulationRetrieverTypes
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsCreator, CbsdsWithBearings
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator_access_point import CbsdsCreatorAccessPoint
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator_user_equipment import CbsdsCreatorUserEquipment
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator import NUMBER_OF_CBSDS_PER_CATEGORY_TYPE, \
     NumberOfApsTypes, NumberOfCbsdsCalculator
 from cu_pass.dpa_calculator.number_of_aps.number_of_aps_calculator_shipborne import NumberOfCbsdsCalculatorShipborne
@@ -43,9 +41,10 @@ class CbsdCategoryDeployer:
     def deploy(self) -> CbsdsWithBearings:
         category_simulation_zone = self._dpa_test_zone[self._cbsd_category]
         if category_simulation_zone.radius_in_kilometers:
-            cbsds_creator = self._cbsd_creator_class(cbsd_category=self._cbsd_category,
-                                                     dpa_zone=category_simulation_zone,
-                                                     number_of_cbsds=self._number_of_cbsds)
+            cbsds_creator = CbsdsCreator(cbsd_category=self._cbsd_category,
+                                         cbsd_type=self._cbsd_type,
+                                         dpa_zone=category_simulation_zone,
+                                         number_of_cbsds=self._number_of_cbsds)
             return cbsds_creator.create()
         else:
             return CbsdsWithBearings(
@@ -61,10 +60,6 @@ class CbsdCategoryDeployer:
     @property
     def _cbsd_type(self) -> CbsdTypes:
         return CbsdTypes.UE if self._is_user_equipment else CbsdTypes.AP
-
-    @property
-    def _cbsd_creator_class(self) -> Type[CbsdsCreator]:
-        return CbsdsCreatorUserEquipment if self._is_user_equipment else CbsdsCreatorAccessPoint
 
     @cached_property
     def _number_of_cbsds_all(self) -> NUMBER_OF_CBSDS_PER_CATEGORY_TYPE:

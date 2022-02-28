@@ -1,32 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
-from pathlib import Path
-from typing import List, Type
+from typing import List
 
 from cached_property import cached_property
 
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdGetter
-from cu_pass.dpa_calculator.cbsds_creator.kml_writer import KmlWriter
-from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_URBAN, \
-    REGION_TYPE_SUBURBAN
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
+from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
 from cu_pass.dpa_calculator.point_distributor import AreaCircle, CoordinatesWithBearing, PointDistributor
-from cu_pass.dpa_calculator.utilities import Point, get_region_type
-from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories
-
-PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A = {
-    REGION_TYPE_DENSE_URBAN: 1,
-    REGION_TYPE_RURAL: 1,
-    REGION_TYPE_SUBURBAN: 1,
-    REGION_TYPE_URBAN: 1
-}
-
-PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B = {
-    REGION_TYPE_DENSE_URBAN: 0,
-    REGION_TYPE_RURAL: 0,
-    REGION_TYPE_SUBURBAN: 0,
-    REGION_TYPE_URBAN: 0
-}
+from cu_pass.dpa_calculator.utilities import get_region_type
+from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories, CbsdTypes
 
 
 @dataclass
@@ -36,8 +19,13 @@ class CbsdsWithBearings:
 
 
 class CbsdsCreator(ABC):
-    def __init__(self, cbsd_category: CbsdCategories, dpa_zone: AreaCircle, number_of_cbsds: int):
+    def __init__(self,
+                 cbsd_category: CbsdCategories,
+                 cbsd_type: CbsdTypes,
+                 dpa_zone: AreaCircle,
+                 number_of_cbsds: int):
         self._cbsd_category = cbsd_category
+        self._cbsd_type = cbsd_type
         self._dpa_zone = dpa_zone
         self._number_of_cbsds = number_of_cbsds
 
@@ -46,12 +34,6 @@ class CbsdsCreator(ABC):
             bearings=self._bearings,
             cbsds=self._all_cbsds
         )
-
-    def write_to_kml(self, filepath: Path, distance_to_exclude: int = 0) -> None:
-        KmlWriter(cbsds=self._all_cbsds,
-                  output_filepath=filepath,
-                  distance_to_exclude=distance_to_exclude,
-                  dpa_center=self._dpa_zone.center_coordinates).write()
 
     @property
     def _all_cbsds(self) -> List[Cbsd]:
@@ -66,55 +48,19 @@ class CbsdsCreator(ABC):
         return self._generate_cbsds(is_indoor=False)
 
     def _generate_cbsds(self, is_indoor: bool) -> List[Cbsd]:
-        locations = self._indoor_cbsd_locations if is_indoor else self._outdoor_cbsd_locations
-        cbsd_locations_grouped_by_height = self._cbsd_height_distributor_class(
-            cbsd_locations=locations,
-            is_indoor=is_indoor,
-            region_type=self._region_type).distribute()
-        return [self._cbsd_getter_class(category=self._cbsd_category,
-                                        dpa_region_type=self._region_type,
-                                        height=location_with_height.height,
-                                        is_indoor=is_indoor,
-                                        location=location_with_height.location).get()
+        cbsd_locations_grouped_by_height = CbsdHeightDistributor(cbsd_category=self._cbsd_category,
+                                                                 cbsd_locations_and_bearings=self._distributed_cbsd_locations_with_bearings,
+                                                                 cbsd_type=self._cbsd_type,
+                                                                 is_indoor=is_indoor,
+                                                                 region_type=self._region_type).distribute()
+        return [CbsdGetter(category=self._cbsd_category,
+                           cbsd_type=self._cbsd_type,
+                           dpa_region_type=self._region_type,
+                           height=location_with_height.height,
+                           is_indoor=is_indoor,
+                           location=location_with_height.location).get()
                 for height_group in cbsd_locations_grouped_by_height
                 for location_with_height in height_group]
-
-    @property
-    def _indoor_cbsd_locations(self) -> List[Point]:
-        return self._all_cbsd_locations[:self._number_of_indoor_cbsds]
-
-    @property
-    @abstractmethod
-    def _cbsd_height_distributor_class(self) -> Type[CbsdHeightDistributor]:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def _cbsd_getter_class(self) -> Type[CbsdGetter]:
-        raise NotImplementedError
-
-    @property
-    def _outdoor_cbsd_locations(self) -> List[Point]:
-        return self._all_cbsd_locations[self._number_of_indoor_cbsds:]
-
-    @property
-    def _all_cbsd_locations(self) -> List[Point]:
-        return [location_with_bearing.coordinates for location_with_bearing in self._distributed_cbsd_locations_with_bearings]
-
-    @property
-    def _number_of_indoor_cbsds(self) -> int:
-        return round(self._number_of_cbsds * self._percentage_of_indoor_aps)
-
-    @property
-    def _percentage_of_indoor_aps(self) -> float:
-        percentage_map = PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_A \
-            if self._is_category_a else\
-            PERCENTAGE_OF_INDOOR_APS_BY_REGION_TYPE_CATEGORY_B
-        return percentage_map[self._region_type]
-
-    @property
-    def _is_category_a(self) -> bool:
-        return self._cbsd_category == CbsdCategories.A
 
     @property
     def _region_type(self) -> str:

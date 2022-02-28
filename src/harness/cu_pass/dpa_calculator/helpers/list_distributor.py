@@ -1,38 +1,15 @@
+import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import isclose
 from statistics import mean, stdev
 from typing import Any, List, TypeVar
 
-from scipy.stats import normaltest
+import numpy
+from numpy.random import default_rng
+from scipy.stats import norm, normaltest, truncnorm
 
 RETURN_TYPE = TypeVar('RETURN_TYPE')
-
-
-@dataclass
-class DistributionChecker(ABC):
-    def __init__(self, data: List[float], leeway_fraction: float = 0.001):
-        self._data = data
-        self._leeway_fraction = leeway_fraction
-
-    @abstractmethod
-    def check(self) -> None:
-        pass
-
-    @property
-    def _fraction_within_range(self) -> float:
-        return len(data_within_range) / len(data)
-
-    @property
-    def _data_within_range(self) -> List[float]:
-        return [datum for datum in self._data if self.range_minimum <= datum <= self.range_maximum]
-
-
-@dataclass
-class DistributionCheckerUniform(ABC):
-    @abstractmethod
-    def check(self) -> None:
-        pass
 
 
 @dataclass
@@ -40,6 +17,10 @@ class FractionalDistribution(ABC):
     fraction: float
     range_maximum: float
     range_minimum: float
+
+    @abstractmethod
+    def get_values(self, number_of_values: int) -> List[float]:
+        pass
 
     @abstractmethod
     def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
@@ -78,11 +59,20 @@ class FractionalDistributionUniform(FractionalDistribution):
     def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
         self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
 
+    def get_values(self, number_of_values: int) -> List[float]:
+        return [random.uniform(self.range_minimum, self.range_maximum) for _ in range(number_of_values)]
+
 
 @dataclass
 class FractionalDistributionNormal(FractionalDistribution):
     mean: float
     standard_deviation: float
+
+    def get_values(self, number_of_values: int) -> List[float]:
+        lower_bound = (self.range_minimum - self.mean) / self.standard_deviation
+        upper_bound = (self.range_maximum - self.mean) / self.standard_deviation
+        generator = truncnorm(lower_bound, upper_bound, loc=self.mean, scale=self.standard_deviation)
+        return generator.rvs(number_of_values).tolist()
 
     def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
         self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
