@@ -29,11 +29,6 @@ class ContextApHeights(ContextCbsdCreation):
     pass
 
 
-@given("a category A height distribution of <distribution>")
-def step_impl(context: ContextApHeights):
-
-
-
 @then("the {is_indoor:IsIndoor} antenna heights should fall in distribution {height_distribution:HeightDistribution}")
 def step_impl(context: ContextApHeights, is_indoor: bool, height_distribution: List[HeightDistribution]):
     """

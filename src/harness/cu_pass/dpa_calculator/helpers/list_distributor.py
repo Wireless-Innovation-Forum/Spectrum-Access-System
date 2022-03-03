@@ -5,11 +5,11 @@ from math import isclose
 from statistics import mean, stdev
 from typing import Any, List, TypeVar
 
-import numpy
-from numpy.random import default_rng
-from scipy.stats import norm, normaltest, truncnorm
+from scipy.stats import normaltest, truncnorm
 
 RETURN_TYPE = TypeVar('RETURN_TYPE')
+
+DEFAULT_NULL_HYPOTHESIS_ALPHA = 1e-3
 
 
 @dataclass
@@ -50,6 +50,13 @@ class FractionalDistribution(ABC):
         data_within_range = self.get_data_within_range(data=data)
         return len(data_within_range) / len(data)
 
+    def _can_reject_null_hypothesis_for_normal_distribution(self, data: List[float]) -> bool:
+        """
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html
+        """
+        data_within_range = self.get_data_within_range(data=data)
+        return normaltest(data_within_range)[1] < DEFAULT_NULL_HYPOTHESIS_ALPHA
+
     def get_data_within_range(self, data: List[float]) -> List[float]:
         return [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
 
@@ -58,6 +65,7 @@ class FractionalDistribution(ABC):
 class FractionalDistributionUniform(FractionalDistribution):
     def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
         self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
+        assert self._can_reject_null_hypothesis_for_normal_distribution(data=data), 'Data is normally distributed.'
 
     def get_values(self, number_of_values: int) -> List[float]:
         return [random.uniform(self.range_minimum, self.range_maximum) for _ in range(number_of_values)]
@@ -74,15 +82,24 @@ class FractionalDistributionNormal(FractionalDistribution):
         generator = truncnorm(lower_bound, upper_bound, loc=self.mean, scale=self.standard_deviation)
         return generator.rvs(number_of_values).tolist()
 
-    def assert_data_matches_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+    def assert_data_matches_distribution(self,
+                                         data: List[float],
+                                         leeway_fraction: float = 0.001,
+                                         leeyway_mean: float = 0.2,
+                                         leeyway_standard_deviation: float = 0.2) -> None:
         self._assert_data_range(data=data, leeway_fraction=leeway_fraction)
-        self._assert_normal_distribution(data=data, leeway_fraction=leeway_fraction)
+        self._assert_normal_distribution(data=data,
+                                         leeyway_mean=leeyway_mean,
+                                         leeyway_standard_deviation=leeyway_standard_deviation)
 
-    def _assert_normal_distribution(self, data: List[float], leeway_fraction: float = 0.001) -> None:
+    def _assert_normal_distribution(self,
+                                    data: List[float],
+                                    leeyway_mean: float,
+                                    leeyway_standard_deviation: float) -> None:
         data_within_range = self.get_data_within_range(data=data)
-        assert isclose(mean(data_within_range), self.mean, abs_tol=leeway_fraction), 'Mean does not match.'
-        assert isclose(stdev(data_within_range), self.standard_deviation, abs_tol=leeway_fraction), 'Standard deviation does not match.'
-        assert normaltest(data_within_range), 'Data is not normally distributed.'
+        assert isclose(mean(data_within_range), self.mean, abs_tol=leeyway_mean), 'Mean does not match.'
+        assert isclose(stdev(data_within_range), self.standard_deviation, abs_tol=leeyway_standard_deviation), 'Standard deviation does not match.'
+        assert not self._can_reject_null_hypothesis_for_normal_distribution(data=data), 'Data may not be normally distributed.'
 
 
 class ListDistributor(ABC):

@@ -36,5 +36,6 @@ class CbsdHeightGenerator(ListDistributor):
         height_to_the_nearest_half_meter = round(random_height * 2) / 2
         return height_to_the_nearest_half_meter
 
+    @property
     def _distributions(self) -> List[FractionalDistribution]:
         return self.__distributions
