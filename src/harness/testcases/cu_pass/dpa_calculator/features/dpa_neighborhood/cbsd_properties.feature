@@ -1,13 +1,20 @@
 Feature: CBSD properties
-  Scenario Template: Category A AP transmission powers are set
+  Scenario: Category A AP transmission powers are set
+    When category A AP CBSDs for the Monte Carlo simulation are created
+    Then the indoor antenna maximum EIRPs should be 100%: 26 dBm
+
+  Scenario Template: Transmission power levels can be configured
     Given random seed 0
     And a <indoor_outdoor> category <cbsd_category> <cbsdy_type> eirp distribution of <distribution>
     When category <cbsd_category> <cbsdy_type> CBSDs for the Monte Carlo simulation are created
     Then the <indoor_outdoor> antenna maximum EIRPs should be <distribution> dBm
 
-    Examples:
+    Examples: Uniform Distribution
       | indoor_outdoor | cbsd_category | cbsdy_type | distribution                   |
       | indoor         | A             | AP         | 100%: 26                       |
+
+    Examples: Normal Distribution
+      | indoor_outdoor | cbsd_category | cbsdy_type | distribution                   |
       | indoor         | A             | AP         | 100%: PDF [5-26] mean 14 std 3 |
 
   Scenario Template: Category B AP transmission powers are set

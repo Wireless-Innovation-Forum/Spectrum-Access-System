@@ -4,7 +4,8 @@ from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
     HeightDistribution, INDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_A, INDOOR_UE_HEIGHT_DISTRIBUTION, \
     OUTDOOR_AP_HEIGHT_DISTRIBUTION_CATEGORY_B, OUTDOOR_UE_HEIGHT_DISTRIBUTION
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
 
 
 class CbsdHeightDistributionsFactory:
@@ -44,4 +45,4 @@ class CbsdHeightDistributionsFactory:
 
     @property
     def _is_category_a(self) -> bool:
-        return self._cbsd_type == CbsdCategories.A
+        return self._cbsd_category == CbsdCategories.A

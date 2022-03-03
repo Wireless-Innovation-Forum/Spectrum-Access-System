@@ -4,7 +4,10 @@ from typing import Dict
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, \
     REGION_TYPE_TYPE, REGION_TYPE_URBAN
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, FractionalDistributionUniform
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution_uniform import \
+    FractionalDistributionUniform
 
 INDOOR_OUTDOOR_TYPE = bool
 EIRP_DISTRIBUTION_MAP_TYPE = Dict[CbsdTypes, Dict[CbsdCategories, Dict[REGION_TYPE_TYPE, Dict[INDOOR_OUTDOOR_TYPE, FractionalDistribution]]]]
@@ -38,5 +41,5 @@ DEFAULT_EIRPS: EIRP_DISTRIBUTION_MAP_TYPE = {
             REGION_TYPE_URBAN: {False: EIRP_AP_OUTDOOR_CATEGORY_B_URBAN},
         }
     },
-    CbsdTypes.UE: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: EIRP_UE))))
+    CbsdTypes.UE: defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: EIRP_UE)))
 }

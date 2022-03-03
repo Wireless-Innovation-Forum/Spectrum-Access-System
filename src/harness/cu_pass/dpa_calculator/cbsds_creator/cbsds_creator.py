@@ -6,7 +6,6 @@ from cached_property import cached_property
 
 from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdGetter
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
 from cu_pass.dpa_calculator.point_distributor import AreaCircle, CoordinatesWithBearing, PointDistributor
 from cu_pass.dpa_calculator.utilities import get_region_type
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories, CbsdTypes

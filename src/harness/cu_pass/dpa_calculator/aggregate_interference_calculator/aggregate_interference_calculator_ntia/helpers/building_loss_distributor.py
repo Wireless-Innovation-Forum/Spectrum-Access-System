@@ -3,7 +3,9 @@ from typing import List
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.cbsd_interference_calculator.variables import \
     InterferenceComponents
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.list_distributor import ListDistributor
 
 
 @dataclass

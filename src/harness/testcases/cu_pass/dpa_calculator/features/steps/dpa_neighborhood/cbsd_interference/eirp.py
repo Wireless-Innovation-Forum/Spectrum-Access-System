@@ -3,7 +3,8 @@ from typing import List, Optional
 from behave import *
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
 

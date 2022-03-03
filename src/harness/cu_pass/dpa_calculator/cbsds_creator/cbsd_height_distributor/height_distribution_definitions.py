@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from typing import List
 
 from cu_pass.dpa_calculator.constants import REGION_TYPE_DENSE_URBAN, REGION_TYPE_RURAL, REGION_TYPE_SUBURBAN, REGION_TYPE_URBAN
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, FractionalDistributionUniform
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution_uniform import \
+    FractionalDistributionUniform
 
 
 @dataclass

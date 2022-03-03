@@ -45,6 +45,7 @@ Feature: CBSD positioning
     And the lowest category B bearing should be close to 0 degrees
     And no points should have exactly the same latitude, longitude, or bearing
 
+  @slow
   Scenario Template: The number of UEs is created
     Given a <region_type> location
     And <number_of_ues_per_ap> UEs per category <cbsd_category> AP

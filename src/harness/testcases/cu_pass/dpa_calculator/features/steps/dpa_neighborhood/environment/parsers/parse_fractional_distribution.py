@@ -1,11 +1,15 @@
 import re
 from abc import ABC, abstractmethod
-from typing import Callable, List
+from typing import List
 
 import parse
 from behave import register_type
 
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, FractionalDistributionNormal, \
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution_normal import \
+    FractionalDistributionNormal
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution_uniform import \
     FractionalDistributionUniform
 from testcases.cu_pass.dpa_calculator.features.environment.global_parsers import NUMBER_REGEX, parse_number
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \

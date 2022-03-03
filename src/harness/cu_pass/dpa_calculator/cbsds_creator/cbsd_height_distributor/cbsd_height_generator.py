@@ -4,7 +4,9 @@ from typing import List
 
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.height_distribution_definitions import \
     fractional_distribution_to_height_distribution, HeightDistribution
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution, ListDistributor
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.list_distributor import ListDistributor
 from cu_pass.dpa_calculator.utilities import Point
 
 

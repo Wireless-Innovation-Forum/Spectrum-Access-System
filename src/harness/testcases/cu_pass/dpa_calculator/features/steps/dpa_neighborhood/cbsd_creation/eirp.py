@@ -6,10 +6,9 @@ from behave import *
 
 from cu_pass.dpa_calculator.aggregate_interference_calculator.configuration.configuration_manager import \
     ConfigurationManager
-from cu_pass.dpa_calculator.aggregate_interference_calculator.configuration.support.eirps import \
-    EIRP_DISTRIBUTION_MAP_TYPE
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
-from cu_pass.dpa_calculator.helpers.list_distributor import FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     ContextCbsdCreation
 
