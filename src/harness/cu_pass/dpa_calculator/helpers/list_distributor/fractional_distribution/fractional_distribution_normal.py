@@ -8,7 +8,6 @@ from scipy.stats import normaltest, truncnorm
 from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
     FractionalDistribution
 
-
 DEFAULT_NULL_HYPOTHESIS_ALPHA = 1e-3
 
 
@@ -48,3 +47,6 @@ class FractionalDistributionNormal(FractionalDistribution):
         """
         data_within_range = self.get_data_within_range(data=data)
         return normaltest(data_within_range)[1] < DEFAULT_NULL_HYPOTHESIS_ALPHA
+
+    def __str__(self) -> str:
+        return f'{self.fraction * 100}%: PDF [{self.range_minimum}-{self.range_maximum}] mean {self.mean} std {self.standard_deviation}'

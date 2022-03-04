@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from math import isclose
 from typing import List
 
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.support.parse_fractional_distribution import \
+    parse_fractional_distribution
+
 
 @dataclass
 class FractionalDistribution(ABC):
@@ -44,3 +47,7 @@ class FractionalDistribution(ABC):
 
     def get_data_within_range(self, data: List[float]) -> List[float]:
         return [datum for datum in data if self.range_minimum <= datum <= self.range_maximum]
+
+    @classmethod
+    def from_string(cls, distribution_string: str) -> 'FractionalDistribution':
+        return parse_fractional_distribution(distribution_string)[0]

@@ -8,7 +8,8 @@ from behave import *
 from moto import mock_s3
 
 from cu_pass.dpa_calculator import main as dpa_calculator_main
-from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
+from cu_pass.dpa_calculator.constants import REGION_TYPE_RURAL
 
 from testcases.cu_pass.dpa_calculator.features.environment.hooks import record_exception_if_expected
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.contexts.context_cbsd_deployment_options import \
@@ -71,6 +72,7 @@ def _get_args(context: ContextDocker) -> List[str]:
     neighborhood_categories_arg = context.neighborhood_categories and ['--neighborhood-category', context.neighborhood_categories[0].value]
     interference_threshold_arg = ['--interference-threshold', str(context.interference_threshold)] if context.interference_threshold is not None else []
     beamwidth_arg = ['--beamwidth', str(context.beamwidth)] if context.beamwidth is not None else []
+    eirp_arg = ['--eirp-a', _get_eirp(context, CbsdCategories.A)] if context.eirp_distribution else []
 
     return dpa_name_arg \
         + local_output_arg \
@@ -82,4 +84,10 @@ def _get_args(context: ContextDocker) -> List[str]:
         + ue_runs_arg \
         + neighborhood_categories_arg \
         + interference_threshold_arg \
-        + beamwidth_arg
+        + beamwidth_arg \
+        + eirp_arg
+
+
+def _get_eirp(context: ContextDocker, cbsd_category: CbsdCategories) -> str:
+    distribution = context.eirp_distribution[CbsdTypes.AP][cbsd_category][REGION_TYPE_RURAL][True]
+    return str(distribution)

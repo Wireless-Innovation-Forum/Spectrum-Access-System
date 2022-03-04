@@ -3,6 +3,8 @@ import argparse
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     SIMULATION_DISTANCES_DEFAULT
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
 from cu_pass.dpa_calculator.main_runner.main_runner import DEFAULT_NUMBER_OF_ITERATIONS, MainRunner
 
 
@@ -59,6 +61,10 @@ def init():
                             dest='beamwidth',
                             type=float,
                             help='Sets the beamwidth of the DPA antenna.')
+        parser.add_argument('--eirp-a',
+                            dest='eirp_category_a',
+                            type=FractionalDistribution,
+                            help='Sets EIRP distribution for category A APs.')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()

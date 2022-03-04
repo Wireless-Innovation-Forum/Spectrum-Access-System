@@ -1,5 +1,7 @@
 from typing import List
 
+from cu_pass.dpa_calculator.aggregate_interference_calculator.configuration.support.eirps import \
+    EIRP_DISTRIBUTION_MAP_TYPE
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
 from cu_pass.dpa_calculator.dpa.builder import RadioAstronomyFacilityNames
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
@@ -20,6 +22,7 @@ ARBITRARY_OUTPUT_DIRECTORY = 'arbitrary_output_directory'
 class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, ContextSas):
     beamwidth: float
     dpa: Dpa
+    eirp_distribution: EIRP_DISTRIBUTION_MAP_TYPE
     local_output_directory: str
     include_ue_runs: bool
     interference_threshold: int
@@ -32,6 +35,7 @@ class ContextDocker(ContextCbsdDeploymentOptions, ContextMonteCarloIterations, C
 def set_docker_context_defaults(context: ContextDocker) -> None:
     context.beamwidth = None
     context.dpa = parse_dpa(text=ARBITRARY_DPA_NAME)
+    context.eirp_distribution = None
     context.include_ue_runs = False
     context.local_output_directory = ARBITRARY_OUTPUT_DIRECTORY
     context.interference_threshold = None

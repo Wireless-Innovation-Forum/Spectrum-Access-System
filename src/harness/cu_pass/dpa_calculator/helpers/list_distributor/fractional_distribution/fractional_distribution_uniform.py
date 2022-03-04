@@ -26,3 +26,6 @@ class FractionalDistributionUniform(FractionalDistribution):
 
     def get_values(self, number_of_values: int) -> List[float]:
         return numpy.random.uniform(self.range_minimum, self.range_maximum, number_of_values).tolist()
+
+    def __str__(self) -> str:
+        return f'{self.fraction * 100}%:{self.range_minimum}{f"-{self.range_maximum}" if self.range_minimum != self.range_maximum else ""}'

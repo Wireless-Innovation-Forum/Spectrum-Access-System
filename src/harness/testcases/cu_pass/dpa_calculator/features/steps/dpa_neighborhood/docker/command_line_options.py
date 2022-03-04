@@ -1,10 +1,13 @@
 import json
 import re
-from typing import Dict
+from typing import Dict, List
 
 from behave import *
 
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
+from cu_pass.dpa_calculator.constants import REGION_TYPE_RURAL
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.docker.output_files import get_uploaded_result_content
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.docker.utilities import get_uploaded_log_content
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.contexts.context_docker import ContextDocker
@@ -20,6 +23,19 @@ def step_impl(context: ContextDocker, dpa: str):
 @given("a beamwidth of {beamwidth:Number}")
 def step_impl(context: ContextDocker, beamwidth: float):
     context.beamwidth = beamwidth
+
+
+@given("a category {cbsd_category:CbsdCategory} EIRP distribution of {distributions:FractionalDistribution}")
+def step_impl(context: ContextDocker, cbsd_category: CbsdCategories, distributions: List[FractionalDistribution]):
+    context.eirp_distribution = {
+        CbsdTypes.AP: {
+            cbsd_category: {
+                REGION_TYPE_RURAL: {
+                    True: distributions[0]
+                }
+            }
+        }
+    }
 
 
 @then("\"{expected_log_portion}\" should be in the output log")
