@@ -9,7 +9,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_calculator_ntia.helpers.antenna_gain_calculator.antenna_gain_calculator_standard import \
     AntennaGainCalculatorStandard
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
+from cu_pass.dpa_calculator.cbsds_creator.cbsds_generator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 
 

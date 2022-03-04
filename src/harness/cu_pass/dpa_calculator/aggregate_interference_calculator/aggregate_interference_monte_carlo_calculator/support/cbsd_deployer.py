@@ -8,7 +8,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     CbsdCategoryDeployer
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
 
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
+from cu_pass.dpa_calculator.cbsds_creator.cbsds_generator import CbsdsWithBearings
 from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, Point
 
 

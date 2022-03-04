@@ -13,10 +13,10 @@ Feature: Quick Run
 
     Examples:
       | cbsd_type | cbsd_category | expected_distance | expected_interference |
-      | AP        | A             | 0                 | -147.09596620840563   |
-      | AP        | B             | 0                 | -150.1922893328677    |
-      | UE        | A             | 0                 | -185.09115850222096   |
-      | UE        | B             | 0                 | -160.44050654358455   |
+      | AP        | A             | 0                 | -147.04742785877025   |
+      | AP        | B             | 0                 | -150.1978609892087    |
+      | UE        | A             | 0                 | -184.9533031783413    |
+      | UE        | B             | 0                 | -160.45015587659296   |
 
 
   Scenario Template: A quick run is performed without UEs

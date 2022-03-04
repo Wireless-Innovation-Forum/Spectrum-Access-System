@@ -4,7 +4,7 @@ from typing import List
 
 from cached_property import cached_property
 
-from cu_pass.dpa_calculator.cbsd.cbsd_getter.cbsd_getter import CbsdGetter
+from cu_pass.dpa_calculator.cbsd.cbsd_builder.cbsd_builder import CbsdBuilder
 from cu_pass.dpa_calculator.cbsds_creator.cbsd_height_distributor.cbsd_height_distributor import CbsdHeightDistributor
 from cu_pass.dpa_calculator.point_distributor import AreaCircle, CoordinatesWithBearing, PointDistributor
 from cu_pass.dpa_calculator.utilities import get_region_type
@@ -17,7 +17,7 @@ class CbsdsWithBearings:
     cbsds: List[Cbsd]
 
 
-class CbsdsCreator(ABC):
+class CbsdsGenerator(ABC):
     def __init__(self,
                  cbsd_category: CbsdCategories,
                  cbsd_type: CbsdTypes,
@@ -52,12 +52,12 @@ class CbsdsCreator(ABC):
                                                                  cbsd_type=self._cbsd_type,
                                                                  is_indoor=is_indoor,
                                                                  region_type=self._region_type).distribute()
-        return [CbsdGetter(category=self._cbsd_category,
-                           cbsd_type=self._cbsd_type,
-                           dpa_region_type=self._region_type,
-                           height=location_with_height.height,
-                           is_indoor=is_indoor,
-                           location=location_with_height.location).get()
+        return [CbsdBuilder(category=self._cbsd_category,
+                            cbsd_type=self._cbsd_type,
+                            dpa_region_type=self._region_type,
+                            height=location_with_height.height,
+                            is_indoor=is_indoor,
+                            location=location_with_height.location).get()
                 for height_group in cbsd_locations_grouped_by_height
                 for location_with_height in height_group]
 

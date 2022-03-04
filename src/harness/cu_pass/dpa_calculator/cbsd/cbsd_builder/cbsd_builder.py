@@ -9,12 +9,7 @@ GAIN_AP = 6
 GAIN_UE = 0
 
 
-class CbsdVariability:
-    eirp: int
-    gain: int
-
-
-class CbsdGetter(ABC):
+class CbsdBuilder(ABC):
     def __init__(self,
                  category: CbsdCategories,
                  cbsd_type: CbsdTypes,

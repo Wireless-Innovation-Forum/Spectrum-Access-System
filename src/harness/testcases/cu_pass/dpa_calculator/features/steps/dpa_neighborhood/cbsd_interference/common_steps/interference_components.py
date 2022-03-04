@@ -10,7 +10,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
 from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interference_monte_carlo_calculator.support.definitions import \
     CbsdDeploymentOptions
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
+from cu_pass.dpa_calculator.cbsds_creator.cbsds_generator import CbsdsWithBearings
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_creation.common_steps.cbsd_creation import \
     cbsd_creation_step
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \

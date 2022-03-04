@@ -78,7 +78,7 @@ Feature: Docker run
 
   Scenario: The DPA defined interference threshold is used as a default
     When the main docker command is run
-    Then "Threshold used: -176 dBm" should be in the output log
+    Then "Threshold used: -165 dBm" should be in the output log
 
   Scenario: Running UEs can be enabled by the command line
     Given UE runs are included

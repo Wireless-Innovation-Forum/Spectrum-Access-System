@@ -25,4 +25,4 @@ class FractionalDistributionUniform(FractionalDistribution):
             assert statistic < critical_values[6], 'Data may not be normally distributed.'
 
     def get_values(self, number_of_values: int) -> List[float]:
-        return numpy.random.uniform(self.range_minimum, self.range_minimum, number_of_values).tolist()
+        return numpy.random.uniform(self.range_minimum, self.range_maximum, number_of_values).tolist()

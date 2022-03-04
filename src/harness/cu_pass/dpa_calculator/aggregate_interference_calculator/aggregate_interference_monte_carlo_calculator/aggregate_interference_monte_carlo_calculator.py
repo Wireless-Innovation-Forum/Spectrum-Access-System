@@ -27,7 +27,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.configuration.conf
     ConfigurationManager
 from cu_pass.dpa_calculator.binary_search.shortest_unchanging import ShortestUnchangingInputFinder
 from cu_pass.dpa_calculator.cbsd.cbsd import CbsdCategories, CbsdTypes
-from cu_pass.dpa_calculator.cbsds_creator.cbsds_creator import CbsdsWithBearings
+from cu_pass.dpa_calculator.cbsds_creator.cbsds_generator import CbsdsWithBearings
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.binary_search.binary_search import InputWithReturnedValue
 
