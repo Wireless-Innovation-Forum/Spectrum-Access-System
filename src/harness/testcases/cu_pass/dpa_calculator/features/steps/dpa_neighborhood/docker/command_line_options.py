@@ -31,7 +31,8 @@ def step_impl(context: ContextDocker, cbsd_category: CbsdCategories, distributio
         CbsdTypes.AP: {
             cbsd_category: {
                 REGION_TYPE_RURAL: {
-                    True: distributions[0]
+                    True: distributions[0],
+                    False: distributions[0]
                 }
             }
         }

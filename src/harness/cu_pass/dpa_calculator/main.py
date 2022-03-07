@@ -63,6 +63,10 @@ def init():
                             dest='eirp_category_a',
                             type=str,
                             help='Sets EIRP distribution for category A APs.')
+        parser.add_argument('--eirp-b',
+                            dest='eirp_category_b',
+                            type=str,
+                            help='Sets EIRP distribution for category B APs.')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()
