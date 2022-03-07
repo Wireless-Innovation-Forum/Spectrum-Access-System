@@ -96,13 +96,14 @@ Feature: DPA Neighborhood helpers
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+                  EIRP Distribution: 100%: 26
               CBSD Category: CbsdCategories.B
                   Population: 50.0
                   Number of APs: 1
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
+                  EIRP Distribution: 100%: 47
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
@@ -127,13 +128,16 @@ Feature: DPA Neighborhood helpers
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+                  EIRP Distribution: 100%: 24
+                  EIRP Distribution: 100%: 24
               CBSD Category: CbsdCategories.B
                   Population: 50.0
                   Number of UEs: 2
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
+                  EIRP Distribution: 100%: 24
+                  EIRP Distribution: 100%: 24
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
@@ -159,13 +163,14 @@ Feature: DPA Neighborhood helpers
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+                  EIRP Distribution: 100%: 26
               CBSD Category: CbsdCategories.B
                   Population: 50.0
                   Number of APs: 1
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
+                  EIRP Distribution: 100%: 47
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0
@@ -190,13 +195,16 @@ Feature: DPA Neighborhood helpers
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
+                  EIRP Distribution: 100%: 24
+                  EIRP Distribution: 100%: 24
               CBSD Category: CbsdCategories.B
                   Population: 50.0
                   Number of UEs: 2
                   Number of UEs per AP: 2
                   Population retriever: PopulationRetrieverCensus
                   Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
+                  EIRP Distribution: 100%: 24
+                  EIRP Distribution: 100%: 24
           CbsdCategories.A NEIGHBORHOOD RESULTS:
               Input: 0
               Value: 0

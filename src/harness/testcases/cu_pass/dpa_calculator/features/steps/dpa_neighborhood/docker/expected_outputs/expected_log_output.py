@@ -22,7 +22,6 @@ CbsdTypes.AP iteration 1
 			Number of UEs per AP: 500
 			Population retriever: PopulationRetrieverCensus
 			Number of APs calculator: NumberOfCbsdsCalculatorShipborne
-
 	CbsdCategories.A NEIGHBORHOOD RESULTS:
 		Input: 0
 		Value: 0
