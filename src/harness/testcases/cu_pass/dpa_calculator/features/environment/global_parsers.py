@@ -4,6 +4,7 @@ from typing import List
 import parse
 from behave import *
 
+from cu_pass.dpa_calculator.helpers.parsers import INTEGER_REGEX, NUMBER_REGEX, parse_number
 from cu_pass.dpa_calculator.utilities import Point
 
 
@@ -11,8 +12,6 @@ def get_list_regex(item_regex: str) -> str:
     return rf'\[({item_regex},? ?)*\]'
 
 
-INTEGER_REGEX = r'-?[0-9]+(,[0-9]{3})*'
-NUMBER_REGEX = rf'({INTEGER_REGEX}(\.[0-9]+)?|infinity|-infinity)'
 NUMBER_LIST_REGEX = get_list_regex(item_regex=NUMBER_REGEX)
 COORDINATES_REGEX = rf'{NUMBER_REGEX}, ?{NUMBER_REGEX}'
 
@@ -37,12 +36,6 @@ def parse_integer(text: str) -> int:
 def parse_integer_list(text: str) -> List[int]:
     numbers = re.compile(f'({INTEGER_REGEX})').findall(text)
     return [int(number[0]) for number in numbers]
-
-
-@parse.with_pattern(NUMBER_REGEX)
-def parse_number(text: str) -> float:
-    number_text = re.compile(NUMBER_REGEX).search(text)
-    return float(number_text[0].replace(',', ''))
 
 
 @parse.with_pattern(NUMBER_LIST_REGEX)

@@ -3,7 +3,9 @@ from abc import ABC
 from cu_pass.dpa_calculator.aggregate_interference_calculator.configuration.configuration_manager import \
     ConfigurationManager
 from cu_pass.dpa_calculator.cbsd.cbsd import Cbsd, CbsdCategories, CbsdTypes
-from cu_pass.dpa_calculator.utilities import Point
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
+    FractionalDistribution
+from cu_pass.dpa_calculator.utilities import get_dpa_calculator_logger, Point
 
 GAIN_AP = 6
 GAIN_UE = 0
@@ -37,7 +39,13 @@ class CbsdBuilder(ABC):
     def _eirp_maximum(self) -> float:
         configuration = ConfigurationManager().get_configuration()
         distribution = configuration.eirp_distribution[self._cbsd_type][self._category][self._dpa_region_type][self._is_indoor]
+        self._log_distribution(distribution=distribution)
         return distribution.get_values(number_of_values=1)[0]
+
+    @staticmethod
+    def _log_distribution(distribution: FractionalDistribution) -> None:
+        logger = get_dpa_calculator_logger()
+        logger.info(f"\t\t\tEIRP Distribution: {distribution}")
 
     @property
     def _gain(self) -> int:

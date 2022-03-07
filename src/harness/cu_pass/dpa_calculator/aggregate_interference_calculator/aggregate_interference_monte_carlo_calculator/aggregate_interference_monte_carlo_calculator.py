@@ -162,7 +162,6 @@ class AggregateInterferenceMonteCarloCalculator:
 
     def _random_cbsds_with_bearings(self, is_user_equipment: bool) -> CbsdsWithBearings:
         cbsd_deployer = self._cbsd_deployer_category(is_user_equipment=is_user_equipment)
-        cbsd_deployer.log()
         return cbsd_deployer.deploy()
 
     def _cbsd_deployer_category(self, is_user_equipment) -> CbsdDeployer:

@@ -39,6 +39,7 @@ class CbsdCategoryDeployer:
         logger.info(f'\t\t\tNumber of APs calculator: {self._number_of_cbsds_calculator_class.__name__}')
 
     def deploy(self) -> CbsdsWithBearings:
+        self.log()
         category_simulation_zone = self._dpa_test_zone[self._cbsd_category]
         if category_simulation_zone.radius_in_kilometers:
             cbsds_creator = CbsdsGenerator(cbsd_category=self._cbsd_category,

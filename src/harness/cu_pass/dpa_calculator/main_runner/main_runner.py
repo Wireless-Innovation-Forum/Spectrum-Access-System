@@ -16,6 +16,8 @@ from cu_pass.dpa_calculator.dpa.builder import get_dpa
 from cu_pass.dpa_calculator.dpa.dpa import Dpa
 from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
     FractionalDistribution
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.support.fractional_distribution_parser import \
+    parse_fractional_distribution
 from cu_pass.dpa_calculator.main_runner.results_recorder import ResultsRecorder
 
 DEFAULT_NUMBER_OF_ITERATIONS = 100
@@ -82,7 +84,7 @@ class MainRunner:
 
     def _setup_eirp_configuration_category_a(self) -> None:
         configuration = ConfigurationManager().get_configuration()
-        distribution = FractionalDistribution.from_string(distribution_string=self._eirp_category_a)
+        distribution = parse_fractional_distribution(text=self._eirp_category_a)[0]
         configuration.eirp_distribution[CbsdTypes.AP][CbsdCategories.A] = defaultdict(lambda: {True: distribution})
 
     def _calculate(self) -> AggregateInterferenceMonteCarloResults:

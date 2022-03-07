@@ -29,15 +29,13 @@ class CbsdDeployer:
                     f' {self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.A]} kilometers')
         logger.info(f'\t\tSimulation area radius, category B: '
                     f'{self._cbsd_deployment_options.simulation_distances_in_kilometers[CbsdCategories.B]} kilometers')
-        for deployer in self._cbsd_category_deployers:
-            deployer.log()
-        logger.info('')
 
     @property
     def _cbsd_type(self) -> CbsdTypes:
         return CbsdTypes.UE if self._is_user_equipment else CbsdTypes.AP
 
     def deploy(self) -> CbsdsWithBearings:
+        self.log()
         category_deployments = [deployer.deploy() for deployer in self._cbsd_category_deployers]
         flattened = CbsdsWithBearings(
             bearings=[],

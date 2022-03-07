@@ -1,0 +1,6 @@
+from behave import register_type
+
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.support.fractional_distribution_parser import \
+    parse_fractional_distribution
+
+register_type(FractionalDistribution=parse_fractional_distribution)

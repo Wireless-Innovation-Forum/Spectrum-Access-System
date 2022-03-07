@@ -96,13 +96,14 @@ Feature: Docker run
       | 1.5       | Beamwidth: 1.5 degrees |
 
   Scenario Template: The EIRP distribution is configurable by the command line
-    Given a category A EIRP distribution of <distribution>
+    Given a category A simulation distance of 2 km
+    And a category A EIRP distribution of <distribution>
     When the main docker command is run
     Then "<distribution>" should be in the output log
 
     Examples:
-      | distribution                    |
-      | 100%: PDF [10-20] mean 12 std 2 |
+      | distribution                              |
+      | 100.0%: PDF [10.0-20.0] mean 12.0 std 2.0 |
 
   Scenario: Running UEs is disabled by default when run by the command line
     When the main docker command is run

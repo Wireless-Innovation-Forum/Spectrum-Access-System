@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import parse
-from behave import register_type
 
 from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution import \
     FractionalDistribution
@@ -11,9 +10,7 @@ from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fra
     FractionalDistributionNormal
 from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.fractional_distribution_uniform import \
     FractionalDistributionUniform
-from testcases.cu_pass.dpa_calculator.features.environment.global_parsers import NUMBER_REGEX, parse_number
-from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.parsers.range_parser import parse_number_range, \
-    RANGE_REGEX
+from cu_pass.dpa_calculator.helpers.parsers import NUMBER_REGEX, parse_number, parse_number_range, RANGE_REGEX
 
 PERCENTAGE_DELIMITER = ':'
 DISTRIBUTION_REGEX_UNIFORM = rf'({NUMBER_REGEX}%{PERCENTAGE_DELIMITER} {RANGE_REGEX},? ?)'
@@ -66,7 +63,7 @@ class DistributionParserNormal(DistributionParser):
         )
 
 
-class DistributionParser:
+class DistributionParserMain:
     def __init__(self, text: str):
         self._text = text
 
@@ -84,7 +81,4 @@ class DistributionParser:
 
 @parse.with_pattern(DISTRIBUTION_LIST_REGEX)
 def parse_fractional_distribution(text: str) -> List[FractionalDistribution]:
-    return DistributionParser(text=text).parse()
-
-
-register_type(FractionalDistribution=parse_fractional_distribution)
+    return DistributionParserMain(text=text).parse()

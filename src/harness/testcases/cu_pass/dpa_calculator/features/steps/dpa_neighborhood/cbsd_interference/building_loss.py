@@ -7,7 +7,7 @@ from cu_pass.dpa_calculator.aggregate_interference_calculator.aggregate_interfer
     BuildingLossDistribution, fractional_distribution_to_building_loss_distribution
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
-from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.parsers.parse_fractional_distribution import \
+from cu_pass.dpa_calculator.helpers.list_distributor.fractional_distribution.support.fractional_distribution_parser import \
     DISTRIBUTION_REGEX_UNIFORM, parse_fractional_distribution
 
 use_step_matcher('parse')

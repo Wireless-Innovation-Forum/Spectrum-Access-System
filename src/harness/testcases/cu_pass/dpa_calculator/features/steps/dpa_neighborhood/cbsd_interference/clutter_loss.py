@@ -2,7 +2,7 @@ from behave import *
 
 from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.cbsd_interference.environment.environment import \
     ContextCbsdInterference
-from testcases.cu_pass.dpa_calculator.features.steps.dpa_neighborhood.environment.parsers.range_parser import NumberRange
+from cu_pass.dpa_calculator.helpers.parsers import NumberRange
 
 use_step_matcher('parse')
 
