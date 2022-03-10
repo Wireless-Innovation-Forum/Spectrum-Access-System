@@ -101,10 +101,14 @@ Feature: Docker run
     When the main docker command is run
     Then "CBSD Category: CbsdCategories.<cbsd_category>(\n\t\t\t.*)+<distribution>" should be in the output log
 
-    Examples:
+    Examples: Normal distribution
       | cbsd_category | distribution                              |
       | A             | 100.0%: PDF [10.0-20.0] mean 12.0 std 2.0 |
       | B             | 100.0%: PDF [11.0-21.0] mean 13.0 std 3.0 |
+
+    Examples: Negative power levels
+      | cbsd_category | distribution         |
+      | B             | 100.0%: -118.0--44.0 |
 
   Scenario: Running UEs is disabled by default when run by the command line
     When the main docker command is run

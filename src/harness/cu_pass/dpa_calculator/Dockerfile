@@ -18,11 +18,11 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ARG CU_PASS_ROOT_DIRECTORY=/cu_pass
 ARG APP_DIRECTORY=$CU_PASS_ROOT_DIRECTORY/dpa
 WORKDIR $APP_DIRECTORY
-COPY ../../../../requirements.txt .
-COPY ../../../../requirements-sas.txt .
 RUN apt-get install -y libcurl4-openssl-dev libssl-dev libgeos++-dev libproj-dev
-RUN pip install -r requirements.txt
+COPY ../../../../requirements-sas.txt .
 RUN pip install -r requirements-sas.txt
+COPY ../../../../requirements.txt .
+RUN pip install -r requirements.txt
 ARG LOCAL_ROOT_DIRECTORY=../../../..
 COPY $LOCAL_ROOT_DIRECTORY .
 ARG CONTENT_ROOT=$APP_DIRECTORY/src/harness
@@ -40,9 +40,6 @@ ENV TERRAIN_DIR $COMMON_DATA_DIR/data/ned
 ENV LANDCOVER_DIR $COMMON_DATA_DIR/data/nlcd
 ENV POPULATION_DIRECTORY_CENSUS $COMMON_DATA_DIR/data/pop/pden2010_block
 VOLUME ["$COMMON_DATA_DIR"]
-#VOLUME ["$TERRAIN_DIR"]
-#VOLUME ["$LANDCOVER_DIR"]
-#VOLUME ["$POPULATION_DIRECTORY_CENSUS"]
 
 WORKDIR $CONTENT_ROOT
 

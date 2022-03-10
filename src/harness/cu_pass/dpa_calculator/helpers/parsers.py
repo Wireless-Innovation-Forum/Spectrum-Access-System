@@ -14,7 +14,7 @@ def parse_number(text: str) -> float:
 
 
 RANGE_DELIMITER = '-'
-RANGE_REGEX = rf'{NUMBER_REGEX}({RANGE_DELIMITER}{NUMBER_REGEX})?'
+RANGE_REGEX = rf'({NUMBER_REGEX})({RANGE_DELIMITER}({NUMBER_REGEX}))?'
 
 
 @dataclass
@@ -25,9 +25,9 @@ class NumberRange:
 
 @parse.with_pattern(RANGE_REGEX)
 def parse_number_range(text: str) -> NumberRange:
-    endpoints = text.split(RANGE_DELIMITER)
-    high_text = endpoints[1 if len(endpoints) > 1 else 0]
-    low_text = endpoints[0]
+    range_text = re.compile(RANGE_REGEX).search(text)[0]
+    low_text = re.compile(NUMBER_REGEX).search(range_text)[0]
+    high_text = range_text.replace(f'{low_text}-', '')
     return NumberRange(
         high=parse_number(text=high_text),
         low=parse_number(text=low_text)
