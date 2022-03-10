@@ -62,11 +62,15 @@ def init():
         parser.add_argument('--eirp-a',
                             dest='eirp_category_a',
                             type=str,
-                            help='Sets EIRP distribution for category A APs.')
+                            help='Sets EIRP distribution for category A APs.'
+                                 'Uniform example: "50%: 20-26, 50%: 26-30"'
+                                 'Normal example: "100%: PDF [5-26] mean 14 std 3"')
         parser.add_argument('--eirp-b',
                             dest='eirp_category_b',
                             type=str,
-                            help='Sets EIRP distribution for category B APs.')
+                            help='Sets EIRP distribution for category B APs.'
+                                 'Uniform example: "50%: 20-26, 50%: 26-30"'
+                                 'Normal example: "100%: PDF [5-26] mean 14 std 3"')
         args = parser.parse_args()
 
         MainRunner(**args.__dict__).run()
