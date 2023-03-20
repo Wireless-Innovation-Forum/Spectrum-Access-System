@@ -16,7 +16,10 @@
 # Some parts of this software was developed by employees of
 # the National Institute of Standards and Technology (NIST),
 # an agency of the Federal Government.
-# Pursuant to title 17 United States Code Section 105, works of NIST employees
+# Some parts of this software were developed by employees of
+# the National Telecommunications and Information Administration (NTIA),
+# an agency of the Federal Government.
+# Pursuant to title 17 United States Code Section 105, works of NIST and NTIA employees
 # are not subject to copyright protection in the United States and are
 # considered to be in the public domain. Permission to freely use, copy,
 # modify, and distribute this software and its documentation without fee
@@ -29,7 +32,7 @@
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND FREEDOM FROM
 # INFRINGEMENT, AND ANY WARRANTY THAT THE DOCUMENTATION WILL CONFORM TO THE
 # SOFTWARE, OR ANY WARRANTY THAT THE SOFTWARE WILL BE ERROR FREE. IN NO EVENT
-# SHALL NIST BE LIABLE FOR ANY DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT,
+# SHALL NIST OR NTIA BE LIABLE FOR ANY DAMAGES, INCLUDING, BUT NOT LIMITED TO, DIRECT,
 # INDIRECT, SPECIAL OR CONSEQUENTIAL DAMAGES, ARISING OUT OF, RESULTING FROM,
 # OR IN ANY WAY CONNECTED WITH THIS SOFTWARE, WHETHER OR NOT BASED UPON
 # WARRANTY, CONTRACT, TORT, OR OTHERWISE, WHETHER OR NOT INJURY WAS SUSTAINED
@@ -37,7 +40,7 @@
 # FROM, OR AROSE OUT OF THE RESULTS OF, OR USE OF, THE SOFTWARE OR SERVICES
 # PROVIDED HEREUNDER.
 
-# Distributions of NIST software should also include copyright and licensing
+# Distributions of NIST or NTIA software should also include copyright and licensing
 # statements of any third-party software that are legally bundled with the
 # code in compliance with the conditions of those licenses.
 
@@ -58,6 +61,7 @@ import sys
 import tempfile
 import os
 from datetime import datetime, timedelta
+import six
 
 from six.moves.BaseHTTPServer import HTTPServer
 from six.moves.BaseHTTPServer import BaseHTTPRequestHandler
@@ -354,7 +358,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_POST(self):
     """Handles POST requests."""
 
-    length = int(self.headers.getheader('content-length'))
+    length = int(self.headers.get('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
     if self.path == '/%s/registration' % self.cbsd_sas_version:
@@ -384,6 +388,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
         response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
         self.send_response(400)
+        self.end_headers()
       return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
@@ -412,11 +417,12 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = ''
     else:
       self.send_response(404)
+      self.end_headers()
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write(json.dumps(response))
+    self.wfile.write(six.ensure_binary(json.dumps(response)))
 
   def do_GET(self):
     """Handles GET requests."""
@@ -427,11 +433,12 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().GetFullActivityDump(self.sas_sas_version)
     else:
       self.send_response(404)
+      self.end_headers()
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write(json.dumps(response))
+    self.wfile.write(six.ensure_binary(json.dumps(response)))
 
 def ParseCrlIndex(index_filename):
   """Returns the list of CRL filenames from a CRL index file."""
