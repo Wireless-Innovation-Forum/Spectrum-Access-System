@@ -23,6 +23,9 @@ sigma_l = 4
 sigma_s = 6
 P2108_LOSS_2KM = 30.50030179
 
+# 8 dB reduction for DPA points
+ACTIVITY_LOSS_FACTOR = 8
+
 
 def calc_P2108(lat_cbsd, lon_cbsd, height_cbsd,
                lat_rx, lon_rx, is_height_cbsd_amsl=False):
