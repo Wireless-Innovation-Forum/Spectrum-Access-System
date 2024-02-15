@@ -54,10 +54,6 @@ def calc_P2108(lat_cbsd, lon_cbsd, height_cbsd,
     else:
       L_l = -2 * np.log10(10 ** (-5 * np.log10(F_2108) - 12.5) + 10 ** (-16.5))
       L_s = 32.98 + 23.9 * np.log10(distance) + 3 * np.log10(F_2108)
-      sigma_cb = np.sqrt((sigma_l ** 2 * 10 ** (-0.2 * L_l) + sigma_s ** 2 * 10 ** (-0.2 * L_s)) / (
-          10 ** (-0.2 * L_l) + 10 ** (-0.2 * L_s)))
-      # Q_inv = norm.ppf(P_2108 / 100)
-      Q_inv = 0
-      return -5 * np.log10(10 ** (-0.2 * L_l) + 10 ** (-0.2 * L_s)) - sigma_cb * Q_inv
+      return -5 * np.log10(10 ** (-0.2 * L_l) + 10 ** (-0.2 * L_s))
   else:
     return 0
