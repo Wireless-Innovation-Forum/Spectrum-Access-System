@@ -23,7 +23,7 @@ sigma_l = 4
 sigma_s = 6
 P2108_LOSS_2KM = 30.50030179
 
-# 8 dB reduction for DPA points
+# 8 dB reduction for DPA points: TDD activity factor of 80% and 20% Network loading factor, 10log10(0.16)
 ACTIVITY_LOSS_FACTOR = 8
 
 

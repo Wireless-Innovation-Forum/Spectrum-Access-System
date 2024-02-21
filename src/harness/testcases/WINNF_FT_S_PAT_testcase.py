@@ -51,7 +51,7 @@ def computePropagationDpa(request):
     if 'dpaPoint' not in request:
         raise ValueError('dpaPoint not in request')
     else:
-        rx = request['dpaPoint']
+        rx = request['dpaPoint'].copy()
 
     # convert rx height to AGL
     if rx['heightType'] == 'AMSL':
