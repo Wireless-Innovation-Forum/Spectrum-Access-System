@@ -37,6 +37,30 @@ EARLY_EXIT_ENABLED = False
 
 
 def computePropagationDpa(request):
+    """Calculates path loss in dB between a CBSD and DPA point.
+
+    Inputs:
+        request: A DPA point PAT request, a dict of:
+            modelType: Propagation model type, must be '3'
+            reliabilityLevel: Reliability, must be 0.5
+            cbsd: CBSD, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+                indoorDeployment: CBSD indoor status
+            dpaPoint: A DPA point, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+
+    Returns:
+        A dict of:
+            pathlossDb: Path loss in dB
+    """
+
+    # Must have modelType '3' indicating ITM for DPA Points augmented by Clutter loss and network loading factors
     model_type = request['modelType']
     if model_type != '3':
         raise ValueError('modelType is not 3')
