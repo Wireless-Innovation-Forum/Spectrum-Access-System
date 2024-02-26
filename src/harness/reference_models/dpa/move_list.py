@@ -60,6 +60,7 @@ from reference_models.common import data
 from reference_models.common import mpool
 from reference_models.geo import drive
 from reference_models.geo import vincenty
+from reference_models.propagation import p2108
 from reference_models.propagation import wf_itm
 
 # Import WINNF reference models including propagation, geo, and CBSD antenna gain models
@@ -138,6 +139,9 @@ def findGrantsInsideNeighborhood(grants, constraint,
     dpa_type:       an enum member of class DpaType
     neighbor_distances: the neighborhood distances (Km) as a sequence:
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      or
+      [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
 
   Returns:
     A tuple of:
@@ -149,26 +153,56 @@ def findGrantsInsideNeighborhood(grants, constraint,
   grants_inside = []
   idxs_inside = []
 
-  neighbor_dists = neighbor_distances[0:2]
-  if dpa_type is DpaType.OUT_OF_BAND:
-    neighbor_dists = neighbor_distances[2:]
-
   # Loop over each CBSD grant and filter the ones inside the neighborhood
   for k, grant in enumerate(grants):
     # Check frequency range
     if dpa_type is not DpaType.OUT_OF_BAND:
-      overlapping_bw = (min(grant.high_frequency, constraint.high_frequency)
-                        - max(grant.low_frequency, constraint.low_frequency))
+      overlapping_bw = min(
+          grant.high_frequency, constraint.high_frequency
+      ) - max(grant.low_frequency, constraint.low_frequency)
       if overlapping_bw <= 0:
         continue
 
     # Compute distance from CBSD location to protection constraint location
     dist_km, _, _ = vincenty.GeodesicDistanceBearing(
-        grant.latitude, grant.longitude,
-        constraint.latitude, constraint.longitude)
+        grant.latitude,
+        grant.longitude,
+        constraint.latitude,
+        constraint.longitude,
+    )
 
     # Check if CBSD is inside the neighborhood of protection constraint
-    if dist_km > neighbor_dists[grant.cbsd_category == 'B']:
+    if len(neighbor_distances) == 4:
+      if dpa_type is DpaType.CO_CHANNEL:
+        if grant.cbsd_category == 'A':
+          neighbor_dist = neighbor_distances[0]
+        else:
+          neighbor_dist = neighbor_distances[1]
+      else:
+        if grant.cbsd_category == 'A':
+          neighbor_dist = neighbor_distances[2]
+        else:
+          neighbor_dist = neighbor_distances[3]
+    elif len(neighbor_distances) == 6:
+      if grant.cbsd_category == 'A':
+        if grant.indoor_deployment:
+          if grant.height_agl > 6:
+            neighbor_dist = neighbor_distances[0]
+          else:
+            neighbor_dist = neighbor_distances[1]
+        else:
+          if grant.height_agl > 6:
+            neighbor_dist = neighbor_distances[2]
+          else:
+            neighbor_dist = neighbor_distances[3]
+      else:
+        if grant.height_agl > 6:
+          neighbor_dist = neighbor_distances[4]
+        else:
+          neighbor_dist = neighbor_distances[5]
+    else:
+      raise ValueError('Invalid neighborhood distances size')
+    if dist_km > neighbor_dist:
       continue
 
     grants_inside.append(grant)
@@ -216,7 +250,8 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
   return 10 * np.log10(power_mW)
 
 
-def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type):
+def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type,
+                        apply_clutter_and_network_loss):
   """Calculate interference contribution of each grant in the neighborhood to
   the protection constraint c.
 
@@ -226,6 +261,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     inc_ant_height: reference incumbent antenna height (in meters)
     num_iteration:  a number of Monte Carlo iterations
     dpa_type:       an enum member of class DpaType
+    apply_clutter_and_network_loss: if true, add signal and clutter loss
 
   Returns:
     A tuple of
@@ -254,6 +290,12 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
       reliability=reliabilities,
       freq_mhz=FREQ_PROP_MODEL)
   path_loss = np.array(results.db_loss)
+
+  if apply_clutter_and_network_loss:
+    clutter_loss = p2108.calc_P2108(grant.latitude, grant.longitude,
+                                    grant.height_agl, constraint.latitude,
+                                    constraint.longitude)
+    path_loss += clutter_loss + p2108.ACTIVITY_LOSS_FACTOR
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(
@@ -290,7 +332,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
 
 def formInterferenceMatrix(grants, grants_ids, constraint,
-                           inc_ant_height, num_iter, dpa_type):
+                           inc_ant_height, num_iter, dpa_type, apply_clutter_and_network_loss):
   """Form the matrix of interference contributions to protection constraint c.
 
   Inputs:
@@ -301,6 +343,7 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     inc_ant_height:     reference incumbent antenna height (in meters)
     num_iter:           number of random iterations
     dpa_type:           an enum member of class DpaType
+    apply_clutter_and_network_loss: add signal and clutter loss to interference calc
 
   Returns:
     A tuple of:
@@ -315,7 +358,7 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   median_interf = []
   for cbsd_grant in grants:
     interf, median = computeInterference(cbsd_grant, constraint, inc_ant_height,
-                                         num_iter, dpa_type)
+                                         num_iter, dpa_type, apply_clutter_and_network_loss)
     interf_list.append(interf)
     median_interf.append(median)
   # Sort grants by their median interference contribution, smallest to largest
@@ -415,7 +458,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                        inc_ant_height,
                        num_iter, threshold, beamwidth,
                        neighbor_distances,
-                       min_azimuth=0, max_azimuth=360):
+                       min_azimuth=0, max_azimuth=360, apply_clutter_and_network_loss=False):
   """Returns the move list for a given protection constraint.
 
   Note that the returned indexes corresponds to the grant.grant_index
@@ -432,8 +475,13 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     beamwidth:         The protection antenna beamwidth (degree).
     neighbor_distances: The neighborhood distances (km) as a sequence:
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      or
+      [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
+
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
+    apply_clutter_and_network_loss: if true, add signal and clutter loss
 
   Returns:
     A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
@@ -472,7 +520,8 @@ def moveListConstraint(protection_point, low_freq, high_freq,
   if len(neighbor_grants):  # Found CBSDs in the neighborhood
     # Form the matrix of interference contributions
     I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
-        neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type)
+        neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type,
+        apply_clutter_and_network_loss)
 
     # Find the index (nc) of the grant in the ordered list of grants such that
     # the protection percentile of the interference from the first nc grants is below
@@ -523,6 +572,9 @@ def getDpaNeighborGrants(grants, protection_points, dpa_geometry,
     high_freq: The high frequency of protection constraint (Hz).
     neighbor_distances: The neighborhood distances (km) as a sequence:
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      or
+      [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
 
   Returns:
     A set of |CbsdGrantInfo| neighbor grants.
@@ -561,7 +613,8 @@ def calcAggregatedInterference(protection_point,
                                neighbor_distances,
                                min_azimuth=0,
                                max_azimuth=360,
-                               do_max=False):
+                               do_max=False,
+                               apply_clutter_and_network_loss=False):
   """Computes the 95% aggregated interference quantile on a protected point.
 
   Inputs:
@@ -577,7 +630,11 @@ def calcAggregatedInterference(protection_point,
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
     neighbor_distances: The neighborhood distances (km) as a sequence:
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      or
+      [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
     do_max:            If True, returns the maximum interference over all radar azimuth.
+    apply_clutter_and_network_loss: if true, add signal and clutter loss
 
   Returns:
     The 95% aggregated interference (dB) either:
@@ -616,7 +673,7 @@ def calcAggregatedInterference(protection_point,
   bearings = np.zeros(len(neighbor_grants))
   for k, grant in enumerate(neighbor_grants):
     interf, _ = computeInterference(grant, constraint, inc_ant_height,
-                                    num_iter, dpa_type)
+                                    num_iter, dpa_type, apply_clutter_and_network_loss)
     interf_matrix[:,k] = interf.randomInterference
     bearings[k] = interf.bearing_c_cbsd
 
