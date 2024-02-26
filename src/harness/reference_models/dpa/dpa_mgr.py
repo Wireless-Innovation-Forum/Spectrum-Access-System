@@ -129,6 +129,8 @@ class Dpa(object):
       (min_azimuth, max_azimuth) relative to true north.
     neighbor_distances: The neighborhood distances (km) as a sequence:
       (cata_dist, catb_dist, cata_oob_dist, catb_oob_dist)
+      OR the updated sequence (cata_indoor_dist, cata_indoor_6m_dist,
+      cata_outdoor_dist, cata_outdoor_6m_dist, catb_dist, catb_6m_dist)
     monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
 
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
@@ -171,7 +173,8 @@ class Dpa(object):
                azimuth_range=(0, 360),
                freq_ranges_mhz=[DPA_DEFAULT_FREQ_RANGE],
                neighbor_distances=DPA_DEFAULT_DISTANCES,
-               monitor_type='esc'):
+               monitor_type='esc',
+               apply_clutter_and_network_loss=False):
     """Initialize the DPA attributes."""
     self.name = name
     self.geometry = geometry
@@ -182,6 +185,7 @@ class Dpa(object):
     self.beamwidth = beamwidth
     self.neighbor_distances = neighbor_distances
     self.monitor_type = monitor_type
+    self.apply_clutter_and_network_loss = apply_clutter_and_network_loss
     self._channels = None
     self._grants = []
     self._has_th_grants = False
@@ -284,7 +288,8 @@ class Dpa(object):
           beamwidth=self.beamwidth,
           min_azimuth=self.azimuth_range[0],
           max_azimuth=self.azimuth_range[1],
-          neighbor_distances=self.neighbor_distances)
+          neighbor_distances=self.neighbor_distances,
+          apply_clutter_and_network_loss=self.apply_clutter_and_network_loss)
 
       move_list, nbor_list = list(
           zip(*pool.map(moveListConstraint, self.protected_points)))
@@ -341,7 +346,7 @@ class Dpa(object):
     """
     # Legacy function for getting a mask, as used in some example code.
     move_list = self.GetMoveList(channel)
-    mask = np.zeros(len(self._grants), np.bool)
+    mask = np.zeros(len(self._grants), bool)
     for k, grant in enumerate(self._grants):
       if grant in move_list:
         mask[k] = True
@@ -373,7 +378,8 @@ class Dpa(object):
         min_azimuth=self.azimuth_range[0],
         max_azimuth=self.azimuth_range[1],
         neighbor_distances=self.neighbor_distances,
-        do_max=True)
+        do_max=True,
+        apply_clutter_and_network_loss=self.apply_clutter_and_network_loss)
 
     pool = mpool.Pool()
     max_interf = pool.map(interfCalculator,
@@ -507,6 +513,7 @@ class Dpa(object):
         num_iter=num_iter,
         azimuth_range=self.azimuth_range,
         neighbor_distances=self.neighbor_distances,
+        apply_clutter_and_network_loss=self.apply_clutter_and_network_loss,
         threshold=hard_threshold
     )
     pool = mpool.Pool()
@@ -688,6 +695,7 @@ def _CalcTestPointInterfDiff(point,
                              num_iter,
                              azimuth_range,
                              neighbor_distances,
+                             apply_clutter_and_network_loss,
                              threshold=None):
   """Calculate difference of aggregate interference between reference and SAS UUT.
 
@@ -720,6 +728,10 @@ def _CalcTestPointInterfDiff(point,
       (min_azimuth, max_azimuth) relative to true north.
     neighbor_distances: The neighborhood distance (km) as a sequence:
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
+      or
+      [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
+    apply_clutter_and_network_loss: if true, add signal and clutter loss
     threshold: If set, do an absolute threshold check of SAS UUT interference against
       threshold. Otherwise compare against the reference model aggregated interference.
 
@@ -743,7 +755,8 @@ def _CalcTestPointInterfDiff(point,
         beamwidth=beamwidth,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
-        neighbor_distances=neighbor_distances)
+        neighbor_distances=neighbor_distances,
+        apply_clutter_and_network_loss=apply_clutter_and_network_loss)
     if threshold is not None:
       max_diff = np.max(uut_interferences - threshold)
       logging.debug('%s UUT interf @ %s Thresh %sdBm Diff %sdB: %s',
@@ -768,7 +781,8 @@ def _CalcTestPointInterfDiff(point,
         beamwidth=beamwidth,
         min_azimuth=azimuth_range[0],
         max_azimuth=azimuth_range[1],
-        neighbor_distances=neighbor_distances)
+        neighbor_distances=neighbor_distances,
+        apply_clutter_and_network_loss=apply_clutter_and_network_loss)
 
     max_diff = np.max(uut_interferences - th_interferences)
     logging.debug(
@@ -791,7 +805,8 @@ def _CalcTestPointInterfDiff(point,
 
 
 
-def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
+def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None,
+             use_updated_neighborhoods=False, apply_clutter_and_network_loss=False):
   """Builds a DPA parameterized correctly.
 
   The DPA special parameters are obtained from the DPA database.
@@ -850,10 +865,18 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
   radar_beamwidth = dpa_zone.antennaBeamwidthDeg
   azimuth_range = (dpa_zone.minAzimuthDeg, dpa_zone.maxAzimuthDeg)
   freq_ranges_mhz = dpa_zone.freqRangeMHz
-  neighbor_distances = (dpa_zone.catANeighborhoodDistanceKm,
-                        dpa_zone.catBNeighborhoodDistanceKm,
-                        dpa_zone.catAOOBNeighborhoodDistanceKm,
-                        dpa_zone.catBOOBNeighborhoodDistanceKm)
+  if use_updated_neighborhoods:
+    neighbor_distances = (dpa_zone.catA_Indoor_NeighborhoodDistanceKm,
+                          dpa_zone.catA_Indoor_6m_NeighborhoodDistanceKm,
+                          dpa_zone.catA_Outdoor_NeighborhoodDistanceKm,
+                          dpa_zone.catA_Outdoor_6m_NeighborhoodDistanceKm,
+                          dpa_zone.catBNeighborhoodDistanceKm,
+                          dpa_zone.catB_6m_NeighborhoodDistanceKm)
+  else:
+    neighbor_distances = (dpa_zone.catANeighborhoodDistanceKm,
+                          dpa_zone.catBNeighborhoodDistanceKm,
+                          dpa_zone.catAOOBNeighborhoodDistanceKm,
+                          dpa_zone.catBOOBNeighborhoodDistanceKm)
   return Dpa(protection_points,
              geometry=dpa_zone.geometry,
              name=dpa_name,
@@ -863,4 +886,5 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None):
              azimuth_range=azimuth_range,
              freq_ranges_mhz=freq_ranges_mhz,
              neighbor_distances=neighbor_distances,
-             monitor_type=monitor_type)
+             monitor_type=monitor_type,
+             apply_clutter_and_network_loss=apply_clutter_and_network_loss)
