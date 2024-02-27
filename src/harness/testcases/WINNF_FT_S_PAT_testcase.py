@@ -1,4 +1,4 @@
-#    Copyright 2017 SAS Project Authors. All Rights Reserved.
+#    Copyright 2024 SAS Project Authors. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import sas
 import sas_testcase
 from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
+from reference_models.propagation import p2108
 from reference_models.antenna import antenna
 from reference_models.ppa import ppa
 from reference_models.geo import drive
@@ -33,6 +34,71 @@ from reference_models.geo import utils as geoutils
 # If enabled, the test harness will stop as soon as the failure threshold is reached.
 # If disabled, the test harness will execute all subtests and only PASS/FAIL at the end.
 EARLY_EXIT_ENABLED = False
+
+
+def computePropagationDpa(request):
+    """Calculates path loss in dB between a CBSD and DPA point.
+
+    Inputs:
+        request: A DPA point PAT request, a dict of:
+            modelType: Propagation model type, must be '3'
+            reliabilityLevel: Reliability, must be 0.5
+            cbsd: CBSD, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+                indoorDeployment: CBSD indoor status
+            dpaPoint: A DPA point, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+
+    Returns:
+        A dict of:
+            pathlossDb: Path loss in dB
+    """
+
+    # Must have modelType '3' indicating ITM for DPA Points augmented by Clutter loss and network loading factors
+    model_type = request['modelType']
+    if model_type != '3':
+        raise ValueError('modelType is not 3')
+
+    reliability_level = request['reliabilityLevel']
+    if reliability_level != 0.5:
+        raise ValueError('reliabilityLevel is not 0.5')
+
+    result = {}
+
+    tx = request['cbsd']
+    if 'dpaPoint' not in request:
+        raise ValueError('dpaPoint not in request')
+    else:
+        rx = request['dpaPoint'].copy()
+
+    # convert rx height to AGL
+    if rx['heightType'] == 'AMSL':
+        altitude_rx = drive.terrain_driver.GetTerrainElevation(rx['latitude'], rx['longitude'])
+        rx['height'] = rx['height'] - altitude_rx
+
+    path_loss = wf_itm.CalcItmPropagationLoss(
+        tx['latitude'], tx['longitude'], tx['height'],
+        rx['latitude'], rx['longitude'], rx['height'],
+        cbsd_indoor=tx['indoorDeployment'],
+        reliability=reliability_level,
+        freq_mhz=3625.,
+        is_height_cbsd_amsl=(tx['heightType'] == 'AMSL'))
+
+    clutter_loss = p2108.calc_P2108(
+        tx['latitude'], tx['longitude'], tx['height'],
+        rx['latitude'], rx['longitude'],
+        is_height_cbsd_amsl=(tx['heightType'] == 'AMSL'))
+
+    result['pathlossDb'] = path_loss.db_loss + clutter_loss + p2108.ACTIVITY_LOSS_FACTOR
+
+    return result
+
 
 def computePropagationAntennaModel(request):
     reliability_level = request['reliabilityLevel']
@@ -170,6 +236,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     reliability_level = -1
     config = []
     config.append({'reliabilityLevel': reliability_level,
+                   'modelType': '1',
                    'cbsd': cbsddata(device_a),
                    'fss': fssdata(fss_record_0, True)})
 
@@ -179,6 +246,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
      
     reliability_level = -1
     config.append({'reliabilityLevel': reliability_level,
+                   'modelType': '2',
                    'cbsd': cbsddata(device_a),
                    'ppa': ppa_record['zone']['features'][0]})
 
@@ -195,7 +263,6 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     The response should have the pathlossDb, txAntennaGainDbi
     """
     config = loadConfig(config_filename)
-    num_tests = len(config)
     test_pass_threshold = 0.999 #percentage of passed test expected
     num_passed_tests = 0
     num_tests = len(config)
@@ -253,3 +320,95 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                  num_passed_tests, num_tests, test_pass_threshold * 100)
     self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
 
+  def generate_FT_S_PAT_2_default_config(self, filename):
+    """Generates the WinnForum configuration for PAT.2."""
+
+    # Load Devices
+    device_a = json_load(
+      os.path.join('testcases', 'testdata', 'device_a.json'))
+    device_a['installationParam']['height'] = 5
+
+    # DPA >2 km away from cbsd
+    dpa_point = {
+      'latitude': 39.0310056866783,
+      'longitude': -98.45970115463795,
+      'height': 5.6,
+      'heightType': 'AGL'
+    }
+    reliability_level = 0.5
+    config = []
+    config.append({'reliabilityLevel': reliability_level,
+                   'modelType': '3',
+                   'cbsd': cbsddata(device_a),
+                   'dpaPoint': dpa_point})
+
+    # DPA 1 km away from cbsd and heightType amsl
+    dpa_point = {
+      'latitude': 39.018906023080326,
+      'longitude': -98.47521862115552,
+      'height': 457.7,
+      'heightType': 'AMSL'
+    }
+    reliability_level = 0.5
+    config.append({'reliabilityLevel': reliability_level,
+                   'modelType': '3',
+                   'cbsd': cbsddata(device_a),
+                   'dpaPoint': dpa_point})
+
+    writeConfig(filename, config)
+
+  @configurable_testcase(generate_FT_S_PAT_2_default_config)
+  def test_WINNF_FT_S_PAT_2(self, config_filename):
+    """Query with CBSD and DPA
+
+    The response should have the pathlossDb
+    """
+    config = loadConfig(config_filename)
+    num_tests = len(config)
+    test_pass_threshold = 0.999  # percentage of passed test expected
+    num_passed_tests = 0
+    max_fail_num = int((1 - test_pass_threshold) * num_tests)
+    num_failed_tests = 0
+    num_invalid_tests = 0
+    already_failed = False
+
+    for test_num, request in enumerate(config):
+      logging.info('Running test number %d: %s', test_num, str(request))
+      try:
+        ref_response = computePropagationDpa(request)
+        logging.info('Reference response: %s', str(ref_response))
+      except ValueError as e:
+        logging.debug('Test # %d, Exception: %s', test_num, e)
+        logging.debug('Invalid configuration: %s', request)
+        num_invalid_tests += 1
+        num_tests -= 1
+        max_fail_num = math.floor((1 - test_pass_threshold) * num_tests)
+        # Do not send the request to the SAS if the reference prop model flagged it as an invalid config.
+        continue
+
+      # Send the request to the SAS.
+      sas_response = self._sas_admin.QueryPropagationAndAntennaModel(request)
+      logging.info('SAS response: %s', str(sas_response))
+
+      # Check response.
+      this_test_passed = False
+      if 'pathlossDb' in sas_response:
+        this_test_passed = sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1
+
+      logging.info('This test passed? %s', str(this_test_passed))
+
+      if this_test_passed:
+        num_passed_tests += 1
+      else:
+        num_failed_tests += 1
+      if num_failed_tests > max_fail_num:  # test fails if number of failed tests greater than allowed
+        if not already_failed:  # This value is False the first time we cross the threshold.
+          logging.error('Just failed the maximum number of tests (%d).', num_failed_tests)
+          already_failed = True
+        if EARLY_EXIT_ENABLED:
+          self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
+
+    # Outside the 'for' loop.
+    logging.info('Passed %d out of %d tests. Need %2.6f percent pass rate.',
+                 num_passed_tests, num_tests, test_pass_threshold * 100)
+    self.assertTrue(num_passed_tests >= num_tests * test_pass_threshold)
