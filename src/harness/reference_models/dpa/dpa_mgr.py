@@ -53,11 +53,11 @@ import shapely.geometry as sgeo
 import six
 from six.moves import zip
 
-from google3.third_party.winnforum_sas.src.harness.reference_models.common import data
-from google3.third_party.winnforum_sas.src.harness.reference_models.common import mpool
-from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import dpa_builder
-from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import move_list as ml
-from google3.third_party.winnforum_sas.src.harness.reference_models.geo import zones
+from reference_models.common import data
+from reference_models.common import mpool
+from reference_models.dpa import dpa_builder
+from reference_models.dpa import move_list as ml
+from reference_models.geo import zones
 
 # The default DPA parameters, corresponding to legacy Coastal DPA.
 DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144

@@ -24,18 +24,18 @@ import time
 from six import string_types as basestring
 from six.moves import zip
 
-from google3.third_party.winnforum_sas.src.harness import sas
-from google3.third_party.winnforum_sas.src.harness import sas_testcase
-from google3.third_party.winnforum_sas.src.harness.database import DatabaseServer
-from google3.third_party.winnforum_sas.src.harness.util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
+import sas
+import sas_testcase
+from database import DatabaseServer
+from util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
   loadConfig, getCertificateFingerprint, getFqdnLocalhost, getUnusedPort, \
   getCertFilename, json_load
-from google3.third_party.winnforum_sas.src.harness.test_harness_objects import DomainProxy
-from google3.third_party.winnforum_sas.src.harness.full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-from google3.third_party.winnforum_sas.src.harness.sas_test_harness import SasTestHarnessServer, generateCbsdRecords
-from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import dpa_mgr
-from google3.third_party.winnforum_sas.src.harness.reference_models.common import data
-from google3.third_party.winnforum_sas.src.harness.common_types import ResponseCodes
+from test_harness_objects import DomainProxy
+from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
+from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
+from reference_models.dpa import dpa_mgr
+from reference_models.common import data
+from common_types import ResponseCodes
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
