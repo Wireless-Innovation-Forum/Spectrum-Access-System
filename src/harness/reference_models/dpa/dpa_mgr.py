@@ -53,11 +53,11 @@ import shapely.geometry as sgeo
 import six
 from six.moves import zip
 
-from reference_models.common import data
-from reference_models.common import mpool
-from reference_models.dpa import dpa_builder
-from reference_models.dpa import move_list as ml
-from reference_models.geo import zones
+from google3.third_party.winnforum_sas.src.harness.reference_models.common import data
+from google3.third_party.winnforum_sas.src.harness.reference_models.common import mpool
+from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import dpa_builder
+from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import move_list as ml
+from google3.third_party.winnforum_sas.src.harness.reference_models.geo import zones
 
 # The default DPA parameters, corresponding to legacy Coastal DPA.
 DPA_DEFAULT_THRESHOLD_PER_10MHZ = -144
@@ -132,6 +132,8 @@ class Dpa(object):
       OR the updated sequence (cata_indoor_dist, cata_indoor_6m_dist,
       cata_outdoor_dist, cata_outdoor_6m_dist, catb_dist, catb_6m_dist)
     monitor_type: The DPA monitoring category, either 'esc' or 'portal'.
+    apply_clutter_and_network_loss: Use updatd DPA pathloss which includes
+      clutter and network loss.
 
     move_lists: A list of move list (set of |CbsdGrantInfo|) per channel.
     nbor_lists: A list of neighbor list (set of |CbsdGrantInfo|) per channel.
@@ -837,6 +839,9 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None,
         The result are only approximate (actual distance and number of points may differ).
       + other 'my_method (p1, p2, ..pk)': The 'my_method` will be checked against registered
         methods in which case it will be used, and passing to it the parameters p1, p2,...
+    use_updated_neighborhoods: If true, use the updated set of 6 neighborhoods
+    apply_clutter_and_network_loss: Use updatd DPA pathloss which includes
+      clutter and network loss.
 
   Returns:
     A Dpa object.

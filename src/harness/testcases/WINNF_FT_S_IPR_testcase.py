@@ -24,18 +24,18 @@ import time
 from six import string_types as basestring
 from six.moves import zip
 
-import sas
-import sas_testcase
-from database import DatabaseServer
-from util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
+from google3.third_party.winnforum_sas.src.harness import sas
+from google3.third_party.winnforum_sas.src.harness import sas_testcase
+from google3.third_party.winnforum_sas.src.harness.database import DatabaseServer
+from google3.third_party.winnforum_sas.src.harness.util import buildDpaActivationMessage, configurable_testcase, writeConfig, \
   loadConfig, getCertificateFingerprint, getFqdnLocalhost, getUnusedPort, \
   getCertFilename, json_load
-from test_harness_objects import DomainProxy
-from full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
-from sas_test_harness import SasTestHarnessServer, generateCbsdRecords
-from reference_models.dpa import dpa_mgr
-from reference_models.common import data
-from common_types import ResponseCodes
+from google3.third_party.winnforum_sas.src.harness.test_harness_objects import DomainProxy
+from google3.third_party.winnforum_sas.src.harness.full_activity_dump_helper import getFullActivityDumpSasTestHarness, getFullActivityDumpSasUut
+from google3.third_party.winnforum_sas.src.harness.sas_test_harness import SasTestHarnessServer, generateCbsdRecords
+from google3.third_party.winnforum_sas.src.harness.reference_models.dpa import dpa_mgr
+from google3.third_party.winnforum_sas.src.harness.reference_models.common import data
+from google3.third_party.winnforum_sas.src.harness.common_types import ResponseCodes
 
 LOW_FREQUENCY_LIMIT_HZ = 3550000000
 HIGH_FREQUENCY_LIMIT_HZ = 3650000000
@@ -1035,7 +1035,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       del test_harness
 
   def generate_IPR_7_default_config(self, filename):
-    """Generates the WinnForum configuration for FDB.2"""
+    """Generates the WinnForum configuration for IPR.7"""
 
     # DPA database test harness configuration
     dpa_database_config = {
@@ -1336,7 +1336,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       del dpa_database_server
 
   def generate_IPR_8_default_config(self, filename):
-    """Generates the WinnForum configuration for FDB.2"""
+    """Generates the WinnForum configuration for IPR.8"""
 
     # DPA database test harness configuration
     dpa_database_config = {
@@ -1380,24 +1380,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     grant_b = json_load(
         os.path.join('testcases', 'testdata', 'grant_0.json'))
 
-    sas_test_harness_config = {
-        'sasTestHarnessName':
-            'SAS-Test-Harness-1',
-        'hostName':
-            getFqdnLocalhost(),
-        'port':
-            getUnusedPort(),
-        'serverCert':
-            getCertFilename('sas.cert'),
-        'serverKey':
-            getCertFilename('sas.key'),
-        'caCert':
-            getCertFilename('ca.cert'),
-        'fullActivityDumpRecords': [
-            generateCbsdRecords([device_a], [[grant_a]])
-        ]
-    }
-
     domain_proxy = {
         'registrationRequests': [device_b],
         'grantRequests': [grant_b],
@@ -1435,7 +1417,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     config = {
         'dpaDatabaseConfig': dpa_database_config,
-        'sasTestHarnessConfigs': [sas_test_harness_config],
+        'sasTestHarnessConfigs': [],
         'domainProxies': [domain_proxy],
         'portalDpa': portal_dpa,
         'runEarlyCpas': False
@@ -1487,6 +1469,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         msg='DPAs must be activated and checked in 10 MHz segments.')
 
     num_peer_sases = len(config['sasTestHarnessConfigs'])
+    # No peer SASes for this test.
+    self.assertEqual(num_peer_sases, 0)
 
     # SAS UUT loads the appropriate DPAs.
     dpa_database_server = None
@@ -1523,31 +1507,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     else:
       logging.info('Step 3: (skipped).')
 
-    # Steps 4 & 5 can be interleaved.
-    logging.info('Steps 4 + 5: activate and configure SAS Test Harnesses.')
-    test_harnesses = []
-    for test_harness_config in config['sasTestHarnessConfigs']:
-      # Create test harness, notify the SAS UUT, and load FAD records.
-      test_harness = SasTestHarnessServer(
-          test_harness_config['sasTestHarnessName'],
-          test_harness_config['hostName'], test_harness_config['port'],
-          test_harness_config['serverCert'], test_harness_config['serverKey'],
-          test_harness_config['caCert'])
-      test_harness.start()
-      self._sas_admin.InjectPeerSas({
-          'certificateHash':
-              getCertificateFingerprint(test_harness_config['serverCert']),
-          'url':
-              test_harness.getBaseUrl()
-      })
-      for fullActivityDumpRecord in test_harness_config['fullActivityDumpRecords']:
-          self.InjectTestHarnessFccIds(fullActivityDumpRecord)
-      test_harness.writeFadRecords(
-          test_harness_config['fullActivityDumpRecords'])
-      test_harnesses.append(test_harness)
-
     # Register N2 CBSDs and request grants with SAS UUT from ND proxies.
-    logging.info('Step 6: Registering and Granting N2 CBSDs with SAS UUT.')
+    logging.info('Step 4: Registering and Granting N2 CBSDs with SAS UUT.')
     domain_proxies = []
     for domain_proxy_config in config['domainProxies']:
       domain_proxy = DomainProxy(
@@ -1561,31 +1522,17 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
               'conditionalRegistrationData'])
       domain_proxies.append(domain_proxy)
 
-    logging.info('Steps 7 + 8: generate and pull FAD.')
-    sas_uut_fad = None
-    test_harness_fads = []
-    if num_peer_sases:
-      # Trigger, wait and download FAD records from SAS UUT and test harnesses.
-      ssl_cert = config['sasTestHarnessConfigs'][0]['serverCert']
-      ssl_key = config['sasTestHarnessConfigs'][0]['serverKey']
-      sas_uut_fad = getFullActivityDumpSasUut(
-          self._sas, self._sas_admin, ssl_cert=ssl_cert, ssl_key=ssl_key)
-      for test_harness in test_harnesses:
-        test_harness_fads.append(
-            getFullActivityDumpSasTestHarness(
-                test_harness.getSasTestHarnessInterface()))
-
     # Trigger CPAS.
-    logging.info('Step 9: Triggering CPAS.')
+    logging.info('Step 5: Triggering CPAS.')
     self.TriggerDailyActivitiesImmediatelyAndWaitUntilComplete()
 
-    logging.info('Step 10: (done below).')
+    logging.info('Step 6: (done below).')
 
     # Inform the SAS UUT that the ESC-monitored DPA is activated.
     if using_esc_dpa:
       if dpa_config['frequencyRange']['lowFrequency'] < LOW_FREQUENCY_LIMIT_HZ:
         logging.info(
-            'Skipping Step 11: an always-active DPA was specified, so there is '
+            'Skipping Step 7: an always-active DPA was specified, so there is '
             'no need to activate.'
         )
       else:
@@ -1593,21 +1540,21 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             'dpaId': dpa_config['dpaId'],
             'frequencyRange': dpa_config['frequencyRange']
         }
-        logging.info('Step 11: activating DPA: %s', dpa_activation_request)
+        logging.info('Step 7: activating DPA: %s', dpa_activation_request)
         self._sas_admin.TriggerDpaActivation(dpa_activation_request)
     else:
       logging.info(
-          'Skipping Step 11: using portal-controlled DPA which is active by '
+          'Skipping Step 7: using portal-controlled DPA which is active by '
           'default.'
       )
 
-    logging.info('Step 12: wait + heartbeat.')
+    logging.info('Step 8: wait + heartbeat.')
     time.sleep(240)
     for domain_proxy in domain_proxies:
       domain_proxy.heartbeatForAllActiveGrants()
     grant_info = data.getAuthorizedGrantsFromDomainProxies(domain_proxies)
 
-    logging.info('Step 10, 13, + CHECK: DPA aggregate interference check.')
+    logging.info('Step 6, 9, + CHECK: DPA aggregate interference check.')
     logging.info('Checking DPA %s', dpa_config)
     dpa_filename = config['dpaDatabaseConfig'][
         'filePath'] if using_portal_dpa else None
@@ -1620,8 +1567,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
     high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
     dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
-    dpa.SetGrantsFromFad(sas_uut_fad, test_harness_fads)
-    dpa.ComputeMoveLists()
     # Check grants do not exceed each DPAs interference threshold.
     self.assertTrue(
         dpa.CheckInterference(
@@ -1629,11 +1574,6 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             margin_db=dpa_config['movelistMargin'],
             channel=(low_freq_mhz, high_freq_mhz),
             do_abs_check_single_uut=(num_peer_sases == 0)))
-
-    # Stop test harness servers.
-    for test_harness in test_harnesses:
-      test_harness.shutdown()
-      del test_harness
 
     if dpa_database_server:
       del dpa_database_server
