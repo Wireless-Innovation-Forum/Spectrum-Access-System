@@ -434,7 +434,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write((ensure_binaryjson.dumps(response)))
+    self.wfile.write(ensure_binary(json.dumps(response)))
 
 def ParseCrlIndex(index_filename):
   """Returns the list of CRL filenames from a CRL index file."""
