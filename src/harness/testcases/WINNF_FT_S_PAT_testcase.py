@@ -101,6 +101,11 @@ def computePropagationDpa(request):
 
 
 def computePropagationAntennaModel(request):
+    # dpa
+    if 'dpaPoint' in request:
+      return computePropagationDpa(request)
+
+    # fss/ppa
     reliability_level = request['reliabilityLevel']
     if reliability_level not in [-1, 0.05, 0.95]:
         raise ValueError('reliability_level not in [-1, 0.05, 0.95]')
@@ -147,33 +152,33 @@ def computePropagationAntennaModel(request):
 
         result['pathlossDb'] = path_loss.db_loss
         gain_tx_rx = antenna.GetStandardAntennaGains(
-            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'],
             ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-        result['txAntennaGainDbi'] = gain_tx_rx 
+        result['txAntennaGainDbi'] = gain_tx_rx
         if 'rxAntennaGainRequired' in rx:
             hor_dirs = path_loss.incidence_angles.hor_rx
             ver_dirs = path_loss.incidence_angles.ver_rx
             gain_rx_tx = antenna.GetFssAntennaGains(
-                hor_dirs, ver_dirs, rx['antennaAzimuth'], 
+                hor_dirs, ver_dirs, rx['antennaAzimuth'],
                 rx['antennaElevation'], rx['antennaGain'])
-            result['rxAntennaGainDbi'] = gain_rx_tx           
+            result['rxAntennaGainDbi'] = gain_rx_tx
     else:
-        
+
         path_loss = wf_hybrid.CalcHybridPropagationLoss(
-            tx['latitude'], tx['longitude'], tx['height'], 
+            tx['latitude'], tx['longitude'], tx['height'],
             rx['latitude'], rx['longitude'], rx['height'],
             cbsd_indoor= tx['indoorDeployment'],
             reliability=-1, freq_mhz=3625., region=region_val,
             is_height_cbsd_amsl=(tx['heightType'] == 'AMSL'))
         result['pathlossDb'] = path_loss.db_loss
         gain_tx_rx = antenna.GetStandardAntennaGains(
-            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'], 
+            path_loss.incidence_angles.hor_cbsd, ant_azimuth=tx['antennaAzimuth'],
             ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
-        result['txAntennaGainDbi'] = gain_tx_rx 
-        
-    
+        result['txAntennaGainDbi'] = gain_tx_rx
+
+
     return result
-   
+
 def cbsddata(device):
     installationParam = device['installationParam']
     if 'antennaAzimuth' not in installationParam:
@@ -182,7 +187,7 @@ def cbsddata(device):
         installationParam['antennaBeamwidth'] = None
     if 'antennaGain' not in installationParam:
         installationParam['antennaGain'] = 0
-                
+
     cbsd = {'latitude': installationParam['latitude'],
             'longitude': installationParam['longitude'],
             'height': installationParam['height'],
@@ -198,7 +203,7 @@ def fssdata(fss_record, rx_antenna_gain_required=None):
     installationParam = deploymentParam['installationParam']
     if 'antennaAzimuth' not in installationParam:
         installationParam['antennaAzimuth'] = None
-        
+
     fss = {'latitude': installationParam['latitude'],
            'longitude': installationParam['longitude'],
            'height': installationParam['height'],
@@ -223,7 +228,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
 
   def generate_FT_S_PAT_default_config(self, filename):
     """Generates the WinnForum configuration for PAT.1."""
-    
+
     # Load Devices
     device_a = json_load(
     os.path.join('testcases', 'testdata', 'device_a.json'))
@@ -243,7 +248,7 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     # Load PPA
     ppa_record = json_load(
         os.path.join('testcases', 'testdata', 'ppa_record_3.json'))
-     
+
     reliability_level = -1
     config.append({'reliabilityLevel': reliability_level,
                    'modelType': '2',
@@ -251,14 +256,14 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
                    'ppa': ppa_record['zone']['features'][0]})
 
     writeConfig(filename, config)
-      
+
   @configurable_testcase(generate_FT_S_PAT_default_config)
   def test_WINNF_FT_S_PAT_1(self, config_filename):
     """Query with CBSD and FSS/PPA
-   
+
     If (rxAntennaGainRequired = True)
-    The response should have the pathlossDb, txAntennaGainDbi and rxAntennaGainDbi 
- 
+    The response should have the pathlossDb, txAntennaGainDbi and rxAntennaGainDbi
+
     If (rxAntennaGainRequired = False or omitted)
     The response should have the pathlossDb, txAntennaGainDbi
     """
