@@ -385,6 +385,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
         response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
         self.send_response(400)
+        self.end_headers()
         return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
@@ -428,6 +429,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().GetFullActivityDump(self.sas_sas_version)
     else:
       self.send_response(404)
+      self.end_headers()
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
