@@ -67,7 +67,7 @@ class ClimateIndexer:
       self.datafile = os.path.join(self.datafile, 'TropoClim.txt')
     self._data = None
     if do_load:
-      self._data = np.loadtxt(self.datafile, dtype=np.int)
+      self._data = np.loadtxt(self.datafile, dtype=int)
 
   def TropoClim(self, lat, lon):
     """Returns ITU climate zone for the specified lat/lon.
@@ -85,7 +85,7 @@ class ClimateIndexer:
     from original TropoClim file encoding at 0.
     """
     if self._data is None:
-      self._data = np.loadtxt(self.datafile, dtype=np.int)
+      self._data = np.loadtxt(self.datafile, dtype=int)
       logging.info('Loaded climate data from %s' % self.datafile)
 
     irow = int((self._lat_start - lat)/self._delta_lat + 0.5)
