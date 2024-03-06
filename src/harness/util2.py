@@ -18,7 +18,7 @@ from __future__ import division
 from __future__ import print_function
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 import inspect
 import json
 import os
@@ -46,9 +46,9 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
-  start_date = datetime.now().replace(year=datetime.now().year - 1) \
+  start_date = datetime.now() - timedelta(days=365) \
     if start_date is None else start_date
-  end_date = datetime.now().replace(year=datetime.now().year + 1) \
+  end_date = datetime.now() + timedelta(days=365) \
     if end_date is None else end_date
 
   for index, pal_rec in enumerate(pal_records):
@@ -102,8 +102,8 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     Note: The PAL Dictionary must contain countyYear(number) and
           fipsCode(number)
   """
-  start_date = datetime.now().replace(year=datetime.now().year - 1)
-  end_date = datetime.now().replace(year=datetime.now().year + 1)
+  start_date = datetime.now() - timedelta(days=365)
+  end_date = datetime.now() + timedelta(days=365)
 
   pal_records = makePalRecordsConsistent(pal_records, low_frequency,
                                          high_frequency, user_id,
