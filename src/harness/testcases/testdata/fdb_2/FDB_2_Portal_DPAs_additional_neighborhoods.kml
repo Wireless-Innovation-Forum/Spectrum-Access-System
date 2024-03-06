@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>P-DPAs</name>
+	<ExtendedData>
+		<Data name="version">
+			<value>1.0.3</value>
+		</Data>
+		<Data name="creationDate">
+			<value>2018-05-29</value>
+		</Data>
+		<Data name="Disclaimer">
+      <value>The Category and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
+		</Data>
+	</ExtendedData>
+	<gx:balloonVisibility>1</gx:balloonVisibility>
+	<Placemark>
+		<name>BATH</name>
+		<Snippet maxLines="0"></Snippet>
+		<ExtendedData>
+			<Data name="portalOrg">
+				<value>BATH</value>
+			</Data>
+			<Data name="freqRangeMHz">
+				<value>3500-3650</value>
+			</Data>
+			<Data name="federalOp">
+				<value>True</value>
+			</Data>
+			<Data name="protectionCritDbmPer10MHz">
+				<value>-144</value>
+			</Data>
+			<Data name="refHeightMeters">
+				<value>30</value>
+			</Data>
+			<Data name="antennaBeamwidthDeg">
+				<value>3</value>
+			</Data>
+			<Data name="minAzimuthDeg">
+				<value>0</value>
+			</Data>
+			<Data name="maxAzimuthDeg">
+				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>332</value>
+			</Data>
+			<Data name="catB_6m_NeighborhoodDistanceKm">
+				<value>44</value>
+			</Data>
+			<Data name="catA_Indoor_NeighborhoodDistanceKm">
+				<value>56</value>
+			</Data>
+			<Data name="catA_Indoor_6m_NeighborhoodDistanceKm">
+				<value>16</value>
+			</Data>
+			<Data name="catA_Outdoor_NeighborhoodDistanceKm">
+				<value>72</value>
+			</Data>
+			<Data name="catA_Outdoor_6m_NeighborhoodDistanceKm">
+				<value>32</value>
+			</Data>
+		</ExtendedData>
+		<Point>
+			<coordinates>-69.81388889,43.90555556,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark>
+		<name>CHINA LAKE</name>
+		<Snippet maxLines="0"></Snippet>
+		<Style>
+			<LineStyle>
+				<color>ffff0000</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>80ffffff</color>
+				<fill>1</fill>
+				<outline>1</outline>
+			</PolyStyle>
+		</Style>
+		<ExtendedData>
+			<Data name="portalOrg">
+				<value>CHINA LAKE</value>
+			</Data>
+			<Data name="freqRangeMHz">
+				<value>3500-3650</value>
+			</Data>
+			<Data name="federalOp">
+				<value>True</value>
+			</Data>
+			<Data name="protectionCritDbmPer10MHz">
+				<value>-144</value>
+			</Data>
+			<Data name="refHeightMeters">
+				<value>25</value>
+			</Data>
+			<Data name="antennaBeamwidthDeg">
+				<value>3</value>
+			</Data>
+			<Data name="minAzimuthDeg">
+				<value>0</value>
+			</Data>
+			<Data name="maxAzimuthDeg">
+				<value>360</value>
+			</Data>
+			<Data name="catBNeighborhoodDistanceKm">
+				<value>332</value>
+			</Data>
+			<Data name="catB_6m_NeighborhoodDistanceKm">
+				<value>44</value>
+			</Data>
+			<Data name="catA_Indoor_NeighborhoodDistanceKm">
+				<value>56</value>
+			</Data>
+			<Data name="catA_Indoor_6m_NeighborhoodDistanceKm">
+				<value>16</value>
+			</Data>
+			<Data name="catA_Outdoor_NeighborhoodDistanceKm">
+				<value>72</value>
+			</Data>
+			<Data name="catA_Outdoor_6m_NeighborhoodDistanceKm">
+				<value>32</value>
+			</Data>
+		</ExtendedData>
+		<Polygon>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+            -117.67833333,37.2892601888781,0 -117.895107457528,37.2779914700817,0 -118.108133321222,37.244380364923,0 -118.313737592296,37.1890081003616,0 -118.508394542599,37.1128304216297,0 -118.688794303635,37.0171585645918,0 -118.851904833317,36.9036334341201,0 -118.995026050568,36.7741937460655,0 -119.115835005636,36.6310390289358,0 -119.212421387718,36.4765884726918,0 -119.283313096431,36.3134366559887,0 -119.327491989791,36.1443071833508,0 -119.344400246499,35.9720052267035,0 -119.333938030923,35.7993698997209,0 -119.296453320869,35.6292273075965,0 -119.232724853936,35.4643450178108,0 -119.143939177152,35.3073885968736,0 -119.031662759065,35.1608807599426,0 -118.897810057945,35.027163588969,0 -118.744608348228,34.9083641932142,0 -118.574560002492,34.8063641147103,0 -118.390402818655,34.7227727204301,0 -118.195068879788,34.6589047716676,0 -117.991642342463,34.6157623180151,0 -117.783316472629,34.5940210267429,0 -117.573350187371,34.5940210267429,0 -117.365024317537,34.6157623180151,0 -117.161597780212,34.6589047716676,0 -116.966263841345,34.7227727204301,0 -116.782106657508,34.8063641147103,0 -116.612058311772,34.9083641932142,0 -116.458856602055,35.027163588969,0 -116.325003900935,35.1608807599426,0 -116.212727482848,35.3073885968736,0 -116.123941806064,35.4643450178108,0 -116.060213339131,35.6292273075965,0 -116.022728629077,35.7993698997209,0 -116.012266413501,35.9720052267035,0 -116.029174670209,36.1443071833508,0 -116.073353563569,36.3134366559887,0 -116.144245272282,36.4765884726918,0 -116.240831654364,36.6310390289358,0 -116.361640609432,36.7741937460655,0 -116.504761826683,36.9036334341201,0 -116.667872356365,37.0171585645918,0 -116.848272117401,37.1128304216297,0 -117.042929067704,37.1890081003616,0 -117.248533338778,37.244380364923,0 -117.461559202472,37.2779914700817,0 -117.67833333,37.2892601888781,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</Document>
+</kml>

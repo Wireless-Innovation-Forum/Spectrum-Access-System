@@ -26,7 +26,7 @@ from six.moves import zip
 
 from reference_models.geo import zones
 
-#TEST_DIR = os.path.join(os.path.dirname(__file__),'testdata', 'zones')
+TEST_DIR = os.path.join(os.path.dirname(__file__),'testdata', 'zones')
 
 
 class TestZones(unittest.TestCase):
@@ -58,6 +58,20 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['East5'].maxAzimuthDeg, 360)
     self.assertEqual(z['East5'].catBNeighborhoodDistanceKm, 368)
 
+  def test_read_coastal_dpa_new_neighborhoods(self):
+    z = zones.GetCoastalDpaZones(
+        os.path.join(TEST_DIR, 'E-DPAs_new_neighborhoods.kml')
+    )
+    for name, zone in z.items():
+      self.assertTrue(zone.geometry.is_valid)
+    self.assertAlmostEqual(z['East5'].geometry.area, 6, 1)
+    self.assertEqual(z['East5'].freqRangeMHz, [(3550, 3650)])
+    self.assertEqual(z['East5'].protectionCritDbmPer10MHz, -144)
+    self.assertEqual(z['East5'].refHeightMeters, 50)
+    self.assertEqual(z['East5'].minAzimuthDeg, 0)
+    self.assertEqual(z['East5'].maxAzimuthDeg, 360)
+    self.assertEqual(z['East5'].catA_Indoor_NeighborhoodDistanceKm, 56)
+
   def test_read_portal_dpa(self):
     z = zones.GetPortalDpaZones()
     for name, zone in z.items():
@@ -69,6 +83,20 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['BATH'].minAzimuthDeg, 0)
     self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
     self.assertEqual(z['BATH'].catBNeighborhoodDistanceKm, 240)
+
+  def test_read_portal_dpa_new_neighborhoods(self):
+    z = zones.GetPortalDpaZones(
+        os.path.join(TEST_DIR, 'P-DPAs_new_neighborhoods.kml')
+    )
+    for name, zone in z.items():
+      self.assertTrue(zone.geometry.is_valid)
+    self.assertAlmostEqual(z['BATH'].geometry.area, 0.0, 1)
+    self.assertEqual(z['BATH'].freqRangeMHz, [(3500, 3650)])
+    self.assertEqual(z['BATH'].protectionCritDbmPer10MHz, -144)
+    self.assertEqual(z['BATH'].refHeightMeters, 30)
+    self.assertEqual(z['BATH'].minAzimuthDeg, 0)
+    self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
+    self.assertEqual(z['BATH'].catA_Indoor_NeighborhoodDistanceKm, 56)
 
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()

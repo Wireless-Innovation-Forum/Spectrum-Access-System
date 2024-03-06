@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+   <Document>
+      <name>P-DPAs</name>
+<ExtendedData>
+<Data name="version">
+<value>1.0.7</value>
+</Data> 
+<Data name="creationDate">
+<value>2019-04-15</value>
+</Data> 
+<Data name="Disclaimer">
+<value>The Category A and Category B Neighborhood distances contained in this file were provided by WInnForum and are not a requirement of the federal government.</value>
+</Data> 
+</ExtendedData>
+      <Placemark>
+         <name>BATH</name>
+<ExtendedData> 
+<Data name="portalOrg"> 
+<value>BATH</value>
+</Data> 
+<Data name="calendarId3500-3510">
+<value>424154485f333530302d33353130</value>
+</Data>
+<Data name="calendarId3510-3520">
+<value>424154485f333531302d33353230</value>
+</Data>
+<Data name="calendarId3520-3530">
+<value>424154485f333532302d33353330</value>
+</Data>
+<Data name="calendarId3530-3540">
+<value>424154485f333533302d33353430</value>
+</Data>
+<Data name="calendarId3540-3550">
+<value>424154485f333534302d33353530</value>
+</Data>
+<Data name="calendarId3550-3560">
+<value>424154485f333535302d33353630</value>
+</Data>
+<Data name="calendarId3560-3570">
+<value>424154485f333536302d33353730</value>
+</Data>
+<Data name="calendarId3570-3580">
+<value>424154485f333537302d33353830</value>
+</Data>
+<Data name="calendarId3580-3590">
+<value>424154485f333538302d33353930</value>
+</Data>
+<Data name="calendarId3590-3600">
+<value>424154485f333539302d33363030</value>
+</Data>
+<Data name="calendarId3600-3610">
+<value>424154485f333630302d33363130</value>
+</Data>
+<Data name="calendarId3610-3620">
+<value>424154485f333631302d33363230</value>
+</Data>
+<Data name="calendarId3620-3630">
+<value>424154485f333632302d33363330</value>
+</Data>
+<Data name="calendarId3630-3640">
+<value>424154485f333633302d33363430</value>
+</Data>
+<Data name="calendarId3640-3650">
+<value>424154485f333634302d33363530</value>
+</Data>
+<Data name="freqRangeMHz">
+<value>3500-3650</value>
+</Data> 
+<Data name="federalOp"> 
+<value>True</value> 
+</Data> 
+<Data name="protectionCritDbmPer10MHz"> 
+<value>-144</value>
+</Data> 
+<Data name="refHeightMeters"> 
+<value>30</value>
+</Data> 
+<Data name="antennaBeamwidthDeg"> 
+<value>3</value>
+</Data> 
+<Data name="minAzimuthDeg"> 
+<value>0</value>
+</Data> 
+<Data name="maxAzimuthDeg"> 
+<value>360</value>
+</Data> 
+<Data name="catBNeighborhoodDistanceKm">
+   <value>332</value>
+</Data>
+<Data name="catB_6m_NeighborhoodDistanceKm">
+   <value>44</value>
+</Data>
+<Data name="catA_Indoor_NeighborhoodDistanceKm">
+   <value>56</value>
+</Data>
+<Data name="catA_Indoor_6m_NeighborhoodDistanceKm">
+   <value>16</value>
+</Data>
+<Data name="catA_Outdoor_NeighborhoodDistanceKm">
+   <value>72</value>
+</Data>
+<Data name="catA_Outdoor_6m_NeighborhoodDistanceKm">
+   <value>32</value>
+</Data>
+</ExtendedData>
+<Point>
+                  <coordinates>-69.81388889,43.90555556,0</coordinates>
+</Point>
+      </Placemark>
+   </Document>
+</kml>

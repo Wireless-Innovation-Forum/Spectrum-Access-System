@@ -204,6 +204,44 @@ class TestDpa(unittest.TestCase):
     self.assertListEqual(nbor_grants, grants)
     self.assertListEqual(move_grants, [])
 
+  def test_movelist_new_neighborhoods(self):
+    np.random.seed(1248)
+    # Configuring for -144dBm circle at 20km
+    wf_itm.CalcItmPropagationLoss = testutils.FakePropagationPredictor(
+        dist_type='REAL', factor=1.0, offset=(144+30-0.1) - 20.0)
+    point = ProtectionPoint(latitude=36.815, longitude=-76.292)
+
+    # Within the neighborhood
+    grants = entities.ConvertToCbsdGrantInfo(
+        entities.GenerateCbsdList(
+            1, template_cbsd=entities.CBSD_TEMPLATE_CAT_A_OUTDOOR,
+            ref_latitude=36.815, ref_longitude=-76.292,
+            min_distance_km=39.97, max_distance_km=39.98),
+        min_freq_mhz=3600,
+        max_freq_mhz=3610)
+
+    move_grants, nbor_grants = move_list.moveListConstraint(
+        point, 3600e6, 3610e6, grants,
+        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60))
+
+    self.assertListEqual(nbor_grants, grants)
+    self.assertListEqual(move_grants, [])
+
+    # Outside the neighborhood
+    grants = entities.ConvertToCbsdGrantInfo(
+        entities.GenerateCbsdList(
+            1, template_cbsd=entities.CBSD_TEMPLATE_CAT_A_OUTDOOR,
+            ref_latitude=36.815, ref_longitude=-76.292,
+            min_distance_km=40.1, max_distance_km=40.2),
+        min_freq_mhz=3600,
+        max_freq_mhz=3610)
+
+    move_grants, nbor_grants = move_list.moveListConstraint(
+        point, 3600e6, 3610e6, grants,
+        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60))
+
+    self.assertListEqual(nbor_grants, [])
+    self.assertListEqual(move_grants, [])
 
 if __name__ == '__main__':
   unittest.main()
