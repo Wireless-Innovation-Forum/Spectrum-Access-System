@@ -161,8 +161,14 @@ Install packages
 
 This example uses the MiniConda environment manager.
 
-Install miniconda from this page: https://docs.conda.io/en/latest/miniconda.html
+Install miniconda from this page: https://docs.anaconda.com/free/miniconda/
 
+#### Option 1: use conda-environment.yml file
+```shell
+    conda env create -f conda-environment.yml
+    conda activate winnf3
+```
+#### Option 2: use conda commands
 Create a conda Python 3.11 environment named `winnf3`:
 
 ```shell
