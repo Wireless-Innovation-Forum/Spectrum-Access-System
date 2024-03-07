@@ -26,6 +26,8 @@ import uuid
 
 import jsonschema
 
+DAYS_IN_A_YEAR = 365
+
 def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
                              user_id, fcc_channel_id="1",
                              start_date=None, end_date=None):
@@ -46,9 +48,9 @@ def makePalRecordsConsistent(pal_records, low_frequency, high_frequency,
     Note: The PAL Dictionary must contain censusYear(number) and
           fipsCode(number)
   """
-  start_date = datetime.now() - timedelta(days=365) \
+  start_date = datetime.now() - timedelta(days = DAYS_IN_A_YEAR) \
     if start_date is None else start_date
-  end_date = datetime.now() + timedelta(days=365) \
+  end_date = datetime.now() + timedelta(days = DAYS_IN_A_YEAR) \
     if end_date is None else end_date
 
   for index, pal_rec in enumerate(pal_records):
@@ -102,8 +104,8 @@ def makePpaAndPalRecordsConsistent(ppa_record, pal_records, low_frequency,
     Note: The PAL Dictionary must contain countyYear(number) and
           fipsCode(number)
   """
-  start_date = datetime.now() - timedelta(days=365)
-  end_date = datetime.now() + timedelta(days=365)
+  start_date = datetime.now() - timedelta(days = DAYS_IN_A_YEAR)
+  end_date = datetime.now() + timedelta(days = DAYS_IN_A_YEAR)
 
   pal_records = makePalRecordsConsistent(pal_records, low_frequency,
                                          high_frequency, user_id,
