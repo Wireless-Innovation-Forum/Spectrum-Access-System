@@ -35,7 +35,7 @@ Note: see last section for an example of full installation.
 The scripts in the SAS repository depend on local environment setup to run.
 Here are packages and software needed to correctly operate the scripts.
 
-* Python 3.7 (https://www.python.org/download/releases/3.7/)
+* Python 3.11 (https://www.python.org/downloads/release/python-3117/)
 
 This is the Python runtime which interprets the scripts in the
 <code>src/</code> directory. It may already be running on many platforms, and
@@ -43,9 +43,8 @@ if it is not already installed, is widely available. Type the command
 <code>python --version</code> to check the Python version installed on your
 platform.
 
-**NOTE**: The current code is designed to work with both Python 2.7 and 3.7.
-It is recommended to only use Python 3.7 from now on (Python 2.7 support will
-be removed in coming months). Currently untested with Python 3.8 and above.
+**NOTE**: The current code was designed to work with both Python 2.7 and 3.7.
+It is recommended to only use Python 3.11 from now on. Currently untested with Python 3.12 and above.
 
 * pip (https://pip.pypa.io/en/stable/installing/)
 
@@ -143,6 +142,20 @@ that the package is installed successfully.
 * Security certificates, as described in
 <code>src/harness/testcases/testdata/certs/README.md</code>
 
+### Example of installation: Python3 installation using venv in Linux
+
+Create a venv
+```shell
+    python3.11 -m venv ./winnf3
+```
+Activate a venv
+```shell
+    source ./winnf3/bin/activate
+```
+Install packages
+```shell
+    python -m pip install -r ./requirements.txt
+```
 
 ### Example of installation: Python3 installation using miniconda in Linux
 
@@ -150,10 +163,10 @@ This example uses the MiniConda environment manager.
 
 Install miniconda from this page: https://docs.conda.io/en/latest/miniconda.html
 
-Create a conda Python 3.7 environment named `winnf3`:
+Create a conda Python 3.11 environment named `winnf3`:
 
 ```shell
-    conda create --name winnf3 python=3.7
+    conda create --name winnf3 python=3.11
 ```
 
 Activate the environment on a command shell:
