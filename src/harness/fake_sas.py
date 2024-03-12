@@ -63,6 +63,7 @@ from six.moves.BaseHTTPServer import HTTPServer
 from six.moves.BaseHTTPServer import BaseHTTPRequestHandler
 from six.moves import configparser
 from OpenSSL import crypto
+from six import ensure_binary
 
 import sas_interface
 
@@ -354,7 +355,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
   def do_POST(self):
     """Handles POST requests."""
 
-    length = int(self.headers.getheader('content-length'))
+    length = int(self.headers.get('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
     if self.path == '/%s/registration' % self.cbsd_sas_version:
@@ -384,7 +385,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
         response = FakeSasAdmin().QueryPropagationAndAntennaModel(request)
       except ValueError:
         self.send_response(400)
-      return
+        self.end_headers()
+        return
     elif self.path in ('/admin/reset', '/admin/injectdata/fcc_id',
                        '/admin/injectdata/user_id',
                        '/admin/injectdata/conditional_registration',
@@ -416,7 +418,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write(json.dumps(response))
+    self.wfile.write(ensure_binary(json.dumps(response)))
 
   def do_GET(self):
     """Handles GET requests."""
@@ -427,11 +429,12 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = FakeSas().GetFullActivityDump(self.sas_sas_version)
     else:
       self.send_response(404)
+      self.end_headers()
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
     self.end_headers()
-    self.wfile.write(json.dumps(response))
+    self.wfile.write(ensure_binary(json.dumps(response)))
 
 def ParseCrlIndex(index_filename):
   """Returns the list of CRL filenames from a CRL index file."""

@@ -67,7 +67,7 @@ def GetAntennaPatternGains(hor_dirs, ant_azimuth,
   bore_angle = hor_dirs - ant_azimuth
   bore_angle[bore_angle >= 360] -= 360
   bore_angle[bore_angle < 0] += 360
-  idx0 = bore_angle.astype(np.int)
+  idx0 = bore_angle.astype(int)
   alpha = bore_angle - idx0
   idx1 = idx0 + 1
   idx1[idx1 >= 360] -= 360
