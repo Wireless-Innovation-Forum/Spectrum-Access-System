@@ -1563,7 +1563,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         dpa_config['points_builder'],
         portal_dpa_filename=dpa_filename,
         use_updated_neighborhoods=True,
-        apply_clutter_and_network_loss=True)
+        apply_clutter_network_loss_and_50_percent=True)
     low_freq_mhz = dpa_config['frequencyRange']['lowFrequency'] // ONE_MHZ
     high_freq_mhz = dpa_config['frequencyRange']['highFrequency'] // ONE_MHZ
     dpa.ResetFreqRange([(low_freq_mhz, high_freq_mhz)])
@@ -1573,7 +1573,8 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
             sas_uut_active_grants=grant_info,
             margin_db=dpa_config['movelistMargin'],
             channel=(low_freq_mhz, high_freq_mhz),
-            do_abs_check_single_uut=(num_peer_sases == 0)))
+            do_abs_check_single_uut=(num_peer_sases == 0),
+            apply_clutter_network_loss_and_50_percent=True))
 
     if dpa_database_server:
       del dpa_database_server

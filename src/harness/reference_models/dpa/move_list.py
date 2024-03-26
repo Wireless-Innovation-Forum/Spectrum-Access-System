@@ -28,6 +28,7 @@
 #==================================================================================
 # DPA Move List Reference Model.
 # Based on WINNF-TS-0112, Version V1.4.1, 16 January 2018.
+# Revisions based on WINNF-TS-0112-V1.9.1, 21 February 2024.
 #
 # The main routines are:
 #   - 'moveListConstraint()': calculates the move list for one point
@@ -251,7 +252,7 @@ def ComputeOOBConductedPower(low_freq_cbsd, low_freq_c, high_freq_c):
 
 
 def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_type,
-                        apply_clutter_and_network_loss):
+                        apply_clutter_network_loss_and_50_percent):
   """Calculate interference contribution of each grant in the neighborhood to
   the protection constraint c.
 
@@ -261,7 +262,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
     inc_ant_height: reference incumbent antenna height (in meters)
     num_iteration:  a number of Monte Carlo iterations
     dpa_type:       an enum member of class DpaType
-    apply_clutter_and_network_loss: if true, add signal and clutter loss
+    apply_clutter_network_loss_and_50_percent: if true, add signal and  clutter loss, and use median
 
   Returns:
     A tuple of
@@ -277,25 +278,34 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
   low_freq_c = constraint.low_frequency
   high_freq_c = constraint.high_frequency
 
-  # Compute median and K random realizations of path loss/interference contribution
-  # based on ITM model as defined in [R2-SGN-03] (in dB)
-  reliabilities = np.random.uniform(0.001, 0.999, num_iteration)  # get K random
-  # reliability values from an uniform distribution over [0.001,0.999)
-  reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
-  # a last value to reliabilities array
-  results = wf_itm.CalcItmPropagationLoss(
+  if apply_clutter_network_loss_and_50_percent:
+    # Compute median path loss/interference contribution
+    # based on ITM model as defined in [REL1Ext-R2-SGN-02, REL1Ext-R2-SGN-04] (in dB)
+    reliabilities = [0.5]
+    results = wf_itm.CalcItmPropagationLoss(
+      grant.latitude, grant.longitude, grant.height_agl,
+      constraint.latitude, constraint.longitude,
+      inc_ant_height, grant.indoor_deployment,
+      reliability=reliabilities,
+      freq_mhz=FREQ_PROP_MODEL)
+    clutter_loss = p2108.calc_P2108(grant.latitude, grant.longitude,
+                                    grant.height_agl, constraint.latitude,
+                                    constraint.longitude)
+    path_loss = np.array(results.db_loss) + clutter_loss + p2108.ACTIVITY_LOSS_FACTOR
+  else:
+    # Compute median and K random realizations of path loss/interference contribution
+    # based on ITM model as defined in [R2-SGN-03] (in dB)
+    reliabilities = np.random.uniform(0.001, 0.999, num_iteration)  # get K random
+    # reliability values from an uniform distribution over [0.001,0.999)
+    reliabilities = np.append(reliabilities, [0.5])  # add 0.5 (for median loss) as
+    # a last value to reliabilities array
+    results = wf_itm.CalcItmPropagationLoss(
       grant.latitude, grant.longitude, grant.height_agl,
       constraint.latitude, constraint.longitude, inc_ant_height,
       grant.indoor_deployment,
       reliability=reliabilities,
       freq_mhz=FREQ_PROP_MODEL)
-  path_loss = np.array(results.db_loss)
-
-  if apply_clutter_and_network_loss:
-    clutter_loss = p2108.calc_P2108(grant.latitude, grant.longitude,
-                                    grant.height_agl, constraint.latitude,
-                                    constraint.longitude)
-    path_loss += clutter_loss + p2108.ACTIVITY_LOSS_FACTOR
+    path_loss = np.array(results.db_loss)
 
   # Compute CBSD antenna gain in the direction of protection point
   ant_gain = antenna.GetStandardAntennaGains(
@@ -323,7 +333,11 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
   # Calculate the interference contributions
   interf = eirp_cbsd - path_loss
   median_interf = interf[-1]      # last element is the median interference
-  K_interf = interf[:-1]          # first 'K' interference
+
+  if apply_clutter_network_loss_and_50_percent:
+    K_interf = [median_interf]    # only median interference is considered
+  else:
+    K_interf = interf[:-1]        # first 'K' interference
 
   # Store interference contributions
   interference = InterferenceContribution(randomInterference=K_interf,
@@ -332,7 +346,7 @@ def computeInterference(grant, constraint, inc_ant_height, num_iteration, dpa_ty
 
 
 def formInterferenceMatrix(grants, grants_ids, constraint,
-                           inc_ant_height, num_iter, dpa_type, apply_clutter_and_network_loss):
+                           inc_ant_height, num_iter, dpa_type, apply_clutter_network_loss_and_50_percent):
   """Form the matrix of interference contributions to protection constraint c.
 
   Inputs:
@@ -343,7 +357,7 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
     inc_ant_height:     reference incumbent antenna height (in meters)
     num_iter:           number of random iterations
     dpa_type:           an enum member of class DpaType
-    apply_clutter_and_network_loss: add signal and clutter loss to interference calc
+    apply_clutter_network_loss_and_50_percent: add signal and clutter loss, and use median for interference calc
 
   Returns:
     A tuple of:
@@ -358,7 +372,7 @@ def formInterferenceMatrix(grants, grants_ids, constraint,
   median_interf = []
   for cbsd_grant in grants:
     interf, median = computeInterference(cbsd_grant, constraint, inc_ant_height,
-                                         num_iter, dpa_type, apply_clutter_and_network_loss)
+                                         num_iter, dpa_type, apply_clutter_network_loss_and_50_percent)
     interf_list.append(interf)
     median_interf.append(median)
   # Sort grants by their median interference contribution, smallest to largest
@@ -458,7 +472,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
                        inc_ant_height,
                        num_iter, threshold, beamwidth,
                        neighbor_distances,
-                       min_azimuth=0, max_azimuth=360, apply_clutter_and_network_loss=False):
+                       min_azimuth=0, max_azimuth=360, apply_clutter_network_loss_and_50_percent=False):
   """Returns the move list for a given protection constraint.
 
   Note that the returned indexes corresponds to the grant.grant_index
@@ -481,7 +495,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
 
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
-    apply_clutter_and_network_loss: if true, add signal and clutter loss
+    apply_clutter_network_loss_and_50_percent: if true, add signal and clutter loss, and use median
 
   Returns:
     A tuple of (move_list_grants, neighbor_list_grants) for that protection constraint:
@@ -521,7 +535,7 @@ def moveListConstraint(protection_point, low_freq, high_freq,
     # Form the matrix of interference contributions
     I, sorted_neighbor_idxs, bearings = formInterferenceMatrix(
         neighbor_grants, neighbor_idxs, constraint, inc_ant_height, num_iter, dpa_type,
-        apply_clutter_and_network_loss)
+        apply_clutter_network_loss_and_50_percent)
 
     # Find the index (nc) of the grant in the ordered list of grants such that
     # the protection percentile of the interference from the first nc grants is below
@@ -614,8 +628,8 @@ def calcAggregatedInterference(protection_point,
                                min_azimuth=0,
                                max_azimuth=360,
                                do_max=False,
-                               apply_clutter_and_network_loss=False):
-  """Computes the 95% aggregated interference quantile on a protected point.
+                               apply_clutter_network_loss_and_50_percent=False):
+  """Computes the aggregated interference quantile on a protected point.
 
   Inputs:
     protection_point:  A protection point location, having attributes 'latitude' and
@@ -624,7 +638,7 @@ def calcAggregatedInterference(protection_point,
     high_freq:         The high frequency of protection constraint (Hz).
     grants:            A list of CBSD |data.CbsdGrantInfo| active grants.
     inc_ant_height:    The reference incumbent antenna height (meters).
-    num_iter:          The number of Monte Carlo iterations.
+    num_iter:          The number of Monte Carlo iterations if apply_clutter_network_loss_and_50_percent is false
     beamwidth:         The protection antenna beamwidth (degree).
     min_azimuth:       The minimum azimuth (degrees) for incumbent transmission.
     max_azimuth:       The maximum azimuth (degrees) for incumbent transmission.
@@ -634,10 +648,10 @@ def calcAggregatedInterference(protection_point,
       [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
         cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
     do_max:            If True, returns the maximum interference over all radar azimuth.
-    apply_clutter_and_network_loss: if true, add signal and clutter loss
+    apply_clutter_network_loss_and_50_percent: if true, add signal and clutter loss, and use median
 
   Returns:
-    The 95% aggregated interference (dB) either:
+    The aggregated interference (dB) either:
       - as a vector (ndarray) of length N, where the element k corresponds to
           azimuth k * (beamwith/2). The length N is thus equal to 2 * 360 / beamwith,
           (or 2 * azimuth_range / beamwidth if using a smaller azimuth range than
@@ -669,24 +683,33 @@ def calcAggregatedInterference(protection_point,
                                                     neighbor_distances)
   if not neighbor_grants:
     return np.asarray(-1000)
-  interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
+
+  if apply_clutter_network_loss_and_50_percent:
+    interf_matrix = np.zeros((1, len(neighbor_grants)))
+  else:
+    interf_matrix = np.zeros((num_iter, len(neighbor_grants)))
+
   bearings = np.zeros(len(neighbor_grants))
   for k, grant in enumerate(neighbor_grants):
     interf, _ = computeInterference(grant, constraint, inc_ant_height,
-                                    num_iter, dpa_type, apply_clutter_and_network_loss)
-    interf_matrix[:,k] = interf.randomInterference
+                                    num_iter, dpa_type, apply_clutter_network_loss_and_50_percent)
+    interf_matrix[:, k] = interf.randomInterference
     bearings[k] = interf.bearing_c_cbsd
 
-  interf_matrix = 10**(interf_matrix / 10.)
+  interf_matrix = 10 ** (interf_matrix / 10.)
   azimuths = findAzimuthRange(min_azimuth, max_azimuth, beamwidth)
 
   agg_interf = np.zeros(len(azimuths))
   for k, azi in enumerate(azimuths):
     dpa_gains = antenna.GetRadarNormalizedAntennaGains(bearings, azi, beamwidth)
-    dpa_interf = interf_matrix * 10**(dpa_gains / 10.0)
-    agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
-                                  PROTECTION_PERCENTILE, interpolation='lower')
+    dpa_interf = interf_matrix * 10 ** (dpa_gains / 10.0)
+    if apply_clutter_network_loss_and_50_percent:
+      agg_interf[k] = np.sum(dpa_interf)
+    else:
+      agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
+                                    PROTECTION_PERCENTILE, interpolation='lower')
   agg_interf = 10 * np.log10(agg_interf)
+
   return np.max(agg_interf) if do_max else agg_interf
 
 
