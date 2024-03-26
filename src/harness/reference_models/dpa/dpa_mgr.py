@@ -876,7 +876,9 @@ def BuildDpa(dpa_name, protection_points_method=None, portal_dpa_filename=None,
                           dpa_zone.catA_Outdoor_NeighborhoodDistanceKm,
                           dpa_zone.catA_Outdoor_6m_NeighborhoodDistanceKm,
                           dpa_zone.catBNeighborhoodDistanceKm,
-                          dpa_zone.catB_6m_NeighborhoodDistanceKm)
+                          dpa_zone.catB_6m_NeighborhoodDistanceKm,
+                          dpa_zone.catAOOBNeighborhoodDistanceKm,
+                          dpa_zone.catBOOBNeighborhoodDistanceKm)
   else:
     neighbor_distances = (dpa_zone.catANeighborhoodDistanceKm,
                           dpa_zone.catBNeighborhoodDistanceKm,

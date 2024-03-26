@@ -183,23 +183,29 @@ def findGrantsInsideNeighborhood(grants, constraint,
           neighbor_dist = neighbor_distances[2]
         else:
           neighbor_dist = neighbor_distances[3]
-    elif len(neighbor_distances) == 6:
-      if grant.cbsd_category == 'A':
-        if grant.indoor_deployment:
-          if grant.height_agl > 6:
-            neighbor_dist = neighbor_distances[0]
-          else:
-            neighbor_dist = neighbor_distances[1]
+    elif len(neighbor_distances) == 8:
+      if dpa_type is DpaType.OUT_OF_BAND:
+        if grant.cbsd_category == 'A':
+          neighbor_dist = neighbor_distances[6]
         else:
-          if grant.height_agl > 6:
-            neighbor_dist = neighbor_distances[2]
-          else:
-            neighbor_dist = neighbor_distances[3]
+          neighbor_dist = neighbor_distances[7]
       else:
-        if grant.height_agl > 6:
-          neighbor_dist = neighbor_distances[4]
+        if grant.cbsd_category == 'A':
+          if grant.indoor_deployment:
+            if grant.height_agl > 6:
+              neighbor_dist = neighbor_distances[0]
+            else:
+              neighbor_dist = neighbor_distances[1]
+          else:
+            if grant.height_agl > 6:
+              neighbor_dist = neighbor_distances[2]
+            else:
+              neighbor_dist = neighbor_distances[3]
         else:
-          neighbor_dist = neighbor_distances[5]
+          if grant.height_agl > 6:
+            neighbor_dist = neighbor_distances[4]
+          else:
+            neighbor_dist = neighbor_distances[5]
     else:
       raise ValueError('Invalid neighborhood distances size')
     if dist_km > neighbor_dist:
