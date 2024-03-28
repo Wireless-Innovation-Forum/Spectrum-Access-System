@@ -437,7 +437,7 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
     if np.isnan(zone.catAOOBNeighborhoodDistanceKm):
       zone.catAOOBNeighborhoodDistanceKm = 0
     if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
-      zone.catBOOBNeighborhoodDistanceKm = 25
+      zone.catBOOBNeighborhoodDistanceKm = 0
 
   return dpa_zones
 
