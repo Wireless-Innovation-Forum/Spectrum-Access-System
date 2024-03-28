@@ -45,6 +45,10 @@ The modification relates mostly to:
   between 3km and 15km (due to an issue in original formulas), and to use
   terrain strictly included within the 3km and 15km range.
 
+A E-Hata correction about isolated ridge correction is also provided with a
+second argument, by specifying: `SetWinnfForumExtensions(True, True)`. 
+By default this correction is OFF (`=False`).
+
 In addition all the code has been ported to use double instead of float, using
 a global #define in `ehata.h`. This allows much more consistent results across existing
 or future implementations.

@@ -14,7 +14,8 @@
 // ******* WinnForum extension *******
 // Activate the Winnforum extensions
 extern bool _WinnForum_Extensions; // default is ON
-void SetWinnForumExtensions(bool on);
+extern bool _do_isolated_ridge_v2_corr; // default is OFF
+void SetWinnForumExtensions(bool on, bool isolated_ridge_v2_corr);
 
 // Function to get the distance in meters from a profile:
 //  the `pfl` profile store the number of points and the step between

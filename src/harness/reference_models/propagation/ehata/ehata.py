@@ -27,11 +27,11 @@ except:
                 '  python setup.py build_ext -i')
 
 
-def SetWinnForumExtensions(on):
+def SetWinnForumExtensions(on, isolated_ridge_corr=False):
   """Activates/Deactivate the Winnforum extensions.
   By default they are ON.
   """
-  ehata_its.SetWinnForumExtensions(on)
+  ehata_its.SetWinnForumExtensions(on, isolated_ridge_corr)
 
 def ExtendedHata(its_elev, freq_mhz, height_tx, height_rx, region_code):
   """Computes the E-Hata propagation path loss.

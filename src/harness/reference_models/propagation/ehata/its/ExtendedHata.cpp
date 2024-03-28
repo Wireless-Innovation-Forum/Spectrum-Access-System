@@ -6,9 +6,11 @@
 
 // Activation of the WinnForum modifications
 bool _WinnForum_Extensions = true; // on by default
-void SetWinnForumExtensions(bool on)
+bool _do_isolated_ridge_v2_corr = false; // off by default
+void SetWinnForumExtensions(bool on, bool isolated_ridge_v2_corr)
 {
   _WinnForum_Extensions = on;
+  _do_isolated_ridge_v2_corr = isolated_ridge_v2_corr;
 }
 
 // Definition of the profile distance calculation routine - see ehata.h

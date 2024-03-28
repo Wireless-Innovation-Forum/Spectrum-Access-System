@@ -123,13 +123,15 @@ static PyObject* MedianBasicPropLoss(PyObject* self, PyObject* args) {
 static PyObject* SetWinnForumExtensions(PyObject* self, PyObject* args) {
 
   PyObject *val = NULL;
-  if (!PyArg_ParseTuple(args, "O:ehata_its_SetWinnForumExtensions",
-                        &val)) {
+  PyObject *isolated_ridge_corr = NULL;
+  if (!PyArg_ParseTuple(args, "OO:ehata_its_SetWinnForumExtensions",
+                        &val, &isolated_ridge_corr)) {
     return NULL;
   }
   bool on = PyObject_IsTrue(val);
+  bool do_isolated_ridge_corr = PyObject_IsTrue(isolated_ridge_corr);
 
-  SetWinnForumExtensions(on);
+  SetWinnForumExtensions(on, do_isolated_ridge_corr);
 
   Py_RETURN_NONE;
 }
