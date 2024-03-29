@@ -40,7 +40,7 @@ from __future__ import division
 from __future__ import print_function
 
 from collections import namedtuple, defaultdict
-from enum import Enum
+from enum import Enum, IntEnum
 import functools
 from functools import partial
 import logging
@@ -96,6 +96,26 @@ class DpaType(Enum):
   OUT_OF_BAND = 2
 
 
+# Define int enum for DPA neighbor_distances list indices
+class DpaNeighborhood(IntEnum):
+  CATA = 0
+  CATB = 1
+  CATA_OOB = 2
+  CATB_OOB = 3
+
+
+# Define int enum for updated DPA neighbor_distances list indices
+class DpaNeighborhoodUpdated(IntEnum):
+  CATA_INDOOR = 0
+  CATA_INDOOR_6m = 1
+  CATA_OUTDOOR = 2
+  CATA_OUTDOOR_6m = 3
+  CATB = 4
+  CATB_6m = 5
+  CATA_OOB = 6
+  CATB_OOB = 7
+
+
 def findDpaType(low_freq, high_freq):
   """Finds the DPA protection type for a given frequency range.
 
@@ -142,7 +162,7 @@ def findGrantsInsideNeighborhood(grants, constraint,
       [cata_dist, catb_dist, cata_oob_dist, catb_oob_dist]
       or
       [cata_indoor_dist, cata_indoor_6m_dist, cata_outdoor_dist,
-        cata_outdoor_6m_dist, catb_dist, catb_6m_dist]
+        cata_outdoor_6m_dist, catb_dist, catb_6m_dist, cata_oob_dist, catb_oob_dist]
 
   Returns:
     A tuple of:
@@ -176,31 +196,37 @@ def findGrantsInsideNeighborhood(grants, constraint,
     if len(neighbor_distances) == 4:
       if dpa_type is DpaType.CO_CHANNEL:
         if grant.cbsd_category == 'A':
-          neighbor_dist = neighbor_distances[0]
+          neighbor_dist = neighbor_distances[DpaNeighborhood.CATA]
         else:
-          neighbor_dist = neighbor_distances[1]
+          neighbor_dist = neighbor_distances[DpaNeighborhood.CATB]
       else:
         if grant.cbsd_category == 'A':
-          neighbor_dist = neighbor_distances[2]
+          neighbor_dist = neighbor_distances[DpaNeighborhood.CATA_OOB]
         else:
-          neighbor_dist = neighbor_distances[3]
-    elif len(neighbor_distances) == 6:
-      if grant.cbsd_category == 'A':
-        if grant.indoor_deployment:
-          if grant.height_agl > 6:
-            neighbor_dist = neighbor_distances[0]
-          else:
-            neighbor_dist = neighbor_distances[1]
+          neighbor_dist = neighbor_distances[DpaNeighborhood.CATB_OOB]
+    elif len(neighbor_distances) == 8:
+      if dpa_type is DpaType.OUT_OF_BAND:
+        if grant.cbsd_category == 'A':
+          neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATA_OOB]
         else:
-          if grant.height_agl > 6:
-            neighbor_dist = neighbor_distances[2]
-          else:
-            neighbor_dist = neighbor_distances[3]
+          neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATB_OOB]
       else:
-        if grant.height_agl > 6:
-          neighbor_dist = neighbor_distances[4]
+        if grant.cbsd_category == 'A':
+          if grant.indoor_deployment:
+            if grant.height_agl > 6:
+              neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATA_INDOOR]
+            else:
+              neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATA_INDOOR_6m]
+          else:
+            if grant.height_agl > 6:
+              neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATA_OUTDOOR]
+            else:
+              neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATA_OUTDOOR_6m]
         else:
-          neighbor_dist = neighbor_distances[5]
+          if grant.height_agl > 6:
+            neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATB]
+          else:
+            neighbor_dist = neighbor_distances[DpaNeighborhoodUpdated.CATB_6m]
     else:
       raise ValueError('Invalid neighborhood distances size')
     if dist_km > neighbor_dist:

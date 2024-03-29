@@ -222,7 +222,7 @@ class TestDpa(unittest.TestCase):
 
     move_grants, nbor_grants = move_list.moveListConstraint(
         point, 3600e6, 3610e6, grants,
-        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60))
+        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60, 70, 80))
 
     self.assertListEqual(nbor_grants, grants)
     self.assertListEqual(move_grants, [])
@@ -238,7 +238,7 @@ class TestDpa(unittest.TestCase):
 
     move_grants, nbor_grants = move_list.moveListConstraint(
         point, 3600e6, 3610e6, grants,
-        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60))
+        50, 2000, -144, 3, (10, 20, 30, 40, 50, 60, 70, 80))
 
     self.assertListEqual(nbor_grants, [])
     self.assertListEqual(move_grants, [])
