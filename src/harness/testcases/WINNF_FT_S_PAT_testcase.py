@@ -328,38 +328,179 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
   def generate_FT_S_PAT_2_default_config(self, filename):
     """Generates the WinnForum configuration for PAT.2."""
 
-    # Load Devices
-    device_a = json_load(
-      os.path.join('testcases', 'testdata', 'device_a.json'))
-    device_a['installationParam']['height'] = 5
-
-    # DPA >2 km away from cbsd
-    dpa_point = {
-      'latitude': 39.0310056866783,
-      'longitude': -98.45970115463795,
-      'height': 5.6,
-      'heightType': 'AGL'
-    }
-    reliability_level = 0.5
+    dpa_points = [
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 33.05442389,
+            "longitude": -117.4143149,
+            "height": 50,
+            "heightType": "AMSL"
+      },
+      {
+            "latitude": 32.8986,
+            "longitude": -117.0735,
+            "height": 10,
+            "heightType": "AGL"
+      },
+      {
+            "latitude": 32.8986,
+            "longitude": -117.0735,
+            "height": 10,
+            "heightType": "AGL"
+      },
+      {
+            "latitude": 32.8986,
+            "longitude": -117.0735,
+            "height": 10,
+            "heightType": "AGL"
+      },
+      {
+            "latitude": 32.8986,
+            "longitude": -117.0735,
+            "height": 10,
+            "heightType": "AGL"
+      },
+    ]
+    cbsds = [
+      {
+            "latitude": 33.14891956,
+            "longitude": -117.2698968,
+            "height": 3.0,
+            "heightType": "AGL",
+            "indoorDeployment": True,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 33.14891956,
+            "longitude": -117.2698968,
+            "height": 9.0,
+            "heightType": "AGL",
+            "indoorDeployment": True,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 33.1872868,
+            "longitude": -116.7103838,
+            "height": 3.0,
+            "heightType": "AGL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 33.1872868,
+            "longitude": -116.7103838,
+            "height": 9.0,
+            "heightType": "AGL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 33.7475152 ,
+            "longitude": -116.9714892 ,
+            "height": 489.0,
+            "heightType": "AMSL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 33.7475152 ,
+            "longitude": -116.9714892 ,
+            "height": 495.0,
+            "heightType": "AMSL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 32.91,
+            "longitude": -117.062,
+            "height": 3.0,
+            "heightType": "AGL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 32.91,
+            "longitude": -117.062,
+            "height": 9.0,
+            "heightType": "AGL",
+            "indoorDeployment": False,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 32.8989,
+            "longitude": -117.074,
+            "height": 3.0,
+            "heightType": "AGL",
+            "indoorDeployment": True,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+      {
+            "latitude": 32.8989,
+            "longitude": -117.074,
+            "height": 9.0,
+            "heightType": "AGL",
+            "indoorDeployment": True,
+            "antennaAzimuth": 90,
+            "antennaGain": 16,
+            "antennaBeamwidth": 30
+      },
+    ]
+    assert len(cbsds) == len(dpa_points)
     config = []
-    config.append({'reliabilityLevel': reliability_level,
-                   'modelType': '3',
-                   'cbsd': cbsddata(device_a),
-                   'dpaPoint': dpa_point})
-
-    # DPA 1 km away from cbsd and heightType amsl
-    dpa_point = {
-      'latitude': 39.018906023080326,
-      'longitude': -98.47521862115552,
-      'height': 457.7,
-      'heightType': 'AMSL'
-    }
-    reliability_level = 0.5
-    config.append({'reliabilityLevel': reliability_level,
-                   'modelType': '3',
-                   'cbsd': cbsddata(device_a),
-                   'dpaPoint': dpa_point})
-
+    for i in range(len(cbsds)):
+      config.append({
+            "reliabilityLevel": 0.5,
+            "modelType": "3",
+            "dpaPoint": dpa_points[i],
+            "cbsd": cbsds[i]
+        })
     writeConfig(filename, config)
 
   @configurable_testcase(generate_FT_S_PAT_2_default_config)
