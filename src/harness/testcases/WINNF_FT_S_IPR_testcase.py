@@ -1348,78 +1348,29 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
                          'FDB_2_Portal_DPAs_additional_neighborhoods.kml')
     }
 
-    # Load Devices
-    device_a = json_load(
-        os.path.join('testcases', 'testdata', 'device_a.json'))
-    device_a['installationParam']['latitude'] = 43.910
-    device_a['installationParam']['longitude'] = -69.700
-    device_b = json_load(
-        os.path.join('testcases', 'testdata', 'device_b.json'))
-    device_b['installationParam']['latitude'] = 43.902
-    device_b['installationParam']['longitude'] = -69.850
-
-    # Pre-load conditionals and remove reg conditional fields from registration
-    # request.
-    conditional_keys = [
-        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
-        'installationParam', 'measCapability'
-    ]
-    reg_conditional_keys = [
-        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
-    ]
-    conditionals_b = {key: device_b[key] for key in conditional_keys}
-    device_b = {
-        key: device_b[key]
-        for key in device_b
-        if key not in reg_conditional_keys
-    }
-
-    # Load grant requests.
-    grant_a = json_load(
-        os.path.join('testcases', 'testdata', 'grant_0.json'))
-    grant_b = json_load(
-        os.path.join('testcases', 'testdata', 'grant_0.json'))
-
     domain_proxy = {
-        'registrationRequests': [device_b],
-        'grantRequests': [grant_b],
-        'conditionalRegistrationData': [conditionals_b],
+        "conditionalRegistrationData": self.get_IPR8_default_conditional_reg_data(),
+        "registrationRequests": self.get_IPR8_default_reg_data(),
+        "grantRequests": self.get_IPR8_default_grant_data(),
         'cert': getCertFilename('domain_proxy.cert'),
         'key': getCertFilename('domain_proxy.key')
     }
 
-    # Included only as an example; not used below.
     esc_dpa = {
-        'dpaId': 'East4',
-        # This is the frequency range which will be activated (if applicable)
-        # and checked.
-        'frequencyRange': {
-            'lowFrequency': 3550000000,
-            'highFrequency': 3560000000
-        },
-        'points_builder': 'default (25, 10, 10, 10)',
-        'movelistMargin': 10
-    }
-
-    frequency_range = grant_a['operationParam']['operationFrequencyRange']
-    portal_dpa = {
-        'dpaId': 'BATH',
-        # This is the frequency range which will be checked. One loaded into the
-        # SAS, the DPA is automatically activated.
-        'frequencyRange': {
-            'lowFrequency': frequency_range['lowFrequency'],
-            'highFrequency': frequency_range['highFrequency'],
-        },
-        'points_builder':
-            'default (25, 10, 10, 10)',  # Not actually used since this is a single-point DPA.
-        'movelistMargin': 10
+        "points_builder": "default (1e9, 1e9, 1e9, 1e9, 50, 5, 5, 10, 10)",
+        "dpaId": "West14",
+        "movelistMargin": "linear (1.5)",
+        "frequencyRange": {
+            "lowFrequency": 3600000000,
+            "highFrequency": 3610000000
+        }
     }
 
     config = {
-        'dpaDatabaseConfig': dpa_database_config,
-        'sasTestHarnessConfigs': [],
+        "escDpa": esc_dpa,
+        "sasTestHarnessConfigs": [],
+        #"dpaDatabaseConfig": dpa_database_config,
         'domainProxies': [domain_proxy],
-        'portalDpa': portal_dpa,
         'runEarlyCpas': False
     }
     writeConfig(filename, config)
@@ -1578,3 +1529,646 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     if dpa_database_server:
       del dpa_database_server
+
+
+  def get_IPR8_default_conditional_reg_data(self) -> list:
+    return [
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.93438866,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 32.77509269,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000001",
+            "cbsdSerialNumber": "test_serial_number_000001",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.0223587,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.18642438,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000002",
+            "cbsdSerialNumber": "test_serial_number_000002",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.93438866,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 32.77509269,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000003",
+            "cbsdSerialNumber": "test_serial_number_000003",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.0223587,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.18642438,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000004",
+            "cbsdSerialNumber": "test_serial_number_000004",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.2535748,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.08487597,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000005",
+            "cbsdSerialNumber": "test_serial_number_000005",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.13543535,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 32.74904077,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000006",
+            "cbsdSerialNumber": "test_serial_number_000006",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.51758409,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.2368372,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000007",
+            "cbsdSerialNumber": "test_serial_number_000007",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.14876387,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.53890369,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000008",
+            "cbsdSerialNumber": "test_serial_number_000008",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.69387114,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.48991103,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000009",
+            "cbsdSerialNumber": "test_serial_number_000009",
+            "cbsdCategory": "B"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.78243439,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.00670153,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000010",
+            "cbsdSerialNumber": "test_serial_number_000010",
+            "cbsdCategory": "B"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.17216904,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.64847451,
+                "height": 37
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000011",
+            "cbsdSerialNumber": "test_serial_number_000011",
+            "cbsdCategory": "B"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.24838309,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.16292769,
+                "height": 37
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000012",
+            "cbsdSerialNumber": "test_serial_number_000012",
+            "cbsdCategory": "B"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.53824716,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.81952569,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000013",
+            "cbsdSerialNumber": "test_serial_number_000013",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -118.57240657,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 34.41218295,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000014",
+            "cbsdSerialNumber": "test_serial_number_000014",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.08239058,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.30704004,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000015",
+            "cbsdSerialNumber": "test_serial_number_000015",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.0377304,
+                "antennaGain": 16,
+                "indoorDeployment": True,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 33.9179804,
+                "height": 9
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000016",
+            "cbsdSerialNumber": "test_serial_number_000016",
+            "cbsdCategory": "A"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -117.59373038,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 34.87747591,
+                "height": 3
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000017",
+            "cbsdSerialNumber": "test_serial_number_000017",
+            "cbsdCategory": "B"
+            },
+            {
+            "airInterface": {
+                "radioTechnology": "E_UTRA"
+            },
+            "installationParam": {
+                "antennaAzimuth": 301,
+                "heightType": "AGL",
+                "longitude": -116.07546178,
+                "antennaGain": 16,
+                "indoorDeployment": False,
+                "antennaBeamwidth": 360,
+                "antennaDowntilt": 0,
+                "latitude": 35.26772102,
+                "height": 37
+            },
+            "measCapability": [],
+            "fccId": "test_fcc_id_000018",
+            "cbsdSerialNumber": "test_serial_number_000018",
+            "cbsdCategory": "B"
+            }
+        ]
+
+  def get_IPR8_default_reg_data(self) -> list:
+    return [
+        {
+          "fccId": "test_fcc_id_000001",
+          "callSign": "callsign_000001",
+          "userId": "test_user_id_000001",
+          "cbsdSerialNumber": "test_serial_number_000001"
+        },
+        {
+          "fccId": "test_fcc_id_000002",
+          "callSign": "callsign_000002",
+          "userId": "test_user_id_000002",
+          "cbsdSerialNumber": "test_serial_number_000002"
+        },
+        {
+          "fccId": "test_fcc_id_000003",
+          "callSign": "callsign_000003",
+          "userId": "test_user_id_000003",
+          "cbsdSerialNumber": "test_serial_number_000003"
+        },
+        {
+          "fccId": "test_fcc_id_000004",
+          "callSign": "callsign_000004",
+          "userId": "test_user_id_000004",
+          "cbsdSerialNumber": "test_serial_number_000004"
+        },
+        {
+          "fccId": "test_fcc_id_000005",
+          "callSign": "callsign_000005",
+          "userId": "test_user_id_000005",
+          "cbsdSerialNumber": "test_serial_number_000005"
+        },
+        {
+          "fccId": "test_fcc_id_000006",
+          "callSign": "callsign_000006",
+          "userId": "test_user_id_000006",
+          "cbsdSerialNumber": "test_serial_number_000006"
+        },
+        {
+          "fccId": "test_fcc_id_000007",
+          "callSign": "callsign_000007",
+          "userId": "test_user_id_000007",
+          "cbsdSerialNumber": "test_serial_number_000007"
+        },
+        {
+          "fccId": "test_fcc_id_000008",
+          "callSign": "callsign_000008",
+          "userId": "test_user_id_000008",
+          "cbsdSerialNumber": "test_serial_number_000008"
+        },
+        {
+          "fccId": "test_fcc_id_000009",
+          "callSign": "callsign_000009",
+          "userId": "test_user_id_000009",
+          "cbsdSerialNumber": "test_serial_number_000009"
+        },
+        {
+          "fccId": "test_fcc_id_000010",
+          "callSign": "callsign_000010",
+          "userId": "test_user_id_000010",
+          "cbsdSerialNumber": "test_serial_number_000010"
+        },
+        {
+          "fccId": "test_fcc_id_000011",
+          "callSign": "callsign_000011",
+          "userId": "test_user_id_000011",
+          "cbsdSerialNumber": "test_serial_number_000011"
+        },
+        {
+          "fccId": "test_fcc_id_000012",
+          "callSign": "callsign_000012",
+          "userId": "test_user_id_000012",
+          "cbsdSerialNumber": "test_serial_number_000012"
+        },
+        {
+          "fccId": "test_fcc_id_000013",
+          "callSign": "callsign_000013",
+          "userId": "test_user_id_000013",
+          "cbsdSerialNumber": "test_serial_number_000013"
+        },
+        {
+          "fccId": "test_fcc_id_000014",
+          "callSign": "callsign_000014",
+          "userId": "test_user_id_000014",
+          "cbsdSerialNumber": "test_serial_number_000014"
+        },
+        {
+          "fccId": "test_fcc_id_000015",
+          "callSign": "callsign_000015",
+          "userId": "test_user_id_000015",
+          "cbsdSerialNumber": "test_serial_number_000015"
+        },
+        {
+          "fccId": "test_fcc_id_000016",
+          "callSign": "callsign_000016",
+          "userId": "test_user_id_000016",
+          "cbsdSerialNumber": "test_serial_number_000016"
+        },
+        {
+          "fccId": "test_fcc_id_000017",
+          "callSign": "callsign_000017",
+          "userId": "test_user_id_000017",
+          "cbsdSerialNumber": "test_serial_number_000017"
+        },
+        {
+          "fccId": "test_fcc_id_000018",
+          "callSign": "callsign_000018",
+          "userId": "test_user_id_000018",
+          "cbsdSerialNumber": "test_serial_number_000018"
+        }
+      ]
+
+  def get_IPR8_default_grant_data(self) -> list:
+    return [
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 16,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        },
+        {
+          "operationParam": {
+            "maxEirp": 37,
+            "operationFrequencyRange": {
+              "lowFrequency": 3600000000,
+              "highFrequency": 3610000000
+            }
+          }
+        }
+      ]
