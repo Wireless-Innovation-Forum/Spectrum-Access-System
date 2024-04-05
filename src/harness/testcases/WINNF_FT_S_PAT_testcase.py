@@ -15,7 +15,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import json
 import logging
 import math
 import os
@@ -26,9 +25,8 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.propagation import p2108
 from reference_models.antenna import antenna
-from reference_models.ppa import ppa
 from reference_models.geo import drive
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, json_load
+from util import configurable_testcase, writeConfig, loadConfig, json_load
 from reference_models.geo import utils as geoutils
 
 # If enabled, the test harness will stop as soon as the failure threshold is reached.
@@ -328,170 +326,10 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
   def generate_FT_S_PAT_2_default_config(self, filename):
     """Generates the WinnForum configuration for PAT.2."""
 
-    dpa_points = [
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 33.05442389,
-            "longitude": -117.4143149,
-            "height": 50,
-            "heightType": "AMSL"
-      },
-      {
-            "latitude": 32.8986,
-            "longitude": -117.0735,
-            "height": 10,
-            "heightType": "AGL"
-      },
-      {
-            "latitude": 32.8986,
-            "longitude": -117.0735,
-            "height": 10,
-            "heightType": "AGL"
-      },
-      {
-            "latitude": 32.8986,
-            "longitude": -117.0735,
-            "height": 10,
-            "heightType": "AGL"
-      },
-      {
-            "latitude": 32.8986,
-            "longitude": -117.0735,
-            "height": 10,
-            "heightType": "AGL"
-      },
-    ]
-    cbsds = [
-      {
-            "latitude": 33.14891956,
-            "longitude": -117.2698968,
-            "height": 3.0,
-            "heightType": "AGL",
-            "indoorDeployment": True,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 33.14891956,
-            "longitude": -117.2698968,
-            "height": 9.0,
-            "heightType": "AGL",
-            "indoorDeployment": True,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 33.1872868,
-            "longitude": -116.7103838,
-            "height": 3.0,
-            "heightType": "AGL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 33.1872868,
-            "longitude": -116.7103838,
-            "height": 9.0,
-            "heightType": "AGL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 33.7475152 ,
-            "longitude": -116.9714892 ,
-            "height": 489.0,
-            "heightType": "AMSL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 33.7475152 ,
-            "longitude": -116.9714892 ,
-            "height": 495.0,
-            "heightType": "AMSL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 32.91,
-            "longitude": -117.062,
-            "height": 3.0,
-            "heightType": "AGL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 32.91,
-            "longitude": -117.062,
-            "height": 9.0,
-            "heightType": "AGL",
-            "indoorDeployment": False,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 32.8989,
-            "longitude": -117.074,
-            "height": 3.0,
-            "heightType": "AGL",
-            "indoorDeployment": True,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-      {
-            "latitude": 32.8989,
-            "longitude": -117.074,
-            "height": 9.0,
-            "heightType": "AGL",
-            "indoorDeployment": True,
-            "antennaAzimuth": 90,
-            "antennaGain": 16,
-            "antennaBeamwidth": 30
-      },
-    ]
+    pat2_data = json_load(
+        os.path.join("testcases", "testdata", "pat2_test_data.json"))
+    dpa_points = pat2_data["dpa_points"]
+    cbsds = pat2_data["cbsds"]
     assert len(cbsds) == len(dpa_points)
     config = []
     for i in range(len(cbsds)):
