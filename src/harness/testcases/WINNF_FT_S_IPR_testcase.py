@@ -1359,7 +1359,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     }
 
     esc_dpa = {
-        "points_builder": "default (1e9, 1e9, 1e9, 1e9, 50, 5, 5, 10, 10)",
+        "points_builder": "default (25, 10, 10, 10)",
         "dpaId": "West14",
         "movelistMargin": "linear (1.5)",
         "frequencyRange": {

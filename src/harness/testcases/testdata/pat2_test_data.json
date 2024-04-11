@@ -2,38 +2,38 @@
   "dpa_points":
     [
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
             {
-                  "latitude": 33.05442389,
-                  "longitude": -117.4143149,
+                  "latitude": 33.054424,
+                  "longitude": -117.414315,
                   "height": 50,
                   "heightType": "AMSL"
             },
@@ -65,8 +65,8 @@
   "cbsds" :
     [
             {
-                  "latitude": 33.14891956,
-                  "longitude": -117.2698968,
+                  "latitude": 33.148920,
+                  "longitude": -117.269897,
                   "height": 3.0,
                   "heightType": "AGL",
                   "indoorDeployment": true,
@@ -75,8 +75,8 @@
                   "antennaBeamwidth": 30
             },
             {
-                  "latitude": 33.14891956,
-                  "longitude": -117.2698968,
+                  "latitude": 33.148920,
+                  "longitude": -117.269897,
                   "height": 9.0,
                   "heightType": "AGL",
                   "indoorDeployment": true,
@@ -85,8 +85,8 @@
                   "antennaBeamwidth": 30
             },
             {
-                  "latitude": 33.1872868,
-                  "longitude": -116.7103838,
+                  "latitude": 33.187287,
+                  "longitude": -116.710384,
                   "height": 3.0,
                   "heightType": "AGL",
                   "indoorDeployment": false,
@@ -95,8 +95,8 @@
                   "antennaBeamwidth": 30
             },
             {
-                  "latitude": 33.1872868,
-                  "longitude": -116.7103838,
+                  "latitude": 33.187287,
+                  "longitude": -116.710384,
                   "height": 9.0,
                   "heightType": "AGL",
                   "indoorDeployment": false,
@@ -105,8 +105,8 @@
                   "antennaBeamwidth": 30
             },
             {
-                  "latitude": 33.7475152 ,
-                  "longitude": -116.9714892 ,
+                  "latitude": 33.747515,
+                  "longitude": -116.971489,
                   "height": 489.0,
                   "heightType": "AMSL",
                   "indoorDeployment": false,
@@ -115,8 +115,8 @@
                   "antennaBeamwidth": 30
             },
             {
-                  "latitude": 33.7475152 ,
-                  "longitude": -116.9714892 ,
+                  "latitude": 33.747515,
+                  "longitude": -116.971489,
                   "height": 495.0,
                   "heightType": "AMSL",
                   "indoorDeployment": false,
