@@ -15,7 +15,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import json
 import logging
 import math
 import os
@@ -26,9 +25,8 @@ from reference_models.propagation import wf_itm
 from reference_models.propagation import wf_hybrid
 from reference_models.propagation import p2108
 from reference_models.antenna import antenna
-from reference_models.ppa import ppa
 from reference_models.geo import drive
-from util import winnforum_testcase, configurable_testcase, writeConfig, loadConfig, json_load
+from util import configurable_testcase, writeConfig, loadConfig, json_load
 from reference_models.geo import utils as geoutils
 
 # If enabled, the test harness will stop as soon as the failure threshold is reached.
@@ -328,38 +326,19 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
   def generate_FT_S_PAT_2_default_config(self, filename):
     """Generates the WinnForum configuration for PAT.2."""
 
-    # Load Devices
-    device_a = json_load(
-      os.path.join('testcases', 'testdata', 'device_a.json'))
-    device_a['installationParam']['height'] = 5
-
-    # DPA >2 km away from cbsd
-    dpa_point = {
-      'latitude': 39.0310056866783,
-      'longitude': -98.45970115463795,
-      'height': 5.6,
-      'heightType': 'AGL'
-    }
-    reliability_level = 0.5
+    pat2_data = json_load(
+        os.path.join("testcases", "testdata", "pat2_test_data.json"))
+    dpa_points = pat2_data["dpa_points"]
+    cbsds = pat2_data["cbsds"]
+    assert len(cbsds) == len(dpa_points)
     config = []
-    config.append({'reliabilityLevel': reliability_level,
-                   'modelType': '3',
-                   'cbsd': cbsddata(device_a),
-                   'dpaPoint': dpa_point})
-
-    # DPA 1 km away from cbsd and heightType amsl
-    dpa_point = {
-      'latitude': 39.018906023080326,
-      'longitude': -98.47521862115552,
-      'height': 457.7,
-      'heightType': 'AMSL'
-    }
-    reliability_level = 0.5
-    config.append({'reliabilityLevel': reliability_level,
-                   'modelType': '3',
-                   'cbsd': cbsddata(device_a),
-                   'dpaPoint': dpa_point})
-
+    for i in range(len(cbsds)):
+      config.append({
+            "reliabilityLevel": 0.5,
+            "modelType": "3",
+            "dpaPoint": dpa_points[i],
+            "cbsd": cbsds[i]
+        })
     writeConfig(filename, config)
 
   @configurable_testcase(generate_FT_S_PAT_2_default_config)

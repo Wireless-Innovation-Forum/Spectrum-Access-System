@@ -1348,78 +1348,31 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
                          'FDB_2_Portal_DPAs_additional_neighborhoods.kml')
     }
 
-    # Load Devices
-    device_a = json_load(
-        os.path.join('testcases', 'testdata', 'device_a.json'))
-    device_a['installationParam']['latitude'] = 43.910
-    device_a['installationParam']['longitude'] = -69.700
-    device_b = json_load(
-        os.path.join('testcases', 'testdata', 'device_b.json'))
-    device_b['installationParam']['latitude'] = 43.902
-    device_b['installationParam']['longitude'] = -69.850
-
-    # Pre-load conditionals and remove reg conditional fields from registration
-    # request.
-    conditional_keys = [
-        'cbsdCategory', 'fccId', 'cbsdSerialNumber', 'airInterface',
-        'installationParam', 'measCapability'
-    ]
-    reg_conditional_keys = [
-        'cbsdCategory', 'airInterface', 'installationParam', 'measCapability'
-    ]
-    conditionals_b = {key: device_b[key] for key in conditional_keys}
-    device_b = {
-        key: device_b[key]
-        for key in device_b
-        if key not in reg_conditional_keys
-    }
-
-    # Load grant requests.
-    grant_a = json_load(
-        os.path.join('testcases', 'testdata', 'grant_0.json'))
-    grant_b = json_load(
-        os.path.join('testcases', 'testdata', 'grant_0.json'))
-
+    ipr8_data = json_load(
+        os.path.join("testcases", "testdata", "ipr8_test_data.json"))
     domain_proxy = {
-        'registrationRequests': [device_b],
-        'grantRequests': [grant_b],
-        'conditionalRegistrationData': [conditionals_b],
+        "conditionalRegistrationData": ipr8_data["conditional_reg_data"],
+        "registrationRequests": ipr8_data["reg_data"],
+        "grantRequests": ipr8_data["grant_data"],
         'cert': getCertFilename('domain_proxy.cert'),
         'key': getCertFilename('domain_proxy.key')
     }
 
-    # Included only as an example; not used below.
     esc_dpa = {
-        'dpaId': 'East4',
-        # This is the frequency range which will be activated (if applicable)
-        # and checked.
-        'frequencyRange': {
-            'lowFrequency': 3550000000,
-            'highFrequency': 3560000000
-        },
-        'points_builder': 'default (25, 10, 10, 10)',
-        'movelistMargin': 10
-    }
-
-    frequency_range = grant_a['operationParam']['operationFrequencyRange']
-    portal_dpa = {
-        'dpaId': 'BATH',
-        # This is the frequency range which will be checked. One loaded into the
-        # SAS, the DPA is automatically activated.
-        'frequencyRange': {
-            'lowFrequency': frequency_range['lowFrequency'],
-            'highFrequency': frequency_range['highFrequency'],
-        },
-        'points_builder':
-            'default (25, 10, 10, 10)',  # Not actually used since this is a single-point DPA.
-        'movelistMargin': 10
+        "points_builder": "default (25, 10, 10, 10)",
+        "dpaId": "West14",
+        "movelistMargin": "linear (1.5)",
+        "frequencyRange": {
+            "lowFrequency": 3600000000,
+            "highFrequency": 3610000000
+        }
     }
 
     config = {
-        'dpaDatabaseConfig': dpa_database_config,
-        'sasTestHarnessConfigs': [],
+        "escDpa": esc_dpa,
+        "sasTestHarnessConfigs": [],
+        #"dpaDatabaseConfig": dpa_database_config,
         'domainProxies': [domain_proxy],
-        'portalDpa': portal_dpa,
         'runEarlyCpas': False
     }
     writeConfig(filename, config)
