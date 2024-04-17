@@ -136,22 +136,7 @@ PORTAL_DPA_PROPERTIES = [('freqRangeMHz', _SplitFreqRange, None),
                          ('catA_Indoor_NeighborhoodDistanceKm', float, float('nan')),
                          ('catA_Indoor_6m_NeighborhoodDistanceKm', float, float('nan')),
                          ('catA_Outdoor_NeighborhoodDistanceKm', float, float('nan')),
-                         ('catA_Outdoor_6m_NeighborhoodDistanceKm', float, float('nan')),
-                         ('calendarId3500-3510', str, ''),
-                         ('calendarId3510-3520', str, ''),
-                         ('calendarId3520-3530', str, ''),
-                         ('calendarId3530-3540', str, ''),
-                         ('calendarId3540-3550', str, ''),
-                         ('calendarId3550-3560', str, ''),
-                         ('calendarId3560-3570', str, ''),
-                         ('calendarId3570-3580', str, ''),
-                         ('calendarId3580-3590', str, ''),
-                         ('calendarId3590-3600', str, ''),
-                         ('calendarId3600-3610', str, ''),
-                         ('calendarId3610-3620', str, ''),
-                         ('calendarId3620-3630', str, ''),
-                         ('calendarId3630-3640', str, ''),
-                         ('calendarId3640-3650', str, '')]
+                         ('catA_Outdoor_6m_NeighborhoodDistanceKm', float, float('nan'))]
 
 
 # One source of data is the the `protection_zones.kml` preprocessed by
