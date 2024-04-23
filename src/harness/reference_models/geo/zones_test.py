@@ -98,6 +98,20 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
     self.assertEqual(z['BATH'].catA_Indoor_NeighborhoodDistanceKm, 56)
 
+  def test_read_portal_dpa_any_function(self):
+    z = zones.GetAnyDpaZones(
+        os.path.join(TEST_DIR, 'P-DPAs_new_neighborhoods.kml')
+    )
+    for name, zone in z.items():
+      self.assertTrue(zone.geometry.is_valid)
+    self.assertAlmostEqual(z['BATH'].geometry.area, 0.0, 1)
+    self.assertEqual(z['BATH'].freqRangeMHz, [(3500, 3650)])
+    self.assertEqual(z['BATH'].protectionCritDbmPer10MHz, -144)
+    self.assertEqual(z['BATH'].refHeightMeters, 30)
+    self.assertEqual(z['BATH'].minAzimuthDeg, 0)
+    self.assertEqual(z['BATH'].maxAzimuthDeg, 360)
+    self.assertEqual(z['BATH'].catA_Indoor_NeighborhoodDistanceKm, 56)
+
   def test_read_urban_areas(self):
     z = zones.GetUrbanAreas()
     exp_area = 275000
