@@ -55,21 +55,21 @@ class TestDpa(unittest.TestCase):
     shutil.rmtree(self.temp_dir, ignore_errors=True)
 
   def test_channelization(self):
-    channels = dpa_mgr.GetDpaProtectedChannels([(3550, 3650)], is_portal_dpa=False)
+    channels = dpa_mgr.GetDpaProtectedChannels([(3550, 3650)], is_esc_dpa=True)
     self.assertListEqual(channels, [(f, f+10) for f in range(3550, 3650, 10)])
-    channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3650)], is_portal_dpa=False)
+    channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3650)], is_esc_dpa=True)
     self.assertListEqual(channels, [(f, f+10) for f in range(3540, 3650, 10)])
-    channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3650)], is_portal_dpa=True)
+    channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3650)], is_esc_dpa=False)
     self.assertListEqual(channels, [(f, f+10) for f in range(3500, 3650, 10)])
     channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3550), (3550, 3650)],
-                                               is_portal_dpa=True)
+                                               is_esc_dpa=False)
     self.assertListEqual(channels, [(f, f+10) for f in range(3500, 3650, 10)])
     channels = dpa_mgr.GetDpaProtectedChannels([(3500, 3600), (3550, 3650)],
-                                               is_portal_dpa=True)
+                                               is_esc_dpa=False)
     self.assertListEqual(channels, [(f, f+10) for f in range(3500, 3650, 10)])
-    channels = dpa_mgr.GetDpaProtectedChannels([(3572, 3585)], is_portal_dpa=False)
+    channels = dpa_mgr.GetDpaProtectedChannels([(3572, 3585)], is_esc_dpa=True)
     self.assertListEqual(channels, [(3570, 3580), (3580, 3590)])
-    channels = dpa_mgr.GetDpaProtectedChannels([(3572, 3575)], is_portal_dpa=False)
+    channels = dpa_mgr.GetDpaProtectedChannels([(3572, 3575)], is_esc_dpa=True)
     self.assertListEqual(channels, [(3570, 3580)])
 
   def test_cbsdInsideDpaInMoveList(self):
@@ -208,14 +208,12 @@ class TestDpa(unittest.TestCase):
     result = dpa.CheckInterference([grants_uut[3], grants_th[1]],
                                    margin_db=0.01,
                                    do_abs_check_single_uut=True,
-                                   extensive_print=False,
-                                   apply_clutter_network_loss_and_50_percent=True)
+                                   extensive_print=False)
     self.assertEqual(result, True)
     result = dpa.CheckInterference([grants_uut[2], grants_th[1]],
                                    margin_db=0.01,
                                    do_abs_check_single_uut=True,
-                                   extensive_print=True,
-                                   apply_clutter_network_loss_and_50_percent=True)
+                                   extensive_print=True)
     self.assertEqual(result, False)
 
 
