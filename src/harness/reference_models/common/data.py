@@ -54,7 +54,10 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
                                 # Grant params
                                 'max_eirp',
                                 'low_frequency', 'high_frequency',
-                                'is_managed_grant'])):
+                                'is_managed_grant',
+                                # IDs
+                                'cbsd_id',
+                                'grant_id'])):
   """CbsdGrantInfo.
 
   Holds all parameters of a CBSD grant.
@@ -74,6 +77,8 @@ class CbsdGrantInfo(namedtuple('CbsdGrantInfo',
     low_frequency: The grant min frequency (Hz).
     high_frequency: The gran max frequency (Hz).
     is_managed_grant: True iff the grant belongs to the managing SAS.
+    cbsd_id: CBSD ID
+    grant_id: Grant ID
   """
   __slots__ = ()
 
@@ -166,7 +171,7 @@ def getEscInfo(esc_record):
   return esc_point, esc_info
 
 
-def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
+def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True, grant_id=None):
   """Constructs a |CbsdGrantInfo| tuple from the given data."""
   lat_cbsd = reg_request['installationParam']['latitude']
   lon_cbsd = reg_request['installationParam']['longitude']
@@ -200,7 +205,9 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True):
       max_eirp=max_eirp,
       low_frequency=low_frequency,
       high_frequency=high_frequency,
-      is_managed_grant=is_managing_sas)
+      is_managed_grant=is_managing_sas,
+      cbsd_id=grant_request.get('cbsdId', None),
+      grant_id=grant_id)
 
 
 def getCbsdsNotPartOfPpaCluster(cbsds, ppa_record):
@@ -312,6 +319,8 @@ def getAuthorizedGrantsFromDomainProxies(domain_proxies, ppa_record=None):
         grants.append(
             constructCbsdGrantInfo(
                 cbsd.getRegistrationRequest(),
-                grant.getGrantRequest()))
+                grant.getGrantRequest(),
+                is_managing_sas=True,
+                grant_id=grant.getGrantId()))
 
   return grants

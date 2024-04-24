@@ -624,7 +624,7 @@ class Dpa(object):
   def __PrintKeepLists(self, keep_list_th_other_sas, keep_list_th_managing_sas,
                        keep_list_uut_managing_sas, dpa_name, channel):
     """Prints keep list and neighbor list."""
-    def WriteList(filename, keep_list):
+    def WriteList(filename, keep_list, add_ids=False):
       logging.info('Writing list to file: %s', filename)
       fields = [
           'latitude', 'longitude', 'height_agl', 'indoor_deployment',
@@ -632,6 +632,8 @@ class Dpa(object):
           'antenna_beamwidth', 'max_eirp', 'low_frequency', 'high_frequency',
           'is_managed_grant'
       ]
+      if add_ids:
+          fields.extend(['cbsd_id', 'grant_id'])
       with open(filename, 'w') as f:
         f.write(','.join(fields) + '\n')
         for cbsd_grant_info in keep_list:
@@ -655,7 +657,7 @@ class Dpa(object):
 
     # SAS UUT keep list (according to SAS UUT)
     filename = '%s (SAS UUT keep list, according to SAS UUT).csv' % base_filename
-    WriteList(filename, keep_list_uut_managing_sas)
+    WriteList(filename, keep_list_uut_managing_sas, add_ids=True)
 
 
 def GetDpaProtectedChannels(freq_ranges_mhz, is_portal_dpa=False):

@@ -498,5 +498,7 @@ def ReadDpaLogFile(csv_file):
             max_eirp=float(row['max_eirp']),
             low_frequency=float(row['low_frequency']),
             high_frequency=float(row['high_frequency']),
-            is_managed_grant=(row['is_managed_grant'] == 'True')))
+            is_managed_grant=(row['is_managed_grant'] == 'True'),
+            cbsdId=None,
+            grantId=None))
   return grants['nbor'], grants['peer'] + grants['sas_th'], grants['sas_uut']
