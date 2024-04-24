@@ -18,6 +18,7 @@ from __future__ import print_function
 import logging
 import math
 import os
+from datetime import datetime
 
 import sas
 import sas_testcase
@@ -174,8 +175,8 @@ def computePropagationAntennaModel(request):
             ant_beamwidth=tx['antennaBeamwidth'], ant_gain=tx['antennaGain'])
         result['txAntennaGainDbi'] = gain_tx_rx
 
-
     return result
+
 
 def cbsddata(device):
     installationParam = device['installationParam']
@@ -196,6 +197,7 @@ def cbsddata(device):
             'antennaBeamwidth': installationParam['antennaBeamwidth']}
     return cbsd
 
+
 def fssdata(fss_record, rx_antenna_gain_required=None):
     deploymentParam = fss_record['deploymentParam'][0]
     installationParam = deploymentParam['installationParam']
@@ -213,6 +215,64 @@ def fssdata(fss_record, rx_antenna_gain_required=None):
     else:
         fss['rxAntennaGainRequired'] = False
     return fss
+
+
+# The logging path
+def getPatLogDir():
+  pat_log_dir = os.path.join(os.path.dirname(__file__), 'output')
+  if not os.path.exists(pat_log_dir):
+      os.makedirs(pat_log_dir)
+  return pat_log_dir
+
+
+def logPat2Results(config_filename, results):
+    """Saves PAT.2 config and results to ouptut file
+    Inputs:
+        config_filename: config file used to run PAT.2
+        results: dict containing config file contents and the ref and sut results
+            reliabilityLevel: Reliability, must be 0.5
+            cbsd: CBSD, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+                indoorDeployment: CBSD indoor status
+            dpaPoint: A DPA point, a dict of:
+                latitude: Latitude (degrees)
+                longitude: Longitude (degrees)
+                height: Height (m)
+                heightType: Height type of 'AGL' or 'AMSL'
+            refResult: interference (dB)
+            sutResult: interference (dB)
+
+    Returns:
+        void, writes results to testcases/output file
+    """
+
+    base, tail = os.path.split(config_filename)
+    timestamp = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+    filename = os.path.join(getPatLogDir(), '%s_PAT.2_config=%s.csv' % (timestamp, tail))
+    logging.info('Saving stats for PAT.2 config %s, to file: %s', config_filename, filename)
+    with open(filename, 'w') as f:
+        # CSV header.
+        f.write(
+            'Reliability Level,DPA Latitude,DPA Longitude,DPA Height,DPA Height Type,'
+            'CBSD Latitude,CBSD Longitude,CBSD Height,CBSD Height Type,CBSD Indoor Deployment,'
+            'CBSD Antenna Azimuth,CBSD Antenna Gain,CBSD Antenna Beamwidth,Ref Result (dB),SUT Result (dB)\n'
+        )
+
+        # Write results in same order as CSV header
+        for result in results:
+            vals = [result['reliabilityLevel']]
+            for key in ['latitude', 'longitude', 'height', 'heightType']:
+                vals.append(result['dpaPoint'][key])
+            for key in ['latitude', 'longitude', 'height', 'heightType', 'indoorDeployment', 'antennaAzimuth',
+                        'antennaGain', 'antennaBeamwidth']:
+                vals.append(result['cbsd'][key])
+            vals.append(result['refResult'])
+            vals.append(result['sutResult'])
+            line = ','.join('%3.6f' % val if not isinstance(val, str) else '%s' % val for val in vals)
+            f.write(line + '\n')
 
 
 class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
@@ -356,17 +416,22 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
     num_invalid_tests = 0
     already_failed = False
 
+    results = []
     for test_num, request in enumerate(config):
+      result = request.copy()
       logging.info('Running test number %d: %s', test_num, str(request))
       try:
         ref_response = computePropagationDpa(request)
         logging.info('Reference response: %s', str(ref_response))
+        result['refResult'] = ref_response['pathlossDb']
       except ValueError as e:
         logging.debug('Test # %d, Exception: %s', test_num, e)
         logging.debug('Invalid configuration: %s', request)
         num_invalid_tests += 1
         num_tests -= 1
         max_fail_num = math.floor((1 - test_pass_threshold) * num_tests)
+        result['refResult'] = None
+        result['sutResult'] = None
         # Do not send the request to the SAS if the reference prop model flagged it as an invalid config.
         continue
 
@@ -377,9 +442,13 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
       # Check response.
       this_test_passed = False
       if 'pathlossDb' in sas_response:
+        result['sutResult'] = sas_response['pathlossDb']
         this_test_passed = sas_response['pathlossDb'] < ref_response['pathlossDb'] + 1
+      else:
+        result['sutResult'] = None
 
       logging.info('This test passed? %s', str(this_test_passed))
+      results.append(result)
 
       if this_test_passed:
         num_passed_tests += 1
@@ -390,7 +459,10 @@ class PropAndAntennaModelTestcase(sas_testcase.SasTestCase):
           logging.error('Just failed the maximum number of tests (%d).', num_failed_tests)
           already_failed = True
         if EARLY_EXIT_ENABLED:
+          logPat2Results(config_filename, results)
           self.fail("Just failed the maximum number of tests (%d), quitting early." % num_failed_tests)
+
+    logPat2Results(config_filename, results)
 
     # Outside the 'for' loop.
     logging.info('Passed %d out of %d tests. Need %2.6f percent pass rate.',
