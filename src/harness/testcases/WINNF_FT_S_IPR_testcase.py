@@ -1387,6 +1387,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         'dpaDatabaseConfig': dict,
         'escDpa': dict,
         'portalDpa': dict,
+        'gbDpa': dict,
         'runEarlyCpas': bool
     })
     if 'dpaDatabaseConfig' in config:
@@ -1399,10 +1400,12 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
           })
     using_esc_dpa = 'escDpa' in config
     using_portal_dpa = 'portalDpa' in config
+    using_gb_dpa = 'gbDpa' in config
     self.assertTrue(
-        using_esc_dpa ^ using_portal_dpa,
+        using_esc_dpa ^ using_portal_dpa ^ using_gb_dpa,
         msg=
-        'Invalid config: must use exactly one ESC-monitored DPA OR one portal-controlled DPA.'
+        'Invalid config: must use exactly one ESC-monitored DPA OR '
+        'one portal-controlled DPA OR one GB DPA.'
     )
     if using_esc_dpa:
       self.assertLessEqual(
@@ -1414,7 +1417,13 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     else:
       self.assertIn('dpaDatabaseConfig', config)
 
-    dpa_config = config['escDpa'] if using_esc_dpa else config['portalDpa']
+    dpa_config = (
+        config['escDpa']
+        if using_esc_dpa
+        else config['portalDpa']
+        if using_portal_dpa
+        else config['gbDpa']
+    )
     self.assertEqual(
         10e6,
         dpa_config['frequencyRange']['highFrequency'] -
@@ -1495,11 +1504,13 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
         }
         logging.info('Step 7: activating DPA: %s', dpa_activation_request)
         self._sas_admin.TriggerDpaActivation(dpa_activation_request)
-    else:
+    elif using_portal_dpa:
       logging.info(
           'Skipping Step 7: using portal-controlled DPA which is active by '
           'default.'
       )
+    else:
+      logging.info('Skipping Step 7: using GB DPA which is always on.')
 
     logging.info('Step 8: wait + heartbeat.')
     time.sleep(240)
@@ -1509,8 +1520,11 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
 
     logging.info('Step 6, 9, + CHECK: DPA aggregate interference check.')
     logging.info('Checking DPA %s', dpa_config)
-    dpa_filename = config['dpaDatabaseConfig'][
-        'filePath'] if using_portal_dpa else None
+    dpa_filename = (
+        config['dpaDatabaseConfig']['filePath']
+        if (using_portal_dpa or using_gb_dpa)
+        else None
+    )
     dpa = dpa_mgr.BuildDpa(
         dpa_config['dpaId'],
         dpa_config['points_builder'],
