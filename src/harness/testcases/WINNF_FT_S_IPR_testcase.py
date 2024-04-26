@@ -1401,11 +1401,13 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     using_esc_dpa = 'escDpa' in config
     using_portal_dpa = 'portalDpa' in config
     using_gb_dpa = 'gbDpa' in config
-    self.assertTrue(
-        using_esc_dpa ^ using_portal_dpa ^ using_gb_dpa,
-        msg=
-        'Invalid config: must use exactly one ESC-monitored DPA OR '
-        'one portal-controlled DPA OR one GB DPA.'
+    self.assertEqual(
+        1,
+        using_esc_dpa + using_portal_dpa + using_gb_dpa,
+        msg=(
+            'Invalid config: must use exactly one ESC-monitored DPA OR '
+            'one portal-controlled DPA OR one GB DPA.'
+        ),
     )
     if using_esc_dpa:
       self.assertLessEqual(
@@ -1442,7 +1444,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
       self._sas_admin.TriggerBulkDpaActivation({'activate': False})
     else:
       logging.info(
-          'Step 1: create portal-controlled DPA database. Step 2 is skipped.'
+          'Step 1: create portal or GB DPA database. Step 2 is skipped.'
       )
       # Create DPA database server
       dpa_database_server = DatabaseServer(
