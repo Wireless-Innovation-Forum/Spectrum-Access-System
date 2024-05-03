@@ -184,11 +184,11 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True, gra
 
   max_eirp, low_frequency, high_frequency, cbsd_id = None, None, None, None
   if grant_request is not None:
+    cbsd_id = grant_request.get('cbsdId', None)
     if 'requestedOperationParam' in grant_request:
       max_eirp = grant_request['requestedOperationParam']['maxEirp']
       low_frequency = grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency']
       high_frequency = grant_request['requestedOperationParam']['operationFrequencyRange']['highFrequency']
-      cbsd_id = grant_request.get('cbsdId', None)
     else:
       max_eirp = grant_request['operationParam']['maxEirp']
       low_frequency = grant_request['operationParam']['operationFrequencyRange']['lowFrequency']
