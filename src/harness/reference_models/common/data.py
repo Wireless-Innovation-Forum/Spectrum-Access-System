@@ -182,8 +182,9 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True, gra
     altitude_cbsd = drive.terrain_driver.GetTerrainElevation(lat_cbsd, lon_cbsd)
     height_cbsd = height_cbsd - altitude_cbsd
 
-  max_eirp, low_frequency, high_frequency = None, None, None
+  max_eirp, low_frequency, high_frequency, cbsd_id = None, None, None, None
   if grant_request is not None:
+    cbsd_id = grant_request.get('cbsdId', None)
     if 'requestedOperationParam' in grant_request:
       max_eirp = grant_request['requestedOperationParam']['maxEirp']
       low_frequency = grant_request['requestedOperationParam']['operationFrequencyRange']['lowFrequency']
@@ -206,7 +207,7 @@ def constructCbsdGrantInfo(reg_request, grant_request, is_managing_sas=True, gra
       low_frequency=low_frequency,
       high_frequency=high_frequency,
       is_managed_grant=is_managing_sas,
-      cbsd_id=grant_request.get('cbsdId', None),
+      cbsd_id=cbsd_id,
       grant_id=grant_id)
 
 
