@@ -403,6 +403,16 @@ def _LoadDpaZones(kml_path, properties, fix_invalid=True):
       zone.catAOOBNeighborhoodDistanceKm = 0
     if np.isnan(zone.catBOOBNeighborhoodDistanceKm):
       zone.catBOOBNeighborhoodDistanceKm = 0
+    if np.isnan(zone.catB_6m_NeighborhoodDistanceKm):
+      zone.catB_6m_NeighborhoodDistanceKm = 0
+    if np.isnan(zone.catA_Indoor_NeighborhoodDistanceKm):
+      zone.catA_Indoor_NeighborhoodDistanceKm = 0
+    if np.isnan(zone.catA_Indoor_6m_NeighborhoodDistanceKm):
+      zone.catA_Indoor_6m_NeighborhoodDistanceKm = 0
+    if np.isnan(zone.catA_Outdoor_NeighborhoodDistanceKm):
+      zone.catA_Outdoor_NeighborhoodDistanceKm = 0
+    if np.isnan(zone.catA_Outdoor_6m_NeighborhoodDistanceKm):
+      zone.catA_Outdoor_6m_NeighborhoodDistanceKm = 0
 
   return dpa_zones
 
