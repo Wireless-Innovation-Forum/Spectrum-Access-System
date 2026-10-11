@@ -122,6 +122,12 @@ class TestUtils(unittest.TestCase):
     pts = utils.GridPolygon(poly, res_arcsec=1800.)
     self.assertSetEqual(set(pts), exp_pts)
 
+  def test_grid_disjoint_polygons_with_one_grid_point(self):
+    poly = sgeo.MultiPolygon([
+        sgeo.box(-0.1, -0.1, 0.1, 0.1), sgeo.box(10.2, 10.2, 10.3, 10.3)])
+    self.assertEqual(utils.GridPolygon(poly, res_arcsec=3600), [(0.0, 0.0)])
+    self.assertEqual(utils.GridPolygon(sgeo.Polygon(), res_arcsec=3600), [])
+
   def test_grid_border_included(self):
     poly = sgeo.Polygon([(-108.05, 42.25),
                          (-107.90, 42.25),

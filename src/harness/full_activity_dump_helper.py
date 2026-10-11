@@ -17,7 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import time
 import traceback
@@ -82,7 +82,7 @@ def _triggerFullActivityDumpAndWaitUntilComplete(sas, sas_admin, ssl_cert,
   Raises:
     EnvironmentError: If the 7200 second timer is exceeded.
   """
-  request_time = datetime.utcnow().replace(microsecond=0)
+  request_time = datetime.now(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
   sas_admin.TriggerFullActivityDump()
   # Timeout after 2 hours if it's not completed
   timeout = datetime.now() + timedelta(hours=2)

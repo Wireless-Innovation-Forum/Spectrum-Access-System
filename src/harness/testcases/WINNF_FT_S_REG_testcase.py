@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import os
@@ -283,7 +283,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       self.assertTrue(resp['response']['responseCode'] in (103, 500))
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+      self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_3(self):
@@ -442,7 +442,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
     }]
     # Wait until the later of the two transmit_expire_times
     transmit_expire_wait_time = (
-        transmit_expire_times[1] - datetime.utcnow()).total_seconds()
+        transmit_expire_times[1] - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
     time.sleep(transmit_expire_wait_time + 1)
     request = {'heartbeatRequest': heartbeat_request}
     response = self._sas.Heartbeat(request)['heartbeatResponse']
@@ -452,7 +452,7 @@ class RegistrationTestcase(sas_testcase.SasTestCase):
       self.assertTrue(resp['response']['responseCode'] in (103, 500))
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+      self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_REG_5(self):

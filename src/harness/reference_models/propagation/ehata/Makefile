@@ -1,21 +1,14 @@
-PYTHON2	?= python
-PYTHON3	?= python3
-SETUP	:= setup.py
+PYTHON ?= python3
 
-all: py2 py3
-
-
-py2:
-	$(PYTHON2) $(SETUP)  build_ext -i
-	make cleantmp
+.PHONY: all py3 clean cleantmp
+all: py3
 
 py3:
-	$(PYTHON3) $(SETUP)  build_ext -i
-	make cleantmp
-
+	$(PYTHON) setup.py build_ext --inplace
+	$(MAKE) cleantmp
 
 cleantmp:
 	-rm -rf build
 
-clean:	cleantmp
+clean: cleantmp
 	-rm -rf *.so *.pyd

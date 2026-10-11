@@ -57,12 +57,13 @@ import ssl
 import sys
 import tempfile
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from six.moves.BaseHTTPServer import HTTPServer
 from six.moves.BaseHTTPServer import BaseHTTPRequestHandler
 from six.moves import configparser
-from OpenSSL import crypto
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 from six import ensure_binary
 
 import sas_interface
@@ -148,7 +149,7 @@ class FakeSas(sas_interface.SasInterface):
         else:
           response['grantResponse'].append({
             'cbsdId': req['cbsdId'],
-            'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
+            'grantId': 'fake_grant_id_%s' % datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
             'channelType': 'GAA',
             'response': self._GetSuccessResponse()
           })
@@ -157,7 +158,7 @@ class FakeSas(sas_interface.SasInterface):
   def Heartbeat(self, request, ssl_cert=None, ssl_key=None):
     response = {'heartbeatResponse': []}
     for req in request['heartbeatRequest']:
-      transmit_expire_time = datetime.utcnow().replace(
+      transmit_expire_time = datetime.now(timezone.utc).replace(tzinfo=None).replace(
           microsecond=0) + timedelta(minutes=1)
       response['heartbeatResponse'].append({
           'cbsdId': req['cbsdId'],
@@ -221,7 +222,7 @@ class FakeSas(sas_interface.SasInterface):
         'checksum': 'da39a3ee5e6b4b0d3255bfef95601890afd80709', 'size': 19,
         'version': version, 'recordType': "coordination"}
     ],
-      'generationDateTime': datetime.utcnow().strftime(
+      'generationDateTime': datetime.now(timezone.utc).replace(tzinfo=None).strftime(
           '%Y-%m-%dT%H:%M:%SZ'),
       'description': "Full activity dump files"}))
     return response
@@ -414,6 +415,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
       response = ''
     else:
       self.send_response(404)
+      self.end_headers()
       return
     self.send_response(200)
     self.send_header('Content-type', 'application/json')
@@ -439,8 +441,8 @@ class FakeSasHandler(BaseHTTPRequestHandler):
 def ParseCrlIndex(index_filename):
   """Returns the list of CRL filenames from a CRL index file."""
   dirname = os.path.dirname(index_filename)
-  return [os.path.join(dirname, line.rstrip())
-          for line in open(index_filename)]
+  with open(index_filename, encoding='utf-8') as stream:
+    return [os.path.join(dirname, line.rstrip()) for line in stream if line.strip()]
 
 def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
@@ -448,48 +450,53 @@ def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
     assert ssl.HAS_ECDH
   server = HTTPServer(('localhost', PORT), FakeSasHandler)
 
-  ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-  ssl_context.options |= ssl.CERT_REQUIRED
+  try:
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.minimum_version = ssl_context.maximum_version = ssl.TLSVersion.TLSv1_2
 
-  # If CRLs were provided, then enable revocation checking.
-  if crl_index is not None:
-    ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
+    # If CRLs were provided, then enable revocation checking.
+    if crl_index is not None:
+      ssl_context.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
 
-    try:
-      crl_files = ParseCrlIndex(crl_index)
-    except IOError as e:
-      print("Failed to parse CRL index file %r: %s" % (crl_index, e))
-
-    # https://tools.ietf.org/html/rfc5280#section-4.2.1.13 specifies that
-    # CRLs MUST be DER-encoded, but SSLContext expects the name of a PEM-encoded
-    # file, so we must convert it first.
-    for f in crl_files:
       try:
-        with file(f) as handle:
-          der = handle.read()
-          try:
-            crl = crypto.load_crl(crypto.FILETYPE_ASN1, der)
-          except crypto.Error as e:
-            print("Failed to parse CRL file %r as DER format: %s" % (f, e))
-            return
-          with tempfile.NamedTemporaryFile() as tmp:
-            tmp.write(crypto.dump_crl(crypto.FILETYPE_PEM, crl))
-            tmp.flush()
-            ssl_context.load_verify_locations(cafile=tmp.name)
-        print("Loaded CRL file: %r" % f)
+        crl_files = ParseCrlIndex(crl_index)
       except IOError as e:
-        print("Failed to load CRL file %r: %s" % (f, e))
+        print("Failed to parse CRL index file %r: %s" % (crl_index, e))
         return
 
-  ssl_context.load_verify_locations(cafile=CA_CERT)
-  ssl_context.load_cert_chain(
-      certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
-      keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
-  ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
-  ssl_context.verify_mode = ssl.CERT_REQUIRED
-  server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
-  print('Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT)
-  server.serve_forever()
+      # https://tools.ietf.org/html/rfc5280#section-4.2.1.13 specifies that
+      # CRLs MUST be DER-encoded, but SSLContext expects the name of a PEM-encoded
+      # file, so we must convert it first.
+      for f in crl_files:
+        try:
+          with open(f, 'rb') as handle:
+            der = handle.read()
+            try:
+              crl = x509.load_der_x509_crl(der)
+            except ValueError as e:
+              print("Failed to parse CRL file %r as DER format: %s" % (f, e))
+              return
+            with tempfile.NamedTemporaryFile() as tmp:
+              tmp.write(crl.public_bytes(serialization.Encoding.PEM))
+              tmp.flush()
+              ssl_context.load_verify_locations(cafile=tmp.name)
+          print("Loaded CRL file: %r" % f)
+        except IOError as e:
+          print("Failed to load CRL file %r: %s" % (f, e))
+          return
+
+    ssl_context.load_verify_locations(cafile=CA_CERT)
+    ssl_context.load_cert_chain(
+        certfile=ECC_CERT_FILE if is_ecc else CERT_FILE,
+        keyfile=ECC_KEY_FILE if is_ecc else KEY_FILE)
+    ssl_context.set_ciphers(':'.join(ECC_CIPHERS if is_ecc else CIPHERS))
+    ssl_context.verify_mode = ssl.CERT_REQUIRED
+    server.socket = ssl_context.wrap_socket(server.socket, server_side=True)
+    print('Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT)
+    server.serve_forever()
+  finally:
+    server.server_close()
+
 
 
 if __name__ == '__main__':

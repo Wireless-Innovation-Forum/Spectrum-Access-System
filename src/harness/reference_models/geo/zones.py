@@ -184,7 +184,7 @@ class _Zone(object):
   def __repr__(self):
     """Return zone representation."""
     return 'Zone(geometry=%s, %s)' % (
-        'None' if not hasattr(self, 'geometry') else self.geometry.type,
+        'None' if not hasattr(self, 'geometry') else self.geometry.geom_type,
         ', '.join(['%s=%s' % (attr, getattr(self, attr)) for attr in self.fields]))
 
 

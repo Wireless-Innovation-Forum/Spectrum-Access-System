@@ -20,14 +20,10 @@ from __future__ import print_function
 
 import six
 
-try:  # Python3
-  from functools import lru_cache
-  import functools
-except ImportError:  # Python2
-  from functools32 import lru_cache
+from functools import lru_cache
+import functools
 
-# Note: for now only use the lru_cache from functools, backported to Python 2.7 as
-# functools32. A better cache engine needs to be implemented that:
+# A future cache engine could support sharing across processes:
 # 1) supports sharing across process (optionally)
 # 2) ...
 

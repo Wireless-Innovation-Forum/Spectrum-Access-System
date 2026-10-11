@@ -61,7 +61,7 @@ class TlsConfig(object):
   """Holds all TLS/HTTPS parameters."""
 
   def __init__(self):
-    self.ssl_version = pycurl.Curl().SSLVERSION_TLSv1_2
+    self.ssl_version = pycurl.SSLVERSION_TLSv1_2 | pycurl.SSLVERSION_MAX_TLSv1_2
     self.ciphers = [
         'AES128-GCM-SHA256',  # TLS_RSA_WITH_AES_128_GCM_SHA256
         'AES256-GCM-SHA384',  # TLS_RSA_WITH_AES_256_GCM_SHA384
@@ -129,13 +129,15 @@ def _Request(url, request, config, is_post_method):
       if logging.getLogger().isEnabledFor(logging.DEBUG) else False)
   conn.setopt(conn.SSLVERSION, config.ssl_version)
   conn.setopt(conn.SSLCERTTYPE, 'PEM')
-  conn.setopt(conn.SSLCERT, config.client_cert)
-  conn.setopt(conn.SSLKEY, config.client_key)
+  if config.client_cert is not None:
+    conn.setopt(conn.SSLCERT, config.client_cert)
+  if config.client_key is not None:
+    conn.setopt(conn.SSLKEY, config.client_key)
   conn.setopt(conn.CAINFO, config.ca_cert)
   conn.setopt(conn.HTTPHEADER, header)
   conn.setopt(conn.SSL_CIPHER_LIST, ':'.join(config.ciphers))
   conn.setopt(conn.TCP_KEEPALIVE, 1)
-  request = json.dumps(request) if request else ''
+  request = json.dumps(request) if request is not None else ''
   if is_post_method:
     conn.setopt(conn.POST, True)
     conn.setopt(conn.POSTFIELDS, request)
@@ -145,6 +147,8 @@ def _Request(url, request, config, is_post_method):
 
   for attempt_count in range(MAX_REQUEST_ATTEMPT_COUNT):
     try:
+      response.seek(0)
+      response.truncate()
       conn.perform()
       error = None
       break
@@ -161,6 +165,7 @@ def _Request(url, request, config, is_post_method):
 
   if error:
     logging.error('Connection to Host Failed after %d attempts' %MAX_REQUEST_ATTEMPT_COUNT)
+    conn.close()
     raise error
 
   http_code = conn.getinfo(pycurl.HTTP_CODE)

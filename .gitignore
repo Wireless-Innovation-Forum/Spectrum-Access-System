@@ -1,3 +1,15 @@
 .DS_Store
 .idea
 *DPA=*.csv
+
+# Python/build/test artifacts
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+SAS-Test-Harness-Data/

@@ -137,7 +137,7 @@ def DpaProtectionPoints(dpa_name, dpa_geometry, protection_points_method=None):
       raise ValueError('Protected point definition file for DPA `%s` not a valid MultiPoint'
                        ' geoJSON file.' % dpa_name)
     protection_points = [ProtectionPoint(longitude=pt.x, latitude=pt.y)
-                         for pt in mpoints]
+                         for pt in mpoints.geoms]
 
   # Check validity of generated points
   if isinstance(dpa_geometry, sgeo.Point):
@@ -152,7 +152,7 @@ def DpaProtectionPoints(dpa_name, dpa_geometry, protection_points_method=None):
     mpoint_inside = dpa_geometry.buffer(0.0005).intersection(mpoint)
     if isinstance(mpoint_inside, sgeo.Point):
       mpoint_inside = sgeo.MultiPoint([mpoint_inside])
-    if len(mpoint) != len(mpoint_inside):
+    if len(mpoint.geoms) != len(mpoint_inside.geoms):
       raise ValueError('Some points for DPA `%s` are outside zone.' % dpa_name)
 
   if not protection_points:

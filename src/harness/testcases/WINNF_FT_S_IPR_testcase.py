@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import json
 import os
@@ -836,7 +836,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     logging.info('Step 5: Heartbeating all active Grants.')
     for domain_proxy in domain_proxies:
       _, heartbeat_responses = domain_proxy.heartbeatForAllActiveGrants()
-      t_now = datetime.utcnow()
+      t_now = datetime.now(timezone.utc).replace(tzinfo=None)
       for response in heartbeat_responses:
         transmit_expire_time = datetime.strptime(response['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
         if response['response']['responseCode'] == ResponseCodes.SUCCESS.value:
@@ -845,7 +845,7 @@ class FederalIncumbentProtectionTestcase(sas_testcase.SasTestCase):
     # Inform the SAS UUT that the given DPA is active.
     logging.info('Step 6: activating DPA: %s', config['dpa'])
     self._sas_admin.TriggerDpaActivation(config['dpa'])
-    t_esc = datetime.utcnow()
+    t_esc = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Check heartbeat expiration time is valid
     for iter_number in range(config['iterations']):

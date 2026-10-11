@@ -38,8 +38,7 @@ pool.map(...)
 pool.apply_async(...)
 """
 # NOTE: This has been tested in Linux only.
-# Windows has some special way of launching processes, not using fork(),
-# but rather by instantiating new processes and reimporting the
+# Spawn and forkserver workers start fresh interpreters and reimport the
 # modules. Make sure that the code creating the processes is not
 # actually called during the imports, ie:
 #  - within the if __name__ == 'main': block
@@ -52,7 +51,6 @@ from __future__ import print_function
 
 from functools import partial
 import multiprocessing
-import time
 
 
 class _DummyPool(object):
@@ -65,19 +63,19 @@ class _DummyPool(object):
   def map(self, fn, iterable, chunksize=None):
     return [fn(x) for x in iterable]
 
-  def apply_async(self, fn, args=(), kwds={}, callback=None):
+  def apply_async(self, fn, args=(), kwds=None, callback=None):
     class Result(object):
       def __init__(self, result):
         self._result = result
-      def get(self, timeout):
+      def get(self, timeout=None):
         return self._result
-      def wait(self, timeout):
+      def wait(self, timeout=None):
         return
       def ready(self):
         return True
       def successful(self):
         return True
-    result = Result(fn(*args, **kwargs))
+    result = Result(fn(*args, **(kwds or {})))
     if callback is not None:
       callback(result.get())
     return result
@@ -116,19 +114,25 @@ def GetNumWorkerProcesses():
   return _num_workers
 
 
-def _partial_fn(fn):
-  # sleep to avoid returning too fast so each worker
-  # gets one job in the RunOnEachWorkerProcess.
-  time.sleep(0.5)
-  return fn()
+def _partial_fn(task):
+  fn, barrier = task
+  try:
+    return fn()
+  finally:
+    # A worker cannot accept a second task until every worker has reached this
+    # point. A timed sleep cannot guarantee that on spawn/forkserver startup.
+    barrier.wait()
 
 
 def RunOnEachWorkerProcess(fn, * args, **kwargs):
-  """Runs a function on each of the pool process."""
+  """Runs an importable module-level function once on each pool process."""
   if not _num_workers:
     return
   pfn = partial(fn, *args, **kwargs)
-  return _pool.map(_partial_fn, [pfn] * _num_workers, chunksize=1)
+  # Manager proxies can be passed to existing pools under every start method.
+  with multiprocessing.Manager() as manager:
+    barrier = manager.Barrier(_num_workers)
+    return _pool.map(_partial_fn, [(pfn, barrier)] * _num_workers, chunksize=1)
 
 
 def Configure(num_processes=-1, pool=None):
@@ -152,6 +156,7 @@ def Configure(num_processes=-1, pool=None):
   global _num_workers
   if pool is not None:
     _pool = pool
+    _num_workers = getattr(pool, 'num_processes', getattr(pool, '_processes', 0))
   else:
     # Dummy pool with no multiprocessing
     if num_processes == 0:

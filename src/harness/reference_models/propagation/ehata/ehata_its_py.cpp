@@ -29,6 +29,7 @@ static PyObject* ExtendedHata(PyObject* self, PyObject* args) {
   }
 
   if (!PyList_Check(elev_obj)) {
+    PyErr_SetString(PyExc_TypeError, "Profile must be a list.");
     return NULL;
   }
   Py_ssize_t size = PyList_Size(elev_obj);
@@ -127,7 +128,10 @@ static PyObject* SetWinnForumExtensions(PyObject* self, PyObject* args) {
                         &val)) {
     return NULL;
   }
-  bool on = PyObject_IsTrue(val);
+  int on = PyObject_IsTrue(val);
+  if (on < 0) {
+    return NULL;
+  }
 
   SetWinnForumExtensions(on);
 
@@ -142,7 +146,6 @@ static PyMethodDef EHATAMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3  // Python3
 PyMODINIT_FUNC PyInit_ehata_its(void) {
   static struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT, "ehata_its",
@@ -151,9 +154,3 @@ PyMODINIT_FUNC PyInit_ehata_its(void) {
   PyObject* module = PyModule_Create(&module_def);
   return module;
 }
-#else  // Python2
-PyMODINIT_FUNC initehata_its(void) {
-  Py_InitModule3("ehata_its",  EHATAMethods,
-                 "eHata WinnForum Propagation Module");
-}
-#endif

@@ -17,6 +17,7 @@
 
 import csv
 import os
+from pathlib import Path
 import re
 import zipfile
 
@@ -24,9 +25,9 @@ import zipfile
 # being the table names and the values being a dict of column names mapped
 # to the positional index of that column in the dump files.
 def LoadIBFSSchema(schema_file):
-  print 'Loading IBFS schema...'
+  print('Loading IBFS schema...')
   table_schema = {}
-  with open(schema_file, 'r') as schema:
+  with open(schema_file, 'r', encoding='utf-8') as schema:
     content = schema.read()
   table_sources = content.split('\n)')
   for s in table_sources:
@@ -37,13 +38,13 @@ def LoadIBFSSchema(schema_file):
       if l.find('create table ') != -1:
         index = l.find('create table ') + len('create table ')
         table_name = l[index:].strip()
-        print '  Found table %s' % table_name
+        print('  Found table %s' % table_name)
         table_schema[table_name] = {}
       elif table_name:
-        tokens = re.split('\W+', l)
+        tokens = re.split(r'\W+', l)
         if len(tokens) > 2:
           field = tokens[1]
-          print '    Found field %s=%d' % (field, column_index)
+          print('    Found field %s=%d' % (field, column_index))
           table_schema[table_name][field] = column_index
           column_index += 1
   return table_schema
@@ -52,16 +53,16 @@ def LoadIBFSSchema(schema_file):
 # Extract the wanted zipped data files from the given zipfile into the
 # given temporary directory.
 def UnzipNeededFiles(zip_filename, tmpDir):
-  zf = zipfile.ZipFile(zip_filename, 'r')
-  for datfile in zf.namelist():
-    if datfile in ['main.dat', 'address.dat', 'anten.dat', 'freq.dat', 'freq_coord.dat', 'site.dat', 'ant_fx.dat']:
-      try:
-        print '   extracting %s' % datfile
-        content = zf.read(datfile)
-        with open(os.path.join(tmpDir, datfile), 'w') as out:
-          out.write(content)
-      except Exception, err:
-        raise Exception('Cannot extract ' + datfile + ' from ' + zip_filename)
+  with zipfile.ZipFile(zip_filename, 'r') as zf:
+    for datfile in zf.namelist():
+      if datfile in ['main.dat', 'address.dat', 'anten.dat', 'freq.dat', 'freq_coord.dat', 'site.dat', 'ant_fx.dat']:
+        try:
+          print('   extracting %s' % datfile)
+          content = zf.read(datfile)
+          with open(os.path.join(tmpDir, datfile), 'wb') as out:
+            out.write(content)
+        except Exception as err:
+          raise Exception('Cannot extract ' + datfile + ' from ' + zip_filename)
 
 
 # Collapse an array of coordination records for a particular antenna.
@@ -72,7 +73,7 @@ def CollapseCoordinationRecords(coord_rec):
   if len(coord_rec) == 1:
     return coord_rec[0]
   else:
-    print 'Collapsing %s' % coord_rec
+    print('Collapsing %s' % coord_rec)
     result = coord_rec[0]
     for c in coord_rec[1:]:
       if 'elevation_west' in result and 'elevation_west' in c:
@@ -83,7 +84,7 @@ def CollapseCoordinationRecords(coord_rec):
         result['azimuth_west'] = result['azimuth_west'] + ' ' + c['azimuth_west']
       if 'azimuth_east' in result and 'azimuth_east' in c:
         result['azimuth_east'] = result['azimuth_east'] + ' ' + c['azimuth_east']
-    print ' --> to %s' % result
+    print(' --> to %s' % result)
     return result
  
  
@@ -182,7 +183,7 @@ def NormalizeLines(content, suffix):
 
 def ReadULSDataRecords(tmpDir, schema, filename, table):
   records = []
-  with open(os.path.join(tmpDir, filename), 'r') as dat:
+  with open(os.path.join(tmpDir, filename), 'r', encoding='latin-1') as dat:
     content = dat.read()
     lines = NormalizeLines(content, '|^|')
     reader = csv.reader(lines, delimiter='|')
@@ -238,24 +239,12 @@ output_fields = [ 'filing_key',
                   'sat_orbit_type' ]
 
 def WriteHeaderRecord(outfile):
-  line = ''
-  for f in output_fields:
-    if line:
-      line += ','
-    line += f
-  line += '\n'
-  outfile.write(line)
+  csv.writer(outfile, lineterminator='\n').writerow(output_fields)
 
 
 def WriteRecord(outfile, record):
-  line = ''
-  for f in output_fields:
-    if line:
-      line += ','
-    if f in record:
-      line += str(record[f])
-  line += '\n'
-  outfile.write(line)
+  csv.writer(outfile, lineterminator='\n').writerow(
+      [record.get(field, '') for field in output_fields])
 
 
 def ExtractIBFSData(directory):
@@ -272,7 +261,7 @@ def ExtractIBFSData(directory):
     if (r['subsystem_code'] == 'SES' and 
         (r['filing_state'] == '0' or r['filing_state'] == '1')):
       main[r['filing_key']] = r
-  print 'Found %d MAIN records of %d' % (len(main), count)
+  print('Found %d MAIN records of %d' % (len(main), count))
 
   site = {}
   records = ReadULSDataRecords(directory, schema, 'site.dat', 'SITE')
@@ -282,7 +271,7 @@ def ExtractIBFSData(directory):
     if not r['filing_key'] in main:
       continue
     site[r['site_key']] = r
-  print 'Found %d SITE records of %d' % (len(site), count)
+  print('Found %d SITE records of %d' % (len(site), count))
 
   antenna = {}
   records = ReadULSDataRecords(directory, schema, 'anten.dat', 'ANTENNA')
@@ -292,7 +281,7 @@ def ExtractIBFSData(directory):
     if not r['site_key'] in site:
       continue
     antenna[r['antenna_key']] = r
-  print 'Found %d ANTENNA records of %d' % (len(antenna), count)
+  print('Found %d ANTENNA records of %d' % (len(antenna), count))
 
   freq = {}
   records = ReadULSDataRecords(directory, schema, 'freq.dat', 'FREQUENCY')
@@ -306,13 +295,13 @@ def ExtractIBFSData(directory):
     c2 += 1
 
     if not 'frequency_upper' in r and not 'frequency_lower' in r:
-      print 'No frequency fields in %s' % r
+      print('No frequency fields in %s' % r)
       continue
     if not 'frequency_lower' in r:
-      print 'No frequency_lower in %s' % r
+      print('No frequency_lower in %s' % r)
       r['frequency_lower'] = r['frequency_upper']
     if not 'frequency_upper' in r:
-      print 'No frequency_upper in %s' % r
+      print('No frequency_upper in %s' % r)
       r['frequency_upper'] = r['frequency_lower']
     r['frequency_lower'] = float(r['frequency_lower'])
     r['frequency_upper'] = float(r['frequency_upper'])
@@ -329,7 +318,7 @@ def ExtractIBFSData(directory):
         freq[r['antenna_key']]['frequency_upper'] = max(prev['frequency_upper'],
                                                         r['frequency_upper'])
         # print '-->Combined to %s' % freq[r['antenna_key']]
-  print 'Found %d FREQUENCY records of %d : %d' % (len(freq), c2, count)
+  print('Found %d FREQUENCY records of %d : %d' % (len(freq), c2, count))
 
   coord = {}
   records = ReadULSDataRecords(directory, schema, 'freq_coord.dat', 'FREQ_COORD')
@@ -342,7 +331,7 @@ def ExtractIBFSData(directory):
     c2 += 1
 
     if not 'freq_limit_low' in r and not 'freq_limit_high' in r:
-      print 'No frequency fields in %s' % r
+      print('No frequency fields in %s' % r)
       continue
     if not 'freq_limit_low' in r:
       # print 'No freq_limit_low in %s' % r
@@ -359,10 +348,10 @@ def ExtractIBFSData(directory):
         coord[r['antenna_key']] = [r]
       else:
         coord[r['antenna_key']].append(r)
-  print 'Found %d FREQ_COORD records of %d : %d' % (len(coord), count, c2)
+  print('Found %d FREQ_COORD records of %d : %d' % (len(coord), count, c2))
 
   # Now consolidate the records by antenna (the device in SAS usage).
-  outfile = open(os.path.join(directory, 'ibfs.csv'), 'w')
+  outfile = open(os.path.join(directory, 'ibfs.csv'), 'w', encoding='utf-8', newline='')
   WriteHeaderRecord(outfile)
   count = 0
   for d in antenna:
@@ -385,14 +374,17 @@ def ExtractIBFSData(directory):
 
     WriteRecord(outfile, record)
     count += 1
-  print 'Wrote %d CSV records' % count
+  print('Wrote %d CSV records' % count)
+  outfile.close()
 
 
-# Find the directory of this script.
-dir = os.path.dirname(os.path.realpath(__file__))
-rootDir = os.path.dirname(os.path.dirname(dir))
-ibfsDir = os.path.join(os.path.join(rootDir, 'data'), 'ibfs')
+def main(root_dir=None):
+  rootDir = Path(root_dir) if root_dir is not None else Path(__file__).resolve().parents[3]
+  ibfsDir = os.path.join(os.path.join(rootDir, 'data'), 'ibfs')
 
-print 'Extracting IBFS data file from database files in dir=%s' % ibfsDir
-ExtractIBFSData(ibfsDir)
+  print('Extracting IBFS data file from database files in dir=%s' % ibfsDir)
+  ExtractIBFSData(ibfsDir)
 
+
+if __name__ == "__main__":
+  main()

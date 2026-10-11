@@ -43,7 +43,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import os
@@ -145,7 +145,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['grantId'], grant_id)
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+    self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_GRA_2(self):
@@ -1242,7 +1242,7 @@ class GrantTestcase(sas_testcase.SasTestCase):
         self.assertTrue('grantExpireTime' in resp)
         grant_expire_time = datetime.strptime(
             resp['grantExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLess(datetime.utcnow(), grant_expire_time)
+        self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), grant_expire_time)
         # Check heartbeatInterval with a correct format is included.
         self.assertTrue('heartbeatInterval' in resp)
         self.assertIsInstance(resp['heartbeatInterval'], int)

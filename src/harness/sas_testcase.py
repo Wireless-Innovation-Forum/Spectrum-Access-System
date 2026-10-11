@@ -16,7 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import threading
 import time
@@ -218,9 +218,9 @@ class SasTestCase(unittest.TestCase):
       self.assertEqual(response['grantId'], grant_ids[index])
       transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(
-          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
       self.assertEqual(response['response']['responseCode'], 0)
       transmit_expire_times.append(response['transmitExpireTime'])
     return transmit_expire_times
@@ -396,7 +396,7 @@ class SasTestCase(unittest.TestCase):
           'Config field \'%s\' is neither required nor optional.' % key)
 
   def TriggerFullActivityDumpAndWaitUntilComplete(self, server_cert, server_key):
-    request_time = datetime.utcnow().replace(microsecond=0)
+    request_time = datetime.now(timezone.utc).replace(tzinfo=None).replace(microsecond=0)
     self._sas_admin.TriggerFullActivityDump()
     # Timeout after 2 hours if it's not completed
     timeout = datetime.now() + timedelta(hours=2)

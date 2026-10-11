@@ -18,27 +18,27 @@
 
 import ftputil
 import os
+from pathlib import Path
 
 # Fetch via FTP all the 2010 census tract state shapefiles. Writes them
 # to the current directory.
-def RetrieveIBFS():
-  fcc = ftputil.FTPHost('ftp.fcc.gov', 'anonymous', '')
+def RetrieveIBFS(directory='.'):
+  with ftputil.FTPHost('ftp.fcc.gov', 'anonymous', '', encoding='utf-8') as fcc:
+    print('Downloading IBFS.zip database file')
+    fcc.download_if_newer('pub/Bureaus/International/databases/IBFS.zip',
+                         str(Path(directory) / 'IBFS.zip'))
+    print('Downloading ibfs.txt schema')
+    fcc.download_if_newer('pub/Bureaus/International/databases/ibfs.txt',
+                         str(Path(directory) / 'ibfs.txt'))
 
-  print 'Downloading IBFS.zip database file'
-  fcc.download_if_newer('pub/Bureaus/International/databases/IBFS.zip', 'IBFS.zip')
-  fcc.quit()
+def main(root_dir=None):
+  rootDir = Path(root_dir) if root_dir is not None else Path(__file__).resolve().parents[3]
+  dest = os.path.join(os.path.join(rootDir, 'data'), 'ibfs')
+  print('Retrieving IBFS database files to dir=%s' % dest)
+  if not os.path.exists(dest):
+    os.makedirs(dest)
+  RetrieveIBFS(dest)
 
-  print 'Downloading ibfs.txt schema'
-  fcc = ftputil.FTPHost('ftp.fcc.gov', 'anonymous', '')
-  fcc.download_if_newer('pub/Bureaus/International/databases/ibfs.txt', 'ibfs.txt')
-  fcc.quit()
 
-# Find the directory of this script.
-dir = os.path.dirname(os.path.realpath(__file__))
-rootDir = os.path.dirname(os.path.dirname(dir))
-dest = os.path.join(os.path.join(rootDir, 'data'), 'ibfs')
-print 'Retrieving IBFS database files to dir=%s' % dest
-if not os.path.exists(dest):
-  os.makedirs(dest)
-os.chdir(dest)
-RetrieveIBFS()
+if __name__ == "__main__":
+  main()

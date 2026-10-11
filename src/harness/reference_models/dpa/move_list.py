@@ -462,7 +462,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     # Compute the protection percentile of the aggregate interference, and remove
     # grants until the protection threshold is met or all grants are moved.
     agg_interf = np.percentile(np.sum(IG[:, 0:nc], axis=1),
-                               PROTECTION_PERCENTILE, interpolation='lower')
+                               PROTECTION_PERCENTILE, method='lower')
     if agg_interf <= t_mW:
       continue
 
@@ -472,7 +472,7 @@ def find_nc(I, bearings, t, beamwidth, min_azimuth, max_azimuth):
     while (hi - lo) > 1:
       mid = (hi + lo) // 2
       agg_interf = np.percentile(np.sum(IG[:, 0:mid], axis=1),
-                                 PROTECTION_PERCENTILE, interpolation='lower')
+                                 PROTECTION_PERCENTILE, method='lower')
       if agg_interf > t_mW:
         hi = mid
       else:
@@ -733,7 +733,7 @@ def calcAggregatedInterference(protection_point,
       agg_interf[k] = np.sum(dpa_interf)
     else:
       agg_interf[k] = np.percentile(np.sum(dpa_interf, axis=1),
-                                    PROTECTION_PERCENTILE, interpolation='lower')
+                                    PROTECTION_PERCENTILE, method='lower')
   agg_interf = 10 * np.log10(agg_interf)
 
   return np.max(agg_interf) if do_max else agg_interf

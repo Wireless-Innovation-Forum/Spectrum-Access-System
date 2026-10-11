@@ -22,8 +22,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import codecs
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import hashlib
 import inspect
 import json
@@ -97,22 +96,21 @@ class SasTestHarnessServer(threading.Thread):
     self.cert_file = cert_file if cert_file is not None else DEFAULT_CERT_FILE
     self.key_file = key_file if key_file is not None else DEFAULT_KEY_FILE
     self.ca_cert_file = ca_cert_file if ca_cert_file is not None else DEFAULT_CA_CERT
-    self.setDaemon(True)
+    self.daemon = True
     self.server = SasHttpServer(
         self.dump_path,
         ('', self.port),
         SasTestHarnessServerHandler,
         self.getSasTestHarnessVersion(),
     )
-    self.server.socket = ssl.wrap_socket(
-        self.server.socket,
-        certfile=self.cert_file,
-        keyfile=self.key_file,
-        ca_certs=self.ca_cert_file,
-        cert_reqs=ssl.CERT_REQUIRED,
-        ssl_version=ssl.PROTOCOL_TLSv1_2,
-        ciphers=':'.join(CIPHERS),
-        server_side=True)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    # SAS conformance tests require TLS 1.2 and its specified cipher suites.
+    context.minimum_version = context.maximum_version = ssl.TLSVersion.TLSv1_2
+    context.load_cert_chain(self.cert_file, self.key_file)
+    context.load_verify_locations(cafile=self.ca_cert_file)
+    context.verify_mode = ssl.CERT_REQUIRED
+    context.set_ciphers(':'.join(CIPHERS))
+    self.server.socket = context.wrap_socket(self.server.socket, server_side=True)
 
   def __del__(self):
     self.cleanDumpFiles()
@@ -180,7 +178,7 @@ class SasTestHarnessServer(threading.Thread):
         traceback.print_exc()
         logging.error('HTTPServer %s at %s died on %s, restarting...',
                       self.name, self.http_server_url,
-                      datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'))
+                      datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%SZ'))
     logging.info('Shutting down Test Harness Server:%s at %s', self.name,
                  self.http_server_url)
 
@@ -225,7 +223,7 @@ class SasTestHarnessServer(threading.Thread):
     """
     fad_record = {}
     fad_record['url'] = encoded_url
-    with codecs.open(self.__getFullDumpFilePath(file_name), 'r',
+    with open(self.__getFullDumpFilePath(file_name), 'r',
                      encoding='utf-8') as file:
       fad_record['checksum'] = hashlib.sha1(six.ensure_binary(
           file.read())).hexdigest()
@@ -243,7 +241,7 @@ class SasTestHarnessServer(threading.Thread):
 
   def __writeDumpFile(self, file_name, data):
     """ Write JSON data to specified file. """
-    with codecs.open(self.__getFullDumpFilePath(file_name), 'w', 'utf-8') as file_handler:
+    with open(self.__getFullDumpFilePath(file_name), 'w', encoding='utf-8') as file_handler:
       file_handler.writelines(json.dumps(data, sort_keys=True, indent=4))
 
   def __verifyRecords(self, dump_records_list):
@@ -294,7 +292,7 @@ class SasTestHarnessServer(threading.Thread):
     fad_record_list = []
 
     self.__verifyRecords(dump_records_list)
-    fad_generation_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    fad_generation_time = datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     for index, dump_records in enumerate(dump_records_list):
       if 'cbsd' in dump_records[0]['id']:

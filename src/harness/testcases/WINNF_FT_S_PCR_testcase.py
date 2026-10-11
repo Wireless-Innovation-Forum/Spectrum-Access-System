@@ -82,7 +82,7 @@ def isPpaWithinServiceArea(pal_records, ppa_zone_geometry):
       utils.ToShapely(drive.county_driver.GetCounty(
           pal['license']['licenseAreaIdentifier'])
                       ['features'][0]['geometry']) for pal in pal_records]
-  pal_service_area = ops.cascaded_union(county_for_pal)
+  pal_service_area = ops.unary_union(county_for_pal)
 
   # Convert GeoJSON dictionary to Shapely object.
   ppa_zone_shapely_geometry = utils.ToShapely(ppa_zone_geometry)
@@ -175,7 +175,7 @@ class PpaCreationTestcase(sas_testcase.SasTestCase):
     # Check if the retrieved FAD that has valid and at least one
     # PPA zone record.
     uut_ppa_zone_data = uut_fad.getZoneRecords()
-    self.assertEquals(len(uut_ppa_zone_data), 1,
+    self.assertEqual(len(uut_ppa_zone_data), 1,
                       msg='There is no single PPA Zone record received from SAS'
                           ' UUT')
 

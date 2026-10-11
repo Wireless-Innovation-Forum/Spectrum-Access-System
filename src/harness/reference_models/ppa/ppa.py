@@ -127,7 +127,7 @@ def _ClipPpaByCounty(contour_union, pal_records):
   counties_for_pal = [sgeo.shape(
       drive.county_driver.GetCounty(pal['license']['licenseAreaIdentifier'])
       ['features'][0]['geometry']).buffer(0) for pal in pal_records]
-  counties_union = ops.cascaded_union(counties_for_pal)
+  counties_union = ops.unary_union(counties_for_pal)
   return contour_union.intersection(counties_union)
 
 
@@ -153,7 +153,7 @@ def PpaCreationModel(devices, pal_records):
 
   # Create Union of all the CBSD Contours and Check for hole
   # after County Clipping
-  contour_union = ops.cascaded_union(device_polygon)
+  contour_union = ops.unary_union(device_polygon)
   logging.info('contour_union = %s', contour_union)
 
   ppa_without_small_holes = utils.PolyWithoutSmallHoles(contour_union)

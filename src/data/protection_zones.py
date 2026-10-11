@@ -26,7 +26,7 @@ from shapely.geometry import LineString as SLineString
 from shapely.geometry import MultiPolygon as SMultiPolygon
 from shapely.geometry import Point as SPoint
 from shapely.geometry import Polygon as SPolygon
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 import math
 import os
 
@@ -106,7 +106,7 @@ def AttemptCollapse(name, zone):
   if overlaps:
     print('Found overlapping zone on %s!' % name)
     mp = SMultiPolygon(zone)
-    collapsed = cascaded_union(mp)
+    collapsed = unary_union(mp)
     if type(collapsed) == SPolygon:
       return [collapsed]
     else:

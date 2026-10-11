@@ -19,7 +19,6 @@ import json
 import logging
 import os
 from OpenSSL import SSL
-from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 
 from request_handler import HTTPError
 import security_testcase

@@ -34,6 +34,8 @@ from __future__ import print_function
 
 import base64
 import logging
+import traceback
+from datetime import datetime, timezone
 import ssl
 import threading
 
@@ -78,16 +80,15 @@ class DatabaseServer(threading.Thread):
     self.address = host_name + ':' + str(port)
     self.port = port
     self.base_url = 'http' + ('s' if https else '') + '://' + self.address
-    self.setDaemon(True)
+    self.daemon = True
     self.server = DatabaseHTTPServer(('', port), DatabaseHandler,
                                      name, authorization)
     if https:
-      self.server.socket = ssl.wrap_socket(
-          self.server.socket,
-          certfile=_SSL_CERT,
-          keyfile=_SSL_KEY,
-          ca_certs=_SSL_CA_CERT_FILE,
-          server_side=True)
+      context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+      context.minimum_version = ssl.TLSVersion.TLSv1_2
+      context.load_cert_chain(_SSL_CERT, _SSL_KEY)
+      context.load_verify_locations(cafile=_SSL_CA_CERT_FILE)
+      self.server.socket = context.wrap_socket(self.server.socket, server_side=True)
 
   def __del__(self):
     util.releasePort(self.port)
@@ -113,7 +114,7 @@ class DatabaseServer(threading.Thread):
         traceback.print_exc()
         logging.error('HTTPServer %s at %s died on %s, restarting...',
                       self.name, self.address,
-                      datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'))
+                      datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%SZ'))
     logging.info('Shutting down Database Server:%s at %s', self.name,
                  self.address)
 
@@ -163,14 +164,14 @@ class DatabaseHandler(SimpleHTTPRequestHandler):
         logging.info('Authorization Failed. No Auth header.')
         self.send_response(401)
         self.end_headers()
-        self.wfile.write('no auth header received.\n')
-        self.wfile.write('Ignore 404 response below.\n\n')
+        self.wfile.write(b'no auth header received.\n')
+        self.wfile.write(b'Ignore 404 response below.\n\n')
         return ""
       elif self.headers['Authorization'] != _AUTHORIZATION_STRING:
         logging.info('Authorization Failed. Incorrect username:password.')
         self.send_response(401)
         self.end_headers()
-        self.wfile.write('Incorrect username:password.\n')
-        self.wfile.write('Ignore 404 response below.\n\n')
+        self.wfile.write(b'Incorrect username:password.\n')
+        self.wfile.write(b'Ignore 404 response below.\n\n')
         return ""
     return self.server.file_paths[path] if path in self.server.file_paths else ""

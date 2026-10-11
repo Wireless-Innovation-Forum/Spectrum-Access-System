@@ -29,7 +29,8 @@ import six
 from six.moves.urllib import parse as urllib
 import inspect
 
-from OpenSSL import SSL, crypto
+from OpenSSL import SSL
+from cryptography.x509.oid import NameOID
 
 import sas
 import sas_testcase
@@ -121,8 +122,9 @@ class SecurityTestCase(sas_testcase.SasTestCase):
 
     # only for potential debugging info...
     def _VerifyCb(conn, cert, errnum, depth, ok):
-      certsubject = crypto.X509Name(cert.get_subject())
-      commonname = certsubject.commonName
+      subject = cert.to_cryptography().subject
+      common_names = subject.get_attributes_for_oid(NameOID.COMMON_NAME)
+      commonname = common_names[0].value if common_names else '<no common name>'
       logging.debug('TLS handshake verify: certificate: %s  -> %d', commonname, ok)
       return ok
     ctx.set_verify(SSL.VERIFY_PEER, _VerifyCb)
@@ -149,10 +151,8 @@ class SecurityTestCase(sas_testcase.SasTestCase):
     # invalid cipher string is passed, but without the following check
     # for the TLS 1.3 specific cipher suites it would never error.
     client_cipher_list = client_ssl.get_cipher_list()
-    if util.get_openssl_version() >= 111:
-      client_cipher_list.remove('TLS_AES_256_GCM_SHA384')
-      client_cipher_list.remove('TLS_CHACHA20_POLY1305_SHA256')
-      client_cipher_list.remove('TLS_AES_128_GCM_SHA256')
+    client_cipher_list = [cipher for cipher in client_cipher_list
+                          if not cipher.startswith('TLS_')]
     self.assertEqual(client_cipher_list, ciphers)
 
     if handshake_ok:

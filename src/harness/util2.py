@@ -24,7 +24,7 @@ import json
 import os
 import uuid
 
-import jsonschema
+from schema_validation import validator_for
 
 DAYS_IN_A_YEAR = 365
 
@@ -131,16 +131,8 @@ def assertContainsRequiredFields(schema_filename, response):
   schema_dir = os.path.abspath(os.path.join(os.path.dirname(
       inspect.getfile(inspect.currentframe())), '..', '..', 'schema'))
   schema_filename = os.path.join(schema_dir, schema_filename)
-  with open(schema_filename, 'rb') as fd:
-    schema = json.load(fd)
-  jsonschema.Draft4Validator.check_schema(schema)
-  if os.name == 'nt':
-    os_base_uri = 'file:///'
-  else:
-    os_base_uri = 'file://'
-  resolver = jsonschema.RefResolver(referrer=schema, base_uri=os_base_uri + schema_dir + '/')
   # Raises ValidationError when incorrect response
-  jsonschema.validate(response, schema, resolver=resolver)
+  validator_for(schema_filename).validate(response)
 
 def CreateConditionalsIfCatB(reg_request):
   """Separates the conditionals from the registration request, if needed."""
