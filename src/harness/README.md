@@ -5,16 +5,16 @@ This folder contains code and testcases for SAS certification test as defined in
 
 ## Code prerequisites
 
-*   Python 2.7.12 (https://www.python.org/downloads/release/python-2712/)
-*   PycURL 7.43.0 (http://pycurl.io), must have openSSL support
-*   pyJWT (https://pypi.python.org/pypi/PyJWT)
-*   cryptography (https://pypi.python.org/pypi/cryptography)
-*   jsonschema 2.6.0 (https://pypi.python.org/pypi/jsonschema)
-*   shapely (https://pypi.python.org/pypi/Shapely)
-*   mock (https://pypi.python.org/pypi/mock)
-*   validators (https://pypi.python.org/pypi/validators)
-*   pytz (https://pypi.org/project/pytz)
-*   portpicker (https://pypi.org/project/portpicker)
+Python 3.11–3.15 and the root `pyproject.toml` dependencies are required.
+Use `uv sync --locked` to install the default development group, build the
+propagation models with `uv run make`, and run tests with `uv run python`.
+See [the repository setup instructions](../../README.md) for installation,
+Common-Data configuration, and optional GDAL drivers. Run commands here with
+`uv run --locked python` from the project environment.
+
+Security tests use maintained cryptography, pyOpenSSL, and OpenSSL-enabled
+PycURL. The configured SAS must provide its administrative interface and current
+lab certificates. Python 2 and obsolete cryptography backports are unsupported.
 
 ## Code location
 

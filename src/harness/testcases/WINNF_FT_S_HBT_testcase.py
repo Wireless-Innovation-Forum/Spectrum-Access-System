@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone
 from datetime import timedelta
 import json
 import logging
@@ -142,9 +142,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['grantId'], grant_ids[response_num])
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(
-          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
       self.assertLessEqual(transmit_expire_time,
                            grant_expire_times[response_num])
       self.assertEqual(resp['response']['responseCode'], 0)
@@ -210,9 +210,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['grantId'], grant_ids[response_num])
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(
-          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
       self.assertLessEqual(transmit_expire_time,
                            grant_expire_times[response_num])
       grant_expire_time = datetime.strptime(resp['grantExpireTime'],
@@ -285,7 +285,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
         self.assertEqual(resp['response']['responseCode'], 100)
         transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+        self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
     except HTTPError as e:
       # Allow HTTP status 404.
       self.assertEqual(e.error_code, 404)
@@ -368,16 +368,16 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[0]['response']['responseCode'], 0)
     transmit_expire_time = datetime.strptime(response[0]['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLess(datetime.utcnow(), transmit_expire_time)
+    self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
     self.assertLessEqual(
-        (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+        (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
     self.assertLess(transmit_expire_time, grant_expire_times[0])
     # Validating response for requests: 2, 3 and 4.
     for response_num in (1, 2, 3):
       self.assertEqual(response[response_num]['response']['responseCode'], 102)
       transmit_expire_time = datetime.strptime(
           response[response_num]['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(transmit_expire_time, datetime.utcnow())
+      self.assertLess(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_5(self):
@@ -449,10 +449,10 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
             'cbsdId': cbsd_id, 'grantId': grant_id, 'operationState': 'GRANTED'
         }]
     }
-    transmit_expire_wait_time = (transmit_expire_time - datetime.utcnow()).total_seconds()
+    transmit_expire_wait_time = (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
     time.sleep(transmit_expire_wait_time + 1)
-    self.assertGreater(datetime.utcnow(), transmit_expire_time)
-    self.assertLess(datetime.utcnow(), grant_expire_time)
+    self.assertGreater(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
+    self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), grant_expire_time)
     response = self._sas.Heartbeat(request)['heartbeatResponse'][0]
 
     # Check the heartbeat response
@@ -460,7 +460,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 500))
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLess(transmit_expire_time, datetime.utcnow())
+    self.assertLess(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_6(self):
@@ -489,7 +489,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     #  Test will automatically fail if the SAS UUT is not configured to use a
     #  short Grant duration to prevent this test from taking unnecessarily
     #  long to execute.
-    self.assertTrue(grant_expire_time < datetime.utcnow()+timedelta(hours=24))
+    self.assertTrue(grant_expire_time < datetime.now(timezone.utc).replace(tzinfo=None)+timedelta(hours=24))
     del request, response
 
     # First Heartbeat to authorize the device.
@@ -508,7 +508,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     del request, response
 
     # Calculate (wait time) difference between current time and GrantExpireTime.
-    difference_time = (grant_expire_time - datetime.utcnow()).total_seconds()
+    difference_time = (grant_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
     logging.debug(
         'Difference between grantExpireTime and CurrentTime (in seconds): %d',
         difference_time)
@@ -528,7 +528,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertTrue(response['response']['responseCode'] in (103, 500))
     transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+    self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_7(self):
@@ -606,16 +606,16 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       self.assertEqual(response[response_num]['response']['responseCode'], 0)
       transmit_expire_time = datetime.strptime(
           response[response_num]['transmitExpireTime'], '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(
-          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
       self.assertLessEqual(transmit_expire_time,
                            grant_expire_times[response_num])
     # Validating response for 3rd request.
     self.assertEqual(response[2]['response']['responseCode'], 103)
     transmit_expire_time = datetime.strptime(response[2]['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLess(transmit_expire_time, datetime.utcnow())
+    self.assertLess(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_8(self):
@@ -681,9 +681,9 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       self.assertEqual(resp['response']['responseCode'], 0)
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-      self.assertLess(datetime.utcnow(), transmit_expire_time)
+      self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(
-          (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+          (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
       self.assertLessEqual(transmit_expire_time,
                            grant_expire_time[index])
 
@@ -691,7 +691,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response[2]['response']['responseCode'], 101)
     transmit_expire_time = datetime.strptime(response[2]['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-    self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+    self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
     del request, response
 
     # Third device sends a second heartbeat request with its blacklisted cbsdId.
@@ -792,15 +792,15 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],\
                                                '%Y-%m-%dT%H:%M:%SZ')
       self.assertLessEqual((transmit_expire_time - \
-                            datetime.utcnow()).total_seconds(), 240)
-      self.assertLessEqual(datetime.utcnow(), transmit_expire_time)
+                            datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
+      self.assertLessEqual(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
       self.assertLessEqual(transmit_expire_time, grant_expire_times[response_num])
     # Check the third  CBSD with unsuccessful HB response of code 500
     self.assertEqual(response[2]['cbsdId'], cbsd_ids[2])
     self.assertEqual(response[2]['grantId'], grant_ids[2])
     self.assertEqual(response[2]['response']['responseCode'], 500)
     self.assertLessEqual(datetime.strptime(
-        response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.utcnow())
+        response[2]['transmitExpireTime'],'%Y-%m-%dT%H:%M:%SZ'), datetime.now(timezone.utc).replace(tzinfo=None))
 
   def generate_HBT_10_default_config(self, filename):
     """Generates the WinnForum configuration for HBT.10."""
@@ -955,19 +955,19 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
       if response['response']['responseCode'] == 0:
         transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLess(datetime.utcnow(), transmit_expire_time)
+        self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
         self.assertLessEqual(
-            (transmit_expire_time - datetime.utcnow()).total_seconds(), 240)
+            (transmit_expire_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds(), 240)
         self.assertLessEqual(transmit_expire_time, grant_expire_times[i])
         if ('grantRenew' in heartbeat_request[i]) and (
             heartbeat_request[i]['grantRenew']):
           grant_expire_time = datetime.strptime(response['grantExpireTime'],
                                                 '%Y-%m-%dT%H:%M:%SZ')
-          self.assertLess(datetime.utcnow(), grant_expire_time)
+          self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), grant_expire_time)
       else:
         transmit_expire_time = datetime.strptime(response['transmitExpireTime'],
                                                  '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLessEqual(transmit_expire_time, datetime.utcnow())
+        self.assertLessEqual(transmit_expire_time, datetime.now(timezone.utc).replace(tzinfo=None))
 
   @winnforum_testcase
   def test_WINNF_FT_S_HBT_11(self):
@@ -1084,7 +1084,7 @@ class HeartbeatTestcase(sas_testcase.SasTestCase):
 
     # Step 8
     time.sleep(300)
-    self.assertLess(datetime.utcnow(), grant_expire_time)
+    self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), grant_expire_time)
     # Step 9 - Heartbeat request with operationState = GRANTED
     heartbeat_request = [{
         'cbsdId': cbsd_ids[0],

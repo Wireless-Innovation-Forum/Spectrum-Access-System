@@ -271,7 +271,7 @@ def SyntheticMoveList(ml_list, method, num, chan_idx):
   if method.startswith('med'):
     # Median method (median size keep list)
     median_idx = ml_size.index(np.percentile(ml_size[:num], 50,
-                                             interpolation='nearest'))
+                                             method='nearest'))
     ref_ml = ml_list[median_idx]
   elif method.startswith('max'):
     # Max method (bigger move list, ie smallest keep list).

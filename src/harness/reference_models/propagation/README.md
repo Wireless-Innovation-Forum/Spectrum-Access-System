@@ -15,25 +15,29 @@ See the corresponding docstrings for full description.
 
 ## Geo-Data setup
 
-Before use of the models, one should make sure that the required geodata is
-correctly set in the WinnForum/data/ folder for:
+The geographic drivers use these databases:
 
-  - ITU climate and refractivity files (TropClim.txt and n050.txt): in data/itu
-  - USGS 3DEP DEM terrain altitude: in data/geo/ned/
-  - NLCD land cover: in data/geo/nlcd/
+  - ITU climate and refractivity files (`TropoClim.txt` and `n050.txt`):
+    `Spectrum-Access-System/data/itu/`.
+  - USGS 3DEP DEM terrain altitude: `Common-Data/data/ned/`.
+  - NLCD land cover: `Common-Data/data/nlcd/`.
 
-Since the DEM and NLCD data is stored in another repository, you can use soft links.
+The default Common-Data checkout is a sibling of Spectrum-Access-System. Existing
+local `Spectrum-Access-System/data/geo/ned/` and `data/geo/nlcd/` directories take
+precedence over that default. Set `CBRS_COMMON_DATA_DIR` to the root of a
+Common-Data checkout to explicitly override both NED and NLCD locations.
+The drivers read extracted `.flt` and `.int` tiles, so unpack the required
+Common-Data archives before running production calculations. ITU, county and zone
+data continue to come from the SAS repository.
 
 ### Other Location
 
-If not using these location, you should modify the geo/CONFIG.py file to specify
-the absolute path to your folders holding these database.
-For the NED terrain, one can also directly set the proper terrain directory,
-using the routines:
+For separate NED and NLCD directories, configure the drivers directly:
 
 ```python
     from reference_models.geo import drive
     drive.ConfigureTerrainDriver(terrain_dir)
+    drive.ConfigureNlcdDriver(nlcd_dir)
 ```
 
 ### NLCD data
@@ -90,67 +94,40 @@ These implementations are derived from the original ITS C++ source code, with
 minimal modifications when required for the WinnForum extensions or bug fixes.
 They are wrapped as python extension modules.
 
-### Compilation in Linux
+### Compilation on Linux
 
-To compile these extension modules, you can use the provided top level makefile.
-Simply type the following command in a shell:
+Python 3.11 through 3.15 is supported, with Python 3.15 selected by default.
+The C++ extensions use setuptools from the repository's locked uv environment.
+From the Spectrum-Access-System repository root, run:
 
-    `make all`
-
-### Compilation in Windows
-
-The easiest way is to to use the MinGW GCC port for Windows.
-
-#### Using gcc provided by MinGW32
-
-Download and install MingW32 from http://www.mingw.org:
-
- - The download section of this page will redirect you to SourceForge where you can
- download the MinGW installer: `mingw-get-setup.exe`
-
- - Run the installer and select both the *mingw32-base* and *mingw32-gcc-g++* packages.
- Optionally you can also select the *mingw-developer-toolkit* package to be able to use makefiles.
- 
- - After making selections, proceed with installation by choosing Installation->Update Catalog->Review Changes->Apply
-
- - By default the MinGW will be installed in `C:/MinGW/`.
-
-Configuration:
-
- - Open a command prompt and make sure the directory `C:/MinGW/bin` is in the Windows path, by typing: `PATH`
- 
- - If not, add it either:
- 
-   + in the global path settings, under Control Panel => System => Advanced System Settings => Environment Variables
-   + or directly in your working command prompt, as the leading directory:
-     `set PATH=C:/MinGW/bin;%PATH%`
- 
- - If the developer-toolkit package has been installed, you should now be able able to use *make* in the reference_models/propagation directory, as is done for linux. If any issue, you might need to specify the compiler (see below).
- 
- - If the developer-toolkit package has not been selected, then you will need to manually call the python distutils commmand on each of the itm/ and ehata/ subdirectories:
-
-```
-     python setup.py build_ext --inplace --compiler=mingw32
-```
-   
-   The *--compiler* option may be unnecessary if there is no conflict with other compilers in your system.
-   
-If during this process, you experience some issues with wrong compiler, or compilation errors, create the file `distutils.cfg` in your PYTHONPATH\Lib\distutils\ directory, holding the following content:
-
-```
-    [build]
-    compiler=mingw32
+```sh
+uv sync --locked
+uv run --locked make -C src/harness/reference_models/propagation PYTHON=python
 ```
 
-In case you are using a 64bit version of Python, the previous steps shall be moified to install and use the MinGW 64 bits instead, and compiler directives `compiler=mingw64`
+This builds both ITM and eHata in place. Rebuild them after selecting a different
+Python version. A C++ compiler and make are required.
 
-#### Using Microsoft VCC compiler
+### Compilation on Windows
 
-The configuration steps should be similar to the MinGW, except that the compiler directive to be used (if necessary) is `--compiler=msvc`.
+Install C++ build tools compatible with the selected Python interpreter, then
+run these commands in PowerShell from the Spectrum-Access-System repository
+root. Using an absolute project path ensures that both extensions use the root
+uv environment rather than their individual build metadata:
 
-If issue with vcvarsall.bat not being found, try to set the following variables in your command terminal:
-
+```powershell
+uv sync --locked
+$sasRoot = (Get-Location).Path
+uv run --locked --project "$sasRoot" --directory "$sasRoot/src/harness/reference_models/propagation/itm" python setup.py build_ext --inplace
+uv run --locked --project "$sasRoot" --directory "$sasRoot/src/harness/reference_models/propagation/ehata" python setup.py build_ext --inplace
 ```
-    set MSSDK=1 
-    set DISTUTILS_USE_SDK=1
-```
+
+These Windows commands have not been validated on Windows; the native build and
+test matrix currently run on Linux.
+
+### Validation
+
+From the repository root, run `uv run --locked python run_unit_tests.py` for the
+local unit suite. Add `--with-production-data` after extracting the NED/NLCD tiles
+to include the six production data integration tests. See the
+[reference models README](../README.md) for details.

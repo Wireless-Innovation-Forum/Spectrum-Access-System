@@ -78,7 +78,7 @@ class SimpleCrlServer(threading.Thread):
     url_components = urllib.urlparse(crl_url)
     self.port = url_components.port if url_components.port is not None else \
         DEFAULT_CRL_SERVER_PORT
-    self.setDaemon(True)
+    self.daemon = True
 
     # Setting the parameters for handler class.
     self.server = CrlHttpServer(url_components.path, crl_directory,
@@ -134,6 +134,7 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
       self.log_message('Requested path %r does not match URL prefix %r ' %
                        (req_path, self.server.crl_url_path))
       self.send_response(404)
+      self.end_headers()
       return
 
     # Restrict the filename, to prevent arbitrary filesystem access.
@@ -141,16 +142,18 @@ class CrlServerHttpHandler(BaseHTTPRequestHandler):
     if not isCrlFilename(req_filename):
       self.log_message('Requested file %r is malformed' % req_filename)
       self.send_response(404)
+      self.end_headers()
       return
 
     # Try to read the requested CRL file.
     abs_filename = os.path.join(self.server.crl_directory, req_filename)
     try:
-      with file(abs_filename) as handle:
+      with open(abs_filename, 'rb') as handle:
         file_data = handle.read()
     except IOError:
       self.log_message('Failed to read CRL file: %r' % abs_filename)
       self.send_response(404)
+      self.end_headers()
       return
     else:
       self.send_response(200)
@@ -217,7 +220,7 @@ def updateCrlUrlAndRegenerateCertificates():
 
   # Populate the crldp file.
   certs_path = getCertsDirectoryAbsolutePath()
-  with file(os.path.join(certs_path, 'include_crldp_base.sh'), 'w') as handle:
+  with open(os.path.join(certs_path, 'include_crldp_base.sh'), 'w', encoding='utf-8') as handle:
     handle.write('CRLDP_BASE="{}"\n'.format(CRLDP_BASE))
 
   # Re-generate certificates.

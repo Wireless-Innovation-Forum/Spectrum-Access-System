@@ -18,7 +18,7 @@ from __future__ import division
 from __future__ import print_function
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 import inspect
 import json
@@ -31,13 +31,12 @@ import time
 import uuid
 
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jsonschema import validate, Draft4Validator, RefResolver
 import jwt
 import portpicker
-from OpenSSL.crypto import load_certificate, FILETYPE_PEM
 from OpenSSL import SSL
 from shapely.geometry import shape, Point, LineString
 import six
@@ -50,7 +49,7 @@ from reference_models.geo import utils
 def _decode_openssl_version(version):
   # From https://wiki.openssl.org/index.php/Versioning: version always in the
   # form: 'OpenSSL 1.1.1j  16 Feb 2021'
-  m = re.search(r'^OpenSSL (\d)\.(\d)\.(\d)\w .*', version)
+  m = re.search(r'^OpenSSL (\d+)\.(\d+)\.(\d+)', version)
   if m is None: return -1
   return int(m.group(1))*100 + int(m.group(2))*10 + int(m.group(3))
 
@@ -247,7 +246,7 @@ def convertRequestToRequestWithCpiSignature(private_key, cpi_id,
     cpi_signed_data['professionalInstallerData']['cpiId'] = cpi_id
   cpi_signed_data['professionalInstallerData']['cpiName'] = cpi_name
   cpi_signed_data['professionalInstallerData'][
-      'installCertificationTime'] = datetime.utcnow().strftime(
+      'installCertificationTime'] = datetime.now(timezone.utc).replace(tzinfo=None).strftime(
           '%Y-%m-%dT%H:%M:%SZ')
   compact_jwt_message = jwt.encode(
       cpi_signed_data, private_key, jwt_algorithm)
@@ -310,10 +309,11 @@ def getCertificateFingerprint(certificate):
   Returns:
     sha1 fingerprint of the input certificate
   """
-  certificate_string = open(certificate,"rb").read()
-  cert = load_certificate(FILETYPE_PEM, certificate_string)
-  sha1_fingerprint = cert.digest("sha1")
-  return six.ensure_text(sha1_fingerprint)
+  with open(certificate, 'rb') as stream:
+    cert = x509.load_pem_x509_certificate(stream.read())
+  # SHA-1 is the identifier format required by the SAS protocol, not a signature.
+  fingerprint = cert.fingerprint(hashes.SHA1()).hex().upper()
+  return ':'.join(fingerprint[i:i + 2] for i in range(0, len(fingerprint), 2))
 
 def filterChannelsByFrequencyRange(channels, freq_range):
   """Returns channels which partially or fully overlap with 'freq_range'.

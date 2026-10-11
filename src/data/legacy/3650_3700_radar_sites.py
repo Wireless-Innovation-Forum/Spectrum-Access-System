@@ -16,6 +16,7 @@ from lxml import etree
 from pykml.factory import KML_ElementMaker as KML
 import math
 import os
+from pathlib import Path
 
 # This script prepares a KML file containing the 80km exclusion zones around
 # three 3650-3700 radar sites specified in the FCC's Report and Order 15-47A1.
@@ -46,7 +47,7 @@ def AddPlacemarkAndZone(doc, site):
   lng = float(site[5]) + float(site[6])/60.0 + float(site[7])/3600.0;
   if site[8] == 'W':
     lng = -lng
-  print 'Adding placemark for %s at (%f, %f)' % (name, lat, lng)
+  print('Adding placemark for %s at (%f, %f)' % (name, lat, lng))
 
   pm = KML.Placemark(
     KML.name(name),
@@ -71,7 +72,7 @@ def AddPlacemarkAndZone(doc, site):
   coords = []
   # Note: generate perimeter points every 5 degrees around the circle.
   step_degrees = 5
-  for az in xrange(0, 360, step_degrees):
+  for az in range(0, 360, step_degrees):
     a = float(az)
     lat2 = math.asin(math.sin(math.radians(lat))*math.cos(d) +
                      math.cos(math.radians(lat))*math.sin(d)*math.cos(math.radians(a)))
@@ -92,38 +93,39 @@ def AddPlacemarkAndZone(doc, site):
   doc.append(zone)
 
 
-# Find the directory of this script.
-dir = os.path.dirname(os.path.realpath(__file__))
-rootDir = os.path.dirname(os.path.dirname(dir))
-fccDir = os.path.join(os.path.join(rootDir, 'data'), 'fcc')
+def main(root_dir=None):
+  rootDir = Path(root_dir) if root_dir is not None else Path(__file__).resolve().parents[3]
+  fccDir = rootDir / 'data' / 'fcc' / 'legacy'
 
-doc = KML.kml(
-  KML.Document(
-    KML.name('3650-3700 Radar Sites'),
-    KML.Style(
-      KML.LineStyle(
+  doc = KML.kml(
+    KML.Document(
+      KML.name('3650-3700 Radar Sites'),
+      KML.Style(
+        KML.LineStyle(
+          KML.color('ff00ff00'),
+          KML.width(2)
+        ),
+        KML.PolyStyle(
+          KML.color('66006600')
+        ),
+        id="ts"
+      ),
+      KML.Style(
         KML.color('ff00ff00'),
-        KML.width(2)
-      ),
-      KML.PolyStyle(
-        KML.color('66006600')
-      ),
-      id="ts"
-    ),
-    KML.Style(
-      KML.color('ff00ff00'),
-      id="pm"
+        id="pm"
+      )
     )
   )
-)
 
-AddPlacemarkAndZone(doc.Document, radar_sites[0])
-AddPlacemarkAndZone(doc.Document, radar_sites[1])
-AddPlacemarkAndZone(doc.Document, radar_sites[2])
+  AddPlacemarkAndZone(doc.Document, radar_sites[0])
+  AddPlacemarkAndZone(doc.Document, radar_sites[1])
+  AddPlacemarkAndZone(doc.Document, radar_sites[2])
 
-kmlFilename = os.path.join(fccDir, '3650_3700_radar_sites.kml')
-print 'Writing output file %s' % kmlFilename
-out = open(kmlFilename, 'w')
-out.write(etree.tostring(doc, pretty_print=True))
-out.close()
+  kmlFilename = os.path.join(fccDir, '3650_3700_radar_sites.kml')
+  print('Writing output file %s' % kmlFilename)
+  with open(kmlFilename, 'wb') as out:
+    out.write(etree.tostring(doc, encoding='utf-8', pretty_print=True))
 
+
+if __name__ == "__main__":
+  main()

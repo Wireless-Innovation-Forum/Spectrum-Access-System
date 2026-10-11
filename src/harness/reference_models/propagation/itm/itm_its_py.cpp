@@ -35,6 +35,7 @@ static PyObject* itm_point_to_point(PyObject* self, PyObject* args) {
   }
 
   if (!PyList_Check(elev_obj)) {
+    PyErr_SetString(PyExc_TypeError, "Profile must be a list.");
     return NULL;
   }
 
@@ -92,10 +93,12 @@ static PyObject* itm_point_to_point_rels(PyObject* self, PyObject* args) {
   }
 
   if (!PyList_Check(elev_obj)) {
+    PyErr_SetString(PyExc_TypeError, "Profile must be a list.");
     return NULL;
   }
 
   if (!PyList_Check(rels_obj)) {
+    PyErr_SetString(PyExc_TypeError, "Reliabilities must be a list.");
     return NULL;
   }
   // Get the profile
@@ -169,7 +172,6 @@ static PyMethodDef ITMMethods[] = {
   {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3  // Python3
 PyMODINIT_FUNC PyInit_itm_its(void) {
   static struct PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT, "itm_its",
@@ -178,9 +180,3 @@ PyMODINIT_FUNC PyInit_itm_its(void) {
   PyObject* module = PyModule_Create(&module_def);
   return module;
 }
-#else  // Python2
-PyMODINIT_FUNC inititm_its(void) {
-  Py_InitModule3("itm_its",  ITMMethods,
-                 "Longley-Rice ITM Propagation Module");
-}
-#endif

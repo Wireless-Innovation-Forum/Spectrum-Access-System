@@ -19,6 +19,7 @@
 import csv
 import datetime
 import os
+from pathlib import Path
 import re
 import shutil
 import zipfile
@@ -28,9 +29,9 @@ import zipfile
 # being a dict of column names mapped to the positional index of that column
 # in the dump files.
 def LoadULSSchema(schema_file):
-  print 'Loading ULS schema...'
+  print('Loading ULS schema...')
   table_schema = {}
-  with open(schema_file, 'r') as schema:
+  with open(schema_file, 'r', encoding='utf-8') as schema:
     content = schema.read()
   table_sources = content.split('\n)')
   for s in table_sources:
@@ -41,13 +42,13 @@ def LoadULSSchema(schema_file):
       if l.find('PUBACC_') != -1:
         index = l.find('PUBACC_') + len('PUBACC_')
         table_name = l[index:].strip()
-        print '  Found table %s' % table_name
+        print('  Found table %s' % table_name)
         table_schema[table_name] = {}
       elif table_name:
-        tokens = re.split('\W+', l)
+        tokens = re.split(r'\W+', l)
         if len(tokens) > 2:
           field = tokens[1]
-          print '    Found field %s=%d' % (field, column_index)
+          print('    Found field %s=%d' % (field, column_index))
           table_schema[table_name][field] = column_index
           column_index += 1
   return table_schema          
@@ -56,16 +57,16 @@ def LoadULSSchema(schema_file):
 # Extract the wanted zipped data files from the given zipfile into the
 # given temporary directory.
 def UnzipNeededFiles(zip_filename, tmpDir):
-  zf = zipfile.ZipFile(zip_filename, 'r')
-  for datfile in zf.namelist():
-    if datfile in ['AN.dat', 'FR.dat', 'HD.dat', 'LO.dat', 'EM.dat', 'EN.dat']:
-      try:
-        print '   extracting %s' % datfile
-        content = zf.read(datfile)
-        with open(os.path.join(tmpDir, datfile), 'w') as out:
-          out.write(content)
-      except Exception, err:
-        raise Exception('Cannot extract ' + datfile + ' from ' + zip_filename)
+  with zipfile.ZipFile(zip_filename, 'r') as zf:
+    for datfile in zf.namelist():
+      if datfile in ['AN.dat', 'FR.dat', 'HD.dat', 'LO.dat', 'EM.dat', 'EN.dat']:
+        try:
+          print('   extracting %s' % datfile)
+          content = zf.read(datfile)
+          with open(os.path.join(tmpDir, datfile), 'wb') as out:
+            out.write(content)
+        except Exception as err:
+          raise Exception('Cannot extract ' + datfile + ' from ' + zip_filename)
 
 
 # This is the definition of which fields are read from which table.
@@ -158,7 +159,7 @@ def NormalizeLines(content, prefix):
 
 def ReadULSDataRecords(tmpDir, schema, table):
   records = []
-  with open(os.path.join(tmpDir, table + '.dat'), 'r') as dat:
+  with open(os.path.join(tmpDir, table + '.dat'), 'r', encoding='latin-1') as dat:
     content = dat.read()
     lines = NormalizeLines(content, table + '|')
     reader = csv.reader(lines, delimiter='|')
@@ -223,15 +224,15 @@ def WriteRecord(outfile, record):
       line.append(record[f])
     else:
       line.append('')
-      print '!!! Missing field %s in %s' % (f, record)
+      print('!!! Missing field %s in %s' % (f, record))
   outfile.writerow(line)
 
 
 # Read database files from a unzipped temp directory. Do a join of data
 # from various input tables and consolidate the results into flat records.
 def ProcessULSData(tmpDir, schema, outfile):
-  print 'Processing data in %s into %s' % (tmpDir, outfile)
-  outf = open(outfile, 'w')
+  print('Processing data in %s into %s' % (tmpDir, outfile))
+  outf = open(outfile, 'w', encoding='utf-8', newline='')
   outwriter = csv.writer(outf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
   WriteHeaderRecord(outwriter)
 
@@ -245,7 +246,7 @@ def ProcessULSData(tmpDir, schema, outfile):
       hd_id = r['unique_system_identifier']
       hd[hd_id] = r
       count += 1
-  print 'Found %d HD records' % count
+  print('Found %d HD records' % count)
 
   count = 0
   lo = {}
@@ -261,7 +262,7 @@ def ProcessULSData(tmpDir, schema, outfile):
 
       lo[lo_id] = r
       count += 1
-  print 'Found %d LO records' % count
+  print('Found %d LO records' % count)
 
   count = 0
   en = {}
@@ -282,7 +283,7 @@ def ProcessULSData(tmpDir, schema, outfile):
         if 'email' not in r:
           r['email'] = ''
         en[en_id] = r
-  print 'Found %d EN records' % count
+  print('Found %d EN records' % count)
 
   count = 0
   an = {}
@@ -294,7 +295,7 @@ def ProcessULSData(tmpDir, schema, outfile):
       an_id = r['unique_system_identifier'] + '.' + r['location_number'] + '.' + r['antenna_number']
       an[an_id] = r
       count += 1
-  print 'Found %d AN records' % count
+  print('Found %d AN records' % count)
 
   count = 0
   em = {}
@@ -309,7 +310,7 @@ def ProcessULSData(tmpDir, schema, outfile):
         r['emission_code'] = ''
       em[em_id] = r
       count += 1
-  print 'Found %d EM records' % count
+  print('Found %d EM records' % count)
      
   count = 0
   fr = {}
@@ -348,7 +349,7 @@ def ProcessULSData(tmpDir, schema, outfile):
       # Now reg is the merged registration record ready for output.
       WriteRecord(outwriter, reg)
       count += 1
-  print 'Found %d FR records' % count
+  print('Found %d FR records' % count)
 
   outf.close()
   
@@ -358,7 +359,7 @@ def ProcessULSData(tmpDir, schema, outfile):
 def ProcessULS(directory):
   schema = LoadULSSchema(os.path.join(directory, 'pa_ddef49.txt'))
   tmpDir = os.path.join(directory, 'tmp')
-  print 'Unzipping weekly ULS files to %s' % tmpDir
+  print('Unzipping weekly ULS files to %s' % tmpDir)
   if not os.path.exists(tmpDir):
     os.mkdir(tmpDir)
   UnzipNeededFiles(os.path.join(directory, 'l_micro.zip'), tmpDir)
@@ -379,7 +380,7 @@ def ProcessULS(directory):
 def LoadULSFlatFile(filename):
   records = {}
   header = []
-  with open(filename, 'r') as data:
+  with open(filename, 'r', encoding='utf-8', newline='') as data:
     reader = csv.reader(data, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for row in reader:
       if header == []:
@@ -391,8 +392,8 @@ def LoadULSFlatFile(filename):
         key = r['unique_system_identifier'] + '.' + r['location_number'] + '.' + r['antenna_number']
         records[key] = r
         if len(row) != len(header):
-          print '!!! Bad record: %s' % row
-  print 'Read %d records from %s' % (len(records), filename)
+          print('!!! Bad record: %s' % row)
+  print('Read %d records from %s' % (len(records), filename))
   return records
 
 # This method combines the extracted data from the CSV files, maintaining only
@@ -414,30 +415,32 @@ def ConsolidateULSData(directory):
         if orig_date < new_date:
           l_micro[k] = rec
         else:
-          print '%s: Found later date %s in l_mw; %s in l_micro' % (
-            k, rec['last_action_date'], l_micro[k]['last_action_date'])
+          print('%s: Found later date %s in l_mw; %s in l_micro' % (
+            k, rec['last_action_date'], l_micro[k]['last_action_date']))
       else:
         l_micro[k] = rec
 
-  outf = open(os.path.join(directory, 'uls.csv'), 'w')
+  outf = open(os.path.join(directory, 'uls.csv'), 'w', encoding='utf-8', newline='')
   outwriter = csv.writer(outf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
   WriteHeaderRecord(outwriter)
   for row in l_micro:
     WriteRecord(outwriter, l_micro[row])
   outf.close()
-  print 'Wrote %d total ULS records' % len(l_micro)
+  print('Wrote %d total ULS records' % len(l_micro))
 
 
-# Find the directory of this script.
-dir = os.path.dirname(os.path.realpath(__file__))
-rootDir = os.path.dirname(os.path.dirname(dir))
-ulsDir = os.path.join(os.path.join(rootDir, 'data'), 'uls')
-print 'Processing ULS files in dir=%s' % ulsDir
+def main(root_dir=None):
+  rootDir = Path(root_dir) if root_dir is not None else Path(__file__).resolve().parents[3]
+  ulsDir = os.path.join(os.path.join(rootDir, 'data'), 'uls')
+  print('Processing ULS files in dir=%s' % ulsDir)
 
-ProcessULS(ulsDir)
+  ProcessULS(ulsDir)
 
-# TODO: The rows from the daily files, if different, supercede the weekly file, so
-# they can be merged into a composite file. If the same key exists in multiple
-# files, then the copy with greater last_action_date field takes precedence.
-print 'Finished.'
+  # TODO: The rows from the daily files, if different, supercede the weekly file, so
+  # they can be merged into a composite file. If the same key exists in multiple
+  # files, then the copy with greater last_action_date field takes precedence.
+  print('Finished.')
 
+
+if __name__ == "__main__":
+  main()

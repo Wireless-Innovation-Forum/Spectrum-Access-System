@@ -10,5 +10,9 @@ under the `scripts/` folder.
 These scripts are provided only for documenting the process in generating those data.
 You DO NOT need to run the scripts unless you want to verify the process.
 
-Note: the sripts are supporting both Python2 and Python3, but the original data were
-generated with Python2.
+The scripts support Python 3.11–3.15. Install their optional spreadsheet dependencies
+with `uv sync --locked --extra scripts`, then use `uv run --locked --extra scripts python`
+to run a script under `src/data/`. The original historical data were generated
+with Python 2. Legacy conversions live in `legacy/`; their FCC spreadsheet and
+radar files are under `data/fcc/legacy/` in the repository root. Retrieval tools
+still depend on the availability of their historical upstream services.

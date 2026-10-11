@@ -17,7 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone
 import unittest
 import logging
 import copy
@@ -64,7 +64,7 @@ class FullActivityDumpHelperTest(unittest.TestCase):
             'version': 'some version',
             'recordType': 'cbsd'
         }],
-        'generationDateTime': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'generationDateTime': datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'description':
             'mock for testing full activity dump'
     }

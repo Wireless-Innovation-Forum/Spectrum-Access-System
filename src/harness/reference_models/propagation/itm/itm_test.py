@@ -21,6 +21,7 @@ import unittest
 import numpy as np
 
 from reference_models.propagation.itm import itm
+from reference_models.propagation.itm import itm_its
 
 # This test data comes directly from the example cases given on the NTIA/ITS
 # information page at:
@@ -176,6 +177,15 @@ def _GetHorizonAnglesLegacy(its_elev, height_cbsd, height_rx, refractivity):
 
 
 class TestItm(unittest.TestCase):
+
+  def test_native_input_types(self):
+    arguments = (50, 10, 15, 0.005, 314, 3550, 5, 0, 0.5)
+    with self.assertRaisesRegex(TypeError, 'Profile must be a list'):
+      itm_its.point_to_point(tuple(PROFILE), *arguments, 0.5)
+    with self.assertRaisesRegex(TypeError, 'Profile must be a list'):
+      itm_its.point_to_point_rels(tuple(PROFILE), *arguments, [0.5])
+    with self.assertRaisesRegex(TypeError, 'Reliabilities must be a list'):
+      itm_its.point_to_point_rels(PROFILE, *arguments, (0.5,))
 
   def test_qkpfl_path2200_its(self):
     confidence_vals = [0.5, 0.9, 0.1]

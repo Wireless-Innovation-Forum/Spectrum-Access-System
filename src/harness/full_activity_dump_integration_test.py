@@ -20,8 +20,12 @@ from __future__ import print_function
 import unittest
 import json
 import os
+import tempfile
+
+from cert_fixture import create_certificates
+import util
 from functools import partial
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
   from unittest import mock
@@ -42,6 +46,17 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
   """
 
   def setUp(self):
+    temp_dir = tempfile.TemporaryDirectory()
+    self.addCleanup(temp_dir.cleanup)
+    self.certificates = create_certificates(temp_dir.name)
+    cert_patch = mock.patch('sas.GetDefaultSasSSLCertPath',
+                           return_value=self.certificates['client_cert'])
+    key_patch = mock.patch('sas.GetDefaultSasSSLKeyPath',
+                          return_value=self.certificates['client_key'])
+    cert_patch.start()
+    key_patch.start()
+    self.addCleanup(cert_patch.stop)
+    self.addCleanup(key_patch.stop)
     cbsd_records = [
         json_load(os.path.join('testcases', 'testdata', 'device_a.json')),
         json_load(os.path.join('testcases', 'testdata', 'device_b.json')),
@@ -77,21 +92,32 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     ]
     self._test_data = [cbsd_fad_records, ppa_fad_records, esc_fad_records]
 
+  def makeSasInterface(self, base_url, version):
+    client = SasImpl(base_url, base_url, base_url, base_url,
+                     'v1.2', version, 'test_admin', 100)
+    client._tls_config.ca_cert = self.certificates['ca']
+    return client
+
   @staticmethod
-  def getFullActivityDumpHelper(sas_interface):
+  def getFullActivityDumpHelper(ssl_cert=None, ssl_key=None, *, sas_interface):
     """Method to get the full activity dump but with timestamp modified to now."""
-    output = sas_interface.GetFullActivityDump()
-    output['generationDateTime'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    output = sas_interface.GetFullActivityDump(ssl_cert, ssl_key)
+    output['generationDateTime'] = datetime.now(timezone.utc).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%SZ')
     return output
 
   def test_download_from_test_harness_gets_data(self):
-    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9001,
-                                            'certs/server.cert',
-                                            'certs/server.key', 'certs/ca.cert')
+    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', util.getUnusedPort(),
+                                            self.certificates['server_cert'],
+                                            self.certificates['server_key'], self.certificates['ca'])
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
+    self.addCleanup(sas_test_harness.shutdown)
     fad = getFullActivityDumpSasTestHarness(
         sas_test_harness.getSasTestHarnessInterface())
+    client = self.makeSasInterface(sas_test_harness.getSasBaseUrl(),
+                                   sas_test_harness.getSasTestHarnessVersion())
+    self.assertTrue(client.GetFullActivityDump()['files'])
+
 
     # Testing for exact contents would be long and verbose, and also handled by
     # the FAD object, just test all the fields have something.
@@ -99,26 +125,25 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     self.assertNotEqual(len(fad.getEscSensorRecords()), 0)
     self.assertNotEqual(len(fad.getZoneRecords()), 0)
 
-    sas_test_harness.shutdown()
-    del sas_test_harness
 
   def test_download_from_sas_uut_gets_data(self):
     """Tests fetching from the SAS UUT """
 
     # Use a test harness as a fake SAS UUT.
-    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9002,
-                                            'certs/server.cert',
-                                            'certs/server.key', 'certs/ca.cert')
+    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', util.getUnusedPort(),
+                                            self.certificates['server_cert'],
+                                            self.certificates['server_key'], self.certificates['ca'])
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
+    self.addCleanup(sas_test_harness.shutdown)
     sas_admin = mock.MagicMock()
-    sas_interface = SasImpl(sas_test_harness.getSasBaseUrl(),
+    sas_interface = self.makeSasInterface(sas_test_harness.getSasBaseUrl(),
                             sas_test_harness.getSasTestHarnessVersion())
     # GetFullActivityDump must be mocked to give timestamp at current time.
     sas_interface.GetFullActivityDump = mock.MagicMock()
     sas_interface.GetFullActivityDump.side_effect = partial(
         FullActivityDumpIntegrationTest.getFullActivityDumpHelper,
-        sas_interface=SasImpl(
+        sas_interface=self.makeSasInterface(
             sas_test_harness.getSasBaseUrl(),
             sas_test_harness.getSasTestHarnessVersion()))
     fad = getFullActivityDumpSasUut(sas_interface, sas_admin)
@@ -130,45 +155,41 @@ class FullActivityDumpIntegrationTest(unittest.TestCase):
     self.assertNotEqual(len(fad.getEscSensorRecords()), 0)
     self.assertNotEqual(len(fad.getZoneRecords()), 0)
 
-    sas_test_harness.shutdown()
-    del sas_test_harness
 
   def test_download_functions_equivalent(self):
     """When the SAS UUT and test harness have the same data the FAD content should be equal."""
 
     # Get SAS UUT FAD.
     # Use a test harness as a fake SAS UUT.
-    sas_uut = SasTestHarnessServer('SAS-TH-1', 'localhost', 9003,
-                                   'certs/server.cert', 'certs/server.key',
-                                   'certs/ca.cert')
+    sas_uut = SasTestHarnessServer('SAS-TH-1', 'localhost', util.getUnusedPort(),
+                                   self.certificates['server_cert'], self.certificates['server_key'],
+                                   self.certificates['ca'])
     sas_uut.writeFadRecords(self._test_data)
     sas_uut.start()
+    self.addCleanup(sas_uut.shutdown)
     sas_admin = mock.MagicMock()
     # sas_interface must be mocked to give timestamp at current time.
-    sas_interface = SasImpl(sas_uut.getSasBaseUrl(),
+    sas_interface = self.makeSasInterface(sas_uut.getSasBaseUrl(),
                             sas_uut.getSasTestHarnessVersion())
     sas_interface.GetFullActivityDump = mock.MagicMock()
     sas_interface.GetFullActivityDump.side_effect = partial(
         FullActivityDumpIntegrationTest.getFullActivityDumpHelper,
-        sas_interface=SasImpl(sas_uut.getSasBaseUrl(),
+        sas_interface=self.makeSasInterface(sas_uut.getSasBaseUrl(),
                               sas_uut.getSasTestHarnessVersion()))
     uut_fad = getFullActivityDumpSasUut(sas_interface, sas_admin)
 
     # Get SAS test harness FAD.
-    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', 9004,
-                                            'certs/server.cert',
-                                            'certs/server.key', 'certs/ca.cert')
+    sas_test_harness = SasTestHarnessServer('SAS-TH-1', 'localhost', util.getUnusedPort(),
+                                            self.certificates['server_cert'],
+                                            self.certificates['server_key'], self.certificates['ca'])
     sas_test_harness.writeFadRecords(self._test_data)
     sas_test_harness.start()
+    self.addCleanup(sas_test_harness.shutdown)
     test_harness_fad = getFullActivityDumpSasTestHarness(
         sas_test_harness.getSasTestHarnessInterface())
 
     self.assertDictEqual(uut_fad.getData(), test_harness_fad.getData())
 
-    sas_uut.shutdown()
-    sas_test_harness.shutdown()
-    del sas_uut
-    del sas_test_harness
 
 if __name__ == '__main__':
   unittest.main()

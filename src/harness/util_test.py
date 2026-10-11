@@ -28,6 +28,14 @@ import util
 
 class UtilTest(unittest.TestCase):
 
+  def setUp(self):
+    config_patch = mock.patch.object(util, '_test_config', util._TestConfig())
+    ports_patch = mock.patch.object(util, '_ports', set())
+    config_patch.start()
+    ports_patch.start()
+    self.addCleanup(config_patch.stop)
+    self.addCleanup(ports_patch.stop)
+
   def test_decode_openssl_version(self):
     self.assertEqual(
         util._decode_openssl_version('OpenSSL 1.1.1j  16 Feb 2021'), 111)
@@ -36,6 +44,8 @@ class UtilTest(unittest.TestCase):
     self.assertEqual(
         util._decode_openssl_version('OpenSSL 0.9.8f [24 Mar 2010]'), 98)
     self.assertEqual(util._decode_openssl_version('BoringSSL'), -1)
+    self.assertEqual(util._decode_openssl_version('OpenSSL 3.5.4 30 Sep 2025'), 354)
+    self.assertEqual(util._decode_openssl_version('OpenSSL 3.0.16 11 Feb 2025'), 316)
 
   def test_getFqdnLocalhost(self):
     # Initialize the testConfig with our test data.

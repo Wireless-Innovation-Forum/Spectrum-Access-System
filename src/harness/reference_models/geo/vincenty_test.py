@@ -58,9 +58,9 @@ class TestVincenty(unittest.TestCase):
       p = pygc.great_distance(start_latitude=lat1, start_longitude=lng1,
                               end_latitude=lat2, end_longitude=lng2)
 
-      self.assertAlmostEqual(d*1000.0, p['distance'], 2)  # cm precision
-      self.assertAlmostEqual(az, p['azimuth'], 9)
-      self.assertAlmostEqual(rev_az, p['reverse_azimuth'], 9)
+      self.assertAlmostEqual(d*1000.0, np.asarray(p['distance']).item(), 2)  # cm precision
+      self.assertAlmostEqual((az - np.asarray(p['azimuth']).item() + 180) % 360 - 180, 0, 9)
+      self.assertAlmostEqual((rev_az - np.asarray(p['reverse_azimuth']).item() + 180) % 360 - 180, 0, 9)
 
   def test_point(self):
     random.seed(69)
@@ -73,9 +73,9 @@ class TestVincenty(unittest.TestCase):
       latd, lngd, rev_az = vincenty.GeodesicPoint(lat, lng, dist/1000.0, bearing)
       self.assertTrue(rev_az >= 0 and rev_az < 360)
       p = pygc.great_circle(latitude=lat, longitude=lng, distance=dist, azimuth=bearing)
-      self.assertAlmostEqual(latd, p['latitude'])
-      self.assertAlmostEqual(lngd, p['longitude'])
-      self.assertAlmostEqual(rev_az, p['reverse_azimuth'])
+      self.assertAlmostEqual(latd, np.asarray(p['latitude']).item())
+      self.assertAlmostEqual((lngd - np.asarray(p['longitude']).item() + 180) % 360 - 180, 0)
+      self.assertAlmostEqual((rev_az - np.asarray(p['reverse_azimuth']).item() + 180) % 360 - 180, 0)
 
   def test_points(self):
     distances = [5,10,50, 100, 500, 1000, 5000]

@@ -50,24 +50,25 @@ a global #define in `ehata.h`. This allows much more consistent results across e
 or future implementations.
 
 
+## Building the Python extension module
+
+Python 3.11 through 3.15 is supported. From the Spectrum-Access-System repository
+root, install the locked dependencies and build eHata with the selected interpreter:
+
+```sh
+uv sync --locked
+uv run --locked make -C src/harness/reference_models/propagation/ehata PYTHON=python
+```
+
+The Makefile invokes setuptools in the root uv environment. A C++ compiler and
+make are required; rebuild the extension whenever you change Python versions.
+For Windows build commands, see the [propagation README](../README.md).
+
 ## Running the tests
-To run the origina ITS test set, first compile le python extension module,
-then run the `ehata_test.py` module:
 
-    `python ehata_test.py`
+After building the extension, run the original ITS test set and wrapper tests
+from the repository root:
 
-
-## Building the python extension module
-
-A Python wrapper is provided to generate a Python extension module.
-To build this extension, use the make command:
-
-    `make`
-    
-which basically runs:
-
-    `python setup.py build_ext --inplace`
-    `python3 setup.py build_ext --inplace`    
-
-For Windows specific compilation, see upper level [README.md](../README.md).
-
+```sh
+uv run --locked python -m pytest src/harness/reference_models/propagation/ehata/ehata_test.py
+```

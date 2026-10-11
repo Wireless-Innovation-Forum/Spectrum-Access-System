@@ -94,7 +94,7 @@ class UsgsPopDriver(object):
     self._raster_mask = np.zeros(
         (self._raster_info.height // self._block_ysize + 1,
          self._raster_info.width // self._block_xsize + 1),
-        dtype=np.bool)
+        dtype=bool)
 
   def LoadRaster(self, box=None):
     """Load raster in memory.

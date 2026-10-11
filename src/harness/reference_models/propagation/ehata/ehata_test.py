@@ -64,6 +64,18 @@ class TestEHata(unittest.TestCase):
   def tearDown(self):
     ehata.SetWinnForumExtensions(True)
 
+  def test_native_profile_type(self):
+    with self.assertRaisesRegex(TypeError, 'Profile must be a list'):
+      ehata.ExtendedHata((4, 500, 1, 2, 3, 4, 5), 3550, 50, 10, 23)
+
+  def test_extension_flag_boolean_error(self):
+    class InvalidFlag:
+      def __bool__(self):
+        raise ValueError('Invalid flag')
+
+    with self.assertRaisesRegex(ValueError, 'Invalid flag'):
+      ehata.SetWinnForumExtensions(InvalidFlag())
+
   # Test the ITS eHata version with original testbed code from ITS
   def test_its_testbed(self):
     for test in self.tests:

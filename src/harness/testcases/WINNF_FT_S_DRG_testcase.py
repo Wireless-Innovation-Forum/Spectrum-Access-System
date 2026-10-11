@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import os
@@ -247,7 +247,7 @@ class DeregistrationTestcase(sas_testcase.SasTestCase):
     self.assertEqual(response['cbsdId'], cbsd_id)
     self.assertEqual(response['grantId'], grant_id)
     self.assertEqual(response['response']['responseCode'], 0)
-    self.assertLess(datetime.utcnow(),
+    self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None),
                     datetime.strptime(response['transmitExpireTime'],
                                       '%Y-%m-%dT%H:%M:%SZ'))
     del request, response

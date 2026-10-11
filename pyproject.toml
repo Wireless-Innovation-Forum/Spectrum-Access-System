@@ -1,0 +1,62 @@
+#    Copyright 2026 SAS Project Authors. All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+[project]
+name = "winnf-sas-harness"
+version = "1.0.0"
+description = "WINNF SAS testing and interoperability harness and reference models"
+requires-python = ">=3.11"
+dependencies = [
+  "cryptography>=46",
+  "ftputil>=5.1,<6",
+  "jsonschema>=4.23,<5",
+  "referencing>=0.36,<1",
+  "lxml>=6,<7",
+  "matplotlib>=3.9,<4",
+  "numpy>=1.26,<3",
+  "portpicker>=1.6,<2",
+  "psutil>=7,<8",
+  "pycurl>=7.45.7,<8",
+  "pygc>=2,<3",
+  "PyJWT>=2.10,<3",
+  "pykml>=0.2,<1",
+  "pyOpenSSL>=25.3",
+  "pyshp>=2.3,<4",
+  "pytz>=2025.2",
+  "scipy>=1.14,<2",
+  "Shapely>=2,<3",
+  "six>=1.17,<2",
+  "XlsxWriter>=3.2,<4",
+]
+
+[project.optional-dependencies]
+gdal = ["GDAL>=3.9,<4"]
+scripts = ["openpyxl>=3.1,<4"]
+
+[dependency-groups]
+dev = [
+  "build>=1.2,<2",
+  "mock>=5,<6",
+  "pytest>=8,<10",
+  "setuptools>=80",
+  "wheel>=0.45",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+python_files = ["*_test.py"]
+pythonpath = ["src/harness", "src/lib", "src/lib/geo", "src/lib/usgs_pop"]
+testpaths = ["src/harness", "src/lib/geo"]

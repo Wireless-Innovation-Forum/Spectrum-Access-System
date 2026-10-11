@@ -182,6 +182,8 @@ def GenerateCbsdsInPolygon(num_cbsds, template_cbsd, polygon,
       continue
     if isinstance(in_points, sgeo.Point):
       in_points = [in_points]
+    else:
+      in_points = list(in_points.geoms)
     total_got += len(in_points)
     ratio = total_got / float(total_asked)
     for point in in_points:

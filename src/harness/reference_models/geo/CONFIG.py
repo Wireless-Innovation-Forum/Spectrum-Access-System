@@ -31,6 +31,16 @@ LANDCOVER_DIR = os.path.join(_BASE_DATA_DIR, 'geo', 'nlcd')
 NTIA_DIR = os.path.join(_BASE_DATA_DIR, 'ntia')
 FCC_DIR = os.path.join(_BASE_DATA_DIR, 'fcc')
 
+# Shared terrain and land-cover tiles live in the collaborating Common-Data
+# checkout. An explicit override takes priority over the legacy local layout.
+_COMMON_DATA_OVERRIDE = os.environ.get('CBRS_COMMON_DATA_DIR')
+_COMMON_DATA_DIR = os.path.abspath(
+    _COMMON_DATA_OVERRIDE or os.path.join(_BASE_DATA_DIR, '..', '..', 'Common-Data'))
+if _COMMON_DATA_OVERRIDE or not os.path.isdir(TERRAIN_DIR):
+  TERRAIN_DIR = os.path.join(_COMMON_DATA_DIR, 'data', 'ned')
+if _COMMON_DATA_OVERRIDE or not os.path.isdir(LANDCOVER_DIR):
+  LANDCOVER_DIR = os.path.join(_COMMON_DATA_DIR, 'data', 'nlcd')
+
 # If not using the standard location for the data files,
 # define the absolute path of your data directories
 #ITU_DIR =

@@ -20,6 +20,7 @@ from __future__ import print_function
 import numpy as np
 import shapely.geometry as sgeo
 from shapely import affinity
+from shapely import ops
 
 from reference_models.geo import utils
 from reference_models.geo import vincenty
@@ -83,10 +84,15 @@ def Buffer(geometry, distance_km, ref_latitude=None, **kwargs):
     ref_latitude: A reference latitude for the Eqc projection. If None, using
       the centroid of the geometry.
     **kwargs: The optional parameters forwarded to the shapely `buffer` routine:
-      (for example: resolution, cap_style, join_style)
+      (for example: quad_segs, cap_style, join_style). The previous `resolution`
+      keyword remains accepted as an alias for `quad_segs`. A non-None
+      `resolution` takes precedence when both keywords are supplied.
   """
   geom = utils.ToShapely(geometry)
   proj_geom, ref_latitude = _ProjectEqc(geom, ref_latitude)
+  resolution = kwargs.pop('resolution', None)
+  if resolution is not None:
+    kwargs['quad_segs'] = resolution
   proj_geom = proj_geom.buffer(distance_km, **kwargs)
   geom = _InvProjectEqc(proj_geom, ref_latitude)
   if isinstance(geometry, sgeo.base.BaseGeometry):
@@ -115,15 +121,19 @@ def GridPolygonApprox(poly, res_km):
     A list of (lon, lat) defining the grid points.
   """
   poly = utils.ToShapely(poly)
+  if poly.is_empty:
+    return []
   bound_area = ((poly.bounds[2] - poly.bounds[0]) *
                 (poly.bounds[3] - poly.bounds[1]))
   if isinstance(poly, sgeo.MultiPolygon) and poly.area < bound_area * 0.01:
     # For largely disjoint polygons, we process per polygon
     # to avoid inefficiencies if polygons largely disjoint.
     pts = ops.unary_union(
-        [sgeo.asMultiPoint(GridPolygonApprox(p, res_km))
-         for p in poly])
-    return [(p.x, p.y) for p in pts]
+        [sgeo.MultiPoint(GridPolygonApprox(p, res_km))
+         for p in poly.geoms])
+    if isinstance(pts, sgeo.Point):
+      return [(pts.x, pts.y)]
+    return [(p.x, p.y) for p in pts.geoms]
 
   # Note: using as reference the min latitude, ie actual resolution < res_km.
   # This is to match NTIA procedure.
@@ -149,10 +159,12 @@ def GridPolygonApprox(poly, res_km):
   points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
   # Performs slight buffering by 1mm to include border points in case they fall
   # exactly on a multiple of
-  pts = poly.buffer(1e-8).intersection(sgeo.asMultiPoint(points))
+  pts = poly.buffer(1e-8).intersection(sgeo.MultiPoint(points))
+  if pts.is_empty:
+    return []
   if isinstance(pts, sgeo.Point):
     return [(pts.x, pts.y)]
-  return [(p.x, p.y) for p in pts]
+  return [(p.x, p.y) for p in pts.geoms]
 
 
 def SampleLine(line, res_km, ref_latitude=None,
@@ -177,12 +189,12 @@ def SampleLine(line, res_km, ref_latitude=None,
         [proj_line.interpolate(dist)
          for dist in np.arange(0, ratio * proj_line.length - 1e-6, res_km)])
   else:
-    n_intervals = ratio * proj_line.length // res_km
+    n_intervals = int(ratio * proj_line.length // res_km)
     points = sgeo.MultiPoint(
         [proj_line.interpolate(dist)
          for dist in np.linspace(0, ratio * proj_line.length, n_intervals)])
   points = _InvProjectEqc(points, ref_latitude)
-  return [(round(p.x, precision), round(p.y, precision)) for p in points]
+  return [(round(p.x, precision), round(p.y, precision)) for p in points.geoms]
 
 
 def AreaPlateCarreePixel(res_arcsec, ref_latitude):

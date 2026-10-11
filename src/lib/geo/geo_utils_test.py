@@ -42,21 +42,29 @@ class TestGeoUtils(unittest.TestCase):
 
   def test_buffer_point(self):
     pt = sgeo.Point(-110, 40)
-    circle = geo_utils.Buffer(pt, 20, resolution=256)
+    circle = geo_utils.Buffer(pt, 20, quad_segs=256)
     area = utils.GeometryArea(circle)
     self.assertLess(np.abs(area - np.pi*20**2), 0.001 * area)
+    self.assertTrue(circle.equals_exact(
+        geo_utils.Buffer(pt, 20, resolution=256), 0))
+    self.assertTrue(circle.equals_exact(
+        geo_utils.Buffer(pt, 20, quad_segs=4, resolution=256), 0))
+    self.assertTrue(circle.equals_exact(
+        geo_utils.Buffer(pt, 20, quad_segs=256, resolution=None), 0))
+    self.assertTrue(geo_utils.Buffer(pt, 20, resolution=None).equals_exact(
+        geo_utils.Buffer(pt, 20), 0))
 
   def test_buffer_poly(self):
     pt = sgeo.Point(-110, 40)
-    circle = geo_utils.Buffer(pt, 20, resolution=256)
-    circle = geo_utils.Buffer(circle, 10, resolution=256)
+    circle = geo_utils.Buffer(pt, 20, quad_segs=256)
+    circle = geo_utils.Buffer(circle, 10, quad_segs=256)
     area = utils.GeometryArea(circle)
     self.assertLess(np.abs(area - np.pi*30**2), 0.001 * area)
 
   def test_shrink_poly(self):
     pt = sgeo.Point(-110, 40)
-    circle = geo_utils.Buffer(pt, 20, resolution=256)
-    circle = geo_utils.Buffer(circle, -10, resolution=256)
+    circle = geo_utils.Buffer(pt, 20, quad_segs=256)
+    circle = geo_utils.Buffer(circle, -10, quad_segs=256)
     area = utils.GeometryArea(circle)
     self.assertLess(np.abs(area - np.pi*10**2), 0.001 * area)
 
@@ -79,12 +87,24 @@ class TestGeoUtils(unittest.TestCase):
     self.assertSeqAlmostEqual(pts, [(0, 59.), (0, 60.),
                                     (1.935, 59.), (1.935, 60.)], 2)
 
+  def test_grid_disjoint_polygons_with_one_grid_point(self):
+    poly = sgeo.MultiPolygon([
+        sgeo.box(-0.1, -0.1, 0.1, 0.1), sgeo.box(10.2, 10.2, 10.3, 10.3)])
+    self.assertEqual(geo_utils.GridPolygonApprox(poly, res_km=100), [(0.0, 0.0)])
+    self.assertEqual(geo_utils.GridPolygonApprox(sgeo.Polygon(), res_km=100), [])
+
   def test_sample_line(self):
     line = sgeo.LineString([(0, 50), (0, 60), (40, 60), (40, 70)])
     pts = geo_utils.SampleLine(line, 10*110.946)
     self.assertEqual(len(pts), 5)
     self.assertSeqAlmostEqual(pts, [(0, 50), (0, 60.),
                                     (19.933, 60.), (39.866, 60)], 3)
+
+  def test_sample_line_equal_intervals(self):
+    points = geo_utils.SampleLine(
+        sgeo.LineString([(0, 0), (0, 1)]), res_km=25, equal_intervals=True)
+    self.assertEqual(len(points), 4)
+    self.assertSeqAlmostEqual(points, [(0, 0), (0, 0.33333), (0, 0.66667), (0, 1)])
 
 if __name__ == '__main__':
   unittest.main()

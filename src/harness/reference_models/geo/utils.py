@@ -232,16 +232,18 @@ def GridPolygon(poly, res_arcsec):
     A list of (lon, lat) defining the grid points.
   """
   poly = ToShapely(poly)
-  bound_area = (poly.bounds[2] - poly.bounds[0]) * (poly.bounds[3] - poly.bounds[1])
-  if not poly:
+  if poly.is_empty:
     return []
+  bound_area = (poly.bounds[2] - poly.bounds[0]) * (poly.bounds[3] - poly.bounds[1])
   if isinstance(poly, sgeo.MultiPolygon) and poly.area < bound_area * 0.01:
     # For largely disjoint polygons, we process per polygon
     # to avoid inefficiencies if polygons largely disjoint.
     pts = ops.unary_union(
-        [sgeo.asMultiPoint(GridPolygon(p, res_arcsec))
-         for p in poly])
-    return [(p.x, p.y) for p in pts]
+        [sgeo.MultiPoint(GridPolygon(p, res_arcsec))
+         for p in poly.geoms])
+    if isinstance(pts, sgeo.Point):
+      return [(pts.x, pts.y)]
+    return [(p.x, p.y) for p in pts.geoms]
 
   res = res_arcsec / 3600.
   bounds = poly.bounds
@@ -262,12 +264,12 @@ def GridPolygon(poly, res_arcsec):
   points = np.vstack((mesh_lng.ravel(), mesh_lat.ravel())).T
   # Performs slight buffering by 1mm to include border points in case they fall
   # exactly on a multiple of 1 arcsec.
-  pts = poly.buffer(1e-8).intersection(sgeo.asMultiPoint(points))
+  pts = poly.buffer(1e-8).intersection(sgeo.MultiPoint(points))
   if not pts:
     return []
   if isinstance(pts, sgeo.Point):
     return [(pts.x, pts.y)]
-  return [(p.x, p.y) for p in pts]
+  return [(p.x, p.y) for p in pts.geoms]
 
 
 def _RingArea(latitudes, longitudes):
@@ -338,12 +340,8 @@ def GeometryArea(geometry, merge_geometries=False):
     # Multi geometries
     if merge_geometries:
       geometry = ops.unary_union(geometry)
-      # Test if dissolved into a simple geometry.
-      try:
-        iter(geometry)
-      except TypeError:
-        return GeometryArea(geometry)
-    return sum(GeometryArea(simple_shape) for simple_shape in geometry)
+      return GeometryArea(geometry)
+    return sum(GeometryArea(simple_shape) for simple_shape in geometry.geoms)
 
 def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
   """Returns input |shapely| geometry with small internal holes removed.
@@ -366,7 +364,7 @@ def PolyWithoutSmallHoles(poly, min_hole_area_km2=0.5):
       return sgeo.Polygon(poly.exterior, interiors)
   elif isinstance(poly, sgeo.MultiPolygon):
     return sgeo.MultiPolygon([PolyWithoutSmallHoles(p, min_hole_area_km2)
-                              for p in poly])
+                              for p in poly.geoms])
   else:
     raise ValueError('Input geometry is not a shapely Polygon or MultiPolygon')
 
@@ -423,8 +421,8 @@ def ShrinkAndCleanPolygon(poly, shrink_deg, min_poly_ratio=0.01):
   poly = poly.buffer(-shrink_deg)
   if isinstance(poly, sgeo.MultiPolygon):
     # Cleanup multi-polygon.
-    max_poly_area = max(p.area for p in poly)
-    polys = [p for p in poly if p.area > min_poly_ratio * max_poly_area]
+    max_poly_area = max(p.area for p in poly.geoms)
+    polys = [p for p in poly.geoms if p.area > min_poly_ratio * max_poly_area]
     if len(polys) > 1:
       raise ValueError('Impossible to shrink polygon '
                        'into a proper single polygon')
@@ -457,13 +455,13 @@ def GetClosestCanadianBorderPoint(latitude, longitude, max_dist_km):
     return None
   points_dists = []
   # Find closest point
-  if border_cap.type in ['LineString', 'Point']:
+  if border_cap.geom_type in ['LineString', 'Point']:
     points_dists.extend(_distancesOfPoints(latitude, longitude, border_cap))
-  elif border_cap.type in ['MultiLineString', 'MultiPoint']:
+  elif border_cap.geom_type in ['MultiLineString', 'MultiPoint']:
     for element in border_cap.geoms:
       points_dists.extend(_distancesOfPoints(latitude, longitude, element))
   else:
-    raise ValueError(border_cap.type +
+    raise ValueError(border_cap.geom_type +
                      ', not treated type of intersection with canadian border')
   closest = min(points_dists)
   closest_dist = closest[0][0]

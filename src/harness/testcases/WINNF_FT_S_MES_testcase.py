@@ -18,7 +18,7 @@ from __future__ import print_function
 import json
 import os
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
 from six.moves import zip
 
@@ -232,7 +232,7 @@ class MeasurementTestcase(unittest.TestCase):
         self.assertEqual(resp['grantId'], grant_ids[response_num])
         transmit_expire_time = datetime.strptime(resp['transmitExpireTime'],
                                              '%Y-%m-%dT%H:%M:%SZ')
-        self.assertLess(datetime.utcnow(), transmit_expire_time)
+        self.assertLess(datetime.now(timezone.utc).replace(tzinfo=None), transmit_expire_time)
         if response_num != len(response) - 1:
             self.assertTrue('RECEIVED_POWER_WITH_GRANT' in resp['measReportConfig'])
         else:

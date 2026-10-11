@@ -47,7 +47,9 @@ class TestZones(unittest.TestCase):
     self.assertTrue(z.area > 5.5 and z.area < 5.55)
 
   def test_read_coastal_dpa(self):
-    z = zones.GetCoastalDpaZones()
+    # Use the fixed fixture: the operational database is updated independently.
+    z = zones.GetCoastalDpaZones(
+        os.path.join(TEST_DIR, 'E-DPAs_new_neighborhoods.kml'))
     for name, zone in z.items():
       self.assertTrue(zone.geometry.is_valid)
     self.assertAlmostEqual(z['East5'].geometry.area, 6, 1)
@@ -56,7 +58,7 @@ class TestZones(unittest.TestCase):
     self.assertEqual(z['East5'].refHeightMeters, 50)
     self.assertEqual(z['East5'].minAzimuthDeg, 0)
     self.assertEqual(z['East5'].maxAzimuthDeg, 360)
-    self.assertEqual(z['East5'].catBNeighborhoodDistanceKm, 368)
+    self.assertEqual(z['East5'].catBNeighborhoodDistanceKm, 332)
 
   def test_read_coastal_dpa_new_neighborhoods(self):
     z = zones.GetCoastalDpaZones(
@@ -134,7 +136,7 @@ class TestZones(unittest.TestCase):
     # Official length of main and alaska are resp 3987 miles and 1538 miles
     exp_borders_length = sum(np.array([3987, 1538]) * 1.60934)
     approx_len = 0
-    for j, border in enumerate(borders):
+    for j, border in enumerate(borders.geoms):
       points = list(zip(*border.xy))
       for k in range(len(points)-1):
         if points[k][0] > -67.8 and points[k][1] < 44.77:
